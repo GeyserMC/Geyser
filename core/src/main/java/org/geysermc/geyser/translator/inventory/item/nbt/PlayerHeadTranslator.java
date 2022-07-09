@@ -30,37 +30,46 @@ import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
 import org.geysermc.geyser.translator.inventory.item.NbtItemStackTranslator;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 
 @ItemRemapper
 public class PlayerHeadTranslator extends NbtItemStackTranslator {
 
     @Override
     public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
-        if (!itemTag.contains("display") || !((CompoundTag) itemTag.get("display")).contains("Name")) {
+        CompoundTag displayTag;
+        if (itemTag.get("display") instanceof CompoundTag tag) {
+            displayTag = tag;
+        } else {
+            displayTag = new CompoundTag("display");
+            itemTag.put(displayTag);
+        }
+
+        if (displayTag.get("Name") instanceof StringTag nameTag) {
+            // Custom names are always yellow and italic
+            displayTag.put(new StringTag("Name", ChatColor.YELLOW + ChatColor.ITALIC + MessageTranslator.convertMessageLenient(nameTag.getValue(), session.locale())));
+        } else {
             if (itemTag.contains("SkullOwner")) {
                 StringTag name;
                 Tag skullOwner = itemTag.get("SkullOwner");
-                if (skullOwner instanceof StringTag) {
-                    name = (StringTag) skullOwner;
+                if (skullOwner instanceof StringTag skullName) {
+                    name = skullName;
                 } else {
-                    StringTag skullName;
-                    if (skullOwner instanceof CompoundTag && (skullName = ((CompoundTag) skullOwner).get("Name")) != null) {
+                    if (skullOwner instanceof CompoundTag && ((CompoundTag) skullOwner).get("Name") instanceof StringTag skullName) {
                         name = skullName;
                     } else {
-                        session.getGeyser().getLogger().debug("Not sure how to handle skull head item display. " + itemTag);
+                        // No name found so default to "Player Head"
+                        displayTag.put(new StringTag("Name", ChatColor.RESET + ChatColor.YELLOW + MinecraftLocale.getLocaleString("block.minecraft.player_head", session.locale())));
                         return;
                     }
                 }
                 // Add correct name of player skull
-                // TODO: It's always yellow, even with a custom name. Handle?
-                String displayName = "\u00a7r\u00a7e" + MinecraftLocale.getLocaleString("block.minecraft.player_head.named", session.locale()).replace("%s", name.getValue());
-                if (!itemTag.contains("display")) {
-                    itemTag.put(new CompoundTag("display"));
-                }
-                ((CompoundTag) itemTag.get("display")).put(new StringTag("Name", displayName));
+                String displayName = ChatColor.RESET + ChatColor.YELLOW + MinecraftLocale.getLocaleString("block.minecraft.player_head.named", session.locale()).replace("%s", name.getValue());
+                displayTag.put(new StringTag("Name", displayName));
             }
         }
     }
