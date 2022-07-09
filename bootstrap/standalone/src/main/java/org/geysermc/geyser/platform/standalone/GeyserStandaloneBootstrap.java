@@ -197,7 +197,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
             handleArgsConfigOptions();
 
-            if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
+            if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
                 geyserConfig.setAutoconfiguredRemote(true); // Doesn't really need to be set but /shrug
                 geyserConfig.getRemote().setAddress("127.0.0.1");
             }

@@ -137,7 +137,7 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     boolean isTool();
 
     static NonVanillaCustomItemData.Builder builder() {
-        return GeyserApi.api().providerManager().builderProvider().provideBuilder(NonVanillaCustomItemData.Builder.class);
+        return GeyserApi.api().provider(NonVanillaCustomItemData.Builder.class);
     }
 
     interface Builder extends CustomItemData.Builder {

@@ -581,7 +581,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             disconnect(message);
         });
 
-        this.remoteServer = geyser.getRemoteServer();
+        this.remoteServer = geyser.defaultRemoteServer();
     }
 
     /**
@@ -1457,7 +1457,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setFromWorldTemplate(false);
         startGamePacket.setWorldTemplateOptionLocked(false);
 
-        String serverName = geyser.getConfig().getBedrock().getServerName();
+        String serverName = geyser.getConfig().getBedrock().serverName();
         startGamePacket.setLevelId(serverName);
         startGamePacket.setLevelName(serverName);
 

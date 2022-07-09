@@ -83,7 +83,7 @@ public interface CustomItemData {
     @Nullable CustomRenderOffsets renderOffsets();
 
     static CustomItemData.Builder builder() {
-        return GeyserApi.api().providerManager().builderProvider().provideBuilder(CustomItemData.Builder.class);
+        return GeyserApi.api().provider(CustomItemData.Builder.class);
     }
 
     interface Builder {

@@ -45,9 +45,10 @@ public class ServerDefineCommandsEvent extends ConnectionEvent implements Cancel
     }
 
     /**
-     * A mutable collection of the commands sent over.
+     * A collection of commands sent from the server. Any element in this collection can be removed, but no element can
+     * be added.
      *
-     * @return a mutable collection of the commands sent over
+     * @return a collection of the commands sent over
      */
     @NonNull
     public Set<? extends CommandInfo> commands() {
@@ -65,7 +66,6 @@ public class ServerDefineCommandsEvent extends ConnectionEvent implements Cancel
     }
 
     public interface CommandInfo {
-
         /**
          * Gets the name of the command.
          *
