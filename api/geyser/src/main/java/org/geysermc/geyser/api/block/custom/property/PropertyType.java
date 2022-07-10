@@ -25,18 +25,17 @@
 
 package org.geysermc.geyser.api.block.custom.property;
 
-public class PropertyType<T> {
-    public static final PropertyType<Boolean> BOOLEAN = new PropertyType<>(Boolean.class);
-    public static final PropertyType<Integer> INTEGER = new PropertyType<>(Integer.class);
-    public static final PropertyType<String> STRING = new PropertyType<>(String.class);
+import lombok.Getter;
 
+public class PropertyType {
+    public static final PropertyType BOOLEAN = new PropertyType(Boolean.class);
+    public static final PropertyType INTEGER = new PropertyType(Integer.class);
+    public static final PropertyType STRING = new PropertyType(String.class);
+
+    @Getter
     private final Class<?> typeClass;
 
     private PropertyType(Class<?> typeClass) {
         this.typeClass = typeClass;
-    }
-
-    public Class<?> getTypeClass() {
-        return typeClass;
     }
 }

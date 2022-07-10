@@ -39,12 +39,17 @@ import java.util.Map;
 
 @Value
 public class GeyserCustomBlockState implements CustomBlockState {
-    String name;
+    CustomBlockData block;
     Map<String, Object> properties;
 
     @Override
+    public @NonNull CustomBlockData block() {
+        return block;
+    }
+
+    @Override
     public @NonNull String name() {
-        return name;
+        return block.name();
     }
 
     @SuppressWarnings("unchecked")
@@ -97,11 +102,11 @@ public class GeyserCustomBlockState implements CustomBlockState {
                 if (property == null) {
                     throw new IllegalArgumentException("Unknown property: " + propertyName);
                 } else if (!property.values().contains(propertyValue)) {
-                    throw new IllegalArgumentException("Invalid value for property: " + propertyName + " Value: " + propertyValue);
+                    throw new IllegalArgumentException("Invalid value: " + propertyValue + " for property: " + propertyName);
                 }
             }
 
-            return new GeyserCustomBlockState(blockData.name(), Object2ObjectMaps.unmodifiable(properties));
+            return new GeyserCustomBlockState(blockData, Object2ObjectMaps.unmodifiable(properties));
         }
     }
 }

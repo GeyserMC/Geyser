@@ -53,12 +53,11 @@ public interface CustomBlockData {
 
         Builder components(@NonNull CustomBlockComponents components);
 
-        Builder booleanProperty(@NonNull String propertyName, List<Boolean> values);
+        Builder booleanProperty(@NonNull String propertyName);
 
         Builder intProperty(@NonNull String propertyName, List<Integer> values);
 
         Builder stringProperty(@NonNull String propertyName, List<String> values);
-
 
         Builder permutations(@NonNull List<CustomBlockPermutation> permutations);
 

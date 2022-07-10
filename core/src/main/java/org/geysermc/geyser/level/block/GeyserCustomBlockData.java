@@ -28,6 +28,8 @@ package org.geysermc.geyser.level.block;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectLists;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Value;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
@@ -41,7 +43,11 @@ import java.util.List;
 import java.util.Map;
 
 @Value
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class GeyserCustomBlockData implements CustomBlockData {
+
+    public static final String GEYSER_NAMESPACE = "geyser:";
+
     String name;
     CustomBlockComponents components;
     Map<String, CustomBlockProperty<?>> properties;
@@ -54,7 +60,7 @@ public class GeyserCustomBlockData implements CustomBlockData {
 
     @Override
     public @NonNull String identifier() {
-        return "geyser:" + name;
+        return GEYSER_NAMESPACE + name;
     }
 
     @Override
@@ -96,8 +102,8 @@ public class GeyserCustomBlockData implements CustomBlockData {
         }
 
         @Override
-        public Builder booleanProperty(@NonNull String propertyName, List<Boolean> values) {
-            this.properties.put(propertyName, new GeyserCustomBlockProperty<>(propertyName, values, PropertyType.BOOLEAN));
+        public Builder booleanProperty(@NonNull String propertyName) {
+            this.properties.put(propertyName, new GeyserCustomBlockProperty<>(propertyName, List.of(false, true), PropertyType.BOOLEAN));
             return this;
         }
 
@@ -130,6 +136,9 @@ public class GeyserCustomBlockData implements CustomBlockData {
                 for (CustomBlockProperty<?> property : properties.values()) {
                     if (property.values().isEmpty() || property.values().size() > 16) {
                         throw new IllegalArgumentException(property.name() + " must contain 1 to 16 values.");
+                    }
+                    if (property.values().stream().distinct().count() != property.values().size()) {
+                        throw new IllegalArgumentException(property.name() + " has duplicate values.");
                     }
                 }
             }

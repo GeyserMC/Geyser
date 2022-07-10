@@ -135,7 +135,7 @@ public class BlockRegistryPopulator {
                     .putInt("version", stateVersion)
                     .putCompound("states", states)
                     .build());
-            customExtBlockStates.add(new GeyserCustomBlockState(customBlock.name(), states));
+            customExtBlockStates.add(new GeyserCustomBlockState(customBlock, states));
         }
     }
 

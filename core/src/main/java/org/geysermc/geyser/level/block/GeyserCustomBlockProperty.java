@@ -31,30 +31,6 @@ import org.geysermc.geyser.api.block.custom.property.PropertyType;
 
 import java.util.List;
 
-public class GeyserCustomBlockProperty<T> implements CustomBlockProperty<T> {
-    private final String name;
-    private final List<T> values;
-
-    private final PropertyType<T> type;
-
-    public GeyserCustomBlockProperty(String name, List<T> values, PropertyType<T> type) {
-        this.name = name;
-        this.values = values;
-        this.type = type;
-    }
-
-    @Override
-    public @NonNull String name() {
-        return name;
-    }
-
-    @Override
-    public @NonNull List<T> values(){
-        return values;
-    }
-
-    @Override
-    public @NonNull PropertyType<T> type() {
-        return type;
-    }
+public record GeyserCustomBlockProperty<T>(@NonNull String name, @NonNull List<T> values,
+                                           @NonNull PropertyType type) implements CustomBlockProperty<T> {
 }

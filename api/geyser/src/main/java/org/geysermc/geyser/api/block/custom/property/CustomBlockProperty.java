@@ -34,5 +34,5 @@ public interface CustomBlockProperty<T> {
 
     @NonNull List<T> values();
 
-    @NonNull PropertyType<T> type();
+    @NonNull PropertyType type();
 }

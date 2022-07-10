@@ -30,6 +30,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import java.util.Map;
 
 public interface CustomBlockState {
+    @NonNull CustomBlockData block();
+
     @NonNull String name();
 
     @NonNull <T> T property(String propertyName);
