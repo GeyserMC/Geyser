@@ -35,6 +35,6 @@ public class JavaBlockChangedAckTranslator extends PacketTranslator<ClientboundB
 
     @Override
     public void translate(GeyserSession session, ClientboundBlockChangedAckPacket packet) {
-        // TODO
+        session.getWorldCache().endPredictionsUpTo(packet.getSequence());
     }
 }

@@ -38,7 +38,10 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.inventory.*;
-import com.nukkitx.protocol.bedrock.packet.*;
+import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
+import com.nukkitx.protocol.bedrock.packet.InventoryTransactionPacket;
+import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -126,7 +129,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 dropAll ? PlayerAction.DROP_ITEM_STACK : PlayerAction.DROP_ITEM,
                                 Vector3i.ZERO,
                                 Direction.DOWN,
-                                session.getNextSequence()
+                                session.getWorldCache().nextPredictionSequence()
                         );
                         session.sendDownstreamPacket(dropPacket);
 
@@ -264,7 +267,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 Hand.MAIN_HAND,
                                 packet.getClickPosition().getX(), packet.getClickPosition().getY(), packet.getClickPosition().getZ(),
                                 false,
-                                session.getNextSequence());
+                                session.getWorldCache().nextPredictionSequence());
                         session.sendDownstreamPacket(blockPacket);
 
                         if (packet.getItemInHand() != null) {
@@ -341,7 +344,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             }
                         }
 
-                        ServerboundUseItemPacket useItemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getNextSequence());
+                        ServerboundUseItemPacket useItemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getWorldCache().nextPredictionSequence());
                         session.sendDownstreamPacket(useItemPacket);
 
                         List<LegacySetItemSlotData> legacySlots = packet.getLegacySlots();
@@ -406,12 +409,22 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             return;
                         }
 
+                        int sequence = session.getWorldCache().nextPredictionSequence();
+                        if (blockState != -1) {
+                            session.getWorldCache().addServerCorrectBlockState(packet.getBlockPosition(), blockState);
+                        } else {
+                            blockState = BlockStateValues.JAVA_AIR_ID;
+                            // Client will desync here anyway
+                            session.getWorldCache().addServerCorrectBlockState(packet.getBlockPosition(),
+                                    session.getGeyser().getWorldManager().getBlockAt(session, packet.getBlockPosition()));
+                        }
+
                         LevelEventPacket blockBreakPacket = new LevelEventPacket();
                         blockBreakPacket.setType(LevelEventType.PARTICLE_DESTROY_BLOCK);
                         blockBreakPacket.setPosition(packet.getBlockPosition().toFloat());
                         blockBreakPacket.setData(session.getBlockMappings().getBedrockBlockId(blockState));
                         session.sendUpstreamPacket(blockBreakPacket);
-                        session.setBreakingBlock(BlockStateValues.JAVA_AIR_ID);
+                        session.setBreakingBlock(-1);
 
                         Entity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
                         if (itemFrameEntity != null) {
@@ -422,7 +435,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         PlayerAction action = session.getGameMode() == GameMode.CREATIVE ? PlayerAction.START_DIGGING : PlayerAction.FINISH_DIGGING;
-                        ServerboundPlayerActionPacket breakPacket = new ServerboundPlayerActionPacket(action, packet.getBlockPosition(), Direction.VALUES[packet.getBlockFace()], session.getNextSequence());
+                        ServerboundPlayerActionPacket breakPacket = new ServerboundPlayerActionPacket(action, packet.getBlockPosition(), Direction.VALUES[packet.getBlockFace()], sequence);
                         session.sendDownstreamPacket(breakPacket);
                     }
                 }
@@ -431,7 +444,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 if (packet.getActionType() == 0) {
                     // Followed to the Minecraft Protocol specification outlined at wiki.vg
                     ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, Vector3i.ZERO,
-                            Direction.DOWN, session.getNextSequence());
+                            Direction.DOWN, session.getWorldCache().nextPredictionSequence());
                     session.sendDownstreamPacket(releaseItemPacket);
                 }
                 break;
@@ -578,7 +591,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         Vector3f target = packet.getBlockPosition().toFloat().add(packet.getClickPosition());
         lookAt(session, target);
 
-        ServerboundUseItemPacket itemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getNextSequence());
+        ServerboundUseItemPacket itemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getWorldCache().nextPredictionSequence());
         session.sendDownstreamPacket(itemPacket);
         return true;
     }

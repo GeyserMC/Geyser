@@ -401,6 +401,8 @@ public class GeyserSession implements GeyserConnection, CommandSender {
      */
     @Setter
     private boolean emulatePost1_16Logic = true;
+    @Setter
+    private boolean emulatePost1_18Logic = true;
 
     /**
      * The current attack speed of the player. Used for sending proper cooldown timings.
@@ -1278,9 +1280,9 @@ public class GeyserSession implements GeyserConnection, CommandSender {
 
         ServerboundUseItemPacket useItemPacket;
         if (playerInventory.getItemInHand().getJavaId() == shield.getJavaId()) {
-            useItemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, getNextSequence());
+            useItemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, worldCache.nextPredictionSequence());
         } else if (playerInventory.getOffhand().getJavaId() == shield.getJavaId()) {
-            useItemPacket = new ServerboundUseItemPacket(Hand.OFF_HAND, getNextSequence());
+            useItemPacket = new ServerboundUseItemPacket(Hand.OFF_HAND, worldCache.nextPredictionSequence());
         } else {
             // No blocking
             return false;
@@ -1309,7 +1311,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     private boolean disableBlocking() {
         if (playerEntity.getFlag(EntityFlag.BLOCKING)) {
             ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM,
-                    Vector3i.ZERO, Direction.DOWN, getNextSequence());
+                    Vector3i.ZERO, Direction.DOWN, worldCache.nextPredictionSequence());
             sendDownstreamPacket(releaseItemPacket);
             playerEntity.setFlag(EntityFlag.BLOCKING, false);
             return true;
@@ -1685,10 +1687,6 @@ public class GeyserSession implements GeyserConnection, CommandSender {
                 getRenderDistance(), ChatVisibility.FULL, true, SKIN_PARTS,
                 HandPreference.RIGHT_HAND, false, true);
         sendDownstreamPacket(clientSettingsPacket);
-    }
-
-    public int getNextSequence() {
-        return 0;
     }
 
     /**

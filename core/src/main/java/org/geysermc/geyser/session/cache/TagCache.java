@@ -28,6 +28,7 @@ package org.geysermc.geyser.session.cache;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateTagsPacket;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -82,6 +83,15 @@ public class TagCache {
         this.requiresIronTool = IntList.of(blockTags.get("minecraft:needs_iron_tool"));
         this.requiresDiamondTool = IntList.of(blockTags.get("minecraft:needs_diamond_tool"));
 
+        // Hack btw
+        GeyserLogger logger = session.getGeyser().getLogger();
+        int[] convertableToMud = blockTags.get("minecraft:convertable_to_mud");
+        boolean emulatePost1_18Logic = convertableToMud != null && convertableToMud.length != 0;
+        session.setEmulatePost1_18Logic(emulatePost1_18Logic);
+        if (logger.isDebug()) {
+            logger.debug("Emulating post 1.18 block predication logic for " + session.name() + "? " + emulatePost1_18Logic);
+        }
+
         Map<String, int[]> itemTags = packet.getTags().get("minecraft:item");
         this.axolotlTemptItems = IntList.of(itemTags.get("minecraft:axolotl_tempt_items"));
         this.fishes = IntList.of(itemTags.get("minecraft:fishes"));
@@ -93,8 +103,8 @@ public class TagCache {
         // Hack btw
         boolean emulatePost1_14Logic = itemTags.get("minecraft:signs").length > 1;
         session.setEmulatePost1_14Logic(emulatePost1_14Logic);
-        if (session.getGeyser().getLogger().isDebug()) {
-            session.getGeyser().getLogger().debug("Emulating post 1.14 villager logic for " + session.name() + "? " + emulatePost1_14Logic);
+        if (logger.isDebug()) {
+            logger.debug("Emulating post 1.14 villager logic for " + session.name() + "? " + emulatePost1_14Logic);
         }
     }
 
