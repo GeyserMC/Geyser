@@ -17,7 +17,7 @@ The ultimate goal of this project is to allow Minecraft: Bedrock Edition users t
 
 Special thanks to the DragonProxy project for being a trailblazer in protocol translation and for all the team members who have joined us here!
 
-### Currently supporting Minecraft Bedrock 1.19 and Minecraft Java 1.19.0.
+### Currently supporting Minecraft Bedrock 1.19.0 - 1.19.10 and Minecraft Java 1.19.0.
 
 ## Setting Up
 Take a look [here](https://wiki.geysermc.org/geyser/setup/) for how to set up Geyser.
