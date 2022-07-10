@@ -128,8 +128,8 @@
         </dependency>
         <dependency>
             <groupId>com.github.CloudburstMC.Protocol</groupId>
-            <artifactId>bedrock-v527</artifactId>
-            <version>977a9a1</version>
+            <artifactId>bedrock-v534</artifactId>
+            <version>a78a64b</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -145,7 +145,7 @@
         <dependency>
             <groupId>com.nukkitx.network</groupId>
             <artifactId>raknet</artifactId>
-            <version>1.6.28-20211202.034102-5</version>
+            <version>1.6.28-20220125.214016-6</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>

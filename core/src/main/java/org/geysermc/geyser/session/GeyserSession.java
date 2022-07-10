@@ -487,6 +487,11 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     @Setter
     private boolean instabuild = false;
 
+    @Setter
+    private float flySpeed;
+    @Setter
+    private float walkSpeed;
+
     /**
      * Caches current rain status.
      */
@@ -1623,22 +1628,80 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         return geyser.getWorldManager().hasPermission(this, permission);
     }
 
+    private static final Ability[] USED_ABILITIES = Ability.values();
+
     /**
      * Send an AdventureSettingsPacket to the client with the latest flags
      */
     public void sendAdventureSettings() {
-        AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
-        adventureSettingsPacket.setUniqueEntityId(playerEntity.getGeyserId());
+        long bedrockId = playerEntity.getGeyserId();
         // Set command permission if OP permission level is high enough
         // This allows mobile players access to a GUI for doing commands. The commands there do not change above OPERATOR
         // and all commands there are accessible with OP permission level 2
-        adventureSettingsPacket.setCommandPermission(opPermissionLevel >= 2 ? CommandPermission.OPERATOR : CommandPermission.NORMAL);
+        CommandPermission commandPermission = opPermissionLevel >= 2 ? CommandPermission.OPERATOR : CommandPermission.NORMAL;
         // Required to make command blocks destroyable
-        adventureSettingsPacket.setPlayerPermission(opPermissionLevel >= 2 ? PlayerPermission.OPERATOR : PlayerPermission.MEMBER);
+        PlayerPermission playerPermission = opPermissionLevel >= 2 ? PlayerPermission.OPERATOR : PlayerPermission.MEMBER;
 
         // Update the noClip and worldImmutable values based on the current gamemode
         boolean spectator = gameMode == GameMode.SPECTATOR;
         boolean worldImmutable = gameMode == GameMode.ADVENTURE || spectator;
+
+        if (org.geysermc.geyser.network.MinecraftProtocol.supports1_19_10(this)) {
+            UpdateAdventureSettingsPacket adventureSettingsPacket = new UpdateAdventureSettingsPacket();
+            adventureSettingsPacket.setNoMvP(false);
+            adventureSettingsPacket.setNoMvP(false);
+            adventureSettingsPacket.setImmutableWorld(worldImmutable);
+            adventureSettingsPacket.setShowNameTags(false);
+            adventureSettingsPacket.setAutoJump(true);
+            sendUpstreamPacket(adventureSettingsPacket);
+
+            UpdateAbilitiesPacket updateAbilitiesPacket = new UpdateAbilitiesPacket();
+            updateAbilitiesPacket.setUniqueEntityId(bedrockId);
+            updateAbilitiesPacket.setCommandPermission(commandPermission);
+            updateAbilitiesPacket.setPlayerPermission(playerPermission);
+
+            AbilityLayer abilityLayer = new AbilityLayer();
+            Set<Ability> abilities = abilityLayer.getAbilityValues();
+            if (canFly || spectator) {
+                abilities.add(Ability.MAY_FLY);
+            }
+
+            // Default stuff we have to fill in
+            abilities.add(Ability.BUILD);
+            abilities.add(Ability.MINE);
+            if (gameMode == GameMode.CREATIVE) {
+                // Needed so the client doesn't attempt to take away items
+                abilities.add(Ability.INSTABUILD);
+            }
+
+            if (flying || spectator) {
+                if (spectator && !flying) {
+                    // We're "flying locked" in this gamemode
+                    flying = true;
+                    ServerboundPlayerAbilitiesPacket abilitiesPacket = new ServerboundPlayerAbilitiesPacket(true);
+                    sendDownstreamPacket(abilitiesPacket);
+                }
+                abilities.add(Ability.FLYING);
+            }
+
+            if (spectator) {
+                abilities.add(Ability.NO_CLIP);
+            }
+
+            abilityLayer.setLayerType(AbilityLayer.Type.BASE);
+            abilityLayer.setFlySpeed(flySpeed);
+            abilityLayer.setWalkSpeed(walkSpeed);
+            Collections.addAll(abilityLayer.getAbilitiesSet(), USED_ABILITIES);
+
+            updateAbilitiesPacket.getAbilityLayers().add(abilityLayer);
+            sendUpstreamPacket(updateAbilitiesPacket);
+            return;
+        }
+
+        AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
+        adventureSettingsPacket.setUniqueEntityId(bedrockId);
+        adventureSettingsPacket.setCommandPermission(commandPermission);
+        adventureSettingsPacket.setPlayerPermission(playerPermission);
 
         Set<AdventureSetting> flags = adventureSettingsPacket.getSettings();
         if (canFly || spectator) {
