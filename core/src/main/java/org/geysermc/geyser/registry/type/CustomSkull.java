@@ -48,8 +48,8 @@ public class CustomSkull {
 
     private CustomBlockData customBlockData;
 
-    private static final String DIRECTION_PROPERTY = "geyser_skull:direction";
-    private static final String TYPE_PROPERTY = "geyser_skull:type";
+    private static final String BITS_A_PROPERTY = "geyser_skull:bits_a";
+    private static final String BITS_B_PROPERTY = "geyser_skull:bits_b";
 
     private static final int[] ROTATIONS = {0, -90, 180, 90};
 
@@ -70,16 +70,16 @@ public class CustomSkull {
         customBlockData = new GeyserCustomBlockData.CustomBlockDataBuilder()
                 .name("player_skull_" + skinHash)
                 .components(components)
-                .intProperty(DIRECTION_PROPERTY, IntStream.rangeClosed(0, 15).boxed().toList())
-                .intProperty(TYPE_PROPERTY, IntStream.rangeClosed(0, 2).boxed().toList())
+                .intProperty(BITS_A_PROPERTY, IntStream.rangeClosed(0, 6).boxed().toList()) // This gives us exactly 21 block states
+                .intProperty(BITS_B_PROPERTY, IntStream.rangeClosed(0, 2).boxed().toList())
                 .permutations(permutations)
                 .build();
     }
 
     public CustomBlockState getDefaultBlockState() {
         return customBlockData.blockStateBuilder()
-                .intProperty(DIRECTION_PROPERTY, 0)
-                .intProperty(TYPE_PROPERTY, 0)
+                .intProperty(BITS_A_PROPERTY, 0)
+                .intProperty(BITS_B_PROPERTY, 0)
                 .build();
     }
 
@@ -93,15 +93,15 @@ public class CustomSkull {
         };
 
         return customBlockData.blockStateBuilder()
-                .intProperty(DIRECTION_PROPERTY, wallDirection)
-                .intProperty(TYPE_PROPERTY, 1)
+                .intProperty(BITS_A_PROPERTY, wallDirection + 1)
+                .intProperty(BITS_B_PROPERTY, 0)
                 .build();
     }
 
     public CustomBlockState getFloorBlockState(int floorRotation) {
         return customBlockData.blockStateBuilder()
-                .intProperty(DIRECTION_PROPERTY, floorRotation)
-                .intProperty(TYPE_PROPERTY, 2)
+                .intProperty(BITS_A_PROPERTY, (5 + floorRotation) % 7)
+                .intProperty(BITS_B_PROPERTY, (5 + floorRotation) / 7)
                 .build();
     }
 
@@ -111,7 +111,7 @@ public class CustomSkull {
                 .rotation(new RotationComponent(0, 180, 0))
                 .build();
 
-        String condition = String.format("query.block_property('%s') == 0 && query.block_property('%s') == 0", DIRECTION_PROPERTY, TYPE_PROPERTY);
+        String condition = String.format("query.block_property('%s') == 0 && query.block_property('%s') == 0", BITS_A_PROPERTY, BITS_B_PROPERTY);
         permutations.add(new GeyserCustomBlockPermutation.CustomBlockPermutationBuilder()
                 .condition(condition)
                 .components(components)
@@ -129,7 +129,7 @@ public class CustomSkull {
         for (int quadrant = 0; quadrant < 4; quadrant++) {
             RotationComponent rotation = new RotationComponent(0, ROTATIONS[quadrant], 0);
             for (int i = 0; i < 4; i++) {
-                int floorDirection = 4 * quadrant + i;
+                int floorRotation = 4 * quadrant + i;
                 CustomBlockComponents components = new GeyserCustomBlockComponents.CustomBlockComponentsBuilder()
                         .aimCollision(box)
                         .entityCollision(box)
@@ -137,7 +137,9 @@ public class CustomSkull {
                         .rotation(rotation)
                         .build();
 
-                String condition = String.format("query.block_property('%s') == %d && query.block_property('%s') == %d", DIRECTION_PROPERTY, floorDirection, TYPE_PROPERTY, 2);
+                int bitsA = (5 + floorRotation) % 7;
+                int bitsB = (5 + floorRotation) / 7;
+                String condition = String.format("query.block_property('%s') == %d && query.block_property('%s') == %d", BITS_A_PROPERTY, bitsA, BITS_B_PROPERTY, bitsB);
                 permutations.add(new GeyserCustomBlockPermutation.CustomBlockPermutationBuilder()
                         .condition(condition)
                         .components(components)
@@ -154,7 +156,7 @@ public class CustomSkull {
 
         for (int i = 0; i < 4; i++) {
             RotationComponent rotation = new RotationComponent(0, ROTATIONS[i], 0);
-            String condition = String.format("query.block_property('%s') == %d && query.block_property('%s') == %d", DIRECTION_PROPERTY, i, TYPE_PROPERTY, 1);
+            String condition = String.format("query.block_property('%s') == %d && query.block_property('%s') == %d", BITS_A_PROPERTY, i + 1, BITS_B_PROPERTY, 0);
 
             CustomBlockComponents components = new GeyserCustomBlockComponents.CustomBlockComponentsBuilder()
                     .aimCollision(box)
