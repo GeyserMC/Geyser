@@ -169,6 +169,11 @@ public class SkullResourcePackManager {
                 }
                 zipOS.closeEntry();
             }
+
+            ZipEntry entry = new ZipEntry("skull_resource_pack/pack_icon.png");
+            zipOS.putNextEntry(entry);
+            zipOS.write(FileUtils.readAllBytes("icon.png"));
+            zipOS.closeEntry();
         }
     }
 

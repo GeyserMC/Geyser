@@ -32,6 +32,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockPermutation;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
@@ -46,8 +47,6 @@ import java.util.Map;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class GeyserCustomBlockData implements CustomBlockData {
 
-    public static final String GEYSER_NAMESPACE = "geyser:";
-
     String name;
     CustomBlockComponents components;
     Map<String, CustomBlockProperty<?>> properties;
@@ -60,7 +59,7 @@ public class GeyserCustomBlockData implements CustomBlockData {
 
     @Override
     public @NonNull String identifier() {
-        return GEYSER_NAMESPACE + name;
+        return Constants.GEYSER_NAMESPACE + name;
     }
 
     @Override

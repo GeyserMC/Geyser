@@ -39,6 +39,8 @@ public final class Constants {
 
     static final String SAVED_REFRESH_TOKEN_FILE = "saved-refresh-tokens.json";
 
+    public static final String GEYSER_NAMESPACE = "geyser:";
+
     static {
         URI wsUri = null;
         try {

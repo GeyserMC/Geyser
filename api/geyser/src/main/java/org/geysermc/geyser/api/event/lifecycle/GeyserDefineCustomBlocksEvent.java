@@ -31,6 +31,6 @@ import org.geysermc.geyser.api.event.Event;
 
 public abstract class GeyserDefineCustomBlocksEvent implements Event {
 
-    public abstract boolean registerCustomBlock(@NonNull CustomBlockData customBlockData);
+    public abstract void registerCustomBlock(@NonNull CustomBlockData customBlockData);
 
 }

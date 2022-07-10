@@ -94,9 +94,8 @@ public class BlockRegistryPopulator {
         List<CustomBlockData> customBlocks = new ArrayList<>();
         GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineCustomBlocksEvent() {
             @Override
-            public boolean registerCustomBlock(@NonNull CustomBlockData customBlockData) {
+            public void registerCustomBlock(@NonNull CustomBlockData customBlockData) {
                 customBlocks.add(customBlockData);
-                return true;
             }
         });
 
