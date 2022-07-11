@@ -148,9 +148,6 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("add-custom-skull-blocks")
     boolean addCustomSkullBlocks = false;
 
-    @JsonProperty("custom-skull-profiles")
-    List<String> customSkullProfiles = Collections.emptyList();
-
     @JsonProperty("force-resource-packs")
     private boolean forceResourcePacks = true;
 

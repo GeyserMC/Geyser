@@ -165,14 +165,11 @@ add-non-bedrock-items: true
 # This should only need to be disabled if using a proxy that does not use the "transfer packet" style of server switching.
 add-custom-blocks: true
 
-# Whether to allow some custom skulls to be translated as custom blocks. This requires `add-custom-blocks` and `allow-custom-skulls` to be
-# enabled. This will generate a resource pack for Bedrock players and enables `force-resource-packs`
-add-custom-skull-blocks: true
-
-# List of custom skull profiles to translate as custom blocks. This requires `add-custom-skull-blocks` to be enabled.
-# This is the Value stored in the SkullOwner of the custom skull
-custom-skull-profiles:
-  - ewogICJ0aW1lc3RhbXAiIDogMTY1NzMyMjIzOTgzMywKICAicHJvZmlsZUlkIiA6ICJjZGRiZTUyMGQwNDM0YThiYTFjYzlmYzkyZmRlMmJjZiIsCiAgInByb2ZpbGVOYW1lIiA6ICJkYXZjaG9vIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2E5MDc5MGM1N2UxODFlZDEzYWRlZDE0YzQ3ZWUyZjdjOGRlMzUzM2UwMTdiYTk1N2FmN2JkZjlkZjFiZGU5NGYiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ
+# Whether to allow some custom skulls to be translated as custom blocks and displayed in the inventory and on entities.
+# This requires `add-custom-blocks` and `allow-custom-skulls` to be enabled.
+# This will generate a resource pack for Bedrock players and enables `force-resource-packs`.
+# Custom skulls can be added in `custom-skulls.yml`
+add-custom-skull-blocks: false
 
 # Bedrock prevents building and displaying blocks above Y127 in the Nether.
 # This config option works around that by changing the Nether dimension ID to the End ID. 

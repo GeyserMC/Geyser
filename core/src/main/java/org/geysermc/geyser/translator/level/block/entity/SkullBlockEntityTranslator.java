@@ -27,6 +27,7 @@ package org.geysermc.geyser.translator.level.block.entity;
 
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.IntArrayTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.nukkitx.math.vector.Vector3i;
@@ -39,6 +40,7 @@ import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.skin.SkinProvider;
 
 import java.util.LinkedHashMap;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -62,7 +64,21 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         if (owner != null) {
             CompoundTag properties = owner.get("Properties");
             if (properties == null) {
-                return SkinProvider.requestTexturesFromUsername(owner);
+                if (owner.get("Id") instanceof IntArrayTag uuidTag) {
+                    int[] uuidAsArray = uuidTag.getValue();
+                    // thank u viaversion
+                    UUID uuid = new UUID((long) uuidAsArray[0] << 32 | ((long) uuidAsArray[1] & 0xFFFFFFFFL),
+                            (long) uuidAsArray[2] << 32 | ((long) uuidAsArray[3] & 0xFFFFFFFFL));
+                    if (uuid.version() == 4) {
+                        String uuidString = uuid.toString().replace("-", "");
+                        return SkinProvider.requestTexturesFromUUID(uuidString);
+                    }
+                }
+                if (owner.get("Name") instanceof StringTag nameTag) {
+                    // Fall back to username if UUID was missing or was an offline mode UUID
+                    return SkinProvider.requestTexturesFromUsername(nameTag.getValue());
+                }
+                return CompletableFuture.completedFuture(null);
             }
 
             ListTag textures = properties.get("textures");

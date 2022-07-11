@@ -95,9 +95,6 @@ public interface GeyserConfiguration {
 
     boolean isAddCustomSkullBlocks();
 
-    // TODO this should probably go in a different file?
-    List<String> getCustomSkullProfiles();
-
     boolean isAboveBedrockNetherBuilding();
 
     boolean isForceResourcePacks();

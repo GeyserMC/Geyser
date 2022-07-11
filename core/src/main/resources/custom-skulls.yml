@@ -1,0 +1,25 @@
+# --------------------------------
+# Geyser Custom Skull Configuration Files
+#
+# This file is ignored with `add-custom-skull-blocks` disabled.
+# See `config.yml` for the main set of configuration values
+#
+# Custom skulls with the player username, UUID, or texture specified in this file
+# will be translated as custom blocks and be displayed in the inventory and on entities.
+# --------------------------------
+
+# Java player usernames
+# Skins will be updated when Geyser starts and players will have to re-download
+# the resource pack if any players had changed their skin.
+player-usernames:
+#  - GeyserMC
+
+# Java player UUIDs
+# Skins will be updated when Geyser starts and players will have to re-download
+# the resource pack if any players had changed their skin.
+player-uuids:
+#  - 8b8d8e8f-2759-47c6-acb5-5827de8a72b8
+
+# The long string of characters found in the NBT of custom player heads
+textures:
+#  - ewogICJ0aW1lc3RhbXAiIDogMTY1NzMyMjIzOTgzMywKICAicHJvZmlsZUlkIiA6ICJjZGRiZTUyMGQwNDM0YThiYTFjYzlmYzkyZmRlMmJjZiIsCiAgInByb2ZpbGVOYW1lIiA6ICJkYXZjaG9vIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2E5MDc5MGM1N2UxODFlZDEzYWRlZDE0YzQ3ZWUyZjdjOGRlMzUzM2UwMTdiYTk1N2FmN2JkZjlkZjFiZGU5NGYiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ
