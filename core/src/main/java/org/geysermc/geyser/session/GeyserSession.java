@@ -1649,7 +1649,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         if (org.geysermc.geyser.network.MinecraftProtocol.supports1_19_10(this)) {
             UpdateAdventureSettingsPacket adventureSettingsPacket = new UpdateAdventureSettingsPacket();
             adventureSettingsPacket.setNoMvP(false);
-            adventureSettingsPacket.setNoMvP(false);
+            adventureSettingsPacket.setNoPvM(false);
             adventureSettingsPacket.setImmutableWorld(worldImmutable);
             adventureSettingsPacket.setShowNameTags(false);
             adventureSettingsPacket.setAutoJump(true);
