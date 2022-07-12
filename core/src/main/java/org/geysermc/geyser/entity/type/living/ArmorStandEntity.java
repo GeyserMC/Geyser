@@ -51,6 +51,7 @@ public class ArmorStandEntity extends LivingEntity {
     @Getter
     private boolean isMarker = false;
     private boolean isInvisible = false;
+    @Getter
     private boolean isSmall = false;
 
     /**
@@ -74,6 +75,7 @@ public class ArmorStandEntity extends LivingEntity {
      * - No armor, no name: false
      * - No armor, yes name: true
      */
+    @Getter
     private boolean positionRequiresOffset = false;
     /**
      * Whether we should update the position of this armor stand after metadata updates.
@@ -411,6 +413,8 @@ public class ArmorStandEntity extends LivingEntity {
             this.positionRequiresOffset = newValue;
             if (positionRequiresOffset) {
                 this.position = applyOffsetToPosition(position);
+                // Update the passenger offset as armorstand is moving up by roughly 2 blocks
+                updatePassengerOffsets();
             } else {
                 this.position = removeOffsetFromPosition(position);
             }

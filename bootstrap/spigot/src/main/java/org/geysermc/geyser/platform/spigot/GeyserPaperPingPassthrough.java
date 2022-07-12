@@ -35,6 +35,7 @@ import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Constructor;
 import java.net.InetSocketAddress;
 
 /**
@@ -42,6 +43,8 @@ import java.net.InetSocketAddress;
  * applied.
  */
 public final class GeyserPaperPingPassthrough implements IGeyserPingPassthrough {
+    private static final Constructor<PaperServerListPingEvent> OLD_CONSTRUCTOR = ReflectedNames.getOldPaperPingConstructor();
+
     private final GeyserSpigotLogger logger;
 
     public GeyserPaperPingPassthrough(GeyserSpigotLogger logger) {
@@ -54,9 +57,17 @@ public final class GeyserPaperPingPassthrough implements IGeyserPingPassthrough 
         try {
             // We'd rather *not* use deprecations here, but unfortunately any Adventure class would be relocated at
             // runtime because we still have to shade in our own Adventure class. For now.
-            PaperServerListPingEvent event = new PaperServerListPingEvent(new GeyserStatusClient(inetSocketAddress),
-                    Bukkit.getMotd(), Bukkit.getOnlinePlayers().size(), Bukkit.getMaxPlayers(), Bukkit.getVersion(),
-                    GameProtocol.getJavaProtocolVersion(), null);
+            PaperServerListPingEvent event;
+            if (OLD_CONSTRUCTOR != null) {
+                // Approximately pre-1.19
+                event = OLD_CONSTRUCTOR.newInstance(new GeyserStatusClient(inetSocketAddress),
+                        Bukkit.getMotd(), Bukkit.getOnlinePlayers().size(),
+                        Bukkit.getMaxPlayers(), Bukkit.getVersion(), MinecraftProtocol.getJavaProtocolVersion(), null);
+            } else {
+                event = new PaperServerListPingEvent(new GeyserStatusClient(inetSocketAddress),
+                        Bukkit.getMotd(), Bukkit.shouldSendChatPreviews(), Bukkit.getOnlinePlayers().size(),
+                        Bukkit.getMaxPlayers(), Bukkit.getVersion(), MinecraftProtocol.getJavaProtocolVersion(), null);
+            }
             Bukkit.getPluginManager().callEvent(event);
             if (event.isCancelled()) {
                 // We have to send a ping, so not really sure what else to do here.
@@ -80,7 +91,7 @@ public final class GeyserPaperPingPassthrough implements IGeyserPingPassthrough 
             }
 
             return geyserPingInfo;
-        } catch (Exception e) {
+        } catch (Exception | LinkageError e) { // LinkageError in the event that method/constructor signatures change
             logger.debug("Error while getting Paper ping passthrough: " + e);
             return null;
         }

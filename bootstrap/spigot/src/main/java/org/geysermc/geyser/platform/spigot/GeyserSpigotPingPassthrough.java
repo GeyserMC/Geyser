@@ -56,7 +56,7 @@ public class GeyserSpigotPingPassthrough implements IGeyserPingPassthrough {
             );
             Bukkit.getOnlinePlayers().stream().map(Player::getName).forEach(geyserPingInfo.getPlayerList()::add);
             return geyserPingInfo;
-        } catch (Exception e) {
+        } catch (Exception | LinkageError e) { // LinkageError in the event that method/constructor signatures change
             logger.debug("Error while getting Bukkit ping passthrough: " + e);
             return null;
         }
@@ -66,7 +66,7 @@ public class GeyserSpigotPingPassthrough implements IGeyserPingPassthrough {
     private static class GeyserPingEvent extends ServerListPingEvent {
 
         public GeyserPingEvent(InetAddress address, String motd, int numPlayers, int maxPlayers) {
-            super(address, motd, numPlayers, maxPlayers);
+            super(address, motd, Bukkit.shouldSendChatPreviews(), numPlayers, maxPlayers);
         }
 
         @Override

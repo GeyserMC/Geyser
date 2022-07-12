@@ -99,19 +99,9 @@ public class FishingHookEntity extends ThrowableEntity {
                 }
             }
 
-            int waterLevel = BlockStateValues.getWaterLevel(blockID);
-            if (BlockRegistries.WATERLOGGED.get().contains(blockID)) {
-                waterLevel = 0;
-            }
-            if (waterLevel >= 0) {
-                double waterMaxY = iter.getY() + 1 - (waterLevel + 1) / 9.0;
-                // Falling water is a full block
-                if (waterLevel >= 8) {
-                    waterMaxY = iter.getY() + 1;
-                }
-                if (position.getY() <= waterMaxY) {
-                    touchingWater = true;
-                }
+            double waterHeight = BlockStateValues.getWaterHeight(blockID);
+            if (waterHeight != -1 && position.getY() <= (iter.getY() + waterHeight)) {
+                touchingWater = true;
             }
         }
 

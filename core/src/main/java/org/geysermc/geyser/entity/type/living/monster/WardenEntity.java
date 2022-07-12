@@ -41,13 +41,19 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class WardenEntity extends MonsterEntity implements Tickable {
-    private int heartBeatDelay;
+    private int heartBeatDelay = 40;
     private int tickCount;
 
     private int sonicBoomTickDuration;
 
     public WardenEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    }
+
+    @Override
+    protected void initializeMetadata() {
+        super.initializeMetadata();
+        dirtyMetadata.put(EntityData.HEARTBEAT_INTERVAL_TICKS, heartBeatDelay);
     }
 
     @Override
