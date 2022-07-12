@@ -62,11 +62,11 @@ public final class GeyserPaperPingPassthrough implements IGeyserPingPassthrough 
                 // Approximately pre-1.19
                 event = OLD_CONSTRUCTOR.newInstance(new GeyserStatusClient(inetSocketAddress),
                         Bukkit.getMotd(), Bukkit.getOnlinePlayers().size(),
-                        Bukkit.getMaxPlayers(), Bukkit.getVersion(), MinecraftProtocol.getJavaProtocolVersion(), null);
+                        Bukkit.getMaxPlayers(), Bukkit.getVersion(), GameProtocol.getJavaProtocolVersion(), null);
             } else {
                 event = new PaperServerListPingEvent(new GeyserStatusClient(inetSocketAddress),
                         Bukkit.getMotd(), Bukkit.shouldSendChatPreviews(), Bukkit.getOnlinePlayers().size(),
-                        Bukkit.getMaxPlayers(), Bukkit.getVersion(), MinecraftProtocol.getJavaProtocolVersion(), null);
+                        Bukkit.getMaxPlayers(), Bukkit.getVersion(), GameProtocol.getJavaProtocolVersion(), null);
             }
             Bukkit.getPluginManager().callEvent(event);
             if (event.isCancelled()) {

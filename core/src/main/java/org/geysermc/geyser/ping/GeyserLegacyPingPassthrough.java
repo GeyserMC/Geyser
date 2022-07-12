@@ -27,7 +27,6 @@ package org.geysermc.geyser.ping;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.nukkitx.nbt.util.VarInts;
 import io.netty.handler.codec.haproxy.HAProxyCommand;
 import io.netty.handler.codec.haproxy.HAProxyProxiedProtocol;
@@ -85,7 +84,7 @@ public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runn
             ByteArrayOutputStream byteArrayStream = new ByteArrayOutputStream();
             try (DataOutputStream handshake = new DataOutputStream(byteArrayStream)) {
                 handshake.write(0x0);
-                VarInts.writeUnsignedInt(handshake, MinecraftProtocol.getJavaProtocolVersion());
+                VarInts.writeUnsignedInt(handshake, GameProtocol.getJavaProtocolVersion());
                 VarInts.writeUnsignedInt(handshake, address.length());
                 handshake.writeBytes(address);
                 handshake.writeShort(port);

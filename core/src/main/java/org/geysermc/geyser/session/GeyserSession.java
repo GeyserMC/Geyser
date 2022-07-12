@@ -1643,7 +1643,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         boolean spectator = gameMode == GameMode.SPECTATOR;
         boolean worldImmutable = gameMode == GameMode.ADVENTURE || spectator;
 
-        if (org.geysermc.geyser.network.MinecraftProtocol.supports1_19_10(this)) {
+        if (org.geysermc.geyser.network.GameProtocol.supports1_19_10(this)) {
             UpdateAdventureSettingsPacket adventureSettingsPacket = new UpdateAdventureSettingsPacket();
             adventureSettingsPacket.setNoMvP(false);
             adventureSettingsPacket.setNoPvM(false);
