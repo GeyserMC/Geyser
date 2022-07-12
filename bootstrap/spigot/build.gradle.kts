@@ -9,6 +9,18 @@ dependencies {
     implementation("org.geysermc.geyser.adapters", "spigot-all", adaptersVersion)
 
     implementation("me.lucko", "commodore", commodoreVersion)
+    
+    // Both paper-api and paper-mojangapi only provide Java 17 versions for 1.19
+    compileOnly("io.papermc.paper", "paper-api", paperVersion) {
+        attributes {
+            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
+        }
+    }
+    compileOnly("io.papermc.paper", "paper-mojangapi", paperVersion) {
+        attributes {
+            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
+        }
+    }
 }
 
 platformRelocate("it.unimi.dsi.fastutil")
@@ -19,8 +31,6 @@ platformRelocate("me.lucko.commodore")
 platformRelocate("io.netty.channel.kqueue")
 
 // These dependencies are already present on the platform
-provided("io.papermc.paper", "paper-api", paperVersion)
-provided("io.papermc.paper", "paper-mojangapi", paperVersion)
 provided("com.viaversion", "viaversion", viaVersion)
 
 application {
