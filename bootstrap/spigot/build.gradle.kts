@@ -1,4 +1,4 @@
-val paperVersion = "1.19-R0.1-SNAPSHOT" // Needed because we do not support Java 17 yet
+val paperVersion = "1.19-R0.1-SNAPSHOT"
 val viaVersion = "4.0.0"
 val adaptersVersion = "1.4-SNAPSHOT"
 val commodoreVersion = "1.13"

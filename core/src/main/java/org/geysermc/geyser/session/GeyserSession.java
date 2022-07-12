@@ -116,6 +116,7 @@ import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.physics.CollisionManager;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -1643,7 +1644,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         boolean spectator = gameMode == GameMode.SPECTATOR;
         boolean worldImmutable = gameMode == GameMode.ADVENTURE || spectator;
 
-        if (org.geysermc.geyser.network.GameProtocol.supports1_19_10(this)) {
+        if (GameProtocol.supports1_19_10(this)) {
             UpdateAdventureSettingsPacket adventureSettingsPacket = new UpdateAdventureSettingsPacket();
             adventureSettingsPacket.setNoMvP(false);
             adventureSettingsPacket.setNoPvM(false);
