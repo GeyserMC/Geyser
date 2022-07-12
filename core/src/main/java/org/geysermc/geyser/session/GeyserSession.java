@@ -1669,6 +1669,8 @@ public class GeyserSession implements GeyserConnection, CommandSender {
             // Default stuff we have to fill in
             abilities.add(Ability.BUILD);
             abilities.add(Ability.MINE);
+            // Needed so you can drop items
+            abilities.add(Ability.DOORS_AND_SWITCHES);
             if (gameMode == GameMode.CREATIVE) {
                 // Needed so the client doesn't attempt to take away items
                 abilities.add(Ability.INSTABUILD);
