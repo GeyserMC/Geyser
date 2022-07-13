@@ -31,6 +31,8 @@ object Versions {
     const val nbtVersion = "2.1.0"
     const val websocketVersion = "1.5.1"
     const val protocolVersion = "a78a64b"
+    // Not pinned to specific version due to possible gradle bug
+    // See comment in settings.gradle.kts
     const val raknetVersion = "1.6.28-SNAPSHOT"
     const val mcauthlibVersion = "d9d773e"
     const val mcprotocollibversion = "54fc9f0"

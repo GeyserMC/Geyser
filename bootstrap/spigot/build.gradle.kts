@@ -1,6 +1,6 @@
 val paperVersion = "1.19-R0.1-SNAPSHOT"
 val viaVersion = "4.0.0"
-val adaptersVersion = "1.4-SNAPSHOT"
+val adaptersVersion = "1.5-SNAPSHOT"
 val commodoreVersion = "1.13"
 
 dependencies {
