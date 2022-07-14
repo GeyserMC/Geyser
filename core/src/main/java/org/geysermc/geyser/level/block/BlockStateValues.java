@@ -44,6 +44,7 @@ import java.util.Locale;
  * Used for block entities if the Java block state contains Bedrock block information.
  */
 public final class BlockStateValues {
+    private static final IntSet ALL_CAULDRONS = new IntOpenHashSet();
     private static final Int2IntMap BANNER_COLORS = new FixedInt2IntMap();
     private static final Int2ByteMap BED_COLORS = new FixedInt2ByteMap();
     private static final Int2ByteMap COMMAND_BLOCK_VALUES = new Int2ByteOpenHashMap();
@@ -75,6 +76,8 @@ public final class BlockStateValues {
     public static int JAVA_SLIME_BLOCK_ID;
     public static int JAVA_SPAWNER_ID;
     public static int JAVA_WATER_ID;
+
+    public static final int NUM_WATER_LEVELS = 9;
 
     /**
      * Determines if the block state contains Bedrock block information
@@ -193,6 +196,9 @@ public final class BlockStateValues {
             return;
         }
 
+        if (javaId.contains("cauldron")) {
+            ALL_CAULDRONS.add(javaBlockState);
+        }
         if (javaId.contains("_cauldron") && !javaId.contains("water_")) {
              NON_WATER_CAULDRONS.add(javaBlockState);
         }
@@ -225,8 +231,17 @@ public final class BlockStateValues {
      *
      * @return if this Java block state is a non-empty non-water cauldron
      */
-    public static boolean isCauldron(int state) {
+    public static boolean isNonWaterCauldron(int state) {
         return NON_WATER_CAULDRONS.contains(state);
+    }
+
+    /**
+     * When using a bucket on a cauldron sending a ServerboundUseItemPacket can result in the liquid being placed.
+     *
+     * @return if this Java block state is a cauldron
+     */
+    public static boolean isCauldron(int state) {
+        return ALL_CAULDRONS.contains(state);
     }
 
     /**
@@ -436,13 +451,36 @@ public final class BlockStateValues {
 
     /**
      * Get the level of water from the block state.
-     * This is used in FishingHookEntity to create splash sounds when the hook hits the water.
      *
      * @param state BlockState of the block
      * @return The water level or -1 if the block isn't water
      */
     public static int getWaterLevel(int state) {
         return WATER_LEVEL.getOrDefault(state, -1);
+    }
+
+    /**
+     * Get the height of water from the block state
+     * This is used in FishingHookEntity to create splash sounds when the hook hits the water. In addition,
+     * CollisionManager uses this to determine if the player's eyes are in water.
+     *
+     * @param state BlockState of the block
+     * @return The water height or -1 if the block does not contain water
+     */
+    public static double getWaterHeight(int state) {
+        int waterLevel = BlockStateValues.getWaterLevel(state);
+        if (BlockRegistries.WATERLOGGED.get().contains(state)) {
+            waterLevel = 0;
+        }
+        if (waterLevel >= 0) {
+            double waterHeight = 1 - (waterLevel + 1) / ((double) NUM_WATER_LEVELS);
+            // Falling water is a full block
+            if (waterLevel >= 8) {
+                waterHeight = 1;
+            }
+            return waterHeight;
+        }
+        return -1;
     }
 
     /**

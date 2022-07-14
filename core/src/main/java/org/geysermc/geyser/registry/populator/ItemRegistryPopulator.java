@@ -235,6 +235,9 @@ public class ItemRegistryPopulator {
                 } else if (identifier.equals("minecraft:empty_map") && damage == 2) {
                     // Bedrock-only as its own item
                     continue;
+                } else if (identifier.equals("minecraft:bordure_indented_banner_pattern") || identifier.equals("minecraft:field_masoned_banner_pattern")) {
+                    // Bedrock-only banner patterns
+                    continue;
                 }
                 StartGamePacket.ItemEntry entry = entries.get(identifier);
                 int id = -1;

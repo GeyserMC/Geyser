@@ -8,7 +8,12 @@ dependencyResolutionManagement {
             mavenContent { releasesOnly() }
         }
         maven("https://repo.opencollab.dev/maven-snapshots") {
-            mavenContent { snapshotsOnly() }
+            mavenContent {
+                // This has the unintended side effect of not allowing snapshot version pinning.
+                // Likely a bug in Gradle's implementation of snapshot pinning
+                // See https://github.com/gradle/gradle/pull/406
+                snapshotsOnly() 
+            }
         }
 
         // Paper, Velocity

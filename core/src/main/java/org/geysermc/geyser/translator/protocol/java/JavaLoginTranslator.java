@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import com.github.steveice10.mc.protocol.data.game.MessageType;
+import com.github.steveice10.mc.protocol.data.game.BuiltinChatType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundLoginPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundCustomPayloadPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
@@ -82,14 +82,15 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
                     textDecoration = new TextDecoration(decorationTag);
                 }
             }
-            MessageType type = MessageType.from(((StringTag) tag.get("name")).getValue());
+            BuiltinChatType type = BuiltinChatType.from(((StringTag) tag.get("name")).getValue());
             // TODO new types?
-            TextPacket.Type bedrockType = switch (type) {
+            // The built-in type can be null if custom plugins/mods add in new types
+            TextPacket.Type bedrockType = type != null ? switch (type) {
                 case CHAT -> TextPacket.Type.CHAT;
                 case SYSTEM -> TextPacket.Type.SYSTEM;
                 case GAME_INFO -> TextPacket.Type.TIP;
                 default -> TextPacket.Type.RAW;
-            };
+            } : TextPacket.Type.RAW;
             chatTypes.put(id, new ChatTypeEntry(bedrockType, textDecoration));
         }
 
