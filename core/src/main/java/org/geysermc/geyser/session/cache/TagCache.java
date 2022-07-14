@@ -101,10 +101,10 @@ public class TagCache {
         this.smallFlowers = IntList.of(itemTags.get("minecraft:small_flowers"));
 
         // Hack btw
-        boolean emulatePost1_14Logic = itemTags.get("minecraft:signs").length > 1;
-        session.setEmulatePost1_14Logic(emulatePost1_14Logic);
+        boolean emulatePost1_13Logic = itemTags.get("minecraft:signs").length > 1;
+        session.setEmulatePost1_13Logic(emulatePost1_13Logic);
         if (logger.isDebug()) {
-            logger.debug("Emulating post 1.14 villager logic for " + session.name() + "? " + emulatePost1_14Logic);
+            logger.debug("Emulating post 1.13 villager logic for " + session.name() + "? " + emulatePost1_13Logic);
         }
     }
 

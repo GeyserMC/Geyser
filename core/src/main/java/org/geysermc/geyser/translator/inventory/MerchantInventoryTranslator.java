@@ -155,7 +155,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
         ServerboundSelectTradePacket packet = new ServerboundSelectTradePacket(tradeChoice);
         session.sendDownstreamPacket(packet);
 
-        if (session.isEmulatePost1_14Logic()) {
+        if (session.isEmulatePost1_13Logic()) {
             // 1.18 Java cooperates nicer than older versions
             if (inventory instanceof MerchantContainer merchantInventory) {
                 merchantInventory.onTradeSelected(session, tradeChoice);
