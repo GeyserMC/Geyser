@@ -123,13 +123,21 @@ public class ChunkUtils {
      * @param position the position of the block
      */
     public static void updateBlock(GeyserSession session, int blockState, Vector3i position) {
+        updateBlockClientSide(session, blockState, position);
+        session.getChunkCache().updateBlock(position.getX(), position.getY(), position.getZ(), blockState);
+        session.getWorldCache().updateServerCorrectBlockState(position);
+    }
+
+    /**
+     * Updates a block, but client-side only.
+     */
+    public static void updateBlockClientSide(GeyserSession session, int blockState, Vector3i position) {
         // Checks for item frames so they aren't tripped up and removed
         ItemFrameEntity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, position);
         if (itemFrameEntity != null) {
             if (blockState == JAVA_AIR_ID) { // Item frame is still present and no block overrides that; refresh it
                 itemFrameEntity.updateBlock(true);
-                // Still update the chunk cache with the new block
-                session.getChunkCache().updateBlock(position.getX(), position.getY(), position.getZ(), blockState);
+                // Still update the chunk cache with the new block if updateBlock is called
                 return;
             }
             // Otherwise, let's still store our reference to the item frame, but let the new block take precedence for now
@@ -175,7 +183,6 @@ public class ChunkUtils {
                 break; //No block will be a part of two classes
             }
         }
-        session.getChunkCache().updateBlock(position.getX(), position.getY(), position.getZ(), blockState);
     }
 
     public static void sendEmptyChunk(GeyserSession session, int chunkX, int chunkZ, boolean forceUpdate) {

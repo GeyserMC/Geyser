@@ -25,16 +25,26 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity.player;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.player.ClientboundBlockChangedAckPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.player.ClientboundPlayerCombatKillPacket;
+import com.nukkitx.protocol.bedrock.packet.DeathInfoPacket;
+import net.kyori.adventure.text.Component;
+import org.geysermc.geyser.network.MinecraftProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 
-@Translator(packet = ClientboundBlockChangedAckPacket.class)
-public class JavaBlockChangedAckTranslator extends PacketTranslator<ClientboundBlockChangedAckPacket> {
+@Translator(packet = ClientboundPlayerCombatKillPacket.class)
+public class JavaPlayerCombatKillTranslator extends PacketTranslator<ClientboundPlayerCombatKillPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundBlockChangedAckPacket packet) {
-        session.getWorldCache().endPredictionsUpTo(packet.getSequence());
+    public void translate(GeyserSession session, ClientboundPlayerCombatKillPacket packet) {
+        if (packet.getPlayerId() == session.getPlayerEntity().getEntityId() && MinecraftProtocol.supports1_19_10(session)) {
+            Component deathMessage = packet.getMessage();
+            // TODO - could inject score in, but as of 1.19.10 newlines don't center and start at the left of the first text
+            DeathInfoPacket deathInfoPacket = new DeathInfoPacket();
+            deathInfoPacket.setCauseAttackName(MessageTranslator.convertMessage(deathMessage, session.getLocale()));
+            session.sendUpstreamPacket(deathInfoPacket);
+        }
     }
 }

@@ -28,6 +28,9 @@ package org.geysermc.geyser.ping;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.nukkitx.nbt.util.VarInts;
+import io.netty.handler.codec.haproxy.HAProxyCommand;
+import io.netty.handler.codec.haproxy.HAProxyProxiedProtocol;
+import io.netty.util.NetUtil;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.network.MinecraftProtocol;
 
@@ -35,13 +38,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.ConnectException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketTimeoutException;
+import java.net.*;
 import java.util.concurrent.TimeUnit;
 
 public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runnable {
+    private static final byte[] HAPROXY_BINARY_PREFIX = new byte[]{13, 10, 13, 10, 0, 13, 10, 81, 85, 73, 84, 10};
+
     private final GeyserImpl geyser;
 
     public GeyserLegacyPingPassthrough(GeyserImpl geyser) {
@@ -74,54 +76,68 @@ public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runn
 
     @Override
     public void run() {
-        try {
-            Socket socket = new Socket();
+        try (Socket socket = new Socket()) {
             String address = geyser.getConfig().getRemote().getAddress();
             int port = geyser.getConfig().getRemote().getPort();
             socket.connect(new InetSocketAddress(address, port), 5000);
 
             ByteArrayOutputStream byteArrayStream = new ByteArrayOutputStream();
-            DataOutputStream handshake = new DataOutputStream(byteArrayStream);
-            handshake.write(0x0);
-            VarInts.writeUnsignedInt(handshake, MinecraftProtocol.getJavaProtocolVersion());
-            VarInts.writeUnsignedInt(handshake, address.length());
-            handshake.writeBytes(address);
-            handshake.writeShort(port);
-            VarInts.writeUnsignedInt(handshake, 1);
+            try (DataOutputStream handshake = new DataOutputStream(byteArrayStream)) {
+                handshake.write(0x0);
+                VarInts.writeUnsignedInt(handshake, MinecraftProtocol.getJavaProtocolVersion());
+                VarInts.writeUnsignedInt(handshake, address.length());
+                handshake.writeBytes(address);
+                handshake.writeShort(port);
+                VarInts.writeUnsignedInt(handshake, 1);
+            }
 
-            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-            VarInts.writeUnsignedInt(dataOutputStream, byteArrayStream.size());
-            dataOutputStream.write(byteArrayStream.toByteArray());
-            dataOutputStream.writeByte(0x01);
-            dataOutputStream.writeByte(0x00);
+            byte[] buffer;
 
-            DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
-            VarInts.readUnsignedInt(dataInputStream);
-            VarInts.readUnsignedInt(dataInputStream);
-            int length = VarInts.readUnsignedInt(dataInputStream);
-            byte[] buffer = new byte[length];
-            dataInputStream.readFully(buffer);
-            dataOutputStream.writeByte(0x09);
-            dataOutputStream.writeByte(0x01);
-            dataOutputStream.writeLong(System.currentTimeMillis());
+            try (DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream())) {
+                if (geyser.getConfig().getRemote().isUseProxyProtocol()) {
+                    // HAProxy support
+                    // Based on https://github.com/netty/netty/blob/d8ad931488f6b942dabe28ecd6c399b4438da0a8/codec-haproxy/src/main/java/io/netty/handler/codec/haproxy/HAProxyMessageEncoder.java#L78
+                    dataOutputStream.write(HAPROXY_BINARY_PREFIX);
+                    dataOutputStream.writeByte((0x02 << 4) | HAProxyCommand.PROXY.byteValue());
+                    dataOutputStream.writeByte(socket.getLocalAddress() instanceof Inet4Address ?
+                            HAProxyProxiedProtocol.TCP4.byteValue() : HAProxyProxiedProtocol.TCP6.byteValue());
+                    byte[] srcAddrBytes = NetUtil.createByteArrayFromIpAddressString(
+                            ((InetSocketAddress) socket.getLocalSocketAddress()).getAddress().getHostAddress());
+                    byte[] dstAddrBytes = NetUtil.createByteArrayFromIpAddressString(address);
+                    dataOutputStream.writeShort(srcAddrBytes.length + dstAddrBytes.length + 4);
+                    dataOutputStream.write(srcAddrBytes);
+                    dataOutputStream.write(dstAddrBytes);
+                    dataOutputStream.writeShort(((InetSocketAddress) socket.getLocalSocketAddress()).getPort());
+                    dataOutputStream.writeShort(port);
+                }
 
-            VarInts.readUnsignedInt(dataInputStream);
-            String json = new String(buffer);
+                VarInts.writeUnsignedInt(dataOutputStream, byteArrayStream.size());
+                dataOutputStream.write(byteArrayStream.toByteArray());
+                dataOutputStream.writeByte(0x01);
+                dataOutputStream.writeByte(0x00);
 
-            this.pingInfo = GeyserImpl.JSON_MAPPER.readValue(json, GeyserPingInfo.class);
+                try (DataInputStream dataInputStream = new DataInputStream(socket.getInputStream())) {
+                    VarInts.readUnsignedInt(dataInputStream);
+                    VarInts.readUnsignedInt(dataInputStream);
+                    int length = VarInts.readUnsignedInt(dataInputStream);
+                    buffer = new byte[length];
+                    dataInputStream.readFully(buffer);
+                    dataOutputStream.writeByte(0x09);
+                    dataOutputStream.writeByte(0x01);
+                    dataOutputStream.writeLong(System.currentTimeMillis());
 
-            byteArrayStream.close();
-            handshake.close();
-            dataOutputStream.close();
-            dataInputStream.close();
-            socket.close();
+                    VarInts.readUnsignedInt(dataInputStream);
+                }
+            }
+
+            this.pingInfo = GeyserImpl.JSON_MAPPER.readValue(buffer, GeyserPingInfo.class);
         } catch (SocketTimeoutException | ConnectException ex) {
             this.pingInfo = null;
             this.geyser.getLogger().debug("Connection timeout for ping passthrough.");
         } catch (JsonParseException | JsonMappingException ex) {
             this.geyser.getLogger().error("Failed to parse json when pinging server!", ex);
         } catch (IOException e) {
-            e.printStackTrace();
+            this.geyser.getLogger().error("IO error while trying to use legacy ping passthrough", e);
         }
     }
 }

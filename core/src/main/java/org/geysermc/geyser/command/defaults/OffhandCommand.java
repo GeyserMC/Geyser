@@ -47,7 +47,7 @@ public class OffhandCommand extends GeyserCommand {
         }
 
         ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.SWAP_HANDS, Vector3i.ZERO,
-                Direction.DOWN, session.getNextSequence());
+                Direction.DOWN, session.getWorldCache().nextPredictionSequence());
         session.sendDownstreamPacket(releaseItemPacket);
     }
 

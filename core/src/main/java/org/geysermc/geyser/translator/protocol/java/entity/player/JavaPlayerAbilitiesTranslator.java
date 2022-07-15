@@ -38,6 +38,8 @@ public class JavaPlayerAbilitiesTranslator extends PacketTranslator<ClientboundP
         session.setCanFly(packet.isCanFly());
         session.setFlying(packet.isFlying());
         session.setInstabuild(packet.isCreative());
+        session.setFlySpeed(packet.getFlySpeed());
+        session.setWalkSpeed(packet.getWalkSpeed());
         session.sendAdventureSettings();
     }
 }

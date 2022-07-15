@@ -392,7 +392,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
      * Whether to work around 1.13's different behavior in villager trading menus.
      */
     @Setter
-    private boolean emulatePost1_14Logic = true;
+    private boolean emulatePost1_13Logic = true;
     /**
      * Starting in 1.17, Java servers expect the <code>carriedItem</code> parameter of the serverbound click container
      * packet to be the current contents of the mouse after the transaction has been done. 1.16 expects the clicked slot
@@ -401,6 +401,8 @@ public class GeyserSession implements GeyserConnection, CommandSender {
      */
     @Setter
     private boolean emulatePost1_16Logic = true;
+    @Setter
+    private boolean emulatePost1_18Logic = true;
 
     /**
      * The current attack speed of the player. Used for sending proper cooldown timings.
@@ -484,6 +486,11 @@ public class GeyserSession implements GeyserConnection, CommandSender {
 
     @Setter
     private boolean instabuild = false;
+
+    @Setter
+    private float flySpeed;
+    @Setter
+    private float walkSpeed;
 
     /**
      * Caches current rain status.
@@ -1278,9 +1285,9 @@ public class GeyserSession implements GeyserConnection, CommandSender {
 
         ServerboundUseItemPacket useItemPacket;
         if (playerInventory.getItemInHand().getJavaId() == shield.getJavaId()) {
-            useItemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, getNextSequence());
+            useItemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, worldCache.nextPredictionSequence());
         } else if (playerInventory.getOffhand().getJavaId() == shield.getJavaId()) {
-            useItemPacket = new ServerboundUseItemPacket(Hand.OFF_HAND, getNextSequence());
+            useItemPacket = new ServerboundUseItemPacket(Hand.OFF_HAND, worldCache.nextPredictionSequence());
         } else {
             // No blocking
             return false;
@@ -1309,7 +1316,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     private boolean disableBlocking() {
         if (playerEntity.getFlag(EntityFlag.BLOCKING)) {
             ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM,
-                    Vector3i.ZERO, Direction.DOWN, getNextSequence());
+                    Vector3i.ZERO, Direction.DOWN, worldCache.nextPredictionSequence());
             sendDownstreamPacket(releaseItemPacket);
             playerEntity.setFlag(EntityFlag.BLOCKING, false);
             return true;
@@ -1621,22 +1628,82 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         return geyser.getWorldManager().hasPermission(this, permission);
     }
 
+    private static final Ability[] USED_ABILITIES = Ability.values();
+
     /**
      * Send an AdventureSettingsPacket to the client with the latest flags
      */
     public void sendAdventureSettings() {
-        AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
-        adventureSettingsPacket.setUniqueEntityId(playerEntity.getGeyserId());
+        long bedrockId = playerEntity.getGeyserId();
         // Set command permission if OP permission level is high enough
         // This allows mobile players access to a GUI for doing commands. The commands there do not change above OPERATOR
         // and all commands there are accessible with OP permission level 2
-        adventureSettingsPacket.setCommandPermission(opPermissionLevel >= 2 ? CommandPermission.OPERATOR : CommandPermission.NORMAL);
+        CommandPermission commandPermission = opPermissionLevel >= 2 ? CommandPermission.OPERATOR : CommandPermission.NORMAL;
         // Required to make command blocks destroyable
-        adventureSettingsPacket.setPlayerPermission(opPermissionLevel >= 2 ? PlayerPermission.OPERATOR : PlayerPermission.MEMBER);
+        PlayerPermission playerPermission = opPermissionLevel >= 2 ? PlayerPermission.OPERATOR : PlayerPermission.MEMBER;
 
         // Update the noClip and worldImmutable values based on the current gamemode
         boolean spectator = gameMode == GameMode.SPECTATOR;
         boolean worldImmutable = gameMode == GameMode.ADVENTURE || spectator;
+
+        if (org.geysermc.geyser.network.MinecraftProtocol.supports1_19_10(this)) {
+            UpdateAdventureSettingsPacket adventureSettingsPacket = new UpdateAdventureSettingsPacket();
+            adventureSettingsPacket.setNoMvP(false);
+            adventureSettingsPacket.setNoPvM(false);
+            adventureSettingsPacket.setImmutableWorld(worldImmutable);
+            adventureSettingsPacket.setShowNameTags(false);
+            adventureSettingsPacket.setAutoJump(true);
+            sendUpstreamPacket(adventureSettingsPacket);
+
+            UpdateAbilitiesPacket updateAbilitiesPacket = new UpdateAbilitiesPacket();
+            updateAbilitiesPacket.setUniqueEntityId(bedrockId);
+            updateAbilitiesPacket.setCommandPermission(commandPermission);
+            updateAbilitiesPacket.setPlayerPermission(playerPermission);
+
+            AbilityLayer abilityLayer = new AbilityLayer();
+            Set<Ability> abilities = abilityLayer.getAbilityValues();
+            if (canFly || spectator) {
+                abilities.add(Ability.MAY_FLY);
+            }
+
+            // Default stuff we have to fill in
+            abilities.add(Ability.BUILD);
+            abilities.add(Ability.MINE);
+            // Needed so you can drop items
+            abilities.add(Ability.DOORS_AND_SWITCHES);
+            if (gameMode == GameMode.CREATIVE) {
+                // Needed so the client doesn't attempt to take away items
+                abilities.add(Ability.INSTABUILD);
+            }
+
+            if (flying || spectator) {
+                if (spectator && !flying) {
+                    // We're "flying locked" in this gamemode
+                    flying = true;
+                    ServerboundPlayerAbilitiesPacket abilitiesPacket = new ServerboundPlayerAbilitiesPacket(true);
+                    sendDownstreamPacket(abilitiesPacket);
+                }
+                abilities.add(Ability.FLYING);
+            }
+
+            if (spectator) {
+                abilities.add(Ability.NO_CLIP);
+            }
+
+            abilityLayer.setLayerType(AbilityLayer.Type.BASE);
+            abilityLayer.setFlySpeed(flySpeed);
+            abilityLayer.setWalkSpeed(walkSpeed);
+            Collections.addAll(abilityLayer.getAbilitiesSet(), USED_ABILITIES);
+
+            updateAbilitiesPacket.getAbilityLayers().add(abilityLayer);
+            sendUpstreamPacket(updateAbilitiesPacket);
+            return;
+        }
+
+        AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
+        adventureSettingsPacket.setUniqueEntityId(bedrockId);
+        adventureSettingsPacket.setCommandPermission(commandPermission);
+        adventureSettingsPacket.setPlayerPermission(playerPermission);
 
         Set<AdventureSetting> flags = adventureSettingsPacket.getSettings();
         if (canFly || spectator) {
@@ -1685,10 +1752,6 @@ public class GeyserSession implements GeyserConnection, CommandSender {
                 getRenderDistance(), ChatVisibility.FULL, true, SKIN_PARTS,
                 HandPreference.RIGHT_HAND, false, true);
         sendDownstreamPacket(clientSettingsPacket);
-    }
-
-    public int getNextSequence() {
-        return 0;
     }
 
     /**
