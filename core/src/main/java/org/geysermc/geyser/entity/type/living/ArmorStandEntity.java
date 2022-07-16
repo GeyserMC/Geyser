@@ -26,6 +26,7 @@
 package org.geysermc.geyser.entity.type.living;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
@@ -53,6 +54,8 @@ public class ArmorStandEntity extends LivingEntity {
     private boolean isInvisible = false;
     @Getter
     private boolean isSmall = false;
+
+    private boolean isNameTagVisible = false;
 
     /**
      * On Java Edition, armor stands always show their name. Invisibility hides the name on Bedrock.
@@ -284,6 +287,13 @@ public class ArmorStandEntity extends LivingEntity {
         updateSecondEntityStatus(true);
     }
 
+    @Override
+    public void setDisplayNameVisible(BooleanEntityMetadata entityMetadata) {
+        super.setDisplayNameVisible(entityMetadata);
+        isNameTagVisible = entityMetadata.getPrimitiveValue();
+        updateSecondEntityStatus(false);
+    }
+
     /**
      * Determine if we need to load or unload the second entity.
      *
@@ -326,7 +336,8 @@ public class ArmorStandEntity extends LivingEntity {
             }
             // Copy metadata
             secondEntity.isSmall = isSmall;
-            //secondEntity.getDirtyMetadata().putAll(dirtyMetadata); //TODO check
+            secondEntity.getDirtyMetadata().put(EntityData.NAMETAG, nametag);
+            secondEntity.getDirtyMetadata().put(EntityData.NAMETAG_ALWAYS_SHOW, isNameTagVisible ? (byte) 1 : (byte) 0);
             secondEntity.flags.merge(this.flags);
             // Guarantee this copy is NOT invisible
             secondEntity.setFlag(EntityFlag.INVISIBLE, false);
