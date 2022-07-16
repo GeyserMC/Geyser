@@ -296,8 +296,7 @@ public class ArmorStandEntity extends LivingEntity {
         if (!isInvisible) {
             // The armor stand isn't invisible. We good.
             setFlag(EntityFlag.INVISIBLE, false);
-            
-            updateOffsetRequirement(!isMarker);
+            updateOffsetRequirement(false);
             if (positionUpdateRequired) {
                 positionUpdateRequired = false;
                 updatePosition();
@@ -363,7 +362,7 @@ public class ArmorStandEntity extends LivingEntity {
             setFlag(EntityFlag.INVISIBLE, false);
             dirtyMetadata.put(EntityData.SCALE, 0.0f);
             // As the above is applied, we need an offset
-            updateOffsetRequirement(true);
+            updateOffsetRequirement(!isMarker);
 
             if (secondEntity != null) {
                 secondEntity.despawnEntity();
