@@ -128,16 +128,12 @@ public class ArmorStandEntity extends LivingEntity {
 
     public void setArmorStandFlags(ByteEntityMetadata entityMetadata) {
         byte xd = entityMetadata.getPrimitiveValue();
-        boolean updateSecondEntity = false;
+        boolean offsetChanged = false;
         // isSmall
         boolean newIsSmall = (xd & 0x01) == 0x01;
         if (newIsSmall != isSmall) {
-            if (positionRequiresOffset) {
-                positionUpdateRequired = true;
-            }
-
             isSmall = newIsSmall;
-            updateSecondEntity = true;
+            offsetChanged = true;
             // Update the passenger offset as the armor stand's height has changed
             updatePassengerOffsets();
         }
@@ -155,10 +151,15 @@ public class ArmorStandEntity extends LivingEntity {
             }
 
             updateMountOffset();
-            updateSecondEntity = true;
+            offsetChanged = true;
         }
 
-        if (updateSecondEntity) {
+        if (offsetChanged) {
+            if (positionRequiresOffset) {
+                positionUpdateRequired = true;
+            } else if (secondEntity != null) {
+                secondEntity.positionUpdateRequired = true;
+            }
             updateSecondEntityStatus(false);
         }
 
