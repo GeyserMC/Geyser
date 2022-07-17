@@ -352,7 +352,9 @@ public class ArmorStandEntity extends LivingEntity {
             // No bounding box as we don't want to interact with this entity
             secondEntity.getDirtyMetadata().put(EntityData.BOUNDING_BOX_WIDTH, 0.0f);
             secondEntity.getDirtyMetadata().put(EntityData.BOUNDING_BOX_HEIGHT, 0.0f);
-            secondEntity.spawnEntity();
+            if (!secondEntity.valid) { // Spawn the entity once
+                secondEntity.spawnEntity();
+            }
         } else if (isNametagEmpty) {
             // We can just make an invisible entity
             // Reset scale of the proper armor stand
