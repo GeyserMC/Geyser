@@ -65,7 +65,11 @@ public class ItemRegistryPopulator {
 
     public static void populate() {
         Map<String, PaletteVersion> paletteVersions = new Object2ObjectOpenHashMap<>();
-        paletteVersions.put("1_19_0", new PaletteVersion(Bedrock_v527.V527_CODEC.getProtocolVersion(), Collections.emptyMap()));
+        paletteVersions.put("1_19_0", new PaletteVersion(Bedrock_v527.V527_CODEC.getProtocolVersion(), new Object2ObjectOpenHashMap<String, String>() {
+            {
+                put("minecraft:trader_llama_spawn_egg", "minecraft:llama_spawn_egg");
+            }
+        }));
         paletteVersions.put("1_19_10", new PaletteVersion(Bedrock_v534.V534_CODEC.getProtocolVersion(), Collections.emptyMap()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();

@@ -62,9 +62,7 @@ public final class MinecraftProtocol {
                 .minecraftVersion("1.19.0/1.19.2")
                 .build());
 
-        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC.toBuilder()
-                .minecraftVersion("1.19.10")
-                .build());
+        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
     }
 
     /**
