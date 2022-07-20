@@ -73,8 +73,6 @@ import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.*;
 
-import javax.naming.directory.Attribute;
-import javax.naming.directory.InitialDirContext;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -226,23 +224,12 @@ public class GeyserImpl implements GeyserApi {
         String remoteAddress = config.getRemote().getAddress();
         // Filters whether it is not an IP address or localhost, because otherwise it is not possible to find out an SRV entry.
         if (!remoteAddress.matches(IP_REGEX) && !remoteAddress.equalsIgnoreCase("localhost")) {
-            int remotePort;
-            try {
-                // Searches for a server address and a port from a SRV record of the specified host name
-                InitialDirContext ctx = new InitialDirContext();
-                Attribute attr = ctx.getAttributes("dns:///_minecraft._tcp." + remoteAddress, new String[]{"SRV"}).get("SRV");
-                // size > 0 = SRV entry found
-                if (attr != null && attr.size() > 0) {
-                    String[] record = ((String) attr.get(0)).split(" ");
-                    // Overwrites the existing address and port with that from the SRV record.
-                    config.getRemote().setAddress(remoteAddress = record[3]);
-                    config.getRemote().setPort(remotePort = Integer.parseInt(record[2]));
-                    logger.debug("Found SRV record \"" + remoteAddress + ":" + remotePort + "\"");
-                }
-            } catch (Exception | NoClassDefFoundError ex) { // Check for a NoClassDefFoundError to prevent Android crashes
-                logger.debug("Exception while trying to find an SRV record for the remote host.");
-                if (config.isDebugMode())
-                    ex.printStackTrace(); // Otherwise we can get a stack trace for any domain that doesn't have an SRV record
+            String[] record = WebUtils.findSrvRecord(this, remoteAddress);
+            if (record != null) {
+                int remotePort = Integer.parseInt(record[2]);
+                config.getRemote().setAddress(remoteAddress = record[3]);
+                config.getRemote().setPort(remotePort);
+                logger.debug("Found SRV record \"" + remoteAddress + ":" + remotePort + "\"");
             }
         }
 
