@@ -542,7 +542,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
     private boolean isIncorrectHeldItem(GeyserSession session, InventoryTransactionPacket packet) {
         int javaSlot = session.getPlayerInventory().getOffsetForHotbar(packet.getHotbarSlot());
-        int expectedItemId = ItemTranslator.getBedrockItemMapping(session, session.getPlayerInventory().getItem(javaSlot)).getBedrockId();
+        int expectedItemId = ItemTranslator.getBedrockItemId(session, session.getPlayerInventory().getItem(javaSlot));
         int heldItemId = packet.getItemInHand() == null ? ItemData.AIR.getId() : packet.getItemInHand().getId();
 
         if (expectedItemId != heldItemId) {
