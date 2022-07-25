@@ -76,6 +76,16 @@ public class BlockRegistries {
     public static final SimpleRegistry<IntSet> WATERLOGGED = SimpleRegistry.create(RegistryLoaders.empty(IntOpenHashSet::new));
 
     /**
+     * A registry containing all blockstates which are always interactive.
+     */
+    public static final SimpleRegistry<IntSet> INTERACTIVE = SimpleRegistry.create(RegistryLoaders.empty(IntOpenHashSet::new));
+
+    /**
+     * A registry containing all blockstates which are interactive if the player has the may build permission.
+     */
+    public static final SimpleRegistry<IntSet> INTERACTIVE_MAY_BUILD = SimpleRegistry.create(RegistryLoaders.empty(IntOpenHashSet::new));
+
+    /**
      * A registry containing all the custom blocks.
      */
     public static final ArrayRegistry<CustomBlockData> CUSTOM_BLOCKS = ArrayRegistry.create(RegistryLoaders.empty(() -> new CustomBlockData[] {}));

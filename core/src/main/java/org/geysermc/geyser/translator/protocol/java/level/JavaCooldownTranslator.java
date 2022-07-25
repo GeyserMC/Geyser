@@ -23,38 +23,39 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java;
+package org.geysermc.geyser.translator.protocol.java.level;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundSystemChatPacket;
-import com.nukkitx.protocol.bedrock.packet.TextPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundCooldownPacket;
+import com.nukkitx.protocol.bedrock.packet.PlayerStartItemCooldownPacket;
+import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.ChatTypeEntry;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 
-@Translator(packet = ClientboundSystemChatPacket.class)
-public class JavaSystemChatTranslator extends PacketTranslator<ClientboundSystemChatPacket> {
+@Translator(packet = ClientboundCooldownPacket.class)
+public class JavaCooldownTranslator extends PacketTranslator<ClientboundCooldownPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundSystemChatPacket packet) {
-        ChatTypeEntry chatTypeEntry = session.getChatTypes().get(packet.getTypeId());
-        // This probably isn't proper but system chat won't care about the registry in 1.19.1 anyway
-        TextPacket.Type chatType = chatTypeEntry == null ? TextPacket.Type.RAW : chatTypeEntry.bedrockChatType();
+    public void translate(GeyserSession session, ClientboundCooldownPacket packet) {
+        StoredItemMappings itemMappings = session.getItemMappings().getStoredItems();
 
-        TextPacket textPacket = new TextPacket();
-        textPacket.setPlatformChatId("");
-        textPacket.setSourceName("");
-        textPacket.setXuid(session.getAuthData().xuid());
-        textPacket.setType(chatType);
-
-        textPacket.setNeedsTranslation(false);
-        textPacket.setMessage(MessageTranslator.convertMessage(packet.getContent(), session.locale()));
-
-        if (session.isSentSpawnPacket()) {
-            session.sendUpstreamPacket(textPacket);
+        int itemId = packet.getItemId();
+        // Not every item, as of 1.19, appears to be server-driven. Just these two.
+        // Use a map here if it gets too big.
+        String cooldownCategory;
+        if (itemId == itemMappings.goatHorn()) {
+            cooldownCategory = "goat_horn";
+        } else if (itemId == itemMappings.shield().getJavaId()) {
+            cooldownCategory = "shield";
         } else {
-            session.getUpstream().queuePostStartGamePacket(textPacket);
+            cooldownCategory = null;
+        }
+
+        if (cooldownCategory != null) {
+            PlayerStartItemCooldownPacket bedrockPacket = new PlayerStartItemCooldownPacket();
+            bedrockPacket.setItemCategory(cooldownCategory);
+            bedrockPacket.setCooldownDuration(packet.getCooldownTicks());
+            session.sendUpstreamPacket(bedrockPacket);
         }
     }
 }

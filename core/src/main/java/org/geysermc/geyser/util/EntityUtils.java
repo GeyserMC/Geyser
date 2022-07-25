@@ -187,6 +187,15 @@ public final class EntityUtils {
                 case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
                         COMMAND_BLOCK_MINECART, BOAT, CHEST_BOAT -> yOffset -= mount.getDefinition().height() * 0.5f;
             }
+            if (passenger.getDefinition().entityType() == EntityType.FALLING_BLOCK) {
+                yOffset += 0.5f;
+            }
+            if (mount.getDefinition().entityType() == EntityType.ARMOR_STAND) {
+                ArmorStandEntity armorStand = (ArmorStandEntity) mount;
+                if (armorStand.isPositionRequiresOffset()) {
+                    yOffset -= EntityDefinitions.ARMOR_STAND.height() * (armorStand.isSmall() ? 0.55d : 1d);
+                }
+            }
             Vector3f offset = Vector3f.from(xOffset, yOffset, zOffset);
             passenger.setRiderSeatPosition(offset);
         }

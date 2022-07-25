@@ -31,6 +31,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.Serverb
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
+import com.nukkitx.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.RespawnPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
@@ -83,6 +84,15 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             session.setUnconfirmedTeleport(new TeleportCache(packet.getX(), packet.getY(), packet.getZ(), packet.getPitch(), packet.getYaw(), packet.getTeleportId()));
 
             acceptTeleport(session, packet.getX(), packet.getY(), packet.getZ(), packet.getYaw(), packet.getPitch(), packet.getTeleportId());
+
+            if (session.getServerRenderDistance() > 47 && !session.isEmulatePost1_13Logic()) {
+                // See DimensionUtils for an explanation
+                ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
+                chunkRadiusUpdatedPacket.setRadius(session.getServerRenderDistance());
+                session.sendUpstreamPacket(chunkRadiusUpdatedPacket);
+
+                session.setLastChunkPosition(null);
+            }
 
             ChunkUtils.updateChunkPosition(session, pos.toInt());
 

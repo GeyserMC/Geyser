@@ -35,9 +35,7 @@ import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.data.AttributeData;
-import com.nukkitx.protocol.bedrock.data.GameType;
-import com.nukkitx.protocol.bedrock.data.PlayerPermission;
+import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
@@ -59,6 +57,7 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -66,6 +65,16 @@ import java.util.concurrent.TimeUnit;
 @Getter @Setter
 public class PlayerEntity extends LivingEntity {
     public static final float SNEAKING_POSE_HEIGHT = 1.5f;
+    protected static final List<AbilityLayer> BASE_ABILITY_LAYER;
+
+    static {
+        AbilityLayer abilityLayer = new AbilityLayer();
+        abilityLayer.setLayerType(AbilityLayer.Type.BASE);
+        Ability[] abilities = Ability.values();
+        Collections.addAll(abilityLayer.getAbilitiesSet(), abilities); // Apparently all the abilities you're working with
+        Collections.addAll(abilityLayer.getAbilityValues(), abilities); // Apparently all the abilities the player can work with
+        BASE_ABILITY_LAYER = Collections.singletonList(abilityLayer);
+    }
 
     private String username;
     private boolean playerList = true; // Player is in the player list
@@ -127,6 +136,7 @@ public class PlayerEntity extends LivingEntity {
         addPlayerPacket.setDeviceId("");
         addPlayerPacket.setPlatformChatId("");
         addPlayerPacket.setGameType(GameType.SURVIVAL); //TODO
+        addPlayerPacket.setAbilityLayers(BASE_ABILITY_LAYER); // Recommended to be added since 1.19.10, but only needed here for permissions viewing
         addPlayerPacket.getMetadata().putFlags(flags);
         dirtyMetadata.apply(addPlayerPacket.getMetadata());
 

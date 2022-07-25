@@ -147,6 +147,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 soundPacket.setRelativeVolumeDisabled(false);
                 session.sendUpstreamPacket(soundPacket);
                 return;
+            case VILLAGER_MATE:
             case ANIMAL_EMIT_HEARTS:
                 entityEventPacket.setType(EntityEventType.LOVE_PARTICLES);
                 break;
@@ -176,6 +177,18 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
             case IRON_GOLEM_HOLD_POPPY:
                 entityEventPacket.setType(EntityEventType.GOLEM_FLOWER_OFFER);
                 break;
+            case VILLAGER_ANGRY:
+                entityEventPacket.setType(EntityEventType.VILLAGER_ANGRY);
+                break;
+            case VILLAGER_HAPPY:
+                entityEventPacket.setType(EntityEventType.VILLAGER_HAPPY);
+                break;
+            case VILLAGER_SWEAT:
+                LevelEventPacket levelEventPacket = new LevelEventPacket();
+                levelEventPacket.setType(LevelEventType.PARTICLE_SPLASH);
+                levelEventPacket.setPosition(entity.getPosition().up(entity.getDefinition().height()));
+                session.sendUpstreamPacket(levelEventPacket);
+                return;
             case IRON_GOLEM_EMPTY_HAND:
                 entityEventPacket.setType(EntityEventType.GOLEM_FLOWER_WITHDRAW);
                 break;

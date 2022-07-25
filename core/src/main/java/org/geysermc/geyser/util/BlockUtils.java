@@ -36,6 +36,8 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 
+import javax.annotation.Nullable;
+
 public final class BlockUtils {
 
     private static boolean correctTool(GeyserSession session, BlockMapping blockMapping, String itemToolType) {
@@ -101,7 +103,7 @@ public final class BlockUtils {
     // https://minecraft.gamepedia.com/Breaking
     private static double calculateBreakTime(double blockHardness, String toolTier, boolean canHarvestWithHand, boolean correctTool, boolean canTierMineBlock,
                                              String toolType, boolean isShearsEffective, int toolEfficiencyLevel, int hasteLevel, int miningFatigueLevel,
-                                             boolean insideOfWaterWithoutAquaAffinity, boolean outOfWaterButNotOnGround, boolean insideWaterAndNotOnGround) {
+                                             boolean insideOfWaterWithoutAquaAffinity, boolean onGround) {
         double baseTime = (((correctTool && canTierMineBlock) || canHarvestWithHand) ? 1.5 : 5.0) * blockHardness;
         double speed = 1.0 / baseTime;
 
@@ -129,12 +131,11 @@ public final class BlockUtils {
         }
 
         if (insideOfWaterWithoutAquaAffinity) speed *= 0.2;
-        if (outOfWaterButNotOnGround) speed *= 0.2;
-        if (insideWaterAndNotOnGround) speed *= 0.2;
+        if (!onGround) speed *= 0.2;
         return 1.0 / speed;
     }
 
-    public static double getBreakTime(GeyserSession session, BlockMapping blockMapping, ItemMapping item, CompoundTag nbtData, boolean isSessionPlayer) {
+    public static double getBreakTime(GeyserSession session, BlockMapping blockMapping, ItemMapping item, @Nullable CompoundTag nbtData, boolean isSessionPlayer) {
         boolean isShearsEffective = session.getTagCache().isShearsEffective(blockMapping); //TODO called twice
         boolean canHarvestWithHand = blockMapping.isCanBreakWithHand();
         String toolType = "";
@@ -154,36 +155,28 @@ public final class BlockUtils {
         if (!isSessionPlayer) {
             // Another entity is currently mining; we have all the information we know
             return calculateBreakTime(blockMapping.getHardness(), toolTier, canHarvestWithHand, correctTool, toolCanBreak, toolType, isShearsEffective,
-                    toolEfficiencyLevel, hasteLevel, miningFatigueLevel, false,
-                    false, false);
+                    toolEfficiencyLevel, hasteLevel, miningFatigueLevel, false, true);
         }
 
         hasteLevel = Math.max(session.getEffectCache().getHaste(), session.getEffectCache().getConduitPower());
         miningFatigueLevel = session.getEffectCache().getMiningFatigue();
 
-        boolean isInWater = session.getCollisionManager().isPlayerInWater();
-
-        boolean insideOfWaterWithoutAquaAffinity = isInWater &&
+        boolean waterInEyes = session.getCollisionManager().isWaterInEyes();
+        boolean insideOfWaterWithoutAquaAffinity = waterInEyes &&
                 ItemUtils.getEnchantmentLevel(session.getPlayerInventory().getItem(5).getNbt(), "minecraft:aqua_affinity") < 1;
 
-        boolean outOfWaterButNotOnGround = (!isInWater) && (!session.getPlayerEntity().isOnGround());
-        boolean insideWaterNotOnGround = isInWater && !session.getPlayerEntity().isOnGround();
         return calculateBreakTime(blockMapping.getHardness(), toolTier, canHarvestWithHand, correctTool, toolCanBreak, toolType, isShearsEffective,
-                toolEfficiencyLevel, hasteLevel, miningFatigueLevel, insideOfWaterWithoutAquaAffinity,
-                outOfWaterButNotOnGround, insideWaterNotOnGround);
+                toolEfficiencyLevel, hasteLevel, miningFatigueLevel, insideOfWaterWithoutAquaAffinity, session.getPlayerEntity().isOnGround());
     }
 
     public static double getSessionBreakTime(GeyserSession session, BlockMapping blockMapping) {
         PlayerInventory inventory = session.getPlayerInventory();
         GeyserItemStack item = inventory.getItemInHand();
-        ItemMapping mapping;
-        CompoundTag nbtData;
+        ItemMapping mapping = ItemMapping.AIR;
+        CompoundTag nbtData = null;
         if (item != null) {
             mapping = item.getMapping(session);
             nbtData = item.getNbt();
-        } else {
-            mapping = ItemMapping.AIR;
-            nbtData = new CompoundTag("");
         }
         return getBreakTime(session, blockMapping, mapping, nbtData, true);
     }
