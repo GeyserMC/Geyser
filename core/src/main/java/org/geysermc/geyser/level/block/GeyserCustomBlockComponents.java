@@ -33,8 +33,8 @@ import org.geysermc.geyser.api.block.custom.component.RotationComponent;
 import java.util.Map;
 
 public class GeyserCustomBlockComponents implements CustomBlockComponents {
-    private final BoxComponent aimCollision;
-    private final BoxComponent entityCollision;
+    private final BoxComponent selectionBox;
+    private final BoxComponent collisionBox;
     private final String geometry;
     private final Map<String, MaterialInstance> materialInstances;
     private final Float destroyTime;
@@ -44,8 +44,8 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     private final RotationComponent rotation;
 
     private GeyserCustomBlockComponents(CustomBlockComponentsBuilder builder) {
-        this.aimCollision = builder.aimCollision;
-        this.entityCollision = builder.entityCollision;
+        this.selectionBox = builder.selectionBox;
+        this.collisionBox = builder.collisionBox;
         this.geometry = builder.geometry;
         this.materialInstances = builder.materialInstances;
         this.destroyTime = builder.destroyTime;
@@ -57,12 +57,12 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
 
     @Override
     public BoxComponent selectionBox() {
-        return aimCollision;
+        return selectionBox;
     }
 
     @Override
     public BoxComponent collisionBox() {
-        return entityCollision;
+        return collisionBox;
     }
 
     @Override
@@ -101,8 +101,8 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     }
 
     public static class CustomBlockComponentsBuilder implements Builder {
-        protected BoxComponent aimCollision;
-        protected BoxComponent entityCollision;
+        protected BoxComponent selectionBox;
+        protected BoxComponent collisionBox;
         protected String geometry;
         protected Map<String, MaterialInstance> materialInstances;
         protected Float destroyTime;
@@ -112,14 +112,14 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         protected RotationComponent rotation;
 
         @Override
-        public Builder aimCollision(BoxComponent aimCollision) {
-            this.aimCollision = aimCollision;
+        public Builder selectionBox(BoxComponent selectionBox) {
+            this.selectionBox = selectionBox;
             return this;
         }
 
         @Override
-        public Builder entityCollision(BoxComponent entityCollision) {
-            this.entityCollision = entityCollision;
+        public Builder collisionBox(BoxComponent collisionBox) {
+            this.collisionBox = collisionBox;
             return this;
         }
 

@@ -336,31 +336,21 @@ public class BlockRegistryPopulator {
         }
         NbtMapBuilder builder = NbtMap.builder();
         if (components.selectionBox() != null) {
-            BoxComponent selectionBox = components.selectionBox();
-            builder.putCompound("minecraft:aim_collision", NbtMap.builder()
-                    .putBoolean("enabled", true)
-                    .putList("origin", NbtType.FLOAT, selectionBox.originX(), selectionBox.originY(), selectionBox.originZ())
-                    .putList("size", NbtType.FLOAT, selectionBox.sizeX(), selectionBox.sizeY(), selectionBox.sizeZ())
-                    .build());
+            builder.putCompound("minecraft:aim_collision", convertBox(components.selectionBox()));
         }
         if (components.collisionBox() != null) {
-            BoxComponent collisionBox = components.collisionBox();
             String tagName = "minecraft:block_collision";
             if (protocolVersion >= Bedrock_v534.V534_CODEC.getProtocolVersion()) {
                 tagName = "minecraft:collision_box";
             }
-            builder.putCompound(tagName, NbtMap.builder()
-                    .putBoolean("enabled", true)
-                    .putList("origin", NbtType.FLOAT, collisionBox.originX(), collisionBox.originY(), collisionBox.originZ())
-                    .putList("size", NbtType.FLOAT, collisionBox.sizeX(), collisionBox.sizeY(), collisionBox.sizeZ())
-                    .build());
+            builder.putCompound(tagName, convertBox(components.collisionBox()));
         }
         if (components.geometry() != null) {
             builder.putCompound("minecraft:geometry", NbtMap.builder()
                     .putString("value", components.geometry())
                     .build());
         }
-        if (components.materialInstances() != null) {
+        if (components.materialInstances() != null && !components.materialInstances().isEmpty()) {
             NbtMapBuilder materialsBuilder = NbtMap.builder();
             for (Map.Entry<String, MaterialInstance> entry : components.materialInstances().entrySet()) {
                 MaterialInstance materialInstance = entry.getValue();
@@ -404,6 +394,14 @@ public class BlockRegistryPopulator {
                     .build());
         }
         return builder.build();
+    }
+
+    private static NbtMap convertBox(BoxComponent boxComponent) {
+        return NbtMap.builder()
+                .putBoolean("enabled", !boxComponent.isEmpty())
+                .putList("origin", NbtType.FLOAT, boxComponent.originX(), boxComponent.originY(), boxComponent.originZ())
+                .putList("size", NbtType.FLOAT, boxComponent.sizeX(), boxComponent.sizeY(), boxComponent.sizeZ())
+                .build();
     }
 
     private static void registerJavaBlocks() {

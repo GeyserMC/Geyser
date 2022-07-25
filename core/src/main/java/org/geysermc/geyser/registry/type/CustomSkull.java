@@ -131,8 +131,8 @@ public class CustomSkull {
             for (int i = 0; i < 4; i++) {
                 int floorRotation = 4 * quadrant + i;
                 CustomBlockComponents components = new GeyserCustomBlockComponents.CustomBlockComponentsBuilder()
-                        .aimCollision(box)
-                        .entityCollision(box)
+                        .selectionBox(box)
+                        .collisionBox(box)
                         .geometry("geometry.geyser.player_skull_floor_" + quadrantNames[i])
                         .rotation(rotation)
                         .build();
@@ -159,8 +159,8 @@ public class CustomSkull {
             String condition = String.format("query.block_property('%s') == %d && query.block_property('%s') == %d", BITS_A_PROPERTY, i + 1, BITS_B_PROPERTY, 0);
 
             CustomBlockComponents components = new GeyserCustomBlockComponents.CustomBlockComponentsBuilder()
-                    .aimCollision(box)
-                    .entityCollision(box)
+                    .selectionBox(box)
+                    .collisionBox(box)
                     .geometry("geometry.geyser.player_skull_wall")
                     .rotation(rotation)
                     .build();

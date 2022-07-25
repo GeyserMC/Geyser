@@ -47,9 +47,9 @@ public interface CustomBlockComponents {
     RotationComponent rotation();
 
     interface Builder {
-        Builder aimCollision(BoxComponent aimCollision);
+        Builder selectionBox(BoxComponent selectionBox);
 
-        Builder entityCollision(BoxComponent entityCollision);
+        Builder collisionBox(BoxComponent collisionBox);
 
         Builder geometry(String geometry);
 
