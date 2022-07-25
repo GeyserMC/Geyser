@@ -31,6 +31,7 @@ import com.google.common.collect.ImmutableMap;
 import com.nukkitx.nbt.*;
 import com.nukkitx.protocol.bedrock.data.BlockPropertyData;
 import com.nukkitx.protocol.bedrock.v527.Bedrock_v527;
+import com.nukkitx.protocol.bedrock.v534.Bedrock_v534;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.*;
@@ -70,7 +71,8 @@ public class BlockRegistryPopulator {
 
     static {
         ImmutableMap.Builder<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> stateMapperBuilder = ImmutableMap.<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>>builder()
-                .put(ObjectIntPair.of("1_19_0", Bedrock_v527.V527_CODEC.getProtocolVersion()), EMPTY_MAPPER);
+                .put(ObjectIntPair.of("1_19_0", Bedrock_v527.V527_CODEC.getProtocolVersion()), EMPTY_MAPPER)
+                .put(ObjectIntPair.of("1_19_0", Bedrock_v534.V534_CODEC.getProtocolVersion()), EMPTY_MAPPER); // Block palette hasn't changed, but the custom block nbt format has changed
 
         BLOCK_MAPPERS = stateMapperBuilder.build();
     }
@@ -140,11 +142,11 @@ public class BlockRegistryPopulator {
     }
 
     @SuppressWarnings("unchecked")
-    private static BlockPropertyData generateBlockPropertyData(CustomBlockData customBlock) {
+    private static BlockPropertyData generateBlockPropertyData(CustomBlockData customBlock, int protocolVersion) {
         List<NbtMap> permutations = new ArrayList<>();
         for (CustomBlockPermutation permutation : customBlock.permutations()) {
             permutations.add(NbtMap.builder()
-                    .putCompound("components", convertComponents(permutation.components()))
+                    .putCompound("components", convertComponents(permutation.components(), protocolVersion))
                     .putString("condition", permutation.condition())
                     .build());
         }
@@ -155,11 +157,7 @@ public class BlockRegistryPopulator {
             NbtMapBuilder propertyBuilder = NbtMap.builder()
                     .putString("name", property.name());
             if (property.type() == PropertyType.BOOLEAN) {
-                List<Byte> values = new ArrayList<>();
-                for (boolean value : (List<Boolean>) property.values()) {
-                    values.add((byte) (value ? 1 : 0));
-                }
-                propertyBuilder.putList("enum", NbtType.BYTE, values);
+                propertyBuilder.putList("enum", NbtType.BYTE, List.of((byte) 0, (byte) 1));
             } else if (property.type() == PropertyType.INTEGER) {
                 propertyBuilder.putList("enum", NbtType.INT, (List<Integer>) property.values());
             } else if (property.type() == PropertyType.STRING) {
@@ -169,7 +167,7 @@ public class BlockRegistryPopulator {
         }
 
         NbtMap propertyTag = NbtMap.builder()
-                .putCompound("components", convertComponents(customBlock.components()))
+                .putCompound("components", convertComponents(customBlock.components(), protocolVersion))
                 .putInt("molangVersion", 0)
                 .putList("permutations", NbtType.COMPOUND, permutations)
                 .putList("properties", NbtType.COMPOUND, properties)
@@ -179,6 +177,9 @@ public class BlockRegistryPopulator {
 
     private static void registerBedrockBlocks() {
         for (Map.Entry<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> palette : BLOCK_MAPPERS.entrySet()) {
+            BiFunction<String, NbtMapBuilder, String> stateMapper = palette.getValue();
+            int protocolVersion = palette.getKey().valueInt();
+
             NbtList<NbtMap> blocksTag;
             List<NbtMap> blockStates;
             try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource(String.format("bedrock/block_palette.%s.nbt", palette.getKey().key()));
@@ -197,11 +198,11 @@ public class BlockRegistryPopulator {
             int[] remappedVanillaIds = new int[0];
             if (BlockRegistries.CUSTOM_BLOCKS.get().length != 0) {
                 for (CustomBlockData customBlock : BlockRegistries.CUSTOM_BLOCKS.get()) {
-                    customBlockProperties.add(generateBlockPropertyData(customBlock));
+                    customBlockProperties.add(generateBlockPropertyData(customBlock, protocolVersion));
                     generateCustomBlockStates(customBlock, customBlockStates, customExtBlockStates, stateVersion);
                 }
                 blockStates.addAll(customBlockStates);
-                GeyserImpl.getInstance().getLogger().debug("Added " + customBlockStates.size() + " custom block states to v" + palette.getKey().valueInt() + " palette.");
+                GeyserImpl.getInstance().getLogger().debug("Added " + customBlockStates.size() + " custom block states to v" + protocolVersion + " palette.");
 
                 // The palette is sorted by the FNV1 64-bit hash of the name
                 blockStates.sort((a, b) -> Long.compareUnsigned(fnv164(a.getString("name")), fnv164(b.getString("name"))));
@@ -239,8 +240,6 @@ public class BlockRegistryPopulator {
             int waterRuntimeId = -1;
             int movingBlockRuntimeId = -1;
             Iterator<Map.Entry<String, JsonNode>> blocksIterator = BLOCKS_JSON.fields();
-
-            BiFunction<String, NbtMapBuilder, String> stateMapper = BLOCK_MAPPERS.getOrDefault(palette.getKey(), EMPTY_MAPPER);
 
             int[] javaToBedrockBlocks = new int[BLOCKS_JSON.size()];
 
@@ -331,7 +330,7 @@ public class BlockRegistryPopulator {
         }
     }
 
-    private static NbtMap convertComponents(CustomBlockComponents components) {
+    private static NbtMap convertComponents(CustomBlockComponents components, int protocolVersion) {
         if (components == null) {
             return NbtMap.EMPTY;
         }
@@ -346,7 +345,11 @@ public class BlockRegistryPopulator {
         }
         if (components.collisionBox() != null) {
             BoxComponent collisionBox = components.collisionBox();
-            builder.putCompound("minecraft:block_collision", NbtMap.builder()
+            String tagName = "minecraft:block_collision";
+            if (protocolVersion >= Bedrock_v534.V534_CODEC.getProtocolVersion()) {
+                tagName = "minecraft:collision_box";
+            }
+            builder.putCompound(tagName, NbtMap.builder()
                     .putBoolean("enabled", true)
                     .putList("origin", NbtType.FLOAT, collisionBox.originX(), collisionBox.originY(), collisionBox.originZ())
                     .putList("size", NbtType.FLOAT, collisionBox.sizeX(), collisionBox.sizeY(), collisionBox.sizeZ())
