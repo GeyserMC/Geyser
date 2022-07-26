@@ -48,7 +48,7 @@ public interface BedrockListener {
     int port();
 
     /**
-     * Gets the primary MOTD shown to Bedrock players.
+     * Gets the primary MOTD shown to Bedrock players if a ping passthrough setting is not enabled.
      * <p>
      * This is the first line that will be displayed.
      *
@@ -57,7 +57,7 @@ public interface BedrockListener {
     String primaryMotd();
 
     /**
-     * Gets the secondary MOTD shown to Bedrock players.
+     * Gets the secondary MOTD shown to Bedrock players if a ping passthrough setting is not enabled.
      * <p>
      * This is the second line that will be displayed.
      *

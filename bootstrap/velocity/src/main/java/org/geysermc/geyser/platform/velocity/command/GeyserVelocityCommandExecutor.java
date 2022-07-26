@@ -27,6 +27,7 @@ package org.geysermc.geyser.platform.velocity.command;
 
 import com.velocitypowered.api.command.SimpleCommand;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandExecutor;
 import org.geysermc.geyser.command.GeyserCommandSource;
@@ -37,11 +38,12 @@ import org.geysermc.geyser.text.GeyserLocale;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class GeyserVelocityCommandExecutor extends GeyserCommandExecutor implements SimpleCommand {
 
-    public GeyserVelocityCommandExecutor(GeyserImpl geyser) {
-        super(geyser);
+    public GeyserVelocityCommandExecutor(GeyserImpl geyser, Map<String, Command> commands) {
+        super(geyser, commands);
     }
 
     @Override

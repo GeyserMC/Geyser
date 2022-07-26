@@ -31,7 +31,6 @@ import com.nukkitx.protocol.bedrock.data.ExperimentData;
 import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.pack.ResourcePack;
@@ -39,6 +38,7 @@ import org.geysermc.geyser.pack.ResourcePackManifest;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.geysermc.geyser.util.MathUtils;
@@ -119,7 +119,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     public boolean handle(ResourcePackClientResponsePacket packet) {
         switch (packet.getStatus()) {
             case COMPLETED:
-                if (geyser.getConfig().getRemote().getAuthType() != AuthType.ONLINE) {
+                if (geyser.getConfig().getRemote().authType() != AuthType.ONLINE) {
                     session.authenticate(session.getAuthData().name());
                 } else if (!couldLoginUserByName(session.getAuthData().name())) {
                     // We must spawn the white world

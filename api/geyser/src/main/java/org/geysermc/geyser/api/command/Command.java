@@ -105,7 +105,7 @@ public interface Command {
     }
 
     static <T extends CommandSource> Command.Builder<T> builder(Class<T> sourceType) {
-        return GeyserApi.api().providerManager().builderProvider().provideBuilder(Builder.class, sourceType);
+        return GeyserApi.api().provider(Builder.class, sourceType);
     }
 
     interface Builder<T extends CommandSource> {

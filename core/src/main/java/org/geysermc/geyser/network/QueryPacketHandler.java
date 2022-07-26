@@ -153,7 +153,7 @@ public class QueryPacketHandler {
             String[] javaMotd = MessageTranslator.convertMessageLenient(pingInfo.getDescription()).split("\n");
             motd = javaMotd[0].trim(); // First line of the motd.
         } else {
-            motd = geyser.getConfig().getBedrock().getMotd1();
+            motd = geyser.getConfig().getBedrock().primaryMotd();
         }
 
         // If passthrough player counts is enabled lets get players from the server
@@ -182,8 +182,8 @@ public class QueryPacketHandler {
         gameData.put("map", map);
         gameData.put("numplayers", currentPlayerCount);
         gameData.put("maxplayers", maxPlayerCount);
-        gameData.put("hostport", String.valueOf(geyser.getConfig().getBedrock().getPort()));
-        gameData.put("hostip", geyser.getConfig().getBedrock().getAddress());
+        gameData.put("hostport", String.valueOf(geyser.getConfig().getBedrock().port()));
+        gameData.put("hostip", geyser.getConfig().getBedrock().address());
 
         try {
             writeString(query, "GeyserMC");

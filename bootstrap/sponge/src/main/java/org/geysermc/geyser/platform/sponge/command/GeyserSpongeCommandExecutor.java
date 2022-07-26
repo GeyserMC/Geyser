@@ -26,6 +26,7 @@
 package org.geysermc.geyser.platform.sponge.command;
 
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandExecutor;
 import org.geysermc.geyser.command.GeyserCommandSource;
@@ -40,15 +41,12 @@ import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class GeyserSpongeCommandExecutor extends GeyserCommandExecutor implements CommandCallable {
 
-    public GeyserSpongeCommandExecutor(GeyserImpl geyser) {
-        super(geyser);
+    public GeyserSpongeCommandExecutor(GeyserImpl geyser, Map<String, Command> commands) {
+        super(geyser, commands);
     }
 
     @Override

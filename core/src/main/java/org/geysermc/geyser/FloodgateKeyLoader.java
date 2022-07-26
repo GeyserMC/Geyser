@@ -34,7 +34,7 @@ import java.nio.file.Path;
 
 public class FloodgateKeyLoader {
     public static Path getKeyPath(GeyserJacksonConfiguration config, Path floodgateDataFolder, Path geyserDataFolder, GeyserLogger logger) {
-        if (config.getRemote().getAuthType() != AuthType.FLOODGATE) {
+        if (config.getRemote().authType() != AuthType.FLOODGATE) {
             return geyserDataFolder.resolve(config.getFloodgateKeyFile());
         }
 

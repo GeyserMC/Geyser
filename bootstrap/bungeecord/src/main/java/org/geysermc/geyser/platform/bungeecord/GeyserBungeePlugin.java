@@ -86,7 +86,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             InetSocketAddress javaAddr = listener.getHost();
 
             // By default this should be localhost but may need to be changed in some circumstances
-            if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
+            if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
                 this.geyserConfig.setAutoconfiguredRemote(true);
                 // Don't use localhost if not listening on all interfaces
                 if (!javaAddr.getHostString().equals("0.0.0.0") && !javaAddr.getHostString().equals("")) {
@@ -109,7 +109,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             return;
         }
 
-        if (geyserConfig.getRemote().getAuthType() == AuthType.FLOODGATE && getProxy().getPluginManager().getPlugin("floodgate") == null) {
+        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE && getProxy().getPluginManager().getPlugin("floodgate") == null) {
             geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
             return;
         } else if (geyserConfig.isAutoconfiguredRemote() && getProxy().getPluginManager().getPlugin("floodgate") != null) {
@@ -134,7 +134,8 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             this.geyserBungeePingPassthrough = new GeyserBungeePingPassthrough(getProxy());
         }
 
-        this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor(geyser));
+        this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor("geyser", geyser, geyserCommandManager.getCommands()));
+        this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor("geyserext", geyser, geyserCommandManager.commands()));
     }
 
     @Override
