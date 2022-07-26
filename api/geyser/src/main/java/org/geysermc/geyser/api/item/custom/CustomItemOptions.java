@@ -68,7 +68,7 @@ public interface CustomItemOptions {
     }
 
     static CustomItemOptions.Builder builder() {
-        return GeyserApi.api().providerManager().builderProvider().provideBuilder(CustomItemOptions.Builder.class);
+        return GeyserApi.api().provider(CustomItemOptions.Builder.class);
     }
 
     interface Builder {

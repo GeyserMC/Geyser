@@ -77,8 +77,8 @@ public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runn
     @Override
     public void run() {
         try (Socket socket = new Socket()) {
-            String address = geyser.getConfig().getRemote().getAddress();
-            int port = geyser.getConfig().getRemote().getPort();
+            String address = geyser.getConfig().getRemote().address();
+            int port = geyser.getConfig().getRemote().port();
             socket.connect(new InetSocketAddress(address, port), 5000);
 
             ByteArrayOutputStream byteArrayStream = new ByteArrayOutputStream();

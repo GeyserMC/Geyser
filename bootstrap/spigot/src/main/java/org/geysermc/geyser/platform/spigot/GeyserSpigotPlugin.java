@@ -43,7 +43,6 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.network.AuthType;
-import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
@@ -125,7 +124,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         }
 
         // By default this should be localhost but may need to be changed in some circumstances
-        if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
+        if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
             geyserConfig.setAutoconfiguredRemote(true);
             // Don't use localhost if not listening on all interfaces
             if (!Bukkit.getIp().equals("0.0.0.0") && !Bukkit.getIp().equals("")) {
@@ -148,7 +147,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             return;
         }
 
-        if (geyserConfig.getRemote().getAuthType() == AuthType.FLOODGATE && Bukkit.getPluginManager().getPlugin("floodgate") == null) {
+        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE && Bukkit.getPluginManager().getPlugin("floodgate") == null) {
             geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
             this.getPluginLoader().disablePlugin(this);
             return;
@@ -251,8 +250,10 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             geyserLogger.debug("Using default world manager: " + this.geyserWorldManager.getClass());
         }
 
-        PluginCommand pluginCommand = this.getCommand("geyser");
-        pluginCommand.setExecutor(new GeyserSpigotCommandExecutor(geyser));
+        PluginCommand geyserCommand = this.getCommand("geyser");
+        geyserCommand.setExecutor(new GeyserSpigotCommandExecutor(geyser, geyserCommandManager.getCommands()));
+        PluginCommand geyserExtCommand = this.getCommand("geyserext");
+        geyserExtCommand.setExecutor(new GeyserSpigotCommandExecutor(geyser, geyserCommandManager.getCommands()));
 
         if (!INITIALIZED) {
             // Register permissions so they appear in, for example, LuckPerms' UI
@@ -279,7 +280,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         boolean brigadierSupported = CommodoreProvider.isSupported();
         geyserLogger.debug("Brigadier supported? " + brigadierSupported);
         if (brigadierSupported) {
-            GeyserBrigadierSupport.loadBrigadier(this, pluginCommand);
+            GeyserBrigadierSupport.loadBrigadier(this, geyserCommand);
         }
 
         // Check to ensure the current setup can support the protocol version Geyser uses

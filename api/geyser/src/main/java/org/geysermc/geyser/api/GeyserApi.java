@@ -35,7 +35,6 @@ import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.extension.ExtensionManager;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
-import org.geysermc.geyser.api.provider.ProviderManager;
 
 import java.util.List;
 import java.util.UUID;
@@ -44,24 +43,6 @@ import java.util.UUID;
  * Represents the API used in Geyser.
  */
 public interface GeyserApi extends GeyserApiBase {
-    /**
-     * Shuts down the current Geyser instance.
-     */
-    void shutdown();
-
-    /**
-     * Reloads the current Geyser instance.
-     */
-    void reload();
-
-    /**
-     * Gets if this Geyser instance is running in an IDE. This only needs to be used in cases where files
-     * expected to be in a jarfile are not present.
-     *
-     * @return if we are in a production environment
-     */
-    boolean isProductionEnvironment();
-
     /**
      * {@inheritDoc}
      */
@@ -101,11 +82,15 @@ public interface GeyserApi extends GeyserApiBase {
     CommandManager commandManager();
 
     /**
-     * Gets the {@link ProviderManager}.
+     * Provides an implementation for the specified API type.
      *
-     * @return the provider manager
+     * @param apiClass the builder class
+     * @param <R> the implementation type
+     * @param <T> the API type
+     * @return the builder instance
      */
-    ProviderManager providerManager();
+    @NonNull
+    <R extends T, T> R provider(@NonNull Class<T> apiClass, @Nullable Object... args);
 
     /**
      * Gets the {@link EventBus} for handling
@@ -130,15 +115,6 @@ public interface GeyserApi extends GeyserApiBase {
      * @return the listener used for Bedrock client connectins
      */
     BedrockListener bedrockListener();
-
-    /**
-     * Gets the maximum number of players that
-     * can join this Geyser instance.
-     *
-     * @return the maximum number of players that
-     *         can join this Geyser instance
-     */
-    int maxPlayers();
 
     /**
      * Gets the current {@link GeyserApiBase} instance.

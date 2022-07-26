@@ -33,7 +33,9 @@ import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 import java.util.Set;
 
 /**
- * Called when the downstream server defines the commands available on the server.
+ * Called when the Java server defines the commands available on the server.
+ * <br>
+ * This event is mapped to the existence of Brigadier on the server.
  */
 public class ServerDefineCommandsEvent extends ConnectionEvent implements Cancellable {
     private final Set<? extends CommandInfo> commands;
@@ -45,9 +47,10 @@ public class ServerDefineCommandsEvent extends ConnectionEvent implements Cancel
     }
 
     /**
-     * A mutable collection of the commands sent over.
+     * A collection of commands sent from the server. Any element in this collection can be removed, but no element can
+     * be added.
      *
-     * @return a mutable collection of the commands sent over
+     * @return a collection of the commands sent over
      */
     @NonNull
     public Set<? extends CommandInfo> commands() {
@@ -65,7 +68,6 @@ public class ServerDefineCommandsEvent extends ConnectionEvent implements Cancel
     }
 
     public interface CommandInfo {
-
         /**
          * Gets the name of the command.
          *

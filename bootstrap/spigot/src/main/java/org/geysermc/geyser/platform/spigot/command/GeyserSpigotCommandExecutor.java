@@ -38,11 +38,12 @@ import org.geysermc.geyser.text.GeyserLocale;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class GeyserSpigotCommandExecutor extends GeyserCommandExecutor implements TabExecutor {
 
-    public GeyserSpigotCommandExecutor(GeyserImpl geyser) {
-        super(geyser);
+    public GeyserSpigotCommandExecutor(GeyserImpl geyser, Map<String, org.geysermc.geyser.api.command.Command> commands) {
+        super(geyser, commands);
     }
 
     @Override
