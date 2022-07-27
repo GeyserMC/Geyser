@@ -3,7 +3,7 @@
     "minecraft:geometry": [
         {
             "description": {
-                "identifier": "geometry.geyser.player_skull_floor_b",
+                "identifier": "geometry.geyser.player_skull_floor_${quadrant}",
                 "texture_width": 64,
                 "texture_height": 64
             },
@@ -11,7 +11,7 @@
                 {
                     "name": "head",
                     "pivot": [0, 24, 0],
-					"rotation": [0, 22.5, 0],
+                    "rotation": [0, ${y_rotation}, 0],
                     "cubes": [
                         {"origin": [-4, 0.5, -4], "size": [8, 8, 8], "uv": [0, 0]}
                     ]

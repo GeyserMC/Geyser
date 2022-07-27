@@ -53,7 +53,7 @@ import java.util.zip.ZipOutputStream;
 
 public class SkullResourcePackManager {
 
-    private static final long RESOURCE_PACK_VERSION = 5;
+    private static final long RESOURCE_PACK_VERSION = 6;
 
     private static final Path SKULL_SKIN_CACHE_PATH = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("player_skulls");
 
@@ -170,9 +170,28 @@ public class SkullResourcePackManager {
                 zipOS.closeEntry();
             }
 
+            addFloorGeometries(zipOS);
+
             ZipEntry entry = new ZipEntry("skull_resource_pack/pack_icon.png");
             zipOS.putNextEntry(entry);
             zipOS.write(FileUtils.readAllBytes("icon.png"));
+            zipOS.closeEntry();
+        }
+    }
+
+    private static void addFloorGeometries(ZipOutputStream zipOS) throws IOException {
+        String template = new String(FileUtils.readAllBytes("bedrock/skull_resource_pack/models/blocks/player_skull_floor.geo.json"), StandardCharsets.UTF_8);
+        String[] quadrants = {"a", "b", "c", "d"};
+        for (int i = 0; i < quadrants.length; i++) {
+            String quadrant = quadrants[i];
+            float yRotation = i * 22.5f;
+            String contents = template
+                    .replace("${quadrant}", quadrant)
+                    .replace("${y_rotation}", String.valueOf(yRotation));
+
+            ZipEntry entry = new ZipEntry("skull_resource_pack/models/blocks/player_skull_floor_" + quadrant + ".geo.json");
+            zipOS.putNextEntry(entry);
+            zipOS.write(contents.getBytes(StandardCharsets.UTF_8));
             zipOS.closeEntry();
         }
     }
