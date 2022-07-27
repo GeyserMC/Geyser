@@ -26,7 +26,6 @@
 package org.geysermc.geyser.registry.loader;
 
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
-import org.geysermc.geyser.api.block.custom.CustomBlockPermutation;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.command.CommandSource;
@@ -39,7 +38,6 @@ import org.geysermc.geyser.item.GeyserCustomItemOptions;
 import org.geysermc.geyser.item.GeyserNonVanillaCustomItemData;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
 import org.geysermc.geyser.level.block.GeyserCustomBlockData;
-import org.geysermc.geyser.level.block.GeyserCustomBlockPermutation;
 import org.geysermc.geyser.registry.provider.ProviderSupplier;
 
 import java.util.Map;
@@ -56,7 +54,6 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
 
         providers.put(CustomBlockComponents.Builder.class, args -> new GeyserCustomBlockComponents.CustomBlockComponentsBuilder());
         providers.put(CustomBlockData.Builder.class, args -> new GeyserCustomBlockData.CustomBlockDataBuilder());
-        providers.put(CustomBlockPermutation.Builder.class, args -> new GeyserCustomBlockPermutation.CustomBlockPermutationBuilder());
 
         providers.put(CustomItemData.Builder.class, args -> new GeyserCustomItemData.CustomItemDataBuilder());
         providers.put(CustomItemOptions.Builder.class, args -> new GeyserCustomItemOptions.CustomItemOptionsBuilder());

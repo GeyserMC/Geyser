@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.api.block.custom.component;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 import java.util.Map;
 
 public interface CustomBlockComponents {
@@ -34,7 +36,7 @@ public interface CustomBlockComponents {
 
     String geometry();
 
-    Map<String, MaterialInstance> materialInstances();
+    @NonNull Map<String, MaterialInstance> materialInstances();
 
     Float destroyTime();
 
@@ -53,7 +55,7 @@ public interface CustomBlockComponents {
 
         Builder geometry(String geometry);
 
-        Builder materialInstances(Map<String, MaterialInstance> materialInstances);
+        Builder materialInstance(@NonNull String name, @NonNull MaterialInstance materialInstance);
 
         Builder destroyTime(Float destroyTime);
 

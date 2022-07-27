@@ -25,9 +25,7 @@
 
 package org.geysermc.geyser.level.block;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectLists;
+import it.unimi.dsi.fastutil.objects.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
@@ -39,6 +37,7 @@ import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
 import org.geysermc.geyser.api.block.custom.property.PropertyType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
@@ -78,15 +77,15 @@ public class GeyserCustomBlockData implements CustomBlockData {
     }
 
     @Override
-    public CustomBlockState.Builder blockStateBuilder() {
+    public CustomBlockState.@NotNull Builder blockStateBuilder() {
         return new GeyserCustomBlockState.CustomBlockStateBuilder(this);
     }
 
     public static class CustomBlockDataBuilder implements Builder {
         private String name;
         private CustomBlockComponents components;
-        private Map<String, CustomBlockProperty<?>> properties = new Object2ObjectOpenHashMap<>();
-        private List<CustomBlockPermutation> permutations;
+        private final Object2ObjectMap<String, CustomBlockProperty<?>> properties = new Object2ObjectOpenHashMap<>();
+        private List<CustomBlockPermutation> permutations = ObjectLists.emptyList();
 
         @Override
         public Builder name(@NonNull String name) {
@@ -127,23 +126,27 @@ public class GeyserCustomBlockData implements CustomBlockData {
         @Override
         public CustomBlockData build() {
             if (name == null) {
-                throw new IllegalArgumentException("Name must be set");
+                throw new IllegalStateException("Name must be set");
             }
-            if (properties == null) {
-                properties = Object2ObjectMaps.emptyMap();
-            } else {
+
+            Object2ObjectMap<String, CustomBlockProperty<?>> properties = Object2ObjectMaps.emptyMap();
+            if (!this.properties.isEmpty()) {
+                properties = Object2ObjectMaps.unmodifiable(new Object2ObjectArrayMap<>(this.properties));
                 for (CustomBlockProperty<?> property : properties.values()) {
                     if (property.values().isEmpty() || property.values().size() > 16) {
-                        throw new IllegalArgumentException(property.name() + " must contain 1 to 16 values.");
+                        throw new IllegalStateException(property.name() + " must contain 1 to 16 values.");
                     }
                     if (property.values().stream().distinct().count() != property.values().size()) {
-                        throw new IllegalArgumentException(property.name() + " has duplicate values.");
+                        throw new IllegalStateException(property.name() + " has duplicate values.");
                     }
                 }
             }
-            if (permutations == null) {
-                permutations = ObjectLists.emptyList();
+
+            List<CustomBlockPermutation> permutations = ObjectLists.emptyList();
+            if (!this.permutations.isEmpty()) {
+                permutations = ObjectLists.unmodifiable(new ObjectArrayList<>(this.permutations));
             }
+
             return new GeyserCustomBlockData(name, components, properties, permutations);
         }
     }

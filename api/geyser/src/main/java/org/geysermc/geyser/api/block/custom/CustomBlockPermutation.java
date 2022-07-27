@@ -28,16 +28,5 @@ package org.geysermc.geyser.api.block.custom;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 
-public interface CustomBlockPermutation {
-    @NonNull String condition();
-
-    CustomBlockComponents components();
-
-    interface Builder {
-        Builder condition(@NonNull String condition);
-
-        Builder components(CustomBlockComponents components);
-
-        CustomBlockPermutation build();
-    }
+public record CustomBlockPermutation(@NonNull CustomBlockComponents components, @NonNull String condition) {
 }

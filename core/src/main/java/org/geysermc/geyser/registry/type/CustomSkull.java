@@ -35,11 +35,9 @@ import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.component.RotationComponent;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
 import org.geysermc.geyser.level.block.GeyserCustomBlockData;
-import org.geysermc.geyser.level.block.GeyserCustomBlockPermutation;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.IntStream;
 
 @Data
@@ -53,12 +51,22 @@ public class CustomSkull {
 
     private static final int[] ROTATIONS = {0, -90, 180, 90};
 
+    private static final BoxComponent FLOOR_BOX = new BoxComponent(
+            -4, 0, -4,
+            8, 8, 8
+    );
+
+    private static final BoxComponent WALL_BOX = new BoxComponent(
+            -4, 4, 0,
+            8, 8, 8
+    );
+
     public CustomSkull(String skinHash) {
         this.skinHash = skinHash;
 
         CustomBlockComponents components = new GeyserCustomBlockComponents.CustomBlockComponentsBuilder()
                 .destroyTime(1.5f)
-                .materialInstances(Map.of("*", new MaterialInstance("geyser." + skinHash + "_player_skin", "alpha_test", true, true)))
+                .materialInstance("*", new MaterialInstance("geyser." + skinHash + "_player_skin", "alpha_test", true, true))
                 .lightFilter(0)
                 .build();
 
@@ -112,18 +120,10 @@ public class CustomSkull {
                 .build();
 
         String condition = String.format("query.block_property('%s') == 0 && query.block_property('%s') == 0", BITS_A_PROPERTY, BITS_B_PROPERTY);
-        permutations.add(new GeyserCustomBlockPermutation.CustomBlockPermutationBuilder()
-                .condition(condition)
-                .components(components)
-                .build());
+        permutations.add(new CustomBlockPermutation(components, condition));
     }
 
     private void addFloorPermutations(List<CustomBlockPermutation> permutations) {
-        BoxComponent box = new BoxComponent(
-                -4, 0, -4,
-                8, 8, 8
-        );
-
         String[] quadrantNames = {"a", "b", "c", "d"};
 
         for (int quadrant = 0; quadrant < 4; quadrant++) {
@@ -131,8 +131,8 @@ public class CustomSkull {
             for (int i = 0; i < 4; i++) {
                 int floorRotation = 4 * quadrant + i;
                 CustomBlockComponents components = new GeyserCustomBlockComponents.CustomBlockComponentsBuilder()
-                        .selectionBox(box)
-                        .collisionBox(box)
+                        .selectionBox(FLOOR_BOX)
+                        .collisionBox(FLOOR_BOX)
                         .geometry("geometry.geyser.player_skull_floor_" + quadrantNames[i])
                         .rotation(rotation)
                         .build();
@@ -140,35 +140,23 @@ public class CustomSkull {
                 int bitsA = (5 + floorRotation) % 7;
                 int bitsB = (5 + floorRotation) / 7;
                 String condition = String.format("query.block_property('%s') == %d && query.block_property('%s') == %d", BITS_A_PROPERTY, bitsA, BITS_B_PROPERTY, bitsB);
-                permutations.add(new GeyserCustomBlockPermutation.CustomBlockPermutationBuilder()
-                        .condition(condition)
-                        .components(components)
-                        .build());
+                permutations.add(new CustomBlockPermutation(components, condition));
             }
         }
     }
 
     private void addWallPermutations(List<CustomBlockPermutation> permutations) {
-        BoxComponent box = new BoxComponent(
-                -4, 4, 0,
-                8, 8, 8
-        );
-
         for (int i = 0; i < 4; i++) {
             RotationComponent rotation = new RotationComponent(0, ROTATIONS[i], 0);
-            String condition = String.format("query.block_property('%s') == %d && query.block_property('%s') == %d", BITS_A_PROPERTY, i + 1, BITS_B_PROPERTY, 0);
-
             CustomBlockComponents components = new GeyserCustomBlockComponents.CustomBlockComponentsBuilder()
-                    .selectionBox(box)
-                    .collisionBox(box)
+                    .selectionBox(WALL_BOX)
+                    .collisionBox(WALL_BOX)
                     .geometry("geometry.geyser.player_skull_wall")
                     .rotation(rotation)
                     .build();
 
-            permutations.add(new GeyserCustomBlockPermutation.CustomBlockPermutationBuilder()
-                    .condition(condition)
-                    .components(components)
-                    .build());
+            String condition = String.format("query.block_property('%s') == %d && query.block_property('%s') == %d", BITS_A_PROPERTY, i + 1, BITS_B_PROPERTY, 0);
+            permutations.add(new CustomBlockPermutation(components, condition));
         }
     }
 }

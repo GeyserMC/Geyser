@@ -25,10 +25,16 @@
 
 package org.geysermc.geyser.level.block;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.component.RotationComponent;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
@@ -47,7 +53,11 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         this.selectionBox = builder.selectionBox;
         this.collisionBox = builder.collisionBox;
         this.geometry = builder.geometry;
-        this.materialInstances = builder.materialInstances;
+        if (builder.materialInstances.isEmpty()) {
+            this.materialInstances = Object2ObjectMaps.emptyMap();
+        } else {
+            this.materialInstances = Object2ObjectMaps.unmodifiable(new Object2ObjectArrayMap<>(builder.materialInstances));
+        }
         this.destroyTime = builder.destroyTime;
         this.friction = builder.friction;
         this.lightEmission = builder.lightEmission;
@@ -71,7 +81,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     }
 
     @Override
-    public Map<String, MaterialInstance> materialInstances() {
+    public @NonNull Map<String, MaterialInstance> materialInstances() {
         return materialInstances;
     }
 
@@ -104,7 +114,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         protected BoxComponent selectionBox;
         protected BoxComponent collisionBox;
         protected String geometry;
-        protected Map<String, MaterialInstance> materialInstances;
+        protected final Object2ObjectMap<String, MaterialInstance> materialInstances = new Object2ObjectOpenHashMap<>();
         protected Float destroyTime;
         protected Float friction;
         protected Integer lightEmission;
@@ -130,8 +140,8 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         }
 
         @Override
-        public Builder materialInstances(Map<String, MaterialInstance> materialInstances) {
-            this.materialInstances = materialInstances;
+        public Builder materialInstance(@NotNull String name, @NotNull MaterialInstance materialInstance) {
+            this.materialInstances.put(name, materialInstance);
             return this;
         }
 
