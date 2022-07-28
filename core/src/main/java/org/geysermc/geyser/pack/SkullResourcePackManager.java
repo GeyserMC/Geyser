@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.util.FileUtils;
 
@@ -180,7 +181,7 @@ public class SkullResourcePackManager {
     }
 
     private static void addFloorGeometries(ZipOutputStream zipOS) throws IOException {
-        String template = new String(FileUtils.readAllBytes("bedrock/skull_resource_pack/models/blocks/player_skull_floor.geo.json"), StandardCharsets.UTF_8);
+        String template = FileUtils.readToString("bedrock/skull_resource_pack/models/blocks/player_skull_floor.geo.json");
         String[] quadrants = {"a", "b", "c", "d"};
         for (int i = 0; i < quadrants.length; i++) {
             String quadrant = quadrants[i];
@@ -197,11 +198,11 @@ public class SkullResourcePackManager {
     }
 
     private static void addAttachables(ZipOutputStream zipOS) throws IOException {
-        String template = new String(FileUtils.readAllBytes("bedrock/skull_resource_pack/attachables/template_attachable.json"), StandardCharsets.UTF_8);
-        for (String skinHash : SKULL_SKINS.keySet()) {
-            ZipEntry entry = new ZipEntry("skull_resource_pack/attachables/" + skinHash + ".json");
+        String template = FileUtils.readToString("bedrock/skull_resource_pack/attachables/template_attachable.json");
+        for (CustomSkull skull : BlockRegistries.CUSTOM_SKULLS.get().values()) {
+            ZipEntry entry = new ZipEntry("skull_resource_pack/attachables/" + skull.getSkinHash() + ".json");
             zipOS.putNextEntry(entry);
-            zipOS.write(fillAttachableJson(template, skinHash).getBytes(StandardCharsets.UTF_8));
+            zipOS.write(fillAttachableJson(template, skull).getBytes(StandardCharsets.UTF_8));
             zipOS.closeEntry();
         }
     }
@@ -218,14 +219,14 @@ public class SkullResourcePackManager {
     }
 
     private static void fillTemplate(ZipOutputStream zipOS, String path, UnaryOperator<String> filler) throws IOException {
-        String template = new String(FileUtils.readAllBytes(path), StandardCharsets.UTF_8);
+        String template = FileUtils.readToString(path);
         String result = filler.apply(template);
         zipOS.write(result.getBytes(StandardCharsets.UTF_8));
     }
 
-    private static String fillAttachableJson(String template, String skinHash) {
-        return template.replace("${identifier}", "geyser:player_skull_" + skinHash) // TOOD use CustomSkull for this
-                .replace("${texture}", skinHash);
+    private static String fillAttachableJson(String template, CustomSkull skull) {
+        return template.replace("${identifier}", skull.getCustomBlockData().identifier())
+                .replace("${texture}", skull.getSkinHash());
     }
 
     private static String fillManifestJson(String template) {

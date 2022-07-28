@@ -189,6 +189,14 @@ public class FileUtils {
     }
 
     /**
+     * @param resource the internal resource to read off from
+     * @return the contents decoded as a UTF-8 String
+     */
+    public static String readToString(String resource) {
+        return new String(readAllBytes(resource), StandardCharsets.UTF_8);
+    }
+
+    /**
      * Read the lines of a file and return it as a stream
      *
      * @param path File path to read
