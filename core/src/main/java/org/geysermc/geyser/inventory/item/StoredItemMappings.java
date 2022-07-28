@@ -38,6 +38,7 @@ import java.util.Map;
 @Getter
 @Accessors(fluent = true)
 public class StoredItemMappings {
+    private final int amethystShard;
     private final ItemMapping bamboo;
     private final ItemMapping banner;
     private final ItemMapping barrier;
@@ -71,6 +72,7 @@ public class StoredItemMappings {
     private final ItemMapping writableBook;
 
     public StoredItemMappings(Map<String, ItemMapping> itemMappings) {
+        this.amethystShard = load(itemMappings, "amethyst_shard").getJavaId();
         this.bamboo = load(itemMappings, "bamboo");
         this.banner = load(itemMappings, "white_banner"); // As of 1.17.10, all banners have the same Bedrock ID
         this.barrier = load(itemMappings, "barrier");

@@ -34,9 +34,7 @@ import javax.annotation.Nullable;
 
 public record ChatTypeEntry(@Nonnull TextPacket.Type bedrockChatType, @Nullable TextDecoration textDecoration) {
     private static final ChatTypeEntry CHAT = new ChatTypeEntry(TextPacket.Type.CHAT, null);
-    private static final ChatTypeEntry SYSTEM = new ChatTypeEntry(TextPacket.Type.CHAT, null);
-    private static final ChatTypeEntry TIP = new ChatTypeEntry(TextPacket.Type.CHAT, null);
-    private static final ChatTypeEntry RAW = new ChatTypeEntry(TextPacket.Type.CHAT, null);
+    private static final ChatTypeEntry RAW = new ChatTypeEntry(TextPacket.Type.RAW, null);
 
     /**
      * Apply defaults to a map so it isn't empty in the event a chat message is sent before the login packet.
@@ -46,12 +44,11 @@ public record ChatTypeEntry(@Nonnull TextPacket.Type bedrockChatType, @Nullable 
         // But, the only way this happens is if a chat message is sent to us before the login packet, which is rare.
         // So we'll just make sure chat ends up in the right place.
         chatTypes.put(BuiltinChatType.CHAT.ordinal(), CHAT);
-        chatTypes.put(BuiltinChatType.SYSTEM.ordinal(), SYSTEM);
-        chatTypes.put(BuiltinChatType.GAME_INFO.ordinal(), TIP);
         chatTypes.put(BuiltinChatType.SAY_COMMAND.ordinal(), RAW);
-        chatTypes.put(BuiltinChatType.MSG_COMMAND.ordinal(), RAW);
-        chatTypes.put(BuiltinChatType.TEAM_MSG_COMMAND.ordinal(), RAW);
+        chatTypes.put(BuiltinChatType.MSG_COMMAND_INCOMING.ordinal(), RAW);
+        chatTypes.put(BuiltinChatType.MSG_COMMAND_OUTGOING.ordinal(), RAW);
+        chatTypes.put(BuiltinChatType.TEAM_MSG_COMMAND_INCOMING.ordinal(), RAW);
+        chatTypes.put(BuiltinChatType.TEAM_MSG_COMMAND_OUTGOING.ordinal(), RAW);
         chatTypes.put(BuiltinChatType.EMOTE_COMMAND.ordinal(), RAW);
-        chatTypes.put(BuiltinChatType.TELLRAW_COMMAND.ordinal(), RAW);
     }
 }

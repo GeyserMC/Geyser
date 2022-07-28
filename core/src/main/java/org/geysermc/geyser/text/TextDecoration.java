@@ -46,14 +46,16 @@ public final class TextDecoration {
 
         CompoundTag styleTag = tag.get("style");
         Style.Builder builder = Style.style();
-        StringTag color = styleTag.get("color");
-        if (color != null) {
-            builder.color(NamedTextColor.NAMES.value(color.getValue()));
-        }
-        //TODO implement the rest
-        Tag italic = styleTag.get("italic");
-        if (italic != null && ((Number) italic.getValue()).byteValue() == (byte) 1) {
-            builder.decorate(net.kyori.adventure.text.format.TextDecoration.ITALIC);
+        if (styleTag != null) {
+            StringTag color = styleTag.get("color");
+            if (color != null) {
+                builder.color(NamedTextColor.NAMES.value(color.getValue()));
+            }
+            //TODO implement the rest
+            Tag italic = styleTag.get("italic");
+            if (italic != null && ((Number) italic.getValue()).byteValue() == (byte) 1) {
+                builder.decorate(net.kyori.adventure.text.format.TextDecoration.ITALIC);
+            }
         }
         style = builder.build();
 
@@ -88,6 +90,6 @@ public final class TextDecoration {
     public enum Parameter {
         CONTENT,
         SENDER,
-        TEAM_NAME
+        TARGET
     }
 }
