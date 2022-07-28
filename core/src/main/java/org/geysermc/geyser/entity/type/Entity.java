@@ -118,6 +118,9 @@ public class Entity {
     @Setter(AccessLevel.PROTECTED) // For players
     private boolean flagsDirty = false;
 
+    @Getter
+    public long leashHolderBedrockId;
+
     public Entity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         this.session = session;
 
@@ -152,6 +155,12 @@ public class Entity {
         setFlag(EntityFlag.CAN_CLIMB, true);
         // Let the Java server (or us) supply all sounds for an entity
         setClientSideSilent();
+        setLeashHolderBedrockId(-1);
+    }
+
+    public void setLeashHolderBedrockId(long bedrockId) {
+        this.leashHolderBedrockId = bedrockId;
+        dirtyMetadata.put(EntityData.LEASH_HOLDER_EID, bedrockId);
     }
 
     protected void setClientSideSilent() {

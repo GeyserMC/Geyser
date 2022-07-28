@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.Client
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
+import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.MobEntity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -44,16 +45,16 @@ public class JavaSetEntityLinkTranslator extends PacketTranslator<ClientboundSet
     @Override
     public void translate(GeyserSession session, ClientboundSetEntityLinkPacket packet) {
         Entity holderId = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
-        if (!(holderId instanceof MobEntity mobEntity)) {
+        if (!(holderId instanceof MobEntity mobEntity) && !(holderId instanceof BoatEntity boatEntity)) {
             return;
         }
 
         Entity attachedToId = session.getEntityCache().getEntityByJavaId(packet.getAttachedToId());
         if (attachedToId == null || packet.getAttachedToId() == 0) {
             // Is not being leashed
-            mobEntity.setFlag(EntityFlag.LEASHED, false);
-            mobEntity.setLeashHolderBedrockId(-1L);
-            mobEntity.updateBedrockMetadata();
+            holderId.setFlag(EntityFlag.LEASHED, false);
+            holderId.setLeashHolderBedrockId(-1L);
+            holderId.updateBedrockMetadata();
             EntityEventPacket eventPacket = new EntityEventPacket();
             eventPacket.setRuntimeEntityId(holderId.getGeyserId());
             eventPacket.setType(EntityEventType.REMOVE_LEASH);
@@ -62,8 +63,8 @@ public class JavaSetEntityLinkTranslator extends PacketTranslator<ClientboundSet
             return;
         }
 
-        mobEntity.setFlag(EntityFlag.LEASHED, true);
-        mobEntity.setLeashHolderBedrockId(attachedToId.getGeyserId());
+        holderId.setFlag(EntityFlag.LEASHED, true);
+        holderId.setLeashHolderBedrockId(attachedToId.getGeyserId());
         holderId.updateBedrockMetadata();
     }
 }

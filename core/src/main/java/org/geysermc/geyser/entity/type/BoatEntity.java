@@ -35,6 +35,8 @@ import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import lombok.Getter;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
@@ -164,8 +166,20 @@ public class BoatEntity extends Entity {
     @Override
     protected InteractiveTag testInteraction(Hand hand) {
         if (session.isSneaking()) {
+            if (leashHolderBedrockId == session.getPlayerEntity().getGeyserId()) {
+                return InteractiveTag.REMOVE_LEASH;
+            }
+            else {
+                GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand(hand);
+                StoredItemMappings storedItems = session.getItemMappings().getStoredItems();
+                if (itemStack.getJavaId() == storedItems.lead() && canBeLeashed()) {
+                    // We shall leash
+                    return InteractiveTag.LEASH;
+                }
+            }
             return InteractiveTag.NONE;
-        } else if (passengers.size() < 2) {
+        }
+        else if (passengers.size() < 2) {
             return InteractiveTag.BOARD_BOAT;
         } else {
             return InteractiveTag.NONE;
@@ -175,6 +189,10 @@ public class BoatEntity extends Entity {
     @Override
     public InteractionResult interact(Hand hand) {
         if (session.isSneaking()) {
+            if (leashHolderBedrockId == session.getPlayerEntity().getGeyserId()) {
+                // TODO looks like the client assumes it will go through and removes the attachment itself?
+                return InteractionResult.SUCCESS;
+            }
             return InteractionResult.PASS;
         } else {
             // TODO: the client also checks for "out of control" ticks
@@ -214,5 +232,27 @@ public class BoatEntity extends Entity {
         packet.setAction(action);
         packet.setRowingTime(rowTime);
         session.sendUpstreamPacket(packet);
+    }
+
+    /*
+    @Override
+    protected void initializeMetadata() {
+        super.initializeMetadata();
+        setLeashHolderBedrockId(-1);
+    }
+
+    public void setLeashHolderBedrockId(long bedrockId) {
+        this.leashHolderBedrockId = bedrockId;
+        dirtyMetadata.put(EntityData.LEASH_HOLDER_EID, bedrockId);
+    }
+
+     */
+
+    protected boolean canBeLeashed() {
+        return !this.isNotLeashed();
+    }
+
+    public boolean isNotLeashed() {
+        return leashHolderBedrockId == -1L;
     }
 }
