@@ -65,6 +65,12 @@ import java.util.*;
  */
 public final class Registries {
     /**
+     * A registry holding all the providers.
+     * This has to be initialized first to allow extensions to access providers during other registry events.
+     */
+    public static final SimpleMappedRegistry<Class<?>, ProviderSupplier> PROVIDERS = SimpleMappedRegistry.create(new IdentityHashMap<>(), ProviderRegistryLoader::new);
+
+    /**
      * A registry holding a CompoundTag of the known entity identifiers.
      */
     public static final SimpleRegistry<NbtMap> BEDROCK_ENTITY_IDENTIFIERS = SimpleRegistry.create("bedrock/entity_identifiers.dat", RegistryLoaders.NBT);
@@ -135,11 +141,6 @@ public final class Registries {
      * A registry holding all the potion mixes.
      */
     public static final SimpleRegistry<Set<PotionMixData>> POTION_MIXES;
-
-    /**
-     * A registry holding all the
-     */
-    public static final SimpleMappedRegistry<Class<?>, ProviderSupplier> PROVIDERS = SimpleMappedRegistry.create(new IdentityHashMap<>(), ProviderRegistryLoader::new);
 
     /**
      * A versioned registry holding all the recipes, with the net ID being the key, and {@link GeyserRecipe} as the value.

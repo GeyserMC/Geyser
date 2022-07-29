@@ -27,10 +27,12 @@ package org.geysermc.geyser.api.event.lifecycle;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
+import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.event.Event;
 
 public abstract class GeyserDefineCustomBlocksEvent implements Event {
 
     public abstract void registerCustomBlock(@NonNull CustomBlockData customBlockData);
 
+    public abstract void registerBlockStateOverride(@NonNull String javaIdentifier, @NonNull CustomBlockState customBlockState);
 }

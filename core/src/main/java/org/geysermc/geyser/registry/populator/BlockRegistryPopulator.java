@@ -32,6 +32,8 @@ import com.nukkitx.nbt.*;
 import com.nukkitx.protocol.bedrock.data.BlockPropertyData;
 import com.nukkitx.protocol.bedrock.v527.Bedrock_v527;
 import com.nukkitx.protocol.bedrock.v534.Bedrock_v534;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.*;
@@ -94,11 +96,35 @@ public class BlockRegistryPopulator {
         if (!GeyserImpl.getInstance().getConfig().isAddCustomBlocks()) {
             return;
         }
-        List<CustomBlockData> customBlocks = new ArrayList<>();
+        Set<String> customBlockNames = new HashSet<>();
+        Set<CustomBlockData> customBlocks = new HashSet<>();
+        Int2ObjectMap<CustomBlockState> blockStateOverrides = new Int2ObjectOpenHashMap<>();
         GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineCustomBlocksEvent() {
             @Override
             public void registerCustomBlock(@NonNull CustomBlockData customBlockData) {
+                if (!customBlockNames.add(customBlockData.name())) {
+                    throw new IllegalArgumentException("Another custom block was already registered under the name: " + customBlockData.name());
+                }
+                // TODO validate collision+selection box bounds
+                // TODO validate names
                 customBlocks.add(customBlockData);
+            }
+
+            @Override
+            public void registerBlockStateOverride(@NonNull String javaIdentifier, @NonNull CustomBlockState customBlockState) {
+                int id = BlockRegistries.JAVA_IDENTIFIERS.getOrDefault(javaIdentifier, -1);
+                if (id == -1) {
+                    throw new IllegalArgumentException("Unknown Java block state. Identifier: " + javaIdentifier);
+                }
+                if (!customBlocks.contains(customBlockState.block())) {
+                    throw new IllegalArgumentException("Custom block is unregistered. Name: " + customBlockState.name());
+                }
+                CustomBlockState oldBlockState = blockStateOverrides.put(id, customBlockState);
+                if (oldBlockState != null) {
+                    // TODO should this be an error? Allow extensions to query block state overrides?
+                    GeyserImpl.getInstance().getLogger().debug("Duplicate block state override for Java Identifier: " +
+                            javaIdentifier + " Old override: " + oldBlockState.name() + " New override: " + customBlockState.name());
+                }
             }
         });
 
@@ -108,6 +134,9 @@ public class BlockRegistryPopulator {
 
         BlockRegistries.CUSTOM_BLOCKS.set(customBlocks.toArray(new CustomBlockData[0]));
         GeyserImpl.getInstance().getLogger().debug("Registered " + customBlocks.size() + " custom blocks.");
+
+        BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.set(blockStateOverrides);
+        GeyserImpl.getInstance().getLogger().debug("Registered " + blockStateOverrides.size() + " custom block overrides.");
     }
 
     private static void generateCustomBlockStates(CustomBlockData customBlock, List<NbtMap> blockStates, List<CustomBlockState> customExtBlockStates, int stateVersion) {
@@ -247,10 +276,20 @@ public class BlockRegistryPopulator {
                 Map.Entry<String, JsonNode> entry = blocksIterator.next();
                 String javaId = entry.getKey();
 
-                int bedrockRuntimeId = blockStateOrderedMap.getOrDefault(buildBedrockState(entry.getValue(), stateVersion, stateMapper), -1);
-                if (bedrockRuntimeId == -1) {
-                    throw new RuntimeException("Unable to find " + javaId + " Bedrock runtime ID! Built NBT tag: \n" +
-                            buildBedrockState(entry.getValue(), stateVersion, stateMapper));
+                int bedrockRuntimeId;
+                CustomBlockState blockStateOverride = BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get(javaRuntimeId);
+                if (blockStateOverride == null) {
+                    bedrockRuntimeId = blockStateOrderedMap.getOrDefault(buildBedrockState(entry.getValue(), stateVersion, stateMapper), -1);
+                    if (bedrockRuntimeId == -1) {
+                        throw new RuntimeException("Unable to find " + javaId + " Bedrock runtime ID! Built NBT tag: \n" +
+                                buildBedrockState(entry.getValue(), stateVersion, stateMapper));
+                    }
+                } else {
+                    bedrockRuntimeId = customBlockStateIds.getOrDefault(blockStateOverride, -1);
+                    if (bedrockRuntimeId == -1) {
+                        throw new RuntimeException("Unable to find " + javaId + " Bedrock runtime ID! Custom block override: \n" +
+                            blockStateOverride);
+                    }
                 }
 
                 switch (javaId) {

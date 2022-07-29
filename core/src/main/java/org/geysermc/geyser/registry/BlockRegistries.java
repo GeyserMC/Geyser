@@ -25,11 +25,13 @@
 
 package org.geysermc.geyser.registry;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
+import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.registry.populator.BlockRegistryPopulator;
 import org.geysermc.geyser.registry.populator.CustomSkullRegistryPopulator;
@@ -89,6 +91,11 @@ public class BlockRegistries {
      * A registry containing all the custom blocks.
      */
     public static final ArrayRegistry<CustomBlockData> CUSTOM_BLOCKS = ArrayRegistry.create(RegistryLoaders.empty(() -> new CustomBlockData[] {}));
+
+    /**
+     * A registry which stores Java Ids and the custom block state it should be replaced with.
+     */
+    public static final MappedRegistry<Integer, CustomBlockState, Int2ObjectMap<CustomBlockState>> CUSTOM_BLOCK_STATE_OVERRIDES = MappedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
     /**
      * A registry which stores skin texture hashes to custom skull blocks.
