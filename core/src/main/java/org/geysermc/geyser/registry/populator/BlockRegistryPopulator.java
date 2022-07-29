@@ -111,13 +111,6 @@ public class BlockRegistryPopulator {
     }
 
     private static void generateCustomBlockStates(CustomBlockData customBlock, List<NbtMap> blockStates, List<CustomBlockState> customExtBlockStates, int stateVersion) {
-        if (customBlock.properties().isEmpty()) {
-            blockStates.add(NbtMap.builder()
-                    .putString("name", customBlock.identifier())
-                    .putInt("version", stateVersion)
-                    .putCompound("states", NbtMap.EMPTY)
-                    .build());
-        }
         int totalPermutations = 1;
         for (CustomBlockProperty<?> property : customBlock.properties().values()) {
             totalPermutations *= property.values().size();

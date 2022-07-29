@@ -49,8 +49,7 @@ public class GeyserCustomBlockData implements CustomBlockData {
     Map<String, CustomBlockProperty<?>> properties;
     List<CustomBlockPermutation> permutations;
 
-    @EqualsAndHashCode.Exclude // Otherwise this will a StackOverflowError in hashCode/equals
-    CustomBlockState defaultBlockState;
+    Map<String, Object> defaultProperties;
 
     private GeyserCustomBlockData(CustomBlockDataBuilder builder) {
         this.name = builder.name;
@@ -60,10 +59,9 @@ public class GeyserCustomBlockData implements CustomBlockData {
 
         this.components = builder.components;
 
-        Object2ObjectMap<String, Object> defaultProperties;
         if (!builder.properties.isEmpty()) {
             this.properties = Object2ObjectMaps.unmodifiable(new Object2ObjectArrayMap<>(builder.properties));
-            defaultProperties = new Object2ObjectOpenHashMap<>(this.properties.size());
+            Object2ObjectMap<String, Object> defaultProperties = new Object2ObjectOpenHashMap<>(this.properties.size());
             for (CustomBlockProperty<?> property : properties.values()) {
                 if (property.values().isEmpty() || property.values().size() > 16) {
                     throw new IllegalStateException(property.name() + " must contain 1 to 16 values.");
@@ -73,10 +71,10 @@ public class GeyserCustomBlockData implements CustomBlockData {
                 }
                 defaultProperties.put(property.name(), property.values().get(0));
             }
-            this.defaultBlockState = new GeyserCustomBlockState(this, Object2ObjectMaps.unmodifiable(defaultProperties));
+            this.defaultProperties = Object2ObjectMaps.unmodifiable(defaultProperties);
         } else {
             this.properties = Object2ObjectMaps.emptyMap();
-            this.defaultBlockState = new GeyserCustomBlockState(this, Object2ObjectMaps.emptyMap());
+            this.defaultProperties = Object2ObjectMaps.emptyMap();
         }
 
         if (!builder.permutations.isEmpty()) {
@@ -113,7 +111,7 @@ public class GeyserCustomBlockData implements CustomBlockData {
 
     @Override
     public @NonNull CustomBlockState defaultBlockState() {
-        return defaultBlockState;
+        return new GeyserCustomBlockState(this, defaultProperties);
     }
 
     @Override
