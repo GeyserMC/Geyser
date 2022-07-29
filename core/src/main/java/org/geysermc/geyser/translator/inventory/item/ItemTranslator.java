@@ -38,6 +38,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -276,16 +277,24 @@ public abstract class ItemTranslator {
      */
     public static int getBedrockItemId(GeyserSession session, @Nonnull GeyserItemStack itemStack) {
         if (itemStack.isEmpty()) {
-            return ItemMapping.AIR.getJavaId();
+            return ItemMapping.AIR.getBedrockId();
         }
         int javaId = itemStack.getJavaId();
         ItemMapping mapping = ITEM_STACK_TRANSLATORS.getOrDefault(javaId, DEFAULT_TRANSLATOR)
                 .getItemMapping(javaId, itemStack.getNbt(), session.getItemMappings());
 
+        int itemId = mapping.getBedrockId();
+        if (mapping == session.getItemMappings().getStoredItems().playerHead()) {
+            CustomSkull customSkull = getCustomSkull(session, itemStack.getNbt());
+            if (customSkull != null) {
+                itemId = session.getItemMappings().getCustomBlockItemIds().getInt(customSkull.getCustomBlockData());
+            }
+        }
+
         int customItemId = getCustomItem(itemStack.getNbt(), mapping);
         if (customItemId == -1) {
             // No custom item
-            return mapping.getBedrockId();
+            return itemId;
         } else {
             return customItemId;
         }
@@ -556,29 +565,34 @@ public abstract class ItemTranslator {
             builder.blockRuntimeId(0);
         }
     }
-    
-    private static void translatePlayerHead(GeyserSession session, CompoundTag nbt, ItemData.Builder builder) {
+
+    private static CustomSkull getCustomSkull(GeyserSession session, CompoundTag nbt) {
         if (nbt != null && nbt.contains("SkullOwner")) {
             if (!(nbt.get("SkullOwner") instanceof CompoundTag skullOwner)) {
                 // It's a username give up d:
-                return;
+                return null;
             }
             SkinManager.GameProfileData data = SkinManager.GameProfileData.from(skullOwner);
             if (data == null) {
                 session.getGeyser().getLogger().debug("Not sure how to handle skull head item display. " + nbt);
-                return;
+                return null;
             }
 
             String skinHash = data.skinUrl().substring(data.skinUrl().lastIndexOf('/') + 1);
+            return BlockRegistries.CUSTOM_SKULLS.get(skinHash);
+        }
+        return null;
+    }
 
-            CustomSkull customSkull = BlockRegistries.CUSTOM_SKULLS.get(skinHash);
-            if (customSkull != null) {
-                int itemId = session.getItemMappings().getCustomBlockItemIds().getInt(customSkull.getCustomBlockData());
-                int blockRuntimeId = session.getBlockMappings().getCustomBlockStateIds().getInt(customSkull.getDefaultBlockState());
+    private static void translatePlayerHead(GeyserSession session, CompoundTag nbt, ItemData.Builder builder) {
+        CustomSkull customSkull = getCustomSkull(session, nbt);
+        if (customSkull != null) {
+            CustomBlockData customBlockData = customSkull.getCustomBlockData();
+            int itemId = session.getItemMappings().getCustomBlockItemIds().getInt(customBlockData);
+            int blockRuntimeId = session.getBlockMappings().getCustomBlockStateIds().getInt(customBlockData.defaultBlockState());
 
-                builder.id(itemId);
-                builder.blockRuntimeId(blockRuntimeId);
-            }
+            builder.id(itemId);
+            builder.blockRuntimeId(blockRuntimeId);
         }
     }
 

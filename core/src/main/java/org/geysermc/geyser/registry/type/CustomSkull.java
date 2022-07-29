@@ -84,13 +84,6 @@ public class CustomSkull {
                 .build();
     }
 
-    public CustomBlockState getDefaultBlockState() {
-        return customBlockData.blockStateBuilder()
-                .intProperty(BITS_A_PROPERTY, 0)
-                .intProperty(BITS_B_PROPERTY, 0)
-                .build();
-    }
-
     public CustomBlockState getWallBlockState(int wallDirection) {
         wallDirection = switch (wallDirection) {
             case 0 -> 2; // South

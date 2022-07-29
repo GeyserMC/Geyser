@@ -350,7 +350,7 @@ public class BlockRegistryPopulator {
                     .putString("value", components.geometry())
                     .build());
         }
-        if (components.materialInstances() != null && !components.materialInstances().isEmpty()) {
+        if (!components.materialInstances().isEmpty()) {
             NbtMapBuilder materialsBuilder = NbtMap.builder();
             for (Map.Entry<String, MaterialInstance> entry : components.materialInstances().entrySet()) {
                 MaterialInstance materialInstance = entry.getValue();

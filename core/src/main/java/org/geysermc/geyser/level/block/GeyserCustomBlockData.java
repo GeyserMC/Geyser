@@ -26,8 +26,7 @@
 package org.geysermc.geyser.level.block;
 
 import it.unimi.dsi.fastutil.objects.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.Constants;
@@ -43,13 +42,49 @@ import java.util.List;
 import java.util.Map;
 
 @Value
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class GeyserCustomBlockData implements CustomBlockData {
 
     String name;
     CustomBlockComponents components;
     Map<String, CustomBlockProperty<?>> properties;
     List<CustomBlockPermutation> permutations;
+
+    @EqualsAndHashCode.Exclude // Otherwise this will a StackOverflowError in hashCode/equals
+    CustomBlockState defaultBlockState;
+
+    private GeyserCustomBlockData(CustomBlockDataBuilder builder) {
+        this.name = builder.name;
+        if (name == null) {
+            throw new IllegalStateException("Name must be set");
+        }
+
+        this.components = builder.components;
+
+        Object2ObjectMap<String, Object> defaultProperties;
+        if (!builder.properties.isEmpty()) {
+            this.properties = Object2ObjectMaps.unmodifiable(new Object2ObjectArrayMap<>(builder.properties));
+            defaultProperties = new Object2ObjectOpenHashMap<>(this.properties.size());
+            for (CustomBlockProperty<?> property : properties.values()) {
+                if (property.values().isEmpty() || property.values().size() > 16) {
+                    throw new IllegalStateException(property.name() + " must contain 1 to 16 values.");
+                }
+                if (property.values().stream().distinct().count() != property.values().size()) {
+                    throw new IllegalStateException(property.name() + " has duplicate values.");
+                }
+                defaultProperties.put(property.name(), property.values().get(0));
+            }
+            this.defaultBlockState = new GeyserCustomBlockState(this, Object2ObjectMaps.unmodifiable(defaultProperties));
+        } else {
+            this.properties = Object2ObjectMaps.emptyMap();
+            this.defaultBlockState = new GeyserCustomBlockState(this, Object2ObjectMaps.emptyMap());
+        }
+
+        if (!builder.permutations.isEmpty()) {
+            this.permutations = ObjectLists.unmodifiable(new ObjectArrayList<>(builder.permutations));
+        } else {
+            this.permutations = ObjectLists.emptyList();
+        }
+    }
 
     @Override
     public @NonNull String name() {
@@ -74,6 +109,11 @@ public class GeyserCustomBlockData implements CustomBlockData {
     @Override
     public @NonNull List<CustomBlockPermutation> permutations() {
         return permutations;
+    }
+
+    @Override
+    public @NonNull CustomBlockState defaultBlockState() {
+        return defaultBlockState;
     }
 
     @Override
@@ -125,29 +165,7 @@ public class GeyserCustomBlockData implements CustomBlockData {
 
         @Override
         public CustomBlockData build() {
-            if (name == null) {
-                throw new IllegalStateException("Name must be set");
-            }
-
-            Object2ObjectMap<String, CustomBlockProperty<?>> properties = Object2ObjectMaps.emptyMap();
-            if (!this.properties.isEmpty()) {
-                properties = Object2ObjectMaps.unmodifiable(new Object2ObjectArrayMap<>(this.properties));
-                for (CustomBlockProperty<?> property : properties.values()) {
-                    if (property.values().isEmpty() || property.values().size() > 16) {
-                        throw new IllegalStateException(property.name() + " must contain 1 to 16 values.");
-                    }
-                    if (property.values().stream().distinct().count() != property.values().size()) {
-                        throw new IllegalStateException(property.name() + " has duplicate values.");
-                    }
-                }
-            }
-
-            List<CustomBlockPermutation> permutations = ObjectLists.emptyList();
-            if (!this.permutations.isEmpty()) {
-                permutations = ObjectLists.unmodifiable(new ObjectArrayList<>(this.permutations));
-            }
-
-            return new GeyserCustomBlockData(name, components, properties, permutations);
+            return new GeyserCustomBlockData(this);
         }
     }
 }

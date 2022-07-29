@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import lombok.Value;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
@@ -38,16 +39,17 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
+@Value
 public class GeyserCustomBlockComponents implements CustomBlockComponents {
-    private final BoxComponent selectionBox;
-    private final BoxComponent collisionBox;
-    private final String geometry;
-    private final Map<String, MaterialInstance> materialInstances;
-    private final Float destroyTime;
-    private final Float friction;
-    private final Integer lightEmission;
-    private final Integer lightDampening;
-    private final RotationComponent rotation;
+    BoxComponent selectionBox;
+    BoxComponent collisionBox;
+    String geometry;
+    Map<String, MaterialInstance> materialInstances;
+    Float destroyTime;
+    Float friction;
+    Integer lightEmission;
+    Integer lightDampening;
+    RotationComponent rotation;
 
     private GeyserCustomBlockComponents(CustomBlockComponentsBuilder builder) {
         this.selectionBox = builder.selectionBox;

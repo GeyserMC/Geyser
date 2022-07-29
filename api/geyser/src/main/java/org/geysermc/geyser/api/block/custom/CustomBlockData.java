@@ -46,6 +46,8 @@ public interface CustomBlockData {
 
     @NonNull List<CustomBlockPermutation> permutations();
 
+    @NonNull CustomBlockState defaultBlockState();
+
     CustomBlockState.@NonNull Builder blockStateBuilder();
 
     interface Builder {
