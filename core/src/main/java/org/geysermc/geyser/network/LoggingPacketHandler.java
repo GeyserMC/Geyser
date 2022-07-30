@@ -47,11 +47,11 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
      * Sessions have a client id number from 0-n and are looked up in this list by client id
      */
     @Getter
-    protected List<GeyserSession> sessions = new ArrayList<>(1);
+    protected final List<GeyserSession> sessions = new ArrayList<>();
 
     LoggingPacketHandler(GeyserImpl geyser, GeyserSession session) {
         this.geyser = geyser;
-        this.sessions.add(session.getClientId(), session);
+        this.sessions.add(0, session);
     }
 
     boolean defaultHandler(BedrockPacket packet) {

@@ -50,6 +50,7 @@ import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.configuration.GeyserConfiguration.ISplitscreenUserInfo;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.AuthData;
+import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -61,10 +62,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECGenParameterSpec;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.BiConsumer;
 
 public class LoginEncryptionUtils {
@@ -125,17 +123,12 @@ public class LoginEncryptionUtils {
         handleEncryption(geyser, session, loginPacket.getChainData(), loginPacket.getSkinData(), true);
     }
 
-    public static void handleEncryption(GeyserImpl geyser, GeyserSession session, SubClientLoginPacket loginPacket) {
+    public static void handleSubClient(GeyserImpl geyser, GeyserSession session, SubClientLoginPacket loginPacket) {
         handleEncryption(geyser, session, loginPacket.getChainData(), loginPacket.getSkinData(), false);
     }
 
-    private static void handleEncryption(
-            GeyserImpl geyser,
-            GeyserSession session,
-            AsciiString chainData,
-            AsciiString skinData,
-            boolean isMainClient
-    ) {
+    private static void handleEncryption(GeyserImpl geyser, GeyserSession session, AsciiString chainData,
+                                         AsciiString skinData, boolean isMainClient) {
         JsonNode certChainData;
         try {
             certChainData = getCertChainData(chainData);
@@ -143,19 +136,25 @@ public class LoginEncryptionUtils {
             throw new RuntimeException("Cannot get cert chain data: " + ex.getMessage(), ex);
         }
 
-        boolean validChain;
-        try {
-            validChain = !isMainClient || validateChainData(certChainData);
+        boolean debugLogging = geyser.getLogger().isDebug();
 
-            geyser.getLogger().debug(String.format("Is player data valid? %s", validChain));
-        } catch (Exception ex) {
-            // rethrow until we can wrap in custom exceptions
-            throw new RuntimeException("Unable to validate chain data: " + ex.getMessage(), ex);
-        }
+        if (isMainClient) {
+            boolean validChain;
+            try {
+                validChain = validateChainData(certChainData);
 
-        if (!validChain && !geyser.getConfig().isEnableProxyConnections()) {
-            session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
-            return;
+                if (debugLogging) {
+                    geyser.getLogger().debug(String.format("Is player data valid? %s", validChain));
+                }
+            } catch (Exception ex) {
+                // rethrow until we can wrap in custom exceptions
+                throw new RuntimeException("Unable to validate chain data: " + ex.getMessage(), ex);
+            }
+
+            if (!validChain && !geyser.getConfig().isEnableProxyConnections()) {
+                session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
+                return;
+            }
         }
 
         JsonNode certChainPayload = getCertChainPayload(certChainData);
@@ -163,15 +162,19 @@ public class LoginEncryptionUtils {
         ECPublicKey identityPublicKey = getIdentityPublicKey(certChainPayload);
 
         AuthData authData = getAuthData(geyser, certChainPayload);
-        geyser.getLogger().debug(authData.toString());
+        if (debugLogging) {
+            geyser.getLogger().debug(authData.toString());
+        }
         session.setAuthData(authData);
 
         BedrockClientData bedrockClientData = getClientData(skinData, identityPublicKey);
-        geyser.getLogger().debug(bedrockClientData.toString());
+        if (debugLogging) {
+            geyser.getLogger().debug(bedrockClientData.toString());
+        }
         session.setClientData(bedrockClientData);
 
         if (!isMainClient) {
-            // Encryption isn't necessary for subclients
+            // Additional encryption isn't necessary for subclients
             return;
         }
 
@@ -219,37 +222,39 @@ public class LoginEncryptionUtils {
 
         GeyserConfiguration.ISplitscreenConfiguration splitscreenConfig = geyser.getConfig().getSplitscreen();
         if (splitscreenConfig.isEnabled()) {
+            boolean showXuidPrompt = true;
             Map<String, ? extends ISplitscreenUserInfo> splitscreenUsers = splitscreenConfig.getUsers();
-            if (splitscreenUsers == null) {
-                splitscreenUsers = new HashMap<>();
-            }
-            if (xuid.length() == 0) {
-                ISplitscreenUserInfo splitscreenUser = splitscreenUsers.get(displayName);
-                if (splitscreenUser != null && splitscreenUser.getXuid() != null) {
-                    xuid = splitscreenUser.getXuid();
-                    if (splitscreenUser.getBedrockUsername() != null) {
-                        displayName = splitscreenUser.getBedrockUsername();
+            if (splitscreenUsers != null) {
+                if (xuid.length() == 0) {
+                    showXuidPrompt = false;
+                    ISplitscreenUserInfo splitscreenUser = splitscreenUsers.get(displayName);
+                    if (splitscreenUser != null && splitscreenUser.getXuid() != null) {
+                        xuid = splitscreenUser.getXuid();
+                        if (splitscreenUser.getBedrockUsername() != null) {
+                            displayName = splitscreenUser.getBedrockUsername();
+                        }
                     }
+                } else {
+                    String xuidToMatch = xuid;
+                    showXuidPrompt = splitscreenUsers.entrySet().stream().noneMatch(
+                            user -> {
+                                String mappedXUID = user.getValue().getXuid();
+                                return mappedXUID != null && mappedXUID.equals(xuidToMatch);
+                            }
+                    );
                 }
-            } else {
-                String xuidToMatch = xuid;
-                boolean isInList = splitscreenUsers.entrySet().stream().anyMatch(
-                    user -> {
-                        String mappedXUID = user.getValue().getXuid();
-                        return mappedXUID != null && mappedXUID.equals(xuidToMatch);
-                    }
-                );
-                if (!isInList) {
-                    geyser.getLogger().info(
+            }
+
+            if (showXuidPrompt && geyser.getConfig().getRemote().getAuthType() == AuthType.FLOODGATE) {
+                geyser.getLogger().info(
                         """
-                        Add the following user to the geyser splitscreen config to allow them to play via splitscreen:
+                        Add the following user to the Geyser splitscreen config to allow them to play via splitscreen:
                         
                             Profile Username (Change this):
                               bedrock-username: %s
                               xuid: %s
                         """.formatted(displayName, xuid)
-                    );
-                }
+                );
             }
         }
 
@@ -300,7 +305,7 @@ public class LoginEncryptionUtils {
             }
         } catch (Exception ex) {
             session.disconnect("disconnectionScreen.internalError.cantConnect");
-            throw new RuntimeException("Unable to complete login: " + ex.getMessage(), ex);
+            throw new RuntimeException("Unable to complete login", ex);
         }
     }
 

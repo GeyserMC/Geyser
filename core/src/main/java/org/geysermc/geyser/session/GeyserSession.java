@@ -148,11 +148,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Getter
 public class GeyserSession implements GeyserConnection, CommandSender {
 
-    /**
-     * Id used in protocol to refer to primary client (0) or splitscreen subclients (>0)
-     */
-    private final int clientId;
-
     private final @Nonnull GeyserImpl geyser;
     private final @Nonnull UpstreamSession upstream;
     /**
@@ -547,7 +542,6 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop eventLoop, int clientId) {
         this.geyser = geyser;
         this.upstream = new UpstreamSession(bedrockServerSession, clientId);
-        this.clientId = clientId;
         this.eventLoop = eventLoop;
 
         this.advancementsCache = new AdvancementsCache(this);

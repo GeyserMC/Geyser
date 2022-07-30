@@ -90,11 +90,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         session.getUpstream().getSession().setPacketCodec(packetCodec);
 
-        LoginEncryptionUtils.handleEncryption(geyser, session, loginPacket);
-
         // Set the block translation based off of version
         session.setBlockMappings(BlockRegistries.BLOCKS.forVersion(loginPacket.getProtocolVersion()));
         session.setItemMappings(Registries.ITEMS.forVersion(loginPacket.getProtocolVersion()));
+
+        LoginEncryptionUtils.handleEncryption(geyser, session, loginPacket);
 
         if (session.isClosed()) {
             // Can happen if Xbox validation fails
@@ -141,18 +141,13 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         }
 
         int clientId = loginPacket.getClientId();
-        GeyserSession session = new GeyserSession(
-                geyser,
-                mainSession.getUpstream().getSession(),
-                mainSession.getEventLoop(),
-                clientId
-        );
+        GeyserSession session = new GeyserSession(geyser, mainSession.getUpstream().getSession(), mainSession.getEventLoop(), clientId);
 
-        LoginEncryptionUtils.handleEncryption(geyser, session, loginPacket);
+        LoginEncryptionUtils.handleSubClient(geyser, session, loginPacket);
 
         AuthData authData = session.getAuthData();
-        if (authData.xuid().length() == 0) {
-            geyser.getLogger().info("Splitscreen user %s does not have a xuid mapped in the geyser splitscreen config.".formatted(authData.name()));
+        if (authData.xuid().length() == 0 && geyser.getConfig().getRemote().getAuthType() == AuthType.FLOODGATE) {
+            geyser.getLogger().info("Splitscreen user %s does not have a XUID mapped in the Geyser splitscreen config.".formatted(authData.name()));
             // For some reason it isn't possible to disconnect a splitscreen session,
             // we can only disconnect all sessions via the main session
             mainSession.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.splitscreen_user_mapping_missing", authData.name()));
@@ -339,9 +334,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return false;
         }
 
-        sessions.get(clientId).disconnect(packet.getKickMessage());
-
-        sessions.remove(clientId);
+        sessions.remove(clientId).disconnect(packet.getKickMessage());
 
         return true;
     }
