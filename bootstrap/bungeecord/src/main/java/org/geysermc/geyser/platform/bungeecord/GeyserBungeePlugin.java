@@ -27,6 +27,7 @@ package org.geysermc.geyser.platform.bungeecord;
 
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.plugin.Plugin;
+import net.md_5.bungee.protocol.ProtocolConstants;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
@@ -64,6 +65,20 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     @Override
     public void onEnable() {
         GeyserLocale.init(this);
+
+        // Copied from ViaVersion.
+        // https://github.com/ViaVersion/ViaVersion/blob/b8072aad86695cc8ec6f5e4103e43baf3abf6cc5/bungee/src/main/java/us/myles/ViaVersion/BungeePlugin.java#L43
+        try {
+            ProtocolConstants.class.getField("MINECRAFT_1_19_1");
+        } catch (NoSuchFieldException e) {
+            getLogger().warning("      / \\");
+            getLogger().warning("     /   \\");
+            getLogger().warning("    /  |  \\");
+            getLogger().warning("   /   |   \\    " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_proxy", getProxy().getName()));
+            getLogger().warning("  /         \\   " + GeyserLocale.getLocaleStringLog("geyser.may_not_work_as_intended_all_caps"));
+            getLogger().warning(" /     o     \\");
+            getLogger().warning("/_____________\\");
+        }
 
         if (!getDataFolder().exists())
             getDataFolder().mkdir();

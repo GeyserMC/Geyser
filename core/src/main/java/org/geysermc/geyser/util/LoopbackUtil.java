@@ -23,8 +23,9 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.standalone;
+package org.geysermc.geyser.util;
 
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 
@@ -32,32 +33,47 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-public class LoopbackUtil {
-    private static final String checkExemption = "powershell -Command \"CheckNetIsolation LoopbackExempt -s\""; // Java's Exec feature runs as CMD, NetIsolation is only accessible from PowerShell.
-    private static final String loopbackCommand = "powershell -Command \"CheckNetIsolation LoopbackExempt -a -n='Microsoft.MinecraftUWP_8wekyb3d8bbwe'\"";
+public final class LoopbackUtil {
+    private static final String checkExemption = "CheckNetIsolation LoopbackExempt -s";
+    private static final String loopbackCommand = "CheckNetIsolation LoopbackExempt -a -n='Microsoft.MinecraftUWP_8wekyb3d8bbwe'";
+    /**
+     * This string needs to be checked in the event Minecraft is not installed - no Minecraft string will be present in the checkExemption command.
+     */
+    private static final String minecraftApplication = "S-1-15-2-1958404141-86561845-1752920682-3514627264-368642714-62675701-733520436";
     private static final String startScript = "powershell -Command \"Start-Process 'cmd' -ArgumentList /c,%temp%/loopback_minecraft.bat -Verb runAs\"";
 
-    public static void checkLoopback(GeyserStandaloneLogger geyserLogger) {
-        if (System.getProperty("os.name").equalsIgnoreCase("Windows 10")) {
+    /**
+     * @return true if loopback is not addressed properly.
+     */
+    public static boolean needsLoopback(GeyserLogger logger) {
+        String os = System.getProperty("os.name");
+        if (os.equalsIgnoreCase("Windows 10") || os.equalsIgnoreCase("Windows 11")) {
             try {
                 Process process = Runtime.getRuntime().exec(checkExemption);
+                process.waitFor();
                 InputStream is = process.getInputStream();
+
                 StringBuilder sb = new StringBuilder();
-
-                while (process.isAlive()) {
-                    if (is.available() != 0) {
-                        sb.append((char) is.read());
-                    }
+                while (is.available() != 0) {
+                    sb.append((char) is.read());
                 }
 
-                String result = sb.toString();
+                return !sb.toString().contains(minecraftApplication);
+            } catch (Exception e) {
+                logger.error("Couldn't detect if loopback has been added on Windows!", e);
+                return true;
+            }
+        }
+        return false;
+    }
 
-                if (!result.contains("minecraftuwp")) {
-                    Files.write(Paths.get(System.getenv("temp") + "/loopback_minecraft.bat"), loopbackCommand.getBytes());
-                    Runtime.getRuntime().exec(startScript);
+    public static void checkAndApplyLoopback(GeyserLogger geyserLogger) {
+        if (needsLoopback(geyserLogger)) {
+            try {
+                Files.write(Paths.get(System.getenv("temp") + "/loopback_minecraft.bat"), loopbackCommand.getBytes());
+                Runtime.getRuntime().exec(startScript);
 
-                    geyserLogger.info(ChatColor.AQUA + GeyserLocale.getLocaleStringLog("geyser.bootstrap.loopback.added"));
-                }
+                geyserLogger.info(ChatColor.AQUA + GeyserLocale.getLocaleStringLog("geyser.bootstrap.loopback.added"));
             } catch (Exception e) {
                 e.printStackTrace();
 
@@ -66,4 +82,6 @@ public class LoopbackUtil {
         }
     }
 
+    private LoopbackUtil() {
+    }
 }
