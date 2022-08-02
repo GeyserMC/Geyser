@@ -52,8 +52,6 @@ import org.geysermc.geyser.platform.standalone.gui.GeyserStandaloneGUI;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.LoopbackUtil;
-import org.geysermc.geyser.platform.standalone.command.GeyserCommandManager;
-import org.geysermc.geyser.platform.standalone.gui.GeyserStandaloneGUI;
 
 import java.io.File;
 import java.io.IOException;
