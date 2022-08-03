@@ -30,7 +30,6 @@ import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.ChatTypeEntry;
 import org.geysermc.geyser.text.TextDecoration;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -45,18 +44,16 @@ public class JavaPlayerChatTranslator extends PacketTranslator<ClientboundPlayer
 
     @Override
     public void translate(GeyserSession session, ClientboundPlayerChatPacket packet) {
-        ChatTypeEntry entry = session.getChatTypes().get(packet.getTypeId());
-
         TextPacket textPacket = new TextPacket();
         textPacket.setPlatformChatId("");
         textPacket.setSourceName("");
         textPacket.setXuid(session.getAuthData().xuid());
-        textPacket.setType(entry.bedrockChatType());
+        textPacket.setType(TextPacket.Type.CHAT);
 
         textPacket.setNeedsTranslation(false);
-        Component message = packet.getUnsignedContent() == null ? packet.getSignedContent() : packet.getUnsignedContent();
+        Component message = packet.getUnsignedContent() == null ? packet.getMessageDecorated() : packet.getUnsignedContent();
 
-        TextDecoration decoration = entry.textDecoration();
+        TextDecoration decoration = session.getChatTypes().get(packet.getChatType());
         if (decoration != null) {
             // As of 1.19 - do this to apply all the styling for signed messages
             // Though, Bedrock cannot care about the signed stuff.
@@ -65,11 +62,11 @@ public class JavaPlayerChatTranslator extends PacketTranslator<ClientboundPlayer
                     .style(decoration.style());
             Set<TextDecoration.Parameter> parameters = decoration.parameters();
             List<Component> args = new ArrayList<>(3);
-            if (parameters.contains(TextDecoration.Parameter.TEAM_NAME)) {
-                args.add(packet.getSenderTeamName());
+            if (parameters.contains(TextDecoration.Parameter.TARGET)) {
+                args.add(packet.getTargetName());
             }
             if (parameters.contains(TextDecoration.Parameter.SENDER)) {
-                args.add(packet.getSenderName());
+                args.add(packet.getName());
             }
             if (parameters.contains(TextDecoration.Parameter.CONTENT)) {
                 args.add(message);

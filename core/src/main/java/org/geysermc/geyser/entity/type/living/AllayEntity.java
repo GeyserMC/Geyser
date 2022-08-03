@@ -25,8 +25,10 @@
 
 package org.geysermc.geyser.entity.type.living;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
@@ -37,14 +39,27 @@ import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class AllayEntity extends MobEntity {
+    private boolean canDuplicate;
+
     public AllayEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    }
+
+    public void setDancing(BooleanEntityMetadata entityMetadata) {
+        setFlag(EntityFlag.DANCING, entityMetadata.getPrimitiveValue());
+    }
+
+    public void setCanDuplicate(BooleanEntityMetadata entityMetadata) {
+        this.canDuplicate = entityMetadata.getPrimitiveValue();
     }
 
     @Nonnull
     @Override
     protected InteractiveTag testMobInteraction(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        if (!this.hand.isValid() && !itemInHand.isEmpty()) {
+        if (this.canDuplicate && getFlag(EntityFlag.DANCING) && isDuplicationItem(itemInHand)) {
+            // Maybe better as another tag?
+            return InteractiveTag.GIVE_ITEM_TO_ALLAY;
+        } else if (!this.hand.isValid() && !itemInHand.isEmpty()) {
             return InteractiveTag.GIVE_ITEM_TO_ALLAY;
         } else if (this.hand.isValid() && hand == Hand.MAIN_HAND && itemInHand.isEmpty()) {
             // Seems like there isn't a good tag for this yet
@@ -57,7 +72,10 @@ public class AllayEntity extends MobEntity {
     @Nonnull
     @Override
     protected InteractionResult mobInteract(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        if (!this.hand.isValid() && !itemInHand.isEmpty()) {
+        if (this.canDuplicate && getFlag(EntityFlag.DANCING) && isDuplicationItem(itemInHand)) {
+            //TOCHECK sound
+            return InteractionResult.SUCCESS;
+        } else if (!this.hand.isValid() && !itemInHand.isEmpty()) {
             //TODO play sound?
             return InteractionResult.SUCCESS;
         } else if (this.hand.isValid() && hand == Hand.MAIN_HAND && itemInHand.isEmpty()) {
@@ -66,5 +84,9 @@ public class AllayEntity extends MobEntity {
         } else {
             return super.mobInteract(hand, itemInHand);
         }
+    }
+
+    private boolean isDuplicationItem(GeyserItemStack itemStack) {
+        return itemStack.getJavaId() == session.getItemMappings().getStoredItems().amethystShard();
     }
 }

@@ -51,6 +51,7 @@ import org.geysermc.geyser.platform.standalone.command.GeyserStandaloneCommandMa
 import org.geysermc.geyser.platform.standalone.gui.GeyserStandaloneGUI;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.util.LoopbackUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -188,7 +189,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
         geyserLogger = new GeyserStandaloneLogger();
 
-        LoopbackUtil.checkLoopback(geyserLogger);
+        LoopbackUtil.checkAndApplyLoopback(geyserLogger);
         
         try {
             File configFile = FileUtils.fileOrCopiedFromResource(new File(configFilename), "config.yml",
