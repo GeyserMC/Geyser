@@ -176,7 +176,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                 this.geyserSpigotPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
             }
         }
-        geyserLogger.info("Spigot ping passthrough type: " + (this.geyserSpigotPingPassthrough == null ? null : this.geyserSpigotPingPassthrough.getClass()));
+        geyserLogger.debug("Spigot ping passthrough type: " + (this.geyserSpigotPingPassthrough == null ? null : this.geyserSpigotPingPassthrough.getClass()));
 
         this.geyserCommandManager = new GeyserSpigotCommandManager(geyser);
         this.geyserCommandManager.init();

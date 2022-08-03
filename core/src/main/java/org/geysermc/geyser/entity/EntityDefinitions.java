@@ -453,6 +453,8 @@ public final class EntityDefinitions {
             ALLAY = EntityDefinition.inherited(AllayEntity::new, mobEntityBase)
                     .type(EntityType.ALLAY)
                     .height(0.6f).width(0.35f)
+                    .addTranslator(MetadataType.BOOLEAN, AllayEntity::setDancing)
+                    .addTranslator(MetadataType.BOOLEAN, AllayEntity::setCanDuplicate)
                     .build();
             BAT = EntityDefinition.inherited(BatEntity::new, mobEntityBase)
                     .type(EntityType.BAT)

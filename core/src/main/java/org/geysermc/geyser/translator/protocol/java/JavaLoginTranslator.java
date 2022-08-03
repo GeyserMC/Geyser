@@ -25,25 +25,21 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import com.github.steveice10.mc.protocol.data.game.BuiltinChatType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundLoginPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundCustomPayloadPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.nukkitx.protocol.bedrock.data.GameRuleData;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
 import com.nukkitx.protocol.bedrock.packet.GameRulesChangedPacket;
 import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
-import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.ChatTypeEntry;
 import org.geysermc.geyser.text.TextDecoration;
 import org.geysermc.geyser.translator.level.BiomeTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -68,7 +64,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
 
         JavaDimension.load(packet.getRegistry(), dimensions);
 
-        Int2ObjectMap<ChatTypeEntry> chatTypes = session.getChatTypes();
+        Int2ObjectMap<TextDecoration> chatTypes = session.getChatTypes();
         chatTypes.clear();
         for (CompoundTag tag : JavaCodecEntry.iterateAsTag(packet.getRegistry().get("minecraft:chat_type"))) {
             // The ID is NOT ALWAYS THE SAME! ViaVersion as of 1.19 adds two registry entries that do NOT match vanilla.
@@ -77,21 +73,9 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             CompoundTag chat = element.get("chat");
             TextDecoration textDecoration = null;
             if (chat != null) {
-                CompoundTag decorationTag = chat.get("decoration");
-                if (decorationTag != null) {
-                    textDecoration = new TextDecoration(decorationTag);
-                }
+                textDecoration = new TextDecoration(chat);
             }
-            BuiltinChatType type = BuiltinChatType.from(((StringTag) tag.get("name")).getValue());
-            // TODO new types?
-            // The built-in type can be null if custom plugins/mods add in new types
-            TextPacket.Type bedrockType = type != null ? switch (type) {
-                case CHAT -> TextPacket.Type.CHAT;
-                case SYSTEM -> TextPacket.Type.SYSTEM;
-                case GAME_INFO -> TextPacket.Type.TIP;
-                default -> TextPacket.Type.RAW;
-            } : TextPacket.Type.RAW;
-            chatTypes.put(id, new ChatTypeEntry(bedrockType, textDecoration));
+            chatTypes.put(id, textDecoration);
         }
 
         // If the player is already initialized and a join game packet is sent, they

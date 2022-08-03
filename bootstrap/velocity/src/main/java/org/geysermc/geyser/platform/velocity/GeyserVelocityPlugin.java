@@ -35,6 +35,7 @@ import com.velocitypowered.api.network.ListenerType;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
+import net.kyori.adventure.util.Codec;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
@@ -84,6 +85,15 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     @Override
     public void onEnable() {
+        try {
+            Codec.class.getMethod("codec", Codec.Decoder.class, Codec.Encoder.class);
+        } catch (NoSuchMethodException e) {
+            // velocitypowered.com has a build that is very outdated
+            logger.error("Please download Velocity from https://papermc.io/downloads#Velocity - the 'stable' Velocity version " +
+                    "that has likely been downloaded is very outdated and does not support 1.19.");
+            return;
+        }
+
         GeyserLocale.init(this);
 
         try {

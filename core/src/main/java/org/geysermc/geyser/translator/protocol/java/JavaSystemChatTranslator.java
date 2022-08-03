@@ -28,7 +28,6 @@ package org.geysermc.geyser.translator.protocol.java;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundSystemChatPacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.ChatTypeEntry;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -38,15 +37,11 @@ public class JavaSystemChatTranslator extends PacketTranslator<ClientboundSystem
 
     @Override
     public void translate(GeyserSession session, ClientboundSystemChatPacket packet) {
-        ChatTypeEntry chatTypeEntry = session.getChatTypes().get(packet.getTypeId());
-        // This probably isn't proper but system chat won't care about the registry in 1.19.1 anyway
-        TextPacket.Type chatType = chatTypeEntry == null ? TextPacket.Type.RAW : chatTypeEntry.bedrockChatType();
-
         TextPacket textPacket = new TextPacket();
         textPacket.setPlatformChatId("");
         textPacket.setSourceName("");
         textPacket.setXuid(session.getAuthData().xuid());
-        textPacket.setType(chatType);
+        textPacket.setType(packet.isOverlay() ? TextPacket.Type.TIP : TextPacket.Type.SYSTEM);
 
         textPacket.setNeedsTranslation(false);
         textPacket.setMessage(MessageTranslator.convertMessage(packet.getContent(), session.locale()));

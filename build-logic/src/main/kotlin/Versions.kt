@@ -35,7 +35,7 @@ object Versions {
     // See comment in settings.gradle.kts
     const val raknetVersion = "1.6.28-SNAPSHOT"
     const val mcauthlibVersion = "d9d773e"
-    const val mcprotocollibversion = "54fc9f0"
+    const val mcprotocollibversion = "9f78bd5"
     const val packetlibVersion = "3.0"
     const val adventureVersion = "4.9.3"
     const val eventVersion = "3.0.0"

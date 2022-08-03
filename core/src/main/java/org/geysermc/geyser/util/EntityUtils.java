@@ -190,11 +190,8 @@ public final class EntityUtils {
             if (passenger.getDefinition().entityType() == EntityType.FALLING_BLOCK) {
                 yOffset += 0.5f;
             }
-            if (mount.getDefinition().entityType() == EntityType.ARMOR_STAND) {
-                ArmorStandEntity armorStand = (ArmorStandEntity) mount;
-                if (armorStand.isPositionRequiresOffset()) {
-                    yOffset -= EntityDefinitions.ARMOR_STAND.height() * (armorStand.isSmall() ? 0.55d : 1d);
-                }
+            if (mount instanceof ArmorStandEntity armorStand) {
+                yOffset -= armorStand.getYOffset();
             }
             Vector3f offset = Vector3f.from(xOffset, yOffset, zOffset);
             passenger.setRiderSeatPosition(offset);
