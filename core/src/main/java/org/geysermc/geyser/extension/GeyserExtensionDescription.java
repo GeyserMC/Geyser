@@ -25,53 +25,75 @@
 
 package org.geysermc.geyser.extension;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.extension.ExtensionDescription;
 import org.geysermc.geyser.api.extension.exception.InvalidDescriptionException;
-import org.yaml.snakeyaml.DumperOptions;
+import org.geysermc.geyser.text.GeyserLocale;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.Reader;
 import java.util.*;
+import java.util.regex.Pattern;
 
-public record GeyserExtensionDescription(String name, String main, String apiVersion, String version, List<String> authors) implements ExtensionDescription {
+public record GeyserExtensionDescription(@NonNull String name,
+                                         @NonNull String main,
+                                         int majorApiVersion,
+                                         int minorApiVersion,
+                                         int patchApiVersion,
+                                         @NonNull String version,
+                                         @NonNull List<String> authors) implements ExtensionDescription {
+
+    private static final Yaml YAML = new Yaml();
+    public static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z_.-]*$");
+    public static final Pattern API_VERSION_PATTERN = Pattern.compile("^\\d+\\.\\d+\\.\\d+$");
+
+    @NonNull
     @SuppressWarnings("unchecked")
     public static GeyserExtensionDescription fromYaml(Reader reader) throws InvalidDescriptionException {
-        DumperOptions dumperOptions = new DumperOptions();
-        dumperOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-
-        Yaml yaml = new Yaml(dumperOptions);
-        Map<String, Object> yamlMap = yaml.loadAs(reader, LinkedHashMap.class);
-
-        String name = ((String) yamlMap.get("name")).replaceAll("[^A-Za-z0-9 _.-]", "");
-        if (name.isBlank()) {
-            throw new InvalidDescriptionException("Invalid extension name, cannot be empty");
+        Map<String, Object> map;
+        try {
+            map = YAML.loadAs(reader, HashMap.class);
+        } catch (Exception e) {
+            throw new InvalidDescriptionException(e);
         }
 
-        name = name.replace(" ", "_");
-        String version = String.valueOf(yamlMap.get("version"));
-        String main = (String) yamlMap.get("main");
-        String apiVersion;
-
-        Object api = yamlMap.get("api");
-        if (api instanceof String) {
-            apiVersion = (String) api;
-        } else {
-            throw new InvalidDescriptionException("Invalid api version format, should be a string: major.minor.patch");
+        String name = require(map, "name");
+        if (!NAME_PATTERN.matcher(name).matches()) {
+            throw new InvalidDescriptionException("Invalid extension name, must match: " + NAME_PATTERN.pattern());
         }
+        String version = String.valueOf(map.get("version"));
+        String main = require(map, "main");
+
+        String apiVersion = require(map, "api");
+        if (!API_VERSION_PATTERN.matcher(apiVersion).matches()) {
+            throw new InvalidDescriptionException(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_format", name, apiVersion));
+        }
+        String[] api = apiVersion.split("\\.");
+        int majorApi = Integer.parseUnsignedInt(api[0]);
+        int minorApi = Integer.parseUnsignedInt(api[1]);
+        int patchApi = Integer.parseUnsignedInt(api[2]);
 
         List<String> authors = new ArrayList<>();
-        if (yamlMap.containsKey("author")) {
-            authors.add((String) yamlMap.get("author"));
+        if (map.containsKey("author")) {
+            authors.add(String.valueOf(map.get("author")));
         }
-
-        if (yamlMap.containsKey("authors")) {
+        if (map.containsKey("authors")) {
             try {
-                authors.addAll((Collection<? extends String>) yamlMap.get("authors"));
+                authors.addAll((Collection<? extends String>) map.get("authors"));
             } catch (Exception e) {
                 throw new InvalidDescriptionException("Invalid authors format, should be a list of strings", e);
             }
         }
 
-        return new GeyserExtensionDescription(name, main, apiVersion, version, authors);
+        return new GeyserExtensionDescription(name, main, majorApi, minorApi, patchApi, version, authors);
+    }
+
+    @NonNull
+    private static String require(Map<String, Object> desc, String key) throws InvalidDescriptionException {
+        Object value = desc.get(key);
+        if (value instanceof String) {
+            return (String) value;
+        }
+        throw new InvalidDescriptionException("Extension description is missing string property '" + key + "'");
     }
 }
