@@ -48,7 +48,7 @@ public record GeyserExtensionDescription(@NonNull String name,
                                          @NonNull List<String> authors) implements ExtensionDescription {
 
     private static final Yaml YAML = new Yaml(new CustomClassLoaderConstructor(Source.class.getClassLoader()));
-    public static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z_.-]*$");
+    public static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z_.-]+$");
     public static final Pattern API_VERSION_PATTERN = Pattern.compile("^\\d+\\.\\d+\\.\\d+$");
 
     @NonNull
