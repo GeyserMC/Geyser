@@ -25,14 +25,18 @@
 
 package org.geysermc.geyser.extension;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.extension.ExtensionDescription;
 import org.geysermc.geyser.api.extension.exception.InvalidDescriptionException;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 
 import java.io.Reader;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 public record GeyserExtensionDescription(@NonNull String name,
@@ -43,28 +47,27 @@ public record GeyserExtensionDescription(@NonNull String name,
                                          @NonNull String version,
                                          @NonNull List<String> authors) implements ExtensionDescription {
 
-    private static final Yaml YAML = new Yaml();
+    private static final Yaml YAML = new Yaml(new CustomClassLoaderConstructor(Source.class.getClassLoader()));
     public static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z_.-]*$");
     public static final Pattern API_VERSION_PATTERN = Pattern.compile("^\\d+\\.\\d+\\.\\d+$");
 
     @NonNull
-    @SuppressWarnings("unchecked")
     public static GeyserExtensionDescription fromYaml(Reader reader) throws InvalidDescriptionException {
-        Map<String, Object> map;
+        Source source;
         try {
-            map = YAML.loadAs(reader, HashMap.class);
+            source = YAML.loadAs(reader, Source.class);
         } catch (Exception e) {
             throw new InvalidDescriptionException(e);
         }
 
-        String name = require(map, "name");
+        String name = require(source::getName, "name");
         if (!NAME_PATTERN.matcher(name).matches()) {
             throw new InvalidDescriptionException("Invalid extension name, must match: " + NAME_PATTERN.pattern());
         }
-        String version = String.valueOf(map.get("version"));
-        String main = require(map, "main");
+        String version = String.valueOf(source.version);
+        String main = require(source::getMain, "main");
 
-        String apiVersion = require(map, "api");
+        String apiVersion = require(source::getApi, "api");
         if (!API_VERSION_PATTERN.matcher(apiVersion).matches()) {
             throw new InvalidDescriptionException(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_format", name, apiVersion));
         }
@@ -74,26 +77,33 @@ public record GeyserExtensionDescription(@NonNull String name,
         int patchApi = Integer.parseUnsignedInt(api[2]);
 
         List<String> authors = new ArrayList<>();
-        if (map.containsKey("author")) {
-            authors.add(String.valueOf(map.get("author")));
+        if (source.author != null) {
+            authors.add(source.author);
         }
-        if (map.containsKey("authors")) {
-            try {
-                authors.addAll((Collection<? extends String>) map.get("authors"));
-            } catch (Exception e) {
-                throw new InvalidDescriptionException("Invalid authors format, should be a list of strings", e);
-            }
+        if (source.authors != null) {
+            authors.addAll(source.authors);
         }
 
         return new GeyserExtensionDescription(name, main, majorApi, minorApi, patchApi, version, authors);
     }
 
     @NonNull
-    private static String require(Map<String, Object> desc, String key) throws InvalidDescriptionException {
-        Object value = desc.get(key);
-        if (value instanceof String) {
-            return (String) value;
+    private static String require(Supplier<String> supplier, String name) throws InvalidDescriptionException {
+        String value = supplier.get();
+        if (value == null) {
+            throw new InvalidDescriptionException("Extension description is missing string property '" + name + "'");
         }
-        throw new InvalidDescriptionException("Extension description is missing string property '" + key + "'");
+        return value;
+    }
+
+    @Getter
+    @Setter
+    public static class Source {
+        String name;
+        String main;
+        String api;
+        String version;
+        String author;
+        List<String> authors;
     }
 }
