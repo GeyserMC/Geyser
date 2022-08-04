@@ -51,10 +51,10 @@ public class GeyserExtensionLoader extends ExtensionLoader {
     private static final Pattern API_VERSION_PATTERN = Pattern.compile("^\\d+\\.\\d+\\.\\d+$");
     private static final Pattern[] EXTENSION_FILTERS = new Pattern[] { Pattern.compile("^.+\\.jar$") };
 
-    private final Path extensionsDirectory = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("extensions");
     private final Object2ReferenceMap<String, Class<?>> classes = new Object2ReferenceOpenHashMap<>();
     private final Map<String, GeyserExtensionClassLoader> classLoaders = new HashMap<>();
     private final Map<Extension, GeyserExtensionContainer> extensionContainers = new HashMap<>();
+    private final Path extensionsDirectory = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("extensions");
 
     public GeyserExtensionContainer loadExtension(Path path, GeyserExtensionDescription description) throws InvalidExtensionException, InvalidDescriptionException {
         if (path == null) {
