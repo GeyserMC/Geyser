@@ -49,12 +49,12 @@ import java.util.stream.Stream;
 
 @RequiredArgsConstructor
 public class GeyserExtensionLoader extends ExtensionLoader {
-    private static final Path EXTENSION_DIRECTORY = Paths.get("extensions");
     private static final Pattern[] EXTENSION_FILTERS = new Pattern[] { Pattern.compile("^.+\\.jar$") };
 
     private final Object2ReferenceMap<String, Class<?>> classes = new Object2ReferenceOpenHashMap<>();
     private final Map<String, GeyserExtensionClassLoader> classLoaders = new HashMap<>();
     private final Map<Extension, GeyserExtensionContainer> extensionContainers = new HashMap<>();
+    private final Path extensionsDirectory = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("extensions");
 
     public GeyserExtensionContainer loadExtension(Path path, GeyserExtensionDescription description) throws InvalidExtensionException {
         if (path == null) {
@@ -128,15 +128,15 @@ public class GeyserExtensionLoader extends ExtensionLoader {
     @Override
     protected void loadAllExtensions(@NonNull ExtensionManager extensionManager) {
         try {
-            if (Files.notExists(EXTENSION_DIRECTORY)) {
-                Files.createDirectory(EXTENSION_DIRECTORY);
+            if (Files.notExists(extensionsDirectory)) {
+                Files.createDirectory(extensionsDirectory);
             }
 
             Map<String, Path> extensions = new LinkedHashMap<>();
             Map<String, GeyserExtensionContainer> loadedExtensions = new LinkedHashMap<>();
 
             Pattern[] extensionFilters = this.extensionFilters();
-            try (Stream<Path> entries = Files.walk(EXTENSION_DIRECTORY)) {
+            try (Stream<Path> entries = Files.walk(extensionsDirectory)) {
                 entries.forEach(path -> {
                     if (Files.isDirectory(path)) {
                         return;
