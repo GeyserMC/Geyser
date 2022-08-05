@@ -216,7 +216,7 @@ public final class EntityDefinitions {
                     .build(true);
             CHEST_BOAT = GeyserEntityDefinition.inherited(ChestBoatEntity::new, BOAT)
                 .type(EntityType.CHEST_BOAT)
-                .build(true); // todo: new
+                .build(true);
             DRAGON_FIREBALL = GeyserEntityDefinition.inherited(FireballEntity::new, entityBase)
                     .type(EntityType.DRAGON_FIREBALL)
                     .heightAndWidth(1.0f)

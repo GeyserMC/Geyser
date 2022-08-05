@@ -32,7 +32,6 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtType;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Setter;
-import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.entity.EntityDefinition;

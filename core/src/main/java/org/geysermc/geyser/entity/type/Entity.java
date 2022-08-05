@@ -42,8 +42,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.event.downstream.entity.ServerSpawnEntityEvent;
 import org.geysermc.geyser.entity.GeyserEntityDefinition;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
 import org.geysermc.geyser.session.GeyserSession;
