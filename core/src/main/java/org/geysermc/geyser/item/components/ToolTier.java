@@ -23,46 +23,44 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.provider;
+package org.geysermc.geyser.item.components;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.command.Command;
-import org.geysermc.geyser.api.command.CommandSource;
-import org.geysermc.geyser.api.entity.EntityDefinition;
-import org.geysermc.geyser.api.entity.EntityIdentifier;
-import org.geysermc.geyser.api.provider.BuilderProvider;
-import org.geysermc.geyser.command.GeyserCommandManager;
-import org.geysermc.geyser.entity.GeyserEntityDefinition;
-import org.geysermc.geyser.entity.GeyserEntityIdentifier;
-import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.registry.ProviderRegistries;
-import org.geysermc.geyser.registry.SimpleMappedRegistry;
 
-import java.util.Map;
+import java.util.Locale;
 
-public class GeyserBuilderProvider extends AbstractProvider implements BuilderProvider {
-    public static GeyserBuilderProvider INSTANCE = new GeyserBuilderProvider();
+public enum ToolTier {
+    WOODEN(2),
+    STONE(4),
+    IRON(6),
+    GOLDEN(12),
+    DIAMOND(8),
+    NETHERITE(9);
 
-    private GeyserBuilderProvider() {
+    public static final ToolTier[] VALUES = values();
+
+    private final int speed;
+
+    ToolTier(int speed) {
+        this.speed = speed;
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public void registerProviders(Map<Class<?>, ProviderSupplier> providers) {
-        providers.put(Command.Builder.class, args -> new GeyserCommandManager.CommandBuilder<>((Class<? extends CommandSource>) args[0]));
-        providers.put(EntityIdentifier.Builder.class, args -> new GeyserEntityIdentifier.EntityIdentifierBuilder());
-        providers.put(EntityDefinition.Builder.class, args -> new GeyserEntityDefinition.EntityDefinitionBuilder<>(Entity::new, true));
+    public int getSpeed() {
+        return speed;
     }
 
     @Override
-    public SimpleMappedRegistry<Class<?>, ProviderSupplier> providerRegistry() {
-        return ProviderRegistries.BUILDERS;
+    public String toString() {
+        return this.name().toLowerCase(Locale.ROOT);
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public <B extends T, T> @NonNull B provideBuilder(@NonNull Class<T> builderClass, @Nullable Object... args) {
-        return (B) this.providerRegistry().get(builderClass).create(args);
+    public static ToolTier getByName(@NonNull String name) {
+        String upperCase = name.toUpperCase(Locale.ROOT);
+        for (ToolTier tier : VALUES) {
+            if (tier.name().equals(upperCase)) {
+                return tier;
+            }
+        }
+        return null;
     }
 }

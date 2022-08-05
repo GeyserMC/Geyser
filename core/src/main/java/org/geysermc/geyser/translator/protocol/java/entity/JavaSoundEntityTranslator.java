@@ -23,53 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java.entity.spawn;
+package org.geysermc.geyser.translator.protocol.java.entity;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.spawn.ClientboundAddMobPacket;
-import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.event.downstream.entity.ServerSpawnEntityEvent;
-import org.geysermc.geyser.entity.GeyserEntityDefinition;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundSoundEntityPacket;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.SoundUtils;
 
-@Translator(packet = ClientboundAddMobPacket.class)
-public class JavaAddMobTranslator extends PacketTranslator<ClientboundAddMobPacket> {
-
+@Translator(packet = ClientboundSoundEntityPacket.class)
+public class JavaSoundEntityTranslator extends PacketTranslator<ClientboundSoundEntityPacket> {
     @Override
-    public void translate(GeyserSession session, ClientboundAddMobPacket packet) {
-        Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
-        Vector3f motion = Vector3f.from(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ());
-
-        GeyserEntityDefinition<?> definition = Registries.ENTITY_DEFINITIONS.get(packet.getType());
-        if (definition == null) {
-            session.getGeyser().getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.entity.type_null", packet.getType()));
+    public void translate(GeyserSession session, ClientboundSoundEntityPacket packet) {
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+        if (entity == null) {
             return;
         }
-
-        ServerSpawnEntityEvent event = new ServerSpawnEntityEvent(session, packet.getEntityId(), packet.getUuid(), definition);
-        GeyserImpl.getInstance().eventBus().fire(event);
-
-        GeyserEntityDefinition<?> eventDefinition = (GeyserEntityDefinition<?>) event.entityDefinition();
-
-        // If the definition is changed, we need to update our current
-        // definition to reflect that.
-        if (!eventDefinition.equals(definition)) {
-            definition = definition.toBuilder()
-                    .identifier(eventDefinition.entityIdentifier())
-                    .width(eventDefinition.width())
-                    .height(eventDefinition.height())
-                    .offset(eventDefinition.offset())
-                    .build();
-        }
-
-        Entity entity = definition.factory().create(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                packet.getUuid(), definition, position, motion, packet.getYaw(), packet.getPitch(), packet.getHeadYaw()
-        );
-        session.getEntityCache().spawnEntity(entity);
+        SoundUtils.playBuiltinSound(session, packet.getSound(), entity.getPosition(), packet.getVolume(), packet.getPitch());
     }
 }
