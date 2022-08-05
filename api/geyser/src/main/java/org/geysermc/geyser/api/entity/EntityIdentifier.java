@@ -58,7 +58,7 @@ public interface EntityIdentifier {
 
     @NonNull
     static Builder builder() {
-        return GeyserApi.api().providerManager().builderProvider().provideBuilder(Builder.class);
+        return GeyserApi.api().provider(EntityIdentifier.Builder.class);
     }
 
     interface Builder {

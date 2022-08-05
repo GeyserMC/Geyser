@@ -109,7 +109,7 @@ public interface EntityDefinition {
     float offset();
 
     static Builder builder() {
-        return GeyserApi.api().providerManager().builderProvider().provideBuilder(Builder.class);
+        return GeyserApi.api().provider(EntityDefinition.Builder.class);
     }
 
     interface Builder {
