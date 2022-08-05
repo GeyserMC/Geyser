@@ -38,20 +38,26 @@ import java.util.Map;
 @Getter
 @Accessors(fluent = true)
 public class StoredItemMappings {
+    private final int amethystShard;
     private final ItemMapping bamboo;
     private final ItemMapping banner;
     private final ItemMapping barrier;
     private final int bowl;
+    private final int bucket;
     private final int chest;
     private final ItemMapping compass;
     private final ItemMapping crossbow;
     private final ItemMapping enchantedBook;
     private final ItemMapping fishingRod;
     private final int flintAndSteel;
+    private final int frogspawn;
+    private final int goatHorn;
+    private final int glassBottle;
     private final int goldenApple;
     private final int goldIngot;
     private final int ironIngot;
     private final int lead;
+    private final int lilyPad;
     private final ItemMapping milkBucket;
     private final int nameTag;
     private final ItemMapping powderSnowBucket;
@@ -60,25 +66,32 @@ public class StoredItemMappings {
     private final int saddle;
     private final int shears;
     private final ItemMapping shield;
+    private final int slimeBall;
     private final int waterBucket;
     private final ItemMapping wheat;
     private final ItemMapping writableBook;
 
     public StoredItemMappings(Map<String, ItemMapping> itemMappings) {
+        this.amethystShard = load(itemMappings, "amethyst_shard").getJavaId();
         this.bamboo = load(itemMappings, "bamboo");
         this.banner = load(itemMappings, "white_banner"); // As of 1.17.10, all banners have the same Bedrock ID
         this.barrier = load(itemMappings, "barrier");
         this.bowl = load(itemMappings, "bowl").getJavaId();
+        this.bucket = load(itemMappings, "bucket").getBedrockId();
         this.chest = load(itemMappings, "chest").getJavaId();
         this.compass = load(itemMappings, "compass");
         this.crossbow = load(itemMappings, "crossbow");
         this.enchantedBook = load(itemMappings, "enchanted_book");
         this.fishingRod = load(itemMappings, "fishing_rod");
         this.flintAndSteel = load(itemMappings, "flint_and_steel").getJavaId();
+        this.frogspawn = load(itemMappings, "frogspawn").getBedrockId();
+        this.goatHorn = load(itemMappings, "goat_horn").getJavaId();
+        this.glassBottle = load(itemMappings, "glass_bottle").getBedrockId();
         this.goldenApple = load(itemMappings, "golden_apple").getJavaId();
         this.goldIngot = load(itemMappings, "gold_ingot").getJavaId();
         this.ironIngot = load(itemMappings, "iron_ingot").getJavaId();
         this.lead = load(itemMappings, "lead").getJavaId();
+        this.lilyPad = load(itemMappings, "lily_pad").getBedrockId();
         this.milkBucket = load(itemMappings, "milk_bucket");
         this.nameTag = load(itemMappings, "name_tag").getJavaId();
         this.powderSnowBucket = load(itemMappings, "powder_snow_bucket");
@@ -87,6 +100,7 @@ public class StoredItemMappings {
         this.saddle = load(itemMappings, "saddle").getJavaId();
         this.shears = load(itemMappings, "shears").getJavaId();
         this.shield = load(itemMappings, "shield");
+        this.slimeBall = load(itemMappings, "slime_ball").getJavaId();
         this.waterBucket = load(itemMappings, "water_bucket").getJavaId();
         this.wheat = load(itemMappings, "wheat");
         this.writableBook = load(itemMappings, "writable_book");

@@ -47,12 +47,12 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.downstream.command.ServerDefineCommandsEvent;
 import org.geysermc.geyser.command.GeyserCommandManager;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.inventory.item.Enchantment;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.EntityUtils;
 
 import java.util.*;
@@ -132,7 +132,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             CommandNode node = nodes[nodeIndex];
 
             // Make sure we don't have duplicated commands (happens if there is more than 1 root node)
-            if (!commandNodes.add(nodeIndex) || !knownAliases.add(node.getName().toLowerCase())) continue;
+            if (!commandNodes.add(nodeIndex) || !knownAliases.add(node.getName().toLowerCase(Locale.ROOT))) continue;
 
             // Get and update the commandArgs list with the found arguments
             if (node.getChildIndices().length >= 1) {
@@ -228,7 +228,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             case BLOCK_POS -> CommandParam.BLOCK_POSITION;
             case COLUMN_POS, VEC3 -> CommandParam.POSITION;
             case MESSAGE -> CommandParam.MESSAGE;
-            case NBT, NBT_COMPOUND_TAG, NBT_TAG, NBT_PATH -> CommandParam.JSON;
+            case NBT_COMPOUND_TAG, NBT_TAG, NBT_PATH -> CommandParam.JSON; //TODO NBT was removed
             case RESOURCE_LOCATION, FUNCTION -> CommandParam.FILE_PATH;
             case BOOL -> ENUM_BOOLEAN;
             case OPERATION -> CommandParam.OPERATOR; // ">=", "==", etc
@@ -323,15 +323,21 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                     Object mappedType = mapCommandType(session, paramNode);
                     CommandEnumData enumData = null;
                     CommandParam type = null;
+                    boolean optional = this.paramNode.isExecutable();
                     if (mappedType instanceof String[]) {
-                        enumData = new CommandEnumData(paramNode.getParser().name().toLowerCase(), (String[]) mappedType, false);
+                        enumData = new CommandEnumData(paramNode.getParser().name().toLowerCase(Locale.ROOT), (String[]) mappedType, false);
                     } else {
                         type = (CommandParam) mappedType;
+                        // Bedrock throws a fit if an optional message comes after a string or target
+                        // Example vanilla commands: ban-ip, ban, and kick
+                        if (optional && type == CommandParam.MESSAGE && (paramData.getType() == CommandParam.STRING || paramData.getType() == CommandParam.TARGET)) {
+                            optional = false;
+                        }
                     }
                     // IF enumData != null:
                     // In game, this will show up like <paramNode.getName(): enumData.getName()>
                     // So if paramNode.getName() == "value" and enumData.getName() == "bool": <value: bool>
-                    children.add(new ParamInfo(paramNode, new CommandParamData(paramNode.getName(), this.paramNode.isExecutable(), enumData, type, null, Collections.emptyList())));
+                    children.add(new ParamInfo(paramNode, new CommandParamData(paramNode.getName(), optional, enumData, type, null, Collections.emptyList())));
                 }
             }
 

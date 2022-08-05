@@ -51,6 +51,7 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
 public final class EntityDefinitions {
+    public static final GeyserEntityDefinition<AllayEntity> ALLAY;
     public static final GeyserEntityDefinition<AreaEffectCloudEntity> AREA_EFFECT_CLOUD;
     public static final GeyserEntityDefinition<ArmorStandEntity> ARMOR_STAND;
     public static final GeyserEntityDefinition<TippedArrowEntity> ARROW;
@@ -63,6 +64,7 @@ public final class EntityDefinitions {
     public static final GeyserEntityDefinition<SpiderEntity> CAVE_SPIDER;
     public static final GeyserEntityDefinition<MinecartEntity> CHEST_MINECART;
     public static final GeyserEntityDefinition<ChickenEntity> CHICKEN;
+    public static final GeyserEntityDefinition<ChestBoatEntity> CHEST_BOAT;
     public static final GeyserEntityDefinition<AbstractFishEntity> COD;
     public static final GeyserEntityDefinition<CommandBlockMinecartEntity> COMMAND_BLOCK_MINECART;
     public static final GeyserEntityDefinition<CowEntity> COW;
@@ -88,6 +90,7 @@ public final class EntityDefinitions {
     public static final GeyserEntityDefinition<FireworkEntity> FIREWORK_ROCKET;
     public static final GeyserEntityDefinition<FishingHookEntity> FISHING_BOBBER;
     public static final GeyserEntityDefinition<FoxEntity> FOX;
+    public static final GeyserEntityDefinition<FrogEntity> FROG;
     public static final GeyserEntityDefinition<FurnaceMinecartEntity> FURNACE_MINECART; // Not present on Bedrock
     public static final GeyserEntityDefinition<GhastEntity> GHAST;
     public static final GeyserEntityDefinition<GiantEntity> GIANT;
@@ -143,6 +146,7 @@ public final class EntityDefinitions {
     public static final GeyserEntityDefinition<SquidEntity> SQUID;
     public static final GeyserEntityDefinition<AbstractSkeletonEntity> STRAY;
     public static final GeyserEntityDefinition<StriderEntity> STRIDER;
+    public static final GeyserEntityDefinition<TadpoleEntity> TADPOLE;
     public static final GeyserEntityDefinition<TNTEntity> TNT;
     public static final GeyserEntityDefinition<MinecartEntity> TNT_MINECART;
     public static final GeyserEntityDefinition<TraderLlamaEntity> TRADER_LLAMA;
@@ -153,6 +157,7 @@ public final class EntityDefinitions {
     public static final GeyserEntityDefinition<VillagerEntity> VILLAGER;
     public static final GeyserEntityDefinition<VindicatorEntity> VINDICATOR;
     public static final GeyserEntityDefinition<AbstractMerchantEntity> WANDERING_TRADER;
+    public static final GeyserEntityDefinition<WardenEntity> WARDEN;
     public static final GeyserEntityDefinition<RaidParticipantEntity> WITCH;
     public static final GeyserEntityDefinition<WitherEntity> WITHER;
     public static final GeyserEntityDefinition<AbstractSkeletonEntity> WITHER_SKELETON;
@@ -179,7 +184,7 @@ public final class EntityDefinitions {
                 .addTranslator(MetadataType.INT, Entity::setAir) // Air/bubbles
                 .addTranslator(MetadataType.OPTIONAL_CHAT, Entity::setDisplayName)
                 .addTranslator(MetadataType.BOOLEAN, Entity::setDisplayNameVisible)
-                .addTranslator(MetadataType.BOOLEAN, (entity, entityMetadata) -> entity.setFlag(EntityFlag.SILENT, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
+                .addTranslator(MetadataType.BOOLEAN, Entity::setSilent)
                 .addTranslator(MetadataType.BOOLEAN, Entity::setGravity)
                 .addTranslator(MetadataType.POSE, (entity, entityMetadata) -> entity.setPose(entityMetadata.getValue()))
                 .addTranslator(MetadataType.INT, Entity::setFreezing)
@@ -209,6 +214,9 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataType.BOOLEAN, BoatEntity::setPaddlingRight)
                     .addTranslator(MetadataType.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityData.BOAT_BUBBLE_TIME, entityMetadata.getValue())) // May not actually do anything
                     .build(true);
+            CHEST_BOAT = GeyserEntityDefinition.inherited(ChestBoatEntity::new, BOAT)
+                .type(EntityType.CHEST_BOAT)
+                .build(true); // todo: new
             DRAGON_FIREBALL = GeyserEntityDefinition.inherited(FireballEntity::new, entityBase)
                     .type(EntityType.DRAGON_FIREBALL)
                     .heightAndWidth(1.0f)
@@ -274,6 +282,7 @@ public final class EntityDefinitions {
                     .build(true);
             PAINTING = GeyserEntityDefinition.<PaintingEntity>inherited(null, entityBase)
                     .type(EntityType.PAINTING)
+                    .addTranslator(MetadataType.PAINTING_VARIANT, PaintingEntity::setPaintingType)
                     .build(true);
             SHULKER_BULLET = GeyserEntityDefinition.inherited(ThrowableEntity::new, entityBase)
                     .type(EntityType.SHULKER_BULLET)
@@ -441,6 +450,12 @@ public final class EntityDefinitions {
 
         // Extends mob
         {
+            ALLAY = GeyserEntityDefinition.inherited(AllayEntity::new, mobEntityBase)
+                    .type(EntityType.ALLAY)
+                    .height(0.6f).width(0.35f)
+                    .addTranslator(MetadataType.BOOLEAN, AllayEntity::setDancing)
+                    .addTranslator(MetadataType.BOOLEAN, AllayEntity::setCanDuplicate)
+                    .build(true);
             BAT = GeyserEntityDefinition.inherited(BatEntity::new, mobEntityBase)
                     .type(EntityType.BAT)
                     .height(0.9f).width(0.5f)
@@ -550,6 +565,11 @@ public final class EntityDefinitions {
                     .height(0.8f).width(0.4f)
                     .addTranslator(MetadataType.BYTE, VexEntity::setVexFlags)
                     .build(true);
+            WARDEN = GeyserEntityDefinition.inherited(WardenEntity::new, mobEntityBase)
+                    .type(EntityType.WARDEN)
+                    .height(2.9f).width(0.9f)
+                    .addTranslator(MetadataType.INT, WardenEntity::setAngerLevel)
+                    .build(true);
             WITHER = GeyserEntityDefinition.inherited(WitherEntity::new, mobEntityBase)
                     .type(EntityType.WITHER)
                     .height(3.5f).width(0.9f)
@@ -633,6 +653,10 @@ public final class EntityDefinitions {
             SALMON = GeyserEntityDefinition.inherited(abstractFishEntityBase.factory(), abstractFishEntityBase)
                     .type(EntityType.SALMON)
                     .height(0.5f).width(0.7f)
+                    .build(true);
+            TADPOLE = GeyserEntityDefinition.inherited(TadpoleEntity::new, abstractFishEntityBase)
+                    .type(EntityType.TADPOLE)
+                    .height(0.3f).width(0.4f)
                     .build(true);
             TROPICAL_FISH = GeyserEntityDefinition.inherited(TropicalFishEntity::new, abstractFishEntityBase)
                     .type(EntityType.TROPICAL_FISH)
@@ -735,6 +759,12 @@ public final class EntityDefinitions {
                     .addTranslator(null) // Trusted player 1
                     .addTranslator(null) // Trusted player 2
                     .build(true);
+            FROG = GeyserEntityDefinition.inherited(FrogEntity::new, ageableEntityBase)
+                    .type(EntityType.FROG)
+                    .heightAndWidth(0.5f)
+                    .addTranslator(MetadataType.FROG_VARIANT, FrogEntity::setFrogVariant)
+                    .addTranslator(MetadataType.OPTIONAL_VARINT, FrogEntity::setTongueTarget)
+                    .build(true);
             HOGLIN = GeyserEntityDefinition.inherited(HoglinEntity::new, ageableEntityBase)
                     .type(EntityType.HOGLIN)
                     .height(1.4f).width(1.3965f)
@@ -744,6 +774,8 @@ public final class EntityDefinitions {
                     .type(EntityType.GOAT)
                     .height(1.3f).width(0.9f)
                     .addTranslator(MetadataType.BOOLEAN, GoatEntity::setScreamer)
+                    .addTranslator(MetadataType.BOOLEAN, GoatEntity::setHasLeftHorn)
+                    .addTranslator(MetadataType.BOOLEAN, GoatEntity::setHasRightHorn)
                     .build(true);
             MOOSHROOM = GeyserEntityDefinition.inherited(MooshroomEntity::new, ageableEntityBase)
                     .type(EntityType.MOOSHROOM)
@@ -871,7 +903,7 @@ public final class EntityDefinitions {
         CAT = GeyserEntityDefinition.inherited(CatEntity::new, tameableEntityBase)
                 .type(EntityType.CAT)
                 .height(0.35f).width(0.3f)
-                .addTranslator(MetadataType.INT, CatEntity::setCatVariant)
+                .addTranslator(MetadataType.CAT_VARIANT, CatEntity::setCatVariant)
                 .addTranslator(MetadataType.BOOLEAN, CatEntity::setResting)
                 .addTranslator(null) // "resting state one" //TODO
                 .addTranslator(MetadataType.INT, CatEntity::setCollarColor)

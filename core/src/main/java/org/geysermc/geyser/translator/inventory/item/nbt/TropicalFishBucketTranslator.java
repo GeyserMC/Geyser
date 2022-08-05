@@ -31,12 +31,12 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.geysermc.geyser.entity.type.living.animal.TropicalFishEntity;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
-import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.translator.inventory.item.NbtItemStackTranslator;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.MinecraftLocale;
+import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
+import org.geysermc.geyser.translator.inventory.item.NbtItemStackTranslator;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import java.util.ArrayList;
 import java.util.List;

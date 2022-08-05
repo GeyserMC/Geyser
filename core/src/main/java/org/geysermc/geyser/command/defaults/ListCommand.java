@@ -26,8 +26,8 @@
 package org.geysermc.geyser.command.defaults;
 
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.command.GeyserCommand;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 
@@ -50,5 +50,10 @@ public class ListCommand extends GeyserCommand {
                 geyser.getSessionManager().getAllSessions().stream().map(GeyserSession::name).collect(Collectors.joining(" ")));
 
         sender.sendMessage(message);
+    }
+
+    @Override
+    public boolean isSuggestedOpOnly() {
+        return true;
     }
 }

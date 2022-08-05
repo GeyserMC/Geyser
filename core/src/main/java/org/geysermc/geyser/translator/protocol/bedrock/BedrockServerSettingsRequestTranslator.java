@@ -27,26 +27,31 @@ package org.geysermc.geyser.translator.protocol.bedrock;
 
 import com.nukkitx.protocol.bedrock.packet.ServerSettingsRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.ServerSettingsResponsePacket;
+import org.geysermc.cumulus.form.CustomForm;
+import org.geysermc.cumulus.form.impl.FormDefinitions;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.SettingsUtils;
-import org.geysermc.cumulus.CustomForm;
 
 import java.util.concurrent.TimeUnit;
 
 @Translator(packet = ServerSettingsRequestPacket.class)
 public class BedrockServerSettingsRequestTranslator extends PacketTranslator<ServerSettingsRequestPacket> {
+    private final FormDefinitions formDefinitions = FormDefinitions.instance();
+
     @Override
     public void translate(GeyserSession session, ServerSettingsRequestPacket packet) {
-        CustomForm window = SettingsUtils.buildForm(session);
-        int windowId = session.getFormCache().addForm(window);
+        CustomForm form = SettingsUtils.buildForm(session);
+        int formId = session.getFormCache().addForm(form);
+
+        String jsonData = formDefinitions.codecFor(form).jsonData(form);
 
         // Fixes https://bugs.mojang.com/browse/MCPE-94012 because of the delay
         session.scheduleInEventLoop(() -> {
             ServerSettingsResponsePacket serverSettingsResponsePacket = new ServerSettingsResponsePacket();
-            serverSettingsResponsePacket.setFormData(window.getJsonData());
-            serverSettingsResponsePacket.setFormId(windowId);
+            serverSettingsResponsePacket.setFormData(jsonData);
+            serverSettingsResponsePacket.setFormId(formId);
             session.sendUpstreamPacket(serverSettingsResponsePacket);
         }, 1, TimeUnit.SECONDS);
     }

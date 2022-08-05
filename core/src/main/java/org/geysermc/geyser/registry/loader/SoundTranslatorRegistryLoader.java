@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.registry.loader;
 
-import org.geysermc.geyser.translator.sound.SoundTranslator;
 import org.geysermc.geyser.translator.sound.SoundInteractionTranslator;
+import org.geysermc.geyser.translator.sound.SoundTranslator;
 
 import java.util.function.Function;
 

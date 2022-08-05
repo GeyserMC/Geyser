@@ -90,7 +90,7 @@ public class MobEntity extends LivingEntity {
                 }
             }
 
-            InteractiveTag tag = testMobInteraction(itemStack);
+            InteractiveTag tag = testMobInteraction(hand, itemStack);
             return tag != InteractiveTag.NONE ? tag : super.testInteraction(hand);
         }
     }
@@ -109,7 +109,7 @@ public class MobEntity extends LivingEntity {
             if (result.consumesAction()) {
                 return result;
             } else {
-                InteractionResult mobResult = mobInteract(itemInHand);
+                InteractionResult mobResult = mobInteract(hand, itemInHand);
                 return mobResult.consumesAction() ? mobResult : super.interact(hand);
             }
         }
@@ -137,12 +137,12 @@ public class MobEntity extends LivingEntity {
     }
 
     @Nonnull
-    protected InteractiveTag testMobInteraction(@Nonnull GeyserItemStack itemInHand) {
+    protected InteractiveTag testMobInteraction(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
         return InteractiveTag.NONE;
     }
 
     @Nonnull
-    protected InteractionResult mobInteract(@Nonnull GeyserItemStack itemInHand) {
+    protected InteractionResult mobInteract(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
         return InteractionResult.PASS;
     }
 

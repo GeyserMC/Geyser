@@ -28,10 +28,10 @@ package org.geysermc.geyser.command.defaults;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
-import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.text.ChatColor;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Collections;
@@ -39,10 +39,15 @@ import java.util.Map;
 
 public class HelpCommand extends GeyserCommand {
     private final GeyserImpl geyser;
+    private final String baseCommand;
+    private final Map<String, Command> commands;
 
-    public HelpCommand(GeyserImpl geyser, String name, String description, String permission) {
+    public HelpCommand(GeyserImpl geyser, String name, String description, String permission,
+                       String baseCommand, Map<String, Command> commands) {
         super(name, description, permission);
         this.geyser = geyser;
+        this.baseCommand = baseCommand;
+        this.commands = commands;
 
         this.setAliases(Collections.singletonList("?"));
     }
@@ -61,8 +66,7 @@ public class HelpCommand extends GeyserCommand {
         String header = GeyserLocale.getPlayerLocaleString("geyser.commands.help.header", sender.locale(), page, maxPage);
         sender.sendMessage(header);
 
-        Map<String, Command> cmds = geyser.commandManager().getCommands();
-        for (Map.Entry<String, Command> entry : cmds.entrySet()) {
+        for (Map.Entry<String, Command> entry : commands.entrySet()) {
             Command cmd = entry.getValue();
 
             // Standalone hack-in since it doesn't have a concept of permissions
@@ -72,7 +76,7 @@ public class HelpCommand extends GeyserCommand {
                     continue;
                 }
 
-                sender.sendMessage(ChatColor.YELLOW + "/geyser " + entry.getKey() + ChatColor.WHITE + ": " +
+                sender.sendMessage(ChatColor.YELLOW + "/" + baseCommand + " " + entry.getKey() + ChatColor.WHITE + ": " +
                         GeyserLocale.getPlayerLocaleString(cmd.description(), sender.locale()));
             }
         }

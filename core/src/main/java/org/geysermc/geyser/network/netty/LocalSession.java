@@ -26,8 +26,11 @@
 package org.geysermc.geyser.network.netty;
 
 import com.github.steveice10.packetlib.BuiltinFlags;
+import com.github.steveice10.packetlib.codec.PacketCodecHelper;
 import com.github.steveice10.packetlib.packet.PacketProtocol;
-import com.github.steveice10.packetlib.tcp.*;
+import com.github.steveice10.packetlib.tcp.TcpPacketCodec;
+import com.github.steveice10.packetlib.tcp.TcpPacketSizer;
+import com.github.steveice10.packetlib.tcp.TcpSession;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.*;
@@ -47,15 +50,17 @@ public final class LocalSession extends TcpSession {
 
     private final SocketAddress targetAddress;
     private final String clientIp;
+    private final PacketCodecHelper codecHelper;
 
-    public LocalSession(String host, int port, SocketAddress targetAddress, String clientIp, PacketProtocol protocol) {
+    public LocalSession(String host, int port, SocketAddress targetAddress, String clientIp, PacketProtocol protocol, PacketCodecHelper codecHelper) {
         super(host, port, protocol);
         this.targetAddress = targetAddress;
         this.clientIp = clientIp;
+        this.codecHelper = codecHelper;
     }
 
     @Override
-    public void connect() {
+    public void connect(boolean wait) {
         if (this.disconnected) {
             throw new IllegalStateException("Connection has already been disconnected.");
         }
@@ -100,6 +105,11 @@ public final class LocalSession extends TcpSession {
         } catch (Throwable t) {
             exceptionCaught(null, t);
         }
+    }
+
+    @Override
+    public PacketCodecHelper getCodecHelper() {
+        return this.codecHelper;
     }
 
     // TODO duplicate code

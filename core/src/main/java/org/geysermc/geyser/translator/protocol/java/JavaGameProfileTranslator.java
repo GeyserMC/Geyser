@@ -30,9 +30,9 @@ import com.github.steveice10.mc.protocol.packet.login.clientbound.ClientboundGam
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.skin.SkinManager;
 
 @Translator(packet = ClientboundGameProfilePacket.class)
 public class JavaGameProfileTranslator extends PacketTranslator<ClientboundGameProfilePacket> {

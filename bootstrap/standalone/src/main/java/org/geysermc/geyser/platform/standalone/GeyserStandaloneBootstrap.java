@@ -38,10 +38,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.appender.ConsoleAppender;
-import org.apache.logging.log4j.core.appender.RollingRandomAccessFileAppender;
 import org.geysermc.common.PlatformType;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserBootstrap;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.configuration.GeyserJacksonConfiguration;
@@ -49,9 +48,10 @@ import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.standalone.command.GeyserStandaloneCommandManager;
-import org.geysermc.geyser.util.FileUtils;
-import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.platform.standalone.gui.GeyserStandaloneGUI;
+import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.util.LoopbackUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -189,7 +189,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
         geyserLogger = new GeyserStandaloneLogger();
 
-        LoopbackUtil.checkLoopback(geyserLogger);
+        LoopbackUtil.checkAndApplyLoopback(geyserLogger);
         
         try {
             File configFile = FileUtils.fileOrCopiedFromResource(new File(configFilename), "config.yml",
@@ -198,7 +198,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
             handleArgsConfigOptions();
 
-            if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
+            if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
                 geyserConfig.setAutoconfiguredRemote(true); // Doesn't really need to be set but /shrug
                 geyserConfig.getRemote().setAddress("127.0.0.1");
             }
@@ -211,6 +211,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
                 return;
             }
         }
+        geyserLogger.setDebug(geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
         // Allow libraries like Protocol to have their debug information passthrough

@@ -31,8 +31,8 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import lombok.Getter;
-import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.GeyserEntityDefinition;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
 import org.geysermc.geyser.session.GeyserSession;
 

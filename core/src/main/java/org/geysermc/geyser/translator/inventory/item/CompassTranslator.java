@@ -79,8 +79,7 @@ public class CompassTranslator extends ItemTranslator {
 
     @Override
     public List<ItemMapping> getAppliedItems() {
-        return Arrays.stream(Registries.ITEMS.forVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
-                        .getItems())
+        return Arrays.stream(Registries.ITEMS.forVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getItems())
                 .filter(entry -> entry.getJavaIdentifier().endsWith("compass"))
                 .collect(Collectors.toList());
     }

@@ -26,8 +26,8 @@
 package org.geysermc.geyser.translator.collision;
 
 import lombok.EqualsAndHashCode;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.level.physics.BoundingBox;
+import org.geysermc.geyser.session.GeyserSession;
 
 /**
  * In order for scaffolding to work on Bedrock, entity flags need to be sent to the player

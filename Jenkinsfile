@@ -2,7 +2,7 @@ pipeline {
     agent any
     tools {
         gradle 'Gradle 7'
-        jdk 'Java 16'
+        jdk 'Java 17'
     }
     options {
         buildDiscarder(logRotator(artifactNumToKeepStr: '20'))
@@ -102,7 +102,7 @@ pipeline {
         success {
             script {
                 if (env.BRANCH_NAME == 'master') {
-                    build propagate: false, wait: false, job: 'GeyserMC/Geyser-Fabric/java-1.18', parameters: [booleanParam(name: 'SKIP_DISCORD', value: true)]
+                    build propagate: false, wait: false, job: 'GeyserMC/Geyser-Fabric/master', parameters: [booleanParam(name: 'SKIP_DISCORD', value: true)]
                     build propagate: false, wait: false, job: 'GeyserMC/GeyserConnect/master', parameters: [booleanParam(name: 'SKIP_DISCORD', value: true)]
                 }
             }

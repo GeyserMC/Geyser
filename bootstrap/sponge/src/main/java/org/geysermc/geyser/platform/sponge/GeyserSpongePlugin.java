@@ -27,17 +27,17 @@ package org.geysermc.geyser.platform.sponge;
 
 import com.google.inject.Inject;
 import org.geysermc.common.PlatformType;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserBootstrap;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
-import org.geysermc.geyser.util.FileUtils;
-import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.platform.sponge.command.GeyserSpongeCommandExecutor;
 import org.geysermc.geyser.platform.sponge.command.GeyserSpongeCommandManager;
+import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.FileUtils;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
@@ -99,14 +99,14 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
             // Don't change the ip if its listening on all interfaces
             // By default this should be 127.0.0.1 but may need to be changed in some circumstances
-            if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
+            if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
                 this.geyserConfig.setAutoconfiguredRemote(true);
                 geyserConfig.getRemote().setPort(javaAddr.getPort());
             }
         }
 
         if (geyserConfig.getBedrock().isCloneRemotePort()) {
-            geyserConfig.getBedrock().setPort(geyserConfig.getRemote().getPort());
+            geyserConfig.getBedrock().setPort(geyserConfig.getRemote().port());
         }
 
         this.geyserLogger = new GeyserSpongeLogger(logger, geyserConfig.isDebugMode());
@@ -121,7 +121,8 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
         this.geyserCommandManager = new GeyserSpongeCommandManager(Sponge.getCommandManager(), geyser);
         this.geyserCommandManager.init();
-        Sponge.getCommandManager().register(this, new GeyserSpongeCommandExecutor(geyser), "geyser");
+        Sponge.getCommandManager().register(this, new GeyserSpongeCommandExecutor(geyser, geyserCommandManager.getCommands()), "geyser");
+        Sponge.getCommandManager().register(this, new GeyserSpongeCommandExecutor(geyser, geyserCommandManager.commands()), "geyserext");
     }
 
     @Override

@@ -25,33 +25,45 @@
 
 package org.geysermc.geyser.entity.type;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.AddPaintingPacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.level.PaintingType;
+import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.UUID;
 
 public class PaintingEntity extends Entity {
     private static final double OFFSET = -0.46875;
-    private final PaintingType paintingName;
-    private final int direction;
+    private final Direction direction;
 
-    public PaintingEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, Vector3f position, PaintingType paintingName, int direction) {
-        super(session, entityId, geyserId, uuid, EntityDefinitions.PAINTING, position, Vector3f.ZERO, 0f, 0f, 0f);
-        this.paintingName = paintingName;
+    public PaintingEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw, Direction direction) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
         this.direction = direction;
     }
 
     @Override
     public void spawnEntity() {
+        // Wait until we get the metadata needed
+    }
+
+    public void setPaintingType(ObjectEntityMetadata<com.github.steveice10.mc.protocol.data.game.entity.type.PaintingType> entityMetadata) {
+        PaintingType type = PaintingType.getByPaintingType(entityMetadata.getValue());
         AddPaintingPacket addPaintingPacket = new AddPaintingPacket();
         addPaintingPacket.setUniqueEntityId(geyserId);
         addPaintingPacket.setRuntimeEntityId(geyserId);
-        addPaintingPacket.setMotive(paintingName.getBedrockName());
-        addPaintingPacket.setPosition(fixOffset());
-        addPaintingPacket.setDirection(direction);
+        addPaintingPacket.setMotive(type.getBedrockName());
+        addPaintingPacket.setPosition(fixOffset(type));
+        addPaintingPacket.setDirection(switch (direction) {
+            //TODO this doesn't seem right. Why did it work fine before?
+            case SOUTH -> 0;
+            case WEST -> 1;
+            case NORTH -> 2;
+            case EAST -> 3;
+            default -> 0;
+        });
         session.sendUpstreamPacket(addPaintingPacket);
 
         valid = true;
@@ -64,17 +76,17 @@ public class PaintingEntity extends Entity {
         // Do nothing, as head look messes up paintings
     }
 
-    private Vector3f fixOffset() {
+    private Vector3f fixOffset(PaintingType paintingName) {
         Vector3f position = super.position;
         position = position.add(0.5, 0.5, 0.5);
         double widthOffset = paintingName.getWidth() > 1 ? 0.5 : 0;
         double heightOffset = paintingName.getHeight() > 1 && paintingName.getHeight() != 3 ? 0.5 : 0;
 
         return switch (direction) {
-            case 0 -> position.add(widthOffset, heightOffset, OFFSET);
-            case 1 -> position.add(-OFFSET, heightOffset, widthOffset);
-            case 2 -> position.add(-widthOffset, heightOffset, -OFFSET);
-            case 3 -> position.add(OFFSET, heightOffset, -widthOffset);
+            case SOUTH -> position.add(widthOffset, heightOffset, OFFSET);
+            case WEST -> position.add(-OFFSET, heightOffset, widthOffset);
+            case NORTH -> position.add(-widthOffset, heightOffset, -OFFSET);
+            case EAST -> position.add(OFFSET, heightOffset, -widthOffset);
             default -> position;
         };
     }

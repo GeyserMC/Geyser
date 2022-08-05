@@ -48,6 +48,6 @@ public class BasePiglinEntity extends MonsterEntity {
 
     @Override
     protected boolean isShaking() {
-        return (!isImmuneToZombification && !session.isDimensionPiglinSafe()) || super.isShaking();
+        return (!isImmuneToZombification && !session.getDimensionType().piglinSafe()) || super.isShaking();
     }
 }

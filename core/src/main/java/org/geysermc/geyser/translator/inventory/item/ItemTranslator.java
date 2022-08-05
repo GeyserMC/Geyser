@@ -34,9 +34,12 @@ import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.item.custom.CustomItemOptions;
+import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -122,7 +125,7 @@ public abstract class ItemTranslator {
                 }
             }
             if (itemStack.getNbt().isEmpty()) {
-                // Otherwise, seems to causes issues with villagers accepting books, and I don't see how this will break anything else. - Camotoy
+                // Otherwise, seems to cause issues with villagers accepting books, and I don't see how this will break anything else. - Camotoy
                 itemStack = new ItemStack(itemStack.getId(), itemStack.getAmount(), null);
             }
         }
@@ -169,6 +172,8 @@ public abstract class ItemTranslator {
         if (bedrockItem.isBlock()) {
             builder.blockRuntimeId(bedrockItem.getBedrockBlockId());
         }
+
+        translateCustomItem(nbt, builder, bedrockItem);
 
         if (nbt != null) {
             // Translate the canDestroy and canPlaceOn Java NBT
@@ -261,16 +266,23 @@ public abstract class ItemTranslator {
     }
 
     /**
-     * Given an item stack, determine the item mapping that should be applied to Bedrock players.
+     * Given an item stack, determine the Bedrock item ID that should be applied to Bedrock players.
      */
-    @Nonnull
-    public static ItemMapping getBedrockItemMapping(GeyserSession session, @Nonnull GeyserItemStack itemStack) {
+    public static int getBedrockItemId(GeyserSession session, @Nonnull GeyserItemStack itemStack) {
         if (itemStack.isEmpty()) {
-            return ItemMapping.AIR;
+            return ItemMapping.AIR.getJavaId();
         }
         int javaId = itemStack.getJavaId();
-        return ITEM_STACK_TRANSLATORS.getOrDefault(javaId, DEFAULT_TRANSLATOR)
+        ItemMapping mapping = ITEM_STACK_TRANSLATORS.getOrDefault(javaId, DEFAULT_TRANSLATOR)
                 .getItemMapping(javaId, itemStack.getNbt(), session.getItemMappings());
+
+        int customItemId = getCustomItem(itemStack.getNbt(), mapping);
+        if (customItemId == -1) {
+            // No custom item
+            return mapping.getBedrockId();
+        } else {
+            return customItemId;
+        }
     }
 
     private static final ItemTranslator DEFAULT_TRANSLATOR = new ItemTranslator() {
@@ -292,6 +304,10 @@ public abstract class ItemTranslator {
         if (itemStack.getNbt() != null) {
             builder.tag(this.translateNbtToBedrock(itemStack.getNbt()));
         }
+
+        CompoundTag nbt = itemStack.getNbt();
+        translateCustomItem(nbt, builder, mapping);
+
         return builder;
     }
 
@@ -416,7 +432,7 @@ public abstract class ItemTranslator {
         if (object instanceof byte[]) {
             return new ByteArrayTag(name, (byte[]) object);
         }
-        
+
         if (object instanceof Byte) {
             return new ByteTag(name, (byte) object);
         }
@@ -522,6 +538,48 @@ public abstract class ItemTranslator {
         }
 
         return tag;
+    }
+
+    /**
+     * Translates the custom model data of an item
+     */
+    private static void translateCustomItem(CompoundTag nbt, ItemData.Builder builder, ItemMapping mapping) {
+        int bedrockId = getCustomItem(nbt, mapping);
+        if (bedrockId != -1) {
+            builder.id(bedrockId);
+        }
+    }
+
+    private static int getCustomItem(CompoundTag nbt, ItemMapping mapping) {
+        if (nbt == null) {
+            return -1;
+        }
+        Object2IntMap<CustomItemOptions> customMappings = mapping.getCustomItemOptions();
+        if (customMappings.isEmpty()) {
+            return -1;
+        }
+        int customModelData = nbt.get("CustomModelData") instanceof IntTag customModelDataTag ? customModelDataTag.getValue() : 0;
+        TriState unbreakable = TriState.fromBoolean(nbt.get("Unbreakable") instanceof ByteTag unbreakableTag && unbreakableTag.getValue() == 1);
+        int damage = nbt.get("Damage") instanceof IntTag damageTag ? damageTag.getValue() : 0;
+        for (Object2IntMap.Entry<CustomItemOptions> mappingTypes : customMappings.object2IntEntrySet()) {
+            CustomItemOptions options = mappingTypes.getKey();
+
+            TriState unbreakableOption = options.unbreakable();
+            if (unbreakableOption == unbreakable) { // Implementation note: if the option is NOT_SET then this comparison will always be false because of how the item unbreaking TriState is created
+                return mappingTypes.getIntValue();
+            }
+
+            OptionalInt customModelDataOption = options.customModelData();
+            if (customModelDataOption.isPresent() && customModelDataOption.getAsInt() == customModelData) {
+                return mappingTypes.getIntValue();
+            }
+
+            OptionalInt damagePredicate = options.damagePredicate();
+            if (damagePredicate.isPresent() && damagePredicate.getAsInt() == damage) {
+                return mappingTypes.getIntValue();
+            }
+        }
+        return -1;
     }
 
     /**

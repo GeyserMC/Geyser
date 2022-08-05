@@ -30,21 +30,22 @@ import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.GeyserCommandExecutor;
 import org.geysermc.geyser.command.GeyserCommand;
+import org.geysermc.geyser.command.GeyserCommandExecutor;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map;
 
 public class GeyserBungeeCommandExecutor extends Command implements TabExecutor {
     private final GeyserCommandExecutor commandExecutor;
 
-    public GeyserBungeeCommandExecutor(GeyserImpl geyser) {
-        super("geyser");
+    public GeyserBungeeCommandExecutor(String name, GeyserImpl geyser, Map<String, org.geysermc.geyser.api.command.Command> commands) {
+        super(name);
 
-        this.commandExecutor = new GeyserCommandExecutor(geyser);
+        this.commandExecutor = new GeyserCommandExecutor(geyser, commands);
     }
 
     @Override

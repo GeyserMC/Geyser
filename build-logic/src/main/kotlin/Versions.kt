@@ -30,15 +30,17 @@ object Versions {
     const val guavaVersion = "29.0-jre"
     const val nbtVersion = "2.1.0"
     const val websocketVersion = "1.5.1"
-    const val protocolVersion = "2a344e4"
+    const val protocolVersion = "a78a64b"
+    // Not pinned to specific version due to possible gradle bug
+    // See comment in settings.gradle.kts
     const val raknetVersion = "1.6.28-SNAPSHOT"
     const val mcauthlibVersion = "d9d773e"
-    const val mcprotocollibversion = "0771504"
-    const val packetlibVersion = "2.1-SNAPSHOT"
+    const val mcprotocollibversion = "9f78bd5"
+    const val packetlibVersion = "3.0"
     const val adventureVersion = "4.9.3"
     const val eventVersion = "3.0.0"
     const val junitVersion = "4.13.1"
     const val checkerQualVersion = "3.19.0"
-    const val cumulusVersion  = "1.0-SNAPSHOT"
+    const val cumulusVersion  = "1.1"
     const val log4jVersion  = "2.17.1"
 }

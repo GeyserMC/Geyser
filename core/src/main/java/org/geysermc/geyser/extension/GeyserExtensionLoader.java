@@ -29,41 +29,32 @@ import it.unimi.dsi.fastutil.objects.Object2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.api.Geyser;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.ExtensionEventBus;
-import org.geysermc.geyser.api.extension.Extension;
-import org.geysermc.geyser.api.extension.ExtensionDescription;
-import org.geysermc.geyser.api.extension.ExtensionLoader;
-import org.geysermc.geyser.api.extension.ExtensionLogger;
-import org.geysermc.geyser.api.extension.ExtensionManager;
+import org.geysermc.geyser.api.extension.*;
 import org.geysermc.geyser.api.extension.exception.InvalidDescriptionException;
 import org.geysermc.geyser.api.extension.exception.InvalidExtensionException;
 import org.geysermc.geyser.extension.event.GeyserExtensionEventBus;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 @RequiredArgsConstructor
 public class GeyserExtensionLoader extends ExtensionLoader {
-    private static final Path EXTENSION_DIRECTORY = Paths.get("extensions");
     private static final Pattern API_VERSION_PATTERN = Pattern.compile("^\\d+\\.\\d+\\.\\d+$");
     private static final Pattern[] EXTENSION_FILTERS = new Pattern[] { Pattern.compile("^.+\\.jar$") };
 
     private final Object2ReferenceMap<String, Class<?>> classes = new Object2ReferenceOpenHashMap<>();
     private final Map<String, GeyserExtensionClassLoader> classLoaders = new HashMap<>();
     private final Map<Extension, GeyserExtensionContainer> extensionContainers = new HashMap<>();
+    private final Path extensionsDirectory = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("extensions");
 
     public GeyserExtensionContainer loadExtension(Path path, GeyserExtensionDescription description) throws InvalidExtensionException, InvalidDescriptionException {
         if (path == null) {
@@ -139,24 +130,16 @@ public class GeyserExtensionLoader extends ExtensionLoader {
 
     @Override
     protected void loadAllExtensions(@NonNull ExtensionManager extensionManager) {
-        // noinspection ConstantConditions
-        if (!GeyserImpl.VERSION.contains(".")) {
-            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_version_number"));
-            return;
-        }
-
-        String[] apiVersion = GeyserImpl.VERSION.split("\\.");
-
         try {
-            if (Files.notExists(EXTENSION_DIRECTORY)) {
-                Files.createDirectory(EXTENSION_DIRECTORY);
+            if (Files.notExists(extensionsDirectory)) {
+                Files.createDirectory(extensionsDirectory);
             }
 
             Map<String, Path> extensions = new LinkedHashMap<>();
             Map<String, GeyserExtensionContainer> loadedExtensions = new LinkedHashMap<>();
 
             Pattern[] extensionFilters = this.extensionFilters();
-            try (Stream<Path> entries = Files.walk(EXTENSION_DIRECTORY)) {
+            try (Stream<Path> entries = Files.walk(extensionsDirectory)) {
                 entries.forEach(path -> {
                     if (Files.isDirectory(path)) {
                         return;
@@ -180,27 +163,30 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                             return;
                         }
 
+                        int majorVersion = Geyser.api().majorApiVersion();
+                        int minorVersion = Geyser.api().minorApiVersion();
+
                         try {
                             // Check the format: majorVersion.minorVersion.patch
                             if (!API_VERSION_PATTERN.matcher(description.apiVersion()).matches()) {
                                 throw new IllegalArgumentException();
                             }
                         } catch (NullPointerException | IllegalArgumentException e) {
-                            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_format", name, apiVersion[0] + "." + apiVersion[1]));
+                            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_format", name, majorVersion + "." + minorVersion));
                             return;
                         }
 
                         String[] versionArray = description.apiVersion().split("\\.");
 
                         // Completely different API version
-                        if (!Objects.equals(Integer.valueOf(versionArray[0]), Integer.valueOf(apiVersion[0]))) {
-                            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, apiVersion[0] + "." + apiVersion[1]));
+                        if (Integer.parseInt(versionArray[0]) != majorVersion) {
+                            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, majorVersion + "." + minorVersion));
                             return;
                         }
 
                         // If the extension requires new API features, being backwards compatible
-                        if (Integer.parseInt(versionArray[1]) > Integer.parseInt(apiVersion[1])) {
-                            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, apiVersion[0] + "." + apiVersion[1]));
+                        if (Integer.parseInt(versionArray[1]) > minorVersion) {
+                            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, majorVersion + "." + minorVersion));
                             return;
                         }
 

@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.Builder;
 import lombok.Value;
@@ -36,7 +37,6 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -67,7 +67,8 @@ public class ItemMappings {
     IntList spawnEggIds;
     List<ItemData> carpets;
 
-    @Nullable ComponentItemData furnaceMinecartData;
+    List<ComponentItemData> componentItemData;
+    Int2ObjectMap<String> customIdMappings;
 
     /**
      * Gets an {@link ItemMapping} from the given {@link ItemStack}.
@@ -135,9 +136,9 @@ public class ItemMappings {
                     }
                 } else {
                     if (!(mapping.getBedrockData() == data.getDamage() ||
-                            // Make exceptions for potions, tipped arrows, and firework stars, whose damage values can vary
+                            // Make exceptions for potions, tipped arrows, firework stars, and goat horns, whose damage values can vary
                             (mapping.getJavaIdentifier().endsWith("potion") || mapping.getJavaIdentifier().equals("minecraft:arrow")
-                                    || mapping.getJavaIdentifier().equals("minecraft:firework_star")))) {
+                                    || mapping.getJavaIdentifier().equals("minecraft:firework_star") || mapping.getJavaIdentifier().equals("minecraft:goat_horn")))) {
                         continue;
                     }
                 }

@@ -30,18 +30,22 @@ import com.github.steveice10.mc.protocol.data.game.chunk.DataPalette;
 import com.github.steveice10.mc.protocol.data.game.chunk.palette.GlobalPalette;
 import com.github.steveice10.mc.protocol.data.game.chunk.palette.Palette;
 import com.github.steveice10.mc.protocol.data.game.chunk.palette.SingletonPalette;
-import com.github.steveice10.opennbt.tag.builtin.*;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.IntTag;
+import com.github.steveice10.opennbt.tag.builtin.ListTag;
+import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.level.chunk.BlockStorage;
 import org.geysermc.geyser.level.chunk.GeyserChunkSection;
 import org.geysermc.geyser.level.chunk.bitarray.BitArray;
 import org.geysermc.geyser.level.chunk.bitarray.BitArrayVersion;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.JavaCodecEntry;
 import org.geysermc.geyser.util.MathUtils;
 
 // Array index formula by https://wiki.vg/Chunk_Format
@@ -55,27 +59,26 @@ public class BiomeTranslator {
         ListTag serverBiomes = worldGen.get("value");
         session.setBiomeGlobalPalette(MathUtils.getGlobalPaletteForSize(serverBiomes.size()));
 
-        for (Tag tag : serverBiomes) {
-            CompoundTag biomeTag = (CompoundTag) tag;
-
+        for (CompoundTag biomeTag : JavaCodecEntry.iterateAsTag(worldGen)) {
             String javaIdentifier = ((StringTag) biomeTag.get("name")).getValue();
-            int bedrockId = Registries.BIOME_IDENTIFIERS.get().getOrDefault(javaIdentifier, -1);
+            int bedrockId = Registries.BIOME_IDENTIFIERS.get().getOrDefault(javaIdentifier, 0);
             int javaId = ((IntTag) biomeTag.get("id")).getValue();
 
-            if (bedrockId == -1) {
-                // There is no matching Bedrock variation for this biome; let's set the closest match based on biome category
-                String category = ((StringTag) ((CompoundTag) biomeTag.get("element")).get("category")).getValue();
-                String replacementBiome = switch (category) {
-                    case "extreme_hills" -> "minecraft:mountains";
-                    case "icy" -> "minecraft:ice_spikes";
-                    case "mesa" -> "minecraft:badlands";
-                    case "mushroom" -> "minecraft:mushroom_fields";
-                    case "nether" -> "minecraft:nether_wastes";
-                    default -> "minecraft:ocean"; // Typically ID 0 so a good default
-                    case "taiga", "jungle", "plains", "savanna", "the_end", "beach", "ocean", "desert", "river", "swamp" -> "minecraft:" + category;
-                };
-                bedrockId = Registries.BIOME_IDENTIFIERS.get().getInt(replacementBiome);
-            }
+            // TODO - the category tag no longer exists - find a better replacement option
+//            if (bedrockId == -1) {
+//                // There is no matching Bedrock variation for this biome; let's set the closest match based on biome category
+//                String category = ((StringTag) ((CompoundTag) biomeTag.get("element")).get("category")).getValue();
+//                String replacementBiome = switch (category) {
+//                    case "extreme_hills" -> "minecraft:mountains";
+//                    case "icy" -> "minecraft:ice_spikes";
+//                    case "mesa" -> "minecraft:badlands";
+//                    case "mushroom" -> "minecraft:mushroom_fields";
+//                    case "nether" -> "minecraft:nether_wastes";
+//                    default -> "minecraft:ocean"; // Typically ID 0 so a good default
+//                    case "taiga", "jungle", "plains", "savanna", "the_end", "beach", "ocean", "desert", "river", "swamp" -> "minecraft:" + category;
+//                };
+//                bedrockId = Registries.BIOME_IDENTIFIERS.get().getInt(replacementBiome);
+//            }
 
             // When we see the Java ID, we should instead apply the Bedrock ID
             biomeTranslations.put(javaId, bedrockId);

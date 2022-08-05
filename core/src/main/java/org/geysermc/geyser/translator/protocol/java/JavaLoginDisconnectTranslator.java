@@ -50,6 +50,8 @@ public class JavaLoginDisconnectTranslator extends PacketTranslator<ClientboundL
         if (disconnectReason instanceof TranslatableComponent component) {
             String key = component.key();
             isOutdatedMessage = "multiplayer.disconnect.incompatible".equals(key) ||
+                    // Seen with Velocity 1.18 rejecting a 1.19 client
+                    "multiplayer.disconnect.outdated_client".equals(key) ||
                     // Legacy string (starting from at least 1.15.2)
                     "multiplayer.disconnect.outdated_server".equals(key)
                     // Reproduced on 1.15.2 server with ViaVersion 4.0.0-21w20a with 1.18.2 Java client

@@ -34,12 +34,12 @@ import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import javax.annotation.Nonnull;
 import java.net.InetSocketAddress;
@@ -108,7 +108,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         pong.setNintendoLimited(false);
         pong.setProtocolVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion());
         pong.setVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()); // Required to not be empty as of 1.16.210.59. Can only contain . and numbers.
-        pong.setIpv4Port(config.getBedrock().getPort());
+        pong.setIpv4Port(config.getBedrock().port());
 
         if (config.isPassthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
             String[] motd = MessageTranslator.convertMessageLenient(pingInfo.getDescription()).split("\n");
@@ -118,8 +118,8 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
             pong.setMotd(mainMotd.trim());
             pong.setSubMotd(subMotd.trim()); // Trimmed to shift it to the left, prevents the universe from collapsing on us just because we went 2 characters over the text box's limit.
         } else {
-            pong.setMotd(config.getBedrock().getMotd1());
-            pong.setSubMotd(config.getBedrock().getMotd2());
+            pong.setMotd(config.getBedrock().primaryMotd());
+            pong.setSubMotd(config.getBedrock().secondaryMotd());
         }
 
         if (config.isPassthroughPlayerCounts() && pingInfo != null) {

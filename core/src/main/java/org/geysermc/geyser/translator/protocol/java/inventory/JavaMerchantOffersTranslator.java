@@ -104,7 +104,9 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
             recipe.put("sell", getItemTag(session, trade.getOutput()));
 
             // The buy count before demand and special price adjustments
-            recipe.putInt("buyCountA", Math.max(trade.getFirstInput().getAmount(), 0));
+            // The first input CAN be null as of Java 1.19.0/Bedrock 1.19.10
+            // Replicable item: https://gist.github.com/Camotoy/3f3f23d1f80981d1b4472bdb23bba698 from https://github.com/GeyserMC/Geyser/issues/3171
+            recipe.putInt("buyCountA", trade.getFirstInput() != null ? Math.max(trade.getFirstInput().getAmount(), 0) : 0);
             recipe.putInt("buyCountB", trade.getSecondInput() != null ? Math.max(trade.getSecondInput().getAmount(), 0) : 0);
 
             recipe.putInt("demand", trade.getDemand()); // Seems to have no effect
@@ -168,11 +170,12 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
 
     private static NbtMap getItemTag(GeyserSession session, ItemStack stack, ItemMapping mapping, int count) {
         ItemData itemData = ItemTranslator.translateToBedrock(session, stack);
+        String customIdentifier = session.getItemMappings().getCustomIdMappings().get(itemData.getId());
 
         NbtMapBuilder builder = NbtMap.builder();
         builder.putByte("Count", (byte) count);
         builder.putShort("Damage", (short) itemData.getDamage());
-        builder.putString("Name", mapping.getBedrockIdentifier());
+        builder.putString("Name", customIdentifier != null ? customIdentifier : mapping.getBedrockIdentifier());
         if (itemData.getTag() != null) {
             NbtMap tag = itemData.getTag().toBuilder().build();
             builder.put("tag", tag);

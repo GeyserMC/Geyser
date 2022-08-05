@@ -28,8 +28,8 @@ package org.geysermc.geyser.entity.type.living.monster;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.GeyserEntityDefinition;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.UUID;

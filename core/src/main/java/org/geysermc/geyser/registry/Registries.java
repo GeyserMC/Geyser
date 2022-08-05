@@ -27,7 +27,7 @@ package org.geysermc.geyser.registry;
 
 import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
-import com.github.steveice10.mc.protocol.data.game.level.event.SoundEvent;
+import com.github.steveice10.mc.protocol.data.game.level.event.LevelEvent;
 import com.github.steveice10.mc.protocol.data.game.level.particle.ParticleType;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
 import com.github.steveice10.packetlib.packet.Packet;
@@ -52,6 +52,7 @@ import org.geysermc.geyser.registry.loader.*;
 import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.populator.PacketRegistryPopulator;
 import org.geysermc.geyser.registry.populator.RecipeRegistryPopulator;
+import org.geysermc.geyser.registry.provider.ProviderSupplier;
 import org.geysermc.geyser.registry.type.EnchantmentData;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.registry.type.ParticleMapping;
@@ -116,11 +117,6 @@ public final class Registries {
     public static final SimpleMappedRegistry<EntityType, GeyserEntityDefinition<?>> ENTITY_DEFINITIONS = SimpleMappedRegistry.create(RegistryLoaders.empty(() -> new EnumMap<>(EntityType.class)));
 
     /**
-     * A map containing all the extension loaders.
-     */
-    public static final SimpleMappedRegistry<Key, ExtensionLoader> EXTENSION_LOADERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
-
-    /**
      * A map containing all entity identifiers and their respective Geyser definitions
      */
     public static final SimpleMappedRegistry<String, GeyserEntityDefinition<?>> ENTITY_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
@@ -148,6 +144,11 @@ public final class Registries {
     public static final SimpleRegistry<Set<PotionMixData>> POTION_MIXES;
 
     /**
+     * A registry holding all the
+     */
+    public static final SimpleMappedRegistry<Class<?>, ProviderSupplier> PROVIDERS = SimpleMappedRegistry.create(new IdentityHashMap<>(), ProviderRegistryLoader::new);
+
+    /**
      * A versioned registry holding all the recipes, with the net ID being the key, and {@link GeyserRecipe} as the value.
      */
     public static final VersionedRegistry<Int2ObjectMap<GeyserRecipe>> RECIPES = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
@@ -164,9 +165,9 @@ public final class Registries {
     public static final SimpleMappedRegistry<String, SoundMapping> SOUNDS = SimpleMappedRegistry.create("mappings/sounds.json", SoundRegistryLoader::new);
 
     /**
-     * A mapped registry holding {@link SoundEvent}s to their corresponding {@link LevelEventTranslator}.
+     * A mapped registry holding {@link LevelEvent}s to their corresponding {@link LevelEventTranslator}.
      */
-    public static final SimpleMappedRegistry<SoundEvent, LevelEventTranslator> SOUND_EVENTS = SimpleMappedRegistry.create("mappings/effects.json", SoundEventsRegistryLoader::new);
+    public static final SimpleMappedRegistry<LevelEvent, LevelEventTranslator> SOUND_LEVEL_EVENTS = SimpleMappedRegistry.create("mappings/effects.json", SoundEventsRegistryLoader::new);
 
     /**
      * A mapped registry holding {@link SoundTranslator}s to their corresponding {@link SoundInteractionTranslator}.

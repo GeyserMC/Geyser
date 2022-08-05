@@ -25,16 +25,22 @@
 
 package org.geysermc.geyser.api.network;
 
+import java.util.Locale;
+
+/**
+ * The authentication types that a Java server can be on connection.
+ */
 public enum AuthType {
     OFFLINE,
     ONLINE,
+    /**
+     * The internal name for connecting to an online mode server without needing a Java account. The presence of this
+     * authentication type does not necessarily mean the Floodgate plugin is installed; it only means that this
+     * authentication type will be attempted.
+     */
     FLOODGATE;
 
-    public static final AuthType[] VALUES = values();
-
-    public static AuthType getById(int id) {
-        return id < VALUES.length ? VALUES[id] : OFFLINE;
-    }
+    private static final AuthType[] VALUES = values();
 
     /**
      * Convert the AuthType string (from config) to the enum, ONLINE on fail
@@ -44,7 +50,7 @@ public enum AuthType {
      * @return The converted AuthType
      */
     public static AuthType getByName(String name) {
-        String upperCase = name.toUpperCase();
+        String upperCase = name.toUpperCase(Locale.ROOT);
         for (AuthType type : VALUES) {
             if (type.name().equals(upperCase)) {
                 return type;

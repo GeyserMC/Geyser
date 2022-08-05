@@ -25,21 +25,26 @@
 
 package org.geysermc.geyser.extension;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.extension.Extension;
-import org.geysermc.geyser.api.extension.ExtensionManager;
 import org.geysermc.geyser.api.extension.ExtensionLoader;
-import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.api.extension.ExtensionManager;
 import org.geysermc.geyser.text.GeyserLocale;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class GeyserExtensionManager extends ExtensionManager {
     private static final Key BASE_EXTENSION_LOADER_KEY = Key.key("geysermc", "base");
+
+    private final Map<Key, ExtensionLoader> extensionLoaderTypes = new Object2ObjectOpenHashMap<>();
 
     private final Map<String, Extension> extensions = new LinkedHashMap<>();
     private final Map<Extension, ExtensionLoader> extensionsLoaders = new LinkedHashMap<>();
@@ -47,7 +52,7 @@ public class GeyserExtensionManager extends ExtensionManager {
     public void init() {
         GeyserImpl.getInstance().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.extensions.load.loading"));
 
-        Registries.EXTENSION_LOADERS.register(BASE_EXTENSION_LOADER_KEY, new GeyserExtensionLoader());
+        extensionLoaderTypes.put(BASE_EXTENSION_LOADER_KEY, new GeyserExtensionLoader());
         for (ExtensionLoader loader : this.extensionLoaders().values()) {
             this.loadAllExtensions(loader);
         }
@@ -94,18 +99,18 @@ public class GeyserExtensionManager extends ExtensionManager {
         }
     }
 
+    public void enableExtensions() {
+        for (Extension extension : this.extensions()) {
+            this.enable(extension);
+        }
+    }
+
     private void disableExtension(@NonNull Extension extension) {
         if (extension.isEnabled()) {
             GeyserImpl.getInstance().eventBus().unregisterAll(extension);
 
             extension.setEnabled(false);
             GeyserImpl.getInstance().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.extensions.disable.success", extension.description().name()));
-        }
-    }
-
-    public void enableExtensions() {
-        for (Extension extension : this.extensions()) {
-            this.enable(extension);
         }
     }
 
@@ -129,18 +134,18 @@ public class GeyserExtensionManager extends ExtensionManager {
     @Nullable
     @Override
     public ExtensionLoader extensionLoader(@NonNull String identifier) {
-        return Registries.EXTENSION_LOADERS.get(Key.key(identifier));
+        return this.extensionLoaderTypes.get(Key.key(identifier));
     }
 
     @Override
     public void registerExtensionLoader(@NonNull String identifier, @NonNull ExtensionLoader extensionLoader) {
-        Registries.EXTENSION_LOADERS.register(Key.key(identifier), extensionLoader);
+        this.extensionLoaderTypes.put(Key.key(identifier), extensionLoader);
     }
 
     @NonNull
     @Override
     public Map<String, ExtensionLoader> extensionLoaders() {
-        return Registries.EXTENSION_LOADERS.get().entrySet().stream().collect(Collectors.toMap(key -> key.getKey().asString(), Map.Entry::getValue));
+        return this.extensionLoaderTypes.entrySet().stream().collect(Collectors.toMap(key -> key.getKey().asString(), Map.Entry::getValue));
     }
 
     @Override

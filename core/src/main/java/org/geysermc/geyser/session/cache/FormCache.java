@@ -31,39 +31,42 @@ import com.nukkitx.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.RequiredArgsConstructor;
+import org.geysermc.cumulus.form.Form;
+import org.geysermc.cumulus.form.SimpleForm;
+import org.geysermc.cumulus.form.impl.FormDefinitions;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.cumulus.Form;
-import org.geysermc.cumulus.SimpleForm;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 
 @RequiredArgsConstructor
 public class FormCache {
-    private final AtomicInteger formId = new AtomicInteger(0);
+    private final FormDefinitions formDefinitions = FormDefinitions.instance();
+    private final AtomicInteger formIdCounter = new AtomicInteger(0);
     private final Int2ObjectMap<Form> forms = new Int2ObjectOpenHashMap<>();
     private final GeyserSession session;
 
     public int addForm(Form form) {
-        int windowId = formId.getAndIncrement();
-        forms.put(windowId, form);
-        return windowId;
+        int formId = formIdCounter.getAndIncrement();
+        forms.put(formId, form);
+        return formId;
     }
 
     public void showForm(Form form) {
-        int windowId = addForm(form);
+        int formId = addForm(form);
 
         if (session.getUpstream().isInitialized()) {
-            sendForm(windowId, form);
+            sendForm(formId, form);
         }
     }
 
-    private void sendForm(int windowId, Form form) {
+    private void sendForm(int formId, Form form) {
+        String jsonData = formDefinitions.codecFor(form).jsonData(form);
+
         ModalFormRequestPacket formRequestPacket = new ModalFormRequestPacket();
-        formRequestPacket.setFormId(windowId);
-        formRequestPacket.setFormData(form.getJsonData());
+        formRequestPacket.setFormId(formId);
+        formRequestPacket.setFormData(jsonData);
         session.sendUpstreamPacket(formRequestPacket);
 
         // Hack to fix the (url) image loading bug
@@ -71,8 +74,10 @@ public class FormCache {
             NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
             latencyPacket.setFromServer(true);
             latencyPacket.setTimestamp(-System.currentTimeMillis());
-            session.scheduleInEventLoop(() -> session.sendUpstreamPacket(latencyPacket),
-                    500, TimeUnit.MILLISECONDS);
+            session.scheduleInEventLoop(
+                    () -> session.sendUpstreamPacket(latencyPacket),
+                    500, TimeUnit.MILLISECONDS
+            );
         }
     }
 
@@ -88,17 +93,11 @@ public class FormCache {
             return;
         }
 
-        Consumer<String> responseConsumer = form.getResponseHandler();
-        if (responseConsumer != null) {
-            try {
-                responseConsumer.accept(response.getFormData());
-            } catch (Exception e) {
-                GeyserImpl.getInstance().getLogger().error("Error while processing form response!", e);
-            }
+        try {
+            formDefinitions.definitionFor(form)
+                    .handleFormResponse(form, response.getFormData());
+        } catch (Exception e) {
+            GeyserImpl.getInstance().getLogger().error("Error while processing form response!", e);
         }
-    }
-
-    public boolean removeWindow(int id) {
-        return forms.remove(id) != null;
     }
 }
