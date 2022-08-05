@@ -33,7 +33,6 @@ import com.nukkitx.protocol.bedrock.v534.Bedrock_v534;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.StringJoiner;
 
@@ -101,7 +100,7 @@ public final class MinecraftProtocol {
      * @return the supported Minecraft: Java Edition version names
      */
     public static List<String> getJavaVersions() {
-        return Collections.singletonList(DEFAULT_JAVA_CODEC.getMinecraftVersion());
+        return List.of(DEFAULT_JAVA_CODEC.getMinecraftVersion(), "1.19.2");
     }
 
     /**
