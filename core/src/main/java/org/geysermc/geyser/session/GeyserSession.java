@@ -1487,6 +1487,8 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         startGamePacket.setPlayerPropertyData(NbtMap.EMPTY);
         startGamePacket.setWorldTemplateId(UUID.randomUUID());
 
+        startGamePacket.setChatRestrictionLevel(ChatRestrictionLevel.NONE);
+
         SyncedPlayerMovementSettings settings = new SyncedPlayerMovementSettings();
         settings.setMovementMode(AuthoritativeMovementMode.CLIENT);
         settings.setRewindHistorySize(0);
@@ -1668,6 +1670,13 @@ public class GeyserSession implements GeyserConnection, CommandSender {
             if (gameMode == GameMode.CREATIVE) {
                 // Needed so the client doesn't attempt to take away items
                 abilities.add(Ability.INSTABUILD);
+            }
+
+            if (commandPermission == CommandPermission.OPERATOR) {
+                // Fixes a bug? since 1.19.11 where the player can change their gamemode in Bedrock settings and
+                // a packet is not sent to the server.
+                // https://github.com/GeyserMC/Geyser/issues/3191
+                abilities.add(Ability.OPERATOR_COMMANDS);
             }
 
             if (flying || spectator) {

@@ -30,10 +30,10 @@ import com.github.steveice10.mc.protocol.codec.PacketCodec;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.v527.Bedrock_v527;
 import com.nukkitx.protocol.bedrock.v534.Bedrock_v534;
+import com.nukkitx.protocol.bedrock.v544.Bedrock_v544;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.StringJoiner;
 
@@ -64,6 +64,7 @@ public final class MinecraftProtocol {
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC.toBuilder()
                 .minecraftVersion("1.19.10/1.19.11")
                 .build());
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v544.V544_CODEC);
     }
 
     /**
@@ -101,7 +102,7 @@ public final class MinecraftProtocol {
      * @return the supported Minecraft: Java Edition version names
      */
     public static List<String> getJavaVersions() {
-        return Collections.singletonList(DEFAULT_JAVA_CODEC.getMinecraftVersion());
+        return List.of(DEFAULT_JAVA_CODEC.getMinecraftVersion(), "1.19.2");
     }
 
     /**
