@@ -76,7 +76,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
             int slot = packet.getSlot();
             if (slot >= inventory.getSize()) {
                 GeyserImpl geyser = session.getGeyser();
-                geyser.getLogger().warning("ClientboundContainerSetSlotPacket sent to " + session.name()
+                geyser.getLogger().warning("ClientboundContainerSetSlotPacket sent to " + session.bedrockUsername()
                         + " that exceeds inventory size!");
                 if (geyser.getConfig().isDebugMode()) {
                     geyser.getLogger().debug(packet);

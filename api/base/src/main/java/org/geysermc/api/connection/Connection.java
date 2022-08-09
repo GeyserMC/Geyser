@@ -25,6 +25,7 @@
 
 package org.geysermc.api.connection;
 
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.value.qual.IntRange;
 
@@ -33,27 +34,37 @@ import java.util.UUID;
 /**
  * Represents a player connection.
  */
-@NonNull
 public interface Connection {
     /**
-     * Gets the name of the connection.
+     * Gets the bedrock name of the connection.
      *
-     * @return the name of the connection
+     * @return the bedrock name of the connection
      */
-    String name();
+    @NonNull
+    String bedrockUsername();
+
+    /**
+     * Gets the java name of the connection.
+     *
+     * @return the java name of the connection
+     */
+    @MonotonicNonNull
+    String javaUsername();
 
     /**
      * Gets the {@link UUID} of the connection.
      *
      * @return the UUID of the connection
      */
-    UUID uuid();
+    @MonotonicNonNull
+    UUID javaUuid();
 
     /**
      * Gets the XUID of the connection.
      *
      * @return the XUID of the connection
      */
+    @NonNull
     String xuid();
 
     /**

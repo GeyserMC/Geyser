@@ -735,7 +735,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             try {
                 service.login();
             } catch (RequestException e) {
-                geyser.getLogger().error("Error while attempting to use refresh token for " + name() + "!", e);
+                geyser.getLogger().error("Error while attempting to use refresh token for " + bedrockUsername() + "!", e);
                 return Boolean.FALSE;
             }
 
@@ -747,7 +747,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             }
 
             protocol = new MinecraftProtocol(profile, service.getAccessToken());
-            geyser.saveRefreshToken(name(), service.getRefreshToken());
+            geyser.saveRefreshToken(bedrockUsername(), service.getRefreshToken());
             return Boolean.TRUE;
         }).whenComplete((successful, ex) -> {
             if (this.closed) {
@@ -838,7 +838,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 connectDownstream();
 
                 // Save our refresh token for later use
-                geyser.saveRefreshToken(name(), service.getRefreshToken());
+                geyser.saveRefreshToken(bedrockUsername(), service.getRefreshToken());
                 return true;
             }
         }
@@ -1071,7 +1071,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             try {
                 runnable.run();
             } catch (Throwable e) {
-                geyser.getLogger().error("Error thrown in " + this.name() + "'s event loop!", e);
+                geyser.getLogger().error("Error thrown in " + this.bedrockUsername() + "'s event loop!", e);
             }
         });
     }
@@ -1084,7 +1084,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             try {
                 runnable.run();
             } catch (Throwable e) {
-                geyser.getLogger().error("Error thrown in " + this.name() + "'s event loop!", e);
+                geyser.getLogger().error("Error thrown in " + this.bedrockUsername() + "'s event loop!", e);
             }
         }, duration, timeUnit);
     }
@@ -1326,13 +1326,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
-    public String name() {
+    public String bedrockUsername() {
         return authData.name();
     }
 
     @Override
-    public UUID uuid() {
-        return authData.uuid();
+    public UUID javaUuid() {
+
     }
 
     @Override

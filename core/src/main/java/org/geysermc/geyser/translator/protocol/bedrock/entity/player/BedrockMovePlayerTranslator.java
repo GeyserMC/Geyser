@@ -175,7 +175,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             return false;
         }
         if (currentPosition.distanceSquared(newPosition) > 300) {
-            session.getGeyser().getLogger().debug(ChatColor.RED + session.name() + " moved too quickly." +
+            session.getGeyser().getLogger().debug(ChatColor.RED + session.bedrockUsername() + " moved too quickly." +
                     " current position: " + currentPosition + ", new position: " + newPosition);
 
             return false;

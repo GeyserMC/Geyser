@@ -465,9 +465,10 @@ public class GeyserImpl implements GeyserApi {
     }
 
     @Override
-    public @Nullable GeyserSession connectionByName(@NonNull String name) {
+    public @Nullable GeyserSession connectionByUsername(@NonNull String username) {
         for (GeyserSession session : sessionManager.getAllSessions()) {
-            if (session.name().equals(name) || session.getProtocol().getProfile().getName().equals(name)) {
+            if (session.bedrockUsername().equals(username) || session.getProtocol().getProfile().getName().equals(
+                username)) {
                 return session;
             }
         }
@@ -477,7 +478,12 @@ public class GeyserImpl implements GeyserApi {
 
     @Override
     public @NonNull List<GeyserSession> onlineConnections() {
-        return this.sessionManager.getAllSessions();
+        return sessionManager.getAllSessions();
+    }
+
+    @Override
+    public int onlineConnectionsCount() {
+        return sessionManager.size();
     }
 
     @Override

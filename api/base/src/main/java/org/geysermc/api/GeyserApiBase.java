@@ -25,9 +25,12 @@
 
 package org.geysermc.api;
 
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.connection.Connection;
+import org.geysermc.cumulus.form.Form;
+import org.geysermc.cumulus.form.util.FormBuilder;
 
 import java.util.List;
 import java.util.UUID;
@@ -37,52 +40,65 @@ import java.util.UUID;
  */
 public interface GeyserApiBase {
     /**
-     * Gets the session from the given UUID, if applicable. The player must be logged in to the Java server
+     * Gets the connection from the given UUID, if applicable. The player must be logged in to the Java server
      * for this to return a non-null value.
      *
-     * @param uuid the UUID of the session
-     * @return the session from the given UUID, if applicable
+     * @param uuid the UUID of the connection
+     * @return the connection from the given UUID, if applicable
      */
     @Nullable
     Connection connectionByUuid(@NonNull UUID uuid);
 
     /**
-     * Gets the session from the given
-     * XUID, if applicable.
+     * Gets the connection from the given XUID, if applicable. This method only works for online connections.
      *
      * @param xuid the XUID of the session
-     * @return the session from the given UUID, if applicable
+     * @return the connection from the given UUID, if applicable
      */
     @Nullable
     Connection connectionByXuid(@NonNull String xuid);
 
     /**
-     * Gets the session from the given
-     * name, if applicable.
+     * Method to determine if the given <b>online</b> player is a Bedrock player.
      *
-     * @param name the uuid of the session
-     * @return the session from the given name, if applicable
+     * @param uuid the uuid of the online player
+     * @return true if the given online player is a Bedrock player
      */
-    @Nullable
-    Connection connectionByName(@NonNull String name);
+    boolean isBedrockPlayer(@NonNull UUID uuid);
+
+    boolean sendForm(UUID uuid, Form form);
+
+    boolean sendForm(UUID uuid, FormBuilder<?, ?, ?> formBuilder);
+
+    boolean transfer(UUID uuid, String address, int port);
+
 
     /**
-     * Gets all the online sessions.
-     *
-     * @return all the online sessions
+     * Returns all the online connections.
      */
     @NonNull
     List<? extends Connection> onlineConnections();
 
     /**
-     * @return the major API version. Bumped whenever a significant breaking change or feature addition is added.
+     * Returns the amount of online connections.
+     */
+    int onlineConnectionsCount();
+
+    /**
+     * Returns the prefix used by Floodgate. Will be null when the auth-type isn't Floodgate.
+     */
+    @MonotonicNonNull
+    String usernamePrefix();
+
+    /**
+     * Returns the major API version. Bumped whenever a significant breaking change or feature addition is added.
      */
     default int majorApiVersion() {
         return 1;
     }
 
     /**
-     * @return the minor API version. May be bumped for new API additions.
+     * Returns the minor API version. May be bumped for new API additions.
      */
     default int minorApiVersion() {
         return 0;

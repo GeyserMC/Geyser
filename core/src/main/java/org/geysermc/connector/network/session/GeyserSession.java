@@ -128,7 +128,7 @@ public class GeyserSession {
     }
 
     public String getName() {
-        return this.handle.name();
+        return this.handle.bedrockUsername();
     }
 
     public boolean isConsole() {

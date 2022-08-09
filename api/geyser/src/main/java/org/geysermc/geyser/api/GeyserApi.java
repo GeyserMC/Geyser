@@ -59,7 +59,7 @@ public interface GeyserApi extends GeyserApiBase {
      * {@inheritDoc}
      */
     @Override
-    @Nullable GeyserConnection connectionByName(@NonNull String name);
+    @Nullable GeyserConnection connectionByUsername(@NonNull String username);
 
     /**
      * {@inheritDoc}
