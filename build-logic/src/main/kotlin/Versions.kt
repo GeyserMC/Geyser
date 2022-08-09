@@ -30,7 +30,7 @@ object Versions {
     const val guavaVersion = "29.0-jre"
     const val nbtVersion = "2.1.0"
     const val websocketVersion = "1.5.1"
-    const val protocolVersion = "a78a64b"
+    const val protocolVersion = "92d9854"
     // Not pinned to specific version due to possible gradle bug
     // See comment in settings.gradle.kts
     const val raknetVersion = "1.6.28-SNAPSHOT"

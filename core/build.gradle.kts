@@ -31,7 +31,7 @@ dependencies {
     // Network libraries
     implementation("org.java-websocket", "Java-WebSocket", Versions.websocketVersion)
 
-    api("com.github.CloudburstMC.Protocol", "bedrock-v534", Versions.protocolVersion) {
+    api("com.github.CloudburstMC.Protocol", "bedrock-v544", Versions.protocolVersion) {
         exclude("com.nukkitx.network", "raknet")
         exclude("com.nukkitx", "nbt")
     }
