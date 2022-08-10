@@ -73,17 +73,17 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
 
             Form form = Forms.fromJson(dataString, type, (ignored, response) -> {
                 byte[] finalData;
-                if (response != null) {
+                if (response == null) {
+                    // Response data can be null as of 1.19.20 (same behaviour as empty response data)
+                    // Only need to send the form id
+                    finalData = new byte[]{data[1], data[2]};
+                } else {
                     byte[] raw = response.getBytes(StandardCharsets.UTF_8);
                     finalData = new byte[raw.length + 2];
 
                     finalData[0] = data[1];
                     finalData[1] = data[2];
                     System.arraycopy(raw, 0, finalData, 2, raw.length);
-                } else {
-                    // Response data can be null as of 1.19.20 (same behaviour as empty response data)
-                    // Only need to send the form id
-                    finalData = new byte[]{data[1], data[2]};
                 }
 
                 session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(channel, finalData));
