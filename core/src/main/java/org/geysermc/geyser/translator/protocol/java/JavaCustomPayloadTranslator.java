@@ -81,6 +81,7 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
                     finalData[1] = data[2];
                     System.arraycopy(raw, 0, finalData, 2, raw.length);
                 } else {
+                    // Response data can be null as of 1.19.20 (same behaviour as empty response data)
                     // Only need to send the form id
                     finalData = new byte[]{data[1], data[2]};
                 }
