@@ -79,7 +79,7 @@ public class UpstreamSession {
      * Queue a packet that must be delayed until after login.
      */
     public void queuePostStartGamePacket(BedrockPacket packet) {
-        packet.setClientId(clientId);
+        packet.setSenderId(clientId);
         postStartGamePackets.add(packet);
     }
 
