@@ -25,7 +25,7 @@
 
 package org.geysermc.floodgate.pluginmessage;
 
-import com.google.common.base.Charsets;
+import java.nio.charset.StandardCharsets;
 
 public final class PluginMessageChannels {
     public static final String SKIN = "floodgate:skin";
@@ -35,7 +35,7 @@ public final class PluginMessageChannels {
 
     private static final byte[] FLOODGATE_REGISTER_DATA =
             String.join("\0", SKIN, FORM, TRANSFER, PACKET)
-                    .getBytes(Charsets.UTF_8);
+                    .getBytes(StandardCharsets.UTF_8);
 
     /**
      * Get the prebuilt register data as a byte array
