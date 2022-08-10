@@ -28,9 +28,10 @@ object Versions {
     const val fastutilVersion = "8.5.2"
     const val nettyVersion = "4.1.66.Final"
     const val guavaVersion = "29.0-jre"
+    const val gsonVersion = "2.3.1" // Provided by Spigot 1.8.8
     const val nbtVersion = "2.1.0"
     const val websocketVersion = "1.5.1"
-    const val protocolVersion = "92d9854"
+    const val protocolVersion = "0bd459f"
     // Not pinned to specific version due to possible gradle bug
     // See comment in settings.gradle.kts
     const val raknetVersion = "1.6.28-SNAPSHOT"
@@ -41,6 +42,6 @@ object Versions {
     const val eventVersion = "3.0.0"
     const val junitVersion = "4.13.1"
     const val checkerQualVersion = "3.19.0"
-    const val cumulusVersion  = "1.1"
+    const val cumulusVersion  = "1.1.1"
     const val log4jVersion  = "2.17.1"
 }
