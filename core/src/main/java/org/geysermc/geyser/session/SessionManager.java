@@ -28,6 +28,7 @@ package org.geysermc.geyser.session;
 import com.google.common.collect.ImmutableList;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NonNull;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.*;
@@ -65,6 +66,16 @@ public final class SessionManager {
             // Connection was likely pending
             pendingSessions.remove(session);
         }
+    }
+
+    public GeyserSession sessionByXuid(@NonNull String xuid) {
+        Objects.requireNonNull(xuid);
+        for (GeyserSession session : sessions.values()) {
+            if (session.xuid().equals(xuid)) {
+                return session;
+            }
+        }
+        return null;
     }
 
     /**

@@ -28,6 +28,7 @@ package org.geysermc.api;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.common.value.qual.IntRange;
 import org.geysermc.api.connection.Connection;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
@@ -66,11 +67,34 @@ public interface GeyserApiBase {
      */
     boolean isBedrockPlayer(@NonNull UUID uuid);
 
-    boolean sendForm(UUID uuid, Form form);
+    /**
+     * Sends a form to the given connection and opens it.
+     *
+     * @param uuid the uuid of the connection to open it on
+     * @param form the form to send
+     * @return whether the form was successfully sent
+     */
+    boolean sendForm(@NonNull UUID uuid, @NonNull Form form);
 
-    boolean sendForm(UUID uuid, FormBuilder<?, ?, ?> formBuilder);
+    /**
+     * Sends a form to the given connection and opens it.
+     *
+     * @param uuid        the uuid of the connection to open it on
+     * @param formBuilder the formBuilder to send
+     * @return whether the form was successfully sent
+     */
+    boolean sendForm(@NonNull UUID uuid, @NonNull FormBuilder<?, ?, ?> formBuilder);
 
-    boolean transfer(UUID uuid, String address, int port);
+    /**
+     * Transfer the given connection to a server. A Bedrock player can successfully transfer to the same server they are
+     * currently playing on.
+     *
+     * @param uuid    the uuid of the connection
+     * @param address the address of the server
+     * @param port    the port of the server
+     * @return true if the transfer was a success
+     */
+    boolean transfer(@NonNull UUID uuid, @NonNull String address, @IntRange(from = 0, to = 65535) int port);
 
 
     /**

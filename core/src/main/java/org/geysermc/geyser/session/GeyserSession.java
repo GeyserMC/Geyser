@@ -91,6 +91,9 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.common.value.qual.IntRange;
+import org.geysermc.api.util.BedrockPlatform;
+import org.geysermc.api.util.InputMode;
+import org.geysermc.api.util.UiProfile;
 import org.geysermc.common.PlatformType;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
@@ -136,7 +139,6 @@ import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.geysermc.geyser.util.MathUtils;
 
-import javax.annotation.Nonnull;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -151,13 +153,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Getter
 public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
-    private final @Nonnull GeyserImpl geyser;
-    private final @Nonnull UpstreamSession upstream;
+    private final @NonNull GeyserImpl geyser;
+    private final @NonNull UpstreamSession upstream;
     /**
      * The loop where all packets and ticking is processed to prevent concurrency issues.
      * If this is manually called, ensure that any exceptions are properly handled.
      */
-    private final @Nonnull EventLoop eventLoop;
+    private final @NonNull EventLoop eventLoop;
     private TcpSession downstream;
     @Setter
     private AuthData authData;
@@ -1326,33 +1328,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
-    public String bedrockUsername() {
-        return authData.name();
-    }
-
-    @Override
-    public UUID javaUuid() {
-
-    }
-
-    @Override
-    public String xuid() {
-        return authData.xuid();
-    }
-
-    @SuppressWarnings("ConstantConditions") // Need to enforce the parameter annotations
-    @Override
-    public boolean transfer(@NonNull String address, @IntRange(from = 0, to = 65535) int port) {
-        if (address == null || address.isBlank()) {
-            throw new IllegalArgumentException("Server address cannot be null or blank");
-        } else if (port < 0 || port > 65535) {
-            throw new IllegalArgumentException("Server port must be between 0 and 65535, was " + port);
-        }
-        TransferPacket transferPacket = new TransferPacket();
-        transferPacket.setAddress(address);
-        transferPacket.setPort(port);
-        sendUpstreamPacket(transferPacket);
-        return true;
+    public String name() {
+        return null;
     }
 
     @Override
@@ -1405,12 +1382,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return this.upstream.getAddress();
     }
 
-    public void sendForm(Form form) {
+    public boolean sendForm(@NonNull Form form) {
         formCache.showForm(form);
+        return true;
     }
 
-    public void sendForm(FormBuilder<?, ?, ?> formBuilder) {
+    public boolean sendForm(@NonNull FormBuilder<?, ?, ?> formBuilder) {
         formCache.showForm(formBuilder.build());
+        return true;
     }
 
     /**
@@ -1765,7 +1744,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      *
      * @param statistics Updated statistics values
      */
-    public void updateStatistics(@Nonnull Object2IntMap<Statistic> statistics) {
+    public void updateStatistics(@NonNull Object2IntMap<Statistic> statistics) {
         if (this.statistics.isEmpty()) {
             // Initialize custom statistics to 0, so that they appear in the form
             for (CustomStatistic customStatistic : CustomStatistic.values()) {
@@ -1850,5 +1829,70 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     public MinecraftCodecHelper getCodecHelper() {
         return (MinecraftCodecHelper) this.downstream.getCodecHelper();
+    }
+
+    @Override
+    public String bedrockUsername() {
+        return authData.name();
+    }
+
+    @Override
+    public @MonotonicNonNull String javaUsername() {
+        return playerEntity.getUsername();
+    }
+
+    @Override
+    public UUID javaUuid() {
+        return playerEntity.getUuid();
+    }
+
+    @Override
+    public String xuid() {
+        return authData.xuid();
+    }
+
+    @Override
+    public @NonNull String version() {
+        return clientData.getGameVersion();
+    }
+
+    @Override
+    public @NonNull BedrockPlatform platform() {
+        return BedrockPlatform.values()[clientData.getDeviceOs().ordinal()]; //todo
+    }
+
+    @Override
+    public @NonNull String languageCode() {
+        return locale();
+    }
+
+    @Override
+    public @NonNull UiProfile uiProfile() {
+        return UiProfile.values()[clientData.getUiProfile().ordinal()]; //todo
+    }
+
+    @Override
+    public @NonNull InputMode inputMode() {
+        return InputMode.values()[clientData.getCurrentInputMode().ordinal()]; //todo
+    }
+
+    @Override
+    public boolean isLinked() {
+        return false; //todo
+    }
+
+    @SuppressWarnings("ConstantConditions") // Need to enforce the parameter annotations
+    @Override
+    public boolean transfer(@NonNull String address, @IntRange(from = 0, to = 65535) int port) {
+        if (address == null || address.isBlank()) {
+            throw new IllegalArgumentException("Server address cannot be null or blank");
+        } else if (port < 0 || port > 65535) {
+            throw new IllegalArgumentException("Server port must be between 0 and 65535, was " + port);
+        }
+        TransferPacket transferPacket = new TransferPacket();
+        transferPacket.setAddress(address);
+        transferPacket.setPort(port);
+        sendUpstreamPacket(transferPacket);
+        return true;
     }
 }

@@ -73,7 +73,7 @@ public class SessionPlayerEntity extends PlayerEntity {
     private int fakeTradeXp;
 
     public SessionPlayerEntity(GeyserSession session) {
-        super(session, -1, 1, UUID.randomUUID(), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, "unknown", null);
+        super(session, -1, 1, null, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, null, null);
 
         valid = true;
     }

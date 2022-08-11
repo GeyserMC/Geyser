@@ -41,10 +41,13 @@ import io.netty.util.internal.SystemPropertyUtil;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.Geyser;
 import org.geysermc.common.PlatformType;
+import org.geysermc.cumulus.form.Form;
+import org.geysermc.cumulus.form.util.FormBuilder;
 import org.geysermc.floodgate.crypto.AesCipher;
 import org.geysermc.floodgate.crypto.AesKeyProducer;
 import org.geysermc.floodgate.crypto.Base64Topping;
@@ -487,19 +490,49 @@ public class GeyserImpl implements GeyserApi {
     }
 
     @Override
+    public @MonotonicNonNull String usernamePrefix() {
+        return null;
+    }
+
+    @Override
     public @Nullable GeyserSession connectionByUuid(@NonNull UUID uuid) {
         return this.sessionManager.getSessions().get(uuid);
     }
 
     @Override
     public @Nullable GeyserSession connectionByXuid(@NonNull String xuid) {
-        for (GeyserSession session : sessionManager.getAllSessions()) {
-            if (session.xuid().equals(xuid)) {
-                return session;
-            }
-        }
+        return sessionManager.sessionByXuid(xuid);
+    }
 
-        return null;
+    @Override
+    public boolean isBedrockPlayer(@NonNull UUID uuid) {
+        return connectionByUuid(uuid) != null;
+    }
+
+    @Override
+    public boolean sendForm(@NonNull UUID uuid, @NonNull Form form) {
+        Objects.requireNonNull(uuid);
+        Objects.requireNonNull(form);
+        GeyserSession session = connectionByUuid(uuid);
+        if (session == null) {
+            return false;
+        }
+        return session.sendForm(form);
+    }
+
+    @Override
+    public boolean sendForm(@NonNull UUID uuid, @NonNull FormBuilder<?, ?, ?> formBuilder) {
+        return sendForm(uuid, formBuilder.build());
+    }
+
+    @Override
+    public boolean transfer(@NonNull UUID uuid, @NonNull String address, int port) {
+        Objects.requireNonNull(uuid);
+        GeyserSession session = connectionByUuid(uuid);
+        if (session == null) {
+            return false;
+        }
+        return session.transfer(address, port);
     }
 
     public void shutdown() {
