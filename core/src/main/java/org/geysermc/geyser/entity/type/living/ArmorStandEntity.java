@@ -167,6 +167,7 @@ public class ArmorStandEntity extends LivingEntity {
         // But if given a resource pack, then we can use these values to control armor stand visual properties
         setFlag(EntityFlag.ANGRY, (xd & 0x04) != 0x04); // Has arms
         setFlag(EntityFlag.ADMIRING, (xd & 0x08) == 0x08); // Has no baseplate
+        setFlag(EntityFlag.BABY, isSmall); // Is small (for setting head scale)
     }
 
     public void setHeadRotation(EntityMetadata<Vector3f, ?> entityMetadata) {
