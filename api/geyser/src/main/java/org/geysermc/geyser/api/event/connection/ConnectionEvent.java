@@ -26,8 +26,8 @@
 package org.geysermc.geyser.api.event.connection;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.event.Event;
 import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.event.Event;
 
 /**
  * An event that contains a {@link GeyserConnection}.

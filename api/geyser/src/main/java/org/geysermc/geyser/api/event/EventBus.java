@@ -26,71 +26,18 @@
 package org.geysermc.geyser.api.event;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.event.Event;
+import org.geysermc.event.bus.OwnedEventBus;
 import org.geysermc.geyser.api.extension.Extension;
 
 import java.util.Set;
-import java.util.function.Consumer;
 
 /**
  * Represents a bus capable of subscribing
  * or "listening" to events and firing them.
  */
-public interface EventBus {
-
-    /**
-     * Subscribes to the given event see {@link EventSubscription}.
-     *
-     * The difference between this method and {@link ExtensionEventBus#subscribe(Class, Consumer)}
-     * is that this method takes in an extension parameter which allows for
-     * the event to be unsubscribed upon extension disable and reloads.
-     *
-     * @param extension the extension to subscribe the event to
-     * @param eventClass the class of the event
-     * @param consumer the consumer for handling the event
-     * @param <T> the event class
-     * @return the event subscription
-     */
+public interface EventBus extends OwnedEventBus<Extension, Event, EventSubscriber<? extends Event>> {
+    @Override
     @NonNull
-    <T extends Event> EventSubscription<T> subscribe(@NonNull Extension extension, @NonNull Class<T> eventClass, @NonNull Consumer<? super T> consumer);
-
-    /**
-     * Unsubscribes the given {@link EventSubscription}.
-     *
-     * @param subscription the event subscription
-     */
-    <T extends Event> void unsubscribe(@NonNull EventSubscription<T> subscription);
-
-    /**
-     * Registers events for the given listener.
-     *
-     * @param extension the extension registering the event
-     * @param eventHolder the listener
-     */
-    void register(@NonNull Extension extension, @NonNull Object eventHolder);
-
-    /**
-     * Unregisters all events from a given {@link Extension}.
-     *
-     * @param extension the extension
-     */
-     void unregisterAll(@NonNull Extension extension);
-
-    /**
-     * Fires the given {@link Event} and returns the result.
-     *
-     * @param event the event to fire
-     *
-     * @return true if the event successfully fired
-     */
-    boolean fire(@NonNull Event event);
-
-    /**
-     * Gets the subscriptions for the given event class.
-     *
-     * @param eventClass the event class
-     * @param <T> the value
-     * @return the subscriptions for the event class
-     */
-    @NonNull
-    <T extends Event> Set<EventSubscription<T>> subscriptions(@NonNull Class<T> eventClass);
+    <T extends Event> Set<? extends EventSubscriber<T>> subscribers(@NonNull Class<T> eventClass);
 }

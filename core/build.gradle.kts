@@ -67,9 +67,6 @@ dependencies {
     implementation("net.kyori", "adventure-text-serializer-legacy", Versions.adventureVersion)
     implementation("net.kyori", "adventure-text-serializer-plain", Versions.adventureVersion)
 
-    // Kyori Misc
-    implementation("net.kyori", "event-api", Versions.eventVersion)
-
     // Test
     testImplementation("junit", "junit", Versions.junitVersion)
 

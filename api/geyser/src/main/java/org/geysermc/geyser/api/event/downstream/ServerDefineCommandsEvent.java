@@ -26,8 +26,8 @@
 package org.geysermc.geyser.api.event.downstream;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.event.Cancellable;
 import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.event.Cancellable;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 
 import java.util.Set;

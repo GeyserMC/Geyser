@@ -468,18 +468,6 @@ public class GeyserImpl implements GeyserApi {
     }
 
     @Override
-    public @Nullable GeyserSession connectionByUsername(@NonNull String username) {
-        for (GeyserSession session : sessionManager.getAllSessions()) {
-            if (session.bedrockUsername().equals(username) || session.getProtocol().getProfile().getName().equals(
-                username)) {
-                return session;
-            }
-        }
-
-        return null;
-    }
-
-    @Override
     public @NonNull List<GeyserSession> onlineConnections() {
         return sessionManager.getAllSessions();
     }

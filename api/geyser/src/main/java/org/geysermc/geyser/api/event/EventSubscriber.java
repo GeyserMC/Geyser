@@ -23,36 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.event;
+package org.geysermc.geyser.api.event;
 
-import lombok.Getter;
-import lombok.experimental.Accessors;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.event.Event;
-import org.geysermc.geyser.api.event.EventBus;
-import org.geysermc.geyser.api.event.Subscribe;
+import org.geysermc.event.Event;
+import org.geysermc.event.subscribe.OwnedSubscriber;
 import org.geysermc.geyser.api.extension.Extension;
 
-import java.util.function.Consumer;
-
-@Getter
-@Accessors(fluent = true)
-public class BaseEventSubscription<T extends Event> extends AbstractEventSubscription<T> {
-    private final Consumer<? super T> eventConsumer;
-
-    public BaseEventSubscription(EventBus eventBus, Class<T> eventClass, Extension owner, Subscribe.PostOrder order, Consumer<? super T> eventConsumer) {
-        super(eventBus, eventClass, owner, order);
-
-        this.eventConsumer = eventConsumer;
-    }
-
-    @Override
-    public void invoke(@NonNull T event) throws Throwable {
-        try {
-            this.eventConsumer.accept(event);
-        } catch (Throwable ex) {
-            this.owner.logger().warning("Unable to fire event " + event.getClass().getSimpleName() + " with subscription " + this.eventConsumer.getClass().getSimpleName());
-            ex.printStackTrace();
-        }
-    }
+/**
+ * Represents a subscribed listener to a {@link Event}. Wraps around
+ * the event and is capable of unsubscribing from the event or give
+ * information about it.
+ *
+ * @param <T> the class of the event
+ */
+public interface EventSubscriber<T extends Event> extends OwnedSubscriber<Extension, T> {
 }

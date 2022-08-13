@@ -25,44 +25,23 @@
 
 package org.geysermc.geyser.event;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-import net.kyori.event.EventSubscriber;
-import org.geysermc.geyser.api.event.Event;
-import org.geysermc.geyser.api.event.EventBus;
-import org.geysermc.geyser.api.event.EventSubscription;
-import org.geysermc.geyser.api.event.Subscribe;
+import org.geysermc.event.Event;
+import org.geysermc.event.PostOrder;
+import org.geysermc.event.subscribe.impl.OwnedSubscriberImpl;
+import org.geysermc.geyser.api.event.ExtensionEventSubscriber;
 import org.geysermc.geyser.api.extension.Extension;
 
-@Getter
-@Accessors(fluent = true)
-@RequiredArgsConstructor
-public abstract class AbstractEventSubscription<T extends Event> implements EventSubscription<T>, EventSubscriber<T> {
-    protected final EventBus eventBus;
-    protected final Class<T> eventClass;
-    protected final Extension owner;
-    protected final Subscribe.PostOrder order;
-    @Getter(AccessLevel.NONE) private boolean active;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
-    @Override
-    public boolean isActive() {
-        return this.active;
+public final class GeyserEventSubscriber<E extends Event> extends OwnedSubscriberImpl<Extension, E>
+        implements ExtensionEventSubscriber<E> {
+    GeyserEventSubscriber(Extension owner, Class<E> eventClass, Consumer<E> handler) {
+        super(owner, eventClass, handler);
     }
 
-    @Override
-    public void unsubscribe() {
-        if (!this.active) {
-            return;
-        }
-
-        this.active = false;
-        this.eventBus.unsubscribe(this);
-    }
-
-    @Override
-    public int postOrder() {
-        return this.order.postOrder();
+    <H> GeyserEventSubscriber(Extension owner, Class<E> eventClass, PostOrder postOrder, boolean ignoreCancelled,
+                              H handlerInstance, BiConsumer<H, E> handler) {
+        super(owner, eventClass, postOrder, ignoreCancelled, handlerInstance, handler);
     }
 }

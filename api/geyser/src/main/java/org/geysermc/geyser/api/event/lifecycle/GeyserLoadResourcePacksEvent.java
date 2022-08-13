@@ -26,7 +26,7 @@
 package org.geysermc.geyser.api.event.lifecycle;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.event.Event;
+import org.geysermc.event.Event;
 
 import java.nio.file.Path;
 import java.util.List;

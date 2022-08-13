@@ -23,36 +23,47 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event.lifecycle;
+package org.geysermc.geyser.event.type;
 
+import com.google.common.collect.Multimap;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.event.Event;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomItemsEvent;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Called on Geyser's startup when looking for custom items. Custom items must be registered through this event.
- *
- * This event will not be called if the "add non-Bedrock items" setting is disabled in the Geyser config.
- */
-public interface GeyserDefineCustomItemsEvent extends Event {
+public abstract class DefineCustomItemsEvent implements GeyserDefineCustomItemsEvent {
+    private final Multimap<String, CustomItemData> customItems;
+    private final List<NonVanillaCustomItemData> nonVanillaCustomItems;
+
+    public DefineCustomItemsEvent(Multimap<String, CustomItemData> customItems, List<NonVanillaCustomItemData> nonVanillaCustomItems) {
+        this.customItems = customItems;
+        this.nonVanillaCustomItems = nonVanillaCustomItems;
+    }
+
     /**
      * Gets a multimap of all the already registered custom items indexed by the item's extended java item's identifier.
      *
      * @return a multimap of all the already registered custom items
      */
-    Map<String, Collection<CustomItemData>> getExistingCustomItems();
+    @Override
+    public Map<String, Collection<CustomItemData>> getExistingCustomItems() {
+        return Collections.unmodifiableMap(this.customItems.asMap());
+    }
 
     /**
      * Gets the list of the already registered non-vanilla custom items.
      *
      * @return the list of the already registered non-vanilla custom items
      */
-    List<NonVanillaCustomItemData> getExistingNonVanillaCustomItems();
+    @Override
+    public List<NonVanillaCustomItemData> getExistingNonVanillaCustomItems() {
+        return Collections.unmodifiableList(this.nonVanillaCustomItems);
+    }
 
     /**
      * Registers a custom item with a base Java item. This is used to register items with custom textures and properties
@@ -62,7 +73,7 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      * @param customItemData the custom item data to register
      * @return if the item was registered
      */
-    boolean register(@NonNull String identifier, @NonNull CustomItemData customItemData);
+    public abstract boolean register(@NonNull String identifier, @NonNull CustomItemData customItemData);
 
     /**
      * Registers a custom item with no base item. This is used for mods.
@@ -70,5 +81,5 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      * @param customItemData the custom item data to register
      * @return if the item was registered
      */
-    boolean register(@NonNull NonVanillaCustomItemData customItemData);
+    public abstract boolean register(@NonNull NonVanillaCustomItemData customItemData);
 }

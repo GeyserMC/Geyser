@@ -25,97 +25,40 @@
 
 package org.geysermc.geyser.event;
 
-import net.kyori.event.EventSubscriber;
-import net.kyori.event.SimpleEventBus;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.event.Event;
+import org.geysermc.event.Event;
+import org.geysermc.event.bus.impl.OwnedEventBusImpl;
+import org.geysermc.event.subscribe.OwnedSubscriber;
+import org.geysermc.event.subscribe.Subscribe;
 import org.geysermc.geyser.api.event.EventBus;
-import org.geysermc.geyser.api.event.EventSubscription;
-import org.geysermc.geyser.api.event.Subscribe;
+import org.geysermc.geyser.api.event.EventSubscriber;
 import org.geysermc.geyser.api.extension.Extension;
-import org.lanternpowered.lmbda.LambdaFactory;
 
-import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
-public class GeyserEventBus implements EventBus {
-    private static final MethodHandles.Lookup CALLER = MethodHandles.lookup();
+@SuppressWarnings("unchecked")
+public final class GeyserEventBus extends OwnedEventBusImpl<Extension, Event, EventSubscriber<? extends Event>>
+        implements EventBus {
+    @Override
+    protected <L, T extends Event, B extends OwnedSubscriber<Extension, T>> B makeSubscription(
+            Extension owner, Class<T> eventClass, Subscribe subscribe,
+            L listener, BiConsumer<L, T> handler) {
+        return (B) new GeyserEventSubscriber<>(
+                owner, eventClass, subscribe.postOrder(), subscribe.ignoreCancelled(), listener, handler
+        );
+    }
 
-    private final SimpleEventBus<Event> bus = new SimpleEventBus<>(Event.class);
+    @Override
+    protected <T extends Event, B extends OwnedSubscriber<Extension, T>> B makeSubscription(
+            Extension owner, Class<T> eventClass, Consumer<T> handler) {
+        return (B) new GeyserEventSubscriber<>(owner, eventClass, handler);
+    }
 
+    @Override
     @NonNull
-    @Override
-    public <T extends Event> EventSubscription<T> subscribe(@NonNull Extension extension, @NonNull Class<T> eventClass, @NonNull Consumer<? super T> consumer) {
-        return this.subscribe(eventClass, consumer, extension, Subscribe.PostOrder.NORMAL);
-    }
-
-    @Override
-    public <T extends Event> void unsubscribe(@NonNull EventSubscription<T> subscription) {
-        this.bus.unregister((AbstractEventSubscription<T>) subscription);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public void register(@NonNull Extension extension, @NonNull Object eventHolder) {
-        for (Method method : eventHolder.getClass().getMethods()) {
-            if (!method.isAnnotationPresent(Subscribe.class)) {
-                continue;
-            }
-
-            if (method.getParameterCount() > 1) {
-                continue;
-            }
-
-            if (!Event.class.isAssignableFrom(method.getParameters()[0].getType())) {
-                continue;
-            }
-
-            Subscribe subscribe = method.getAnnotation(Subscribe.class);
-
-            try {
-                Class<? extends Event> type = (Class<? extends Event>) method.getParameters()[0].getType();
-                this.subscribe(type, eventHolder, LambdaFactory.createBiConsumer(CALLER.unreflect(method)), extension, subscribe.postOrder());
-            } catch (IllegalAccessException ex) {
-                ex.printStackTrace();
-            }
-        }
-    }
-
-    @Override
-    public void unregisterAll(@NonNull Extension extension) {
-        this.bus.unregister((Predicate<EventSubscriber<?>>) subscriber -> extension.equals(((AbstractEventSubscription<?>) subscriber).owner()));
-    }
-
-    @Override
-    public boolean fire(@NonNull Event event) {
-        return this.bus.post(event).wasSuccessful();
-    }
-
-    @SuppressWarnings("unchecked")
-    @NonNull
-    @Override
-    public <T extends Event> Set<EventSubscription<T>> subscriptions(@NonNull Class<T> eventClass) {
-        return bus.subscribers().values()
-                .stream()
-                .filter(sub -> sub instanceof EventSubscription && ((EventSubscription<?>) sub).eventClass().isAssignableFrom(eventClass))
-                .map(sub -> ((EventSubscription<T>) sub))
-                .collect(Collectors.toSet());
-    }
-
-    private <T extends Event> EventSubscription<T> subscribe(Class<T> eventClass, Consumer<? super T> handler, Extension extension, Subscribe.PostOrder postOrder) {
-        BaseEventSubscription<T> eventSubscription = new BaseEventSubscription<>(this, eventClass, extension, postOrder, handler);
-        this.bus.register(eventClass, eventSubscription);
-        return eventSubscription;
-    }
-
-    private <T extends Event> EventSubscription<T> subscribe(Class<T> eventClass, Object eventHolder, BiConsumer<Object, ? super T> handler, Extension extension, Subscribe.PostOrder postOrder) {
-        GeneratedEventSubscription<T> eventSubscription = new GeneratedEventSubscription<>(this, eventClass, extension, postOrder, eventHolder, handler);
-        this.bus.register(eventClass, eventSubscription);
-        return eventSubscription;
+    public <T extends Event> Set<? extends EventSubscriber<T>> subscribers(@NonNull Class<T> eventClass) {
+        return castGenericSet(super.subscribers(eventClass));
     }
 }

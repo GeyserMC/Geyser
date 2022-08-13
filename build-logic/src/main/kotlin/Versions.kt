@@ -39,9 +39,9 @@ object Versions {
     const val mcprotocollibversion = "9f78bd5"
     const val packetlibVersion = "3.0"
     const val adventureVersion = "4.9.3"
-    const val eventVersion = "3.0.0"
     const val junitVersion = "4.13.1"
     const val checkerQualVersion = "3.19.0"
     const val cumulusVersion  = "1.1.1"
+    const val eventsVersion = "1.0-SNAPSHOT"
     const val log4jVersion  = "2.17.1"
 }

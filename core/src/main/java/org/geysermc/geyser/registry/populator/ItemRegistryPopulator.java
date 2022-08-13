@@ -52,6 +52,7 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomItemsEvent;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
+import org.geysermc.geyser.event.type.DefineCustomItemsEvent;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.mappings.MappingsConfigReader;
@@ -108,7 +109,7 @@ public class ItemRegistryPopulator {
             });
 
             nonVanillaCustomItems = new ObjectArrayList<>();
-            GeyserImpl.getInstance().eventBus().fire(new GeyserDefineCustomItemsEvent(customItems, nonVanillaCustomItems) {
+            GeyserImpl.getInstance().eventBus().fire(new DefineCustomItemsEvent(customItems, nonVanillaCustomItems) {
                 @Override
                 public boolean register(@NonNull String identifier, @NonNull CustomItemData customItemData) {
                     if (CustomItemRegistryPopulator.initialCheck(identifier, customItemData, items)) {
