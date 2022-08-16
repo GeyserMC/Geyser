@@ -37,6 +37,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.v527.Bedrock_v527;
 import com.nukkitx.protocol.bedrock.v534.Bedrock_v534;
+import com.nukkitx.protocol.bedrock.v544.Bedrock_v544;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -68,6 +69,7 @@ public class ItemRegistryPopulator {
         paletteVersions.put("1_19_0", new PaletteVersion(Bedrock_v527.V527_CODEC.getProtocolVersion(),
                 Collections.singletonMap("minecraft:trader_llama_spawn_egg", "minecraft:llama_spawn_egg")));
         paletteVersions.put("1_19_10", new PaletteVersion(Bedrock_v534.V534_CODEC.getProtocolVersion(), Collections.emptyMap()));
+        paletteVersions.put("1_19_20", new PaletteVersion(Bedrock_v544.V544_CODEC.getProtocolVersion(), Collections.emptyMap()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 

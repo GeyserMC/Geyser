@@ -62,7 +62,9 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECGenParameterSpec;
-import java.util.*;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 
 public class LoginEncryptionUtils {
@@ -305,7 +307,7 @@ public class LoginEncryptionUtils {
             }
         } catch (Exception ex) {
             session.disconnect("disconnectionScreen.internalError.cantConnect");
-            throw new RuntimeException("Unable to complete login", ex);
+            throw new RuntimeException("Unable to complete login: " + ex.getMessage(), ex);
         }
     }
 
