@@ -23,14 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.provider;
+package org.geysermc.geyser.event;
 
-import org.geysermc.geyser.api.provider.ProviderManager;
+import org.geysermc.event.Event;
+import org.geysermc.event.PostOrder;
+import org.geysermc.event.subscribe.impl.OwnedSubscriberImpl;
+import org.geysermc.geyser.api.event.ExtensionEventSubscriber;
+import org.geysermc.geyser.api.extension.Extension;
 
-public class GeyserProviderManager implements ProviderManager {
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
-    @Override
-    public GeyserBuilderProvider builderProvider() {
-        return GeyserBuilderProvider.INSTANCE;
+public final class GeyserEventSubscriber<E extends Event> extends OwnedSubscriberImpl<Extension, E>
+        implements ExtensionEventSubscriber<E> {
+    GeyserEventSubscriber(Extension owner, Class<E> eventClass, Consumer<E> handler) {
+        super(owner, eventClass, handler);
+    }
+
+    <H> GeyserEventSubscriber(Extension owner, Class<E> eventClass, PostOrder postOrder, boolean ignoreCancelled,
+                              H handlerInstance, BiConsumer<H, E> handler) {
+        super(owner, eventClass, postOrder, ignoreCancelled, handlerInstance, handler);
     }
 }

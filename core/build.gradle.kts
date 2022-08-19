@@ -31,7 +31,7 @@ dependencies {
     // Network libraries
     implementation("org.java-websocket", "Java-WebSocket", Versions.websocketVersion)
 
-    api("com.github.CloudburstMC.Protocol", "bedrock-v527", Versions.protocolVersion) {
+    api("com.github.CloudburstMC.Protocol", "bedrock-v544", Versions.protocolVersion) {
         exclude("com.nukkitx.network", "raknet")
         exclude("com.nukkitx", "nbt")
     }
@@ -66,9 +66,6 @@ dependencies {
     // Adventure text serialization
     implementation("net.kyori", "adventure-text-serializer-legacy", Versions.adventureVersion)
     implementation("net.kyori", "adventure-text-serializer-plain", Versions.adventureVersion)
-
-    // Kyori Misc
-    implementation("net.kyori", "event-api", Versions.eventVersion)
 
     // Test
     testImplementation("junit", "junit", Versions.junitVersion)

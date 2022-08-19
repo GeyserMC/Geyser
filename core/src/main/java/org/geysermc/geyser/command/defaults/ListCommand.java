@@ -47,7 +47,7 @@ public class ListCommand extends GeyserCommand {
     public void execute(GeyserSession session, GeyserCommandSource sender, String[] args) {
         String message = GeyserLocale.getPlayerLocaleString("geyser.commands.list.message", sender.locale(),
                 geyser.getSessionManager().size(),
-                geyser.getSessionManager().getAllSessions().stream().map(GeyserSession::name).collect(Collectors.joining(" ")));
+                geyser.getSessionManager().getAllSessions().stream().map(GeyserSession::bedrockUsername).collect(Collectors.joining(" ")));
 
         sender.sendMessage(message);
     }

@@ -27,7 +27,6 @@ package org.geysermc.geyser.api.extension;
 
 import org.geysermc.api.GeyserApiBase;
 import org.geysermc.geyser.api.GeyserApi;
-import org.geysermc.geyser.api.event.EventListener;
 import org.geysermc.geyser.api.event.ExtensionEventBus;
 
 import java.nio.file.Path;
@@ -35,7 +34,7 @@ import java.nio.file.Path;
 /**
  * Represents an extension within Geyser.
  */
-public interface Extension extends EventListener {
+public interface Extension {
 
     /**
      * Gets if the extension is enabled

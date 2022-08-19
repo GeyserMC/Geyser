@@ -81,6 +81,7 @@ public class SkullPlayerEntity extends PlayerEntity {
         addPlayerPacket.setDeviceId("");
         addPlayerPacket.setPlatformChatId("");
         addPlayerPacket.setGameType(GameType.SURVIVAL);
+        addPlayerPacket.setAbilityLayers(BASE_ABILITY_LAYER);
         addPlayerPacket.getMetadata().putFlags(flags);
         dirtyMetadata.apply(addPlayerPacket.getMetadata());
 

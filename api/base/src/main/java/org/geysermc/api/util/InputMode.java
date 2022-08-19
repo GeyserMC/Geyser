@@ -23,17 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.provider;
+package org.geysermc.api.util;
 
-import lombok.RequiredArgsConstructor;
-import org.geysermc.geyser.api.provider.Provider;
-import org.geysermc.geyser.registry.SimpleMappedRegistry;
+public enum InputMode {
+    UNKNOWN,
+    KEYBOARD_MOUSE,
+    TOUCH,
+    CONTROLLER,
+    VR;
 
-import java.util.Map;
+    private static final InputMode[] VALUES = values();
 
-@RequiredArgsConstructor
-public abstract class AbstractProvider implements Provider {
-    public abstract void registerProviders(Map<Class<?>, ProviderSupplier> providers);
-
-    public abstract SimpleMappedRegistry<Class<?>, ProviderSupplier> providerRegistry();
+    /**
+     * Get the InputMode from the identifier.
+     *
+     * @param id the InputMode identifier
+     * @return The InputMode or {@link #UNKNOWN} if the mode wasn't found
+     */
+    public static InputMode fromId(int id) {
+        return VALUES.length > id ? VALUES[id] : VALUES[0];
+    }
 }

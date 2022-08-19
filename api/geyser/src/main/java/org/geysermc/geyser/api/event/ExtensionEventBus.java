@@ -26,36 +26,15 @@
 package org.geysermc.geyser.api.event;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.event.Event;
 
-import java.util.function.Consumer;
+import java.util.Set;
 
 /**
  * An {@link EventBus} with additional methods that implicitly
  * set the extension instance.
- *
  */
-public interface ExtensionEventBus extends EventBus {
-
-    /**
-     * Subscribes to the given event see {@link EventSubscription}.
-     *
-     * @param eventClass the class of the event
-     * @param consumer the consumer for handling the event
-     * @param <T> the event class
-     * @return the event subscription
-     */
-    @NonNull
-    <T extends Event> EventSubscription<T> subscribe(@NonNull Class<T> eventClass, @NonNull Consumer<? super T> consumer);
-
-    /**
-     * Registers events for the given listener.
-     *
-     * @param eventHolder the listener
-     */
-    void register(@NonNull Object eventHolder);
-
-    /**
-     * Unregisters all events for this extension.
-     */
-    void unregisterAll();
+public interface ExtensionEventBus extends org.geysermc.event.bus.EventBus<Event, EventSubscriber<? extends Event>> {
+    @Override
+    @NonNull <T extends Event> Set<? extends EventSubscriber<T>> subscribers(@NonNull Class<T> eventClass);
 }

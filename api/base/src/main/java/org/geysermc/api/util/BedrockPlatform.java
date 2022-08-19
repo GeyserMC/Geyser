@@ -23,19 +23,48 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.provider;
+package org.geysermc.api.util;
 
-/**
- * Holds a record of every {@link Provider} available
- * that allows for accessing various information throughout
- * the API.
- */
-public interface ProviderManager {
+public enum BedrockPlatform {
+    UNKNOWN("Unknown"),
+    GOOGLE("Android"),
+    IOS("iOS"),
+    OSX("macOS"),
+    AMAZON("Amazon"),
+    GEARVR("Gear VR"),
+    HOLOLENS("Hololens"),
+    UWP("Windows 10"),
+    WIN32("Windows x86"),
+    DEDICATED("Dedicated"),
+    TVOS("Apple TV"),
+    PS4("PS4"),
+    NX("Switch"),
+    XBOX("Xbox One"),
+    WINDOWS_PHONE("Windows Phone");
+
+    private static final BedrockPlatform[] VALUES = values();
+
+    private final String displayName;
+
+    BedrockPlatform(String displayName) {
+        this.displayName = displayName;
+    }
 
     /**
-     * Returns the {@link BuilderProvider}.
+     * Get the BedrockPlatform from the identifier.
      *
-     * @return the builder provider
+     * @param id the BedrockPlatform identifier
+     * @return The BedrockPlatform or {@link #UNKNOWN} if the platform wasn't found
      */
-    BuilderProvider builderProvider();
+    public static BedrockPlatform fromId(int id) {
+        return id < VALUES.length ? VALUES[id] : VALUES[0];
+    }
+
+    /**
+     * @return friendly display name of platform.
+     */
+    @Override
+    public String toString() {
+        return displayName;
+    }
 }

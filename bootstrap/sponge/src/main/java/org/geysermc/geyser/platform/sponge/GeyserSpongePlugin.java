@@ -99,14 +99,14 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
             // Don't change the ip if its listening on all interfaces
             // By default this should be 127.0.0.1 but may need to be changed in some circumstances
-            if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
+            if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
                 this.geyserConfig.setAutoconfiguredRemote(true);
                 geyserConfig.getRemote().setPort(javaAddr.getPort());
             }
         }
 
         if (geyserConfig.getBedrock().isCloneRemotePort()) {
-            geyserConfig.getBedrock().setPort(geyserConfig.getRemote().getPort());
+            geyserConfig.getBedrock().setPort(geyserConfig.getRemote().port());
         }
 
         this.geyserLogger = new GeyserSpongeLogger(logger, geyserConfig.isDebugMode());
@@ -123,7 +123,8 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
         this.geyserCommandManager = new GeyserSpongeCommandManager(Sponge.getCommandManager(), geyser);
         this.geyserCommandManager.init();
-        Sponge.getCommandManager().register(this, new GeyserSpongeCommandExecutor(geyser), "geyser");
+        Sponge.getCommandManager().register(this, new GeyserSpongeCommandExecutor(geyser, geyserCommandManager.getCommands()), "geyser");
+        Sponge.getCommandManager().register(this, new GeyserSpongeCommandExecutor(geyser, geyserCommandManager.commands()), "geyserext");
     }
 
     @Override

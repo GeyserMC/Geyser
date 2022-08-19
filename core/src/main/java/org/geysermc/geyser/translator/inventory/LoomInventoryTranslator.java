@@ -60,7 +60,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
 
     static {
         // Added from left-to-right then up-to-down in the order Java presents it
-        int index = 1;
+        int index = 0;
         PATTERN_TO_INDEX.put("bl", index++);
         PATTERN_TO_INDEX.put("br", index++);
         PATTERN_TO_INDEX.put("tl", index++);
@@ -119,15 +119,16 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
     @Override
     protected boolean shouldHandleRequestFirst(StackRequestActionData action, Inventory inventory) {
         // If the LOOM_MATERIAL slot is not empty, we are crafting a pattern that does not come from an item
-        // Remove the CRAFT_NON_IMPLEMENTED_DEPRECATED when 1.17.30 is dropped
-        return (action.getType() == StackRequestActionType.CRAFT_NON_IMPLEMENTED_DEPRECATED || action.getType() == StackRequestActionType.CRAFT_LOOM)
-                && inventory.getItem(2).isEmpty();
+        return action.getType() == StackRequestActionType.CRAFT_LOOM && inventory.getItem(2).isEmpty();
     }
 
     @Override
     public ItemStackResponsePacket.Response translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
         StackRequestActionData headerData = request.getActions()[0];
         StackRequestActionData data = request.getActions()[1];
+        if (!(headerData instanceof CraftLoomStackRequestActionData)) {
+            return rejectRequest(request);
+        }
         if (!(data instanceof CraftResultsDeprecatedStackRequestActionData craftData)) {
             return rejectRequest(request);
         }
@@ -136,15 +137,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
         List<NbtMap> newBlockEntityTag = craftData.getResultItems()[0].getTag().getList("Patterns", NbtType.COMPOUND);
         // Get the pattern that the Bedrock client requests - the last pattern in the Patterns list
         NbtMap pattern = newBlockEntityTag.get(newBlockEntityTag.size() - 1);
-        String bedrockPattern;
-
-        if (headerData instanceof CraftLoomStackRequestActionData loomData) {
-            // Prioritize this if on 1.17.40
-            // Remove the below if statement when 1.17.30 is dropped
-            bedrockPattern = loomData.getPatternId();
-        } else {
-            bedrockPattern = pattern.getString("Pattern");
-        }
+        String bedrockPattern = ((CraftLoomStackRequestActionData) headerData).getPatternId();
 
         // Get the Java index of this pattern
         int index = PATTERN_TO_INDEX.getOrDefault(bedrockPattern, -1);

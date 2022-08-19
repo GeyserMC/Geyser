@@ -37,14 +37,15 @@ import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map;
 
 public class GeyserBungeeCommandExecutor extends Command implements TabExecutor {
     private final GeyserCommandExecutor commandExecutor;
 
-    public GeyserBungeeCommandExecutor(GeyserImpl geyser) {
-        super("geyser");
+    public GeyserBungeeCommandExecutor(String name, GeyserImpl geyser, Map<String, org.geysermc.geyser.api.command.Command> commands) {
+        super(name);
 
-        this.commandExecutor = new GeyserCommandExecutor(geyser);
+        this.commandExecutor = new GeyserCommandExecutor(geyser, commands);
     }
 
     @Override

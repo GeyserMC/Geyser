@@ -132,7 +132,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             CommandNode node = nodes[nodeIndex];
 
             // Make sure we don't have duplicated commands (happens if there is more than 1 root node)
-            if (!commandNodes.add(nodeIndex) || !knownAliases.add(node.getName().toLowerCase())) continue;
+            if (!commandNodes.add(nodeIndex) || !knownAliases.add(node.getName().toLowerCase(Locale.ROOT))) continue;
 
             // Get and update the commandArgs list with the found arguments
             if (node.getChildIndices().length >= 1) {
@@ -325,7 +325,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                     CommandParam type = null;
                     boolean optional = this.paramNode.isExecutable();
                     if (mappedType instanceof String[]) {
-                        enumData = new CommandEnumData(paramNode.getParser().name().toLowerCase(), (String[]) mappedType, false);
+                        enumData = new CommandEnumData(paramNode.getParser().name().toLowerCase(Locale.ROOT), (String[]) mappedType, false);
                     } else {
                         type = (CommandParam) mappedType;
                         // Bedrock throws a fit if an optional message comes after a string or target

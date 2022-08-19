@@ -23,20 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry;
+package org.geysermc.api.util;
 
-import org.geysermc.geyser.api.provider.Provider;
-import org.geysermc.geyser.registry.loader.ProviderRegistryLoader;
-import org.geysermc.geyser.registry.provider.GeyserBuilderProvider;
-import org.geysermc.geyser.registry.provider.ProviderSupplier;
+public enum UiProfile {
+    CLASSIC, POCKET;
 
-/**
- * Holds registries for the available {@link Provider}s
- */
-public class ProviderRegistries {
+    private static final UiProfile[] VALUES = values();
 
     /**
-     * A registry containing all the providers for builders.
+     * Get the UiProfile from the identifier.
+     *
+     * @param id the UiProfile identifier
+     * @return The UiProfile or {@link #CLASSIC} if the profile wasn't found
      */
-    public static final SimpleMappedRegistry<Class<?>, ProviderSupplier> BUILDERS = SimpleMappedRegistry.create(GeyserBuilderProvider.INSTANCE, ProviderRegistryLoader::new);
+    public static UiProfile fromId(int id) {
+        return VALUES.length > id ? VALUES[id] : VALUES[0];
+    }
 }

@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.level.physics;
 
+import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
@@ -403,6 +404,18 @@ public class CollisionManager {
      */
     public boolean isPlayerInWater() {
         return session.getGeyser().getWorldManager().getBlockAt(session, session.getPlayerEntity().getPosition().toInt()) == BlockStateValues.JAVA_WATER_ID;
+    }
+
+    public boolean isWaterInEyes() {
+        double eyeX = playerBoundingBox.getMiddleX();
+        double eyeY = playerBoundingBox.getMiddleY() - playerBoundingBox.getSizeY() / 2d + session.getEyeHeight();
+        double eyeZ = playerBoundingBox.getMiddleZ();
+
+        eyeY -= 1 / ((double) BlockStateValues.NUM_WATER_LEVELS); // Subtract the height of one water layer
+        int blockID = session.getGeyser().getWorldManager().getBlockAt(session, GenericMath.floor(eyeX), GenericMath.floor(eyeY), GenericMath.floor(eyeZ));
+        double waterHeight = BlockStateValues.getWaterHeight(blockID);
+
+        return waterHeight != -1 && eyeY < (Math.floor(eyeY) + waterHeight);
     }
 
     /**

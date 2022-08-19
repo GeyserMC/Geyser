@@ -44,7 +44,7 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
         if (session.getGeyser().getConfig().getEmoteOffhandWorkaround() != EmoteOffhandWorkaroundOption.DISABLED) {
             // Activate the workaround - we should trigger the offhand now
             ServerboundPlayerActionPacket swapHandsPacket = new ServerboundPlayerActionPacket(PlayerAction.SWAP_HANDS, Vector3i.ZERO,
-                    Direction.DOWN, session.getNextSequence());
+                    Direction.DOWN, session.getWorldCache().nextPredictionSequence());
             session.sendDownstreamPacket(swapHandsPacket);
 
             if (session.getGeyser().getConfig().getEmoteOffhandWorkaround() == EmoteOffhandWorkaroundOption.NO_EMOTES) {

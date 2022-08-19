@@ -27,8 +27,10 @@ package org.geysermc.geyser.configuration;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.api.network.AuthType;
+import org.geysermc.geyser.api.network.BedrockListener;
+import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.network.CIDRMatcher;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.nio.file.Path;
@@ -109,19 +111,9 @@ public interface GeyserConfiguration {
 
     int getPendingAuthenticationTimeout();
 
-    interface IBedrockConfiguration {
-
-        String getAddress();
-
-        int getPort();
+    interface IBedrockConfiguration extends BedrockListener {
 
         boolean isCloneRemotePort();
-
-        String getMotd1();
-
-        String getMotd2();
-
-        String getServerName();
 
         int getCompressionLevel();
 
@@ -135,23 +127,25 @@ public interface GeyserConfiguration {
         List<CIDRMatcher> getWhitelistedIPsMatchers();
     }
 
-    interface IRemoteConfiguration {
-
-        String getAddress();
-
-        int getPort();
+    interface IRemoteConfiguration extends RemoteServer {
 
         void setAddress(String address);
 
         void setPort(int port);
-
-        AuthType getAuthType();
 
         boolean isPasswordAuthentication();
 
         boolean isUseProxyProtocol();
 
         boolean isForwardHost();
+
+        default String minecraftVersion() {
+            return GameProtocol.getJavaMinecraftVersion();
+        }
+
+        default int protocolVersion() {
+            return GameProtocol.getJavaProtocolVersion();
+        }
     }
 
     interface IUserAuthenticationInfo {

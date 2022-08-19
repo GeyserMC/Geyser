@@ -266,16 +266,23 @@ public abstract class ItemTranslator {
     }
 
     /**
-     * Given an item stack, determine the item mapping that should be applied to Bedrock players.
+     * Given an item stack, determine the Bedrock item ID that should be applied to Bedrock players.
      */
-    @Nonnull
-    public static ItemMapping getBedrockItemMapping(GeyserSession session, @Nonnull GeyserItemStack itemStack) {
+    public static int getBedrockItemId(GeyserSession session, @Nonnull GeyserItemStack itemStack) {
         if (itemStack.isEmpty()) {
-            return ItemMapping.AIR;
+            return ItemMapping.AIR.getJavaId();
         }
         int javaId = itemStack.getJavaId();
-        return ITEM_STACK_TRANSLATORS.getOrDefault(javaId, DEFAULT_TRANSLATOR)
+        ItemMapping mapping = ITEM_STACK_TRANSLATORS.getOrDefault(javaId, DEFAULT_TRANSLATOR)
                 .getItemMapping(javaId, itemStack.getNbt(), session.getItemMappings());
+
+        int customItemId = getCustomItem(itemStack.getNbt(), mapping);
+        if (customItemId == -1) {
+            // No custom item
+            return mapping.getBedrockId();
+        } else {
+            return customItemId;
+        }
     }
 
     private static final ItemTranslator DEFAULT_TRANSLATOR = new ItemTranslator() {

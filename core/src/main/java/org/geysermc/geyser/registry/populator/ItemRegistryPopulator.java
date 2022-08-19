@@ -39,6 +39,8 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import it.unimi.dsi.fastutil.ints.*;
 import com.nukkitx.protocol.bedrock.v527.Bedrock_v527;
+import com.nukkitx.protocol.bedrock.v534.Bedrock_v534;
+import com.nukkitx.protocol.bedrock.v544.Bedrock_v544;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -50,6 +52,7 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomItemsEvent;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
+import org.geysermc.geyser.event.type.DefineCustomItemsEvent;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.mappings.MappingsConfigReader;
@@ -74,7 +77,10 @@ public class ItemRegistryPopulator {
 
     public static void populate() {
         Map<String, PaletteVersion> paletteVersions = new Object2ObjectOpenHashMap<>();
-        paletteVersions.put("1_19_0", new PaletteVersion(Bedrock_v527.V527_CODEC.getProtocolVersion(), Collections.emptyMap()));
+        paletteVersions.put("1_19_0", new PaletteVersion(Bedrock_v527.V527_CODEC.getProtocolVersion(),
+                Collections.singletonMap("minecraft:trader_llama_spawn_egg", "minecraft:llama_spawn_egg")));
+        paletteVersions.put("1_19_10", new PaletteVersion(Bedrock_v534.V534_CODEC.getProtocolVersion(), Collections.emptyMap()));
+        paletteVersions.put("1_19_20", new PaletteVersion(Bedrock_v544.V544_CODEC.getProtocolVersion(), Collections.emptyMap()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
@@ -103,7 +109,7 @@ public class ItemRegistryPopulator {
             });
 
             nonVanillaCustomItems = new ObjectArrayList<>();
-            GeyserImpl.getInstance().eventBus().fire(new GeyserDefineCustomItemsEvent(customItems, nonVanillaCustomItems) {
+            GeyserImpl.getInstance().eventBus().fire(new DefineCustomItemsEvent(customItems, nonVanillaCustomItems) {
                 @Override
                 public boolean register(@NonNull String identifier, @NonNull CustomItemData customItemData) {
                     if (CustomItemRegistryPopulator.initialCheck(identifier, customItemData, items)) {
@@ -235,6 +241,9 @@ public class ItemRegistryPopulator {
                 } else if (identifier.equals("minecraft:empty_map") && damage == 2) {
                     // Bedrock-only as its own item
                     continue;
+                } else if (identifier.equals("minecraft:bordure_indented_banner_pattern") || identifier.equals("minecraft:field_masoned_banner_pattern")) {
+                    // Bedrock-only banner patterns
+                    continue;
                 }
                 StartGamePacket.ItemEntry entry = entries.get(identifier);
                 int id = -1;
@@ -277,8 +286,7 @@ public class ItemRegistryPopulator {
 
             Set<String> javaOnlyItems = new ObjectOpenHashSet<>();
             Collections.addAll(javaOnlyItems, "minecraft:spectral_arrow", "minecraft:debug_stick",
-                    "minecraft:knowledge_book", "minecraft:tipped_arrow", "minecraft:trader_llama_spawn_egg",
-                    "minecraft:bundle");
+                    "minecraft:knowledge_book", "minecraft:tipped_arrow", "minecraft:bundle");
             if (!customItemsAllowed) {
                 javaOnlyItems.add("minecraft:furnace_minecart");
             }

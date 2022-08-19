@@ -25,7 +25,8 @@
 
 package org.geysermc.geyser.api.event;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.event.Event;
+import org.geysermc.event.subscribe.OwnedSubscriber;
 import org.geysermc.geyser.api.extension.Extension;
 
 /**
@@ -35,48 +36,5 @@ import org.geysermc.geyser.api.extension.Extension;
  *
  * @param <T> the class of the event
  */
-public interface EventSubscription<T extends Event> {
-
-    /**
-     * Gets the event class.
-     *
-     * @return the event class
-     */
-    @NonNull
-    Class<T> eventClass();
-
-    /**
-     * Gets the {@link Extension} that owns this
-     * event subscription.
-     *
-     * @return the extension that owns this subscription
-     */
-    @NonNull
-    EventListener owner();
-
-    /**
-     * Gets the post order of this event subscription.
-     *
-     * @return the post order of this event subscription
-     */
-    Subscribe.PostOrder order();
-
-    /**
-     * Gets if this event subscription is active.
-     *
-     * @return if this event subscription is active
-     */
-    boolean isActive();
-
-    /**
-     * Unsubscribes from this event listener
-     */
-    void unsubscribe();
-
-    /**
-     * Invokes the given event
-     *
-     * @param event the event
-     */
-    void invoke(@NonNull T event) throws Throwable;
+public interface EventSubscriber<T extends Event> extends OwnedSubscriber<Extension, T> {
 }

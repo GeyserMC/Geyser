@@ -41,7 +41,7 @@ public class JavaSystemChatTranslator extends PacketTranslator<ClientboundSystem
         textPacket.setPlatformChatId("");
         textPacket.setSourceName("");
         textPacket.setXuid(session.getAuthData().xuid());
-        textPacket.setType(session.getChatTypes().get(packet.getTypeId()).bedrockChatType());
+        textPacket.setType(packet.isOverlay() ? TextPacket.Type.TIP : TextPacket.Type.SYSTEM);
 
         textPacket.setNeedsTranslation(false);
         textPacket.setMessage(MessageTranslator.convertMessage(packet.getContent(), session.locale()));

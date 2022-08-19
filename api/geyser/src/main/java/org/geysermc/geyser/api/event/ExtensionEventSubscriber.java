@@ -23,7 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.provider;
+package org.geysermc.geyser.api.event;
 
-public interface Provider {
+import org.geysermc.event.Event;
+import org.geysermc.event.subscribe.Subscriber;
+
+public interface ExtensionEventSubscriber<T extends Event> extends Subscriber<T> {
 }

@@ -25,21 +25,32 @@
 
 package org.geysermc.geyser.registry.loader;
 
-import org.geysermc.geyser.registry.provider.AbstractProvider;
+import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.api.command.CommandSource;
+import org.geysermc.geyser.api.item.custom.CustomItemData;
+import org.geysermc.geyser.api.item.custom.CustomItemOptions;
+import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
+import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.item.GeyserCustomItemData;
+import org.geysermc.geyser.item.GeyserCustomItemOptions;
+import org.geysermc.geyser.item.GeyserNonVanillaCustomItemData;
 import org.geysermc.geyser.registry.provider.ProviderSupplier;
 
-import java.util.IdentityHashMap;
 import java.util.Map;
 
 /**
  * Registers the provider data from the provider.
  */
-public class ProviderRegistryLoader implements RegistryLoader<AbstractProvider, Map<Class<?>, ProviderSupplier>> {
+public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, ProviderSupplier>, Map<Class<?>, ProviderSupplier>> {
 
+    @SuppressWarnings("unchecked")
     @Override
-    public Map<Class<?>, ProviderSupplier> load(AbstractProvider input) {
-        Map<Class<?>, ProviderSupplier> providers = new IdentityHashMap<>();
-        input.registerProviders(providers);
+    public Map<Class<?>, ProviderSupplier> load(Map<Class<?>, ProviderSupplier> providers) {
+        providers.put(Command.Builder.class, args -> new GeyserCommandManager.CommandBuilder<>((Class<? extends CommandSource>) args[0]));
+        providers.put(CustomItemData.Builder.class, args -> new GeyserCustomItemData.CustomItemDataBuilder());
+        providers.put(CustomItemOptions.Builder.class, args -> new GeyserCustomItemOptions.CustomItemOptionsBuilder());
+        providers.put(NonVanillaCustomItemData.Builder.class, args -> new GeyserNonVanillaCustomItemData.NonVanillaCustomItemDataBuilder());
+
         return providers;
     }
 }

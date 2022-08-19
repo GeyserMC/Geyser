@@ -37,15 +37,16 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Represents helper functions for listening to {@code /geyser} commands.
+ * Represents helper functions for listening to {@code /geyser} or {@code /geyserext} commands.
  */
 @AllArgsConstructor
 public class GeyserCommandExecutor {
 
     protected final GeyserImpl geyser;
+    private final Map<String, Command> commands;
 
     public GeyserCommand getCommand(String label) {
-        return (GeyserCommand) geyser.commandManager().commands().get(label);
+        return (GeyserCommand) commands.get(label);
     }
 
     @Nullable
@@ -78,7 +79,6 @@ public class GeyserCommandExecutor {
         }
 
         List<String> availableCommands = new ArrayList<>();
-        Map<String, Command> commands = geyser.commandManager().getCommands();
 
         // Only show commands they have permission to use
         for (Map.Entry<String, Command> entry : commands.entrySet()) {

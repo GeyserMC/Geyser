@@ -35,6 +35,7 @@ import com.velocitypowered.api.network.ListenerType;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
+import net.kyori.adventure.util.Codec;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
@@ -84,6 +85,15 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     @Override
     public void onEnable() {
+        try {
+            Codec.class.getMethod("codec", Codec.Decoder.class, Codec.Encoder.class);
+        } catch (NoSuchMethodException e) {
+            // velocitypowered.com has a build that is very outdated
+            logger.error("Please download Velocity from https://papermc.io/downloads#Velocity - the 'stable' Velocity version " +
+                    "that has likely been downloaded is very outdated and does not support 1.19.");
+            return;
+        }
+
         GeyserLocale.init(this);
 
         try {
@@ -102,7 +112,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         InetSocketAddress javaAddr = proxyServer.getBoundAddress();
 
         // By default this should be localhost but may need to be changed in some circumstances
-        if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
+        if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
             this.geyserConfig.setAutoconfiguredRemote(true);
             // Don't use localhost if not listening on all interfaces
             if (!javaAddr.getHostString().equals("0.0.0.0") && !javaAddr.getHostString().equals("")) {
@@ -128,7 +138,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         } catch (ClassNotFoundException ignored) {
         }
 
-        if (geyserConfig.getRemote().getAuthType() == AuthType.FLOODGATE && proxyServer.getPluginManager().getPlugin("floodgate").isEmpty()) {
+        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE && proxyServer.getPluginManager().getPlugin("floodgate").isEmpty()) {
             geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " "
                     + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
             return;
@@ -149,7 +159,8 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         this.geyserCommandManager = new GeyserVelocityCommandManager(geyser);
         this.geyserCommandManager.init();
 
-        this.commandManager.register("geyser", new GeyserVelocityCommandExecutor(geyser));
+        this.commandManager.register("geyser", new GeyserVelocityCommandExecutor(geyser, geyserCommandManager.getCommands()));
+        this.commandManager.register("geyserext", new GeyserVelocityCommandExecutor(geyser, geyserCommandManager.commands()));
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
         } else {
