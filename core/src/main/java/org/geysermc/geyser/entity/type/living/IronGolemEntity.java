@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.entity.type.living;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
@@ -44,11 +45,14 @@ public class IronGolemEntity extends GolemEntity {
         setFlag(EntityFlag.BRIBED, true);
         // Required, or else the overlay is black
         dirtyMetadata.put(EntityData.COLOR_2, (byte) 0);
+        // Default max health. Ensures correct cracked texture is used
+        // Bug reproducible in 1.19.0 JE vanilla/fabric when spawning a new iron golem
+        maxHealth = 100f;
     }
 
     @Nonnull
     @Override
-    protected InteractionResult mobInteract(@Nonnull GeyserItemStack itemInHand) {
+    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
         if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().ironIngot()) {
             if (health < maxHealth) {
                 // Healing the iron golem
@@ -57,6 +61,6 @@ public class IronGolemEntity extends GolemEntity {
                 return InteractionResult.PASS;
             }
         }
-        return super.mobInteract(itemInHand);
+        return super.mobInteract(hand, itemInHand);
     }
 }

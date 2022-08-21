@@ -56,17 +56,17 @@ public enum PaintingType {
     SKELETON("Skeleton", 4, 3),
     DONKEY_KONG("DonkeyKong", 4, 3),
     POINTER("Pointer", 4, 4),
-    PIG_SCENE("Pigscene", 4, 4),
-    BURNING_SKULL("BurningSkull", 4, 4);
+    PIGSCENE("Pigscene", 4, 4),
+    BURNING_SKULL("BurningSkull", 4, 4),
+    EARTH("Earth", 2, 2),
+    WIND("Wind", 2, 2),
+    WATER("Water", 2, 2),
+    FIRE("Fire", 2, 2);
 
     private static final PaintingType[] VALUES = values();
-    private String bedrockName;
-    private int width;
-    private int height;
-
-    public com.github.steveice10.mc.protocol.data.game.entity.type.PaintingType toJavaType() {
-        return com.github.steveice10.mc.protocol.data.game.entity.type.PaintingType.valueOf(name());
-    }
+    private final String bedrockName;
+    private final int width;
+    private final int height;
 
     public static PaintingType getByName(String javaName) {
         for (PaintingType paintingName : VALUES) {

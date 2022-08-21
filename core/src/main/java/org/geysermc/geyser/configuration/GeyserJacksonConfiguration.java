@@ -130,6 +130,12 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("allow-custom-skulls")
     private boolean allowCustomSkulls = true;
 
+    @JsonProperty("max-visible-custom-skulls")
+    private int maxVisibleCustomSkulls = 128;
+
+    @JsonProperty("custom-skull-render-distance")
+    private int customSkullRenderDistance = 32;
+
     @JsonProperty("add-non-bedrock-items")
     private boolean addNonBedrockItems = true;
 

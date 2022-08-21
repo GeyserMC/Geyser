@@ -26,11 +26,11 @@
 package org.geysermc.geyser.registry.populator;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableMap;
 import com.nukkitx.nbt.*;
-import com.nukkitx.protocol.bedrock.v475.Bedrock_v475;
-import com.nukkitx.protocol.bedrock.v486.Bedrock_v486;
-import com.nukkitx.protocol.bedrock.v503.Bedrock_v503;
+import com.nukkitx.protocol.bedrock.v527.Bedrock_v527;
+import com.nukkitx.protocol.bedrock.v544.Bedrock_v544;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -57,59 +57,7 @@ import java.util.zip.GZIPInputStream;
 /**
  * Populates the block registries.
  */
-public class BlockRegistryPopulator {
-    private static final ImmutableMap<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> BLOCK_MAPPERS;
-    private static final BiFunction<String, NbtMapBuilder, String> EMPTY_MAPPER = (bedrockIdentifier, statesBuilder) -> null;
-
-    private static final BiFunction<String, NbtMapBuilder, String> V486_MAPPER = (bedrockIdentifier, statesBuilder) -> {
-        statesBuilder.remove("no_drop_bit"); // Used in skulls
-        if (bedrockIdentifier.equals("minecraft:glow_lichen")) {
-            // Moved around north, south, west
-            int bits = (int) statesBuilder.get("multi_face_direction_bits");
-            boolean north = (bits & (1 << 2)) != 0;
-            boolean south = (bits & (1 << 3)) != 0;
-            boolean west = (bits & (1 << 4)) != 0;
-            if (north) {
-                bits |= 1 << 4;
-            } else {
-                bits &= ~(1 << 4);
-            }
-            if (south) {
-                bits |= 1 << 2;
-            } else {
-                bits &= ~(1 << 2);
-            }
-            if (west) {
-                bits |= 1 << 3;
-            } else {
-                bits &= ~(1 << 3);
-            }
-            statesBuilder.put("multi_face_direction_bits", bits);
-        }
-        return null;
-    };
-
-    static {
-        ImmutableMap.Builder<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> stateMapperBuilder = ImmutableMap.<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>>builder()
-                .put(ObjectIntPair.of("1_18_0", Bedrock_v475.V475_CODEC.getProtocolVersion()), EMPTY_MAPPER)
-                .put(ObjectIntPair.of("1_18_10", Bedrock_v486.V486_CODEC.getProtocolVersion()), V486_MAPPER)
-                .put(ObjectIntPair.of("1_18_30", Bedrock_v503.V503_CODEC.getProtocolVersion()), (bedrockIdentifier, statesBuilder) -> {
-                    // Apply these fixes too
-                    V486_MAPPER.apply(bedrockIdentifier, statesBuilder);
-                    return switch (bedrockIdentifier) {
-                        case "minecraft:pistonArmCollision" -> "minecraft:piston_arm_collision";
-                        case "minecraft:stickyPistonArmCollision" -> "minecraft:sticky_piston_arm_collision";
-                        case "minecraft:movingBlock" -> "minecraft:moving_block";
-                        case "minecraft:tripWire" -> "minecraft:trip_wire";
-                        case "minecraft:seaLantern" -> "minecraft:sea_lantern";
-                        case "minecraft:concretePowder" -> "minecraft:concrete_powder";
-                        default -> null;
-                    };
-                });
-
-        BLOCK_MAPPERS = stateMapperBuilder.build();
-    }
-
+public final class BlockRegistryPopulator {
     /**
      * Stores the raw blocks JSON until it is no longer needed.
      */
@@ -123,7 +71,17 @@ public class BlockRegistryPopulator {
     }
 
     private static void registerBedrockBlocks() {
-        for (Map.Entry<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> palette : BLOCK_MAPPERS.entrySet()) {
+        BiFunction<String, NbtMapBuilder, String> emptyMapper = (bedrockIdentifier, statesBuilder) -> null;
+        ImmutableMap<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> blockMappers = ImmutableMap.<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>>builder()
+                .put(ObjectIntPair.of("1_19_0", Bedrock_v527.V527_CODEC.getProtocolVersion()), (bedrockIdentifier, statesBuilder) -> {
+                    if (bedrockIdentifier.equals("minecraft:muddy_mangrove_roots")) {
+                        statesBuilder.remove("pillar_axis");
+                    }
+                    return null;
+                })
+                .put(ObjectIntPair.of("1_19_20", Bedrock_v544.V544_CODEC.getProtocolVersion()), emptyMapper).build();
+
+        for (Map.Entry<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> palette : blockMappers.entrySet()) {
             NbtList<NbtMap> blocksTag;
             try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource(String.format("bedrock/block_palette.%s.nbt", palette.getKey().key()));
                  NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(new GZIPInputStream(stream)), true, true)) {
@@ -132,14 +90,15 @@ public class BlockRegistryPopulator {
             } catch (Exception e) {
                 throw new AssertionError("Unable to get blocks from runtime block states", e);
             }
-            Map<String, NbtMap> javaIdentifierToBedrockTag = new Object2ObjectOpenHashMap<>(blocksTag.size());
             // New since 1.16.100 - find the block runtime ID by the order given to us in the block palette,
             // as we no longer send a block palette
             Object2IntMap<NbtMap> blockStateOrderedMap = new Object2IntOpenHashMap<>(blocksTag.size());
 
             int stateVersion = -1;
             for (int i = 0; i < blocksTag.size(); i++) {
-                NbtMap tag = blocksTag.get(i);
+                NbtMapBuilder builder = blocksTag.get(i).toBuilder();
+                builder.remove("name_hash"); // Quick workaround - was added in 1.19.20
+                NbtMap tag = builder.build();
                 if (blockStateOrderedMap.containsKey(tag)) {
                     throw new AssertionError("Duplicate block states in Bedrock palette: " + tag);
                 }
@@ -155,7 +114,7 @@ public class BlockRegistryPopulator {
             int movingBlockRuntimeId = -1;
             Iterator<Map.Entry<String, JsonNode>> blocksIterator = BLOCKS_JSON.fields();
 
-            BiFunction<String, NbtMapBuilder, String> stateMapper = BLOCK_MAPPERS.getOrDefault(palette.getKey(), EMPTY_MAPPER);
+            BiFunction<String, NbtMapBuilder, String> stateMapper = blockMappers.getOrDefault(palette.getKey(), emptyMapper);
 
             int[] javaToBedrockBlocks = new int[BLOCKS_JSON.size()];
 
@@ -202,10 +161,6 @@ public class BlockRegistryPopulator {
                     flowerPotBlocks.put(cleanJavaIdentifier.intern(), blocksTag.get(bedrockRuntimeId));
                 }
 
-                if (!cleanJavaIdentifier.equals(entry.getValue().get("bedrock_identifier").asText())) {
-                    javaIdentifierToBedrockTag.put(cleanJavaIdentifier.intern(), blocksTag.get(bedrockRuntimeId));
-                }
-
                 javaToBedrockBlocks[javaRuntimeId] = bedrockRuntimeId;
             }
 
@@ -240,7 +195,6 @@ public class BlockRegistryPopulator {
 
             BlockRegistries.BLOCKS.register(palette.getKey().valueInt(), builder.blockStateVersion(stateVersion)
                     .javaToBedrockBlocks(javaToBedrockBlocks)
-                    .javaIdentifierToBedrockTag(javaIdentifierToBedrockTag)
                     .itemFrames(itemFrames)
                     .flowerPotBlocks(flowerPotBlocks)
                     .jigsawStateIds(jigsawStateIds)
@@ -300,7 +254,7 @@ public class BlockRegistryPopulator {
                 builder.pickItem(pickItemNode.textValue().intern());
             }
 
-            if (javaId.equals("minecraft:obsidian") || javaId.equals("minecraft:crying_obsidian") || javaId.startsWith("minecraft:respawn_anchor")) {
+            if (javaId.equals("minecraft:obsidian") || javaId.equals("minecraft:crying_obsidian") || javaId.startsWith("minecraft:respawn_anchor") || javaId.startsWith("minecraft:reinforced_deepslate")) {
                 builder.pistonBehavior(PistonBehavior.BLOCK);
             } else {
                 JsonNode pistonBehaviorNode = entry.getValue().get("piston_behavior");
@@ -405,6 +359,24 @@ public class BlockRegistryPopulator {
         BlockRegistries.CLEAN_JAVA_IDENTIFIERS.set(cleanIdentifiers.toArray(new String[0]));
 
         BLOCKS_JSON = blocksJson;
+
+        JsonNode blockInteractionsJson;
+        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource("mappings/interactions.json")) {
+            blockInteractionsJson = GeyserImpl.JSON_MAPPER.readTree(stream);
+        } catch (Exception e) {
+            throw new AssertionError("Unable to load Java block interaction mappings", e);
+        }
+
+        BlockRegistries.INTERACTIVE.set(toBlockStateSet((ArrayNode) blockInteractionsJson.get("always_consumes")));
+        BlockRegistries.INTERACTIVE_MAY_BUILD.set(toBlockStateSet((ArrayNode) blockInteractionsJson.get("requires_may_build")));
+    }
+
+    private static IntSet toBlockStateSet(ArrayNode node) {
+        IntSet blockStateSet = new IntOpenHashSet(node.size());
+        for (JsonNode javaIdentifier : node) {
+            blockStateSet.add(BlockRegistries.JAVA_IDENTIFIERS.get().getInt(javaIdentifier.textValue()));
+        }
+        return blockStateSet;
     }
 
     private static NbtMap buildBedrockState(JsonNode node, int blockStateVersion, BiFunction<String, NbtMapBuilder, String> statesMapper) {

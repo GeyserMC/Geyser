@@ -47,12 +47,6 @@ public class BlockMappings {
 
     NbtList<NbtMap> bedrockBlockStates;
 
-    /**
-     * Contains a map of Java blocks to their respective Bedrock block tag, if the Java identifier is different from Bedrock.
-     * Required to fix villager trades with these blocks.
-     */
-    Map<String, NbtMap> javaIdentifierToBedrockTag;
-
     int commandBlockRuntimeId;
 
     Object2IntMap<NbtMap> itemFrames;
@@ -73,14 +67,5 @@ public class BlockMappings {
 
     public boolean isItemFrame(int bedrockBlockRuntimeId) {
         return this.itemFrames.values().contains(bedrockBlockRuntimeId);
-    }
-
-    /**
-     * @param cleanJavaIdentifier the clean Java identifier of the block to look up
-     *
-     * @return the block tag of the block name mapped from Java to Bedrock.
-     */
-    public NbtMap getBedrockBlockNbt(String cleanJavaIdentifier) {
-        return this.javaIdentifierToBedrockTag.get(cleanJavaIdentifier);
     }
 }

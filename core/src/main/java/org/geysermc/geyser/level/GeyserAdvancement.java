@@ -28,6 +28,7 @@ package org.geysermc.geyser.level;
 import com.github.steveice10.mc.protocol.data.game.advancement.Advancement;
 import lombok.NonNull;
 import org.geysermc.geyser.session.cache.AdvancementsCache;
+import org.geysermc.geyser.text.ChatColor;
 
 import java.util.List;
 
@@ -67,6 +68,14 @@ public class GeyserAdvancement {
 
     public Advancement.DisplayData getDisplayData() {
         return this.advancement.getDisplayData();
+    }
+
+    /**
+     * @return Purple for challenges and green for normal advancements
+     */
+    public String getDisplayColor() {
+        Advancement.DisplayData displayData = getDisplayData();
+        return displayData != null && displayData.getFrameType() == Advancement.DisplayData.FrameType.CHALLENGE ? ChatColor.LIGHT_PURPLE : ChatColor.GREEN;
     }
 
     public String getRootId(AdvancementsCache advancementsCache) {

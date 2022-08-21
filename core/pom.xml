@@ -6,34 +6,42 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>geyser-parent</artifactId>
-        <version>2.0.3-SNAPSHOT</version>
+        <version>2.0.7-SNAPSHOT</version>
     </parent>
     <artifactId>core</artifactId>
 
     <properties>
-        <adventure.version>4.9.3</adventure.version>
+        <adventure.version>4.12.0-20220629.025215-9</adventure.version> <!-- Snapshot fixes https://github.com/KyoriPowered/adventure/issues/792 -->
         <fastutil.version>8.5.2</fastutil.version>
         <jackson.version>2.13.2</jackson.version>
         <netty.version>4.1.66.Final</netty.version>
     </properties>
 
+    <repositories>
+        <repository>
+            <!-- For Adventure snapshots -->
+            <id>sonatype-s01</id>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>ap</artifactId>
-            <version>2.0.3-SNAPSHOT</version>
+            <version>2.0.7-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>geyser-api</artifactId>
-            <version>2.0.3-SNAPSHOT</version>
+            <version>2.0.7-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>common</artifactId>
-            <version>2.0.3-SNAPSHOT</version>
+            <version>2.0.7-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <!-- Jackson JSON and YAML serialization -->
@@ -72,7 +80,7 @@
             <groupId>com.nukkitx</groupId>
             <artifactId>nbt</artifactId>
             <!-- Used for key/value interning -->
-            <version>2.1.0</version>
+            <version>2.2.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -120,8 +128,8 @@
         </dependency>
         <dependency>
             <groupId>com.github.CloudburstMC.Protocol</groupId>
-            <artifactId>bedrock-v503</artifactId>
-            <version>f32c76d</version>
+            <artifactId>bedrock-v544</artifactId>
+            <version>0bd459f</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -137,7 +145,7 @@
         <dependency>
             <groupId>com.nukkitx.network</groupId>
             <artifactId>raknet</artifactId>
-            <version>1.6.28-20211202.034102-5</version>
+            <version>1.6.28-20220125.214016-6</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -155,7 +163,7 @@
         <dependency>
             <groupId>com.github.GeyserMC</groupId>
             <artifactId>MCProtocolLib</artifactId>
-            <version>0771504</version>
+            <version>9f78bd5</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -166,12 +174,17 @@
                     <groupId>com.github.GeyserMC</groupId>
                     <artifactId>mcauthlib</artifactId>
                 </exclusion>
+                <exclusion>
+                    <!-- Remove when MCProtocolLib updates to 4.12-SNAPSHOT or later -->
+                    <groupId>net.kyori</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
             <groupId>com.github.steveice10</groupId>
             <artifactId>packetlib</artifactId>
-            <version>2.1-SNAPSHOT</version>
+            <version>3.0</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -242,6 +255,19 @@
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-text-serializer-plain</artifactId>
+            <version>${adventure.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <!-- Remove the following two when MCProtocolLib updates to 4.12-SNAPSHOT or later -->
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>adventure-text-serializer-gson</artifactId>
+            <version>${adventure.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>adventure-text-serializer-gson-legacy-impl</artifactId>
             <version>${adventure.version}</version>
             <scope>compile</scope>
         </dependency>

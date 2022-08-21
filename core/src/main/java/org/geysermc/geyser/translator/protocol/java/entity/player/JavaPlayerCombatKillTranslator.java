@@ -23,34 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java;
+package org.geysermc.geyser.translator.protocol.java.entity.player;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundChatPacket;
-import com.nukkitx.protocol.bedrock.packet.TextPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.player.ClientboundPlayerCombatKillPacket;
+import com.nukkitx.protocol.bedrock.packet.DeathInfoPacket;
+import net.kyori.adventure.text.Component;
+import org.geysermc.geyser.network.MinecraftProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
-@Translator(packet = ClientboundChatPacket.class)
-public class JavaChatTranslator extends PacketTranslator<ClientboundChatPacket> {
+@Translator(packet = ClientboundPlayerCombatKillPacket.class)
+public class JavaPlayerCombatKillTranslator extends PacketTranslator<ClientboundPlayerCombatKillPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundChatPacket packet) {
-        TextPacket textPacket = new TextPacket();
-        textPacket.setPlatformChatId("");
-        textPacket.setSourceName("");
-        textPacket.setXuid(session.getAuthData().xuid());
-        textPacket.setType(switch (packet.getType()) {
-            case CHAT -> TextPacket.Type.CHAT;
-            case SYSTEM -> TextPacket.Type.SYSTEM;
-            case NOTIFICATION -> TextPacket.Type.TIP;
-            default -> TextPacket.Type.RAW;
-        });
-
-        textPacket.setNeedsTranslation(false);
-        textPacket.setMessage(MessageTranslator.convertMessage(packet.getMessage(), session.getLocale()));
-
-        session.sendUpstreamPacket(textPacket);
+    public void translate(GeyserSession session, ClientboundPlayerCombatKillPacket packet) {
+        if (packet.getPlayerId() == session.getPlayerEntity().getEntityId() && MinecraftProtocol.supports1_19_10(session)) {
+            Component deathMessage = packet.getMessage();
+            // TODO - could inject score in, but as of 1.19.10 newlines don't center and start at the left of the first text
+            DeathInfoPacket deathInfoPacket = new DeathInfoPacket();
+            deathInfoPacket.setCauseAttackName(MessageTranslator.convertMessage(deathMessage, session.getLocale()));
+            session.sendUpstreamPacket(deathInfoPacket);
+        }
     }
 }

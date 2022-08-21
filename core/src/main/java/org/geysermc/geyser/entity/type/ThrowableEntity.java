@@ -56,7 +56,7 @@ public class ThrowableEntity extends Entity implements Tickable {
      */
     @Override
     public void tick() {
-        moveAbsoluteImmediate(position.add(motion), yaw, pitch, headYaw, onGround, false);
+        moveAbsoluteImmediate(position.add(motion), getYaw(), getPitch(), getHeadYaw(), isOnGround(), false);
         float drag = getDrag();
         float gravity = getGravity();
         motion = motion.mul(drag).down(gravity);
@@ -89,20 +89,20 @@ public class ThrowableEntity extends Entity implements Tickable {
         }
         setPosition(position);
 
-        if (this.yaw != yaw) {
+        if (getYaw() != yaw) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
             moveEntityDeltaPacket.setYaw(yaw);
-            this.yaw = yaw;
+            setYaw(yaw);
         }
-        if (this.pitch != pitch) {
+        if (getPitch() != pitch) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
             moveEntityDeltaPacket.setPitch(pitch);
-            this.pitch = pitch;
+            setPitch(pitch);
         }
-        if (this.headYaw != headYaw) {
+        if (getHeadYaw() != headYaw) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
             moveEntityDeltaPacket.setHeadYaw(headYaw);
-            this.headYaw = headYaw;
+            setHeadYaw(headYaw);
         }
 
         if (!moveEntityDeltaPacket.getFlags().isEmpty()) {

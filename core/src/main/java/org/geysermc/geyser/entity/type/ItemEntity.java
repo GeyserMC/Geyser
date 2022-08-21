@@ -76,10 +76,10 @@ public class ItemEntity extends ThrowableEntity {
         if (isInWater()) {
             return;
         }
-        if (!onGround || (motion.getX() * motion.getX() + motion.getZ() * motion.getZ()) > 0.00001) {
+        if (!isOnGround() || (motion.getX() * motion.getX() + motion.getZ() * motion.getZ()) > 0.00001) {
             float gravity = getGravity();
             motion = motion.down(gravity);
-            moveAbsoluteImmediate(position.add(motion), yaw, pitch, headYaw, onGround, false);
+            moveAbsoluteImmediate(position.add(motion), getYaw(), getPitch(), getHeadYaw(), isOnGround(), false);
             float drag = getDrag();
             motion = motion.mul(drag, 0.98f, drag);
         }
@@ -124,7 +124,7 @@ public class ItemEntity extends ThrowableEntity {
 
     @Override
     protected float getGravity() {
-        if (getFlag(EntityFlag.HAS_GRAVITY) && !onGround && !isInWater()) {
+        if (getFlag(EntityFlag.HAS_GRAVITY) && !isOnGround() && !isInWater()) {
             // Gravity can change if the item is in water/lava, but
             // the server calculates the motion & position for us
             return 0.04f;
@@ -134,7 +134,7 @@ public class ItemEntity extends ThrowableEntity {
 
     @Override
     protected float getDrag() {
-        if (onGround) {
+        if (isOnGround()) {
             Vector3i groundBlockPos = position.toInt().down(1);
             int blockState = session.getGeyser().getWorldManager().getBlockAt(session, groundBlockPos);
             return BlockStateValues.getSlipperiness(blockState) * 0.98f;

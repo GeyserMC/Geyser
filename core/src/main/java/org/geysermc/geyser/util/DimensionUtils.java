@@ -26,13 +26,11 @@
 package org.geysermc.geyser.util;
 
 import com.github.steveice10.mc.protocol.data.game.entity.Effect;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.ChangeDimensionPacket;
+import com.nukkitx.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
 import com.nukkitx.protocol.bedrock.packet.MobEffectPacket;
 import com.nukkitx.protocol.bedrock.packet.StopSoundPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -71,6 +69,22 @@ public class DimensionUtils {
         session.getLodestoneCache().clear();
         session.getPistonCache().clear();
         session.getSkullCache().clear();
+
+        if (session.getServerRenderDistance() > 47 && !session.isEmulatePost1_13Logic()) {
+            // The server-sided view distance wasn't a thing until Minecraft Java 1.14
+            // So ViaVersion compensates by sending a "view distance" of 64
+            // That's fine, except when the actual view distance sent from the server is five chunks
+            // The client locks up when switching dimensions, expecting more chunks than it's getting
+            // To solve this, we cap at 32 unless we know that the render distance actually exceeds 32
+            // 47 is the Bedrock equivalent of 32
+            // Also, as of 1.19: PS4 crashes with a ChunkRadiusUpdatedPacket too large
+            session.getGeyser().getLogger().debug("Applying dimension switching workaround for Bedrock render distance of "
+                    + session.getServerRenderDistance());
+            ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
+            chunkRadiusUpdatedPacket.setRadius(47);
+            session.sendUpstreamPacket(chunkRadiusUpdatedPacket);
+            // Will be re-adjusted on spawn
+        }
 
         Vector3f pos = Vector3f.from(0, Short.MAX_VALUE, 0);
 
@@ -129,25 +143,6 @@ public class DimensionUtils {
             case THE_END -> 2;
             default -> 0;
         };
-    }
-
-    /**
-     * Determines the new dimension based on the {@link CompoundTag} sent by either the {@link com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundLoginPacket}
-     * or {@link com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundRespawnPacket}.
-     *
-     * @param dimensionTag the packet's dimension tag.
-     * @return the dimension identifier.
-     */
-    public static String getNewDimension(CompoundTag dimensionTag) {
-        if (dimensionTag == null || dimensionTag.isEmpty()) {
-            GeyserImpl.getInstance().getLogger().debug("Dimension tag was null or empty.");
-            return OVERWORLD;
-        }
-        if (dimensionTag.getValue().get("effects") != null) {
-            return ((StringTag) dimensionTag.getValue().get("effects")).getValue();
-        }
-        GeyserImpl.getInstance().getLogger().debug("Effects portion of the tag was null or empty.");
-        return OVERWORLD;
     }
 
     /**

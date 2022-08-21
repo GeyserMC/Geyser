@@ -27,6 +27,7 @@ package org.geysermc.geyser.entity.type.living.animal.tameable;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.google.common.collect.ImmutableSet;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -103,7 +104,7 @@ public class WolfEntity extends TameableEntity {
 
     @Nonnull
     @Override
-    protected InteractiveTag testMobInteraction(@Nonnull GeyserItemStack itemInHand) {
+    protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
         if (getFlag(EntityFlag.ANGRY)) {
             return InteractiveTag.NONE;
         }
@@ -122,12 +123,12 @@ public class WolfEntity extends TameableEntity {
                 return getFlag(EntityFlag.SITTING) ? InteractiveTag.STAND : InteractiveTag.SIT;
             }
         }
-        return super.testMobInteraction(itemInHand);
+        return super.testMobInteraction(hand, itemInHand);
     }
 
     @Nonnull
     @Override
-    protected InteractionResult mobInteract(@Nonnull GeyserItemStack itemInHand) {
+    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
         if (ownerBedrockId == session.getPlayerEntity().getGeyserId() || getFlag(EntityFlag.TAMED)
                 || itemInHand.getMapping(session).getJavaIdentifier().equals("minecraft:bone") && !getFlag(EntityFlag.ANGRY)) {
             // Sitting toggle or feeding; not angry

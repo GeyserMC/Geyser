@@ -94,6 +94,8 @@ public class Entity {
     private float boundingBoxWidth;
     @Setter(AccessLevel.NONE)
     protected String nametag = "";
+    @Setter(AccessLevel.NONE)
+    protected boolean silent = false;
     /* Metadata end */
 
     protected List<Entity> passengers = Collections.emptyList();
@@ -141,13 +143,19 @@ public class Entity {
      */
     protected void initializeMetadata() {
         dirtyMetadata.put(EntityData.SCALE, 1f);
-        dirtyMetadata.put(EntityData.COLOR, 0);
+        dirtyMetadata.put(EntityData.COLOR, (byte) 0);
         dirtyMetadata.put(EntityData.MAX_AIR_SUPPLY, getMaxAir());
         setDimensions(Pose.STANDING);
         setFlag(EntityFlag.HAS_GRAVITY, true);
         setFlag(EntityFlag.HAS_COLLISION, true);
         setFlag(EntityFlag.CAN_SHOW_NAME, true);
         setFlag(EntityFlag.CAN_CLIMB, true);
+        // Let the Java server (or us) supply all sounds for an entity
+        setClientSideSilent();
+    }
+
+    protected void setClientSideSilent() {
+        setFlag(EntityFlag.SILENT, true);
     }
 
     public void spawnEntity() {
@@ -204,7 +212,7 @@ public class Entity {
     }
 
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, boolean isOnGround) {
-        moveRelative(relX, relY, relZ, yaw, pitch, this.headYaw, isOnGround);
+        moveRelative(relX, relY, relZ, yaw, pitch, getHeadYaw(), isOnGround);
     }
 
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
@@ -225,7 +233,7 @@ public class Entity {
     }
 
     public void moveAbsolute(Vector3f position, float yaw, float pitch, boolean isOnGround, boolean teleported) {
-        moveAbsolute(position, yaw, pitch, this.headYaw, isOnGround, teleported);
+        moveAbsolute(position, yaw, pitch, getHeadYaw(), isOnGround, teleported);
     }
 
     public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
@@ -254,7 +262,8 @@ public class Entity {
      * @param isOnGround Whether the entity is currently on the ground.
      */
     public void teleport(Vector3f position, float yaw, float pitch, boolean isOnGround) {
-        moveAbsolute(position, yaw, pitch, isOnGround, false);
+        // teleport will always set the headYaw to yaw
+        moveAbsolute(position, yaw, pitch, yaw, isOnGround, false);
     }
 
     /**
@@ -262,7 +271,7 @@ public class Entity {
      * @param headYaw The new head rotation of the entity.
      */
     public void updateHeadLookRotation(float headYaw) {
-        moveRelative(0, 0, 0, headYaw, pitch, this.headYaw, onGround);
+        moveRelative(0, 0, 0, getYaw(), getPitch(), headYaw, isOnGround());
     }
 
     /**
@@ -275,7 +284,7 @@ public class Entity {
      * @param isOnGround Whether the entity is currently on the ground.
      */
     public void updatePositionAndRotation(double moveX, double moveY, double moveZ, float yaw, float pitch, boolean isOnGround) {
-        moveRelative(moveX, moveY, moveZ, this.yaw, pitch, yaw, isOnGround);
+        moveRelative(moveX, moveY, moveZ, yaw, pitch, getHeadYaw(), isOnGround);
     }
 
     /**
@@ -350,7 +359,7 @@ public class Entity {
         dirtyMetadata.put(EntityData.AIR_SUPPLY, (short) MathUtils.constrain(amount, 0, getMaxAir()));
     }
 
-    protected int getMaxAir() {
+    protected short getMaxAir() {
         return 300;
     }
 
@@ -367,6 +376,10 @@ public class Entity {
 
     public void setDisplayNameVisible(BooleanEntityMetadata entityMetadata) {
         dirtyMetadata.put(EntityData.NAMETAG_ALWAYS_SHOW, (byte) (entityMetadata.getPrimitiveValue() ? 1 : 0));
+    }
+
+    public final void setSilent(BooleanEntityMetadata entityMetadata) {
+        silent = entityMetadata.getPrimitiveValue();
     }
 
     public void setGravity(BooleanEntityMetadata entityMetadata) {
@@ -436,12 +449,12 @@ public class Entity {
     }
 
     /**
-     * x = Pitch, y = HeadYaw, z = Yaw
+     * x = Pitch, y = Yaw, z = HeadYaw
      *
      * @return the bedrock rotation
      */
     public Vector3f getBedrockRotation() {
-        return Vector3f.from(pitch, headYaw, yaw);
+        return Vector3f.from(getPitch(), getYaw(), getHeadYaw());
     }
 
     /**

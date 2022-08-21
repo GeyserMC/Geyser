@@ -40,6 +40,7 @@ import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.network.MinecraftProtocol;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.CpuUtils;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.WebUtils;
 import org.geysermc.floodgate.util.DeviceOs;
@@ -54,10 +55,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Getter
@@ -67,6 +65,9 @@ public class DumpInfo {
 
     private final DumpInfo.VersionInfo versionInfo;
     private final int cpuCount;
+    private final String cpuName;
+    private final Locale systemLocale;
+    private final String systemEncoding;
     private Properties gitInfo;
     private final GeyserConfiguration config;
     private final Floodgate floodgate;
@@ -81,6 +82,9 @@ public class DumpInfo {
         this.versionInfo = new VersionInfo();
 
         this.cpuCount = Runtime.getRuntime().availableProcessors();
+        this.cpuName = CpuUtils.tryGetProcessorName();
+        this.systemLocale = Locale.getDefault();
+        this.systemEncoding = System.getProperty("file.encoding");
 
         try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource("git.properties")) {
             this.gitInfo = new Properties();

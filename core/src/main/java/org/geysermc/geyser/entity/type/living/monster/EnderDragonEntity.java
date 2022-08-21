@@ -39,6 +39,7 @@ import org.geysermc.geyser.entity.type.living.MobEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.DimensionUtils;
 
+import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -130,7 +131,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
 
         for (int i = 0; i < segmentHistory.length; i++) {
             segmentHistory[i] = new Segment();
-            segmentHistory[i].yaw = headYaw;
+            segmentHistory[i].yaw = getHeadYaw();
             segmentHistory[i].y = position.getY();
         }
     }
@@ -168,7 +169,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
      * Updates the positions of the Ender Dragon's multiple bounding boxes
      */
     private void updateBoundingBoxes() {
-        Vector3f facingDir = Vector3f.createDirectionDeg(0, headYaw);
+        Vector3f facingDir = Vector3f.createDirectionDeg(0, getHeadYaw());
         Segment baseSegment = getSegment(5);
         // Used to angle the head, neck, and tail when the dragon flies up/down
         float pitch = (float) Math.toRadians(10 * (baseSegment.getY() - getSegment(10).getY()));
@@ -187,7 +188,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
         neck.setPosition(facingDir.up(pitchY).mul(pitchXZ, 1, -pitchXZ).mul(5.5f).up(headDuck));
         body.setPosition(facingDir.mul(0.5f, 0f, -0.5f));
 
-        Vector3f wingPos = Vector3f.createDirectionDeg(0, 90f - headYaw).mul(4.5f).up(2f);
+        Vector3f wingPos = Vector3f.createDirectionDeg(0, 90f - getHeadYaw()).mul(4.5f).up(2f);
         rightWing.setPosition(wingPos);
         leftWing.setPosition(wingPos.mul(-1, 1, -1)); // Mirror horizontally
 
@@ -196,7 +197,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
             float distance = (i + 1) * 2f;
             // Curls the tail when the dragon turns
             Segment targetSegment = getSegment(12 + 2 * i);
-            float angle = headYaw + targetSegment.yaw - baseSegment.yaw;
+            float angle = getHeadYaw() + targetSegment.yaw - baseSegment.yaw;
 
             float tailYOffset = targetSegment.y - baseSegment.y - (distance + 1.5f) * pitchY + 1.5f;
             tail[i].setPosition(Vector3f.createDirectionDeg(0, angle).mul(distance).add(tailBase).mul(-pitchXZ, 1, pitchXZ).up(tailYOffset));
@@ -212,7 +213,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
      */
     private void effectTick() {
         Random random = ThreadLocalRandom.current();
-        if (!getFlag(EntityFlag.SILENT)) {
+        if (!silent) {
             if (Math.cos(wingPosition * 2f * Math.PI) <= -0.3f && Math.cos(lastWingPosition * 2f * Math.PI) >= -0.3f) {
                 PlaySoundPacket playSoundPacket = new PlaySoundPacket();
                 playSoundPacket.setSound("mob.enderdragon.flap");
@@ -262,6 +263,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
                         spawnParticleEffectPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
                         spawnParticleEffectPacket.setPosition(head.getPosition().add(random.nextGaussian() / 2f, random.nextGaussian() / 2f, random.nextGaussian() / 2f));
                         spawnParticleEffectPacket.setIdentifier("minecraft:dragon_breath_fire");
+                        spawnParticleEffectPacket.setMolangVariablesJson(Optional.empty());
                         session.sendUpstreamPacket(spawnParticleEffectPacket);
                     }
                 }
@@ -306,7 +308,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
      */
     private void pushSegment() {
         latestSegment = (latestSegment + 1) % segmentHistory.length;
-        segmentHistory[latestSegment].yaw = headYaw;
+        segmentHistory[latestSegment].yaw = getHeadYaw();
         segmentHistory[latestSegment].y = position.getY();
     }
 

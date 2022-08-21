@@ -25,9 +25,6 @@
 
 package org.geysermc.geyser.util;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
@@ -38,7 +35,8 @@ import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.ints.IntLists;
 import lombok.experimental.UtilityClass;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
-import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
+import org.geysermc.geyser.level.BedrockDimension;
+import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.chunk.BlockStorage;
 import org.geysermc.geyser.level.chunk.GeyserChunkSection;
@@ -46,7 +44,6 @@ import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.translator.level.block.entity.BedrockOnlyBlockEntity;
 
 import static org.geysermc.geyser.level.block.BlockStateValues.JAVA_AIR_ID;
@@ -119,41 +116,36 @@ public class ChunkUtils {
     }
 
     /**
-     * Sends a block update to the Bedrock client. If chunk caching is enabled and the platform is not Spigot, this also
-     * adds that block to the cache.
-     * @param session the Bedrock session to send/register the block to
-     * @param blockState the Java block state of the block
-     * @param position the position of the block
-     */
-    public static void updateBlock(GeyserSession session, int blockState, Position position) {
-        Vector3i pos = Vector3i.from(position.getX(), position.getY(), position.getZ());
-        updateBlock(session, blockState, pos);
-    }
-
-    /**
-     * Sends a block update to the Bedrock client. If chunk caching is enabled and the platform is not Spigot, this also
+     * Sends a block update to the Bedrock client. If the platform is not Spigot, this also
      * adds that block to the cache.
      * @param session the Bedrock session to send/register the block to
      * @param blockState the Java block state of the block
      * @param position the position of the block
      */
     public static void updateBlock(GeyserSession session, int blockState, Vector3i position) {
+        updateBlockClientSide(session, blockState, position);
+        session.getChunkCache().updateBlock(position.getX(), position.getY(), position.getZ(), blockState);
+        session.getWorldCache().updateServerCorrectBlockState(position);
+    }
+
+    /**
+     * Updates a block, but client-side only.
+     */
+    public static void updateBlockClientSide(GeyserSession session, int blockState, Vector3i position) {
         // Checks for item frames so they aren't tripped up and removed
         ItemFrameEntity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, position);
         if (itemFrameEntity != null) {
             if (blockState == JAVA_AIR_ID) { // Item frame is still present and no block overrides that; refresh it
                 itemFrameEntity.updateBlock(true);
-                // Still update the chunk cache with the new block
-                session.getChunkCache().updateBlock(position.getX(), position.getY(), position.getZ(), blockState);
+                // Still update the chunk cache with the new block if updateBlock is called
                 return;
             }
             // Otherwise, let's still store our reference to the item frame, but let the new block take precedence for now
         }
 
-        SkullPlayerEntity skull = session.getSkullCache().get(position);
-        if (skull != null && blockState != skull.getBlockState()) {
+        if (BlockStateValues.getSkullVariant(blockState) == -1) {
             // Skull is gone
-            skull.despawnEntity(position);
+            session.getSkullCache().removeSkull(position);
         }
 
         // Prevent moving_piston from being placed
@@ -191,7 +183,6 @@ public class ChunkUtils {
                 break; //No block will be a part of two classes
             }
         }
-        session.getChunkCache().updateBlock(position.getX(), position.getY(), position.getZ(), blockState);
     }
 
     public static void sendEmptyChunk(GeyserSession session, int chunkX, int chunkZ, boolean forceUpdate) {
@@ -227,10 +218,10 @@ public class ChunkUtils {
      * Process the minimum and maximum heights for this dimension, and processes the world coordinate scale.
      * This must be done after the player has switched dimensions so we know what their dimension is
      */
-    public static void loadDimensionTag(GeyserSession session, CompoundTag dimensionTag) {
-        int minY = ((IntTag) dimensionTag.get("min_y")).getValue();
-        int maxY = ((IntTag) dimensionTag.get("height")).getValue();
-        // Logical height can be ignored probably - seems to be for artificial limits like the Nether.
+    public static void loadDimension(GeyserSession session) {
+        JavaDimension dimension = session.getDimensionType();
+        int minY = dimension.minY();
+        int maxY = dimension.maxY();
 
         if (minY % 16 != 0) {
             throw new RuntimeException("Minimum Y must be a multiple of 16!");
@@ -259,11 +250,6 @@ public class ChunkUtils {
         session.getChunkCache().setMinY(minY);
         session.getChunkCache().setHeightY(maxY);
 
-        // Load world coordinate scale for the world border
-        double coordinateScale = ((Number) dimensionTag.get("coordinate_scale").getValue()).doubleValue();
-        session.getWorldBorder().setWorldCoordinateScale(coordinateScale);
-
-        // Set if piglins/hoglins should shake
-        session.setDimensionPiglinSafe(((Number) dimensionTag.get("piglin_safe").getValue()).byteValue() != (byte) 0);
+        session.getWorldBorder().setWorldCoordinateScale(dimension.worldCoordinateScale());
     }
 }

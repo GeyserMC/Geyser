@@ -81,8 +81,8 @@ public class BoatEntity extends Entity {
     public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         // We don't include the rotation (y) as it causes the boat to appear sideways
         setPosition(position.add(0d, this.definition.offset(), 0d));
-        this.yaw = yaw + 90;
-        this.headYaw = yaw + 90;
+        setYaw(yaw + 90);
+        setHeadYaw(yaw + 90);
         setOnGround(isOnGround);
 
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();

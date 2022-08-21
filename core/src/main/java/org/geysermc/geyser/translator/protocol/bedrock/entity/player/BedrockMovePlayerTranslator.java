@@ -31,13 +31,12 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.Server
 import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
-import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
@@ -48,17 +47,6 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
     public void translate(GeyserSession session, MovePlayerPacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
         if (!session.isSpawned()) return;
-
-        if (!session.getUpstream().isInitialized()) {
-            MoveEntityAbsolutePacket moveEntityBack = new MoveEntityAbsolutePacket();
-            moveEntityBack.setRuntimeEntityId(entity.getGeyserId());
-            moveEntityBack.setPosition(entity.getPosition());
-            moveEntityBack.setRotation(entity.getBedrockRotation());
-            moveEntityBack.setTeleported(true);
-            moveEntityBack.setOnGround(true);
-            session.sendUpstreamPacketImmediately(moveEntityBack);
-            return;
-        }
 
         session.setLastMovementTimestamp(System.currentTimeMillis());
 
@@ -77,12 +65,18 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         boolean positionChanged = !entity.getPosition().equals(packet.getPosition());
         boolean rotationChanged = entity.getYaw() != yaw || entity.getPitch() != pitch || entity.getHeadYaw() != headYaw;
 
+        if (session.getLookBackScheduledFuture() != null) {
+            // Resend the rotation if it was changed by Geyser
+            rotationChanged |= !session.getLookBackScheduledFuture().isDone();
+            session.getLookBackScheduledFuture().cancel(false);
+            session.setLookBackScheduledFuture(null);
+        }
+
         // If only the pitch and yaw changed
         // This isn't needed, but it makes the packets closer to vanilla
         // It also means you can't "lag back" while only looking, in theory
         if (!positionChanged && rotationChanged) {
-            ServerboundMovePlayerRotPacket playerRotationPacket = new ServerboundMovePlayerRotPacket(
-                    packet.isOnGround(), packet.getRotation().getY(), packet.getRotation().getX());
+            ServerboundMovePlayerRotPacket playerRotationPacket = new ServerboundMovePlayerRotPacket(packet.isOnGround(), yaw, pitch);
 
             entity.setYaw(yaw);
             entity.setPitch(pitch);
@@ -101,8 +95,11 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                     Packet movePacket;
                     if (rotationChanged) {
                         // Send rotation updates as well
-                        movePacket = new ServerboundMovePlayerPosRotPacket(packet.isOnGround(), position.getX(), position.getY(), position.getZ(),
-                                packet.getRotation().getY(), packet.getRotation().getX());
+                        movePacket = new ServerboundMovePlayerPosRotPacket(
+                                packet.isOnGround(),
+                                position.getX(), position.getY(), position.getZ(),
+                                yaw, pitch
+                        );
                         entity.setYaw(yaw);
                         entity.setPitch(pitch);
                         entity.setHeadYaw(headYaw);
@@ -138,6 +135,8 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                             session.sendUpstreamPacket(movePlayerPacket);
                         }
                     }
+
+                    session.getSkullCache().updateVisibleSkulls();
                 }
             } else {
                 // Not a valid move
