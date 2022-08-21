@@ -121,10 +121,7 @@ public class GeyserImpl implements GeyserApi {
     private FloodgateSkinUploader skinUploader;
     private NewsHandler newsHandler;
 
-    /**
-     * True if the connector is shutting down or has shut down
-     */
-    private boolean shuttingDown = false;
+    private volatile boolean shuttingDown = false;
 
     private ScheduledExecutorService scheduledThread;
 
