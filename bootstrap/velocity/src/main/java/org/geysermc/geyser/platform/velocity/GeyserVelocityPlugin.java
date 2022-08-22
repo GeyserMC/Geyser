@@ -161,6 +161,8 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         } else {
             this.geyserPingPassthrough = new GeyserVelocityPingPassthrough(proxyServer);
         }
+
+        proxyServer.getEventManager().register(this, new GeyserVelocityUpdateListener());
     }
 
     @Override

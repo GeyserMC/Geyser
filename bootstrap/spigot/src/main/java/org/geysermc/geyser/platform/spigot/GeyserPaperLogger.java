@@ -23,51 +23,37 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.command;
+package org.geysermc.geyser.platform.spigot;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import org.geysermc.geyser.text.GeyserLocale;
+import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
+import org.bukkit.plugin.Plugin;
 
-/**
- * Implemented on top of any class that can send a command.
- * For example, it wraps around Spigot's CommandSender class.
- */
-public interface CommandSender {
+import java.util.logging.Logger;
 
-    String name();
+public final class GeyserPaperLogger extends GeyserSpigotLogger {
+    private final ComponentLogger componentLogger;
 
-    default void sendMessage(String[] messages) {
-        for (String message : messages) {
-            sendMessage(message);
+    public GeyserPaperLogger(Plugin plugin, Logger logger, boolean debug) {
+        super(logger, debug);
+        componentLogger = plugin.getComponentLogger();
+    }
+
+    /**
+     * Since 1.18.2 this is required so legacy format symbols don't show up in the console for colors
+     */
+    @Override
+    public void sendMessage(Component message) {
+        // Done like this so the native component object field isn't relocated
+        componentLogger.info("{}", PaperAdventure.toNativeComponent(message));
+    }
+
+    static boolean supported() {
+        try {
+            Plugin.class.getMethod("getComponentLogger");
+            return true;
+        } catch (NoSuchMethodException e) {
+            return false;
         }
     }
-
-    void sendMessage(String message);
-
-    default void sendMessage(Component message) {
-        sendMessage(LegacyComponentSerializer.legacySection().serialize(message));
-    }
-
-    /**
-     * @return true if the specified sender is from the console.
-     */
-    boolean isConsole();
-
-    /**
-     * Returns the locale of the command sender. Defaults to the default locale at {@link GeyserLocale#getDefaultLocale()}.
-     * 
-     * @return the locale of the command sender.
-     */
-    default String getLocale() {
-        return GeyserLocale.getDefaultLocale();
-    }
-
-    /**
-     * Checks if the CommandSender has a permission
-     *
-     * @param permission The permission node to check
-     * @return true if the CommandSender has the requested permission, false if not
-     */
-    boolean hasPermission(String permission);
 }

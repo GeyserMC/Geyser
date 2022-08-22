@@ -149,6 +149,8 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         }
 
         this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor(geyser));
+
+        this.getProxy().getPluginManager().registerListener(this, new GeyserBungeeUpdateListener());
     }
 
     @Override

@@ -105,6 +105,8 @@ public interface GeyserConfiguration {
 
     int getCustomSkullRenderDistance();
 
+    boolean isNotifyOnNewBedrockUpdate();
+
     IMetricsInfo getMetrics();
 
     int getPendingAuthenticationTimeout();

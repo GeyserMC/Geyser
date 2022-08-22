@@ -28,6 +28,7 @@ package org.geysermc.geyser.platform.velocity.command;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import com.velocitypowered.api.proxy.Player;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -57,6 +58,12 @@ public class VelocityCommandSender implements CommandSender {
     @Override
     public void sendMessage(String message) {
         handle.sendMessage(LegacyComponentSerializer.legacy('§').deserialize(message));
+    }
+
+    @Override
+    public void sendMessage(Component message) {
+        // Be careful that we don't shade in Adventure!!
+        handle.sendMessage(message);
     }
 
     @Override

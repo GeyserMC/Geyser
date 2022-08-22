@@ -23,32 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser;
+package org.geysermc.geyser.platform.velocity;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.connection.PostLoginEvent;
+import com.velocitypowered.api.proxy.Player;
+import org.geysermc.geyser.Constants;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.platform.velocity.command.VelocityCommandSender;
+import org.geysermc.geyser.util.VersionCheckUtils;
 
-public final class Constants {
-    public static final URI GLOBAL_API_WS_URI;
-    public static final String NTP_SERVER = "time.cloudflare.com";
+public final class GeyserVelocityUpdateListener {
 
-    public static final String NEWS_OVERVIEW_URL = "https://api.geysermc.org/v2/news/";
-    public static final String NEWS_PROJECT_NAME = "geyser";
-
-    public static final String FLOODGATE_DOWNLOAD_LOCATION = "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/";
-
-    public static final String GEYSER_DOWNLOAD_LOCATION = "https://ci.geysermc.org";
-    public static final String UPDATE_PERMISSION = "geyser.update";
-
-    static final String SAVED_REFRESH_TOKEN_FILE = "saved-refresh-tokens.json";
-
-    static {
-        URI wsUri = null;
-        try {
-            wsUri = new URI("wss://api.geysermc.org/ws");
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
+    @Subscribe
+    public void onPlayerJoin(PostLoginEvent event) {
+        if (GeyserImpl.getInstance().getConfig().isNotifyOnNewBedrockUpdate()) {
+            final Player player = event.getPlayer();
+            if (player.hasPermission(Constants.UPDATE_PERMISSION)) {
+                VersionCheckUtils.checkForGeyserUpdate(() -> new VelocityCommandSender(player));
+            }
         }
-        GLOBAL_API_WS_URI = wsUri;
     }
 }

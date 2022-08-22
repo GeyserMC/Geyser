@@ -123,6 +123,22 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             return;
         }
 
+        try {
+            Class.forName("net.md_5.bungee.chat.ComponentSerializer");
+        } catch (ClassNotFoundException e) {
+            if (!PaperAdventure.canSendMessageUsingComponent()) { // Prepare for Paper eventually removing Bungee chat
+                getLogger().severe("*********************************************");
+                getLogger().severe("");
+                getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_server_type.header", getServer().getName()));
+                getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_server_type.message", "Paper"));
+                getLogger().severe("");
+                getLogger().severe("*********************************************");
+
+                Bukkit.getPluginManager().disablePlugin(this);
+                return;
+            }
+        }
+
         // By default this should be localhost but may need to be changed in some circumstances
         if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
             geyserConfig.setAutoconfiguredRemote(true);
@@ -137,7 +153,8 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             geyserConfig.getBedrock().setPort(Bukkit.getPort());
         }
 
-        this.geyserLogger = new GeyserSpigotLogger(getLogger(), geyserConfig.isDebugMode());
+        this.geyserLogger = GeyserPaperLogger.supported() ? new GeyserPaperLogger(this, getLogger(), geyserConfig.isDebugMode())
+                : new GeyserSpigotLogger(getLogger(), geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
         // Remove this in like a year
@@ -266,12 +283,16 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                         GeyserLocale.getLocaleStringLog(command.getDescription()),
                         command.isSuggestedOpOnly() ? PermissionDefault.OP : PermissionDefault.TRUE));
             }
+            Bukkit.getPluginManager().addPermission(new Permission(Constants.UPDATE_PERMISSION,
+                    "Whether update notifications can be seen", PermissionDefault.OP));
 
             // Events cannot be unregistered - re-registering results in duplicate firings
             GeyserSpigotBlockPlaceListener blockPlaceListener = new GeyserSpigotBlockPlaceListener(geyser, this.geyserWorldManager);
             Bukkit.getServer().getPluginManager().registerEvents(blockPlaceListener, this);
 
             Bukkit.getServer().getPluginManager().registerEvents(new GeyserPistonListener(geyser, this.geyserWorldManager), this);
+
+            Bukkit.getServer().getPluginManager().registerEvents(new GeyserSpigotUpdateListener(), this);
         }
 
         boolean brigadierSupported = CommodoreProvider.isSupported();

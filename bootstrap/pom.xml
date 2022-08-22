@@ -11,6 +11,10 @@
     <artifactId>bootstrap-parent</artifactId>
     <packaging>pom</packaging>
 
+    <properties>
+        <adventure-platform.version>4.1.2</adventure-platform.version>
+    </properties>
+
     <repositories>
         <repository>
             <id>spigot-public</id>

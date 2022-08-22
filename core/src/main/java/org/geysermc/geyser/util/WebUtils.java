@@ -73,6 +73,8 @@ public class WebUtils {
     public static JsonNode getJson(String reqURL) throws IOException {
         HttpURLConnection con = (HttpURLConnection) new URL(reqURL).openConnection();
         con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION);
+        con.setConnectTimeout(10000);
+        con.setReadTimeout(10000);
         return GeyserImpl.JSON_MAPPER.readTree(con.getInputStream());
     }
 

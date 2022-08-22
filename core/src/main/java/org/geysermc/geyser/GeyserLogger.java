@@ -25,9 +25,12 @@
 
 package org.geysermc.geyser;
 
+import net.kyori.adventure.text.Component;
+import org.geysermc.geyser.command.CommandSender;
+
 import javax.annotation.Nullable;
 
-public interface GeyserLogger {
+public interface GeyserLogger extends CommandSender {
 
     /**
      * Logs a severe message to console
@@ -74,6 +77,15 @@ public interface GeyserLogger {
     void info(String message);
 
     /**
+     * Logs an info component to console
+     *
+     * @param message the message to log
+     */
+    default void info(Component message) {
+        sendMessage(message);
+    }
+
+    /**
      * Logs a debug message to console
      *
      * @param message the message to log
@@ -100,4 +112,24 @@ public interface GeyserLogger {
      * If debug is enabled for this logger
      */
     boolean isDebug();
+
+    @Override
+    default String name() {
+        return "CONSOLE";
+    }
+
+    @Override
+    default void sendMessage(String message) {
+        info(message);
+    }
+
+    @Override
+    default boolean isConsole() {
+        return true;
+    }
+
+    @Override
+    default boolean hasPermission(String permission) {
+        return true;
+    }
 }
