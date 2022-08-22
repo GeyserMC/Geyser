@@ -173,7 +173,6 @@ public final class WorldCache {
             if (serverVerifiedState.sequence <= sequence) {
                 // This block may be out of sync with the server
                 // In 1.19.0 Java, you can verify this by trying to mine in spawn protection
-                System.out.println("Resetting " + entry.getKey() + " to " + BlockRegistries.JAVA_BLOCKS.get(serverVerifiedState.blockState).getJavaIdentifier());
                 ChunkUtils.updateBlockClientSide(session, serverVerifiedState.blockState, entry.getKey());
                 it.remove();
             }
