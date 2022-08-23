@@ -45,7 +45,10 @@ public final class MinecraftProtocol {
      * Default Bedrock codec that should act as a fallback. Should represent the latest available
      * release of the game that Geyser supports.
      */
-    public static final BedrockPacketCodec DEFAULT_BEDROCK_CODEC = Bedrock_v544.V544_CODEC;
+    public static final BedrockPacketCodec DEFAULT_BEDROCK_CODEC = Bedrock_v544.V544_CODEC.toBuilder()
+            .minecraftVersion("1.19.21")
+            .protocolVersion(545)
+            .build();
     /**
      * A list of all supported Bedrock versions that can join Geyser
      */
@@ -64,6 +67,7 @@ public final class MinecraftProtocol {
         SUPPORTED_BEDROCK_CODECS.add(Bedrock_v534.V534_CODEC.toBuilder()
                 .minecraftVersion("1.19.10/1.19.11")
                 .build());
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v544.V544_CODEC);
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
     }
 
