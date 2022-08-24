@@ -25,9 +25,6 @@
 
 package org.geysermc.geyser.api.command;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-
 /**
  * Represents an instance capable of sending commands.
  */
@@ -56,10 +53,6 @@ public interface CommandSource {
         for (String message : messages) {
             sendMessage(message);
         }
-    }
-
-    default void sendMessage(Component message) {
-        sendMessage(LegacyComponentSerializer.legacySection().serialize(message));
     }
 
     /**

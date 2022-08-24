@@ -27,6 +27,8 @@ package org.geysermc.geyser.command;
 
 import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.text.GeyserLocale;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 /**
  * Implemented on top of any class that can send a command.
@@ -39,5 +41,9 @@ public interface GeyserCommandSource extends CommandSource {
      */
     default String locale() {
         return GeyserLocale.getDefaultLocale();
+    }
+
+    default void sendMessage(Component message) {
+        sendMessage(LegacyComponentSerializer.legacySection().serialize(message));
     }
 }

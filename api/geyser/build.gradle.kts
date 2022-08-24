@@ -4,8 +4,6 @@ plugins {
 
 dependencies {
     api(projects.api)
-
-    implementation("net.kyori", "adventure-text-serializer-legacy", Versions.adventureVersion)
 }
 
 publishing {
