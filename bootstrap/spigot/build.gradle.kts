@@ -27,6 +27,7 @@ dependencies {
 
 platformRelocate("it.unimi.dsi.fastutil")
 platformRelocate("com.fasterxml.jackson")
+// Relocate net.kyori but exclude the component logger
 platformRelocate("net.kyori", "net.kyori.adventure.text.logger.slf4j.ComponentLogger")
 platformRelocate("org.objectweb.asm")
 platformRelocate("me.lucko.commodore")
@@ -63,8 +64,5 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
 
         // Commodore includes Brigadier
         exclude(dependency("com.mojang:.*"))
-
-        // Adventure slf4j
-        //exclude(dependency("net.kyori.adventure.text.logger.slf4j:ComponentLogger"))
     }
 }
