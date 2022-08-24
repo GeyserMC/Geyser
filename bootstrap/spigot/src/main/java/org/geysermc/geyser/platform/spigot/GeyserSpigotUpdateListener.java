@@ -31,7 +31,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.platform.spigot.command.SpigotCommandSender;
+import org.geysermc.geyser.platform.spigot.command.SpigotCommandSource;
 import org.geysermc.geyser.util.VersionCheckUtils;
 
 public final class GeyserSpigotUpdateListener implements Listener {
@@ -41,7 +41,7 @@ public final class GeyserSpigotUpdateListener implements Listener {
         if (GeyserImpl.getInstance().getConfig().isNotifyOnNewBedrockUpdate()) {
             final Player player = event.getPlayer();
             if (player.hasPermission(Constants.UPDATE_PERMISSION)) {
-                VersionCheckUtils.checkForGeyserUpdate(() -> new SpigotCommandSender(player));
+                VersionCheckUtils.checkForGeyserUpdate(() -> new SpigotCommandSource(player));
             }
         }
     }

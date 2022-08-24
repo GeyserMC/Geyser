@@ -54,7 +54,7 @@ import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.click.Click;
 import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.geyser.network.MinecraftProtocol;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
@@ -467,7 +467,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 InteractAction.ATTACK, session.isSneaking());
                         session.sendDownstreamPacket(attackPacket);
 
-                        if (MinecraftProtocol.supports1_19_10(session)) {
+                        if (GameProtocol.supports1_19_10(session)) {
                             // Since 1.19.10, LevelSoundEventPackets are no longer sent by the client when attacking entities
                             CooldownUtils.sendCooldown(session);
                         }

@@ -31,7 +31,7 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.platform.bungeecord.command.BungeeCommandSender;
+import org.geysermc.geyser.platform.bungeecord.command.BungeeCommandSource;
 import org.geysermc.geyser.util.VersionCheckUtils;
 
 public final class GeyserBungeeUpdateListener implements Listener {
@@ -41,7 +41,7 @@ public final class GeyserBungeeUpdateListener implements Listener {
         if (GeyserImpl.getInstance().getConfig().isNotifyOnNewBedrockUpdate()) {
             final ProxiedPlayer player = event.getPlayer();
             if (player.hasPermission(Constants.UPDATE_PERMISSION)) {
-                VersionCheckUtils.checkForGeyserUpdate(() -> new BungeeCommandSender(player));
+                VersionCheckUtils.checkForGeyserUpdate(() -> new BungeeCommandSource(player));
             }
         }
     }

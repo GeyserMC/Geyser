@@ -26,11 +26,11 @@
 package org.geysermc.geyser;
 
 import net.kyori.adventure.text.Component;
-import org.geysermc.geyser.command.CommandSender;
+import org.geysermc.geyser.command.GeyserCommandSource;
 
 import javax.annotation.Nullable;
 
-public interface GeyserLogger extends CommandSender {
+public interface GeyserLogger extends GeyserCommandSource {
 
     /**
      * Logs a severe message to console
