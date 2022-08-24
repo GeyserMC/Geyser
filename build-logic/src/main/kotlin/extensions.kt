@@ -43,9 +43,11 @@ fun Project.exclude(group: String) {
     }
 }
 
-fun Project.platformRelocate(pattern: String) {
+fun Project.platformRelocate(pattern: String, exclusion: String = "") {
     tasks.named<ShadowJar>("shadowJar") {
-        relocate(pattern, "org.geysermc.geyser.platform.${project.name}.shaded.$pattern")
+        relocate(pattern, "org.geysermc.geyser.platform.${project.name}.shaded.$pattern") {
+            exclude(exclusion)
+        }
     }
 }
 

@@ -27,7 +27,7 @@ dependencies {
 
 platformRelocate("it.unimi.dsi.fastutil")
 platformRelocate("com.fasterxml.jackson")
-platformRelocate("net.kyori")
+platformRelocate("net.kyori", "net.kyori.adventure.text.logger.slf4j.ComponentLogger")
 platformRelocate("org.objectweb.asm")
 platformRelocate("me.lucko.commodore")
 platformRelocate("io.netty.channel.kqueue")
@@ -65,6 +65,6 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
         exclude(dependency("com.mojang:.*"))
 
         // Adventure slf4j
-        exclude(dependency("net.kyori.adventure.text.logger.slf4j:ComponentLogger"))
+        //exclude(dependency("net.kyori.adventure.text.logger.slf4j:ComponentLogger"))
     }
 }
