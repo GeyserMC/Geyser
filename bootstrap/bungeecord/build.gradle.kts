@@ -2,6 +2,8 @@ val bungeeVersion = "a7c6ede";
 
 dependencies {
     api(projects.core)
+
+    implementation("net.kyori", "adventure-text-serializer-bungeecord", Versions.adventurePlatformVersion)
 }
 
 platformRelocate("net.md_5.bungee.jni")
