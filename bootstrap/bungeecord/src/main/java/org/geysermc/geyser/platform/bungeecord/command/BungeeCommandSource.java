@@ -25,10 +25,14 @@
 
 package org.geysermc.geyser.platform.bungeecord.command;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.GeyserLocale;
+
+import java.util.Locale;
 
 public class BungeeCommandSource implements GeyserCommandSource {
 
@@ -50,6 +54,18 @@ public class BungeeCommandSource implements GeyserCommandSource {
         handle.sendMessage(TextComponent.fromLegacyText(message));
     }
 
+    private static final int PROTOCOL_HEX_COLOR = 713; // Added 20w17a
+
+    @Override
+    public void sendMessage(Component message) {
+        if (handle instanceof ProxiedPlayer player && player.getPendingConnection().getVersion() >= PROTOCOL_HEX_COLOR) {
+            // Include hex colors
+            handle.sendMessage(BungeeComponentSerializer.get().serialize(message));
+            return;
+        }
+        handle.sendMessage(BungeeComponentSerializer.legacy().serialize(message));
+    }
+
     @Override
     public boolean isConsole() {
         return !(handle instanceof ProxiedPlayer);
@@ -58,8 +74,11 @@ public class BungeeCommandSource implements GeyserCommandSource {
     @Override
     public String locale() {
         if (handle instanceof ProxiedPlayer player) {
-            String locale = player.getLocale().getLanguage() + "_" + player.getLocale().getCountry();
-            return GeyserLocale.formatLocale(locale);
+            Locale locale = player.getLocale();
+            if (locale != null) {
+                // Locale can be null early on in the conneciton
+                return GeyserLocale.formatLocale(locale.getLanguage() + "_" + locale.getCountry());
+            }
         }
         return GeyserLocale.getDefaultLocale();
     }

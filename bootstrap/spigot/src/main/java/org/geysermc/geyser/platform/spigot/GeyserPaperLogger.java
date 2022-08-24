@@ -23,32 +23,37 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser;
+package org.geysermc.geyser.platform.spigot;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
+import org.bukkit.plugin.Plugin;
 
-public final class Constants {
-    public static final URI GLOBAL_API_WS_URI;
-    public static final String NTP_SERVER = "time.cloudflare.com";
+import java.util.logging.Logger;
 
-    public static final String NEWS_OVERVIEW_URL = "https://api.geysermc.org/v2/news/";
-    public static final String NEWS_PROJECT_NAME = "geyser";
+public final class GeyserPaperLogger extends GeyserSpigotLogger {
+    private final ComponentLogger componentLogger;
 
-    public static final String FLOODGATE_DOWNLOAD_LOCATION = "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/";
+    public GeyserPaperLogger(Plugin plugin, Logger logger, boolean debug) {
+        super(logger, debug);
+        componentLogger = plugin.getComponentLogger();
+    }
 
-    public static final String GEYSER_DOWNLOAD_LOCATION = "https://ci.geysermc.org";
-    public static final String UPDATE_PERMISSION = "geyser.update";
+    /**
+     * Since 1.18.2 this is required so legacy format symbols don't show up in the console for colors
+     */
+    @Override
+    public void sendMessage(Component message) {
+        // Done like this so the native component object field isn't relocated
+        componentLogger.info("{}", PaperAdventure.toNativeComponent(message));
+    }
 
-    static final String SAVED_REFRESH_TOKEN_FILE = "saved-refresh-tokens.json";
-
-    static {
-        URI wsUri = null;
+    static boolean supported() {
         try {
-            wsUri = new URI("wss://api.geysermc.org/ws");
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
+            Plugin.class.getMethod("getComponentLogger");
+            return true;
+        } catch (NoSuchMethodException e) {
+            return false;
         }
-        GLOBAL_API_WS_URI = wsUri;
     }
 }
