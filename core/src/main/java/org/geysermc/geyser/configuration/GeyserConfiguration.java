@@ -105,6 +105,8 @@ public interface GeyserConfiguration {
 
     int getCustomSkullRenderDistance();
 
+    boolean isLogPlayerIpAddresses();
+
     boolean isNotifyOnNewBedrockUpdate();
 
     IMetricsInfo getMetrics();

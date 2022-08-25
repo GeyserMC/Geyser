@@ -135,7 +135,6 @@ import org.geysermc.geyser.util.MathUtils;
 
 import javax.annotation.Nonnull;
 import java.net.ConnectException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -1045,7 +1044,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
             } else {
                 // Downstream's disconnect will fire an event that prints a log message
                 // Otherwise, we print a message here
-                InetAddress address = upstream.getAddress().getAddress();
+                String address = geyser.getConfig().isLogPlayerIpAddresses() ? upstream.getAddress().getAddress().toString() : "<IP address withheld>";
                 geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.disconnect", address, reason));
             }
             if (!upstream.isClosed()) {
