@@ -31,11 +31,10 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.text.ChatColor;
 
 @Log4j2
-public class GeyserStandaloneLogger extends SimpleTerminalConsole implements GeyserLogger, CommandSender {
+public class GeyserStandaloneLogger extends SimpleTerminalConsole implements GeyserLogger {
 
     @Override
     protected boolean isRunning() {
@@ -94,25 +93,5 @@ public class GeyserStandaloneLogger extends SimpleTerminalConsole implements Gey
 
     public boolean isDebug() {
         return log.isDebugEnabled();
-    }
-
-    @Override
-    public String name() {
-        return "CONSOLE";
-    }
-
-    @Override
-    public void sendMessage(String message) {
-        info(message);
-    }
-
-    @Override
-    public boolean isConsole() {
-        return true;
-    }
-
-    @Override
-    public boolean hasPermission(String permission) {
-        return true;
     }
 }

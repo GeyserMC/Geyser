@@ -23,26 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.floodgate.pluginmessage;
+package org.geysermc.geyser.platform.bungeecord;
 
-import java.nio.charset.StandardCharsets;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.md_5.bungee.api.event.PostLoginEvent;
+import net.md_5.bungee.api.plugin.Listener;
+import net.md_5.bungee.event.EventHandler;
+import org.geysermc.geyser.Constants;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.platform.bungeecord.command.BungeeCommandSender;
+import org.geysermc.geyser.util.VersionCheckUtils;
 
-public final class PluginMessageChannels {
-    public static final String SKIN = "floodgate:skin";
-    public static final String FORM = "floodgate:form";
-    public static final String TRANSFER = "floodgate:transfer";
-    public static final String PACKET = "floodgate:packet";
+public final class GeyserBungeeUpdateListener implements Listener {
 
-    private static final byte[] FLOODGATE_REGISTER_DATA =
-            String.join("\0", SKIN, FORM, TRANSFER, PACKET)
-                    .getBytes(StandardCharsets.UTF_8);
-
-    /**
-     * Get the prebuilt register data as a byte array
-     *
-     * @return the register data of the Floodgate channels
-     */
-    public static byte[] getFloodgateRegisterData() {
-        return FLOODGATE_REGISTER_DATA;
+    @EventHandler
+    public void onPlayerJoin(final PostLoginEvent event) {
+        if (GeyserImpl.getInstance().getConfig().isNotifyOnNewBedrockUpdate()) {
+            final ProxiedPlayer player = event.getPlayer();
+            if (player.hasPermission(Constants.UPDATE_PERMISSION)) {
+                VersionCheckUtils.checkForGeyserUpdate(() -> new BungeeCommandSender(player));
+            }
+        }
     }
 }

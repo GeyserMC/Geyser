@@ -151,6 +151,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("xbox-achievements-enabled")
     private boolean xboxAchievementsEnabled = false;
 
+    @JsonProperty("notify-on-new-bedrock-update")
+    private boolean notifyOnNewBedrockUpdate = true;
+
     private MetricsInfo metrics = new MetricsInfo();
 
     @JsonProperty("pending-authentication-timeout")

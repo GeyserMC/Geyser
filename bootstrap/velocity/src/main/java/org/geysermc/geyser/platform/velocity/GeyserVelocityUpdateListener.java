@@ -23,26 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.floodgate.pluginmessage;
+package org.geysermc.geyser.platform.velocity;
 
-import java.nio.charset.StandardCharsets;
+import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.connection.PostLoginEvent;
+import com.velocitypowered.api.proxy.Player;
+import org.geysermc.geyser.Constants;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.platform.velocity.command.VelocityCommandSender;
+import org.geysermc.geyser.util.VersionCheckUtils;
 
-public final class PluginMessageChannels {
-    public static final String SKIN = "floodgate:skin";
-    public static final String FORM = "floodgate:form";
-    public static final String TRANSFER = "floodgate:transfer";
-    public static final String PACKET = "floodgate:packet";
+public final class GeyserVelocityUpdateListener {
 
-    private static final byte[] FLOODGATE_REGISTER_DATA =
-            String.join("\0", SKIN, FORM, TRANSFER, PACKET)
-                    .getBytes(StandardCharsets.UTF_8);
-
-    /**
-     * Get the prebuilt register data as a byte array
-     *
-     * @return the register data of the Floodgate channels
-     */
-    public static byte[] getFloodgateRegisterData() {
-        return FLOODGATE_REGISTER_DATA;
+    @Subscribe
+    public void onPlayerJoin(PostLoginEvent event) {
+        if (GeyserImpl.getInstance().getConfig().isNotifyOnNewBedrockUpdate()) {
+            final Player player = event.getPlayer();
+            if (player.hasPermission(Constants.UPDATE_PERMISSION)) {
+                VersionCheckUtils.checkForGeyserUpdate(() -> new VelocityCommandSender(player));
+            }
+        }
     }
 }

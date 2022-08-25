@@ -41,6 +41,8 @@ import io.netty.util.internal.SystemPropertyUtil;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.Geyser;
@@ -66,7 +68,6 @@ import org.geysermc.geyser.session.SessionManager;
 import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
 import org.geysermc.geyser.skin.SkinProvider;
-import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
@@ -303,8 +304,8 @@ public class GeyserImpl implements GeyserApi {
                     int port = config.getBedrock().getPort();
                     logger.severe(GeyserLocale.getLocaleStringLog("geyser.core.fail", address, String.valueOf(port)));
                     if (!"0.0.0.0".equals(address)) {
-                        logger.info(ChatColor.GREEN + "Suggestion: try setting `address` under `bedrock` in the Geyser config back to 0.0.0.0");
-                        logger.info(ChatColor.GREEN + "Then, restart this server.");
+                        logger.info(Component.text("Suggestion: try setting `address` under `bedrock` in the Geyser config back to 0.0.0.0", NamedTextColor.GREEN));
+                        logger.info(Component.text("Then, restart this server.", NamedTextColor.GREEN));
                     }
                 }
             }).join();
@@ -454,6 +455,9 @@ public class GeyserImpl implements GeyserApi {
         }
 
         newsHandler.handleNews(null, NewsItemAction.ON_SERVER_STARTED);
+        if (config.isNotifyOnNewBedrockUpdate()) {
+            VersionCheckUtils.checkForGeyserUpdate(this::getLogger);
+        }
     }
 
     @Override

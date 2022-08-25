@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.command;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.geyser.text.GeyserLocale;
 
 /**
@@ -42,6 +44,10 @@ public interface CommandSender {
     }
 
     void sendMessage(String message);
+
+    default void sendMessage(Component message) {
+        sendMessage(LegacyComponentSerializer.legacySection().serialize(message));
+    }
 
     /**
      * @return true if the specified sender is from the console.

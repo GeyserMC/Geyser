@@ -31,13 +31,12 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.Server
 import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
-import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
@@ -48,17 +47,6 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
     public void translate(GeyserSession session, MovePlayerPacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
         if (!session.isSpawned()) return;
-
-        if (!session.getUpstream().isInitialized()) {
-            MoveEntityAbsolutePacket moveEntityBack = new MoveEntityAbsolutePacket();
-            moveEntityBack.setRuntimeEntityId(entity.getGeyserId());
-            moveEntityBack.setPosition(entity.getPosition());
-            moveEntityBack.setRotation(entity.getBedrockRotation());
-            moveEntityBack.setTeleported(true);
-            moveEntityBack.setOnGround(true);
-            session.sendUpstreamPacketImmediately(moveEntityBack);
-            return;
-        }
 
         session.setLastMovementTimestamp(System.currentTimeMillis());
 

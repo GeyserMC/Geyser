@@ -106,6 +106,9 @@ public class LivingEntity extends Entity {
 
         // Riptide spin attack
         setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, (xd & 0x04) == 0x04);
+
+        // OptionalPack usage
+        setFlag(EntityFlag.EMERGING, isUsingItem && isUsingOffhand);
     }
 
     public void setHealth(FloatEntityMetadata entityMetadata) {

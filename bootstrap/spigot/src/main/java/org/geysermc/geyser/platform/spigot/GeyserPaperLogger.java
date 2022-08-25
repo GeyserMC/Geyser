@@ -23,26 +23,37 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.floodgate.pluginmessage;
+package org.geysermc.geyser.platform.spigot;
 
-import java.nio.charset.StandardCharsets;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
+import org.bukkit.plugin.Plugin;
 
-public final class PluginMessageChannels {
-    public static final String SKIN = "floodgate:skin";
-    public static final String FORM = "floodgate:form";
-    public static final String TRANSFER = "floodgate:transfer";
-    public static final String PACKET = "floodgate:packet";
+import java.util.logging.Logger;
 
-    private static final byte[] FLOODGATE_REGISTER_DATA =
-            String.join("\0", SKIN, FORM, TRANSFER, PACKET)
-                    .getBytes(StandardCharsets.UTF_8);
+public final class GeyserPaperLogger extends GeyserSpigotLogger {
+    private final ComponentLogger componentLogger;
+
+    public GeyserPaperLogger(Plugin plugin, Logger logger, boolean debug) {
+        super(logger, debug);
+        componentLogger = plugin.getComponentLogger();
+    }
 
     /**
-     * Get the prebuilt register data as a byte array
-     *
-     * @return the register data of the Floodgate channels
+     * Since 1.18.2 this is required so legacy format symbols don't show up in the console for colors
      */
-    public static byte[] getFloodgateRegisterData() {
-        return FLOODGATE_REGISTER_DATA;
+    @Override
+    public void sendMessage(Component message) {
+        // Done like this so the native component object field isn't relocated
+        componentLogger.info("{}", PaperAdventure.toNativeComponent(message));
+    }
+
+    static boolean supported() {
+        try {
+            Plugin.class.getMethod("getComponentLogger");
+            return true;
+        } catch (NoSuchMethodException e) {
+            return false;
+        }
     }
 }

@@ -25,10 +25,13 @@
 
 package org.geysermc.geyser.platform.spigot.command;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandSender;
+import org.geysermc.geyser.platform.spigot.PaperAdventure;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.lang.reflect.InvocationTargetException;
@@ -61,6 +64,16 @@ public class SpigotCommandSender implements CommandSender {
     @Override
     public void sendMessage(String message) {
         handle.sendMessage(message);
+    }
+
+    @Override
+    public void sendMessage(Component message) {
+        if (PaperAdventure.canSendMessageUsingComponent()) {
+            PaperAdventure.sendMessage(handle, message);
+            return;
+        }
+
+        handle.sendMessage(BungeeComponentSerializer.get().serialize(message));
     }
 
     @Override
