@@ -14,7 +14,7 @@
         <adventure.version>4.12.0-20220629.025215-9</adventure.version> <!-- Snapshot fixes https://github.com/KyoriPowered/adventure/issues/792 -->
         <fastutil.version>8.5.2</fastutil.version>
         <jackson.version>2.13.2</jackson.version>
-        <netty.version>4.1.66.Final</netty.version>
+        <netty.version>4.1.80.Final</netty.version>
     </properties>
 
     <repositories>
