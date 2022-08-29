@@ -43,7 +43,7 @@ public class BrewingInventoryTranslator extends AbstractBlockInventoryTranslator
     public void openInventory(GeyserSession session, Inventory inventory) {
         super.openInventory(session, inventory);
         ContainerSetDataPacket dataPacket = new ContainerSetDataPacket();
-        dataPacket.setWindowId((byte) inventory.getId());
+        dataPacket.setWindowId((byte) inventory.getBedrockId());
         dataPacket.setProperty(ContainerSetDataPacket.BREWING_STAND_FUEL_TOTAL);
         dataPacket.setValue(20);
         session.sendUpstreamPacket(dataPacket);
@@ -52,7 +52,7 @@ public class BrewingInventoryTranslator extends AbstractBlockInventoryTranslator
     @Override
     public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
         ContainerSetDataPacket dataPacket = new ContainerSetDataPacket();
-        dataPacket.setWindowId((byte) inventory.getId());
+        dataPacket.setWindowId((byte) inventory.getBedrockId());
         switch (key) {
             case 0:
                 dataPacket.setProperty(ContainerSetDataPacket.BREWING_STAND_BREW_TIME);

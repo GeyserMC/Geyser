@@ -127,7 +127,7 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
             // Slot should be determined as 0, 1, or 2
             return rejectRequest(request);
         }
-        ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(inventory.getId(), javaSlot);
+        ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(inventory.getJavaId(), javaSlot);
         session.sendDownstreamPacket(packet);
         return acceptRequest(request, makeContainerEntries(session, inventory, IntSets.emptySet()));
     }

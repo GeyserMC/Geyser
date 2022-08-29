@@ -133,7 +133,7 @@ public class BlockInventoryHolder extends InventoryHolder {
     @Override
     public void openInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
-        containerOpenPacket.setId((byte) inventory.getId());
+        containerOpenPacket.setId((byte) inventory.getBedrockId());
         containerOpenPacket.setType(containerType);
         containerOpenPacket.setBlockPosition(inventory.getHolderPosition());
         containerOpenPacket.setUniqueEntityId(inventory.getHolderId());
@@ -146,7 +146,7 @@ public class BlockInventoryHolder extends InventoryHolder {
             // No need to reset a block since we didn't change any blocks
             // But send a container close packet because we aren't destroying the original.
             ContainerClosePacket packet = new ContainerClosePacket();
-            packet.setId((byte) inventory.getId());
+            packet.setId((byte) inventory.getBedrockId());
             packet.setUnknownBool0(true); //TODO needs to be changed in Protocol to "server-side" or something
             session.sendUpstreamPacket(packet);
             return;
