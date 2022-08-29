@@ -106,6 +106,7 @@ public abstract class Inventory {
     // This is to prevent conflicts with special bedrock inventory IDs.
     // The vanilla java server only sends an ID between 1 and 100 when opening an inventory,
     // so this is rarely needed. (certain plugins)
+    // Example: https://github.com/GeyserMC/Geyser/issues/3254
     public int getBedrockId() {
         return javaId <= 100 ? javaId : (javaId % 100) + 1;
     }
