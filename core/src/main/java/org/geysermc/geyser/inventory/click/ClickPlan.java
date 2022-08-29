@@ -144,7 +144,7 @@ public final class ClickPlan {
             }
 
             ServerboundContainerClickPacket clickPacket = new ServerboundContainerClickPacket(
-                    inventory.getId(),
+                    inventory.getJavaId(),
                     stateId,
                     action.slot,
                     action.click.actionType,

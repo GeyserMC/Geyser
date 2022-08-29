@@ -54,7 +54,7 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
     @Override
     public void translate(GeyserSession session, ClientboundMerchantOffersPacket packet) {
         Inventory openInventory = session.getOpenInventory();
-        if (!(openInventory instanceof MerchantContainer merchantInventory && openInventory.getId() == packet.getContainerId())) {
+        if (!(openInventory instanceof MerchantContainer merchantInventory && openInventory.getJavaId() == packet.getContainerId())) {
             return;
         }
 

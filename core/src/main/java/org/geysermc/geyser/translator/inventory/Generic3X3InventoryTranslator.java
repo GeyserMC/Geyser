@@ -52,7 +52,7 @@ public class Generic3X3InventoryTranslator extends AbstractBlockInventoryTransla
     @Override
     public void openInventory(GeyserSession session, Inventory inventory) {
         ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
-        containerOpenPacket.setId((byte) inventory.getId());
+        containerOpenPacket.setId((byte) inventory.getBedrockId());
         // Required for opening the real block - otherwise, if the container type is incorrect, it refuses to open
         containerOpenPacket.setType(((Generic3X3Container) inventory).isDropper() ? com.nukkitx.protocol.bedrock.data.inventory.ContainerType.DROPPER : com.nukkitx.protocol.bedrock.data.inventory.ContainerType.DISPENSER);
         containerOpenPacket.setBlockPosition(inventory.getHolderPosition());
