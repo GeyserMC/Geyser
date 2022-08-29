@@ -73,7 +73,8 @@ public class SpigotCommandSender implements CommandSender {
             return;
         }
 
-        handle.sendMessage(BungeeComponentSerializer.get().serialize(message));
+        // CommandSender#sendMessage(BaseComponent[]) is Paper-only
+        handle.spigot().sendMessage(BungeeComponentSerializer.get().serialize(message));
     }
 
     @Override
