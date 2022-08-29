@@ -159,6 +159,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class BedrockConfiguration implements IBedrockConfiguration {
         @AsteriskSerializer.Asterisk(isIp = true)
+        @JsonProperty("address")
         private String address = "0.0.0.0";
 
         @Override
@@ -167,6 +168,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         }
 
         @Setter
+        @JsonProperty("port")
         private int port = 19132;
 
         @Override
@@ -178,6 +180,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         @JsonProperty("clone-remote-port")
         private boolean cloneRemotePort = false;
 
+        @JsonProperty("motd1")
         private String motd1 = "GeyserMC";
 
         @Override
@@ -185,6 +188,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
             return motd1;
         }
 
+        @JsonProperty("motd2")
         private String motd2 = "Geyser";
 
         @Override
@@ -237,6 +241,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     public static class RemoteConfiguration implements IRemoteConfiguration {
         @Setter
         @AsteriskSerializer.Asterisk(isIp = true)
+        @JsonProperty("address")
         private String address = "auto";
 
         @Override
@@ -246,6 +251,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
         @JsonDeserialize(using = PortDeserializer.class)
         @Setter
+        @JsonProperty("port")
         private int port = 25565;
 
         @Override
