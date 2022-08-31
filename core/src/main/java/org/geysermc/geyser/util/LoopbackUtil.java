@@ -35,7 +35,7 @@ import java.nio.file.Paths;
 
 public final class LoopbackUtil {
     private static final String checkExemption = "CheckNetIsolation LoopbackExempt -s";
-    private static final String loopbackCommand = "CheckNetIsolation LoopbackExempt -a -n='Microsoft.MinecraftUWP_8wekyb3d8bbwe'";
+    private static final String loopbackCommand = "CheckNetIsolation LoopbackExempt -a -n=Microsoft.MinecraftUWP_8wekyb3d8bbwe";
     /**
      * This string needs to be checked in the event Minecraft is not installed - no Minecraft string will be present in the checkExemption command.
      */
@@ -50,12 +50,12 @@ public final class LoopbackUtil {
         if (os.equalsIgnoreCase("Windows 10") || os.equalsIgnoreCase("Windows 11")) {
             try {
                 Process process = Runtime.getRuntime().exec(checkExemption);
-                process.waitFor();
                 InputStream is = process.getInputStream();
 
+                int data;
                 StringBuilder sb = new StringBuilder();
-                while (is.available() != 0) {
-                    sb.append((char) is.read());
+                while ((data = is.read()) != -1) {
+                    sb.append((char) data);
                 }
 
                 return !sb.toString().contains(minecraftApplication);
