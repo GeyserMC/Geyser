@@ -27,6 +27,7 @@ package org.geysermc.geyser.event;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Event;
+import org.geysermc.event.PostOrder;
 import org.geysermc.event.bus.impl.OwnedEventBusImpl;
 import org.geysermc.event.subscribe.OwnedSubscriber;
 import org.geysermc.event.subscribe.Subscribe;
@@ -43,8 +44,11 @@ public final class GeyserEventBus extends OwnedEventBusImpl<Extension, Event, Ev
         implements EventBus {
     @Override
     protected <L, T extends Event, B extends OwnedSubscriber<Extension, T>> B makeSubscription(
-            Extension owner, Class<T> eventClass, Subscribe subscribe,
-            L listener, BiConsumer<L, T> handler) {
+            @NonNull Extension owner,
+            @NonNull Class<T> eventClass,
+            @NonNull Subscribe subscribe,
+            @NonNull L listener,
+            @NonNull BiConsumer<L, T> handler) {
         return (B) new GeyserEventSubscriber<>(
                 owner, eventClass, subscribe.postOrder(), subscribe.ignoreCancelled(), listener, handler
         );
@@ -52,8 +56,11 @@ public final class GeyserEventBus extends OwnedEventBusImpl<Extension, Event, Ev
 
     @Override
     protected <T extends Event, B extends OwnedSubscriber<Extension, T>> B makeSubscription(
-            Extension owner, Class<T> eventClass, Consumer<T> handler) {
-        return (B) new GeyserEventSubscriber<>(owner, eventClass, handler);
+            @NonNull Extension owner,
+            @NonNull Class<T> eventClass,
+            @NonNull Consumer<T> handler,
+            @NonNull PostOrder postOrder) {
+        return (B) new GeyserEventSubscriber<>(owner, eventClass, handler, postOrder);
     }
 
     @Override
