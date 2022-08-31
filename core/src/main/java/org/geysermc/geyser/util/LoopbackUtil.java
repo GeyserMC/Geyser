@@ -50,12 +50,12 @@ public final class LoopbackUtil {
         if (os.equalsIgnoreCase("Windows 10") || os.equalsIgnoreCase("Windows 11")) {
             try {
                 Process process = Runtime.getRuntime().exec(checkExemption);
-                process.waitFor();
                 InputStream is = process.getInputStream();
 
+                int data;
                 StringBuilder sb = new StringBuilder();
-                while (is.available() != 0) {
-                    sb.append((char) is.read());
+                while ((data = is.read()) != -1) {
+                    sb.append((char) data);
                 }
 
                 return !sb.toString().contains(minecraftApplication);
