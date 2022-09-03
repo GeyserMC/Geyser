@@ -106,7 +106,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             ResourcePackManifest.Header header = resourcePack.getManifest().getHeader();
             resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(
                     header.getUuid().toString(), header.getVersionString(), resourcePack.getFile().length(),
-                            "", "", "", false, false));
+                            resourcePack.getContentKey(), "", header.getUuid().toString(), false, false));
         }
         resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().getConfig().isForceResourcePacks());
         session.sendUpstreamPacket(resourcePacksInfo);
