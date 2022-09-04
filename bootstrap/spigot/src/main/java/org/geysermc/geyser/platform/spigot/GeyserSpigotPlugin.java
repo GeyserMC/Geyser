@@ -104,47 +104,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     @Override
     public void onLoad() {
-        GeyserLocale.init(this);
-
-        // This is manually done instead of using Bukkit methods to save the config because otherwise comments get removed
-        try {
-            if (!getDataFolder().exists()) {
-                getDataFolder().mkdir();
-            }
-            File configFile = FileUtils.fileOrCopiedFromResource(new File(getDataFolder(), "config.yml"), "config.yml",
-                    (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
-            this.geyserConfig = FileUtils.loadConfig(configFile, GeyserSpigotConfiguration.class);
-        } catch (IOException ex) {
-            getLogger().log(Level.SEVERE, GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
-            ex.printStackTrace();
-            Bukkit.getPluginManager().disablePlugin(this);
-            return;
-        }
-
-        // By default this should be localhost but may need to be changed in some circumstances
-        if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
-            geyserConfig.setAutoconfiguredRemote(true);
-            // Don't use localhost if not listening on all interfaces
-            if (!Bukkit.getIp().equals("0.0.0.0") && !Bukkit.getIp().equals("")) {
-                geyserConfig.getRemote().setAddress(Bukkit.getIp());
-            }
-            geyserConfig.getRemote().setPort(Bukkit.getPort());
-        }
-
-        if (geyserConfig.getBedrock().isCloneRemotePort()) {
-            geyserConfig.getBedrock().setPort(Bukkit.getPort());
-        }
-
-        this.geyserLogger = GeyserPaperLogger.supported() ? new GeyserPaperLogger(this, getLogger(), geyserConfig.isDebugMode())
-                : new GeyserSpigotLogger(getLogger(), geyserConfig.isDebugMode());
-
-        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
-
-        this.geyser = GeyserImpl.load(PlatformType.SPIGOT, this);
-    }
-
-    @Override
-    public void onEnable() {
         try {
             // AvailableCommandsSerializer_v291 complains otherwise
             ByteBuf.class.getMethod("writeShortLE", int.class);
@@ -176,6 +135,33 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             }
         }
 
+        GeyserLocale.init(this);
+
+        // This is manually done instead of using Bukkit methods to save the config because otherwise comments get removed
+        try {
+            if (!getDataFolder().exists()) {
+                getDataFolder().mkdir();
+            }
+            File configFile = FileUtils.fileOrCopiedFromResource(new File(getDataFolder(), "config.yml"), "config.yml",
+                    (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
+            this.geyserConfig = FileUtils.loadConfig(configFile, GeyserSpigotConfiguration.class);
+        } catch (IOException ex) {
+            getLogger().log(Level.SEVERE, GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
+            ex.printStackTrace();
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
+
+        this.geyserLogger = GeyserPaperLogger.supported() ? new GeyserPaperLogger(this, getLogger(), geyserConfig.isDebugMode())
+                : new GeyserSpigotLogger(getLogger(), geyserConfig.isDebugMode());
+
+        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
+
+        this.geyser = GeyserImpl.load(PlatformType.SPIGOT, this);
+    }
+
+    @Override
+    public void onEnable() {
         // Remove this in like a year
         if (Bukkit.getPluginManager().getPlugin("floodgate-bukkit") != null) {
             geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.outdated", Constants.FLOODGATE_DOWNLOAD_LOCATION));
@@ -190,6 +176,20 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             // Floodgate installed means that the user wants Floodgate authentication
             geyserLogger.debug("Auto-setting to Floodgate authentication.");
             geyserConfig.getRemote().setAuthType(AuthType.FLOODGATE);
+        }
+
+        // By default this should be localhost but may need to be changed in some circumstances
+        if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
+            geyserConfig.setAutoconfiguredRemote(true);
+            // Don't use localhost if not listening on all interfaces
+            if (!Bukkit.getIp().equals("0.0.0.0") && !Bukkit.getIp().equals("")) {
+                geyserConfig.getRemote().setAddress(Bukkit.getIp());
+            }
+            geyserConfig.getRemote().setPort(Bukkit.getPort());
+        }
+
+        if (geyserConfig.getBedrock().isCloneRemotePort()) {
+            geyserConfig.getBedrock().setPort(Bukkit.getPort());
         }
 
         geyserConfig.loadFloodgate(this);

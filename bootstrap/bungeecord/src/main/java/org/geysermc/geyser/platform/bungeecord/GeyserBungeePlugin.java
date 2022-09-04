@@ -72,6 +72,20 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     @Override
     public void onLoad() {
+        // Copied from ViaVersion.
+        // https://github.com/ViaVersion/ViaVersion/blob/b8072aad86695cc8ec6f5e4103e43baf3abf6cc5/bungee/src/main/java/us/myles/ViaVersion/BungeePlugin.java#L43
+        try {
+            ProtocolConstants.class.getField("MINECRAFT_1_19_1");
+        } catch (NoSuchFieldException e) {
+            getLogger().warning("      / \\");
+            getLogger().warning("     /   \\");
+            getLogger().warning("    /  |  \\");
+            getLogger().warning("   /   |   \\    " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_proxy", getProxy().getName()));
+            getLogger().warning("  /         \\   " + GeyserLocale.getLocaleStringLog("geyser.may_not_work_as_intended_all_caps"));
+            getLogger().warning(" /     o     \\");
+            getLogger().warning("/_____________\\");
+        }
+
         GeyserLocale.init(this);
 
         if (!getDataFolder().exists())
@@ -88,6 +102,31 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             ex.printStackTrace();
             return;
         }
+
+        this.geyserLogger = new GeyserBungeeLogger(getLogger(), geyserConfig.isDebugMode());
+        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
+
+        this.geyser = GeyserImpl.load(PlatformType.BUNGEECORD, this);
+    }
+
+    @Override
+    public void onEnable() {
+        // Remove this in like a year
+        if (getProxy().getPluginManager().getPlugin("floodgate-bungee") != null) {
+            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.outdated", "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/"));
+            return;
+        }
+
+        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE && getProxy().getPluginManager().getPlugin("floodgate") == null) {
+            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
+            return;
+        } else if (geyserConfig.isAutoconfiguredRemote() && getProxy().getPluginManager().getPlugin("floodgate") != null) {
+            // Floodgate installed means that the user wants Floodgate authentication
+            geyserLogger.debug("Auto-setting to Floodgate authentication.");
+            geyserConfig.getRemote().setAuthType(AuthType.FLOODGATE);
+        }
+
+        geyserConfig.loadFloodgate(this);
 
         if (getProxy().getConfig().getListeners().size() == 1) {
             ListenerInfo listener = getProxy().getConfig().getListeners().toArray(new ListenerInfo[0])[0];
@@ -108,45 +147,6 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
                 geyserConfig.getBedrock().setPort(javaAddr.getPort());
             }
         }
-
-        this.geyserLogger = new GeyserBungeeLogger(getLogger(), geyserConfig.isDebugMode());
-        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
-
-        this.geyser = GeyserImpl.load(PlatformType.BUNGEECORD, this);
-    }
-
-    @Override
-    public void onEnable() {
-        // Copied from ViaVersion.
-        // https://github.com/ViaVersion/ViaVersion/blob/b8072aad86695cc8ec6f5e4103e43baf3abf6cc5/bungee/src/main/java/us/myles/ViaVersion/BungeePlugin.java#L43
-        try {
-            ProtocolConstants.class.getField("MINECRAFT_1_19_1");
-        } catch (NoSuchFieldException e) {
-            getLogger().warning("      / \\");
-            getLogger().warning("     /   \\");
-            getLogger().warning("    /  |  \\");
-            getLogger().warning("   /   |   \\    " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_proxy", getProxy().getName()));
-            getLogger().warning("  /         \\   " + GeyserLocale.getLocaleStringLog("geyser.may_not_work_as_intended_all_caps"));
-            getLogger().warning(" /     o     \\");
-            getLogger().warning("/_____________\\");
-        }
-
-        // Remove this in like a year
-        if (getProxy().getPluginManager().getPlugin("floodgate-bungee") != null) {
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.outdated", "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/"));
-            return;
-        }
-
-        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE && getProxy().getPluginManager().getPlugin("floodgate") == null) {
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
-            return;
-        } else if (geyserConfig.isAutoconfiguredRemote() && getProxy().getPluginManager().getPlugin("floodgate") != null) {
-            // Floodgate installed means that the user wants Floodgate authentication
-            geyserLogger.debug("Auto-setting to Floodgate authentication.");
-            geyserConfig.getRemote().setAuthType(AuthType.FLOODGATE);
-        }
-
-        geyserConfig.loadFloodgate(this);
 
         // Big hack - Bungee does not provide us an event to listen to, so schedule a repeating
         // task that waits for a field to be filled which is set after the plugin enable
@@ -171,7 +171,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             listenersField.setAccessible(true);
 
             Collection<Channel> listeners = (Collection<Channel>) listenersField.get(BungeeCord.getInstance());
-            if (!listeners.isEmpty()) {
+            if (listeners.isEmpty()) {
                 this.getProxy().getScheduler().schedule(this, this::postStartup, tries, TimeUnit.SECONDS);
             } else {
                 this.awaitStartupCompletion(++tries);
