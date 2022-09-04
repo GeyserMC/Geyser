@@ -66,19 +66,19 @@ public class HelpCommand extends GeyserCommand {
         String header = GeyserLocale.getPlayerLocaleString("geyser.commands.help.header", sender.locale(), page, maxPage);
         sender.sendMessage(header);
 
-        for (Map.Entry<String, Command> entry : commands.entrySet()) {
+        this.commands.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
             Command cmd = entry.getValue();
 
             // Standalone hack-in since it doesn't have a concept of permissions
             if (geyser.getPlatformType() == PlatformType.STANDALONE || sender.hasPermission(cmd.permission())) {
                 // Only list commands the player can actually run
                 if (cmd.isBedrockOnly() && session == null) {
-                    continue;
+                    return;
                 }
 
                 sender.sendMessage(ChatColor.YELLOW + "/" + baseCommand + " " + entry.getKey() + ChatColor.WHITE + ": " +
                         GeyserLocale.getPlayerLocaleString(cmd.description(), sender.locale()));
             }
-        }
+        });
     }
 }

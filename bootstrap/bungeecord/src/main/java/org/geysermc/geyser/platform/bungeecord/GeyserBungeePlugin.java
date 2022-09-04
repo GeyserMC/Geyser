@@ -32,6 +32,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -49,6 +51,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -149,8 +152,15 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             this.geyserBungeePingPassthrough = new GeyserBungeePingPassthrough(getProxy());
         }
 
-        this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor("geyser", geyser, geyserCommandManager.getCommands()));
-        this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor("geyserext", geyser, geyserCommandManager.commands()));
+        this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor("geyser", this.geyser, this.geyserCommandManager.getCommands()));
+        for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
+            Map<String, Command> commands = entry.getValue();
+            if (commands.isEmpty()) {
+                continue;
+            }
+
+            this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor(entry.getKey().description().id(), this.geyser, commands));
+        }
     }
 
     @Override

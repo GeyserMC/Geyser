@@ -23,62 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.extension;
+package org.geysermc.geyser.event.type;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCommandsEvent;
 
-import java.util.List;
+import java.util.Collections;
+import java.util.Map;
 
-/**
- * Represents the description of an {@link Extension}.
- */
-public interface ExtensionDescription {
+public abstract class GeyserDefineCommandsEventImpl implements GeyserDefineCommandsEvent {
+    private final Map<String, Command> commands;
 
-    /**
-     * Gets the extension's id.
-     *
-     * @return the extension's id
-     */
-    @NonNull
-    String id();
+    public GeyserDefineCommandsEventImpl(Map<String, Command> commands) {
+        this.commands = commands;
+    }
 
-    /**
-     * Gets the extension's name.
-     *
-     * @return the extension's name
-     */
-    @NonNull
-    String name();
-
-    /**
-     * Gets the extension's main class.
-     *
-     * @return the extension's main class
-     */
-    @NonNull
-    String main();
-
-    /**
-     * Gets the extension's api version.
-     *
-     * @return the extension's api version
-     */
-    @NonNull
-    String apiVersion();
-
-    /**
-     * Gets the extension's description.
-     *
-     * @return the extension's description
-     */
-    @NonNull
-    String version();
-
-    /**
-     * Gets the extension's authors.
-     *
-     * @return the extension's authors
-     */
-    @NonNull
-    List<String> authors();
+    @Override
+    public @NonNull Map<String, Command> commands() {
+        return Collections.unmodifiableMap(this.commands);
+    }
 }

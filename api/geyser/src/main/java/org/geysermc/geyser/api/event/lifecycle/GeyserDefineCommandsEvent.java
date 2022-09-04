@@ -23,62 +23,35 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.extension;
+package org.geysermc.geyser.api.event.lifecycle;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.event.Event;
+import org.geysermc.geyser.api.command.Command;
 
-import java.util.List;
+import java.util.Map;
 
 /**
- * Represents the description of an {@link Extension}.
+ * Called when commands are defined within Geyser.
+ *
+ * This event allows you to register new commands using the {@link #register(Command)}
+ * method and retrieve the default commands defined.
  */
-public interface ExtensionDescription {
+public interface GeyserDefineCommandsEvent extends Event {
 
     /**
-     * Gets the extension's id.
+     * Registers the given {@link Command} into the Geyser
+     * command manager.
      *
-     * @return the extension's id
+     * @param command the command to register
      */
-    @NonNull
-    String id();
+    void register(@NonNull Command command);
 
     /**
-     * Gets the extension's name.
+     * Gets all the registered built-in {@link Command}s.
      *
-     * @return the extension's name
+     * @return all the registered built-in commands
      */
     @NonNull
-    String name();
-
-    /**
-     * Gets the extension's main class.
-     *
-     * @return the extension's main class
-     */
-    @NonNull
-    String main();
-
-    /**
-     * Gets the extension's api version.
-     *
-     * @return the extension's api version
-     */
-    @NonNull
-    String apiVersion();
-
-    /**
-     * Gets the extension's description.
-     *
-     * @return the extension's description
-     */
-    @NonNull
-    String version();
-
-    /**
-     * Gets the extension's authors.
-     *
-     * @return the extension's authors
-     */
-    @NonNull
-    List<String> authors();
+    Map<String, Command> commands();
 }

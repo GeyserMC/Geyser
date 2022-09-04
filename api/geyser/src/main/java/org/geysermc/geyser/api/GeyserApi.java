@@ -29,7 +29,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.Geyser;
 import org.geysermc.api.GeyserApiBase;
-import org.geysermc.geyser.api.command.CommandManager;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.extension.ExtensionManager;
@@ -66,14 +65,8 @@ public interface GeyserApi extends GeyserApiBase {
      *
      * @return the extension manager
      */
+    @NonNull
     ExtensionManager extensionManager();
-
-    /**
-     * Gets the {@link CommandManager}.
-     *
-     * @return the command manager
-     */
-    CommandManager commandManager();
 
     /**
      * Provides an implementation for the specified API type.
@@ -92,6 +85,7 @@ public interface GeyserApi extends GeyserApiBase {
      *
      * @return the event bus
      */
+    @NonNull
     EventBus eventBus();
 
     /**
@@ -100,6 +94,7 @@ public interface GeyserApi extends GeyserApiBase {
      *
      * @return the default remote server used within Geyser
      */
+    @NonNull
     RemoteServer defaultRemoteServer();
 
     /**
@@ -108,6 +103,7 @@ public interface GeyserApi extends GeyserApiBase {
      *
      * @return the listener used for Bedrock client connectins
      */
+    @NonNull
     BedrockListener bedrockListener();
 
     /**
@@ -115,6 +111,7 @@ public interface GeyserApi extends GeyserApiBase {
      *
      * @return the current geyser api instance
      */
+    @NonNull
     static GeyserApi api() {
         return Geyser.api(GeyserApi.class);
     }

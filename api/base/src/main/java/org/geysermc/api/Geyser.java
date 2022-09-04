@@ -69,7 +69,7 @@ public class Geyser {
 
     /**
      * Registers the given api type. The api cannot be
-     * registered if {@link #registered()} is true as
+     * registered if {@link #isRegistered()} is true as
      * an api has already been specified.
      *
      * @param api the api
@@ -88,7 +88,7 @@ public class Geyser {
      *
      * @return if the api has been registered
      */
-    public static boolean registered() {
+    public static boolean isRegistered() {
         return api != null;
     }
 }

@@ -547,7 +547,7 @@ public class GeyserImpl implements GeyserApi {
 
         ResourcePack.PACKS.clear();
 
-        this.eventBus.fire(new GeyserShutdownEvent(this.extensionManager, this.commandManager(), this.eventBus));
+        this.eventBus.fire(new GeyserShutdownEvent(this.extensionManager, this.eventBus));
         this.extensionManager.disableExtensions();
 
         bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.done"));
@@ -572,11 +572,12 @@ public class GeyserImpl implements GeyserApi {
     }
 
     @Override
+    @NonNull
     public GeyserExtensionManager extensionManager() {
         return this.extensionManager;
     }
 
-    @Override
+    @NonNull
     public GeyserCommandManager commandManager() {
         return this.bootstrap.getGeyserCommandManager();
     }
@@ -587,15 +588,18 @@ public class GeyserImpl implements GeyserApi {
     }
 
     @Override
+    @NonNull
     public EventBus eventBus() {
         return this.eventBus;
     }
 
+    @NonNull
     public RemoteServer defaultRemoteServer() {
         return getConfig().getRemote();
     }
 
     @Override
+    @NonNull
     public BedrockListener bedrockListener() {
         return getConfig().getBedrock();
     }

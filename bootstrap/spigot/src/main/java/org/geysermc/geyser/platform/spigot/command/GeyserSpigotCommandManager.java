@@ -65,4 +65,8 @@ public class GeyserSpigotCommandManager extends GeyserCommandManager {
         Command cmd = COMMAND_MAP.getCommand(command.replace("/", ""));
         return cmd != null ? cmd.getDescription() : "";
     }
+
+    public static CommandMap getCommandMap() {
+        return COMMAND_MAP;
+    }
 }

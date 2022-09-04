@@ -32,9 +32,11 @@ import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import io.netty.buffer.ByteBuf;
 import me.lucko.commodore.CommodoreProvider;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandMap;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.Constants;
@@ -42,6 +44,7 @@ import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
 import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -62,6 +65,8 @@ import org.geysermc.geyser.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.util.List;
@@ -269,13 +274,32 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
         PluginCommand geyserCommand = this.getCommand("geyser");
         geyserCommand.setExecutor(new GeyserSpigotCommandExecutor(geyser, geyserCommandManager.getCommands()));
-        PluginCommand geyserExtCommand = this.getCommand("geyserext");
-        geyserExtCommand.setExecutor(new GeyserSpigotCommandExecutor(geyser, geyserCommandManager.getCommands()));
+
+        CommandMap commandMap = GeyserSpigotCommandManager.getCommandMap();
+        for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
+            Map<String, Command> commands = entry.getValue();
+            if (commands.isEmpty()) {
+                continue;
+            }
+
+            // Thanks again, Bukkit
+            try {
+                Constructor<PluginCommand> constructor = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
+                constructor.setAccessible(true);
+
+                PluginCommand pluginCommand = constructor.newInstance(entry.getKey().description().id(), this);
+                pluginCommand.setExecutor(new GeyserSpigotCommandExecutor(this.geyser, commands));
+                pluginCommand.setDescription("The main command for the " + entry.getKey().name() + " Geyser extension!");
+                commandMap.register(entry.getKey().description().id(), "geyserext", pluginCommand);
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
+                this.geyserLogger.error("Failed to construct PluginCommand for extension " + entry.getKey().description().name(), ex);
+            }
+        }
 
         if (!INITIALIZED) {
             // Register permissions so they appear in, for example, LuckPerms' UI
             // Re-registering permissions throws an error
-            for (Map.Entry<String, Command> entry : geyserCommandManager.getCommands().entrySet()) {
+            for (Map.Entry<String, Command> entry : geyserCommandManager.commands().entrySet()) {
                 Command command = entry.getValue();
                 if (command.aliases().contains(entry.getKey())) {
                     // Don't register aliases
@@ -286,6 +310,26 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                         GeyserLocale.getLocaleStringLog(command.description()),
                         command.isSuggestedOpOnly() ? PermissionDefault.OP : PermissionDefault.TRUE));
             }
+
+            // Register permissions for extension commands
+            for (Map.Entry<Extension, Map<String, Command>> commandEntry : this.geyserCommandManager.extensionCommands().entrySet()) {
+                for (Map.Entry<String, Command> entry : commandEntry.getValue().entrySet()) {
+                    Command command = entry.getValue();
+                    if (command.aliases().contains(entry.getKey())) {
+                        // Don't register aliases
+                        continue;
+                    }
+
+                    if (command.permission().isBlank()) {
+                        continue;
+                    }
+
+                    Bukkit.getPluginManager().addPermission(new Permission(command.permission(),
+                            GeyserLocale.getLocaleStringLog(command.description()),
+                            command.isSuggestedOpOnly() ? PermissionDefault.OP : PermissionDefault.TRUE));
+                }
+            }
+
             Bukkit.getPluginManager().addPermission(new Permission(Constants.UPDATE_PERMISSION,
                     "Whether update notifications can be seen", PermissionDefault.OP));
 

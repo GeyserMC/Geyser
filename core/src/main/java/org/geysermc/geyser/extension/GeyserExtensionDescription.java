@@ -33,7 +33,7 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.Reader;
 import java.util.*;
 
-public record GeyserExtensionDescription(String name, String main, String apiVersion, String version, List<String> authors) implements ExtensionDescription {
+public record GeyserExtensionDescription(String id, String name, String main, String apiVersion, String version, List<String> authors) implements ExtensionDescription {
     @SuppressWarnings("unchecked")
     public static GeyserExtensionDescription fromYaml(Reader reader) throws InvalidDescriptionException {
         DumperOptions dumperOptions = new DumperOptions();
@@ -41,6 +41,11 @@ public record GeyserExtensionDescription(String name, String main, String apiVer
 
         Yaml yaml = new Yaml(dumperOptions);
         Map<String, Object> yamlMap = yaml.loadAs(reader, LinkedHashMap.class);
+
+        String id = ((String) yamlMap.get("id")).replaceAll("[^A-Za-z0-9 _.-]", "");
+        if (id.isBlank()) {
+            throw new InvalidDescriptionException("Invalid extension id, cannot be empty");
+        }
 
         String name = ((String) yamlMap.get("name")).replaceAll("[^A-Za-z0-9 _.-]", "");
         if (name.isBlank()) {
@@ -72,6 +77,6 @@ public record GeyserExtensionDescription(String name, String main, String apiVer
             }
         }
 
-        return new GeyserExtensionDescription(name, main, apiVersion, version, authors);
+        return new GeyserExtensionDescription(id, name, main, apiVersion, version, Collections.unmodifiableList(authors));
     }
 }

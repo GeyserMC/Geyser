@@ -36,11 +36,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public abstract class DefineCustomItemsEvent implements GeyserDefineCustomItemsEvent {
+public abstract class GeyserDefineCustomItemsEventImpl implements GeyserDefineCustomItemsEvent {
     private final Multimap<String, CustomItemData> customItems;
     private final List<NonVanillaCustomItemData> nonVanillaCustomItems;
 
-    public DefineCustomItemsEvent(Multimap<String, CustomItemData> customItems, List<NonVanillaCustomItemData> nonVanillaCustomItems) {
+    public GeyserDefineCustomItemsEventImpl(Multimap<String, CustomItemData> customItems, List<NonVanillaCustomItemData> nonVanillaCustomItems) {
         this.customItems = customItems;
         this.nonVanillaCustomItems = nonVanillaCustomItems;
     }

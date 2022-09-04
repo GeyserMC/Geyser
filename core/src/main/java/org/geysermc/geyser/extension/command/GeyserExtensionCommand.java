@@ -23,36 +23,21 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.command;
+package org.geysermc.geyser.extension.command;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.command.GeyserCommand;
 
-import java.util.Map;
+public abstract class GeyserExtensionCommand extends GeyserCommand {
+    private final Extension extension;
 
-/**
- * Manages Bedrock commands within Geyser.
- */
-public abstract class CommandManager {
+    public GeyserExtensionCommand(Extension extension, String name, String description, String permission) {
+        super(name, description, permission);
 
-    /**
-     * Registers the given {@link Command}.
-     *
-     * @param command the command to register
-     */
-    public abstract void register(@NonNull Command command);
+        this.extension = extension;
+    }
 
-    /**
-     * Unregisters the given {@link Command}.
-     *
-     * @param command the command to unregister
-     */
-    public abstract void unregister(@NonNull Command command);
-
-    /**
-     * Gets all the registered {@link Command}s.
-     *
-     * @return all the registered commands
-     */
-    @NonNull
-    public abstract Map<String, Command> commands();
+    public Extension extension() {
+        return this.extension;
+    }
 }
