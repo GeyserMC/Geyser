@@ -73,7 +73,8 @@ public class SpigotCommandSource implements GeyserCommandSource {
             return;
         }
 
-        handle.sendMessage(BungeeComponentSerializer.get().serialize(message));
+        // CommandSender#sendMessage(BaseComponent[]) is Paper-only
+        handle.spigot().sendMessage(BungeeComponentSerializer.get().serialize(message));
     }
 
     @Override

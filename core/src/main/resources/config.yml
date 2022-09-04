@@ -175,6 +175,9 @@ force-resource-packs: true
 # THIS DISABLES ALL COMMANDS FROM SUCCESSFULLY RUNNING FOR BEDROCK IN-GAME, as otherwise Bedrock thinks you are cheating.
 xbox-achievements-enabled: false
 
+# Whether player IP addresses will be logged by the server.
+log-player-ip-addresses: true
+
 # Whether to alert the console and operators that a new Geyser version is available that supports a Bedrock version
 # that this Geyser version does not support. It's recommended to keep this option enabled, as many Bedrock platforms
 # auto-update.

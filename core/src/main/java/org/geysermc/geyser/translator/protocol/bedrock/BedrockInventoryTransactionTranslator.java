@@ -114,7 +114,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 changedItem = Int2ObjectMaps.singleton(hotbarSlot, itemStack.getItemStack());
                             }
                             ServerboundContainerClickPacket dropPacket = new ServerboundContainerClickPacket(
-                                    inventory.getId(), inventory.getStateId(), hotbarSlot, clickType.actionType, clickType.action,
+                                    inventory.getJavaId(), inventory.getStateId(), hotbarSlot, clickType.actionType, clickType.action,
                                     inventory.getCursor().getItemStack(), changedItem);
                             session.sendDownstreamPacket(dropPacket);
                             return;
@@ -371,7 +371,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                         changedSlots.put(bedrockHotbarSlot, armorSlotItem.getItemStack());
 
                                         ServerboundContainerClickPacket clickPacket = new ServerboundContainerClickPacket(
-                                                playerInventory.getId(), playerInventory.getStateId(), armorSlot,
+                                                playerInventory.getJavaId(), playerInventory.getStateId(), armorSlot,
                                                 click.actionType, click.action, null, changedSlots);
                                         session.sendDownstreamPacket(clickPacket);
                                     }

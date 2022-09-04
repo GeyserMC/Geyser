@@ -26,7 +26,7 @@
 object Versions {
     const val jacksonVersion = "2.13.2"
     const val fastutilVersion = "8.5.2"
-    const val nettyVersion = "4.1.66.Final"
+    const val nettyVersion = "4.1.80.Final"
     const val guavaVersion = "29.0-jre"
     const val gsonVersion = "2.3.1" // Provided by Spigot 1.8.8
     const val nbtVersion = "2.1.0"

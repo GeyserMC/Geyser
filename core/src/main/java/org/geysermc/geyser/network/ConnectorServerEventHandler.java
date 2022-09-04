@@ -84,14 +84,16 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
             }
         }
 
-        geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.attempt_connect", inetSocketAddress));
+        String ip = geyser.getConfig().isLogPlayerIpAddresses() ? inetSocketAddress.toString() : "<IP address withheld>";
+        geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.attempt_connect", ip));
         return true;
     }
 
     @Override
     public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {
         if (geyser.getConfig().isDebugMode() && PRINT_DEBUG_PINGS) {
-            geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.network.pinged", inetSocketAddress));
+            String ip = geyser.getConfig().isLogPlayerIpAddresses() ? inetSocketAddress.toString() : "<IP address withheld>";
+            geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.network.pinged", ip));
         }
 
         GeyserConfiguration config = geyser.getConfig();

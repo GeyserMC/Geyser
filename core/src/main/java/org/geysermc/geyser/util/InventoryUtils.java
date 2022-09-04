@@ -90,7 +90,7 @@ public class InventoryUtils {
             if (translator instanceof DoubleChestInventoryTranslator && !((Container) inventory).isUsingRealBlock()) {
                 session.scheduleInEventLoop(() -> {
                     Inventory openInv = session.getOpenInventory();
-                    if (openInv != null && openInv.getId() == inventory.getId()) {
+                    if (openInv != null && openInv.getJavaId() == inventory.getJavaId()) {
                         translator.openInventory(session, inventory);
                         translator.updateInventory(session, inventory);
                     } else if (openInv != null && openInv.isPending()) {
@@ -108,11 +108,11 @@ public class InventoryUtils {
         }
     }
 
-    public static void closeInventory(GeyserSession session, int windowId, boolean confirm) {
+    public static void closeInventory(GeyserSession session, int javaId, boolean confirm) {
         session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY, session);
         updateCursor(session);
 
-        Inventory inventory = getInventory(session, windowId);
+        Inventory inventory = getInventory(session, javaId);
         if (inventory != null) {
             InventoryTranslator translator = session.getInventoryTranslator();
             translator.closeInventory(session, inventory);
@@ -124,12 +124,12 @@ public class InventoryUtils {
         session.setOpenInventory(null);
     }
 
-    public static Inventory getInventory(GeyserSession session, int windowId) {
-        if (windowId == 0) {
+    public static Inventory getInventory(GeyserSession session, int javaId) {
+        if (javaId == 0) {
             return session.getPlayerInventory();
         } else {
             Inventory openInventory = session.getOpenInventory();
-            if (openInventory != null && windowId == openInventory.getId()) {
+            if (openInventory != null && javaId == openInventory.getJavaId()) {
                 return openInventory;
             }
             return null;

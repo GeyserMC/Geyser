@@ -47,7 +47,7 @@ public class HorseInventoryUpdater extends InventoryUpdater {
         }
 
         InventoryContentPacket contentPacket = new InventoryContentPacket();
-        contentPacket.setContainerId(inventory.getId());
+        contentPacket.setContainerId(inventory.getBedrockId());
         contentPacket.setContents(Arrays.asList(bedrockItems));
         session.sendUpstreamPacket(contentPacket);
     }

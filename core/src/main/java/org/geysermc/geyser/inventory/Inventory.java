@@ -44,7 +44,7 @@ import java.util.Arrays;
 @ToString
 public abstract class Inventory {
     @Getter
-    protected final int id;
+    protected final int javaId;
 
     /**
      * The Java inventory state ID from the server. As of Java Edition 1.18.1 this value has one instance per player.
@@ -93,13 +93,21 @@ public abstract class Inventory {
         this("Inventory", id, size, containerType);
     }
 
-    protected Inventory(String title, int id, int size, ContainerType containerType) {
+    protected Inventory(String title, int javaId, int size, ContainerType containerType) {
         this.title = title;
-        this.id = id;
+        this.javaId = javaId;
         this.size = size;
         this.containerType = containerType;
         this.items = new GeyserItemStack[size];
         Arrays.fill(items, GeyserItemStack.EMPTY);
+    }
+
+    // This is to prevent conflicts with special bedrock inventory IDs.
+    // The vanilla java server only sends an ID between 1 and 100 when opening an inventory,
+    // so this is rarely needed. (certain plugins)
+    // Example: https://github.com/GeyserMC/Geyser/issues/3254
+    public int getBedrockId() {
+        return javaId <= 100 ? javaId : (javaId % 100) + 1;
     }
 
     public GeyserItemStack getItem(int slot) {

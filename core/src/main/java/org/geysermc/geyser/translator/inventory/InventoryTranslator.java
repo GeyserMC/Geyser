@@ -804,7 +804,7 @@ public abstract class InventoryTranslator {
      */
     //TODO: compatibility for simulated inventory (ClickPlan)
     private static int findTempSlot(Inventory inventory, GeyserItemStack item, boolean emptyOnly, int... slotBlacklist) {
-        int offset = inventory.getId() == 0 ? 1 : 0; //offhand is not a viable temp slot
+        int offset = inventory.getJavaId() == 0 ? 1 : 0; //offhand is not a viable temp slot
         HashSet<GeyserItemStack> itemBlacklist = new HashSet<>(slotBlacklist.length + 1);
         itemBlacklist.add(item);
 
