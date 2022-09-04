@@ -70,7 +70,7 @@ public class DumpInfo {
     private final String cpuName;
     private final Locale systemLocale;
     private final String systemEncoding;
-    private Properties gitInfo;
+    private final GitInfo gitInfo;
     private final GeyserConfiguration config;
     private final Floodgate floodgate;
     private final Object2IntMap<DeviceOs> userPlatforms;
@@ -89,11 +89,7 @@ public class DumpInfo {
         this.systemLocale = Locale.getDefault();
         this.systemEncoding = System.getProperty("file.encoding");
 
-        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource("git.properties")) {
-            this.gitInfo = new Properties();
-            this.gitInfo.load(stream);
-        } catch (IOException ignored) {
-        }
+        this.gitInfo = new GitInfo(GeyserImpl.VERSION, GeyserImpl.BUILD_NUMBER, GeyserImpl.GIT_VERSION, GeyserImpl.BRANCH);
 
         this.config = GeyserImpl.getInstance().getConfig();
         this.floodgate = new Floodgate();
@@ -299,5 +295,14 @@ public class DumpInfo {
         public String apiVersion;
         public String main;
         public List<String> authors;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class GitInfo {
+        private final String version;
+        private final String buildNumber;
+        private final String commitHash;
+        private final String branchName;
     }
 }
