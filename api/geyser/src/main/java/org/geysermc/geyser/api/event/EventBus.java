@@ -36,8 +36,8 @@ import java.util.Set;
  * Represents a bus capable of subscribing
  * or "listening" to events and firing them.
  */
-public interface EventBus extends OwnedEventBus<Extension, Event, EventSubscriber<? extends Event>> {
+public interface EventBus<R extends EventRegistrar> extends OwnedEventBus<R, Event, EventSubscriber<R, ? extends Event>> {
     @Override
     @NonNull
-    <T extends Event> Set<? extends EventSubscriber<T>> subscribers(@NonNull Class<T> eventClass);
+    <T extends Event> Set<? extends EventSubscriber<R, T>> subscribers(@NonNull Class<T> eventClass);
 }

@@ -217,7 +217,9 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         // Allow libraries like Protocol to have their debug information passthrough
         logger.get().setLevel(geyserConfig.isDebugMode() ? Level.DEBUG : Level.INFO);
 
-        geyser = GeyserImpl.start(PlatformType.STANDALONE, this);
+        geyser = GeyserImpl.load(PlatformType.STANDALONE, this);
+        GeyserImpl.start();
+
         geyserCommandManager = new GeyserStandaloneCommandManager(geyser);
         geyserCommandManager.init();
 

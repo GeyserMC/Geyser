@@ -36,5 +36,5 @@ import org.geysermc.geyser.api.extension.Extension;
  *
  * @param <T> the class of the event
  */
-public interface EventSubscriber<T extends Event> extends OwnedSubscriber<Extension, T> {
+public interface EventSubscriber<R extends EventRegistrar, T extends Event> extends OwnedSubscriber<R, T> {
 }

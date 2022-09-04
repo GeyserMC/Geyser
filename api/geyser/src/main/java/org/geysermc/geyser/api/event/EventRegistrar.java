@@ -23,27 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.util;
+package org.geysermc.geyser.api.event;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.GeyserApi;
 
-public enum InputMode {
-    UNKNOWN,
-    KEYBOARD_MOUSE,
-    TOUCH,
-    CONTROLLER,
-    VR;
-
-    private static final InputMode[] VALUES = values();
+/**
+ * Represents an owner for an event that allows it
+ * to be registered through an {@link EventBus}.
+ */
+public interface EventRegistrar {
 
     /**
-     * Get the InputMode from the identifier.
+     * Creates an {@link EventRegistrar} instance.
      *
-     * @param id the InputMode identifier
-     * @return The InputMode or {@link #UNKNOWN} if the mode wasn't found
+     * @param object the object to wrap around
+     * @return an event registrar instance
      */
-    @NonNull
-    public static InputMode fromId(int id) {
-        return VALUES.length > id ? VALUES[id] : VALUES[0];
+    static EventRegistrar of(Object object) {
+        return GeyserApi.api().provider(EventRegistrar.class, object);
     }
 }

@@ -29,16 +29,17 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Event;
 import org.geysermc.event.PostOrder;
 import org.geysermc.event.subscribe.impl.OwnedSubscriberImpl;
+import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.event.ExtensionEventSubscriber;
 import org.geysermc.geyser.api.extension.Extension;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-public final class GeyserEventSubscriber<E extends Event> extends OwnedSubscriberImpl<Extension, E>
+public final class GeyserEventSubscriber<R extends EventRegistrar, E extends Event> extends OwnedSubscriberImpl<R, E>
         implements ExtensionEventSubscriber<E> {
     GeyserEventSubscriber(
-            @NonNull Extension owner,
+            @NonNull R owner,
             @NonNull Class<E> eventClass,
             @NonNull Consumer<E> handler,
             @NonNull PostOrder postOrder) {
@@ -46,7 +47,7 @@ public final class GeyserEventSubscriber<E extends Event> extends OwnedSubscribe
     }
 
     <H> GeyserEventSubscriber(
-            @NonNull Extension owner,
+            @NonNull R owner,
             @NonNull Class<E> eventClass,
             @NonNull PostOrder postOrder,
             boolean ignoreCancelled,

@@ -45,6 +45,7 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      *
      * @return a multimap of all the already registered custom items
      */
+    @NonNull
     Map<String, Collection<CustomItemData>> getExistingCustomItems();
 
     /**
@@ -52,6 +53,7 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      *
      * @return the list of the already registered non-vanilla custom items
      */
+    @NonNull
     List<NonVanillaCustomItemData> getExistingNonVanillaCustomItems();
 
     /**

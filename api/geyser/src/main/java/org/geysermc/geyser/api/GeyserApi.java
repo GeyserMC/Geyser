@@ -31,6 +31,7 @@ import org.geysermc.api.Geyser;
 import org.geysermc.api.GeyserApiBase;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.EventBus;
+import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.extension.ExtensionManager;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
@@ -86,7 +87,7 @@ public interface GeyserApi extends GeyserApiBase {
      * @return the event bus
      */
     @NonNull
-    EventBus eventBus();
+    EventBus<EventRegistrar> eventBus();
 
     /**
      * Gets the default {@link RemoteServer} configured

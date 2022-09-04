@@ -25,6 +25,8 @@
 
 package org.geysermc.api.util;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 public enum UiProfile {
     CLASSIC, POCKET;
 
@@ -36,6 +38,7 @@ public enum UiProfile {
      * @param id the UiProfile identifier
      * @return The UiProfile or {@link #CLASSIC} if the profile wasn't found
      */
+    @NonNull
     public static UiProfile fromId(int id) {
         return VALUES.length > id ? VALUES[id] : VALUES[0];
     }

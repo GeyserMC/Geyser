@@ -72,8 +72,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
     private GeyserImpl geyser;
 
-    @Override
-    public void onEnable() {
+    public void onLoad() {
         GeyserLocale.init(this);
 
         if (!configDir.exists())
@@ -114,7 +113,13 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
         this.geyserLogger = new GeyserSpongeLogger(logger, geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
-        this.geyser = GeyserImpl.start(PlatformType.SPONGE, this);
+
+        this.geyser = GeyserImpl.load(PlatformType.SPONGE, this);
+    }
+
+    @Override
+    public void onEnable() {
+        GeyserImpl.start();
 
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserSpongePingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
@@ -124,6 +129,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
         this.geyserCommandManager = new GeyserSpongeCommandManager(Sponge.getCommandManager(), geyser);
         this.geyserCommandManager.init();
+
         Sponge.getCommandManager().register(this, new GeyserSpongeCommandExecutor(geyser, geyserCommandManager.getCommands()), "geyser");
 
         for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
@@ -164,6 +170,11 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     @Override
     public Path getConfigFolder() {
         return configDir.toPath();
+    }
+
+    @Listener
+    public void onServerStarting() {
+        onLoad();
     }
 
     @Listener

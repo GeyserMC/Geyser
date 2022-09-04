@@ -39,6 +39,7 @@ public class Geyser {
      *
      * @return the base api
      */
+    @NonNull
     public static GeyserApiBase api() {
         if (api == null) {
             throw new RuntimeException("Api has not been registered yet!");

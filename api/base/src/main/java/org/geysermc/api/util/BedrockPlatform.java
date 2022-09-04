@@ -25,6 +25,8 @@
 
 package org.geysermc.api.util;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 public enum BedrockPlatform {
     UNKNOWN("Unknown"),
     GOOGLE("Android"),
@@ -56,6 +58,7 @@ public enum BedrockPlatform {
      * @param id the BedrockPlatform identifier
      * @return The BedrockPlatform or {@link #UNKNOWN} if the platform wasn't found
      */
+    @NonNull
     public static BedrockPlatform fromId(int id) {
         return id < VALUES.length ? VALUES[id] : VALUES[0];
     }

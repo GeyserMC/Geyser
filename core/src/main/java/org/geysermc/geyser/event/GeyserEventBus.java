@@ -32,6 +32,7 @@ import org.geysermc.event.bus.impl.OwnedEventBusImpl;
 import org.geysermc.event.subscribe.OwnedSubscriber;
 import org.geysermc.event.subscribe.Subscribe;
 import org.geysermc.geyser.api.event.EventBus;
+import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.event.EventSubscriber;
 import org.geysermc.geyser.api.extension.Extension;
 
@@ -40,11 +41,11 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 @SuppressWarnings("unchecked")
-public final class GeyserEventBus extends OwnedEventBusImpl<Extension, Event, EventSubscriber<? extends Event>>
-        implements EventBus {
+public final class GeyserEventBus extends OwnedEventBusImpl<EventRegistrar, Event, EventSubscriber<EventRegistrar, ? extends Event>>
+        implements EventBus<EventRegistrar> {
     @Override
-    protected <L, T extends Event, B extends OwnedSubscriber<Extension, T>> B makeSubscription(
-            @NonNull Extension owner,
+    protected <L, T extends Event, B extends OwnedSubscriber<EventRegistrar, T>> B makeSubscription(
+            @NonNull EventRegistrar owner,
             @NonNull Class<T> eventClass,
             @NonNull Subscribe subscribe,
             @NonNull L listener,
@@ -55,8 +56,8 @@ public final class GeyserEventBus extends OwnedEventBusImpl<Extension, Event, Ev
     }
 
     @Override
-    protected <T extends Event, B extends OwnedSubscriber<Extension, T>> B makeSubscription(
-            @NonNull Extension owner,
+    protected <T extends Event, B extends OwnedSubscriber<EventRegistrar, T>> B makeSubscription(
+            @NonNull EventRegistrar owner,
             @NonNull Class<T> eventClass,
             @NonNull Consumer<T> handler,
             @NonNull PostOrder postOrder) {
@@ -65,7 +66,7 @@ public final class GeyserEventBus extends OwnedEventBusImpl<Extension, Event, Ev
 
     @Override
     @NonNull
-    public <T extends Event> Set<? extends EventSubscriber<T>> subscribers(@NonNull Class<T> eventClass) {
+    public <T extends Event> Set<? extends EventSubscriber<EventRegistrar, T>> subscribers(@NonNull Class<T> eventClass) {
         return castGenericSet(super.subscribers(eventClass));
     }
 }
