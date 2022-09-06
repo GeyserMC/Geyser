@@ -1,4 +1,4 @@
-val bungeeVersion = "a7c6ede";
+val bungeeVersion = "71990e3";
 
 dependencies {
     api(projects.core)

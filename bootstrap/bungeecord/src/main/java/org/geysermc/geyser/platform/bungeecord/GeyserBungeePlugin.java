@@ -203,7 +203,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserBungeePingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
         } else {
-            this.geyserBungeePingPassthrough = new GeyserBungeePingPassthrough(getProxy());
+            this.geyserBungeePingPassthrough = new GeyserBungeePingPassthrough((BungeeCord) getProxy(), getProxy().getConfig().getListeners().iterator().next());
         }
     }
 
