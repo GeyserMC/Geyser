@@ -6,6 +6,7 @@ commands:
   - statistics
   - settings
   - offhand
+  - tooltips
 #  - list
 #  - reload
 #  - version
