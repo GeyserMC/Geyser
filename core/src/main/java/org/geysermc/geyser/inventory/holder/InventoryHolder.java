@@ -30,7 +30,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 
 public abstract class InventoryHolder {
-    public abstract void prepareInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory);
+    public abstract boolean prepareInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory);
     public abstract void openInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory);
     public abstract void closeInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory);
 }
