@@ -94,7 +94,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public void prepareInventory(GeyserSession session, Inventory inventory) {
+    public boolean prepareInventory(GeyserSession session, Inventory inventory) {
         MerchantContainer merchantInventory = (MerchantContainer) inventory;
         if (merchantInventory.getVillager() == null) {
             long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
@@ -117,6 +117,8 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
 
             merchantInventory.setVillager(villager);
         }
+
+        return true;
     }
 
     @Override
