@@ -26,6 +26,7 @@
 package org.geysermc.geyser.dump;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
@@ -50,7 +51,6 @@ import org.geysermc.geyser.util.WebUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -89,7 +89,7 @@ public class DumpInfo {
         this.systemLocale = Locale.getDefault();
         this.systemEncoding = System.getProperty("file.encoding");
 
-        this.gitInfo = new GitInfo(GeyserImpl.VERSION, GeyserImpl.BUILD_NUMBER, GeyserImpl.GIT_VERSION, GeyserImpl.BRANCH);
+        this.gitInfo = new GitInfo(GeyserImpl.BUILD_NUMBER, GeyserImpl.COMMIT.substring(0, 7), GeyserImpl.COMMIT, GeyserImpl.BRANCH, GeyserImpl.REPOSITORY);
 
         this.config = GeyserImpl.getInstance().getConfig();
         this.floodgate = new Floodgate();
@@ -300,9 +300,14 @@ public class DumpInfo {
     @Getter
     @AllArgsConstructor
     public static class GitInfo {
-        private final String version;
         private final String buildNumber;
+        @JsonProperty("git.commit.id.abbrev")
+        private final String commitHashAbbrev;
+        @JsonProperty("git.commit.id")
         private final String commitHash;
+        @JsonProperty("git.branch")
         private final String branchName;
+        @JsonProperty("git.remote.origin.url")
+        private final String originUrl;
     }
 }

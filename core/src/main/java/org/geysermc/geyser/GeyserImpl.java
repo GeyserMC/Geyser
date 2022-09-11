@@ -116,6 +116,8 @@ public class GeyserImpl implements GeyserApi {
 
     public static final String BUILD_NUMBER = "${buildNumber}";
     public static final String BRANCH = "${branch}";
+    public static final String COMMIT = "${commit}";
+    public static final String REPOSITORY = "${repository}";
 
     /**
      * Oauth client ID for Microsoft authentication
