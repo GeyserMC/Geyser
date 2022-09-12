@@ -42,11 +42,9 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
 
     @Override
     public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
-        IntTag hideFlagsTag = itemTag.get("HideFlags");
-
         List<Tag> newTags = new ArrayList<>();
         Tag enchantmentTag = itemTag.get("StoredEnchantments");
-        if ((hideFlagsTag == null || (hideFlagsTag.getValue() & 32) == 0) && enchantmentTag instanceof ListTag listTag) {
+        if (enchantmentTag instanceof ListTag listTag) {
             for (Tag tag : listTag.getValue()) {
                 if (!(tag instanceof CompoundTag)) continue;
 
@@ -60,15 +58,13 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
         }
         enchantmentTag = itemTag.get("Enchantments");
         if (enchantmentTag instanceof ListTag listTag) {
-            if (hideFlagsTag == null || (hideFlagsTag.getValue() & 1) == 0) {
-                for (Tag tag : listTag.getValue()) {
-                    if (!(tag instanceof CompoundTag)) continue;
+            for (Tag tag : listTag.getValue()) {
+                if (!(tag instanceof CompoundTag)) continue;
 
-                    CompoundTag bedrockTag = remapEnchantment((CompoundTag) tag);
-                    newTags.add(bedrockTag);
-                }
-                itemTag.remove("Enchantments");
+                CompoundTag bedrockTag = remapEnchantment((CompoundTag) tag);
+                newTags.add(bedrockTag);
             }
+            itemTag.remove("Enchantments");
             itemTag.put(new ListTag("ench"));
         }
 
