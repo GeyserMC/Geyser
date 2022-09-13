@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.extension;
 
-import it.unimi.dsi.fastutil.objects.Object2ReferenceMap;
-import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.api.Geyser;
@@ -51,7 +51,7 @@ import java.util.stream.Stream;
 public class GeyserExtensionLoader extends ExtensionLoader {
     private static final Pattern[] EXTENSION_FILTERS = new Pattern[] { Pattern.compile("^.+\\.jar$") };
 
-    private final Object2ReferenceMap<String, Class<?>> classes = new Object2ReferenceOpenHashMap<>();
+    private final Object2ObjectMap<String, Class<?>> classes = new Object2ObjectOpenHashMap<>();
     private final Map<String, GeyserExtensionClassLoader> classLoaders = new HashMap<>();
     private final Map<Extension, GeyserExtensionContainer> extensionContainers = new HashMap<>();
     private final Path extensionsDirectory = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("extensions");
