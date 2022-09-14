@@ -4,17 +4,7 @@ dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         // Floodgate, Cumulus etc.
-        maven("https://repo.opencollab.dev/maven-releases") {
-            mavenContent { releasesOnly() }
-        }
-        maven("https://repo.opencollab.dev/maven-snapshots") {
-            mavenContent {
-                // This has the unintended side effect of not allowing snapshot version pinning.
-                // Likely a bug in Gradle's implementation of snapshot pinning
-                // See https://github.com/gradle/gradle/pull/406
-                snapshotsOnly() 
-            }
-        }
+        maven("https://repo.opencollab.dev/main")
 
         // Paper, Velocity
         maven("https://repo.papermc.io/repository/maven-public")
