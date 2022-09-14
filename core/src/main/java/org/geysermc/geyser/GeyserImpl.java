@@ -147,7 +147,7 @@ public class GeyserImpl implements GeyserApi {
     private final GeyserBootstrap bootstrap;
 
     private final EventBus<EventRegistrar> eventBus;
-    private GeyserExtensionManager extensionManager;
+    private final GeyserExtensionManager extensionManager;
 
     private Metrics metrics;
 
@@ -173,6 +173,7 @@ public class GeyserImpl implements GeyserApi {
         /* Load Extensions */
         this.extensionManager = new GeyserExtensionManager();
         this.extensionManager.init();
+        this.eventBus.fire(new GeyserPreInitializeEvent(this.extensionManager, this.eventBus));
     }
 
     public void initialize() {
@@ -185,11 +186,6 @@ public class GeyserImpl implements GeyserApi {
         logger.info(GeyserLocale.getLocaleStringLog("geyser.core.load", NAME, VERSION));
         logger.info("");
         logger.info("******************************************");
-
-
-        /* Enable extensions */
-        this.extensionManager.enableExtensions();
-        this.eventBus.fire(new GeyserPreInitializeEvent(this.extensionManager, this.eventBus));
 
         /* Initialize registries */
         Registries.init();

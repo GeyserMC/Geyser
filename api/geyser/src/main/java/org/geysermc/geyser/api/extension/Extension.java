@@ -124,7 +124,7 @@ public interface Extension extends EventRegistrar {
      */
     @NonNull
     default ExtensionLoader extensionLoader() {
-        return Objects.requireNonNull(this.extensionManager().extensionLoader(this));
+        return Objects.requireNonNull(this.extensionManager().extensionLoader());
     }
 
     /**

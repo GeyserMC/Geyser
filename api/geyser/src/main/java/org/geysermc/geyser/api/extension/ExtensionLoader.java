@@ -34,7 +34,6 @@ import java.nio.file.Path;
  * The extension loader is responsible for loading, unloading, enabling and disabling extensions
  */
 public abstract class ExtensionLoader {
-
     /**
      * Gets if the given {@link Extension} is enabled.
      *
@@ -101,6 +100,6 @@ public abstract class ExtensionLoader {
      * @param extensionManager the extension manager
      */
     protected void register(@NonNull Extension extension, @NonNull ExtensionManager extensionManager) {
-        extensionManager.register(extension, this);
+        extensionManager.register(extension);
     }
 }

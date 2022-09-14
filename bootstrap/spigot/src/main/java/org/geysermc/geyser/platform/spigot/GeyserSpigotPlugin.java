@@ -62,12 +62,7 @@ import org.geysermc.geyser.platform.spigot.command.GeyserSpigotCommandManager;
 import org.geysermc.geyser.platform.spigot.command.SpigotCommandSource;
 import org.geysermc.geyser.platform.spigot.world.GeyserPistonListener;
 import org.geysermc.geyser.platform.spigot.world.GeyserSpigotBlockPlaceListener;
-import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigot1_12NativeWorldManager;
-import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigot1_12WorldManager;
-import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotFallbackWorldManager;
-import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotLegacyNativeWorldManager;
-import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotNativeWorldManager;
-import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotWorldManager;
+import org.geysermc.geyser.platform.spigot.world.manager.*;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 
@@ -204,12 +199,14 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             }
         }, this);
 
+        this.geyserCommandManager = new GeyserSpigotCommandManager(geyser);
+        this.geyserCommandManager.init();
+
         // Because Bukkit locks its command map upon startup, we need to
         // add our plugin commands in onEnable, but populating the executor
         // can happen at any time
         CommandMap commandMap = GeyserSpigotCommandManager.getCommandMap();
-        for (Extension extension : this.geyser.extensionManager().extensions()) {
-
+        for (Extension extension : this.geyserCommandManager.extensionCommands().keySet()) {
             // Thanks again, Bukkit
             try {
                 Constructor<PluginCommand> constructor = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
@@ -244,9 +241,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             }
         }
         geyserLogger.debug("Spigot ping passthrough type: " + (this.geyserSpigotPingPassthrough == null ? null : this.geyserSpigotPingPassthrough.getClass()));
-
-        this.geyserCommandManager = new GeyserSpigotCommandManager(geyser);
-        this.geyserCommandManager.init();
 
         boolean isViaVersion = Bukkit.getPluginManager().getPlugin("ViaVersion") != null;
         if (isViaVersion) {
