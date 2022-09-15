@@ -31,6 +31,7 @@ import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.v527.Bedrock_v527;
 import com.nukkitx.protocol.bedrock.v534.Bedrock_v534;
 import com.nukkitx.protocol.bedrock.v544.Bedrock_v544;
+import com.nukkitx.protocol.bedrock.v553.Bedrock_v553;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.ArrayList;
@@ -71,6 +72,7 @@ public final class GameProtocol {
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC.toBuilder()
                 .minecraftVersion("1.19.21/1.19.22")
                 .build());
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v553.V553_CODEC);
     }
 
     /**

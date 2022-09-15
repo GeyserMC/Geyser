@@ -28,6 +28,7 @@ package org.geysermc.geyser.network;
 import com.nukkitx.protocol.bedrock.BedrockPong;
 import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
+import com.nukkitx.protocol.bedrock.v553.Bedrock_v553;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.DefaultEventLoopGroup;
@@ -171,7 +172,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
     @Override
     public void onSessionCreation(@Nonnull BedrockServerSession bedrockServerSession) {
         try {
-            bedrockServerSession.setPacketCodec(GameProtocol.DEFAULT_BEDROCK_CODEC);
+            bedrockServerSession.setPacketCodec(Bedrock_v553.V553_CODEC); // Has the RequestNetworkSettingsPacket
             bedrockServerSession.setLogging(true);
             bedrockServerSession.setCompressionLevel(geyser.getConfig().getBedrock().getCompressionLevel());
             bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(geyser, new GeyserSession(geyser, bedrockServerSession, eventLoopGroup.next())));

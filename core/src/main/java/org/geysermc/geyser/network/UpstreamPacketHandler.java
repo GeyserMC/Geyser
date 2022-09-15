@@ -28,6 +28,7 @@ package org.geysermc.geyser.network;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.data.ExperimentData;
+import com.nukkitx.protocol.bedrock.data.PacketCompressionAlgorithm;
 import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.geyser.GeyserImpl;
@@ -59,6 +60,20 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     @Override
     boolean defaultHandler(BedrockPacket packet) {
         return translateAndDefault(packet);
+    }
+
+    @Override
+    public boolean handle(RequestNetworkSettingsPacket packet) {
+        // New since 1.19.30 - sent before login packet
+        PacketCompressionAlgorithm algorithm = PacketCompressionAlgorithm.ZLIB;
+
+        NetworkSettingsPacket responsePacket = new NetworkSettingsPacket();
+        responsePacket.setCompressionAlgorithm(algorithm);
+        responsePacket.setCompressionThreshold(512);
+        session.sendUpstreamPacketImmediately(responsePacket);
+
+        session.getUpstream().getSession().setCompression(algorithm);
+        return true;
     }
 
     @Override

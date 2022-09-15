@@ -31,6 +31,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.Cli
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
+import com.nukkitx.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import com.nukkitx.protocol.bedrock.packet.CraftingDataPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.geyser.GeyserImpl;
@@ -186,7 +187,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                     uuid.toString(),
                     width,
                     height,
-                    Arrays.asList(ingredients),
+                    Arrays.stream(ingredients).map(ItemDescriptorWithCount::fromItem).toList(),
                     Collections.singletonList(ItemTranslator.translateToBedrock(session, item)),
                     uuid,
                     "crafting_table",
