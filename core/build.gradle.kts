@@ -79,7 +79,7 @@ configure<BlossomExtension> {
     val indra = the<IndraGitExtension>()
 
     val mainFile = "src/main/java/org/geysermc/geyser/GeyserImpl.java"
-    val branchName = indra.branchName() ?: "DEV"
+    val branchName = indra.branchName() ?: System.getenv("GIT_BRANCH") ?: "DEV"
     val commit = indra.commit()
     val git = indra.git()
     val gitVersion = "git-${branchName}-${commit?.name?.substring(0, 7) ?: "0000000"}"
