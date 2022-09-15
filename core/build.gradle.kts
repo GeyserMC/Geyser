@@ -79,20 +79,18 @@ configure<BlossomExtension> {
     val indra = the<IndraGitExtension>()
 
     val mainFile = "src/main/java/org/geysermc/geyser/GeyserImpl.java"
+    val branchName = indra.branchName() ?: "DEV"
     val commit = indra.commit()
     val git = indra.git()
-    val gitVersion = "git-${branchName()}-${commit?.name?.substring(0, 7) ?: "0000000"}"
+    val gitVersion = "git-${branchName}-${commit?.name?.substring(0, 7) ?: "0000000"}"
 
     replaceToken("\${version}", "${project.version} ($gitVersion)", mainFile)
     replaceToken("\${gitVersion}", gitVersion, mainFile)
     replaceToken("\${buildNumber}", buildNumber(), mainFile)
-    replaceToken("\${branch}", branchName(), mainFile)
+    replaceToken("\${branch}", branchName, mainFile)
     if (commit != null && commit.name != null) replaceToken("\${commit}", commit.name, mainFile)
     if (git != null) replaceToken("\${repository}", git.repository.config.getString("remote", "origin", "url"))
 }
-
-fun Project.branchName(): String =
-        System.getenv("GIT_BRANCH") ?: "local/dev"
 
 fun Project.buildNumber(): Int =
     Integer.parseInt(System.getenv("BUILD_NUMBER") ?: "-1")
