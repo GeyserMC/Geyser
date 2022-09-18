@@ -30,7 +30,7 @@ dependencies {
     // Network libraries
     implementation("org.java-websocket", "Java-WebSocket", Versions.websocketVersion)
 
-    api("com.github.CloudburstMC.Protocol", "bedrock-v553", Versions.protocolVersion) {
+    api("com.github.CloudburstMC.Protocol", "bedrock-v554", Versions.protocolVersion) {
         exclude("com.nukkitx.network", "raknet")
         exclude("com.nukkitx", "nbt")
     }
@@ -43,8 +43,6 @@ dependencies {
 
     api("com.github.steveice10", "packetlib", Versions.packetlibVersion) {
         exclude("io.netty", "netty-all")
-        // This is still experimental - additionally, it could only really benefit standalone
-        exclude("io.netty.incubator", "netty-incubator-transport-native-io_uring")
     }
 
     implementation("com.nukkitx.network", "raknet", Versions.raknetVersion) {
@@ -63,6 +61,7 @@ dependencies {
     implementation("io.netty", "netty-transport-native-kqueue", Versions.nettyVersion, null, "osx-x86_64")
 
     // Adventure text serialization
+    implementation("net.kyori", "adventure-text-serializer-gson", Versions.adventureVersion) // Remove when we remove our Adventure bump
     implementation("net.kyori", "adventure-text-serializer-legacy", Versions.adventureVersion)
     implementation("net.kyori", "adventure-text-serializer-plain", Versions.adventureVersion)
 
@@ -73,6 +72,11 @@ dependencies {
     compileOnly(projects.ap)
 
     annotationProcessor(projects.ap)
+}
+
+configurations.api {
+    // This is still experimental - additionally, it could only really benefit standalone
+    exclude(group = "io.netty.incubator", module = "netty-incubator-transport-native-io_uring")
 }
 
 tasks.processResources {
