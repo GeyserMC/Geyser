@@ -857,6 +857,13 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
         return defaultHandler(packet);
     }
 
+    // 1.19.0 new packet
+
+    @Override
+    public boolean handle(RequestAbilityPacket packet) {
+        return defaultHandler(packet);
+    }
+
     // 1.19.30 new packet
 
     @Override
