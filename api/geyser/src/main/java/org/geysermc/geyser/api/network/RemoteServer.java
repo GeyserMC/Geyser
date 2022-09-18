@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.api.network;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Represents the Java server that Geyser is connecting to.
  */
@@ -63,5 +65,6 @@ public interface RemoteServer {
      *
      * @return the auth type required by the remote server
      */
+    @NotNull
     AuthType authType();
 }

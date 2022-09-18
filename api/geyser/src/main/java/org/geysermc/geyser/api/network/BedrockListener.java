@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.api.network;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 /**
  * The listener that handles connections from Minecraft:
  * Bedrock Edition.
@@ -37,6 +39,7 @@ public interface BedrockListener {
      *
      * @return the listening address
      */
+    @NonNull
     String address();
 
     /**

@@ -4,4 +4,5 @@ dependencies {
         exclude(group = "com.google.guava", module = "guava")
         exclude(group = "org.lanternpowered", module = "lmbda")
     }
+    compileOnlyApi("org.jetbrains", "annotations", "23.0.0")
 }

@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.api.command;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 /**
  * Represents an instance capable of sending commands.
  */
@@ -42,7 +44,7 @@ public interface CommandSource {
      *
      * @param message the message to send
      */
-    void sendMessage(String message);
+    void sendMessage(@NonNull String message);
 
     /**
      * Sends the given messages to the command source
@@ -58,7 +60,7 @@ public interface CommandSource {
     /**
      * If this source is the console.
      *
-     * @return true if  this source is the console
+     * @return true if this source is the console
      */
     boolean isConsole();
 
