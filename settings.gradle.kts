@@ -38,6 +38,9 @@ dependencyResolutionManagement {
         maven("https://jitpack.io") {
             content { includeGroupByRegex("com\\.github\\..*") }
         }
+
+        // For Adventure snapshots
+        maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     }
 }
 

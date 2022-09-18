@@ -62,8 +62,34 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         return translateAndDefault(packet);
     }
 
+    private boolean newProtocol = false; // TEMPORARY
+
+    private boolean setCorrectCodec(int protocolVersion) {
+        BedrockPacketCodec packetCodec = GameProtocol.getBedrockCodec(protocolVersion);
+        if (packetCodec == null) {
+            String supportedVersions = GameProtocol.getAllSupportedBedrockVersions();
+            if (protocolVersion > GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
+                // Too early to determine session locale
+                session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.server", supportedVersions));
+                return false;
+            } else if (protocolVersion < GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
+                session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.client", supportedVersions));
+                return false;
+            }
+        }
+
+        session.getUpstream().getSession().setPacketCodec(packetCodec);
+        return true;
+    }
+
     @Override
     public boolean handle(RequestNetworkSettingsPacket packet) {
+        if (setCorrectCodec(packet.getProtocolVersion())) {
+            newProtocol = true;
+        } else {
+            return true;
+        }
+
         // New since 1.19.30 - sent before login packet
         PacketCompressionAlgorithm algorithm = PacketCompressionAlgorithm.ZLIB;
 
@@ -84,20 +110,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return true;
         }
 
-        BedrockPacketCodec packetCodec = GameProtocol.getBedrockCodec(loginPacket.getProtocolVersion());
-        if (packetCodec == null) {
-            String supportedVersions = GameProtocol.getAllSupportedBedrockVersions();
-            if (loginPacket.getProtocolVersion() > GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
-                // Too early to determine session locale
-                session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.server", supportedVersions));
-                return true;
-            } else if (loginPacket.getProtocolVersion() < GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
-                session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.client", supportedVersions));
+        if (!newProtocol) {
+            if (!setCorrectCodec(loginPacket.getProtocolVersion())) { // REMOVE WHEN ONLY 1.19.30 IS SUPPORTED OR 1.20
                 return true;
             }
         }
-
-        session.getUpstream().getSession().setPacketCodec(packetCodec);
 
         // Set the block translation based off of version
         session.setBlockMappings(BlockRegistries.BLOCKS.forVersion(loginPacket.getProtocolVersion()));
