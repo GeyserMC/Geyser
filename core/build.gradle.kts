@@ -84,7 +84,7 @@ configure<BlossomExtension> {
 
     val mainFile = "src/main/java/org/geysermc/geyser/GeyserImpl.java"
     // On Jenkins, a detached head is checked out, so indra cannot determine the branch. Fortunately, this environment variable is available.
-    val branchName = indra.branchName() ?: System.getenv("GIT_LOCAL_BRANCH") ?: "DEV"
+    val branchName = indra.branchName() ?: System.getenv("BRANCH_NAME") ?: "DEV"
     val commit = indra.commit()
     val git = indra.git()
     val gitVersion = "git-${branchName}-${commit?.name?.substring(0, 7) ?: "0000000"}"
