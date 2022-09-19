@@ -30,7 +30,7 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.Enchantment.JavaEnchantment;
-import org.geysermc.geyser.network.MinecraftProtocol;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.EnchantmentData;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -77,7 +77,7 @@ public class EnchantmentRegistryLoader implements RegistryLoader<String, Map<Jav
             IntSet validItems = new IntOpenHashSet();
             for (JsonNode itemNode : node.get("valid_items")) {
                 String javaIdentifier = itemNode.textValue();
-                ItemMapping itemMapping = Registries.ITEMS.forVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getMapping(javaIdentifier);
+                ItemMapping itemMapping = Registries.ITEMS.forVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getMapping(javaIdentifier);
                 if (itemMapping != null) {
                     validItems.add(itemMapping.getJavaId());
                 } else {

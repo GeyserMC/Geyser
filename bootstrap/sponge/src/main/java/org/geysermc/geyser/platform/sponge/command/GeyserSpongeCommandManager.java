@@ -26,12 +26,12 @@
 package org.geysermc.geyser.platform.sponge.command;
 
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.CommandManager;
+import org.geysermc.geyser.command.GeyserCommandManager;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandMapping;
 import org.spongepowered.api.text.Text;
 
-public class GeyserSpongeCommandManager extends CommandManager {
+public class GeyserSpongeCommandManager extends GeyserCommandManager {
     private final org.spongepowered.api.command.CommandManager handle;
 
     public GeyserSpongeCommandManager(org.spongepowered.api.command.CommandManager handle, GeyserImpl geyser) {
@@ -41,7 +41,7 @@ public class GeyserSpongeCommandManager extends CommandManager {
     }
 
     @Override
-    public String getDescription(String command) {
+    public String description(String command) {
         return handle.get(command).map(CommandMapping::getCallable)
                 .map(callable -> callable.getShortDescription(Sponge.getServer().getConsole()).orElse(Text.EMPTY))
                 .orElse(Text.EMPTY).toPlain();

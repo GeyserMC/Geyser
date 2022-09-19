@@ -36,12 +36,12 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
+import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.level.FireworkColor;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.MathUtils;
-import org.geysermc.floodgate.util.DeviceOs;
 
 import java.util.ArrayList;
 import java.util.List;

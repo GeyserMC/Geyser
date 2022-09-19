@@ -118,7 +118,7 @@ public final class ScoreboardUpdater extends Thread {
                                             FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD;
 
                                     geyser.getLogger().info(
-                                            GeyserLocale.getLocaleStringLog("geyser.scoreboard.updater.threshold_reached.log", session.name(), threshold, pps) +
+                                            GeyserLocale.getLocaleStringLog("geyser.scoreboard.updater.threshold_reached.log", session.bedrockUsername(), threshold, pps) +
                                                     GeyserLocale.getLocaleStringLog("geyser.scoreboard.updater.threshold_reached", (millisBetweenUpdates / 1000.0))
                                     );
 

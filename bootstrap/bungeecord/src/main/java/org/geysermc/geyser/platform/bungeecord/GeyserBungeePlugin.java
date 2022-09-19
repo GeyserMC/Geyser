@@ -25,31 +25,39 @@
 
 package org.geysermc.geyser.platform.bungeecord;
 
+import io.netty.channel.Channel;
+import net.md_5.bungee.BungeeCord;
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.protocol.ProtocolConstants;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.common.PlatformType;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserBootstrap;
-import org.geysermc.geyser.command.CommandManager;
-import org.geysermc.geyser.session.auth.AuthType;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.api.network.AuthType;
+import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
-import org.geysermc.geyser.util.FileUtils;
-import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.platform.bungeecord.command.GeyserBungeeCommandExecutor;
 import org.geysermc.geyser.platform.bungeecord.command.GeyserBungeeCommandManager;
-import org.jetbrains.annotations.Nullable;
+import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
@@ -63,9 +71,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     private GeyserImpl geyser;
 
     @Override
-    public void onEnable() {
-        GeyserLocale.init(this);
-
+    public void onLoad() {
         // Copied from ViaVersion.
         // https://github.com/ViaVersion/ViaVersion/blob/b8072aad86695cc8ec6f5e4103e43baf3abf6cc5/bungee/src/main/java/us/myles/ViaVersion/BungeePlugin.java#L43
         try {
@@ -79,6 +85,8 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             getLogger().warning(" /     o     \\");
             getLogger().warning("/_____________\\");
         }
+
+        GeyserLocale.init(this);
 
         if (!getDataFolder().exists())
             getDataFolder().mkdir();
@@ -95,13 +103,38 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             return;
         }
 
+        this.geyserLogger = new GeyserBungeeLogger(getLogger(), geyserConfig.isDebugMode());
+        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
+
+        this.geyser = GeyserImpl.load(PlatformType.BUNGEECORD, this);
+    }
+
+    @Override
+    public void onEnable() {
+        // Remove this in like a year
+        if (getProxy().getPluginManager().getPlugin("floodgate-bungee") != null) {
+            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.outdated", "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/"));
+            return;
+        }
+
+        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE && getProxy().getPluginManager().getPlugin("floodgate") == null) {
+            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
+            return;
+        } else if (geyserConfig.isAutoconfiguredRemote() && getProxy().getPluginManager().getPlugin("floodgate") != null) {
+            // Floodgate installed means that the user wants Floodgate authentication
+            geyserLogger.debug("Auto-setting to Floodgate authentication.");
+            geyserConfig.getRemote().setAuthType(AuthType.FLOODGATE);
+        }
+
+        geyserConfig.loadFloodgate(this);
+
         if (getProxy().getConfig().getListeners().size() == 1) {
             ListenerInfo listener = getProxy().getConfig().getListeners().toArray(new ListenerInfo[0])[0];
 
             InetSocketAddress javaAddr = listener.getHost();
 
             // By default this should be localhost but may need to be changed in some circumstances
-            if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
+            if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
                 this.geyserConfig.setAutoconfiguredRemote(true);
                 // Don't use localhost if not listening on all interfaces
                 if (!javaAddr.getHostString().equals("0.0.0.0") && !javaAddr.getHostString().equals("")) {
@@ -115,42 +148,63 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             }
         }
 
-        this.geyserLogger = new GeyserBungeeLogger(getLogger(), geyserConfig.isDebugMode());
-        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
+        // Big hack - Bungee does not provide us an event to listen to, so schedule a repeating
+        // task that waits for a field to be filled which is set after the plugin enable
+        // process is complete
+        this.awaitStartupCompletion(0);
+    }
 
-        // Remove this in like a year
-        if (getProxy().getPluginManager().getPlugin("floodgate-bungee") != null) {
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.outdated", "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/"));
+    @SuppressWarnings("unchecked")
+    private void awaitStartupCompletion(int tries) {
+        // After 20 tries give up waiting. This will happen
+        // just after 3 minutes approximately
+        if (tries >= 20) {
+            this.geyserLogger.warning("BungeeCord plugin startup is taking abnormally long, so Geyser is starting now. " +
+                    "If all your plugins are loaded properly, this is a bug! " +
+                    "If not, consider cutting down the amount of plugins on your proxy as it is causing abnormally slow starting times.");
+            this.postStartup();
             return;
         }
 
-        if (geyserConfig.getRemote().getAuthType() == AuthType.FLOODGATE && getProxy().getPluginManager().getPlugin("floodgate") == null) {
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
-            return;
-        } else if (geyserConfig.isAutoconfiguredRemote() && getProxy().getPluginManager().getPlugin("floodgate") != null) {
-            // Floodgate installed means that the user wants Floodgate authentication
-            geyserLogger.debug("Auto-setting to Floodgate authentication.");
-            geyserConfig.getRemote().setAuthType(AuthType.FLOODGATE);
+        try {
+            Field listenersField = BungeeCord.getInstance().getClass().getDeclaredField("listeners");
+            listenersField.setAccessible(true);
+
+            Collection<Channel> listeners = (Collection<Channel>) listenersField.get(BungeeCord.getInstance());
+            if (listeners.isEmpty()) {
+                this.getProxy().getScheduler().schedule(this, this::postStartup, tries, TimeUnit.SECONDS);
+            } else {
+                this.awaitStartupCompletion(++tries);
+            }
+        } catch (NoSuchFieldException | IllegalAccessException ex) {
+            ex.printStackTrace();
         }
+    }
 
-        geyserConfig.loadFloodgate(this);
-
-        this.geyser = GeyserImpl.start(PlatformType.BUNGEECORD, this);
+    private void postStartup() {
+        GeyserImpl.start();
 
         this.geyserInjector = new GeyserBungeeInjector(this);
         this.geyserInjector.initializeLocalChannel(this);
 
         this.geyserCommandManager = new GeyserBungeeCommandManager(geyser);
+        this.geyserCommandManager.init();
+
+        this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor("geyser", this.geyser, this.geyserCommandManager.getCommands()));
+        for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
+            Map<String, Command> commands = entry.getValue();
+            if (commands.isEmpty()) {
+                continue;
+            }
+
+            this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor(entry.getKey().description().id(), this.geyser, commands));
+        }
 
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserBungeePingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
         } else {
             this.geyserBungeePingPassthrough = new GeyserBungeePingPassthrough(getProxy());
         }
-
-        this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor(geyser));
-
-        this.getProxy().getPluginManager().registerListener(this, new GeyserBungeeUpdateListener());
     }
 
     @Override
@@ -174,7 +228,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     }
 
     @Override
-    public CommandManager getGeyserCommandManager() {
+    public GeyserCommandManager getGeyserCommandManager() {
         return this.geyserCommandManager;
     }
 

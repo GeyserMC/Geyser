@@ -52,7 +52,7 @@ public class StatisticsUtils {
      */
     public static void buildAndSendStatisticsMenu(GeyserSession session) {
         // Cache the language for cleaner access
-        String language = session.getLocale();
+        String language = session.locale();
 
         session.sendForm(
                 SimpleForm.builder()

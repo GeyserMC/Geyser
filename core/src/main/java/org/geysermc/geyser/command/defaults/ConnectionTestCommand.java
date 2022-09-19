@@ -28,8 +28,8 @@ package org.geysermc.geyser.command.defaults;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.command.GeyserCommand;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.LoopbackUtil;
@@ -47,10 +47,10 @@ public class ConnectionTestCommand extends GeyserCommand {
     }
 
     @Override
-    public void execute(@Nullable GeyserSession session, CommandSender sender, String[] args) {
+    public void execute(@Nullable GeyserSession session, GeyserCommandSource sender, String[] args) {
         // Only allow the console to create dumps on Geyser Standalone
         if (!sender.isConsole() && geyser.getPlatformType() == PlatformType.STANDALONE) {
-            sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", sender.getLocale()));
+            sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", sender.locale()));
             return;
         }
 
@@ -69,13 +69,13 @@ public class ConnectionTestCommand extends GeyserCommand {
         }
 
         // Issue: do the ports not line up?
-        if (port != geyser.getConfig().getBedrock().getPort()) {
+        if (port != geyser.getConfig().getBedrock().port()) {
             sender.sendMessage("The port you supplied (" + port + ") does not match the port supplied in Geyser's configuration ("
-                    + geyser.getConfig().getBedrock().getPort() + "). You can change it under `bedrock` `port`.");
+                    + geyser.getConfig().getBedrock().port() + "). You can change it under `bedrock` `port`.");
         }
 
         // Issue: is the `bedrock` `address` in the config different?
-        if (!geyser.getConfig().getBedrock().getAddress().equals("0.0.0.0")) {
+        if (!geyser.getConfig().getBedrock().address().equals("0.0.0.0")) {
             sender.sendMessage("The address specified in `bedrock` `address` is not \"0.0.0.0\" - this may cause issues unless this is deliberate and intentional.");
         }
 
@@ -129,7 +129,7 @@ public class ConnectionTestCommand extends GeyserCommand {
         });
     }
 
-    private void sendLinks(CommandSender sender) {
+    private void sendLinks(GeyserCommandSource sender) {
         sender.sendMessage("If you still have issues, check to see if your hosting provider has a specific setup: " +
                 "https://wiki.geysermc.org/geyser/supported-hosting-providers/" + ", see this page: "
                 + "https://wiki.geysermc.org/geyser/fixing-unable-to-connect-to-world/" + ", or contact us on our Discord: " + "https://discord.gg/geysermc");

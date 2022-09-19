@@ -30,10 +30,10 @@ import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.skin.SkinManager;
+import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.skin.SkinManager;
 
 @Translator(packet = ClientboundAddPlayerPacket.class)
 public class JavaAddPlayerTranslator extends PacketTranslator<ClientboundAddPlayerPacket> {

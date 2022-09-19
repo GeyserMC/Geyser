@@ -30,7 +30,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Getter;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.MinecraftProtocol;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.WebUtils;
 
@@ -71,7 +71,7 @@ public class MinecraftLocale {
                 // Get the url for the latest version of the games manifest
                 String latestInfoURL = "";
                 for (Version version : versionManifest.getVersions()) {
-                    if (version.getId().equals(MinecraftProtocol.getJavaCodec().getMinecraftVersion())) {
+                    if (version.getId().equals(GameProtocol.getJavaCodec().getMinecraftVersion())) {
                         latestInfoURL = version.getUrl();
                         break;
                     }

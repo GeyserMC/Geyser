@@ -31,14 +31,14 @@ import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetPlayerTeamPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.scoreboard.Scoreboard;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.scoreboard.UpdateType;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -67,8 +67,8 @@ public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSet
                         .setName(MessageTranslator.convertMessage(packet.getDisplayName()))
                         .setColor(packet.getColor())
                         .setNameTagVisibility(packet.getNameTagVisibility())
-                        .setPrefix(MessageTranslator.convertMessage(packet.getPrefix(), session.getLocale()))
-                        .setSuffix(MessageTranslator.convertMessage(packet.getSuffix(), session.getLocale()));
+                        .setPrefix(MessageTranslator.convertMessage(packet.getPrefix(), session.locale()))
+                        .setSuffix(MessageTranslator.convertMessage(packet.getSuffix(), session.locale()));
 
                 if (packet.getPlayers().length != 0) {
                     if ((team.getNameTagVisibility() != NameTagVisibility.ALWAYS && !team.isVisibleFor(session.getPlayerEntity().getUsername()))
@@ -98,8 +98,8 @@ public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSet
                 team.setName(MessageTranslator.convertMessage(packet.getDisplayName()))
                         .setColor(packet.getColor())
                         .setNameTagVisibility(packet.getNameTagVisibility())
-                        .setPrefix(MessageTranslator.convertMessage(packet.getPrefix(), session.getLocale()))
-                        .setSuffix(MessageTranslator.convertMessage(packet.getSuffix(), session.getLocale()))
+                        .setPrefix(MessageTranslator.convertMessage(packet.getPrefix(), session.locale()))
+                        .setSuffix(MessageTranslator.convertMessage(packet.getSuffix(), session.locale()))
                         .setUpdateType(UpdateType.UPDATE);
 
                 if (oldVisibility != team.getNameTagVisibility()

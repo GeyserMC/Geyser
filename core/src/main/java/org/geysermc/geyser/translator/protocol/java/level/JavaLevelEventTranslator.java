@@ -77,7 +77,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 textPacket.setSourceName(null);
                 textPacket.setMessage("record.nowPlaying");
                 String recordString = "%item." + soundEvent.name().toLowerCase(Locale.ROOT) + ".desc";
-                textPacket.setParameters(Collections.singletonList(MinecraftLocale.getLocaleString(recordString, session.getLocale())));
+                textPacket.setParameters(Collections.singletonList(MinecraftLocale.getLocaleString(recordString, session.locale())));
                 session.sendUpstreamPacket(textPacket);
             }
             return;

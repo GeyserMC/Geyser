@@ -41,7 +41,7 @@ public class JavaSetActionBarTextTranslator extends PacketTranslator<Clientbound
         if (packet.getText() == null) { //TODO 1.17 can this happen?
             text = " ";
         } else {
-            text = MessageTranslator.convertMessage(packet.getText(), session.getLocale());
+            text = MessageTranslator.convertMessage(packet.getText(), session.locale());
         }
 
         SetTitlePacket titlePacket = new SetTitlePacket();

@@ -27,17 +27,19 @@ package org.geysermc.geyser.platform.sponge;
 
 import com.google.inject.Inject;
 import org.geysermc.common.PlatformType;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserBootstrap;
-import org.geysermc.geyser.command.CommandManager;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
-import org.geysermc.geyser.util.FileUtils;
-import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.platform.sponge.command.GeyserSpongeCommandExecutor;
 import org.geysermc.geyser.platform.sponge.command.GeyserSpongeCommandManager;
+import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.FileUtils;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
@@ -50,6 +52,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.UUID;
 
 @Plugin(id = "geyser", name = GeyserImpl.NAME + "-Sponge", version = GeyserImpl.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
@@ -69,8 +72,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
     private GeyserImpl geyser;
 
-    @Override
-    public void onEnable() {
+    public void onLoad() {
         GeyserLocale.init(this);
 
         if (!configDir.exists())
@@ -99,19 +101,25 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
             // Don't change the ip if its listening on all interfaces
             // By default this should be 127.0.0.1 but may need to be changed in some circumstances
-            if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
+            if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
                 this.geyserConfig.setAutoconfiguredRemote(true);
                 geyserConfig.getRemote().setPort(javaAddr.getPort());
             }
         }
 
         if (geyserConfig.getBedrock().isCloneRemotePort()) {
-            geyserConfig.getBedrock().setPort(geyserConfig.getRemote().getPort());
+            geyserConfig.getBedrock().setPort(geyserConfig.getRemote().port());
         }
 
         this.geyserLogger = new GeyserSpongeLogger(logger, geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
-        this.geyser = GeyserImpl.start(PlatformType.SPONGE, this);
+
+        this.geyser = GeyserImpl.load(PlatformType.SPONGE, this);
+    }
+
+    @Override
+    public void onEnable() {
+        GeyserImpl.start();
 
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserSpongePingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
@@ -120,7 +128,18 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
         }
 
         this.geyserCommandManager = new GeyserSpongeCommandManager(Sponge.getCommandManager(), geyser);
-        Sponge.getCommandManager().register(this, new GeyserSpongeCommandExecutor(geyser), "geyser");
+        this.geyserCommandManager.init();
+
+        Sponge.getCommandManager().register(this, new GeyserSpongeCommandExecutor(geyser, geyserCommandManager.getCommands()), "geyser");
+
+        for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
+            Map<String, Command> commands = entry.getValue();
+            if (commands.isEmpty()) {
+                continue;
+            }
+
+            Sponge.getCommandManager().register(this, new GeyserSpongeCommandExecutor(this.geyser, commands), entry.getKey().description().id());
+        }
     }
 
     @Override
@@ -139,7 +158,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     }
 
     @Override
-    public CommandManager getGeyserCommandManager() {
+    public GeyserCommandManager getGeyserCommandManager() {
         return this.geyserCommandManager;
     }
 
@@ -151,6 +170,11 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     @Override
     public Path getConfigFolder() {
         return configDir.toPath();
+    }
+
+    @Listener
+    public void onServerStarting() {
+        onLoad();
     }
 
     @Listener

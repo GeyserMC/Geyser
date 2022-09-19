@@ -34,8 +34,8 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.command.CommandSender;
-import org.geysermc.geyser.network.MinecraftProtocol;
+import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.concurrent.CompletableFuture;
@@ -54,13 +54,13 @@ public final class VersionCheckUtils {
         }
     }
 
-    public static void checkForGeyserUpdate(Supplier<CommandSender> recipient) {
+    public static void checkForGeyserUpdate(Supplier<GeyserCommandSource> recipient) {
         CompletableFuture.runAsync(() -> {
             try {
                 JsonNode json = WebUtils.getJson("https://api.geysermc.org/v2/versions/geyser");
                 JsonNode bedrock = json.get("bedrock").get("protocol");
                 int protocolVersion = bedrock.get("id").asInt();
-                if (MinecraftProtocol.getBedrockCodec(protocolVersion) != null) {
+                if (GameProtocol.getBedrockCodec(protocolVersion) != null) {
                     // We support the latest version! No need to print a message.
                     return;
                 }
@@ -68,11 +68,11 @@ public final class VersionCheckUtils {
                 final String newBedrockVersion = bedrock.get("name").asText();
 
                 // Delayed for two reasons: save unnecessary processing, and wait to load locale if this is on join.
-                CommandSender sender = recipient.get();
+                GeyserCommandSource sender = recipient.get();
 
                 // Overarching component is green - geyser.version.new component cannot be green or else the link blue is overshadowed
                 Component message = Component.text().color(NamedTextColor.GREEN)
-                        .append(Component.text(GeyserLocale.getPlayerLocaleString("geyser.version.new", sender.getLocale(), newBedrockVersion))
+                        .append(Component.text(GeyserLocale.getPlayerLocaleString("geyser.version.new", sender.locale(), newBedrockVersion))
                                 .replaceText(TextReplacementConfig.builder()
                                         .match("\\{1\\}") // Replace "Download here: {1}" so we can use fancy text component yesyes
                                         .replacement(Component.text()

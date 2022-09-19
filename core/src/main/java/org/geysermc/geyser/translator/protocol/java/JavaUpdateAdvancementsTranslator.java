@@ -28,13 +28,13 @@ package org.geysermc.geyser.translator.protocol.java;
 import com.github.steveice10.mc.protocol.data.game.advancement.Advancement;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateAdvancementsPacket;
 import com.nukkitx.protocol.bedrock.packet.ToastRequestPacket;
+import org.geysermc.geyser.level.GeyserAdvancement;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.AdvancementsCache;
+import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.session.cache.AdvancementsCache;
-import org.geysermc.geyser.level.GeyserAdvancement;
-import org.geysermc.geyser.text.MinecraftLocale;
 
 import java.util.Locale;
 
@@ -82,8 +82,8 @@ public class JavaUpdateAdvancementsTranslator extends PacketTranslator<Clientbou
             if (advancement != null && advancement.getDisplayData() != null) {
                 if (advancement.getDisplayData().isShowToast() && session.getAdvancementsCache().isEarned(advancement)) {
                     String frameType = advancement.getDisplayData().getFrameType().toString().toLowerCase(Locale.ROOT);
-                    String frameTitle = advancement.getDisplayColor() + MinecraftLocale.getLocaleString("advancements.toast." + frameType, session.getLocale());
-                    String advancementName = MessageTranslator.convertMessage(advancement.getDisplayData().getTitle(), session.getLocale());
+                    String frameTitle = advancement.getDisplayColor() + MinecraftLocale.getLocaleString("advancements.toast." + frameType, session.locale());
+                    String advancementName = MessageTranslator.convertMessage(advancement.getDisplayData().getTitle(), session.locale());
 
                     ToastRequestPacket toastRequestPacket = new ToastRequestPacket();
                     toastRequestPacket.setTitle(frameTitle);

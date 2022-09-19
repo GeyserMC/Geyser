@@ -26,6 +26,7 @@
 package org.geysermc.geyser.dump;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
@@ -35,20 +36,21 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.geysermc.floodgate.util.DeviceOs;
+import org.geysermc.floodgate.util.FloodgateInfoHolder;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.text.AsteriskSerializer;
+import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
-import org.geysermc.geyser.network.MinecraftProtocol;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.util.CpuUtils;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.WebUtils;
-import org.geysermc.floodgate.util.DeviceOs;
-import org.geysermc.floodgate.util.FloodgateInfoHolder;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -68,7 +70,7 @@ public class DumpInfo {
     private final String cpuName;
     private final Locale systemLocale;
     private final String systemEncoding;
-    private Properties gitInfo;
+    private final GitInfo gitInfo;
     private final GeyserConfiguration config;
     private final Floodgate floodgate;
     private final Object2IntMap<DeviceOs> userPlatforms;
@@ -77,6 +79,7 @@ public class DumpInfo {
     private LogsInfo logsInfo;
     private final BootstrapDumpInfo bootstrapInfo;
     private final FlagsInfo flagsInfo;
+    private final List<ExtensionInfo> extensionInfo;
 
     public DumpInfo(boolean addLog) {
         this.versionInfo = new VersionInfo();
@@ -86,11 +89,7 @@ public class DumpInfo {
         this.systemLocale = Locale.getDefault();
         this.systemEncoding = System.getProperty("file.encoding");
 
-        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource("git.properties")) {
-            this.gitInfo = new Properties();
-            this.gitInfo.load(stream);
-        } catch (IOException ignored) {
-        }
+        this.gitInfo = new GitInfo(GeyserImpl.BUILD_NUMBER, GeyserImpl.COMMIT.substring(0, 7), GeyserImpl.COMMIT, GeyserImpl.BRANCH, GeyserImpl.REPOSITORY);
 
         this.config = GeyserImpl.getInstance().getConfig();
         this.floodgate = new Floodgate();
@@ -129,6 +128,11 @@ public class DumpInfo {
         this.bootstrapInfo = GeyserImpl.getInstance().getBootstrap().getDumpInfo();
 
         this.flagsInfo = new FlagsInfo();
+
+        this.extensionInfo = new ArrayList<>();
+        for (Extension extension : GeyserApi.api().extensionManager().extensions()) {
+            this.extensionInfo.add(new ExtensionInfo(extension.isEnabled(), extension.name(), extension.description().version(), extension.description().apiVersion(), extension.description().main(), extension.description().authors()));
+        }
     }
 
     @Getter
@@ -215,11 +219,11 @@ public class DumpInfo {
         private final int javaProtocol;
 
         MCInfo() {
-            this.bedrockVersions = MinecraftProtocol.SUPPORTED_BEDROCK_CODECS.stream().map(BedrockPacketCodec::getMinecraftVersion).toList();
-            this.bedrockProtocols = MinecraftProtocol.SUPPORTED_BEDROCK_CODECS.stream().map(BedrockPacketCodec::getProtocolVersion).toList();
-            this.defaultBedrockProtocol = MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion();
-            this.javaVersions = MinecraftProtocol.getJavaVersions();
-            this.javaProtocol = MinecraftProtocol.getJavaProtocolVersion();
+            this.bedrockVersions = GameProtocol.SUPPORTED_BEDROCK_CODECS.stream().map(BedrockPacketCodec::getMinecraftVersion).toList();
+            this.bedrockProtocols = GameProtocol.SUPPORTED_BEDROCK_CODECS.stream().map(BedrockPacketCodec::getProtocolVersion).toList();
+            this.defaultBedrockProtocol = GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion();
+            this.javaVersions = GameProtocol.getJavaVersions();
+            this.javaProtocol = GameProtocol.getJavaProtocolVersion();
         }
     }
 
@@ -280,5 +284,30 @@ public class DumpInfo {
         FlagsInfo() {
             this.flags = ManagementFactory.getRuntimeMXBean().getInputArguments();
         }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class ExtensionInfo {
+        public boolean enabled;
+        public String name;
+        public String version;
+        public String apiVersion;
+        public String main;
+        public List<String> authors;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class GitInfo {
+        private final String buildNumber;
+        @JsonProperty("git.commit.id.abbrev")
+        private final String commitHashAbbrev;
+        @JsonProperty("git.commit.id")
+        private final String commitHash;
+        @JsonProperty("git.branch")
+        private final String branchName;
+        @JsonProperty("git.remote.origin.url")
+        private final String originUrl;
     }
 }

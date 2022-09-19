@@ -73,13 +73,13 @@ public class AdvancementsCache {
     public void buildAndShowMenuForm() {
         SimpleForm.Builder builder =
                 SimpleForm.builder()
-                        .translator(MinecraftLocale::getLocaleString, session.getLocale())
+                        .translator(MinecraftLocale::getLocaleString, session.locale())
                         .title("gui.advancements");
 
         List<String> rootAdvancementIds = new ArrayList<>();
         for (Map.Entry<String, GeyserAdvancement> advancement : storedAdvancements.entrySet()) {
             if (advancement.getValue().getParentId() == null) { // No parent means this is a root advancement
-                builder.button(MessageTranslator.convertMessage(advancement.getValue().getDisplayData().getTitle(), session.getLocale()));
+                builder.button(MessageTranslator.convertMessage(advancement.getValue().getDisplayData().getTitle(), session.locale()));
                 rootAdvancementIds.add(advancement.getKey());
             }
         }
@@ -111,7 +111,7 @@ public class AdvancementsCache {
      */
     public void buildAndShowListForm() {
         GeyserAdvancement categoryAdvancement = storedAdvancements.get(currentAdvancementCategoryId);
-        String language = session.getLocale();
+        String language = session.locale();
 
         SimpleForm.Builder builder =
                 SimpleForm.builder()
@@ -160,7 +160,7 @@ public class AdvancementsCache {
      */
     public void buildAndShowInfoForm(GeyserAdvancement advancement) {
         // Cache language for easier access
-        String language = session.getLocale();
+        String language = session.locale();
 
         String earned = isEarned(advancement) ? "yes" : "no";
 

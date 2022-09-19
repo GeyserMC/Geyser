@@ -235,8 +235,12 @@ nbdist/
 
 # End of https://www.gitignore.io/api/git,java,maven,eclipse,netbeans,jetbrains+all,visualstudiocode
 
+### Gradle ###
+.gradle
+
 ### Geyser ###
 run/
+extensions/
 config.yml
 logs/
 key.pem
@@ -245,4 +249,5 @@ locales/
 /packs/
 /dump.json
 /saved-refresh-tokens.json
+/custom_mappings/
 /languages/

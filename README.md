@@ -34,7 +34,6 @@ Take a look [here](https://wiki.geysermc.org/geyser/setup/) for how to set up Ge
 
 ## What's Left to be Added/Fixed
 - Near-perfect movement (to the point where anticheat on large servers is unlikely to ban you)
-- Resource pack conversion/CustomModelData
 - Some Entity Flags
 - Structure block UI
 
@@ -43,9 +42,8 @@ There are a few things Geyser is unable to support due to various differences be
 
 ## Compiling
 1. Clone the repo to your computer
-2. [Install Maven](https://maven.apache.org/install.html)
-3. Navigate to the Geyser root directory and run `git submodule update --init --recursive`. This command downloads all the needed submodules for Geyser and is a crucial step in this process.
-4. Run `mvn clean install` and locate to the `target` folder.
+2. Navigate to the Geyser root directory and run `git submodule update --init --recursive`. This command downloads all the needed submodules for Geyser and is a crucial step in this process.
+3. Run `gradlew build` and locate to `bootstrap/build` folder.
 
 ## Contributing
 Any contributions are appreciated. Please feel free to reach out to us on [Discord](http://discord.geysermc.org/) if

@@ -34,12 +34,12 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.AllArgsConstructor;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.physics.BoundingBox;
-import org.geysermc.geyser.translator.collision.CollisionRemapper;
-import org.geysermc.geyser.translator.collision.BlockCollision;
-import org.geysermc.geyser.translator.collision.OtherCollision;
-import org.geysermc.geyser.translator.collision.SolidCollision;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
+import org.geysermc.geyser.translator.collision.BlockCollision;
+import org.geysermc.geyser.translator.collision.CollisionRemapper;
+import org.geysermc.geyser.translator.collision.OtherCollision;
+import org.geysermc.geyser.translator.collision.SolidCollision;
 import org.geysermc.geyser.util.FileUtils;
 
 import java.io.InputStream;

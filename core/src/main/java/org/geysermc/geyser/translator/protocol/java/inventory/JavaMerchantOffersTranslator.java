@@ -170,11 +170,12 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
 
     private static NbtMap getItemTag(GeyserSession session, ItemStack stack, ItemMapping mapping, int count) {
         ItemData itemData = ItemTranslator.translateToBedrock(session, stack);
+        String customIdentifier = session.getItemMappings().getCustomIdMappings().get(itemData.getId());
 
         NbtMapBuilder builder = NbtMap.builder();
         builder.putByte("Count", (byte) count);
         builder.putShort("Damage", (short) itemData.getDamage());
-        builder.putString("Name", mapping.getBedrockIdentifier());
+        builder.putString("Name", customIdentifier != null ? customIdentifier : mapping.getBedrockIdentifier());
         if (itemData.getTag() != null) {
             NbtMap tag = itemData.getTag().toBuilder().build();
             builder.put("tag", tag);

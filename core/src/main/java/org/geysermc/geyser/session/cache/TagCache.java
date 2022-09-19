@@ -89,7 +89,7 @@ public class TagCache {
         boolean emulatePost1_18Logic = convertableToMud != null && convertableToMud.length != 0;
         session.setEmulatePost1_18Logic(emulatePost1_18Logic);
         if (logger.isDebug()) {
-            logger.debug("Emulating post 1.18 block predication logic for " + session.name() + "? " + emulatePost1_18Logic);
+            logger.debug("Emulating post 1.18 block predication logic for " + session.bedrockUsername() + "? " + emulatePost1_18Logic);
         }
 
         Map<String, int[]> itemTags = packet.getTags().get("minecraft:item");
@@ -104,7 +104,7 @@ public class TagCache {
         boolean emulatePost1_13Logic = itemTags.get("minecraft:signs").length > 1;
         session.setEmulatePost1_13Logic(emulatePost1_13Logic);
         if (logger.isDebug()) {
-            logger.debug("Emulating post 1.13 villager logic for " + session.name() + "? " + emulatePost1_13Logic);
+            logger.debug("Emulating post 1.13 villager logic for " + session.bedrockUsername() + "? " + emulatePost1_13Logic);
         }
     }
 

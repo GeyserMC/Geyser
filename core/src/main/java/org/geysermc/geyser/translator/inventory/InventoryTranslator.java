@@ -201,7 +201,7 @@ public abstract class InventoryTranslator {
                     TransferStackRequestActionData transferAction = (TransferStackRequestActionData) action;
                     if (!(checkNetId(session, inventory, transferAction.getSource()) && checkNetId(session, inventory, transferAction.getDestination()))) {
                         if (session.getGeyser().getConfig().isDebugMode()) {
-                            session.getGeyser().getLogger().error("DEBUG: About to reject TAKE/PLACE request made by " + session.name());
+                            session.getGeyser().getLogger().error("DEBUG: About to reject TAKE/PLACE request made by " + session.bedrockUsername());
                             dumpStackRequestDetails(session, inventory, transferAction.getSource(), transferAction.getDestination());
                         }
                         return rejectRequest(request);
@@ -292,7 +292,7 @@ public abstract class InventoryTranslator {
 
                     if (!(checkNetId(session, inventory, source) && checkNetId(session, inventory, destination))) {
                         if (session.getGeyser().getConfig().isDebugMode()) {
-                            session.getGeyser().getLogger().error("DEBUG: About to reject SWAP request made by " + session.name());
+                            session.getGeyser().getLogger().error("DEBUG: About to reject SWAP request made by " + session.bedrockUsername());
                             dumpStackRequestDetails(session, inventory, source, destination);
                         }
                         return rejectRequest(request);

@@ -27,17 +27,19 @@ package org.geysermc.geyser.command;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.experimental.Accessors;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.session.GeyserSession;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+@Accessors(fluent = true)
 @Getter
 @RequiredArgsConstructor
-public abstract class GeyserCommand {
+public abstract class GeyserCommand implements Command {
 
     protected final String name;
     /**
@@ -46,16 +48,16 @@ public abstract class GeyserCommand {
     protected final String description;
     protected final String permission;
 
-    @Setter
-    private List<String> aliases = new ArrayList<>();
+    private List<String> aliases = Collections.emptyList();
 
-    public abstract void execute(@Nullable GeyserSession session, CommandSender sender, String[] args);
+    public abstract void execute(@Nullable GeyserSession session, GeyserCommandSource sender, String[] args);
 
     /**
      * If false, hides the command from being shown on the Geyser Standalone GUI.
      *
      * @return true if the command can be run on the server console
      */
+    @Override
     public boolean isExecutableOnConsole() {
         return true;
     }
@@ -65,26 +67,23 @@ public abstract class GeyserCommand {
      *
      * @return a list of all possible subcommands, or empty if none.
      */
-    public List<String> getSubCommands() {
+    @NonNull
+    @Override
+    public List<String> subCommands() {
         return Collections.emptyList();
     }
 
     /**
-     * Shortcut to {@link #getSubCommands()}{@code .isEmpty()}.
+     * Shortcut to {@link #subCommands()} ()}{@code .isEmpty()}.
      *
      * @return true if there are subcommand present for this command.
      */
     public boolean hasSubCommands() {
-        return !getSubCommands().isEmpty();
+        return !this.subCommands().isEmpty();
     }
 
-    /**
-     * Used to send a deny message to Java players if this command can only be used by Bedrock players.
-     *
-     * @return true if this command can only be used by Bedrock players.
-     */
-    public boolean isBedrockOnly() {
-        return false;
+    public void setAliases(List<String> aliases) {
+        this.aliases = aliases;
     }
 
     /**
@@ -92,6 +91,7 @@ public abstract class GeyserCommand {
      *
      * @return if this command is designated to be used only by server operators.
      */
+    @Override
     public boolean isSuggestedOpOnly() {
         return false;
     }

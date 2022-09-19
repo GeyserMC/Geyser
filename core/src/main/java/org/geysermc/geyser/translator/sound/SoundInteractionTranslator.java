@@ -26,7 +26,6 @@
 package org.geysermc.geyser.translator.sound;
 
 import com.nukkitx.math.vector.Vector3f;
-
 import org.geysermc.geyser.session.GeyserSession;
 
 /**

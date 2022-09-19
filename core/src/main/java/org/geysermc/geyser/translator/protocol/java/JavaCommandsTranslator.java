@@ -45,13 +45,14 @@ import lombok.Getter;
 import lombok.ToString;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.CommandManager;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.api.event.downstream.ServerDefineCommandsEvent;
+import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.inventory.item.Enchantment;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.EntityUtils;
 
 import java.util.*;
@@ -115,7 +116,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             return;
         }
 
-        CommandManager manager = session.getGeyser().getCommandManager();
+        GeyserCommandManager manager = session.getGeyser().commandManager();
         CommandNode[] nodes = packet.getNodes();
         List<CommandData> commandData = new ArrayList<>();
         IntSet commandNodes = new IntOpenHashSet();
@@ -144,15 +145,20 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             CommandParamData[][] params = getParams(session, nodes[nodeIndex], nodes);
 
             // Insert the alias name into the command list
-            commands.computeIfAbsent(new BedrockCommandInfo(manager.getDescription(node.getName().toLowerCase(Locale.ROOT)), params),
+            commands.computeIfAbsent(new BedrockCommandInfo(node.getName().toLowerCase(Locale.ROOT), manager.description(node.getName().toLowerCase(Locale.ROOT)), params),
                     index -> new HashSet<>()).add(node.getName().toLowerCase());
+        }
+
+        ServerDefineCommandsEvent event = new ServerDefineCommandsEvent(session, commands.keySet());
+        session.getGeyser().eventBus().fire(event);
+        if (event.isCancelled()) {
+            return;
         }
 
         // The command flags, not sure what these do apart from break things
         List<CommandData.Flag> flags = Collections.emptyList();
 
         // Loop through all the found commands
-
         for (Map.Entry<BedrockCommandInfo, Set<String>> entry : commands.entrySet()) {
             String commandName = entry.getValue().iterator().next(); // We know this has a value
 
@@ -248,7 +254,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
     /**
      * Stores the command description and parameter data for best optimizing the Bedrock commands packet.
      */
-    private record BedrockCommandInfo(String description, CommandParamData[][] paramData) {
+    private static record BedrockCommandInfo(String name, String description, CommandParamData[][] paramData) implements ServerDefineCommandsEvent.CommandInfo {
     }
 
     @Getter

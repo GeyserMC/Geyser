@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser;
 
-import org.geysermc.geyser.command.CommandManager;
+import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.level.GeyserWorldManager;
@@ -72,7 +72,7 @@ public interface GeyserBootstrap {
      *
      * @return The current CommandManager
      */
-    CommandManager getGeyserCommandManager();
+    GeyserCommandManager getGeyserCommandManager();
 
     /**
      * Returns the current PingPassthrough manager

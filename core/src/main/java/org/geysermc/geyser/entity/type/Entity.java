@@ -366,7 +366,7 @@ public class Entity {
     public void setDisplayName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
         Optional<Component> name = entityMetadata.getValue();
         if (name.isPresent()) {
-            nametag = MessageTranslator.convertMessage(name.get(), session.getLocale());
+            nametag = MessageTranslator.convertMessage(name.get(), session.locale());
             dirtyMetadata.put(EntityData.NAMETAG, nametag);
         } else if (!nametag.isEmpty()) {
             // Clear nametag

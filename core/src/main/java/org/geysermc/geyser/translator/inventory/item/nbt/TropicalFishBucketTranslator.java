@@ -31,12 +31,12 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.geysermc.geyser.entity.type.living.animal.TropicalFishEntity;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
-import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.translator.inventory.item.NbtItemStackTranslator;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.MinecraftLocale;
+import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
+import org.geysermc.geyser.translator.inventory.item.NbtItemStackTranslator;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +50,7 @@ public class TropicalFishBucketTranslator extends NbtItemStackTranslator {
     public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
         // Prevent name from appearing as "Bucket of"
         itemTag.put(new ByteTag("AppendCustomName", (byte) 1));
-        itemTag.put(new StringTag("CustomName", MinecraftLocale.getLocaleString("entity.minecraft.tropical_fish", session.getLocale())));
+        itemTag.put(new StringTag("CustomName", MinecraftLocale.getLocaleString("entity.minecraft.tropical_fish", session.locale())));
         // Add Java's client side lore tag
         Tag bucketVariantTag = itemTag.get("BucketVariantTag");
         if (bucketVariantTag instanceof IntTag) {
@@ -66,10 +66,10 @@ public class TropicalFishBucketTranslator extends NbtItemStackTranslator {
             int predefinedVariantId = TropicalFishEntity.getPredefinedId(varNumber);
             if (predefinedVariantId != -1) {
                 Component tooltip = Component.translatable("entity.minecraft.tropical_fish.predefined." + predefinedVariantId, LORE_STYLE);
-                lore.add(0, new StringTag("", MessageTranslator.convertMessage(tooltip, session.getLocale())));
+                lore.add(0, new StringTag("", MessageTranslator.convertMessage(tooltip, session.locale())));
             } else {
                 Component typeTooltip = Component.translatable("entity.minecraft.tropical_fish.type." + TropicalFishEntity.getVariantName(varNumber), LORE_STYLE);
-                lore.add(0, new StringTag("", MessageTranslator.convertMessage(typeTooltip, session.getLocale())));
+                lore.add(0, new StringTag("", MessageTranslator.convertMessage(typeTooltip, session.locale())));
 
                 byte baseColor = TropicalFishEntity.getBaseColor(varNumber);
                 byte patternColor = TropicalFishEntity.getPatternColor(varNumber);
@@ -78,7 +78,7 @@ public class TropicalFishBucketTranslator extends NbtItemStackTranslator {
                     colorTooltip = colorTooltip.append(Component.text(", ", LORE_STYLE))
                             .append(Component.translatable("color.minecraft." + TropicalFishEntity.getColorName(patternColor), LORE_STYLE));
                 }
-                lore.add(1, new StringTag("", MessageTranslator.convertMessage(colorTooltip, session.getLocale())));
+                lore.add(1, new StringTag("", MessageTranslator.convertMessage(colorTooltip, session.locale())));
             }
 
             ListTag loreTag = displayTag.get("Lore");

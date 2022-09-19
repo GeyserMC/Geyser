@@ -25,10 +25,13 @@
 
 package org.geysermc.geyser.registry.type;
 
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.geysermc.geyser.network.MinecraftProtocol;
+import org.geysermc.geyser.api.item.custom.CustomItemOptions;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 
 import java.util.Set;
@@ -38,8 +41,8 @@ import java.util.Set;
 @EqualsAndHashCode
 public class ItemMapping {
     public static final ItemMapping AIR = new ItemMapping("minecraft:air", "minecraft:air", 0, 0, 0,
-            BlockRegistries.BLOCKS.forVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getBedrockAirId(),
-            64, null, null, null, 0, null, false);
+            BlockRegistries.BLOCKS.forVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getBedrockAirId(),
+            64, null, null, null, Object2IntMaps.emptyMap(), 0, null, false);
 
     String javaIdentifier;
     String bedrockIdentifier;
@@ -58,6 +61,8 @@ public class ItemMapping {
     String toolTier;
 
     String translationString;
+
+    Object2IntMap<CustomItemOptions> customItemOptions;
 
     int maxDamage;
 

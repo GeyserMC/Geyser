@@ -39,13 +39,16 @@ import net.kyori.adventure.util.Codec;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.api.network.AuthType;
+import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.velocity.command.GeyserVelocityCommandExecutor;
 import org.geysermc.geyser.platform.velocity.command.GeyserVelocityCommandManager;
-import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 import org.jetbrains.annotations.Nullable;
@@ -57,6 +60,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 import java.util.UUID;
 
 @Plugin(id = "geyser", name = GeyserImpl.NAME + "-Velocity", version = GeyserImpl.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
@@ -84,15 +88,6 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     @Override
     public void onEnable() {
-        try {
-            Codec.class.getMethod("codec", Codec.Decoder.class, Codec.Encoder.class);
-        } catch (NoSuchMethodException e) {
-            // velocitypowered.com has a build that is very outdated
-            logger.error("Please download Velocity from https://papermc.io/downloads#Velocity - the 'stable' Velocity version " +
-                    "that has likely been downloaded is very outdated and does not support 1.19.");
-            return;
-        }
-
         GeyserLocale.init(this);
 
         try {
@@ -111,7 +106,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         InetSocketAddress javaAddr = proxyServer.getBoundAddress();
 
         // By default this should be localhost but may need to be changed in some circumstances
-        if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
+        if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
             this.geyserConfig.setAutoconfiguredRemote(true);
             // Don't use localhost if not listening on all interfaces
             if (!javaAddr.getHostString().equals("0.0.0.0") && !javaAddr.getHostString().equals("")) {
@@ -127,6 +122,17 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         this.geyserLogger = new GeyserVelocityLogger(logger, geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
+        this.geyser = GeyserImpl.load(PlatformType.VELOCITY, this);
+
+        try {
+            Codec.class.getMethod("codec", Codec.Decoder.class, Codec.Encoder.class);
+        } catch (NoSuchMethodException e) {
+            // velocitypowered.com has a build that is very outdated
+            logger.error("Please download Velocity from https://papermc.io/downloads#Velocity - the 'stable' Velocity version " +
+                    "that has likely been downloaded is very outdated and does not support 1.19.");
+            return;
+        }
+
         // Remove this in like a year
         try {
             // Should only exist on 1.0
@@ -137,7 +143,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         } catch (ClassNotFoundException ignored) {
         }
 
-        if (geyserConfig.getRemote().getAuthType() == AuthType.FLOODGATE && proxyServer.getPluginManager().getPlugin("floodgate").isEmpty()) {
+        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE && proxyServer.getPluginManager().getPlugin("floodgate").isEmpty()) {
             geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " "
                     + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
             return;
@@ -149,13 +155,27 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
         geyserConfig.loadFloodgate(this, proxyServer, configFolder.toFile());
 
-        this.geyser = GeyserImpl.start(PlatformType.VELOCITY, this);
+    }
+
+    private void postStartup() {
+        GeyserImpl.start();
 
         this.geyserInjector = new GeyserVelocityInjector(proxyServer);
         // Will be initialized after the proxy has been bound
 
         this.geyserCommandManager = new GeyserVelocityCommandManager(geyser);
-        this.commandManager.register("geyser", new GeyserVelocityCommandExecutor(geyser));
+        this.geyserCommandManager.init();
+
+        this.commandManager.register("geyser", new GeyserVelocityCommandExecutor(geyser, geyserCommandManager.getCommands()));
+        for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
+            Map<String, Command> commands = entry.getValue();
+            if (commands.isEmpty()) {
+                continue;
+            }
+
+            this.commandManager.register(entry.getKey().description().id(), new GeyserVelocityCommandExecutor(this.geyser, commands));
+        }
+
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
         } else {
@@ -186,7 +206,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     }
 
     @Override
-    public org.geysermc.geyser.command.CommandManager getGeyserCommandManager() {
+    public GeyserCommandManager getGeyserCommandManager() {
         return this.geyserCommandManager;
     }
 
@@ -207,9 +227,14 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     @Subscribe
     public void onProxyBound(ListenerBoundEvent event) {
-        if (event.getListenerType() == ListenerType.MINECRAFT && geyserInjector != null) {
-            // After this bound, we know that the channel initializer cannot change without it being ineffective for Velocity, too
-            geyserInjector.initializeLocalChannel(this);
+        if (event.getListenerType() == ListenerType.MINECRAFT) {
+            // Once listener is bound, do our startup process
+            this.postStartup();
+
+            if (geyserInjector != null) {
+                // After this bound, we know that the channel initializer cannot change without it being ineffective for Velocity, too
+                geyserInjector.initializeLocalChannel(this);
+            }
         }
     }
 

@@ -72,9 +72,9 @@ public class JavaPlayerChatTranslator extends PacketTranslator<ClientboundPlayer
                 args.add(message);
             }
             withDecoration.args(args);
-            textPacket.setMessage(MessageTranslator.convertMessage(withDecoration.build(), session.getLocale()));
+            textPacket.setMessage(MessageTranslator.convertMessage(withDecoration.build(), session.locale()));
         } else {
-            textPacket.setMessage(MessageTranslator.convertMessage(message, session.getLocale()));
+            textPacket.setMessage(MessageTranslator.convertMessage(message, session.locale()));
         }
 
         session.sendUpstreamPacket(textPacket);

@@ -26,8 +26,8 @@
 package org.geysermc.geyser.translator.inventory.item;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.session.GeyserSession;
 
 public abstract class NbtItemStackTranslator {
 

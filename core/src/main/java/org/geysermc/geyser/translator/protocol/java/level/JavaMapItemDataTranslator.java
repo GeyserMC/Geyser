@@ -31,12 +31,12 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.Clientb
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.MapDecoration;
 import com.nukkitx.protocol.bedrock.data.MapTrackedObject;
+import org.geysermc.geyser.level.BedrockMapIcon;
+import org.geysermc.geyser.level.MapColor;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.level.BedrockMapIcon;
 import org.geysermc.geyser.util.DimensionUtils;
-import org.geysermc.geyser.level.MapColor;
 
 @Translator(packet = ClientboundMapItemDataPacket.class)
 public class JavaMapItemDataTranslator extends PacketTranslator<ClientboundMapItemDataPacket> {

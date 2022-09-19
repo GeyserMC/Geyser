@@ -25,16 +25,17 @@
 
 package org.geysermc.geyser.platform.standalone;
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import net.minecrell.terminalconsole.SimpleTerminalConsole;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.ChatColor;
 
-@Log4j2
-public class GeyserStandaloneLogger extends SimpleTerminalConsole implements GeyserLogger {
+@Slf4j
+public class GeyserStandaloneLogger extends SimpleTerminalConsole implements GeyserLogger, GeyserCommandSource {
 
     @Override
     protected boolean isRunning() {
@@ -43,7 +44,7 @@ public class GeyserStandaloneLogger extends SimpleTerminalConsole implements Gey
 
     @Override
     protected void runCommand(String line) {
-        GeyserImpl.getInstance().getCommandManager().runCommand(this, line);
+        GeyserImpl.getInstance().commandManager().runCommand(this, line);
     }
 
     @Override
@@ -53,12 +54,12 @@ public class GeyserStandaloneLogger extends SimpleTerminalConsole implements Gey
 
     @Override
     public void severe(String message) {
-        log.fatal(ChatColor.DARK_RED + message);
+        log.error(ChatColor.DARK_RED + message);
     }
 
     @Override
     public void severe(String message, Throwable error) {
-        log.fatal(ChatColor.DARK_RED + message, error);
+        log.error(ChatColor.DARK_RED + message, error);
     }
 
     @Override

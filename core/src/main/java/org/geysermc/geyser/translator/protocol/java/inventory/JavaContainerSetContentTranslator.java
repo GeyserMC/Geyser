@@ -30,9 +30,9 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
 
 @Translator(packet = ClientboundContainerSetContentPacket.class)
@@ -48,7 +48,7 @@ public class JavaContainerSetContentTranslator extends PacketTranslator<Clientbo
         for (int i = 0; i < packet.getItems().length; i++) {
             if (i > inventorySize) {
                 GeyserImpl geyser = session.getGeyser();
-                geyser.getLogger().warning("ClientboundContainerSetContentPacket sent to " + session.name()
+                geyser.getLogger().warning("ClientboundContainerSetContentPacket sent to " + session.bedrockUsername()
                         + " that exceeds inventory size!");
                 if (geyser.getConfig().isDebugMode()) {
                     geyser.getLogger().debug(packet);

@@ -32,7 +32,7 @@ import io.netty.handler.codec.haproxy.HAProxyCommand;
 import io.netty.handler.codec.haproxy.HAProxyProxiedProtocol;
 import io.netty.util.NetUtil;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.MinecraftProtocol;
+import org.geysermc.geyser.network.GameProtocol;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -77,14 +77,14 @@ public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runn
     @Override
     public void run() {
         try (Socket socket = new Socket()) {
-            String address = geyser.getConfig().getRemote().getAddress();
-            int port = geyser.getConfig().getRemote().getPort();
+            String address = geyser.getConfig().getRemote().address();
+            int port = geyser.getConfig().getRemote().port();
             socket.connect(new InetSocketAddress(address, port), 5000);
 
             ByteArrayOutputStream byteArrayStream = new ByteArrayOutputStream();
             try (DataOutputStream handshake = new DataOutputStream(byteArrayStream)) {
                 handshake.write(0x0);
-                VarInts.writeUnsignedInt(handshake, MinecraftProtocol.getJavaProtocolVersion());
+                VarInts.writeUnsignedInt(handshake, GameProtocol.getJavaProtocolVersion());
                 VarInts.writeUnsignedInt(handshake, address.length());
                 handshake.writeBytes(address);
                 handshake.writeShort(port);
