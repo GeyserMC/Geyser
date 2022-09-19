@@ -1,5 +1,4 @@
 import net.kyori.blossom.BlossomExtension
-import net.kyori.indra.git.IndraGitExtension
 
 plugins {
     id("net.kyori.blossom")
@@ -109,7 +108,7 @@ configure<BlossomExtension> {
 }
 
 fun Project.buildNumber(): Int =
-    Integer.parseInt(System.getenv("BUILD_NUMBER") ?: "-1")
+    System.getenv("BUILD_NUMBER")?.let { Integer.parseInt(it) } ?: -1
 
 inner class GitInfo {
     val branch: String
