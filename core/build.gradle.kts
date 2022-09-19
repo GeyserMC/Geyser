@@ -126,7 +126,7 @@ inner class GitInfo {
     init {
         // On Jenkins, a detached head is checked out, so indra cannot determine the branch.
         // Fortunately, this environment variable is available.
-        branch = indraGit.branchName() ?: System.getenv("GIT_BRANCH") ?: "DEV"
+        branch = indraGit.branchName() ?: System.getenv("BRANCH_NAME") ?: "DEV"
 
         val commit = indraGit.commit()
         this.commit = commit?.name ?: "0".repeat(40)
