@@ -28,9 +28,11 @@ package org.geysermc.geyser.translator.protocol.java.level;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundExplodePacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import com.nukkitx.protocol.bedrock.packet.LevelEventGenericPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.geyser.level.block.BlockStateValues;
@@ -44,19 +46,27 @@ public class JavaExplodeTranslator extends PacketTranslator<ClientboundExplodePa
 
     @Override
     public void translate(GeyserSession session, ClientboundExplodePacket packet) {
+        LevelEventGenericPacket levelEventPacket = new LevelEventGenericPacket();
+        levelEventPacket.setEventId(2026/*LevelEventType.PARTICLE_BLOCK_EXPLOSION*/);
+        NbtMapBuilder builder = NbtMap.builder();
+        builder.putFloat("originX", packet.getX());
+        builder.putFloat("originY", packet.getY());
+        builder.putFloat("originZ", packet.getZ());
+        builder.putFloat("radius", packet.getRadius());
+        builder.putInt("size", packet.getExploded().size());
+        int i = 0;
         for (Vector3i position : packet.getExploded()) {
             Vector3i pos = Vector3i.from(packet.getX() + position.getX(), packet.getY() + position.getY(), packet.getZ() + position.getZ());
             ChunkUtils.updateBlock(session, BlockStateValues.JAVA_AIR_ID, pos);
+            builder.putFloat("pos" + i + "x", pos.getX());
+            builder.putFloat("pos" + i + "y", pos.getY());
+            builder.putFloat("pos" + i + "z", pos.getZ());
+            i++;
         }
-
-        Vector3f pos = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
-        // Since bedrock does not play an explosion sound and particles sound, we have to manually do so
-        LevelEventPacket levelEventPacket = new LevelEventPacket();
-        levelEventPacket.setType(packet.getRadius() >= 2.0f ? LevelEventType.PARTICLE_HUGE_EXPLODE : LevelEventType.PARTICLE_EXPLOSION);
-        levelEventPacket.setData(0);
-        levelEventPacket.setPosition(pos);
+        levelEventPacket.setTag(builder.build());
         session.sendUpstreamPacket(levelEventPacket);
 
+        Vector3f pos = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         LevelSoundEventPacket levelSoundEventPacket = new LevelSoundEventPacket();
         levelSoundEventPacket.setRelativeVolumeDisabled(false);
         levelSoundEventPacket.setBabySound(false);
