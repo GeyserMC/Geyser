@@ -36,6 +36,7 @@ dependencies {
 
     api("com.github.GeyserMC", "MCAuthLib", Versions.mcauthlibVersion)
     api("com.github.GeyserMC", "MCProtocolLib", Versions.mcprotocollibversion) {
+        exclude("io.netty", "netty-all")
         exclude("com.github.GeyserMC", "packetlib")
         exclude("com.github.GeyserMC", "mcauthlib")
     }
