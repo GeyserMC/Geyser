@@ -72,6 +72,8 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     @Override
     public void onLoad() {
+        GeyserLocale.init(this);
+
         // Copied from ViaVersion.
         // https://github.com/ViaVersion/ViaVersion/blob/b8072aad86695cc8ec6f5e4103e43baf3abf6cc5/bungee/src/main/java/us/myles/ViaVersion/BungeePlugin.java#L43
         try {
@@ -85,8 +87,6 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             getLogger().warning(" /     o     \\");
             getLogger().warning("/_____________\\");
         }
-
-        GeyserLocale.init(this);
 
         if (!getDataFolder().exists())
             getDataFolder().mkdir();
@@ -117,17 +117,6 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             return;
         }
 
-        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE && getProxy().getPluginManager().getPlugin("floodgate") == null) {
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
-            return;
-        } else if (geyserConfig.isAutoconfiguredRemote() && getProxy().getPluginManager().getPlugin("floodgate") != null) {
-            // Floodgate installed means that the user wants Floodgate authentication
-            geyserLogger.debug("Auto-setting to Floodgate authentication.");
-            geyserConfig.getRemote().setAuthType(AuthType.FLOODGATE);
-        }
-
-        geyserConfig.loadFloodgate(this);
-
         if (getProxy().getConfig().getListeners().size() == 1) {
             ListenerInfo listener = getProxy().getConfig().getListeners().toArray(new ListenerInfo[0])[0];
 
@@ -147,6 +136,17 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
                 geyserConfig.getBedrock().setPort(javaAddr.getPort());
             }
         }
+
+        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE && getProxy().getPluginManager().getPlugin("floodgate") == null) {
+            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
+            return;
+        } else if (geyserConfig.isAutoconfiguredRemote() && getProxy().getPluginManager().getPlugin("floodgate") != null) {
+            // Floodgate installed means that the user wants Floodgate authentication
+            geyserLogger.debug("Auto-setting to Floodgate authentication.");
+            geyserConfig.getRemote().setAuthType(AuthType.FLOODGATE);
+        }
+
+        geyserConfig.loadFloodgate(this);
 
         // Big hack - Bungee does not provide us an event to listen to, so schedule a repeating
         // task that waits for a field to be filled which is set after the plugin enable

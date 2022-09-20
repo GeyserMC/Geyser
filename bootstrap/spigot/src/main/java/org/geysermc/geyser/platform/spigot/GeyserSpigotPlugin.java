@@ -164,15 +164,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             return;
         }
 
-        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE && Bukkit.getPluginManager().getPlugin("floodgate") == null) {
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
-            this.getPluginLoader().disablePlugin(this);
-        } else if (geyserConfig.isAutoconfiguredRemote() && Bukkit.getPluginManager().getPlugin("floodgate") != null) {
-            // Floodgate installed means that the user wants Floodgate authentication
-            geyserLogger.debug("Auto-setting to Floodgate authentication.");
-            geyserConfig.getRemote().setAuthType(AuthType.FLOODGATE);
-        }
-
         // By default this should be localhost but may need to be changed in some circumstances
         if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
             geyserConfig.setAutoconfiguredRemote(true);
@@ -185,6 +176,15 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
         if (geyserConfig.getBedrock().isCloneRemotePort()) {
             geyserConfig.getBedrock().setPort(Bukkit.getPort());
+        }
+
+        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE && Bukkit.getPluginManager().getPlugin("floodgate") == null) {
+            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
+            this.getPluginLoader().disablePlugin(this);
+        } else if (geyserConfig.isAutoconfiguredRemote() && Bukkit.getPluginManager().getPlugin("floodgate") != null) {
+            // Floodgate installed means that the user wants Floodgate authentication
+            geyserLogger.debug("Auto-setting to Floodgate authentication.");
+            geyserConfig.getRemote().setAuthType(AuthType.FLOODGATE);
         }
 
         geyserConfig.loadFloodgate(this);
