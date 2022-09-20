@@ -29,7 +29,6 @@ pipeline {
             when {
                 anyOf {
                     branch "master"
-                    branch "feature/extensions"
                 }
             }
 
@@ -50,7 +49,7 @@ pipeline {
                         rootDir: "",
                         useWrapper: true,
                         buildFile: 'build.gradle.kts',
-                        tasks: 'build artifactoryPublish',
+                        tasks: 'artifactoryPublish',
                         deployerId: "GRADLE_DEPLOYER",
                         resolverId: "GRADLE_RESOLVER"
                 )
