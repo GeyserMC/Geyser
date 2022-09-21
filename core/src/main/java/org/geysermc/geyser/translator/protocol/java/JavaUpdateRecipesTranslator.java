@@ -39,10 +39,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.descriptor.DefaultDescriptor;
 import com.nukkitx.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import com.nukkitx.protocol.bedrock.packet.CraftingDataPacket;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.*;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
@@ -221,7 +218,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             Ingredient ingredient = ingredients[i];
             Map<GroupedItem, List<ItemDescriptorWithCount>> groupedByIds = Arrays.stream(ingredient.getOptions())
                     .map(item -> ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, item)))
-                    .collect(Collectors.groupingBy(item -> new GroupedItem(((DefaultDescriptor) item.getDescriptor()).getItemId(), item.getCount())));
+                    .collect(Collectors.groupingBy(item -> item == ItemDescriptorWithCount.EMPTY ? new GroupedItem(0, 0) : new GroupedItem(((DefaultDescriptor) item.getDescriptor()).getItemId(), item.getCount())));
             Set<ItemDescriptorWithCount> optionSet = new HashSet<>(groupedByIds.size());
             for (Map.Entry<GroupedItem, List<ItemDescriptorWithCount>> entry : groupedByIds.entrySet()) {
                 if (entry.getValue().size() > 1) {
@@ -236,7 +233,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     if (entry.getValue().size() < idCount) {
                         optionSet.addAll(entry.getValue());
                     } else {
-                        optionSet.add(new ItemDescriptorWithCount(new DefaultDescriptor(groupedItem.id, Short.MAX_VALUE), groupedItem.count));
+                        optionSet.add(groupedItem.id == 0 ? ItemDescriptorWithCount.EMPTY : new ItemDescriptorWithCount(new DefaultDescriptor(groupedItem.id, Short.MAX_VALUE), groupedItem.count));
                     }
                 } else {
                     ItemDescriptorWithCount item = entry.getValue().get(0);
@@ -270,8 +267,8 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             for (ItemDescriptorWithCount item : set) {
                 for (int j = 0; j < totalCombinations / set.size(); j++) {
                     final int comboIndex = (i * x) + (j % x) + ((j / x) * set.size() * x);
-                    for (int slot : slotSet) {
-                        combinations[comboIndex][slot] = item;
+                    for (IntIterator it = slotSet.iterator(); it.hasNext(); ) {
+                        combinations[comboIndex][it.nextInt()] = item;
                     }
                 }
                 i++;
