@@ -31,7 +31,6 @@ dependencies {
 
     api("com.github.CloudburstMC.Protocol", "bedrock-v554", Versions.protocolVersion) {
         exclude("com.nukkitx.network", "raknet")
-        exclude("com.nukkitx", "nbt")
     }
 
     api("com.github.GeyserMC", "MCAuthLib", Versions.mcauthlibVersion)
