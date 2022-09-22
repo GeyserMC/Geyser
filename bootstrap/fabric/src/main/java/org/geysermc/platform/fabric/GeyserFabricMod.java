@@ -37,11 +37,12 @@ import org.apache.logging.log4j.LogManager;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.command.CommandManager;
+import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.command.GeyserCommand;
+import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
-import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -142,7 +143,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     public void startGeyser(MinecraftServer server) {
         this.server = server;
 
-        if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
+        if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
             this.geyserConfig.setAutoconfiguredRemote(true);
             String ip = server.getServerIp();
             int port = ((GeyserServerPortGetter) server).geyser$getServerPort();
@@ -153,12 +154,12 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
         }
 
         if (geyserConfig.getBedrock().isCloneRemotePort()) {
-            geyserConfig.getBedrock().setPort(geyserConfig.getRemote().getPort());
+            geyserConfig.getBedrock().setPort(geyserConfig.getRemote().port());
         }
 
         Optional<ModContainer> floodgate = FabricLoader.getInstance().getModContainer("floodgate");
         boolean floodgatePresent = floodgate.isPresent();
-        if (geyserConfig.getRemote().getAuthType() == AuthType.FLOODGATE && !floodgatePresent) {
+        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE && !floodgatePresent) {
             geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
             return;
         } else if (geyserConfig.isAutoconfiguredRemote() && floodgatePresent) {
@@ -169,7 +170,8 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
         geyserConfig.loadFloodgate(this, floodgate.orElse(null));
 
-        this.connector = GeyserImpl.start(PlatformType.FABRIC, this);
+        this.connector = GeyserImpl.load(PlatformType.FABRIC, this);
+        GeyserImpl.start(); // shrug
 
         this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
 
@@ -180,13 +182,13 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
         // Start command building
         // Set just "geyser" as the help command
         GeyserFabricCommandExecutor helpExecutor = new GeyserFabricCommandExecutor(connector,
-                connector.getCommandManager().getCommands().get("help"), !playerCommands.contains("help"));
+                (GeyserCommand) connector.commandManager().getCommands().get("help"), !playerCommands.contains("help"));
         commandExecutors.add(helpExecutor);
         LiteralArgumentBuilder<ServerCommandSource> builder = net.minecraft.server.command.CommandManager.literal("geyser").executes(helpExecutor);
 
         // Register all subcommands as valid
-        for (Map.Entry<String, GeyserCommand> command : connector.getCommandManager().getCommands().entrySet()) {
-            GeyserFabricCommandExecutor executor = new GeyserFabricCommandExecutor(connector, command.getValue(),
+        for (Map.Entry<String, Command> command : connector.commandManager().getCommands().entrySet()) {
+            GeyserFabricCommandExecutor executor = new GeyserFabricCommandExecutor(connector, (GeyserCommand) command.getValue(),
                     !playerCommands.contains(command.getKey()));
             commandExecutors.add(executor);
             builder.then(net.minecraft.server.command.CommandManager.literal(command.getKey()).executes(executor));
@@ -216,7 +218,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     }
 
     @Override
-    public CommandManager getGeyserCommandManager() {
+    public GeyserCommandManager getGeyserCommandManager() {
         return geyserCommandManager;
     }
 

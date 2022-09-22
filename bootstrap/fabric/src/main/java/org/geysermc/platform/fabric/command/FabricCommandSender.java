@@ -29,11 +29,11 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.CommandSender;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.platform.fabric.GeyserFabricMod;
 
-public class FabricCommandSender implements CommandSender {
+public class FabricCommandSender implements GeyserCommandSource {
 
     private final ServerCommandSource source;
 
@@ -66,7 +66,7 @@ public class FabricCommandSender implements CommandSender {
 
         // Workaround for our commands because fabric doesn't have native permissions
         for (GeyserFabricCommandExecutor executor : GeyserFabricMod.getInstance().getCommandExecutors()) {
-            if (executor.getCommand().getPermission().equals(s)) {
+            if (executor.getCommand().permission().equals(s)) {
                 return executor.canRun(source);
             }
         }

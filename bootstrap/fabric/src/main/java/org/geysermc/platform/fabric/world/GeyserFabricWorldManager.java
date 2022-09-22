@@ -124,10 +124,9 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
 
     @Override
     public boolean hasPermission(GeyserSession session, String permission) {
-
         // Workaround for our commands because fabric doesn't have native permissions
         for (GeyserFabricCommandExecutor executor : GeyserFabricMod.getInstance().getCommandExecutors()) {
-            if (executor.getCommand().getPermission().equals(permission)) {
+            if (executor.getCommand().permission().equals(permission)) {
                 return executor.canRun(getPlayer(session).getCommandSource());
             }
         }

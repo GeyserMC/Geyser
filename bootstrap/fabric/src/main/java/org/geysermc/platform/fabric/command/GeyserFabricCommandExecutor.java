@@ -29,15 +29,17 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.server.command.ServerCommandSource;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.CommandExecutor;
 import org.geysermc.geyser.command.GeyserCommand;
+import org.geysermc.geyser.command.GeyserCommandExecutor;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.platform.fabric.GeyserFabricMod;
 import org.geysermc.platform.fabric.GeyserFabricPermissions;
 
-public class GeyserFabricCommandExecutor extends CommandExecutor implements Command<ServerCommandSource> {
+import java.util.Collections;
+
+public class GeyserFabricCommandExecutor extends GeyserCommandExecutor implements Command<ServerCommandSource> {
 
     private final GeyserCommand command;
     /**
@@ -46,7 +48,7 @@ public class GeyserFabricCommandExecutor extends CommandExecutor implements Comm
     private final boolean requiresPermission;
 
     public GeyserFabricCommandExecutor(GeyserImpl connector, GeyserCommand command, boolean requiresPermission) {
-        super(connector);
+        super(connector, Collections.singletonMap(command.name(), command));
         this.command = command;
         this.requiresPermission = requiresPermission;
     }
@@ -70,12 +72,12 @@ public class GeyserFabricCommandExecutor extends CommandExecutor implements Comm
             sender.sendMessage(GeyserLocale.getLocaleStringLog("geyser.bootstrap.command.permission_fail"));
             return 0;
         }
-        if (this.command.getName().equals("reload")) {
+        if (this.command.name().equals("reload")) {
             GeyserFabricMod.getInstance().setReloading(true);
         }
 
         if (command.isBedrockOnly() && session == null) {
-            sender.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.bedrock_only", sender.getLocale()));
+            sender.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.bedrock_only", sender.locale()));
             return 0;
         }
         command.execute(session, sender, new String[0]);

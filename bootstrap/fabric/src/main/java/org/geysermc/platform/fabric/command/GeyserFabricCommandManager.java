@@ -26,16 +26,16 @@
 package org.geysermc.platform.fabric.command;
 
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.CommandManager;
+import org.geysermc.geyser.command.GeyserCommandManager;
 
-public class GeyserFabricCommandManager extends CommandManager {
+public class GeyserFabricCommandManager extends GeyserCommandManager {
 
     public GeyserFabricCommandManager(GeyserImpl connector) {
         super(connector);
     }
 
     @Override
-    public String getDescription(String command) {
+    public String description(String command) {
         return "";
     }
 }
