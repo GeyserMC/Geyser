@@ -176,6 +176,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
         this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
 
         this.geyserCommandManager = new GeyserFabricCommandManager(connector);
+        this.geyserCommandManager.init();
 
         this.geyserWorldManager = new GeyserFabricWorldManager(server);
 
