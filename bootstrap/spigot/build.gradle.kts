@@ -6,19 +6,19 @@ val commodoreVersion = "2.2"
 dependencies {
     api(projects.core)
 
-    implementation("org.geysermc.geyser.adapters", "spigot-all", adaptersVersion)
+    implementation(libs.adapters.spigot)
 
-    implementation("me.lucko", "commodore", commodoreVersion)
+    implementation(libs.commodore)
 
-    implementation("net.kyori", "adventure-text-serializer-bungeecord", Versions.adventurePlatformVersion)
+    implementation(libs.adventure.text.serializer.bungeecord)
     
     // Both paper-api and paper-mojangapi only provide Java 17 versions for 1.19
-    compileOnly("io.papermc.paper", "paper-api", paperVersion) {
+    compileOnly(libs.paper.api) {
         attributes {
             attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
         }
     }
-    compileOnly("io.papermc.paper", "paper-mojangapi", paperVersion) {
+    compileOnly(libs.paper.mojangapi) {
         attributes {
             attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
         }

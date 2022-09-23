@@ -1,9 +1,7 @@
-val bungeeVersion = "a7c6ede";
-
 dependencies {
     api(projects.core)
 
-    implementation("net.kyori", "adventure-text-serializer-bungeecord", Versions.adventurePlatformVersion)
+    implementation(libs.adventure.text.serializer.bungeecord)
 }
 
 platformRelocate("net.md_5.bungee.jni")
@@ -12,7 +10,7 @@ platformRelocate("io.netty.channel.kqueue") // This is not used because relocati
 platformRelocate("net.kyori")
 
 // These dependencies are already present on the platform
-provided("com.github.SpigotMC.BungeeCord", "bungeecord-proxy", bungeeVersion)
+provided(libs.bungeecord.proxy)
 
 application {
     mainClass.set("org.geysermc.geyser.platform.bungeecord.GeyserBungeeMain")

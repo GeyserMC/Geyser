@@ -6,20 +6,16 @@ val jlineVersion = "3.21.0"
 dependencies {
     api(projects.core)
 
-    implementation("net.minecrell", "terminalconsoleappender", terminalConsoleVersion) {
+    implementation(libs.terminalconsoleappender) {
         exclude("org.apache.logging.log4j", "log4j-core")
         exclude("org.jline", "jline-reader")
         exclude("org.jline", "jline-terminal")
         exclude("org.jline", "jline-terminal-jna")
     }
 
-    implementation("org.jline", "jline-terminal", jlineVersion)
-    implementation("org.jline", "jline-terminal-jna", jlineVersion)
-    implementation("org.jline", "jline-reader", jlineVersion)
+    implementation(libs.bundles.jline)
 
-    implementation("org.apache.logging.log4j", "log4j-api", Versions.log4jVersion)
-    implementation("org.apache.logging.log4j", "log4j-core", Versions.log4jVersion)
-    implementation("org.apache.logging.log4j", "log4j-slf4j18-impl", Versions.log4jVersion)
+    implementation(libs.bundles.log4j)
 }
 
 application {

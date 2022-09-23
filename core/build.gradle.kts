@@ -11,59 +11,50 @@ dependencies {
     api(projects.common)
 
     // Jackson JSON and YAML serialization
-    api("com.fasterxml.jackson.core", "jackson-annotations", Versions.jacksonVersion)
-    api("com.fasterxml.jackson.core", "jackson-databind", Versions.jacksonVersion + ".1") // Extra .1 as databind is a slightly different version
-    api("com.fasterxml.jackson.dataformat", "jackson-dataformat-yaml", Versions.jacksonVersion)
-    api("com.google.guava", "guava", Versions.guavaVersion)
+    api(libs.bundles.jackson)
+    api(libs.guava)
 
     // Fastutil Maps
-    implementation("com.nukkitx.fastutil", "fastutil-int-int-maps", Versions.fastutilVersion)
-    implementation("com.nukkitx.fastutil", "fastutil-int-long-maps", Versions.fastutilVersion)
-    implementation("com.nukkitx.fastutil", "fastutil-int-byte-maps", Versions.fastutilVersion)
-    implementation("com.nukkitx.fastutil", "fastutil-int-boolean-maps", Versions.fastutilVersion)
-    implementation("com.nukkitx.fastutil", "fastutil-object-int-maps", Versions.fastutilVersion)
-    implementation("com.nukkitx.fastutil", "fastutil-object-object-maps", Versions.fastutilVersion)
+    implementation(libs.bundles.fastutil)
 
     // Network libraries
-    implementation("org.java-websocket", "Java-WebSocket", Versions.websocketVersion)
+    implementation(libs.websocket)
 
-    api("com.github.CloudburstMC.Protocol", "bedrock-v554", Versions.protocolVersion) {
+    api(libs.protocol) {
         exclude("com.nukkitx.network", "raknet")
     }
 
-    api("com.github.GeyserMC", "MCAuthLib", Versions.mcauthlibVersion)
-    api("com.github.GeyserMC", "MCProtocolLib", Versions.mcprotocollibversion) {
+    api(libs.mcauthlib)
+    api(libs.mcprotocollib) {
         exclude("io.netty", "netty-all")
         exclude("com.github.GeyserMC", "packetlib")
         exclude("com.github.GeyserMC", "mcauthlib")
     }
 
-    api("com.github.steveice10", "packetlib", Versions.packetlibVersion) {
+    api(libs.packetlib) {
         exclude("io.netty", "netty-all")
     }
 
-    implementation("com.nukkitx.network", "raknet", Versions.raknetVersion) {
+    implementation(libs.raknet) {
         exclude("io.netty", "*");
     }
 
-    implementation("io.netty", "netty-resolver-dns", Versions.nettyVersion)
-    implementation("io.netty", "netty-resolver-dns-native-macos", Versions.nettyVersion, null, "osx-x86_64")
-    implementation("io.netty", "netty-codec-haproxy", Versions.nettyVersion)
+    implementation(libs.netty.resolver.dns)
+    implementation(libs.netty.resolver.dns.native.macos) { artifact { classifier = "osx-x86_64" } }
+    implementation(libs.netty.codec.haproxy)
 
     // Network dependencies we are updating ourselves
-    api("io.netty", "netty-handler", Versions.nettyVersion)
+    api(libs.netty.handler)
 
-    implementation("io.netty", "netty-transport-native-epoll", Versions.nettyVersion, null, "linux-x86_64")
-    implementation("io.netty", "netty-transport-native-epoll", Versions.nettyVersion, null, "linux-aarch_64")
-    implementation("io.netty", "netty-transport-native-kqueue", Versions.nettyVersion, null, "osx-x86_64")
+    implementation(libs.netty.transport.native.epoll) { artifact { classifier = "linux-x86_64" } }
+    implementation(libs.netty.transport.native.epoll) { artifact { classifier = "linux-aarch_64" } }
+    implementation(libs.netty.transport.native.kqueue) { artifact { classifier = "osx-x86_64" } }
 
     // Adventure text serialization
-    implementation("net.kyori", "adventure-text-serializer-gson", Versions.adventureVersion) // Remove when we remove our Adventure bump
-    implementation("net.kyori", "adventure-text-serializer-legacy", Versions.adventureVersion)
-    implementation("net.kyori", "adventure-text-serializer-plain", Versions.adventureVersion)
+    implementation(libs.bundles.adventure)
 
     // Test
-    testImplementation("junit", "junit", Versions.junitVersion)
+    testImplementation(libs.junit)
 
     // Annotation Processors
     compileOnly(projects.ap)
