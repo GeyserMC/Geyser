@@ -263,7 +263,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 LevelEventGenericPacket levelEventPacket = new LevelEventGenericPacket();
                 // TODO add SCULK_BLOCK_CHARGE sound
                 if (eventData.getCharge() > 0) {
-                    levelEventPacket.setEventId(2037);
+                    levelEventPacket.setEventId(2037/*LevelEventType.SCULK_CHARGE*/);
                     levelEventPacket.setTag(
                             NbtMap.builder()
                                     .putInt("x", packet.getPosition().getX())
@@ -274,7 +274,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                                     .build()
                     );
                 } else {
-                    levelEventPacket.setEventId(2038);
+                    levelEventPacket.setEventId(2038/*LevelEventType.SCULK_CHARGE_POP*/);
                     levelEventPacket.setTag(
                             NbtMap.builder()
                                     .putInt("x", packet.getPosition().getX())
@@ -288,7 +288,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             }
             case SCULK_SHRIEKER_SHRIEK -> {
                 LevelEventGenericPacket levelEventPacket = new LevelEventGenericPacket();
-                levelEventPacket.setEventId(2035);
+                levelEventPacket.setEventId(2035/*LevelEventType.PARTICLE_SCULK_SHRIEK*/);
                 levelEventPacket.setTag(
                         NbtMap.builder()
                                 .putInt("originX", packet.getPosition().getX())
