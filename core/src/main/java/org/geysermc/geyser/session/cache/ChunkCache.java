@@ -52,6 +52,12 @@ public class ChunkCache {
     @Setter
     private BedrockDimension bedrockDimension = BedrockDimension.OVERWORLD;
 
+    @Getter
+    @Setter
+    private boolean clientCache;
+    @Getter
+    private final Long2ObjectMap<byte[]> clientChunks = new Long2ObjectOpenHashMap<>();
+
     public ChunkCache(GeyserSession session) {
         this.cache = !session.getGeyser().getWorldManager().hasOwnChunkCache(); // To prevent Spigot from initializing
         chunks = cache ? new Long2ObjectOpenHashMap<>() : null;
@@ -145,11 +151,10 @@ public class ChunkCache {
      * but it is the client that must clear sections in the event of proxy switches.
      */
     public void clear() {
-        if (!cache) {
-            return;
+        if (chunks != null) {
+            chunks.clear();
         }
-
-        chunks.clear();
+        clientChunks.clear();
     }
 
     public int getChunkMinY() {

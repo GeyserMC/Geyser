@@ -39,15 +39,19 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NBTOutputStream;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.network.VarInts;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
+import net.jpountz.xxhash.XXHash64;
+import net.jpountz.xxhash.XXHashFactory;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.level.BedrockDimension;
@@ -78,6 +82,7 @@ import static org.geysermc.geyser.util.ChunkUtils.indexYZXtoXZY;
 
 @Translator(packet = ClientboundLevelChunkWithLightPacket.class)
 public class JavaLevelChunkWithLightTranslator extends PacketTranslator<ClientboundLevelChunkWithLightPacket> {
+    private static final XXHash64 xxHash64 = XXHashFactory.fastestInstance().hash64();
 
     @Override
     public void translate(GeyserSession session, ClientboundLevelChunkWithLightPacket packet) {
@@ -104,8 +109,9 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
         int sectionCount;
         byte[] payload;
-        ByteBuf byteBuf = null;
+        ByteBuf byteBuf = null, blobByteBuf = null;
         GeyserChunkSection[] sections = new GeyserChunkSection[javaChunks.length - (yOffset + (bedrockDimension.minY() >> 4))];
+        LongList blobIds = session.getChunkCache().isClientCache() ? new LongArrayList() : null;
 
         try {
             ByteBuf in = Unpooled.wrappedBuffer(packet.getChunkData());
@@ -286,27 +292,47 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
             // Estimate chunk size
             int size = 0;
-            for (int i = 0; i < sectionCount; i++) {
-                GeyserChunkSection section = sections[i];
-                if (section != null) {
-                    size += section.estimateNetworkSize();
-                } else {
-                    size += SERIALIZED_CHUNK_DATA.length;
+            if (blobIds == null) {
+                for (int i = 0; i < sectionCount; i++) {
+                    GeyserChunkSection section = sections[i];
+                    if (section != null) {
+                        size += section.estimateNetworkSize();
+                    } else {
+                        size += SERIALIZED_CHUNK_DATA.length;
+                    }
                 }
+                size += ChunkUtils.EMPTY_CHUNK_DATA.length; // Consists only of biome data
             }
-            size += ChunkUtils.EMPTY_CHUNK_DATA.length; // Consists only of biome data
             size += 1; // Border blocks
-            size += 1; // Extra data length (always 0)
             size += bedrockBlockEntities.size() * 64; // Conservative estimate of 64 bytes per tile entity
 
             // Allocate output buffer
             byteBuf = ByteBufAllocator.DEFAULT.buffer(size);
+            if (blobIds == null) {
+                blobByteBuf = byteBuf;
+            }
+
             for (int i = 0; i < sectionCount; i++) {
                 GeyserChunkSection section = sections[i];
+                if (blobIds != null) {
+                    if (blobByteBuf != null) {
+                        blobByteBuf.clear();
+                    } else {
+                        blobByteBuf = ByteBufAllocator.DEFAULT.buffer(section != null ? section.estimateNetworkSize() : SERIALIZED_CHUNK_DATA.length);
+                    }
+                }
+
                 if (section != null) {
-                    section.writeToNetwork(byteBuf);
+                    section.writeToNetwork(blobByteBuf);
                 } else {
-                    byteBuf.writeBytes(SERIALIZED_CHUNK_DATA);
+                    blobByteBuf.writeBytes(SERIALIZED_CHUNK_DATA);
+                }
+
+                if (blobIds != null) {
+                    byte[] blobBytes = ByteBufUtil.getBytes(blobByteBuf);
+                    long blobId = xxHash64.hash(blobBytes, 0, blobBytes.length, 0);
+                    blobIds.add(blobId);
+                    session.getChunkCache().getClientChunks().put(blobId, blobBytes);
                 }
             }
 
@@ -314,24 +340,37 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             int biomeCount = bedrockDimension.height() >> 4;
             int dimensionOffset = bedrockDimension.minY() >> 4;
             for (int i = 0; i < biomeCount; i++) {
+                if (blobIds != null) {
+                    if (blobByteBuf != null) {
+                        blobByteBuf.clear();
+                    } else {
+                        blobByteBuf = ByteBufAllocator.DEFAULT.buffer();
+                    }
+                }
+
                 int biomeYOffset = dimensionOffset + i;
                 if (biomeYOffset < yOffset) {
                     // Ignore this biome section since it goes below the height of the Java world
-                    byteBuf.writeBytes(ChunkUtils.EMPTY_BIOME_DATA);
+                    blobByteBuf.writeBytes(ChunkUtils.EMPTY_BIOME_DATA);
                     continue;
                 }
                 if (biomeYOffset >= (chunkSize + yOffset)) {
                     // This biome section goes above the height of the Java world
                     // The byte written here is a header that says to carry on the biome data from the previous chunk
-                    byteBuf.writeByte((127 << 1) | 1);
+                    blobByteBuf.writeByte((127 << 1) | 1);
                     continue;
                 }
+                BiomeTranslator.toNewBedrockBiome(session, javaBiomes[i + (dimensionOffset - yOffset)]).writeToNetwork(blobByteBuf);
 
-                BiomeTranslator.toNewBedrockBiome(session, javaBiomes[i + (dimensionOffset - yOffset)]).writeToNetwork(byteBuf);
+                if (blobIds != null) {
+                    byte[] blobBytes = ByteBufUtil.getBytes(blobByteBuf);
+                    long blobId = xxHash64.hash(blobBytes, 0, blobBytes.length, 0);
+                    blobIds.add(blobId);
+                    session.getChunkCache().getClientChunks().put(blobId, blobBytes);
+                }
             }
 
             byteBuf.writeByte(0); // Border blocks - Edu edition only
-            VarInts.writeUnsignedInt(byteBuf, 0); // extra data length, 0 for now
 
             // Encode tile entities into buffer
             NBTOutputStream nbtStream = NbtUtils.createNetworkWriter(new ByteBufOutputStream(byteBuf));
@@ -348,11 +387,17 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             if (byteBuf != null) {
                 byteBuf.release(); // Release buffer to allow buffer pooling to be useful
             }
+            if (blobIds != null && blobByteBuf != null) {
+                blobByteBuf.release();
+            }
         }
 
         LevelChunkPacket levelChunkPacket = new LevelChunkPacket();
         levelChunkPacket.setSubChunksLength(sectionCount);
-        levelChunkPacket.setCachingEnabled(false);
+        if (blobIds != null) {
+            levelChunkPacket.setCachingEnabled(true);
+            levelChunkPacket.getBlobIds().addAll(blobIds);
+        }
         levelChunkPacket.setChunkX(packet.getX());
         levelChunkPacket.setChunkZ(packet.getZ());
         levelChunkPacket.setData(payload);

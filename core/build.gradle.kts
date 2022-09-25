@@ -30,6 +30,7 @@ dependencies {
     api("com.github.CloudburstMC.Protocol", "bedrock-v554", Versions.protocolVersion) {
         exclude("com.nukkitx.network", "raknet")
     }
+    implementation("org.lz4:lz4-java:1.8.0")
 
     api("com.github.GeyserMC", "MCAuthLib", Versions.mcauthlibVersion)
     api("com.github.GeyserMC", "MCProtocolLib", Versions.mcprotocollibversion) {

@@ -55,7 +55,9 @@ public class GeyserChunkSection {
     }
 
     public void writeToNetwork(ByteBuf buffer) {
-        buffer.writeByte(CHUNK_SECTION_VERSION);
+        if (this.storage.length != 1) {
+            buffer.writeByte(CHUNK_SECTION_VERSION);
+        }
         buffer.writeByte(this.storage.length);
         for (BlockStorage blockStorage : this.storage) {
             blockStorage.writeToNetwork(buffer);
@@ -63,7 +65,7 @@ public class GeyserChunkSection {
     }
 
     public int estimateNetworkSize() {
-        int size = 2; // Version + storage count
+        int size = this.storage.length != 1 ? 2 : 1; // Version (+ storage count)
         for (BlockStorage blockStorage : this.storage) {
             size += blockStorage.estimateNetworkSize();
         }
