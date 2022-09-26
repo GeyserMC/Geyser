@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-    compileOnly("org.checkerframework", "checker-qual", Versions.checkerQualVersion)
+    compileOnly("org.checkerframework", "checker-qual", "3.19.0")
 }
 
 tasks {

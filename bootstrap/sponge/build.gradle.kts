@@ -1,5 +1,3 @@
-val spongeVersion = "7.1.0"
-
 dependencies {
     api(projects.core)
 }
@@ -18,7 +16,7 @@ exclude("org.slf4j:*")
 exclude("org.ow2.asm:*")
 
 // These dependencies are already present on the platform
-provided("org.spongepowered", "spongeapi", spongeVersion)
+provided(libs.sponge.api)
 
 application {
     mainClass.set("org.geysermc.geyser.platform.sponge.GeyserSpongeMain")
