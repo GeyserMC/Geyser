@@ -127,7 +127,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 dropAll ? PlayerAction.DROP_ITEM_STACK : PlayerAction.DROP_ITEM,
                                 Vector3i.ZERO,
                                 Direction.DOWN,
-                                session.getWorldCache().nextPredictionSequence()
+                                0
                         );
                         session.sendDownstreamPacket(dropPacket);
 
@@ -408,13 +408,10 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         int sequence = session.getWorldCache().nextPredictionSequence();
-                        if (blockState != -1) {
-                            session.getWorldCache().addServerCorrectBlockState(packet.getBlockPosition(), blockState);
-                        } else {
+                        session.getWorldCache().markPositionInSequence(packet.getBlockPosition());
+                        // -1 means we don't know what block they're breaking
+                        if (blockState == -1) {
                             blockState = BlockStateValues.JAVA_AIR_ID;
-                            // Client will desync here anyway
-                            session.getWorldCache().addServerCorrectBlockState(packet.getBlockPosition(),
-                                    session.getGeyser().getWorldManager().getBlockAt(session, packet.getBlockPosition()));
                         }
 
                         LevelEventPacket blockBreakPacket = new LevelEventPacket();
@@ -442,7 +439,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 if (packet.getActionType() == 0) {
                     // Followed to the Minecraft Protocol specification outlined at wiki.vg
                     ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, Vector3i.ZERO,
-                            Direction.DOWN, session.getWorldCache().nextPredictionSequence());
+                            Direction.DOWN, 0);
                     session.sendDownstreamPacket(releaseItemPacket);
                 }
                 break;

@@ -30,7 +30,6 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.Clientb
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.util.ChunkUtils;
 
 @Translator(packet = ClientboundSectionBlocksUpdatePacket.class)
 public class JavaSectionBlocksUpdateTranslator extends PacketTranslator<ClientboundSectionBlocksUpdatePacket> {
@@ -38,7 +37,7 @@ public class JavaSectionBlocksUpdateTranslator extends PacketTranslator<Clientbo
     @Override
     public void translate(GeyserSession session, ClientboundSectionBlocksUpdatePacket packet) {
         for (BlockChangeEntry entry : packet.getEntries()) {
-            ChunkUtils.updateBlock(session, entry.getBlock(), entry.getPosition());
+            session.getWorldCache().updateServerCorrectBlockState(entry.getPosition(), entry.getBlock());
         }
     }
 }
