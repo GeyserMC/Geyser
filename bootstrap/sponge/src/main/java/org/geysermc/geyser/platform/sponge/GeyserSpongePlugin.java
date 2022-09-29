@@ -143,7 +143,6 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
         this.geyser = GeyserImpl.load(PlatformType.SPONGE, this);
 
-        // Construct it without the commands
         this.geyserCommandManager = new GeyserSpongeCommandManager(geyser);
         this.geyserCommandManager.init();
     }

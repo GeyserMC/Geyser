@@ -72,16 +72,7 @@ public class GeyserSpongeCommandExecutor extends GeyserCommandExecutor implement
                 cause.audience().sendMessage(Component.text(GeyserLocale.getLocaleStringLog("geyser.bootstrap.command.not_found")).color(NamedTextColor.RED));
             }
         } else {
-            // Try to send help command
-            GeyserCommand help = getCommand("help");
-            if (help == null) {
-                // When connector has been shutdown, the command manager is cleared.
-                // If it is shutdown to do a geyser reload, and the reload fails, then the command manager will remain empty and it
-                // will not be replaced within sponge-registered executor.
-                cause.audience().sendMessage(Component.text(GeyserLocale.getLocaleStringLog("geyser.bootstrap.command.not_found")).color(NamedTextColor.RED));
-            } else {
-                help.execute(session, commandSource, new String[0]);
-            }
+            getCommand("help").execute(session, commandSource, new String[0]);
         }
         return CommandResult.success();
     }

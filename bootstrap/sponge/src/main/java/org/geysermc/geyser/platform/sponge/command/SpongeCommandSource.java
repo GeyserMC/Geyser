@@ -27,6 +27,7 @@ package org.geysermc.geyser.platform.sponge.command;
 
 import lombok.AllArgsConstructor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.spongepowered.api.command.CommandCause;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
@@ -42,8 +43,8 @@ public class SpongeCommandSource implements GeyserCommandSource {
     }
 
     @Override
-    public void sendMessage(String message) {
-        handle.audience().sendMessage(LegacyComponentSerializer.legacySection().deserialize(message)); // this looks icky to me
+    public void sendMessage(@NonNull String message) {
+        handle.audience().sendMessage(LegacyComponentSerializer.legacySection().deserialize(message));
     }
 
     @Override

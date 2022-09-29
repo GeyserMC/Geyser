@@ -27,7 +27,6 @@ package org.geysermc.geyser.platform.sponge.command;
 
 import net.kyori.adventure.text.Component;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.spongepowered.api.Sponge;
