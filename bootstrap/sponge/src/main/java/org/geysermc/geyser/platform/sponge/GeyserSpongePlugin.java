@@ -33,7 +33,6 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.command.GeyserCommandManager;
-import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
@@ -42,10 +41,6 @@ import org.geysermc.geyser.platform.sponge.command.GeyserSpongeCommandManager;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.platform.sponge.command.GeyserSpongeCommandExecutor;
-import org.geysermc.geyser.platform.sponge.command.GeyserSpongeCommandManager;
-import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.util.FileUtils;
-import org.slf4j.Logger;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
@@ -88,13 +83,10 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     // Available after construction lifecycle
     private GeyserSpongeConfiguration geyserConfig;
     private GeyserSpongeLogger geyserLogger;
+    private GeyserImpl geyser;
     private GeyserSpongeCommandManager geyserCommandManager; // Commands are only registered after command registration lifecycle
 
-    // Available after command registration lifecycle - never changes afterward
-    private GeyserSpongeCommandExecutor geyserCommandExecutor; // This variable should never be changed after initial assignment
-
     // Available after StartedEngine lifecycle
-    private GeyserImpl geyser;
     private IGeyserPingPassthrough geyserSpongePingPassthrough;
 
 
@@ -153,6 +145,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
         // Construct it without the commands
         this.geyserCommandManager = new GeyserSpongeCommandManager(geyser);
+        this.geyserCommandManager.init();
     }
 
     /**
@@ -163,8 +156,16 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     @Listener
     public void onRegisterCommands(@Nonnull RegisterCommandEvent<org.spongepowered.api.command.Command.Raw> event) {
         if (enabled) {
-            this.geyserCommandExecutor = new GeyserSpongeCommandExecutor(this.geyserCommandManager);
-            event.register(this.pluginContainer, this.geyserCommandExecutor, "geyser");
+            event.register(this.pluginContainer, new GeyserSpongeCommandExecutor(geyser, geyserCommandManager.getCommands()), "geyser");
+
+            for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
+                Map<String, Command> commands = entry.getValue();
+                if (commands.isEmpty()) {
+                    continue;
+                }
+
+                event.register(this.pluginContainer, new GeyserSpongeCommandExecutor(this.geyser, commands), entry.getKey().description().id());
+            }
         }
     }
 
@@ -203,20 +204,6 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
             this.geyserSpongePingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
         } else {
             this.geyserSpongePingPassthrough = new GeyserSpongePingPassthrough();
-        }
-
-        this.geyserCommandManager = new GeyserSpongeCommandManager(Sponge.getCommandManager(), geyser);
-        this.geyserCommandManager.init();
-
-        Sponge.getCommandManager().register(this, new GeyserSpongeCommandExecutor(geyser, geyserCommandManager.getCommands()), "geyser");
-
-        for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
-            Map<String, Command> commands = entry.getValue();
-            if (commands.isEmpty()) {
-                continue;
-            }
-
-            Sponge.getCommandManager().register(this, new GeyserSpongeCommandExecutor(this.geyser, commands), entry.getKey().description().id());
         }
     }
 

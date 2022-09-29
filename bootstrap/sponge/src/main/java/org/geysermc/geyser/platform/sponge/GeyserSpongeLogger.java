@@ -29,7 +29,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.geyser.GeyserLogger;
-import org.slf4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 @AllArgsConstructor
 public class GeyserSpongeLogger implements GeyserLogger {
