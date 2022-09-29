@@ -27,10 +27,11 @@ package org.geysermc.geyser.command.defaults;
 
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.text.ChatColor;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Collections;
@@ -38,10 +39,15 @@ import java.util.Map;
 
 public class HelpCommand extends GeyserCommand {
     private final GeyserImpl geyser;
+    private final String baseCommand;
+    private final Map<String, Command> commands;
 
-    public HelpCommand(GeyserImpl geyser, String name, String description, String permission) {
+    public HelpCommand(GeyserImpl geyser, String name, String description, String permission,
+                       String baseCommand, Map<String, Command> commands) {
         super(name, description, permission);
         this.geyser = geyser;
+        this.baseCommand = baseCommand;
+        this.commands = commands;
 
         this.setAliases(Collections.singletonList("?"));
     }
@@ -57,23 +63,22 @@ public class HelpCommand extends GeyserCommand {
     public void execute(GeyserSession session, GeyserCommandSource sender, String[] args) {
         int page = 1;
         int maxPage = 1;
-        String header = GeyserLocale.getPlayerLocaleString("geyser.commands.help.header", sender.getLocale(), page, maxPage);
+        String header = GeyserLocale.getPlayerLocaleString("geyser.commands.help.header", sender.locale(), page, maxPage);
         sender.sendMessage(header);
 
-        Map<String, GeyserCommand> cmds = geyser.getCommandManager().getCommands();
-        for (Map.Entry<String, GeyserCommand> entry : cmds.entrySet()) {
-            GeyserCommand cmd = entry.getValue();
+        this.commands.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
+            Command cmd = entry.getValue();
 
             // Standalone hack-in since it doesn't have a concept of permissions
-            if (geyser.getPlatformType() == PlatformType.STANDALONE || sender.hasPermission(cmd.getPermission())) {
+            if (geyser.getPlatformType() == PlatformType.STANDALONE || sender.hasPermission(cmd.permission())) {
                 // Only list commands the player can actually run
                 if (cmd.isBedrockOnly() && session == null) {
-                    continue;
+                    return;
                 }
 
-                sender.sendMessage(ChatColor.YELLOW + "/geyser " + entry.getKey() + ChatColor.WHITE + ": " +
-                        GeyserLocale.getPlayerLocaleString(cmd.getDescription(), sender.getLocale()));
+                sender.sendMessage(ChatColor.YELLOW + "/" + baseCommand + " " + entry.getKey() + ChatColor.WHITE + ": " +
+                        GeyserLocale.getPlayerLocaleString(cmd.description(), sender.locale()));
             }
-        }
+        });
     }
 }

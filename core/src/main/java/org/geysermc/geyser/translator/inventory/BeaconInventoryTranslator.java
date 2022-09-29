@@ -62,7 +62,7 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
             @Override
             public void openInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
                 if (!((BeaconContainer) inventory).isUsingRealBlock()) {
-                    InventoryUtils.closeInventory(session, inventory.getId(), false);
+                    InventoryUtils.closeInventory(session, inventory.getJavaId(), false);
                     return;
                 }
                 super.openInventory(translator, session, inventory);

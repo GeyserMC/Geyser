@@ -31,9 +31,9 @@ import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import lombok.AllArgsConstructor;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
-import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,7 +59,7 @@ public class ChestInventoryUpdater extends InventoryUpdater {
         }
 
         InventoryContentPacket contentPacket = new InventoryContentPacket();
-        contentPacket.setContainerId(inventory.getId());
+        contentPacket.setContainerId(inventory.getBedrockId());
         contentPacket.setContents(bedrockItems);
         session.sendUpstreamPacket(contentPacket);
     }
@@ -70,7 +70,7 @@ public class ChestInventoryUpdater extends InventoryUpdater {
             return true;
 
         InventorySlotPacket slotPacket = new InventorySlotPacket();
-        slotPacket.setContainerId(inventory.getId());
+        slotPacket.setContainerId(inventory.getBedrockId());
         slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
         slotPacket.setItem(inventory.getItem(javaSlot).getItemData(session));
         session.sendUpstreamPacket(slotPacket);

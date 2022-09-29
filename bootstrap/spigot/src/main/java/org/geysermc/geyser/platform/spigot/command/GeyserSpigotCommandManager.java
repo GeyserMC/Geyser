@@ -61,8 +61,12 @@ public class GeyserSpigotCommandManager extends GeyserCommandManager {
     }
 
     @Override
-    public String getDescription(String command) {
+    public String description(String command) {
         Command cmd = COMMAND_MAP.getCommand(command.replace("/", ""));
         return cmd != null ? cmd.getDescription() : "";
+    }
+
+    public static CommandMap getCommandMap() {
+        return COMMAND_MAP;
     }
 }

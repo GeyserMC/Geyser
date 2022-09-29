@@ -54,7 +54,7 @@ import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.click.Click;
 import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.geyser.network.MinecraftProtocol;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
@@ -114,7 +114,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 changedItem = Int2ObjectMaps.singleton(hotbarSlot, itemStack.getItemStack());
                             }
                             ServerboundContainerClickPacket dropPacket = new ServerboundContainerClickPacket(
-                                    inventory.getId(), inventory.getStateId(), hotbarSlot, clickType.actionType, clickType.action,
+                                    inventory.getJavaId(), inventory.getStateId(), hotbarSlot, clickType.actionType, clickType.action,
                                     inventory.getCursor().getItemStack(), changedItem);
                             session.sendDownstreamPacket(dropPacket);
                             return;
@@ -127,7 +127,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 dropAll ? PlayerAction.DROP_ITEM_STACK : PlayerAction.DROP_ITEM,
                                 Vector3i.ZERO,
                                 Direction.DOWN,
-                                session.getWorldCache().nextPredictionSequence()
+                                0
                         );
                         session.sendDownstreamPacket(dropPacket);
 
@@ -371,7 +371,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                         changedSlots.put(bedrockHotbarSlot, armorSlotItem.getItemStack());
 
                                         ServerboundContainerClickPacket clickPacket = new ServerboundContainerClickPacket(
-                                                playerInventory.getId(), playerInventory.getStateId(), armorSlot,
+                                                playerInventory.getJavaId(), playerInventory.getStateId(), armorSlot,
                                                 click.actionType, click.action, null, changedSlots);
                                         session.sendDownstreamPacket(clickPacket);
                                     }
@@ -408,13 +408,10 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         int sequence = session.getWorldCache().nextPredictionSequence();
-                        if (blockState != -1) {
-                            session.getWorldCache().addServerCorrectBlockState(packet.getBlockPosition(), blockState);
-                        } else {
+                        session.getWorldCache().markPositionInSequence(packet.getBlockPosition());
+                        // -1 means we don't know what block they're breaking
+                        if (blockState == -1) {
                             blockState = BlockStateValues.JAVA_AIR_ID;
-                            // Client will desync here anyway
-                            session.getWorldCache().addServerCorrectBlockState(packet.getBlockPosition(),
-                                    session.getGeyser().getWorldManager().getBlockAt(session, packet.getBlockPosition()));
                         }
 
                         LevelEventPacket blockBreakPacket = new LevelEventPacket();
@@ -442,7 +439,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 if (packet.getActionType() == 0) {
                     // Followed to the Minecraft Protocol specification outlined at wiki.vg
                     ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, Vector3i.ZERO,
-                            Direction.DOWN, session.getWorldCache().nextPredictionSequence());
+                            Direction.DOWN, 0);
                     session.sendDownstreamPacket(releaseItemPacket);
                 }
                 break;
@@ -467,7 +464,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 InteractAction.ATTACK, session.isSneaking());
                         session.sendDownstreamPacket(attackPacket);
 
-                        if (MinecraftProtocol.supports1_19_10(session)) {
+                        if (GameProtocol.supports1_19_10(session)) {
                             // Since 1.19.10, LevelSoundEventPackets are no longer sent by the client when attacking entities
                             CooldownUtils.sendCooldown(session);
                         }
@@ -545,11 +542,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
     private boolean isIncorrectHeldItem(GeyserSession session, InventoryTransactionPacket packet) {
         int javaSlot = session.getPlayerInventory().getOffsetForHotbar(packet.getHotbarSlot());
-        int expectedItemId = ItemTranslator.getBedrockItemMapping(session, session.getPlayerInventory().getItem(javaSlot)).getBedrockId();
+        int expectedItemId = ItemTranslator.getBedrockItemId(session, session.getPlayerInventory().getItem(javaSlot));
         int heldItemId = packet.getItemInHand() == null ? ItemData.AIR.getId() : packet.getItemInHand().getId();
 
         if (expectedItemId != heldItemId) {
-            session.getGeyser().getLogger().debug(session.name() + "'s held item has desynced! Expected: " + expectedItemId + " Received: " + heldItemId);
+            session.getGeyser().getLogger().debug(session.bedrockUsername() + "'s held item has desynced! Expected: " + expectedItemId + " Received: " + heldItemId);
             session.getGeyser().getLogger().debug("Packet: " + packet);
             return true;
         }

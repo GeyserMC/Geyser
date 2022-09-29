@@ -1,0 +1,89 @@
+[versions]
+jackson = "2.13.4"
+fastutil = "8.5.2"
+netty = "4.1.80.Final"
+guava = "29.0-jre"
+gson = "2.3.1" # Provided by Spigot 1.8.8
+websocket = "1.5.1"
+protocol = "2.9.12-20220926.095446-6"
+raknet = "1.6.28-20220125.214016-6"
+mcauthlib = "d9d773e"
+mcprotocollib = "9f78bd5"
+packetlib = "3.0"
+adventure = "4.12.0-20220629.025215-9"
+adventure-platform = "4.1.2"
+junit = "4.13.1"
+checkerframework = "3.19.0"
+cumulus  = "1.1.1"
+events = "1.0-SNAPSHOT"
+log4j  = "2.17.1"
+jline = "3.21.0"
+terminalconsoleappender = "1.2.0"
+paper = "1.19-R0.1-SNAPSHOT"
+viaversion = "4.0.0"
+adapters = "1.5-SNAPSHOT"
+commodore = "2.2"
+bungeecord = "a7c6ede"
+velocity = "3.0.0"
+sponge = "7.1.0"
+
+[libraries]
+jackson-annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson" }
+jackson-core = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
+jackson-dataformat-yaml = { group = "com.fasterxml.jackson.dataformat", name = "jackson-dataformat-yaml", version.ref = "jackson" }
+
+fastutil-int-int-maps = { group = "com.nukkitx.fastutil", name = "fastutil-int-int-maps", version.ref = "fastutil" }
+fastutil-int-long-maps = { group = "com.nukkitx.fastutil", name = "fastutil-int-long-maps", version.ref = "fastutil" }
+fastutil-int-byte-maps = { group = "com.nukkitx.fastutil", name = "fastutil-int-byte-maps", version.ref = "fastutil" }
+fastutil-int-boolean-maps = { group = "com.nukkitx.fastutil", name = "fastutil-int-boolean-maps", version.ref = "fastutil" }
+fastutil-object-int-maps = { group = "com.nukkitx.fastutil", name = "fastutil-object-int-maps", version.ref = "fastutil" }
+fastutil-object-object-maps = { group = "com.nukkitx.fastutil", name = "fastutil-object-object-maps", version.ref = "fastutil" }
+
+adventure-text-serializer-gson = { group = "net.kyori", name = "adventure-text-serializer-gson", version.ref = "adventure" } # Remove when we remove our Adventure bump
+adventure-text-serializer-legacy = { group = "net.kyori", name = "adventure-text-serializer-legacy", version.ref = "adventure" }
+adventure-text-serializer-plain = { group = "net.kyori", name = "adventure-text-serializer-plain", version.ref = "adventure" }
+adventure-text-serializer-bungeecord = { group = "net.kyori", name = "adventure-text-serializer-bungeecord", version.ref = "adventure-platform" }
+
+netty-resolver-dns = { group = "io.netty", name = "netty-resolver-dns", version.ref = "netty" }
+netty-resolver-dns-native-macos = { group = "io.netty", name = "netty-resolver-dns-native-macos", version.ref = "netty" }
+netty-codec-haproxy = { group = "io.netty", name = "netty-codec-haproxy", version.ref = "netty" }
+netty-handler = { group = "io.netty", name = "netty-handler", version.ref = "netty" }
+netty-transport-native-epoll = { group = "io.netty", name = "netty-transport-native-epoll", version.ref = "netty" }
+netty-transport-native-kqueue = { group = "io.netty", name = "netty-transport-native-kqueue", version.ref = "netty" }
+
+log4j-api = { group = "org.apache.logging.log4j", name = "log4j-api", version.ref = "log4j" }
+log4j-core = { group = "org.apache.logging.log4j", name = "log4j-core", version.ref = "log4j" }
+log4j-slf4j18-impl = { group = "org.apache.logging.log4j", name = "log4j-slf4j18-impl", version.ref = "log4j" }
+
+jline-terminal = { group = "org.jline", name = "jline-terminal", version.ref = "jline" }
+jline-terminal-jna = { group = "org.jline", name = "jline-terminal-jna", version.ref = "jline" }
+jline-reader = { group = "org.jline", name = "jline-reader", version.ref = "jline" }
+
+paper-api = { group = "io.papermc.paper", name = "paper-api", version.ref = "paper" }
+paper-mojangapi = { group = "io.papermc.paper", name = "paper-mojangapi", version.ref = "paper" }
+
+adapters-spigot = { group = "org.geysermc.geyser.adapters", name = "spigot-all", version.ref = "adapters" }
+bungeecord-proxy = { group = "com.github.SpigotMC.BungeeCord", name = "bungeecord-proxy", version.ref = "bungeecord" }
+checker-qual = { group = "org.checkerframework", name = "checker-qual", version.ref = "checkerframework" }
+commodore = { group = "me.lucko", name = "commodore", version.ref = "commodore" }
+cumulus = { group = "org.geysermc.cumulus", name = "cumulus", version.ref = "cumulus" }
+events = { group = "org.geysermc.event", name = "events", version.ref = "events" }
+guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+mcauthlib = { group = "com.github.GeyserMC", name = "MCAuthLib", version.ref = "mcauthlib" }
+mcprotocollib = { group = "com.github.GeyserMC", name = "MCProtocolLib", version.ref = "mcprotocollib" }
+packetlib = { group = "com.github.steveice10", name = "packetlib", version.ref = "packetlib" }
+protocol = { group = "com.nukkitx.protocol", name = "bedrock-v554", version.ref = "protocol" }
+raknet = { group = "com.nukkitx.network", name = "raknet", version.ref = "raknet" }
+sponge-api = { group = "org.spongepowered", name = "spongeapi", version.ref = "sponge" }
+terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }
+velocity-api = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }
+websocket = { group = "org.java-websocket", name = "Java-WebSocket", version.ref = "websocket" }
+
+[bundles]
+jackson = [ "jackson-annotations", "jackson-core", "jackson-dataformat-yaml" ]
+fastutil = [ "fastutil-int-int-maps", "fastutil-int-long-maps", "fastutil-int-byte-maps", "fastutil-int-boolean-maps", "fastutil-object-int-maps", "fastutil-object-object-maps" ]
+adventure = [ "adventure-text-serializer-gson", "adventure-text-serializer-legacy", "adventure-text-serializer-plain" ]
+log4j = [ "log4j-api", "log4j-core", "log4j-slf4j18-impl" ]
+jline = [ "jline-terminal", "jline-terminal-jna", "jline-reader" ]

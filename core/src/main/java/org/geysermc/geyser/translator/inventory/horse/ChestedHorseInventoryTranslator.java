@@ -30,9 +30,9 @@ import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
+import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.inventory.BedrockContainerSlot;
 
 import java.util.Arrays;
 
@@ -105,7 +105,7 @@ public abstract class ChestedHorseInventoryTranslator extends AbstractHorseInven
         }
 
         InventoryContentPacket horseContentsPacket = new InventoryContentPacket();
-        horseContentsPacket.setContainerId(inventory.getId());
+        horseContentsPacket.setContainerId(inventory.getBedrockId());
         horseContentsPacket.setContents(Arrays.asList(horseItems));
         session.sendUpstreamPacket(horseContentsPacket);
     }

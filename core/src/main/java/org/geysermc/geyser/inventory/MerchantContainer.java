@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.inventory.VillagerTrade;
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
+import com.github.steveice10.mc.protocol.data.game.inventory.VillagerTrade;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.ClientboundMerchantOffersPacket;
 import lombok.Getter;
 import lombok.Setter;

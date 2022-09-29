@@ -26,30 +26,41 @@
 package org.geysermc.geyser.command;
 
 import lombok.AllArgsConstructor;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.session.GeyserSession;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
- * Represents helper functions for listening to {@code /geyser} commands.
+ * Represents helper functions for listening to {@code /geyser} or {@code /geyserext} commands.
  */
 @AllArgsConstructor
 public class GeyserCommandExecutor {
 
-    protected GeyserCommandManager commandManager;
+    protected final GeyserImpl geyser;
+    private final Map<String, Command> commands;
 
-    public void setCommandManager(@Nonnull GeyserCommandManager commandManager) {
-        this.commandManager = Objects.requireNonNull(commandManager);
+    public GeyserCommand getCommand(String label) {
+        return (GeyserCommand) commands.get(label);
     }
 
     @Nullable
-    public GeyserCommand getCommand(String label) {
-        return commandManager.getCommands().get(label);
+    public GeyserSession getGeyserSession(GeyserCommandSource sender) {
+        if (sender.isConsole()) {
+            return null;
+        }
+
+        for (GeyserSession session : geyser.getSessionManager().getSessions().values()) {
+            if (sender.name().equals(session.getPlayerEntity().getUsername())) {
+                return session;
+            }
+        }
+        return null;
     }
 
     /**
@@ -61,21 +72,18 @@ public class GeyserCommandExecutor {
      *               If the command sender does not have the permission for a given command, the command will not be shown.
      * @return A list of command names to include in the tab complete
      */
-    @Nonnull
     public List<String> tabComplete(GeyserCommandSource sender) {
-        if (sender.asGeyserSession() != null) {
+        if (getGeyserSession(sender) != null) {
             // Bedrock doesn't get tab completions or argument suggestions
             return Collections.emptyList();
         }
 
         List<String> availableCommands = new ArrayList<>();
-        Map<String, GeyserCommand> commands = commandManager.getCommands();
 
         // Only show commands they have permission to use
-        for (Map.Entry<String, GeyserCommand> entry : commands.entrySet()) {
-            GeyserCommand geyserCommand = entry.getValue();
-            if (sender.hasPermission(geyserCommand.getPermission())) {
-
+        for (Map.Entry<String, Command> entry : commands.entrySet()) {
+            Command geyserCommand = entry.getValue();
+            if (sender.hasPermission(geyserCommand.permission())) {
                 if (geyserCommand.isBedrockOnly()) {
                     // Don't show commands the JE player can't run
                     continue;

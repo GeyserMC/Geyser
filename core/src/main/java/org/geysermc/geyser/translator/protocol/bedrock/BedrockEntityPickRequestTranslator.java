@@ -29,10 +29,10 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.nukkitx.protocol.bedrock.packet.EntityPickRequestPacket;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.util.InventoryUtils;
 
 import java.util.Locale;

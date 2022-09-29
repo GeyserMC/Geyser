@@ -28,8 +28,11 @@ package org.geysermc.geyser.platform.sponge;
 import com.google.inject.Inject;
 import org.apache.logging.log4j.Logger;
 import org.geysermc.common.PlatformType;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserBootstrap;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
@@ -39,6 +42,10 @@ import org.geysermc.geyser.platform.sponge.command.GeyserSpongeCommandManager;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.platform.sponge.command.GeyserSpongeCommandExecutor;
+import org.geysermc.geyser.platform.sponge.command.GeyserSpongeCommandManager;
+import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.FileUtils;
+import org.slf4j.Logger;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.Command;
@@ -57,6 +64,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.UUID;
 
 @Plugin(value = "geyser")
@@ -142,8 +150,10 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
         this.geyserLogger = new GeyserSpongeLogger(logger, geyserConfig.isDebugMode());
 
+        this.geyser = GeyserImpl.load(PlatformType.SPONGE, this);
+
         // Construct it without the commands
-        this.geyserCommandManager = new GeyserSpongeCommandManager(this.geyserLogger);
+        this.geyserCommandManager = new GeyserSpongeCommandManager(geyser);
     }
 
     /**
@@ -174,7 +184,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
             InetSocketAddress javaAddr = Sponge.server().boundAddress().get();
 
             // By default this should be 127.0.0.1 but may need to be changed in some circumstances
-            if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
+            if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
                 this.geyserConfig.setAutoconfiguredRemote(true);
                 // Don't change the ip if its listening on all interfaces
                 if (!javaAddr.getHostString().equals("0.0.0.0") && !javaAddr.getHostString().equals("")) {
@@ -185,10 +195,10 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
         }
 
         if (geyserConfig.getBedrock().isCloneRemotePort()) {
-            geyserConfig.getBedrock().setPort(geyserConfig.getRemote().getPort());
+            geyserConfig.getBedrock().setPort(geyserConfig.getRemote().port());
         }
 
-        this.geyser = GeyserImpl.start(PlatformType.SPONGE, this);
+        GeyserImpl.start();
 
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserSpongePingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
@@ -196,8 +206,19 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
             this.geyserSpongePingPassthrough = new GeyserSpongePingPassthrough();
         }
 
-        this.geyserCommandManager.registerDefaults(geyser); // register the subcommands once we have GeyserImpl
-        this.geyserCommandExecutor.setCommandManager(geyserCommandManager); // re-assign the command manager in the case this was a reload
+        this.geyserCommandManager = new GeyserSpongeCommandManager(Sponge.getCommandManager(), geyser);
+        this.geyserCommandManager.init();
+
+        Sponge.getCommandManager().register(this, new GeyserSpongeCommandExecutor(geyser, geyserCommandManager.getCommands()), "geyser");
+
+        for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
+            Map<String, Command> commands = entry.getValue();
+            if (commands.isEmpty()) {
+                continue;
+            }
+
+            Sponge.getCommandManager().register(this, new GeyserSpongeCommandExecutor(this.geyser, commands), entry.getKey().description().id());
+        }
     }
 
     @Listener

@@ -26,11 +26,12 @@
 package org.geysermc.geyser.platform.standalone.gui;
 
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.command.GeyserCommand;
+import org.geysermc.geyser.platform.standalone.GeyserStandaloneLogger;
 import org.geysermc.geyser.platform.standalone.command.GeyserStandaloneCommandManager;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.platform.standalone.GeyserStandaloneLogger;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -259,29 +260,30 @@ public class GeyserStandaloneGUI {
         commandsMenu.removeAll();
         optionsMenu.removeAll();
 
-        for (Map.Entry<String, GeyserCommand> command : geyserCommandManager.getCommands().entrySet()) {
+        for (Map.Entry<String, Command> entry : geyserCommandManager.getCommands().entrySet()) {
             // Remove the offhand command and any alias commands to prevent duplicates in the list
-            if (!command.getValue().isExecutableOnConsole() || command.getValue().getAliases().contains(command.getKey())) {
+            if (!entry.getValue().isExecutableOnConsole() || entry.getValue().aliases().contains(entry.getKey())) {
                 continue;
             }
 
+            GeyserCommand command = (GeyserCommand) entry.getValue();
             // Create the button that runs the command
-            boolean hasSubCommands = command.getValue().hasSubCommands();
+            boolean hasSubCommands = !entry.getValue().subCommands().isEmpty();
             // Add an extra menu if there are more commands that can be run
-            JMenuItem commandButton = hasSubCommands ? new JMenu(command.getValue().getName()) : new JMenuItem(command.getValue().getName());
-            commandButton.getAccessibleContext().setAccessibleDescription(command.getValue().getDescription());
+            JMenuItem commandButton = hasSubCommands ? new JMenu(entry.getValue().name()) : new JMenuItem(entry.getValue().name());
+            commandButton.getAccessibleContext().setAccessibleDescription(entry.getValue().description());
             if (!hasSubCommands) {
-                commandButton.addActionListener(e -> command.getValue().execute(null, geyserStandaloneLogger, new String[]{ }));
+                commandButton.addActionListener(e -> command.execute(null, geyserStandaloneLogger, new String[]{ }));
             } else {
                 // Add a submenu that's the same name as the menu can't be pressed
-                JMenuItem otherCommandButton = new JMenuItem(command.getValue().getName());
-                otherCommandButton.getAccessibleContext().setAccessibleDescription(command.getValue().getDescription());
-                otherCommandButton.addActionListener(e -> command.getValue().execute(null, geyserStandaloneLogger, new String[]{ }));
+                JMenuItem otherCommandButton = new JMenuItem(entry.getValue().name());
+                otherCommandButton.getAccessibleContext().setAccessibleDescription(entry.getValue().description());
+                otherCommandButton.addActionListener(e -> command.execute(null, geyserStandaloneLogger, new String[]{ }));
                 commandButton.add(otherCommandButton);
                 // Add a menu option for all possible subcommands
-                for (String subCommandName : command.getValue().getSubCommands()) {
+                for (String subCommandName : entry.getValue().subCommands()) {
                     JMenuItem item = new JMenuItem(subCommandName);
-                    item.addActionListener(e -> command.getValue().execute(null, geyserStandaloneLogger, new String[]{subCommandName}));
+                    item.addActionListener(e -> command.execute(null, geyserStandaloneLogger, new String[]{subCommandName}));
                     commandButton.add(item);
                 }
             }

@@ -27,8 +27,14 @@ package org.geysermc.geyser.api;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.api.Geyser;
 import org.geysermc.api.GeyserApiBase;
 import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.event.EventBus;
+import org.geysermc.geyser.api.event.EventRegistrar;
+import org.geysermc.geyser.api.extension.ExtensionManager;
+import org.geysermc.geyser.api.network.BedrockListener;
+import org.geysermc.geyser.api.network.RemoteServer;
 
 import java.util.List;
 import java.util.UUID;
@@ -37,24 +43,6 @@ import java.util.UUID;
  * Represents the API used in Geyser.
  */
 public interface GeyserApi extends GeyserApiBase {
-    /**
-     * Shuts down the current Geyser instance.
-     */
-    void shutdown();
-
-    /**
-     * Reloads the current Geyser instance.
-     */
-    void reload();
-
-    /**
-     * Gets if this Geyser instance is running in an IDE. This only needs to be used in cases where files
-     * expected to be in a jarfile are not present.
-     *
-     * @return true if the version number is not 'DEV'.
-     */
-    boolean productionEnvironment();
-
     /**
      * {@inheritDoc}
      */
@@ -70,12 +58,62 @@ public interface GeyserApi extends GeyserApiBase {
     /**
      * {@inheritDoc}
      */
-    @Override
-    @Nullable GeyserConnection connectionByName(@NonNull String name);
-
-    /**
-     * {@inheritDoc}
-     */
     @NonNull
     List<? extends GeyserConnection> onlineConnections();
+
+    /**
+     * Gets the {@link ExtensionManager}.
+     *
+     * @return the extension manager
+     */
+    @NonNull
+    ExtensionManager extensionManager();
+
+    /**
+     * Provides an implementation for the specified API type.
+     *
+     * @param apiClass the builder class
+     * @param <R> the implementation type
+     * @param <T> the API type
+     * @return the builder instance
+     */
+    @NonNull
+    <R extends T, T> R provider(@NonNull Class<T> apiClass, @Nullable Object... args);
+
+    /**
+     * Gets the {@link EventBus} for handling
+     * Geyser events.
+     *
+     * @return the event bus
+     */
+    @NonNull
+    EventBus<EventRegistrar> eventBus();
+
+    /**
+     * Gets the default {@link RemoteServer} configured
+     * within the config file that is used by default.
+     *
+     * @return the default remote server used within Geyser
+     */
+    @NonNull
+    RemoteServer defaultRemoteServer();
+
+    /**
+     * Gets the {@link BedrockListener} used for listening
+     * for Minecraft: Bedrock Edition client connections.
+     *
+     * @return the listener used for Bedrock client connectins
+     */
+    @NonNull
+    BedrockListener bedrockListener();
+
+    /**
+     * Gets the current {@link GeyserApiBase} instance.
+     *
+     * @return the current geyser api instance
+     */
+    @NonNull
+    static GeyserApi api() {
+        return Geyser.api(GeyserApi.class);
+    }
 }

@@ -68,9 +68,9 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
 
             if (lecternContainer.getCurrentBedrockPage() == packet.getPage()) {
                 // The same page means Bedrock is closing the window
-                ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(lecternContainer.getId());
+                ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(lecternContainer.getJavaId());
                 session.sendDownstreamPacket(closeWindowPacket);
-                InventoryUtils.closeInventory(session, lecternContainer.getId(), false);
+                InventoryUtils.closeInventory(session, lecternContainer.getJavaId(), false);
             } else {
                 // Each "page" Bedrock gives to us actually represents two pages (think opening a book and seeing two pages)
                 // Each "page" on Java is just one page (think a spiral notebook folded back to only show one page)
@@ -82,12 +82,12 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
                 // is a byte when transmitted over the network and therefore this stops us at 128
                 if (newJavaPage > currentJavaPage) {
                     for (int i = currentJavaPage; i < newJavaPage; i++) {
-                        ServerboundContainerButtonClickPacket clickButtonPacket = new ServerboundContainerButtonClickPacket(session.getOpenInventory().getId(), 2);
+                        ServerboundContainerButtonClickPacket clickButtonPacket = new ServerboundContainerButtonClickPacket(session.getOpenInventory().getJavaId(), 2);
                         session.sendDownstreamPacket(clickButtonPacket);
                     }
                 } else {
                     for (int i = currentJavaPage; i > newJavaPage; i--) {
-                        ServerboundContainerButtonClickPacket clickButtonPacket = new ServerboundContainerButtonClickPacket(session.getOpenInventory().getId(), 1);
+                        ServerboundContainerButtonClickPacket clickButtonPacket = new ServerboundContainerButtonClickPacket(session.getOpenInventory().getJavaId(), 1);
                         session.sendDownstreamPacket(clickButtonPacket);
                     }
                 }

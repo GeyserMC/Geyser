@@ -371,7 +371,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     }
                 }
                 default -> {
-                    session.getGeyser().getLogger().error("Unknown crafting state induced by " + session.name());
+                    session.getGeyser().getLogger().error("Unknown crafting state induced by " + session.bedrockUsername());
                     return rejectRequest(request);
                 }
             }

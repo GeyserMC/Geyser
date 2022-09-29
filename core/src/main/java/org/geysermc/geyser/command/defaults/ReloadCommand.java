@@ -27,8 +27,8 @@ package org.geysermc.geyser.command.defaults;
 
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.command.GeyserCommand;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 
@@ -47,7 +47,7 @@ public class ReloadCommand extends GeyserCommand {
             return;
         }
 
-        String message = GeyserLocale.getPlayerLocaleString("geyser.commands.reload.message", sender.getLocale());
+        String message = GeyserLocale.getPlayerLocaleString("geyser.commands.reload.message", sender.locale());
 
         sender.sendMessage(message);
 

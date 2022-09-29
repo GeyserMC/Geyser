@@ -35,7 +35,7 @@ public class GeyserStandaloneCommandManager extends GeyserCommandManager {
     }
 
     @Override
-    public String getDescription(String command) {
+    public String description(String command) {
         return ""; // this is not sent over the protocol, so we return none
     }
 }

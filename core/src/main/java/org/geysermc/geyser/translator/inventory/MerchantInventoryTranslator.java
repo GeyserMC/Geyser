@@ -37,16 +37,12 @@ import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.AutoCraft
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.CraftRecipeStackRequestActionData;
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
-import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.inventory.MerchantContainer;
-import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.inventory.BedrockContainerSlot;
-import org.geysermc.geyser.inventory.SlotType;
+import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.inventory.*;
 import org.geysermc.geyser.inventory.updater.InventoryUpdater;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InventoryUtils;
 
 import java.util.concurrent.TimeUnit;

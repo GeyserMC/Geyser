@@ -26,8 +26,11 @@
 package org.geysermc.geyser.command;
 
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import javax.annotation.Nullable;
 
@@ -35,39 +38,18 @@ import javax.annotation.Nullable;
  * Implemented on top of any class that can send a command.
  * For example, it wraps around Spigot's CommandSender class.
  */
-public interface GeyserCommandSource {
-
-    String name();
-
-    default void sendMessage(String[] messages) {
-        for (String message : messages) {
-            sendMessage(message);
-        }
-    }
-
-    void sendMessage(String message);
+public interface GeyserCommandSource extends CommandSource {
 
     /**
-     * @return true if the specified sender is from the console.
+     * {@inheritDoc}
      */
-    boolean isConsole();
-
-    /**
-     * Returns the locale of the command sender. Defaults to the default locale at {@link GeyserLocale#getDefaultLocale()}.
-     * 
-     * @return the locale of the command sender.
-     */
-    default String getLocale() {
+    default String locale() {
         return GeyserLocale.getDefaultLocale();
     }
 
-    /**
-     * Checks if the CommandSender has a permission
-     *
-     * @param permission The permission node to check
-     * @return true if the CommandSender has the requested permission, false if not
-     */
-    boolean hasPermission(String permission);
+    default void sendMessage(Component message) {
+        sendMessage(LegacyComponentSerializer.legacySection().serialize(message));
+    }
 
     /**
      * Attempt to find the corresponding {@link GeyserSession} of this {@link GeyserCommandSource}. Returns null if the Commandsender is console.

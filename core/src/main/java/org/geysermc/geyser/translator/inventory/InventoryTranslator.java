@@ -201,7 +201,7 @@ public abstract class InventoryTranslator {
                     TransferStackRequestActionData transferAction = (TransferStackRequestActionData) action;
                     if (!(checkNetId(session, inventory, transferAction.getSource()) && checkNetId(session, inventory, transferAction.getDestination()))) {
                         if (session.getGeyser().getConfig().isDebugMode()) {
-                            session.getGeyser().getLogger().error("DEBUG: About to reject TAKE/PLACE request made by " + session.name());
+                            session.getGeyser().getLogger().error("DEBUG: About to reject TAKE/PLACE request made by " + session.bedrockUsername());
                             dumpStackRequestDetails(session, inventory, transferAction.getSource(), transferAction.getDestination());
                         }
                         return rejectRequest(request);
@@ -292,7 +292,7 @@ public abstract class InventoryTranslator {
 
                     if (!(checkNetId(session, inventory, source) && checkNetId(session, inventory, destination))) {
                         if (session.getGeyser().getConfig().isDebugMode()) {
-                            session.getGeyser().getLogger().error("DEBUG: About to reject SWAP request made by " + session.name());
+                            session.getGeyser().getLogger().error("DEBUG: About to reject SWAP request made by " + session.bedrockUsername());
                             dumpStackRequestDetails(session, inventory, source, destination);
                         }
                         return rejectRequest(request);
@@ -804,7 +804,7 @@ public abstract class InventoryTranslator {
      */
     //TODO: compatibility for simulated inventory (ClickPlan)
     private static int findTempSlot(Inventory inventory, GeyserItemStack item, boolean emptyOnly, int... slotBlacklist) {
-        int offset = inventory.getId() == 0 ? 1 : 0; //offhand is not a viable temp slot
+        int offset = inventory.getJavaId() == 0 ? 1 : 0; //offhand is not a viable temp slot
         HashSet<GeyserItemStack> itemBlacklist = new HashSet<>(slotBlacklist.length + 1);
         itemBlacklist.add(item);
 

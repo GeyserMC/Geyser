@@ -29,10 +29,10 @@ import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionManager;
-import org.geysermc.geyser.level.physics.Axis;
+import org.geysermc.geyser.session.GeyserSession;
 
 @EqualsAndHashCode
 public class BlockCollision {

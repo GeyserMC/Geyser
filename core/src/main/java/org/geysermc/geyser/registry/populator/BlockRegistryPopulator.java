@@ -234,7 +234,7 @@ public final class BlockRegistryPopulator {
             BlockMapping.BlockMappingBuilder builder = BlockMapping.builder();
             JsonNode hardnessNode = entry.getValue().get("block_hardness");
             if (hardnessNode != null) {
-                builder.hardness(hardnessNode.doubleValue());
+                builder.hardness(hardnessNode.floatValue());
             }
 
             JsonNode canBreakWithHandNode = entry.getValue().get("can_break_with_hand");

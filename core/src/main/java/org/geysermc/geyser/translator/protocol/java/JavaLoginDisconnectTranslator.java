@@ -30,7 +30,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TranslatableComponent;
 import org.geysermc.common.PlatformType;
-import org.geysermc.geyser.network.MinecraftProtocol;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -46,10 +46,30 @@ public class JavaLoginDisconnectTranslator extends PacketTranslator<ClientboundL
     public void translate(GeyserSession session, ClientboundLoginDisconnectPacket packet) {
         Component disconnectReason = packet.getReason();
 
-        boolean isOutdatedMessage = false;
+        String serverDisconnectMessage = MessageTranslator.convertMessage(disconnectReason, session.locale());
+        String disconnectMessage;
+        if (testForOutdatedServer(disconnectReason)) {
+            String locale = session.locale();
+            PlatformType platform = session.getGeyser().getPlatformType();
+            String outdatedType = (platform == PlatformType.BUNGEECORD || platform == PlatformType.VELOCITY) ?
+                    "geyser.network.remote.outdated.proxy" : "geyser.network.remote.outdated.server";
+            disconnectMessage = GeyserLocale.getPlayerLocaleString(outdatedType, locale, GameProtocol.getJavaVersions().get(0)) + '\n'
+                    + GeyserLocale.getPlayerLocaleString("geyser.network.remote.original_disconnect_message", locale, serverDisconnectMessage);
+        } else if (testForMissingProfilePublicKey(disconnectReason)) {
+            disconnectMessage = "Please set `enforce-secure-profile` to `false` in server.properties for Bedrock players to be able to connect." + '\n'
+                    + GeyserLocale.getPlayerLocaleString("geyser.network.remote.original_disconnect_message", session.locale(), serverDisconnectMessage);
+        } else {
+            disconnectMessage = serverDisconnectMessage;
+        }
+
+        // The client doesn't manually get disconnected so we have to do it ourselves
+        session.disconnect(disconnectMessage);
+    }
+
+    private boolean testForOutdatedServer(Component disconnectReason) {
         if (disconnectReason instanceof TranslatableComponent component) {
             String key = component.key();
-            isOutdatedMessage = "multiplayer.disconnect.incompatible".equals(key) ||
+            return "multiplayer.disconnect.incompatible".equals(key) ||
                     // Seen with Velocity 1.18 rejecting a 1.19 client
                     "multiplayer.disconnect.outdated_client".equals(key) ||
                     // Legacy string (starting from at least 1.15.2)
@@ -60,35 +80,23 @@ public class JavaLoginDisconnectTranslator extends PacketTranslator<ClientboundL
             if (disconnectReason instanceof TextComponent component) {
                 if (component.content().startsWith("Outdated server!")) {
                     // Reproduced with vanilla 1.8.8 server and 1.18.2 Java client
-                    isOutdatedMessage = true;
+                    return true;
                 } else {
                     List<Component> children = component.children();
                     for (int i = 0; i < children.size(); i++) {
                         if (children.get(i) instanceof TextComponent child && child.content().startsWith("Outdated server!")) {
                             // Reproduced on Paper 1.17.1
-                            isOutdatedMessage = true;
-                            break;
+                            return true;
                         }
                     }
                 }
             }
         }
+        return false;
+    }
 
-        String serverDisconnectMessage = MessageTranslator.convertMessage(disconnectReason, session.getLocale());
-        String disconnectMessage;
-        if (isOutdatedMessage) {
-            String locale = session.getLocale();
-            PlatformType platform = session.getGeyser().getPlatformType();
-            String outdatedType = (platform == PlatformType.BUNGEECORD || platform == PlatformType.VELOCITY) ?
-                    "geyser.network.remote.outdated.proxy" : "geyser.network.remote.outdated.server";
-            disconnectMessage = GeyserLocale.getPlayerLocaleString(outdatedType, locale, MinecraftProtocol.getJavaVersions().get(0)) + '\n'
-                    + GeyserLocale.getPlayerLocaleString("geyser.network.remote.original_disconnect_message", locale, serverDisconnectMessage);
-        } else {
-            disconnectMessage = serverDisconnectMessage;
-        }
-
-        // The client doesn't manually get disconnected so we have to do it ourselves
-        session.disconnect(disconnectMessage);
+    private boolean testForMissingProfilePublicKey(Component disconnectReason) {
+        return disconnectReason instanceof TranslatableComponent component && "multiplayer.disconnect.missing_public_key".equals(component.key());
     }
 
     @Override

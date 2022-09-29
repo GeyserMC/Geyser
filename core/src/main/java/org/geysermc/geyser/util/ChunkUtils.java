@@ -125,7 +125,6 @@ public class ChunkUtils {
     public static void updateBlock(GeyserSession session, int blockState, Vector3i position) {
         updateBlockClientSide(session, blockState, position);
         session.getChunkCache().updateBlock(position.getX(), position.getY(), position.getZ(), blockState);
-        session.getWorldCache().updateServerCorrectBlockState(position);
     }
 
     /**

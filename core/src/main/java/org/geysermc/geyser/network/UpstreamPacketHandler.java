@@ -28,9 +28,11 @@ package org.geysermc.geyser.network;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.data.ExperimentData;
+import com.nukkitx.protocol.bedrock.data.PacketCompressionAlgorithm;
 import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.pack.ResourcePack;
 import org.geysermc.geyser.pack.ResourcePackManifest;
@@ -38,7 +40,6 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
-import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.geysermc.geyser.util.MathUtils;
@@ -61,6 +62,46 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         return translateAndDefault(packet);
     }
 
+    private boolean newProtocol = false; // TEMPORARY
+
+    private boolean setCorrectCodec(int protocolVersion) {
+        BedrockPacketCodec packetCodec = GameProtocol.getBedrockCodec(protocolVersion);
+        if (packetCodec == null) {
+            String supportedVersions = GameProtocol.getAllSupportedBedrockVersions();
+            if (protocolVersion > GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
+                // Too early to determine session locale
+                session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.server", supportedVersions));
+                return false;
+            } else if (protocolVersion < GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
+                session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.client", supportedVersions));
+                return false;
+            }
+        }
+
+        session.getUpstream().getSession().setPacketCodec(packetCodec);
+        return true;
+    }
+
+    @Override
+    public boolean handle(RequestNetworkSettingsPacket packet) {
+        if (setCorrectCodec(packet.getProtocolVersion())) {
+            newProtocol = true;
+        } else {
+            return true;
+        }
+
+        // New since 1.19.30 - sent before login packet
+        PacketCompressionAlgorithm algorithm = PacketCompressionAlgorithm.ZLIB;
+
+        NetworkSettingsPacket responsePacket = new NetworkSettingsPacket();
+        responsePacket.setCompressionAlgorithm(algorithm);
+        responsePacket.setCompressionThreshold(512);
+        session.sendUpstreamPacketImmediately(responsePacket);
+
+        session.getUpstream().getSession().setCompression(algorithm);
+        return true;
+    }
+
     @Override
     public boolean handle(LoginPacket loginPacket) {
         if (geyser.isShuttingDown()) {
@@ -69,20 +110,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return true;
         }
 
-        BedrockPacketCodec packetCodec = MinecraftProtocol.getBedrockCodec(loginPacket.getProtocolVersion());
-        if (packetCodec == null) {
-            String supportedVersions = MinecraftProtocol.getAllSupportedBedrockVersions();
-            if (loginPacket.getProtocolVersion() > MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
-                // Too early to determine session locale
-                session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.server", supportedVersions));
-                return true;
-            } else if (loginPacket.getProtocolVersion() < MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
-                session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.client", supportedVersions));
+        if (!newProtocol) {
+            if (!setCorrectCodec(loginPacket.getProtocolVersion())) { // REMOVE WHEN ONLY 1.19.30 IS SUPPORTED OR 1.20
                 return true;
             }
         }
-
-        session.getUpstream().getSession().setPacketCodec(packetCodec);
 
         // Set the block translation based off of version
         session.setBlockMappings(BlockRegistries.BLOCKS.forVersion(loginPacket.getProtocolVersion()));
@@ -106,12 +138,12 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             ResourcePackManifest.Header header = resourcePack.getManifest().getHeader();
             resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(
                     header.getUuid().toString(), header.getVersionString(), resourcePack.getFile().length(),
-                            "", "", "", false, false));
+                            resourcePack.getContentKey(), "", header.getUuid().toString(), false, false));
         }
         resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().getConfig().isForceResourcePacks());
         session.sendUpstreamPacket(resourcePacksInfo);
 
-        GeyserLocale.loadGeyserLocale(session.getLocale());
+        GeyserLocale.loadGeyserLocale(session.locale());
         return true;
     }
 
@@ -119,7 +151,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     public boolean handle(ResourcePackClientResponsePacket packet) {
         switch (packet.getStatus()) {
             case COMPLETED:
-                if (geyser.getConfig().getRemote().getAuthType() != AuthType.ONLINE) {
+                if (geyser.getConfig().getRemote().authType() != AuthType.ONLINE) {
                     session.authenticate(session.getAuthData().name());
                 } else if (!couldLoginUserByName(session.getAuthData().name())) {
                     // We must spawn the white world
@@ -160,7 +192,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     stackPacket.getResourcePacks().add(new ResourcePackStackPacket.Entry(header.getUuid().toString(), header.getVersionString(), ""));
                 }
 
-                if (session.getItemMappings().getFurnaceMinecartData() != null) {
+                if (GeyserImpl.getInstance().getConfig().isAddNonBedrockItems()) {
                     // Allow custom items to work
                     stackPacket.getExperiments().add(new ExperimentData("data_driven_items", true));
                 }
@@ -216,7 +248,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         if (session.isLoggingIn()) {
             SetTitlePacket titlePacket = new SetTitlePacket();
             titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
-            titlePacket.setText(GeyserLocale.getPlayerLocaleString("geyser.auth.login.wait", session.getLocale()));
+            titlePacket.setText(GeyserLocale.getPlayerLocaleString("geyser.auth.login.wait", session.locale()));
             titlePacket.setFadeInTime(0);
             titlePacket.setFadeOutTime(1);
             titlePacket.setStayTime(2);

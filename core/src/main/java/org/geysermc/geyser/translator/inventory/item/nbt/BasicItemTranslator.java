@@ -26,11 +26,11 @@
 package org.geysermc.geyser.translator.inventory.item.nbt;
 
 import com.github.steveice10.opennbt.tag.builtin.*;
+import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.translator.inventory.item.NbtItemStackTranslator;
-import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ItemUtils;
 
 import java.util.ArrayList;
@@ -59,7 +59,7 @@ public class BasicItemTranslator extends NbtItemStackTranslator {
             List<Tag> lore = new ArrayList<>();
             for (Tag tag : listTag.getValue()) {
                 if (!(tag instanceof StringTag)) continue;
-                lore.add(new StringTag("", MessageTranslator.convertMessageLenient(((StringTag) tag).getValue(), session.getLocale())));
+                lore.add(new StringTag("", MessageTranslator.convertMessageLenient(((StringTag) tag).getValue(), session.locale())));
             }
             displayTag.put(new ListTag("Lore", lore));
         }

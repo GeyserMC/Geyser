@@ -44,7 +44,7 @@ public class JavaSystemChatTranslator extends PacketTranslator<ClientboundSystem
         textPacket.setType(packet.isOverlay() ? TextPacket.Type.TIP : TextPacket.Type.SYSTEM);
 
         textPacket.setNeedsTranslation(false);
-        textPacket.setMessage(MessageTranslator.convertMessage(packet.getContent(), session.getLocale()));
+        textPacket.setMessage(MessageTranslator.convertMessage(packet.getContent(), session.locale()));
 
         if (session.isSentSpawnPacket()) {
             session.sendUpstreamPacket(textPacket);

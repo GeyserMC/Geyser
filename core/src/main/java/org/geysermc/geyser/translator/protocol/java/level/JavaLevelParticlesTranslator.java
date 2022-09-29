@@ -39,12 +39,12 @@ import com.nukkitx.protocol.bedrock.packet.LevelEventGenericPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.SpawnParticleEffectPacket;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ParticleMapping;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.DimensionUtils;
 
 import java.util.Optional;
@@ -157,7 +157,7 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
 
                 return (position) -> {
                     LevelEventGenericPacket packet = new LevelEventGenericPacket();
-                    packet.setEventId(2027);
+                    packet.setEventId(2027/*LevelEventType.PARTICLE_VIBRATION_SIGNAL*/);
                     packet.setTag(
                             NbtMap.builder()
                                     .putCompound("origin", buildVec3PositionTag(position))

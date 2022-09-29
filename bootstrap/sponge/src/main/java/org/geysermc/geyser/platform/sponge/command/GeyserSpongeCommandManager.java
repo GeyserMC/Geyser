@@ -26,6 +26,7 @@
 package org.geysermc.geyser.platform.sponge.command;
 
 import net.kyori.adventure.text.Component;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -36,12 +37,12 @@ import org.spongepowered.api.command.manager.CommandMapping;
 
 public class GeyserSpongeCommandManager extends GeyserCommandManager {
 
-    public GeyserSpongeCommandManager(GeyserLogger logger) {
-        super(logger);
+    public GeyserSpongeCommandManager(GeyserImpl geyser) {
+        super(geyser);
     }
 
     @Override
-    public String getDescription(String command) {
+    public String description(String command) {
         if (!Sponge.isServerAvailable()) {
             return "";
         }

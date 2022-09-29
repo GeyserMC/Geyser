@@ -40,7 +40,6 @@ import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import lombok.Getter;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.util.InteractionResult;
@@ -114,7 +113,9 @@ public class ItemFrameEntity extends Entity {
         if (entityMetadata.getValue() != null) {
             this.heldItem = entityMetadata.getValue();
             ItemData itemData = ItemTranslator.translateToBedrock(session, heldItem);
-            ItemMapping mapping = session.getItemMappings().getMapping(entityMetadata.getValue());
+
+            String customIdentifier = session.getItemMappings().getCustomIdMappings().get(itemData.getId());
+
             NbtMapBuilder builder = NbtMap.builder();
 
             builder.putByte("Count", (byte) itemData.getCount());
@@ -122,7 +123,7 @@ public class ItemFrameEntity extends Entity {
                 builder.put("tag", itemData.getTag());
             }
             builder.putShort("Damage", (short) itemData.getDamage());
-            builder.putString("Name", mapping.getBedrockIdentifier());
+            builder.putString("Name", customIdentifier != null ? customIdentifier : session.getItemMappings().getMapping(entityMetadata.getValue()).getBedrockIdentifier());
             NbtMapBuilder tag = getDefaultTag().toBuilder();
             tag.put("Item", builder.build());
             tag.putFloat("ItemDropChance", 1.0f);

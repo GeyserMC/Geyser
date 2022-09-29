@@ -29,11 +29,11 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.BlockPickRequestPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
+import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.util.InventoryUtils;
 
 @Translator(packet = BlockPickRequestPacket.class)

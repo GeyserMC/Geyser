@@ -35,11 +35,11 @@ import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.DoubleChestValue;
-import org.geysermc.geyser.translator.level.block.entity.DoubleChestBlockEntityTranslator;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.level.block.entity.DoubleChestBlockEntityTranslator;
 
 public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
     private final int defaultJavaBlockState;
@@ -130,7 +130,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
     @Override
     public void openInventory(GeyserSession session, Inventory inventory) {
         ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
-        containerOpenPacket.setId((byte) inventory.getId());
+        containerOpenPacket.setId((byte) inventory.getBedrockId());
         containerOpenPacket.setType(ContainerType.CONTAINER);
         containerOpenPacket.setBlockPosition(inventory.getHolderPosition());
         containerOpenPacket.setUniqueEntityId(inventory.getHolderId());
@@ -143,7 +143,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
             // No need to reset a block since we didn't change any blocks
             // But send a container close packet because we aren't destroying the original.
             ContainerClosePacket packet = new ContainerClosePacket();
-            packet.setId((byte) inventory.getId());
+            packet.setId((byte) inventory.getBedrockId());
             packet.setUnknownBool0(true); //TODO needs to be changed in Protocol to "server-side" or something
             session.sendUpstreamPacket(packet);
             return;

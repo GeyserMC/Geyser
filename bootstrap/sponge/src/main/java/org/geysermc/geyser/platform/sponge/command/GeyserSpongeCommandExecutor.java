@@ -27,11 +27,14 @@ package org.geysermc.geyser.platform.sponge.command;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandExecutor;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.command.Command;
@@ -40,29 +43,26 @@ import org.spongepowered.api.command.CommandCompletion;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.parameter.ArgumentReader;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import javax.annotation.Nullable;
+import java.util.*;
 
 public class GeyserSpongeCommandExecutor extends GeyserCommandExecutor implements Command.Raw {
 
-    public GeyserSpongeCommandExecutor(GeyserCommandManager commandManager) {
-        super(commandManager);
+    public GeyserSpongeCommandExecutor(GeyserImpl geyser, Map<String, Command> commands) {
+        super(geyser, commands);
     }
 
     @Override
     public CommandResult process(CommandCause cause, ArgumentReader.Mutable arguments) {
         GeyserCommandSource commandSource = new SpongeCommandSource(cause);
-        GeyserSession session = commandSource.asGeyserSession();
+        GeyserSession session = getGeyserSession(commandSender);
 
         String[] args = arguments.input().split(" ");
         // This split operation results in an array of length 1, containing a zero length string, if the input string is empty
         if (args.length > 0 && !args[0].isEmpty()) {
             GeyserCommand command = getCommand(args[0]);
             if (command != null) {
-                if (!cause.hasPermission(command.getPermission())) {
+                if (!cause.hasPermission(command.permission())) {
                     cause.audience().sendMessage(Component.text(GeyserLocale.getLocaleStringLog("geyser.bootstrap.command.permission_fail")).color(NamedTextColor.RED));
                     return CommandResult.success();
                 }

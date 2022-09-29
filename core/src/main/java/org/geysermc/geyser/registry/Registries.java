@@ -32,6 +32,7 @@ import com.github.steveice10.mc.protocol.data.game.level.particle.ParticleType;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import com.nukkitx.protocol.bedrock.data.inventory.PotionMixData;
@@ -47,6 +48,7 @@ import org.geysermc.geyser.registry.loader.*;
 import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.populator.PacketRegistryPopulator;
 import org.geysermc.geyser.registry.populator.RecipeRegistryPopulator;
+import org.geysermc.geyser.registry.provider.ProviderSupplier;
 import org.geysermc.geyser.registry.type.EnchantmentData;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.registry.type.ParticleMapping;
@@ -57,10 +59,7 @@ import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
 import org.geysermc.geyser.translator.sound.SoundInteractionTranslator;
 import org.geysermc.geyser.translator.sound.SoundTranslator;
 
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Holds all the common registries in Geyser.
@@ -139,6 +138,11 @@ public final class Registries {
     public static final SimpleRegistry<Set<PotionMixData>> POTION_MIXES;
 
     /**
+     * A registry holding all the
+     */
+    public static final SimpleMappedRegistry<Class<?>, ProviderSupplier> PROVIDERS = SimpleMappedRegistry.create(new IdentityHashMap<>(), ProviderRegistryLoader::new);
+
+    /**
      * A versioned registry holding all the recipes, with the net ID being the key, and {@link GeyserRecipe} as the value.
      */
     public static final VersionedRegistry<Int2ObjectMap<GeyserRecipe>> RECIPES = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
@@ -176,5 +180,15 @@ public final class Registries {
         // Create registries that require other registries to load first
         POTION_MIXES = SimpleRegistry.create(PotionMixRegistryLoader::new);
         ENCHANTMENTS = SimpleMappedRegistry.create("mappings/enchantments.json", EnchantmentRegistryLoader::new);
+
+        // TEMPORARY FIX TO MAKE OLD BIOMES NBT WORK WITH 1.19.30
+        NbtMapBuilder biomesNbt = NbtMap.builder();
+        for (Map.Entry<String, Object> entry : BIOMES_NBT.get().entrySet()) {
+            String key = entry.getKey();
+            NbtMapBuilder value = ((NbtMap) entry.getValue()).toBuilder();
+            value.put("name_hash", key);
+            biomesNbt.put(key, value.build());
+        }
+        BIOMES_NBT.set(biomesNbt.build());
     }
 }

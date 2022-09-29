@@ -38,14 +38,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.plugin.Plugin;
-import org.geysermc.geyser.network.MinecraftProtocol;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;
+import org.geysermc.geyser.level.GameRule;
 import org.geysermc.geyser.level.GeyserWorldManager;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;
 import org.geysermc.geyser.util.BlockEntityUtils;
-import org.geysermc.geyser.level.GameRule;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,7 +57,7 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
     /**
      * The current client protocol version for ViaVersion usage.
      */
-    protected static final int CLIENT_PROTOCOL_VERSION = MinecraftProtocol.getJavaProtocolVersion();
+    protected static final int CLIENT_PROTOCOL_VERSION = GameProtocol.getJavaProtocolVersion();
 
     private final Plugin plugin;
 

@@ -35,7 +35,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.sound.BlockSoundInteractionTranslator;
-import org.geysermc.geyser.util.ChunkUtils;
 
 @Translator(packet = ClientboundBlockUpdatePacket.class)
 public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlockUpdatePacket> {
@@ -45,7 +44,7 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
         Vector3i pos = packet.getEntry().getPosition();
         boolean updatePlacement = session.getGeyser().getPlatformType() != PlatformType.SPIGOT && // Spigot simply listens for the block place event
                 session.getGeyser().getWorldManager().getBlockAt(session, pos) != packet.getEntry().getBlock();
-        ChunkUtils.updateBlock(session, packet.getEntry().getBlock(), pos);
+        session.getWorldCache().updateServerCorrectBlockState(pos, packet.getEntry().getBlock());
         if (updatePlacement) {
             this.checkPlace(session, packet);
         }

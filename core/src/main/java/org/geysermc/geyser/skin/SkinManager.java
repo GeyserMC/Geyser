@@ -33,9 +33,9 @@ import com.nukkitx.protocol.bedrock.data.skin.ImageData;
 import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.text.GeyserLocale;
 
@@ -286,7 +286,7 @@ public class SkinManager {
 
             String skinUrl = isAlex ? SkinProvider.EMPTY_SKIN_ALEX.getTextureUrl() : SkinProvider.EMPTY_SKIN.getTextureUrl();
             String capeUrl = SkinProvider.EMPTY_CAPE.getTextureUrl();
-            if (("steve".equals(skinUrl) || "alex".equals(skinUrl)) && GeyserImpl.getInstance().getConfig().getRemote().getAuthType() != AuthType.ONLINE) {
+            if (("steve".equals(skinUrl) || "alex".equals(skinUrl)) && GeyserImpl.getInstance().getConfig().getRemote().authType() != AuthType.ONLINE) {
                 GeyserSession session = GeyserImpl.getInstance().connectionByUuid(uuid);
 
                 if (session != null) {

@@ -27,7 +27,10 @@ package org.geysermc.geyser.inventory.updater;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundRenameItemPacket;
-import com.github.steveice10.opennbt.tag.builtin.*;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.ListTag;
+import com.github.steveice10.opennbt.tag.builtin.StringTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
@@ -40,12 +43,12 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.AnvilContainer;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.inventory.item.Enchantment.JavaEnchantment;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.EnchantmentData;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.InventoryTranslator;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ItemUtils;
 
 import java.util.Objects;
@@ -115,7 +118,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
 
             // Changing the item in the input slot resets the name field on Bedrock, but
             // does not result in a FilterTextPacket
-            String originalName = MessageTranslator.convertToPlainText(ItemUtils.getCustomName(input.getNbt()), session.getLocale());
+            String originalName = MessageTranslator.convertToPlainText(ItemUtils.getCustomName(input.getNbt()), session.locale());
             ServerboundRenameItemPacket renameItemPacket = new ServerboundRenameItemPacket(originalName);
             session.sendDownstreamPacket(renameItemPacket);
 
@@ -427,7 +430,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         String originalName = ItemUtils.getCustomName(anvilContainer.getInput().getNbt());
         if (bedrock && originalName != null && anvilContainer.getNewName() != null) {
             // Check text and formatting
-            String legacyOriginalName = MessageTranslator.convertMessageLenient(originalName, session.getLocale());
+            String legacyOriginalName = MessageTranslator.convertMessageLenient(originalName, session.locale());
             return !legacyOriginalName.equals(anvilContainer.getNewName());
         }
         return !Objects.equals(originalName, ItemUtils.getCustomName(anvilContainer.getResult().getNbt()));

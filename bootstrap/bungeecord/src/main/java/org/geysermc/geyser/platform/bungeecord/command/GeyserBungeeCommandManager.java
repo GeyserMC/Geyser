@@ -35,7 +35,7 @@ public class GeyserBungeeCommandManager extends GeyserCommandManager {
     }
 
     @Override
-    public String getDescription(String command) {
+    public String description(String command) {
         return ""; // no support for command descriptions in bungee
     }
 }

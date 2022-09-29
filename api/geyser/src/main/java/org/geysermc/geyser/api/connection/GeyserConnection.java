@@ -25,10 +25,11 @@
 
 package org.geysermc.geyser.api.connection;
 
-import org.geysermc.api.session.Connection;
+import org.geysermc.api.connection.Connection;
+import org.geysermc.geyser.api.command.CommandSource;
 
 /**
- * Represents a player session used in Geyser.
+ * Represents a player connection used in Geyser.
  */
-public interface GeyserConnection extends Connection {
+public interface GeyserConnection extends Connection, CommandSource {
 }

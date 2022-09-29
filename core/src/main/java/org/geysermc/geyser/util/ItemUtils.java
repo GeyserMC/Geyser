@@ -25,7 +25,10 @@
 
 package org.geysermc.geyser.util;
 
-import com.github.steveice10.opennbt.tag.builtin.*;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.ListTag;
+import com.github.steveice10.opennbt.tag.builtin.StringTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import org.geysermc.geyser.session.GeyserSession;
 

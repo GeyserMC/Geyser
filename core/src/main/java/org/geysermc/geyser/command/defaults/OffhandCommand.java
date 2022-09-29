@@ -30,8 +30,8 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
 import com.nukkitx.math.vector.Vector3i;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.command.GeyserCommand;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
 
 public class OffhandCommand extends GeyserCommand {
@@ -47,7 +47,7 @@ public class OffhandCommand extends GeyserCommand {
         }
 
         ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.SWAP_HANDS, Vector3i.ZERO,
-                Direction.DOWN, session.getWorldCache().nextPredictionSequence());
+                Direction.DOWN, 0);
         session.sendDownstreamPacket(releaseItemPacket);
     }
 

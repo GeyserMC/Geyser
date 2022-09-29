@@ -28,8 +28,8 @@ package org.geysermc.geyser.platform.spigot;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
-import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
+import org.geysermc.geyser.text.AsteriskSerializer;
 
 import java.util.ArrayList;
 import java.util.List;

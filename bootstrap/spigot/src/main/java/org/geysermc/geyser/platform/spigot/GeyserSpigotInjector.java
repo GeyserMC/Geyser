@@ -170,8 +170,8 @@ public class GeyserSpigotInjector extends GeyserInjector {
      */
     private void workAroundWeirdBug(GeyserBootstrap bootstrap) {
         MinecraftProtocol protocol = new MinecraftProtocol();
-        LocalSession session = new LocalSession(bootstrap.getGeyserConfig().getRemote().getAddress(),
-                bootstrap.getGeyserConfig().getRemote().getPort(), this.serverSocketAddress,
+        LocalSession session = new LocalSession(bootstrap.getGeyserConfig().getRemote().address(),
+                bootstrap.getGeyserConfig().getRemote().port(), this.serverSocketAddress,
                 InetAddress.getLoopbackAddress().getHostAddress(), protocol, protocol.createHelper());
         session.connect();
     }

@@ -25,10 +25,13 @@
 
 package org.geysermc.geyser.platform.spigot.command;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.platform.spigot.PaperAdventure;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.lang.reflect.InvocationTargetException;
@@ -64,12 +67,23 @@ public class SpigotCommandSource implements GeyserCommandSource {
     }
 
     @Override
+    public void sendMessage(Component message) {
+        if (PaperAdventure.canSendMessageUsingComponent()) {
+            PaperAdventure.sendMessage(handle, message);
+            return;
+        }
+
+        // CommandSender#sendMessage(BaseComponent[]) is Paper-only
+        handle.spigot().sendMessage(BungeeComponentSerializer.get().serialize(message));
+    }
+
+    @Override
     public boolean isConsole() {
         return handle instanceof ConsoleCommandSender;
     }
 
     @Override
-    public String getLocale() {
+    public String locale() {
         return locale;
     }
 
