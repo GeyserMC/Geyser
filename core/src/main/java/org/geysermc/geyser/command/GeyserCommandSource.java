@@ -25,14 +25,10 @@
 
 package org.geysermc.geyser.command;
 
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.CommandSource;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-
-import javax.annotation.Nullable;
 
 /**
  * Implemented on top of any class that can send a command.
@@ -49,31 +45,5 @@ public interface GeyserCommandSource extends CommandSource {
 
     default void sendMessage(Component message) {
         sendMessage(LegacyComponentSerializer.legacySection().serialize(message));
-    }
-
-    /**
-     * Attempt to find the corresponding {@link GeyserSession} of this {@link GeyserCommandSource}. Returns null if the Commandsender is console.
-     * Will only return a session if {@link GeyserImpl#getInstance()} does not return null,
-     * and {@link GeyserCommandSource#name()} equals the username of a session.
-     *
-     * @return The corresponding GeyserSession, if it exists
-     */
-    @Nullable
-    default GeyserSession asGeyserSession() {
-        if (isConsole()) {
-            return null;
-        }
-
-        GeyserImpl geyser = GeyserImpl.getInstance();
-        if (geyser == null) {
-            return null;
-        }
-
-        for (GeyserSession session : geyser.getSessionManager().getSessions().values()) {
-            if (name().equals(session.getPlayerEntity().getUsername())) {
-                return session;
-            }
-        }
-        return null;
     }
 }

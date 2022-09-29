@@ -63,6 +63,9 @@ public class GeyserVelocityCommandExecutor extends GeyserCommandExecutor impleme
                     return;
                 }
                 command.execute(session, sender, invocation.arguments().length > 1 ? Arrays.copyOfRange(invocation.arguments(), 1, invocation.arguments().length) : new String[0]);
+            } else {
+                String message = GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.not_found", sender.locale());
+                sender.sendMessage(ChatColor.RED + message);
             }
         } else {
             getCommand("help").execute(session, sender, new String[0]);
