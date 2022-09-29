@@ -37,7 +37,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.jetbrains.annotations.NotNull;
-import org.spongepowered.api.command.Command;
+//import org.spongepowered.api.command.Command;
 import org.spongepowered.api.command.CommandCause;
 import org.spongepowered.api.command.CommandCompletion;
 import org.spongepowered.api.command.CommandResult;
@@ -45,8 +45,9 @@ import org.spongepowered.api.command.parameter.ArgumentReader;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.stream.Collectors;
 
-public class GeyserSpongeCommandExecutor extends GeyserCommandExecutor implements Command.Raw {
+public class GeyserSpongeCommandExecutor extends GeyserCommandExecutor implements org.spongepowered.api.command.Command.Raw {
 
     public GeyserSpongeCommandExecutor(GeyserImpl geyser, Map<String, Command> commands) {
         super(geyser, commands);
@@ -55,7 +56,7 @@ public class GeyserSpongeCommandExecutor extends GeyserCommandExecutor implement
     @Override
     public CommandResult process(CommandCause cause, ArgumentReader.Mutable arguments) {
         GeyserCommandSource commandSource = new SpongeCommandSource(cause);
-        GeyserSession session = getGeyserSession(commandSender);
+        GeyserSession session = getGeyserSession(commandSource);
 
         String[] args = arguments.input().split(" ");
         // This split operation results in an array of length 1, containing a zero length string, if the input string is empty

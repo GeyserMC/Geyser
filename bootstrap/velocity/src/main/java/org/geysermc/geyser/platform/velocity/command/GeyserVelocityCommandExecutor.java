@@ -73,7 +73,7 @@ public class GeyserVelocityCommandExecutor extends GeyserCommandExecutor impleme
     public List<String> suggest(Invocation invocation) {
         // Velocity seems to do the splitting a bit differently. This results in the same behaviour in bungeecord/spigot.
         if (invocation.arguments().length == 0 || invocation.arguments().length == 1) {
-            return tabComplete(new VelocityCommandSender(invocation.source()));
+            return tabComplete(new VelocityCommandSource(invocation.source()));
         }
         return Collections.emptyList();
     }

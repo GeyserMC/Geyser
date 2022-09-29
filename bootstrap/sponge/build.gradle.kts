@@ -7,7 +7,8 @@ platformRelocate("io.netty")
 platformRelocate("it.unimi.dsi.fastutil")
 platformRelocate("com.google.common")
 platformRelocate("com.google.guava")
-platformRelocate("net.kyori")
+platformRelocate("net.kyori.adventure.text.serializer.gson.legacyimpl")
+platformRelocate("net.kyori.adventure.nbt")
 
 // Exclude these dependencies
 exclude("com.google.code.gson:*")
@@ -30,5 +31,14 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
         exclude(dependency("org.yaml:.*"))
         exclude(dependency("org.slf4j:.*"))
         exclude(dependency("org.ow2.asm:.*"))
+
+        // Exclude all Kyori dependencies except the legacy NBT serializer and NBT
+        exclude(dependency("net.kyori:adventure-api:.*"))
+        exclude(dependency("net.kyori:examination-api:.*"))
+        exclude(dependency("net.kyori:examination-string:.*"))
+        exclude(dependency("net.kyori:adventure-text-serializer-gson:.*"))
+        exclude(dependency("net.kyori:adventure-text-serializer-legacy:.*"))
+        exclude(dependency("net.kyori:adventure-text-serializer-plain:.*"))
+        exclude(dependency("net.kyori:adventure-key:.*"))
     }
 }

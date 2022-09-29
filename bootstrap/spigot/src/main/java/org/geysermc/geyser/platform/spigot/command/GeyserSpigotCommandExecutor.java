@@ -40,7 +40,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class GeyserSpigotCommandExecutor extends CommandExecutor implements TabExecutor {
+public class GeyserSpigotCommandExecutor extends GeyserCommandExecutor implements TabExecutor {
 
     public GeyserSpigotCommandExecutor(GeyserImpl geyser, Map<String, org.geysermc.geyser.api.command.Command> commands) {
         super(geyser, commands);
@@ -67,7 +67,7 @@ public class GeyserSpigotCommandExecutor extends CommandExecutor implements TabE
                 geyserCommand.execute(session, commandSender, args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
                 return true;
             } else {
-                String message = GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.not_found", commandSender.getLocale());
+                String message = GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.not_found", commandSender.locale());
 
                 commandSender.sendMessage(ChatColor.RED + message);
             }

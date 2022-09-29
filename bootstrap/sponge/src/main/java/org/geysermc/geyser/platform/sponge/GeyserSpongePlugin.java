@@ -48,7 +48,6 @@ import org.geysermc.geyser.util.FileUtils;
 import org.slf4j.Logger;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.command.Command;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.lifecycle.ConstructPluginEvent;
@@ -162,7 +161,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
      * @param event required to register the commands
      */
     @Listener
-    public void onRegisterCommands(@Nonnull RegisterCommandEvent<Command.Raw> event) {
+    public void onRegisterCommands(@Nonnull RegisterCommandEvent<org.spongepowered.api.command.Command.Raw> event) {
         if (enabled) {
             this.geyserCommandExecutor = new GeyserSpongeCommandExecutor(this.geyserCommandManager);
             event.register(this.pluginContainer, this.geyserCommandExecutor, "geyser");
