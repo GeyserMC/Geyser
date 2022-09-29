@@ -24,7 +24,7 @@ jobs:
         if: success()
         with:
           name: Geyser Standalone
-          path: bootstrap/standalone/build/libs/Geyser.jar
+          path: bootstrap/standalone/build/libs/Geyser-Standalone.jar
       - name: Archive artifacts (Geyser Spigot)
         uses: actions/upload-artifact@v2
         if: success()
