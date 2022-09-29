@@ -26,7 +26,7 @@
 package org.geysermc.geyser.command.defaults;
 
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.CommandSender;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.SettingsUtils;
@@ -37,7 +37,7 @@ public class SettingsCommand extends GeyserCommand {
     }
 
     @Override
-    public void execute(GeyserSession session, CommandSender sender, String[] args) {
+    public void execute(GeyserSession session, GeyserCommandSource sender, String[] args) {
         if (session != null) {
             session.sendForm(SettingsUtils.buildForm(session));
         }

@@ -35,7 +35,7 @@ import javax.annotation.Nullable;
  * Implemented on top of any class that can send a command.
  * For example, it wraps around Spigot's CommandSender class.
  */
-public interface CommandSender {
+public interface GeyserCommandSource {
 
     String name();
 
@@ -70,9 +70,9 @@ public interface CommandSender {
     boolean hasPermission(String permission);
 
     /**
-     * Attempt to find the corresponding {@link GeyserSession} of this {@link CommandSender}. Returns null if the Commandsender is console.
+     * Attempt to find the corresponding {@link GeyserSession} of this {@link GeyserCommandSource}. Returns null if the Commandsender is console.
      * Will only return a session if {@link GeyserImpl#getInstance()} does not return null,
-     * and {@link CommandSender#name()} equals the username of a session.
+     * and {@link GeyserCommandSource#name()} equals the username of a session.
      *
      * @return The corresponding GeyserSession, if it exists
      */

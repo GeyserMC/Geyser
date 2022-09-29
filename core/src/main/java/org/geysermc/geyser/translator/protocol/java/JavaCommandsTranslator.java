@@ -45,7 +45,7 @@ import lombok.Getter;
 import lombok.ToString;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.CommandManager;
+import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -115,7 +115,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             return;
         }
 
-        CommandManager manager = session.getGeyser().getCommandManager();
+        GeyserCommandManager manager = session.getGeyser().getCommandManager();
         CommandNode[] nodes = packet.getNodes();
         List<CommandData> commandData = new ArrayList<>();
         IntSet commandNodes = new IntOpenHashSet();

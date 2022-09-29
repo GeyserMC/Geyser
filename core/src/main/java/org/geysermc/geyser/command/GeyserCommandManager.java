@@ -36,7 +36,7 @@ import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.*;
 
-public abstract class CommandManager {
+public abstract class GeyserCommandManager {
 
     @Getter
     private final Map<String, GeyserCommand> commands = new HashMap<>();
@@ -45,15 +45,15 @@ public abstract class CommandManager {
 
     /**
      * Create a command manager to manage and run all the default commands. This constructor does not use {@link GeyserImpl},
-     * and consequently the default commands will not be registered. They must be registered at a later time with {@link CommandManager#registerDefaults(GeyserImpl)}
+     * and consequently the default commands will not be registered. They must be registered at a later time with {@link GeyserCommandManager#registerDefaults(GeyserImpl)}
      *
      * @param logger The logger to use for console messages
      */
-    public CommandManager(GeyserLogger logger) {
+    public GeyserCommandManager(GeyserLogger logger) {
         this.logger = logger;
     }
 
-    public CommandManager(GeyserImpl geyser) {
+    public GeyserCommandManager(GeyserImpl geyser) {
         this.logger = geyser.getLogger();
 
         registerDefaults(geyser);
@@ -87,7 +87,7 @@ public abstract class CommandManager {
             commands.put(alias, command);
     }
 
-    public void runCommand(CommandSender sender, String command) {
+    public void runCommand(GeyserCommandSource sender, String command) {
         if (!command.startsWith("geyser "))
             return;
 

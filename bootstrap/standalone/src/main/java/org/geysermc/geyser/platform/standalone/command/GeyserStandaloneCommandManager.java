@@ -26,11 +26,11 @@
 package org.geysermc.geyser.platform.standalone.command;
 
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.CommandManager;
+import org.geysermc.geyser.command.GeyserCommandManager;
 
-public class GeyserCommandManager extends CommandManager {
+public class GeyserStandaloneCommandManager extends GeyserCommandManager {
 
-    public GeyserCommandManager(GeyserImpl geyser) {
+    public GeyserStandaloneCommandManager(GeyserImpl geyser) {
         super(geyser);
     }
 

@@ -27,13 +27,14 @@ package org.geysermc.geyser.platform.sponge.command;
 
 import net.kyori.adventure.text.Component;
 import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandCause;
 import org.spongepowered.api.command.manager.CommandManager;
 import org.spongepowered.api.command.manager.CommandMapping;
 
-public class GeyserSpongeCommandManager extends org.geysermc.geyser.command.CommandManager {
+public class GeyserSpongeCommandManager extends GeyserCommandManager {
 
     public GeyserSpongeCommandManager(GeyserLogger logger) {
         super(logger);

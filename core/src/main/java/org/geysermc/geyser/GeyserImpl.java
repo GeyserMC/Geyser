@@ -51,7 +51,7 @@ import org.geysermc.floodgate.crypto.Base64Topping;
 import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.floodgate.news.NewsItemAction;
 import org.geysermc.geyser.api.GeyserApi;
-import org.geysermc.geyser.command.CommandManager;
+import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.level.WorldManager;
@@ -552,7 +552,7 @@ public class GeyserImpl implements GeyserApi {
         return bootstrap.getGeyserConfig();
     }
 
-    public CommandManager getCommandManager() {
+    public GeyserCommandManager getCommandManager() {
         return bootstrap.getGeyserCommandManager();
     }
 

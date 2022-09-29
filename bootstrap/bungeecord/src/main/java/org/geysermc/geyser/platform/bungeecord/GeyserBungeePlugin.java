@@ -31,7 +31,8 @@ import net.md_5.bungee.protocol.ProtocolConstants;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserBootstrap;
-import org.geysermc.geyser.command.CommandManager;
+import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.platform.bungeecord.command.GeyserBungeeCommandManager;
 import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
@@ -40,7 +41,6 @@ import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.platform.bungeecord.command.GeyserBungeeCommandExecutor;
-import org.geysermc.geyser.platform.bungeecord.command.GeyserBungeeCommandManager;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -172,7 +172,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     }
 
     @Override
-    public CommandManager getGeyserCommandManager() {
+    public GeyserCommandManager getGeyserCommandManager() {
         return this.geyserCommandManager;
     }
 

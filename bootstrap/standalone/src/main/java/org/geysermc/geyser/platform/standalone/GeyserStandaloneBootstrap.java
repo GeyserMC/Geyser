@@ -41,15 +41,15 @@ import org.apache.logging.log4j.core.appender.ConsoleAppender;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserBootstrap;
-import org.geysermc.geyser.command.CommandManager;
+import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.configuration.GeyserJacksonConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
+import org.geysermc.geyser.platform.standalone.command.GeyserStandaloneCommandManager;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.platform.standalone.command.GeyserCommandManager;
 import org.geysermc.geyser.platform.standalone.gui.GeyserStandaloneGUI;
 import org.geysermc.geyser.util.LoopbackUtil;
 
@@ -64,7 +64,7 @@ import java.util.stream.Collectors;
 
 public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
-    private GeyserCommandManager geyserCommandManager;
+    private GeyserStandaloneCommandManager geyserCommandManager;
     private GeyserStandaloneConfiguration geyserConfig;
     private GeyserStandaloneLogger geyserLogger;
     private IGeyserPingPassthrough geyserPingPassthrough;
@@ -217,7 +217,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         logger.get().setLevel(geyserConfig.isDebugMode() ? Level.DEBUG : Level.INFO);
 
         geyser = GeyserImpl.start(PlatformType.STANDALONE, this);
-        geyserCommandManager = new GeyserCommandManager(geyser);
+        geyserCommandManager = new GeyserStandaloneCommandManager(geyser);
 
         if (gui != null) {
             gui.setupInterface(geyserLogger, geyserCommandManager);
@@ -262,7 +262,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     }
 
     @Override
-    public CommandManager getGeyserCommandManager() {
+    public GeyserCommandManager getGeyserCommandManager() {
         return geyserCommandManager;
     }
 

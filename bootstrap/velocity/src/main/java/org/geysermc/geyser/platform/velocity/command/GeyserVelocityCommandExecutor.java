@@ -26,9 +26,9 @@
 package org.geysermc.geyser.platform.velocity.command;
 
 import com.velocitypowered.api.command.SimpleCommand;
-import org.geysermc.geyser.command.CommandExecutor;
-import org.geysermc.geyser.command.CommandManager;
-import org.geysermc.geyser.command.CommandSender;
+import org.geysermc.geyser.command.GeyserCommandExecutor;
+import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.session.GeyserSession;
@@ -38,15 +38,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class GeyserVelocityCommandExecutor extends CommandExecutor implements SimpleCommand {
+public class GeyserVelocityCommandExecutor extends GeyserCommandExecutor implements SimpleCommand {
 
-    public GeyserVelocityCommandExecutor(CommandManager commandManager) {
+    public GeyserVelocityCommandExecutor(GeyserCommandManager commandManager) {
         super(commandManager);
     }
 
     @Override
     public void execute(Invocation invocation) {
-        CommandSender sender = new VelocityCommandSender(invocation.source());
+        GeyserCommandSource sender = new VelocityCommandSource(invocation.source());
         GeyserSession session = sender.asGeyserSession();
 
         if (invocation.arguments().length > 0) {
@@ -73,7 +73,7 @@ public class GeyserVelocityCommandExecutor extends CommandExecutor implements Si
     public List<String> suggest(Invocation invocation) {
         // Velocity seems to do the splitting a bit differently. This results in the same behaviour in bungeecord/spigot.
         if (invocation.arguments().length == 0 || invocation.arguments().length == 1) {
-            return tabComplete(new VelocityCommandSender(invocation.source()));
+            return tabComplete(new VelocityCommandSource(invocation.source()));
         }
         return Collections.emptyList();
     }

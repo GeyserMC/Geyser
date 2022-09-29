@@ -49,7 +49,7 @@ public abstract class GeyserCommand {
     @Setter
     private List<String> aliases = new ArrayList<>();
 
-    public abstract void execute(@Nullable GeyserSession session, CommandSender sender, String[] args);
+    public abstract void execute(@Nullable GeyserSession session, GeyserCommandSource sender, String[] args);
 
     /**
      * If false, hides the command from being shown on the Geyser Standalone GUI.

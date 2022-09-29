@@ -29,8 +29,8 @@ import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
-import org.geysermc.geyser.command.CommandExecutor;
-import org.geysermc.geyser.command.CommandManager;
+import org.geysermc.geyser.command.GeyserCommandExecutor;
+import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -39,17 +39,17 @@ import java.util.Arrays;
 import java.util.Collections;
 
 public class GeyserBungeeCommandExecutor extends Command implements TabExecutor {
-    private final CommandExecutor commandExecutor;
+    private final GeyserCommandExecutor commandExecutor;
 
-    public GeyserBungeeCommandExecutor(CommandManager commandManager) {
+    public GeyserBungeeCommandExecutor(GeyserCommandManager commandManager) {
         super("geyser");
 
-        this.commandExecutor = new CommandExecutor(commandManager);
+        this.commandExecutor = new GeyserCommandExecutor(commandManager);
     }
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        BungeeCommandSender commandSender = new BungeeCommandSender(sender);
+        BungeeCommandSource commandSender = new BungeeCommandSource(sender);
         GeyserSession session = commandSender.asGeyserSession();
 
         if (args.length > 0) {
@@ -81,7 +81,7 @@ public class GeyserBungeeCommandExecutor extends Command implements TabExecutor 
     @Override
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
         if (args.length == 1) {
-            return commandExecutor.tabComplete(new BungeeCommandSender(sender));
+            return commandExecutor.tabComplete(new BungeeCommandSource(sender));
         } else {
             return Collections.emptyList();
         }

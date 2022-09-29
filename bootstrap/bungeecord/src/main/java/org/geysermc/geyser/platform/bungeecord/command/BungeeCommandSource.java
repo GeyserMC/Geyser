@@ -27,14 +27,14 @@ package org.geysermc.geyser.platform.bungeecord.command;
 
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
-import org.geysermc.geyser.command.CommandSender;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.GeyserLocale;
 
-public class BungeeCommandSender implements CommandSender {
+public class BungeeCommandSource implements GeyserCommandSource {
 
     private final net.md_5.bungee.api.CommandSender handle;
 
-    public BungeeCommandSender(net.md_5.bungee.api.CommandSender handle) {
+    public BungeeCommandSource(net.md_5.bungee.api.CommandSender handle) {
         this.handle = handle;
         // Ensure even Java players' languages are loaded
         GeyserLocale.loadGeyserLocale(getLocale());

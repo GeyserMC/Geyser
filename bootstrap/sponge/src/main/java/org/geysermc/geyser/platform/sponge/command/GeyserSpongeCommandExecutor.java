@@ -27,9 +27,9 @@ package org.geysermc.geyser.platform.sponge.command;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.geysermc.geyser.command.CommandExecutor;
-import org.geysermc.geyser.command.CommandManager;
-import org.geysermc.geyser.command.CommandSender;
+import org.geysermc.geyser.command.GeyserCommandExecutor;
+import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -46,16 +46,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class GeyserSpongeCommandExecutor extends CommandExecutor implements Command.Raw {
+public class GeyserSpongeCommandExecutor extends GeyserCommandExecutor implements Command.Raw {
 
-    public GeyserSpongeCommandExecutor(CommandManager commandManager) {
+    public GeyserSpongeCommandExecutor(GeyserCommandManager commandManager) {
         super(commandManager);
     }
 
     @Override
     public CommandResult process(CommandCause cause, ArgumentReader.Mutable arguments) {
-        CommandSender commandSender = new SpongeCommandSender(cause);
-        GeyserSession session = commandSender.asGeyserSession();
+        GeyserCommandSource commandSource = new SpongeCommandSource(cause);
+        GeyserSession session = commandSource.asGeyserSession();
 
         String[] args = arguments.input().split(" ");
         // This split operation results in an array of length 1, containing a zero length string, if the input string is empty
@@ -70,7 +70,7 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
                     cause.audience().sendMessage(Component.text(GeyserLocale.getLocaleStringLog("geyser.bootstrap.command.bedrock_only")).color(NamedTextColor.RED));
                     return CommandResult.success();
                 }
-                command.execute(session, commandSender, args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
+                command.execute(session, commandSource, args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
             } else {
                 cause.audience().sendMessage(Component.text(GeyserLocale.getLocaleStringLog("geyser.bootstrap.command.not_found")).color(NamedTextColor.RED));
             }
@@ -83,7 +83,7 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
                 // will not be replaced within sponge-registered executor.
                 cause.audience().sendMessage(Component.text(GeyserLocale.getLocaleStringLog("geyser.bootstrap.command.not_found")).color(NamedTextColor.RED));
             } else {
-                help.execute(session, commandSender, new String[0]);
+                help.execute(session, commandSource, new String[0]);
             }
         }
         return CommandResult.success();
@@ -92,7 +92,7 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
     @Override
     public List<CommandCompletion> complete(CommandCause cause, ArgumentReader.Mutable arguments) {
         if (arguments.input().split(" ").length == 1) {
-            return tabComplete(new SpongeCommandSender(cause)).stream().map(CommandCompletion::of).collect(Collectors.toList());
+            return tabComplete(new SpongeCommandSource(cause)).stream().map(CommandCompletion::of).collect(Collectors.toList());
         }
         return Collections.emptyList();
     }

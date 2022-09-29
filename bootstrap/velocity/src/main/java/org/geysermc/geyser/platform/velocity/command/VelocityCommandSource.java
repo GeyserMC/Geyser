@@ -23,32 +23,54 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.sponge.command;
+package org.geysermc.geyser.platform.velocity.command;
 
-import lombok.AllArgsConstructor;
+import com.velocitypowered.api.command.CommandSource;
+import com.velocitypowered.api.proxy.ConsoleCommandSource;
+import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import org.geysermc.geyser.command.CommandSender;
-import org.spongepowered.api.command.CommandCause;
-import org.spongepowered.api.entity.living.player.server.ServerPlayer;
+import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.text.GeyserLocale;
 
-@AllArgsConstructor
-public class SpongeCommandSender implements CommandSender {
+import java.util.Locale;
 
-    private final CommandCause handle;
+public class VelocityCommandSource implements GeyserCommandSource {
+
+    private final CommandSource handle;
+
+    public VelocityCommandSource(CommandSource handle) {
+        this.handle = handle;
+        // Ensure even Java players' languages are loaded
+        GeyserLocale.loadGeyserLocale(getLocale());
+    }
 
     @Override
     public String name() {
-        return handle.friendlyIdentifier().orElse(handle.identifier());
+        if (handle instanceof Player) {
+            return ((Player) handle).getUsername();
+        } else if (handle instanceof ConsoleCommandSource) {
+            return "CONSOLE";
+        }
+        return "";
     }
 
     @Override
     public void sendMessage(String message) {
-        handle.audience().sendMessage(LegacyComponentSerializer.legacySection().deserialize(message)); // this looks icky to me
+        handle.sendMessage(LegacyComponentSerializer.legacy('§').deserialize(message));
     }
 
     @Override
     public boolean isConsole() {
-        return !(handle.cause().root() instanceof ServerPlayer);
+        return handle instanceof ConsoleCommandSource;
+    }
+
+    @Override
+    public String getLocale() {
+        if (handle instanceof Player) {
+            Locale locale = ((Player) handle).getPlayerSettings().getLocale();
+            return GeyserLocale.formatLocale(locale.getLanguage() + "_" + locale.getCountry());
+        }
+        return GeyserLocale.getDefaultLocale();
     }
 
     @Override

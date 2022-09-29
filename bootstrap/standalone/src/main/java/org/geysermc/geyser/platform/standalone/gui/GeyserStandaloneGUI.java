@@ -27,10 +27,10 @@ package org.geysermc.geyser.platform.standalone.gui;
 
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommand;
+import org.geysermc.geyser.platform.standalone.command.GeyserStandaloneCommandManager;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.platform.standalone.GeyserStandaloneLogger;
-import org.geysermc.geyser.platform.standalone.command.GeyserCommandManager;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -255,7 +255,7 @@ public class GeyserStandaloneGUI {
      * @param geyserStandaloneLogger The current logger
      * @param geyserCommandManager The commands manager
      */
-    public void setupInterface(GeyserStandaloneLogger geyserStandaloneLogger, GeyserCommandManager geyserCommandManager) {
+    public void setupInterface(GeyserStandaloneLogger geyserStandaloneLogger, GeyserStandaloneCommandManager geyserCommandManager) {
         commandsMenu.removeAll();
         optionsMenu.removeAll();
 

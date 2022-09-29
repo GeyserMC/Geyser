@@ -28,7 +28,7 @@ package org.geysermc.geyser.command.defaults;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.CommandSender;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.network.MinecraftProtocol;
 import org.geysermc.geyser.session.GeyserSession;
@@ -54,7 +54,7 @@ public class VersionCommand extends GeyserCommand {
     }
 
     @Override
-    public void execute(GeyserSession session, CommandSender sender, String[] args) {
+    public void execute(GeyserSession session, GeyserCommandSource sender, String[] args) {
         String bedrockVersions;
         List<BedrockPacketCodec> supportedCodecs = MinecraftProtocol.SUPPORTED_BEDROCK_CODECS;
         if (supportedCodecs.size() > 1) {

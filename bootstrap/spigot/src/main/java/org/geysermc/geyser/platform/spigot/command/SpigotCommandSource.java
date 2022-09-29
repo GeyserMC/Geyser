@@ -28,13 +28,13 @@ package org.geysermc.geyser.platform.spigot.command;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.CommandSender;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-public class SpigotCommandSender implements CommandSender {
+public class SpigotCommandSource implements GeyserCommandSource {
 
     /**
      * Whether to use {@code Player.getLocale()} or {@code Player.spigot().getLocale()}, depending on version.
@@ -46,7 +46,7 @@ public class SpigotCommandSender implements CommandSender {
     private final org.bukkit.command.CommandSender handle;
     private final String locale;
 
-    public SpigotCommandSender(org.bukkit.command.CommandSender handle) {
+    public SpigotCommandSource(org.bukkit.command.CommandSender handle) {
         this.handle = handle;
         this.locale = getSpigotLocale();
         // Ensure even Java players' languages are loaded

@@ -39,11 +39,11 @@ import java.util.Objects;
  * Represents helper functions for listening to {@code /geyser} commands.
  */
 @AllArgsConstructor
-public class CommandExecutor {
+public class GeyserCommandExecutor {
 
-    protected CommandManager commandManager;
+    protected GeyserCommandManager commandManager;
 
-    public void setCommandManager(@Nonnull CommandManager commandManager) {
+    public void setCommandManager(@Nonnull GeyserCommandManager commandManager) {
         this.commandManager = Objects.requireNonNull(commandManager);
     }
 
@@ -62,7 +62,7 @@ public class CommandExecutor {
      * @return A list of command names to include in the tab complete
      */
     @Nonnull
-    public List<String> tabComplete(CommandSender sender) {
+    public List<String> tabComplete(GeyserCommandSource sender) {
         if (sender.asGeyserSession() != null) {
             // Bedrock doesn't get tab completions or argument suggestions
             return Collections.emptyList();

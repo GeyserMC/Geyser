@@ -26,9 +26,9 @@
 package org.geysermc.geyser.platform.velocity.command;
 
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.CommandManager;
+import org.geysermc.geyser.command.GeyserCommandManager;
 
-public class GeyserVelocityCommandManager extends CommandManager {
+public class GeyserVelocityCommandManager extends GeyserCommandManager {
 
     public GeyserVelocityCommandManager(GeyserImpl geyser) {
         super(geyser);
