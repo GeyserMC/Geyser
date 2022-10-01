@@ -6,20 +6,17 @@
   "license": "MIT",
   "plugins": [
     {
-      "id": "geyser",
-      "name": "${outputName}-Sponge",
+      "id": "${id}",
+      "name": "${name}-Sponge",
       "version": "${version}",
       "entrypoint": "org.geysermc.geyser.platform.sponge.GeyserSpongePlugin",
       "description": "${description}",
       "links": {
-        "homepage": "${parent.parent.url}",
-        "source": "${parent.parent.scm.url}",
-        "issues": "${parent.parent.scm.url}"
+        "homepage": "${url}"
       },
       "contributors": [
         {
-          "name": "GeyserMC",
-          "description": "Organisation"
+          "name": "${author}"
         }
       ],
       "dependencies": [
