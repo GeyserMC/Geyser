@@ -10,12 +10,6 @@ platformRelocate("com.google.guava")
 platformRelocate("net.kyori.adventure.text.serializer.gson.legacyimpl")
 platformRelocate("net.kyori.adventure.nbt")
 
-// Exclude these dependencies
-exclude("com.google.code.gson:*")
-exclude("org.yaml:*")
-exclude("org.slf4j:*")
-exclude("org.ow2.asm:*")
-
 // These dependencies are already present on the platform
 provided(libs.sponge.api)
 
