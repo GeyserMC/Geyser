@@ -223,7 +223,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
     @Override
     public GeyserCommandManager getGeyserCommandManager() {
-        return this.geyserCommandManager;
+        return geyserCommandManager;
     }
 
     @Override

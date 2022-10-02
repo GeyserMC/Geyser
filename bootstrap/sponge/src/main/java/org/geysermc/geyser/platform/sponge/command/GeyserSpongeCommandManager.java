@@ -31,8 +31,9 @@ import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandCause;
-import org.spongepowered.api.command.manager.CommandManager;
 import org.spongepowered.api.command.manager.CommandMapping;
+
+import java.util.Optional;
 
 public class GeyserSpongeCommandManager extends GeyserCommandManager {
 
@@ -46,13 +47,15 @@ public class GeyserSpongeCommandManager extends GeyserCommandManager {
             return "";
         }
 
-        CommandManager handle = Sponge.server().commandManager();
-        if (handle.commandMapping(command).isPresent()) {
-            CommandMapping mapping = handle.commandMapping(command).get();
+        // Note: The command manager may be replaced at any point during the game lifecycle
+        return Sponge.server().commandManager().commandMapping(command)
+            .map(this::description)
+            .map(Optional::get)
+            .map(MessageTranslator::convertMessage)
+            .orElse("");
+    }
 
-            // CommandCause.create() seems to be fine
-            return MessageTranslator.convertMessage(mapping.registrar().shortDescription(CommandCause.create(), mapping).orElse(Component.empty()));
-        }
-        return "";
+    public Optional<Component> description(CommandMapping mapping) {
+        return mapping.registrar().shortDescription(CommandCause.create(), mapping);
     }
 }

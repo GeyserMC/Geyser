@@ -76,10 +76,13 @@ public class GeyserSpongePingPassthrough implements IGeyserPingPassthrough {
                         event.response().version().name(),
                         GameProtocol.getJavaProtocolVersion()) // thanks for also not exposing this sponge
         );
-        event.response().players().get().profiles().stream()
-                .map(GameProfile::name)
-                .map(op -> op.orElseThrow(IllegalStateException::new))
-                .forEach(geyserPingInfo.getPlayerList()::add);
+        event.response().players().ifPresent(players -> players.profiles().stream()
+            .map(GameProfile::name)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .forEach(geyserPingInfo.getPlayerList()::add)
+        );
+
         return geyserPingInfo;
     }
 
