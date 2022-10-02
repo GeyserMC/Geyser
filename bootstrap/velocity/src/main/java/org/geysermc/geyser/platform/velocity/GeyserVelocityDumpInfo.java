@@ -51,8 +51,9 @@ public class GeyserVelocityDumpInfo extends BootstrapDumpInfo {
         this.platformVersion = proxy.getVersion().getVersion();
         this.platformVendor = proxy.getVersion().getVendor();
         this.onlineMode = proxy.getConfiguration().isOnlineMode();
-        if (AsteriskSerializer.showSensitive || (proxy.getBoundAddress().getHostString().equals("") || proxy.getBoundAddress().getHostString().equals("0.0.0.0"))) {
-            this.serverIP = proxy.getBoundAddress().getHostString();
+        String hostString = proxy.getBoundAddress().getHostString();
+        if (AsteriskSerializer.showSensitive || (hostString.equals("") || hostString.equals("0.0.0.0"))) {
+            this.serverIP = hostString;
         } else {
             this.serverIP = "***";
         }

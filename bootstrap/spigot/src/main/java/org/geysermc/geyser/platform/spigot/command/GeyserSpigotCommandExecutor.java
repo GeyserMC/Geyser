@@ -66,6 +66,9 @@ public class GeyserSpigotCommandExecutor extends GeyserCommandExecutor implement
                 }
                 geyserCommand.execute(session, commandSender, args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
                 return true;
+            } else {
+                String message = GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.not_found", commandSender.locale());
+                commandSender.sendMessage(ChatColor.RED + message);
             }
         } else {
             getCommand("help").execute(session, commandSender, new String[0]);
