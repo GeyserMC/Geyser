@@ -41,6 +41,8 @@ public class GeyserSpigotDumpInfo extends BootstrapDumpInfo {
     private final String platformVersion;
     private final String platformAPIVersion;
     private final boolean onlineMode;
+
+    @AsteriskSerializer.Asterisk(isIp = true)
     private final String serverIP;
     private final int serverPort;
     private final List<PluginInfo> plugins;
@@ -51,12 +53,7 @@ public class GeyserSpigotDumpInfo extends BootstrapDumpInfo {
         this.platformVersion = Bukkit.getVersion();
         this.platformAPIVersion = Bukkit.getBukkitVersion();
         this.onlineMode = Bukkit.getOnlineMode();
-        String ip = Bukkit.getIp();
-        if (AsteriskSerializer.showSensitive || (ip.equals("") || ip.equals("0.0.0.0"))) {
-            this.serverIP = ip;
-        } else {
-            this.serverIP = "***";
-        }
+        this.serverIP = Bukkit.getIp();
         this.serverPort = Bukkit.getPort();
         this.plugins = new ArrayList<>();
 

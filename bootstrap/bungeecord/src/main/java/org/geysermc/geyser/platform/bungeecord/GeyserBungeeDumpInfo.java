@@ -29,7 +29,6 @@ import lombok.Getter;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
-import org.geysermc.geyser.text.AsteriskSerializer;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,15 +51,17 @@ public class GeyserBungeeDumpInfo extends BootstrapDumpInfo {
         this.plugins = new ArrayList<>();
 
         for (net.md_5.bungee.api.config.ListenerInfo listener : proxy.getConfig().getListeners()) {
-            String hostname = listener.getHost().getHostString();
-            if (!AsteriskSerializer.showSensitive && !(hostname.equals("") || hostname.equals("0.0.0.0"))) {
-                hostname = "***";
-            }
-            this.listeners.add(new ListenerInfo(hostname, listener.getHost().getPort()));
+            this.listeners.add(new ListenerInfo(listener.getHost().getHostString(), listener.getHost().getPort()));
         }
 
         for (Plugin plugin : proxy.getPluginManager().getPlugins()) {
-            this.plugins.add(new PluginInfo(true, plugin.getDescription().getName(), plugin.getDescription().getVersion(), plugin.getDescription().getMain(), Collections.singletonList(plugin.getDescription().getAuthor())));
+            this.plugins.add(new PluginInfo(
+                true,
+                plugin.getDescription().getName(),
+                plugin.getDescription().getVersion(),
+                plugin.getDescription().getMain(),
+                Collections.singletonList(plugin.getDescription().getAuthor()))
+            );
         }
     }
 }

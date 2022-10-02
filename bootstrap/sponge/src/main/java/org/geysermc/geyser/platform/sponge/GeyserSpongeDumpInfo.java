@@ -45,6 +45,8 @@ public class GeyserSpongeDumpInfo extends BootstrapDumpInfo {
     private final String platformName;
     private final String platformVersion;
     private final boolean onlineMode;
+
+    @AsteriskSerializer.Asterisk(isIp = true)
     private final String serverIP;
     private final int serverPort;
     private final List<PluginInfo> plugins;
@@ -56,12 +58,7 @@ public class GeyserSpongeDumpInfo extends BootstrapDumpInfo {
         this.platformVersion = platformMeta.version().getQualifier();
         this.onlineMode = Sponge.server().isOnlineModeEnabled();
         Optional<InetSocketAddress> socketAddress = Sponge.server().boundAddress();
-        String hostString = socketAddress.map(InetSocketAddress::getHostString).orElse("unknown");
-        if (AsteriskSerializer.showSensitive || (hostString.equals("") || hostString.equals("0.0.0.0") || hostString.equals("unknown"))) {
-            this.serverIP = hostString;
-        } else {
-            this.serverIP = "***";
-        }
+        this.serverIP = socketAddress.map(InetSocketAddress::getHostString).orElse("unknown");
         this.serverPort = socketAddress.map(InetSocketAddress::getPort).orElse(-1);
         this.plugins = new ArrayList<>();
 
