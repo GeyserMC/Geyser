@@ -32,6 +32,7 @@ import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import io.netty.buffer.ByteBuf;
 import me.lucko.commodore.CommodoreProvider;
 import org.bukkit.Bukkit;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.event.EventHandler;
@@ -99,18 +100,22 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     @Override
     public void onLoad() {
+        GeyserLocale.init(this);
+
         try {
-            // AvailableCommandsSerializer_v291 complains otherwise
+            // AvailableCommandsSerializer_v291 complains otherwise - affects at least 1.8
             ByteBuf.class.getMethod("writeShortLE", int.class);
-        } catch (NoSuchMethodException e) {
+            // Only available in 1.13.x
+            Class.forName("org.bukkit.event.server.ServerLoadEvent");
+            // We depend on this as a fallback in certain scenarios
+            BlockData.class.getMethod("getAsString");
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
             getLogger().severe("*********************************************");
             getLogger().severe("");
             getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_server.header"));
-            getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_server.message", "1.12.2"));
+            getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_server.message", "1.13.2"));
             getLogger().severe("");
             getLogger().severe("*********************************************");
-
-            Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
 
@@ -124,13 +129,9 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                 getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_server_type.message", "Paper"));
                 getLogger().severe("");
                 getLogger().severe("*********************************************");
-
-                Bukkit.getPluginManager().disablePlugin(this);
                 return;
             }
         }
-
-        GeyserLocale.init(this);
 
         // This is manually done instead of using Bukkit methods to save the config because otherwise comments get removed
         try {
@@ -157,6 +158,12 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     @Override
     public void onEnable() {
+        if (this.geyserConfig == null) {
+            // We failed to initialize correctly
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
+
         // Remove this in like a year
         if (Bukkit.getPluginManager().getPlugin("floodgate-bukkit") != null) {
             geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.outdated", Constants.FLOODGATE_DOWNLOAD_LOCATION));

@@ -567,6 +567,7 @@ public class ItemRegistryPopulator {
                         .bedrockData(0)
                         .bedrockBlockId(-1)
                         .stackSize(1)
+                        .customItemOptions(Object2IntMaps.emptyMap()) // TODO check for custom items with furnace minecart
                         .build());
 
                 creativeItems.add(ItemData.builder()
