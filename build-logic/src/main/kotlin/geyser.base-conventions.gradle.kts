@@ -9,9 +9,9 @@ dependencies {
 
 tasks {
     processResources {
-        filesMatching(listOf("plugin.yml", "bungee.yml", "velocity-plugin.json")) {
+        filesMatching(listOf("plugin.yml", "bungee.yml", "velocity-plugin.json", "META-INF/sponge_plugins.json")) {
             expand(
-                "id" to "Geyser",
+                "id" to "geyser",
                 "name" to "Geyser",
                 "version" to project.version,
                 "description" to project.description,

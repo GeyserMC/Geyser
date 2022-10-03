@@ -216,19 +216,41 @@ public class Entity {
     }
 
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        setYaw(yaw);
-        setPitch(pitch);
-        setHeadYaw(headYaw);
-        setOnGround(isOnGround);
-        this.position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
+        position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
 
-        MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
+        MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
-        moveEntityPacket.setPosition(position);
-        moveEntityPacket.setRotation(getBedrockRotation());
-        moveEntityPacket.setOnGround(isOnGround);
-        moveEntityPacket.setTeleported(false);
-
+        if (relX != 0.0) {
+            moveEntityPacket.setX(position.getX());
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
+        }
+        if (relY != 0.0) {
+            moveEntityPacket.setY(position.getY());
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
+        }
+        if (relZ != 0.0) {
+            moveEntityPacket.setZ(position.getZ());
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
+        }
+        if (pitch != this.pitch) {
+            this.pitch = pitch;
+            moveEntityPacket.setPitch(pitch);
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
+        }
+        if (yaw != this.yaw) {
+            this.yaw = yaw;
+            moveEntityPacket.setYaw(yaw);
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
+        }
+        if (headYaw != this.headYaw) {
+            this.headYaw = headYaw;
+            moveEntityPacket.setHeadYaw(headYaw);
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
+        }
+        setOnGround(isOnGround);
+        if (isOnGround) {
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
+        }
         session.sendUpstreamPacket(moveEntityPacket);
     }
 

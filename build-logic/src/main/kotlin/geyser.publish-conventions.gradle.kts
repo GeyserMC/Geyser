@@ -11,8 +11,7 @@ publishing {
             artifactId = project.name
             version = project.version as String
 
-            artifact(tasks["shadowJar"])
-            artifact(tasks["sourcesJar"])
+            from(components["java"])
         }
     }
 }

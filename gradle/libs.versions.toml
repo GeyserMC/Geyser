@@ -25,7 +25,7 @@ adapters = "1.5-SNAPSHOT"
 commodore = "2.2"
 bungeecord = "a7c6ede"
 velocity = "3.0.0"
-sponge = "7.1.0"
+sponge = "8.0.0"
 
 [libraries]
 jackson-annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson" }
