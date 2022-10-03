@@ -79,6 +79,7 @@ raknet = { group = "com.nukkitx.network", name = "raknet", version.ref = "raknet
 sponge-api = { group = "org.spongepowered", name = "spongeapi", version.ref = "sponge" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }
 velocity-api = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }
+viaversion = { group = "com.viaversion", name = "viaversion", version.ref = "viaversion" }
 websocket = { group = "org.java-websocket", name = "Java-WebSocket", version.ref = "websocket" }
 
 [bundles]
