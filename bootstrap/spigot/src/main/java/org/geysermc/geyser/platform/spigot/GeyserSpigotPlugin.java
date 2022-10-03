@@ -196,36 +196,43 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
         geyserConfig.loadFloodgate(this);
 
-        // Needs to be an anonymous inner class otherwise Bukkit complains about missing classes
-        Bukkit.getPluginManager().registerEvents(new Listener() {
+        if (!INITIALIZED) {
+            // Needs to be an anonymous inner class otherwise Bukkit complains about missing classes
+            Bukkit.getPluginManager().registerEvents(new Listener() {
 
-            @EventHandler
-            public void onServerLoaded(ServerLoadEvent event) {
-                // Wait until all plugins have loaded so Geyser can start
-                postStartup();
+                @EventHandler
+                public void onServerLoaded(ServerLoadEvent event) {
+                    // Wait until all plugins have loaded so Geyser can start
+                    postStartup();
+                }
+            }, this);
+
+            this.geyserCommandManager = new GeyserSpigotCommandManager(geyser);
+            this.geyserCommandManager.init();
+
+            // Because Bukkit locks its command map upon startup, we need to
+            // add our plugin commands in onEnable, but populating the executor
+            // can happen at any time
+            CommandMap commandMap = GeyserSpigotCommandManager.getCommandMap();
+            for (Extension extension : this.geyserCommandManager.extensionCommands().keySet()) {
+                // Thanks again, Bukkit
+                try {
+                    Constructor<PluginCommand> constructor = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
+                    constructor.setAccessible(true);
+
+                    PluginCommand pluginCommand = constructor.newInstance(extension.description().id(), this);
+                    pluginCommand.setDescription("The main command for the " + extension.name() + " Geyser extension!");
+
+                    commandMap.register(extension.description().id(), "geyserext", pluginCommand);
+                } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
+                    this.geyserLogger.error("Failed to construct PluginCommand for extension " + extension.description().name(), ex);
+                }
             }
-        }, this);
+        }
 
-        this.geyserCommandManager = new GeyserSpigotCommandManager(geyser);
-        this.geyserCommandManager.init();
-
-        // Because Bukkit locks its command map upon startup, we need to
-        // add our plugin commands in onEnable, but populating the executor
-        // can happen at any time
-        CommandMap commandMap = GeyserSpigotCommandManager.getCommandMap();
-        for (Extension extension : this.geyserCommandManager.extensionCommands().keySet()) {
-            // Thanks again, Bukkit
-            try {
-                Constructor<PluginCommand> constructor = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
-                constructor.setAccessible(true);
-
-                PluginCommand pluginCommand = constructor.newInstance(extension.description().id(), this);
-                pluginCommand.setDescription("The main command for the " + extension.name() + " Geyser extension!");
-
-                commandMap.register(extension.description().id(), "geyserext", pluginCommand);
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
-                this.geyserLogger.error("Failed to construct PluginCommand for extension " + extension.description().name(), ex);
-            }
+        if (INITIALIZED) {
+            // Reload; continue with post startup
+            postStartup();
         }
     }
 
