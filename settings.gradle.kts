@@ -48,6 +48,7 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         maven("https://maven.fabricmc.net/")
+        maven("https://repo.opencollab.dev/maven-snapshots")
     }
     plugins {
         id("net.kyori.blossom") version "1.2.0"

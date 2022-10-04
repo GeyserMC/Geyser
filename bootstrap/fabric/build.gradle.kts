@@ -1,5 +1,5 @@
 plugins {
-    id("fabric-loom") version "0.12-SNAPSHOT"
+    id("fabric-loom") version "1.0-SNAPSHOT"
     id("maven-publish")
     id("com.github.johnrengelman.shadow")
     id("java")
@@ -79,6 +79,7 @@ tasks {
         relocate("org.yaml", "org.geysermc.relocate.yaml") // https://github.com/CardboardPowered/cardboard/issues/139
         relocate("com.fasterxml.jackson", "org.geysermc.relocate.jackson")
         relocate("net.kyori", "org.geysermc.relocate.kyori")
+        archiveClassifier.set("unshaded") // We don't want it included in the archived artifacts
     }
 
     jar {
@@ -87,7 +88,7 @@ tasks {
 
     remapJar {
         dependsOn(shadowJar)
-        inputs.file(shadowJar.get().archiveFile)
+        inputFile.set(shadowJar.get().archiveFile)
         archiveBaseName.set("Geyser-Fabric")
         archiveClassifier.set("")
         archiveVersion.set("")
