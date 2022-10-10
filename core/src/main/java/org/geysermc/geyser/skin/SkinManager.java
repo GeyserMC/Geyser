@@ -26,6 +26,7 @@
 package org.geysermc.geyser.skin;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.steveice10.mc.auth.util.Base64;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
@@ -42,7 +43,6 @@ import org.geysermc.geyser.text.GeyserLocale;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -171,11 +171,11 @@ public class SkinManager {
         }
 
         try {
-            byte[] skinBytes = Base64.getDecoder().decode(clientData.getSkinData().getBytes(StandardCharsets.UTF_8));
+            byte[] skinBytes = Base64.decode(clientData.getSkinData().getBytes(StandardCharsets.UTF_8));
             byte[] capeBytes = clientData.getCapeData();
 
-            byte[] geometryNameBytes = Base64.getDecoder().decode(clientData.getGeometryName().getBytes(StandardCharsets.UTF_8));
-            byte[] geometryBytes = Base64.getDecoder().decode(clientData.getGeometryData().getBytes(StandardCharsets.UTF_8));
+            byte[] geometryNameBytes = Base64.decode(clientData.getGeometryName().getBytes(StandardCharsets.UTF_8));
+            byte[] geometryBytes = Base64.decode(clientData.getGeometryData().getBytes(StandardCharsets.UTF_8));
 
             if (skinBytes.length <= (128 * 128 * 4) && !clientData.isPersonaSkin()) {
                 SkinProvider.storeBedrockSkin(playerEntity.getUuid(), clientData.getSkinId(), skinBytes);
@@ -255,7 +255,7 @@ public class SkinManager {
         }
 
         private static GameProfileData loadFromJson(String encodedJson) throws IOException {
-            JsonNode skinObject = GeyserImpl.JSON_MAPPER.readTree(new String(Base64.getDecoder().decode(encodedJson), StandardCharsets.UTF_8));
+            JsonNode skinObject = GeyserImpl.JSON_MAPPER.readTree(new String(Base64.decode(encodedJson.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
             JsonNode textures = skinObject.get("textures");
 
             if (textures != null) {
