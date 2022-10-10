@@ -30,7 +30,6 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
@@ -43,6 +42,7 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
@@ -85,7 +85,7 @@ public class CustomItemRegistryPopulator {
                 .maxDamage(customItemData.maxDamage())
                 .repairMaterials(customItemData.repairMaterials())
                 .hasSuspiciousStewEffect(false)
-                .customItemOptions(Object2IntMaps.emptyMap())
+                .customItemOptions(Collections.emptyList())
                 .build();
 
         NbtMapBuilder builder = createComponentNbt(customItemData, customItemData.identifier(), customItemId,
