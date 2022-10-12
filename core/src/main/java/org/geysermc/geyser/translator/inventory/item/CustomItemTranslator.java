@@ -51,8 +51,9 @@ final class CustomItemTranslator {
         }
 
         int customModelData = nbt.get("CustomModelData") instanceof IntTag customModelDataTag ? customModelDataTag.getValue() : 0;
-        int damage = nbt.get("Damage") instanceof IntTag damageTag ? damageTag.getValue() : 0;
-        boolean unbreakable = !isDamaged(mapping, nbt, damage);
+        boolean checkDamage = mapping.getMaxDamage() > 0;
+        int damage = !checkDamage ? 0 : nbt.get("Damage") instanceof IntTag damageTag ? damageTag.getValue() : 0;
+        boolean unbreakable = checkDamage && !isDamaged(nbt, damage);
 
         for (ObjectIntPair<CustomItemOptions> mappingTypes : customMappings) {
             CustomItemOptions options = mappingTypes.key();
@@ -67,17 +68,25 @@ final class CustomItemTranslator {
             // The same behavior exists for Damage (in fraction form instead of whole numbers),
             // and Damaged/Unbreakable handles no damage as 0f and damaged as 1f.
 
-            if (unbreakable && options.unbreakable() != TriState.TRUE) {
-                continue;
+            if (checkDamage) {
+                if (unbreakable && options.unbreakable() == TriState.FALSE) {
+                    continue;
+                }
+
+                OptionalInt damagePredicate = options.damagePredicate();
+                if (damagePredicate.isPresent() && damage < damagePredicate.getAsInt()) {
+                    continue;
+                }
+            } else {
+                if (options.unbreakable() != TriState.NOT_SET || options.damagePredicate().isPresent()) {
+                    // These will never match on this item. 1.19.2 behavior
+                    // Maybe move this to CustomItemRegistryPopulator since it'll be the same for every item? If so, add a test.
+                    continue;
+                }
             }
 
             OptionalInt customModelDataOption = options.customModelData();
             if (customModelDataOption.isPresent() && customModelData < customModelDataOption.getAsInt()) {
-                continue;
-            }
-
-            OptionalInt damagePredicate = options.damagePredicate();
-            if (damagePredicate.isPresent() && damage < damagePredicate.getAsInt()) {
                 continue;
             }
 
@@ -88,16 +97,15 @@ final class CustomItemTranslator {
 
     /* These two functions are based off their Mojmap equivalents from 1.19.2 */
 
-    private static boolean isDamaged(ItemMapping mapping, CompoundTag nbt, int damage) {
-        return isDamagableItem(mapping, nbt) && damage > 0;
+    private static boolean isDamaged(CompoundTag nbt, int damage) {
+        return isDamagableItem(nbt) && damage > 0;
     }
 
-    private static boolean isDamagableItem(ItemMapping mapping, CompoundTag nbt) {
-        if (mapping.getMaxDamage() > 0) {
-            Tag unbreakableTag = nbt.get("Unbreakable");
-            return unbreakableTag != null && unbreakableTag.getValue() instanceof Number number && number.byteValue() == 0;
-        }
-        return false;
+    private static boolean isDamagableItem(CompoundTag nbt) {
+        // mapping.getMaxDamage > 0 should also be checked (return false if not true) but we already check prior to this function
+        Tag unbreakableTag = nbt.get("Unbreakable");
+        // Tag must either not be present or be set to false
+        return unbreakableTag == null || !(unbreakableTag.getValue() instanceof Number number) || number.byteValue() == 0;
     }
 
     private CustomItemTranslator() {

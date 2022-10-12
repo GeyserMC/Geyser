@@ -40,11 +40,14 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.List;
 import java.util.OptionalInt;
 
 public class CustomItemsTest {
     private ItemMapping testMappingWithDamage;
     private Object2IntMap<CompoundTag> tagToCustomItemWithDamage;
+    private ItemMapping testMappingWithNoDamage;
+    private Object2IntMap<CompoundTag> tagToCustomItemWithNoDamage;
 
     @Before
     public void setup() {
@@ -54,9 +57,11 @@ public class CustomItemsTest {
         CustomItemOptions d = new GeyserCustomItemOptions(TriState.TRUE, OptionalInt.empty(), OptionalInt.of(8));
         CustomItemOptions e = new GeyserCustomItemOptions(TriState.FALSE, OptionalInt.empty(), OptionalInt.of(12));
         CustomItemOptions f = new GeyserCustomItemOptions(TriState.FALSE, OptionalInt.of(8), OptionalInt.of(6));
+        CustomItemOptions g = new GeyserCustomItemOptions(TriState.NOT_SET, OptionalInt.of(20), OptionalInt.empty());
 
         Object2IntMap<CustomItemOptions> optionsToId = new Object2IntArrayMap<>();
         // Order here is important, hence why we're using an array map
+        optionsToId.put(g, 7);
         optionsToId.put(f, 6);
         optionsToId.put(e, 5);
         optionsToId.put(d, 4);
@@ -72,44 +77,81 @@ public class CustomItemsTest {
         tagToCustomItemWithDamage.put(tag, optionsToId.getInt(a));
 
         tag = new CompoundTag("");
-        tag.put(new IntTag("CustomModelData", 3));
-        tag.put(new ByteTag("Unbreakable", (byte) 1));
+        addCustomModelData(20, tag);
+        // Test that an unbreakable item isn't tested for Damaged if there is no damaged predicate
+        tagToCustomItemWithDamage.put(tag, optionsToId.getInt(g));
+
+        tag = new CompoundTag("");
+        addCustomModelData(3, tag);
+        setUnbreakable(true, tag);
         tagToCustomItemWithDamage.put(tag, optionsToId.getInt(a));
 
         tag = new CompoundTag("");
-        tag.put(new IntTag("Damage", 16));
-        tag.put(new ByteTag("Unbreakable", (byte) 0));
+        addDamage(16, tag);
+        setUnbreakable(false, tag);
         tagToCustomItemWithDamage.put(tag, optionsToId.getInt(e));
 
         tag = new CompoundTag("");
-        tag.put(new IntTag("CustomModelData", 7));
-        tag.put(new IntTag("Damage", 6));
-        tag.put(new ByteTag("Unbreakable", (byte) 0));
+        addCustomModelData(7, tag);
+        addDamage(6, tag);
+        setUnbreakable(false, tag);
         tagToCustomItemWithDamage.put(tag, optionsToId.getInt(c));
 
         tag = new CompoundTag("");
-        tag.put(new IntTag("CustomModelData", 8));
-        tag.put(new IntTag("Damage", 6));
-        tag.put(new ByteTag("Unbreakable", (byte) 1));
+        addCustomModelData(9, tag);
+        addDamage(6, tag);
+        setUnbreakable(true, tag);
         tagToCustomItemWithDamage.put(tag, optionsToId.getInt(a));
 
         tag = new CompoundTag("");
-        tag.put(new IntTag("CustomModelData", 9));
-        tag.put(new IntTag("Damage", 6));
-        tag.put(new ByteTag("Unbreakable", (byte) 0));
+        addCustomModelData(9, tag);
+        addDamage(6, tag);
+        setUnbreakable(false, tag);
         tagToCustomItemWithDamage.put(tag, optionsToId.getInt(f));
 
+        List<ObjectIntPair<CustomItemOptions>> customItemOptions = optionsToId.object2IntEntrySet().stream().map(entry -> ObjectIntPair.of(entry.getKey(), entry.getIntValue())).toList();
+
         testMappingWithDamage = ItemMapping.builder()
-                .customItemOptions(optionsToId.object2IntEntrySet().stream().map(entry -> ObjectIntPair.of(entry.getKey(), entry.getIntValue())).toList())
+                .customItemOptions(customItemOptions)
                 .maxDamage(100)
                 .build();
-        // Later, possibly add a condition with a mapping with no damage
+
+        // Test differences with items with no max damage
+
+        tagToCustomItemWithNoDamage = new Object2IntOpenHashMap<>();
+
+        tag = new CompoundTag("");
+        tag.put(new IntTag("CustomModelData", 2));
+        // Damage predicates existing mean an item will never match if the item mapping has no max damage
+        tagToCustomItemWithNoDamage.put(tag, -1);
+
+        testMappingWithNoDamage = ItemMapping.builder()
+                .customItemOptions(customItemOptions)
+                .maxDamage(0)
+                .build();
+    }
+
+    private void addCustomModelData(int value, CompoundTag tag) {
+        tag.put(new IntTag("CustomModelData", value));
+    }
+
+    private void addDamage(int value, CompoundTag tag) {
+        tag.put(new IntTag("Damage", value));
+    }
+
+    private void setUnbreakable(boolean value, CompoundTag tag) {
+        tag.put(new ByteTag("Unbreakable", (byte) (value ? 1 : 0)));
     }
 
     @Test
     public void testCustomItems() {
         for (Object2IntMap.Entry<CompoundTag> entry : this.tagToCustomItemWithDamage.object2IntEntrySet()) {
             int id = CustomItemTranslator.getCustomItem(entry.getKey(), this.testMappingWithDamage);
+            Assert.assertEquals(entry.getKey() + " did not produce the correct custom item", entry.getIntValue(), id);
+        }
+
+        for (Object2IntMap.Entry<CompoundTag> entry : this.tagToCustomItemWithNoDamage.object2IntEntrySet()) {
+            int id = CustomItemTranslator.getCustomItem(entry.getKey(), this.testMappingWithNoDamage);
             Assert.assertEquals(entry.getKey() + " did not produce the correct custom item", entry.getIntValue(), id);
         }
     }
