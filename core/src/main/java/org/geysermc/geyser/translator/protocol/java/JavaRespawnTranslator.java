@@ -36,7 +36,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.DimensionUtils;
 
 @Translator(packet = ClientboundRespawnPacket.class)
@@ -93,9 +92,6 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
             }
             session.setWorldName(packet.getWorldName());
             DimensionUtils.switchDimension(session, newDimension);
-
-            session.setDimensionType(session.getDimensions().get(newDimension));
-            ChunkUtils.loadDimension(session);
         }
     }
 }
