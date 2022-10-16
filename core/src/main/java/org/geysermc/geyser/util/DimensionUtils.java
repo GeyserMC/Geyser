@@ -94,6 +94,8 @@ public class DimensionUtils {
         changeDimensionPacket.setPosition(pos);
         session.sendUpstreamPacket(changeDimensionPacket);
         session.setDimension(javaDimension);
+        session.setDimensionType(session.getDimensions().get(javaDimension));
+        ChunkUtils.loadDimension(session);
         player.setPosition(pos);
         session.setSpawned(false);
         session.setLastChunkPosition(null);
