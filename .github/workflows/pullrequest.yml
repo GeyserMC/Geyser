@@ -5,12 +5,12 @@ on: [pull_request]
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up JDK 17
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: 17
@@ -20,31 +20,31 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
       - name: Archive artifacts (Geyser Standalone)
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: success()
         with:
           name: Geyser Standalone
           path: bootstrap/standalone/build/libs/Geyser-Standalone.jar
       - name: Archive artifacts (Geyser Spigot)
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: success()
         with:
           name: Geyser Spigot
           path: bootstrap/spigot/build/libs/Geyser-Spigot.jar
       - name: Archive artifacts (Geyser BungeeCord)
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: success()
         with:
           name: Geyser BungeeCord
           path: bootstrap/bungeecord/build/libs/Geyser-BungeeCord.jar
       - name: Archive artifacts (Geyser Sponge)
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: success()
         with:
           name: Geyser Sponge
           path: bootstrap/sponge/build/libs/Geyser-Sponge.jar
       - name: Archive artifacts (Geyser Velocity)
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: success()
         with:
           name: Geyser Velocity
