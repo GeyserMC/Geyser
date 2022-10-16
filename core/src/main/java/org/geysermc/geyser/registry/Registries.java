@@ -180,15 +180,5 @@ public final class Registries {
         // Create registries that require other registries to load first
         POTION_MIXES = SimpleRegistry.create(PotionMixRegistryLoader::new);
         ENCHANTMENTS = SimpleMappedRegistry.create("mappings/enchantments.json", EnchantmentRegistryLoader::new);
-
-        // TEMPORARY FIX TO MAKE OLD BIOMES NBT WORK WITH 1.19.30
-        NbtMapBuilder biomesNbt = NbtMap.builder();
-        for (Map.Entry<String, Object> entry : BIOMES_NBT.get().entrySet()) {
-            String key = entry.getKey();
-            NbtMapBuilder value = ((NbtMap) entry.getValue()).toBuilder();
-            value.put("name_hash", key);
-            biomesNbt.put(key, value.build());
-        }
-        BIOMES_NBT.set(biomesNbt.build());
     }
 }
