@@ -34,12 +34,9 @@ import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.item.custom.CustomItemOptions;
-import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -173,18 +170,18 @@ public abstract class ItemTranslator {
             builder.blockRuntimeId(bedrockItem.getBedrockBlockId());
         }
 
-        translateCustomItem(nbt, builder, bedrockItem);
-
         if (nbt != null) {
             // Translate the canDestroy and canPlaceOn Java NBT
             ListTag canDestroy = nbt.get("CanDestroy");
-            String[] canBreak = new String[0];
             ListTag canPlaceOn = nbt.get("CanPlaceOn");
-            String[] canPlace = new String[0];
-            canBreak = getCanModify(canDestroy, canBreak);
-            canPlace = getCanModify(canPlaceOn, canPlace);
-            builder.canBreak(canBreak);
-            builder.canPlace(canPlace);
+            String[] canBreak = getCanModify(canDestroy);
+            String[] canPlace = getCanModify(canPlaceOn);
+            if (canBreak != null) {
+                builder.canBreak(canBreak);
+            }
+            if (canPlace != null) {
+                builder.canPlace(canPlace);
+            }
         }
 
         return builder.build();
@@ -246,12 +243,11 @@ public abstract class ItemTranslator {
      * In Java, this is treated as normal NBT, but in Bedrock, these arguments are extra parts of the item data itself.
      *
      * @param canModifyJava the list of items in Java
-     * @param canModifyBedrock the empty list of items in Bedrock
      * @return the new list of items in Bedrock
      */
-    private static String[] getCanModify(ListTag canModifyJava, String[] canModifyBedrock) {
+    private static String[] getCanModify(ListTag canModifyJava) {
         if (canModifyJava != null && canModifyJava.size() > 0) {
-            canModifyBedrock = new String[canModifyJava.size()];
+            String[] canModifyBedrock = new String[canModifyJava.size()];
             for (int i = 0; i < canModifyBedrock.length; i++) {
                 // Get the Java identifier of the block that can be placed
                 String block = ((StringTag) canModifyJava.get(i)).getValue();
@@ -261,8 +257,9 @@ public abstract class ItemTranslator {
                 // This will unfortunately be limited - for example, beds and banners will be translated weirdly
                 canModifyBedrock[i] = BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.getOrDefault(block, block).replace("minecraft:", "");
             }
+            return canModifyBedrock;
         }
-        return canModifyBedrock;
+        return null;
     }
 
     /**
@@ -276,7 +273,7 @@ public abstract class ItemTranslator {
         ItemMapping mapping = ITEM_STACK_TRANSLATORS.getOrDefault(javaId, DEFAULT_TRANSLATOR)
                 .getItemMapping(javaId, itemStack.getNbt(), session.getItemMappings());
 
-        int customItemId = getCustomItem(itemStack.getNbt(), mapping);
+        int customItemId = CustomItemTranslator.getCustomItem(itemStack.getNbt(), mapping);
         if (customItemId == -1) {
             // No custom item
             return mapping.getBedrockId();
@@ -329,66 +326,26 @@ public abstract class ItemTranslator {
     }
 
     protected NbtMap translateNbtToBedrock(CompoundTag tag) {
-        NbtMapBuilder builder = NbtMap.builder();
-        if (tag.getValue() != null && !tag.getValue().isEmpty()) {
-            for (String str : tag.getValue().keySet()) {
-                Tag javaTag = tag.get(str);
+        if (!tag.getValue().isEmpty()) {
+            NbtMapBuilder builder = NbtMap.builder();
+            for (Tag javaTag : tag.values()) {
                 Object translatedTag = translateToBedrockNBT(javaTag);
                 if (translatedTag == null)
                     continue;
 
                 builder.put(javaTag.getName(), translatedTag);
             }
+            return builder.build();
         }
-        return builder.build();
+        return NbtMap.EMPTY;
     }
 
     private Object translateToBedrockNBT(Tag tag) {
-        if (tag instanceof ByteArrayTag) {
-            return ((ByteArrayTag) tag).getValue();
-        }
-
-        if (tag instanceof ByteTag) {
-            return ((ByteTag) tag).getValue();
-        }
-
-        if (tag instanceof DoubleTag) {
-            return ((DoubleTag) tag).getValue();
-        }
-
-        if (tag instanceof FloatTag) {
-            return ((FloatTag) tag).getValue();
-        }
-
-        if (tag instanceof IntArrayTag) {
-            return ((IntArrayTag) tag).getValue();
-        }
-
-        if (tag instanceof IntTag) {
-            return ((IntTag) tag).getValue();
-        }
-
-        if (tag instanceof LongArrayTag) {
-            //Long array tag does not exist in BE
-            //LongArrayTag longArrayTag = (LongArrayTag) tag;
-            //return new com.nukkitx.nbt.tag.LongArrayTag(longArrayTag.getName(), longArrayTag.getValue());
-            return null;
-        }
-
-        if (tag instanceof LongTag) {
-            return ((LongTag) tag).getValue();
-        }
-
-        if (tag instanceof ShortTag) {
-            return ((ShortTag) tag).getValue();
-        }
-
-        if (tag instanceof StringTag) {
-            return ((StringTag) tag).getValue();
+        if (tag instanceof CompoundTag compoundTag) {
+            return translateNbtToBedrock(compoundTag);
         }
 
         if (tag instanceof ListTag listTag) {
-
             List<Object> tagList = new ArrayList<>();
             for (Tag value : listTag) {
                 tagList.add(translateToBedrockNBT(value));
@@ -400,11 +357,14 @@ public abstract class ItemTranslator {
             return new NbtList(type, tagList);
         }
 
-        if (tag instanceof CompoundTag compoundTag) {
-            return translateNbtToBedrock(compoundTag);
+        if (tag instanceof LongArrayTag) {
+            //Long array tag does not exist in BE
+            //LongArrayTag longArrayTag = (LongArrayTag) tag;
+            //return new com.nukkitx.nbt.tag.LongArrayTag(longArrayTag.getName(), longArrayTag.getValue());
+            return null;
         }
 
-        return null;
+        return tag.getValue();
     }
 
     private CompoundTag translateToJavaNBT(String name, NbtMap tag) {
@@ -544,87 +504,10 @@ public abstract class ItemTranslator {
      * Translates the custom model data of an item
      */
     private static void translateCustomItem(CompoundTag nbt, ItemData.Builder builder, ItemMapping mapping) {
-        int bedrockId = getCustomItem(nbt, mapping);
+        int bedrockId = CustomItemTranslator.getCustomItem(nbt, mapping);
         if (bedrockId != -1) {
             builder.id(bedrockId);
         }
-    }
-
-    private static int getCustomItem(CompoundTag nbt, ItemMapping mapping) {
-        if (nbt == null) {
-            return -1;
-        }
-        Object2IntMap<CustomItemOptions> customMappings = mapping.getCustomItemOptions();
-        if (customMappings.isEmpty()) {
-            return -1;
-        }
-        int customModelData = nbt.get("CustomModelData") instanceof IntTag customModelDataTag ? customModelDataTag.getValue() : 0;
-        TriState unbreakable = TriState.fromBoolean(nbt.get("Unbreakable") instanceof ByteTag unbreakableTag && unbreakableTag.getValue() == 1);
-        int damage = nbt.get("Damage") instanceof IntTag damageTag ? damageTag.getValue() : 0;
-        for (Object2IntMap.Entry<CustomItemOptions> mappingTypes : customMappings.object2IntEntrySet()) {
-            CustomItemOptions options = mappingTypes.getKey();
-
-            TriState unbreakableOption = options.unbreakable();
-            if (unbreakableOption == unbreakable) { // Implementation note: if the option is NOT_SET then this comparison will always be false because of how the item unbreaking TriState is created
-                return mappingTypes.getIntValue();
-            }
-
-            OptionalInt customModelDataOption = options.customModelData();
-            if (customModelDataOption.isPresent() && customModelDataOption.getAsInt() == customModelData) {
-                return mappingTypes.getIntValue();
-            }
-
-            OptionalInt damagePredicate = options.damagePredicate();
-            if (damagePredicate.isPresent() && damagePredicate.getAsInt() == damage) {
-                return mappingTypes.getIntValue();
-            }
-        }
-        return -1;
-    }
-
-    /**
-     * Checks if an {@link ItemStack} is equal to another item stack
-     *
-     * @param itemStack the item stack to check
-     * @param equalsItemStack the item stack to check if equal to
-     * @param checkAmount if the amount should be taken into account
-     * @param trueIfAmountIsGreater if this should return true if the amount of the
-     *                              first item stack is greater than that of the second
-     * @param checkNbt if NBT data should be checked
-     * @return if an item stack is equal to another item stack
-     */
-    public boolean equals(ItemStack itemStack, ItemStack equalsItemStack, boolean checkAmount, boolean trueIfAmountIsGreater, boolean checkNbt) {
-        if (itemStack.getId() != equalsItemStack.getId()) {
-            return false;
-        }
-        if (checkAmount) {
-            if (trueIfAmountIsGreater) {
-                if (itemStack.getAmount() < equalsItemStack.getAmount()) {
-                    return false;
-                }
-            } else {
-                if (itemStack.getAmount() != equalsItemStack.getAmount()) {
-                    return false;
-                }
-            }
-        }
-
-        if (!checkNbt) {
-            return true;
-        }
-        if ((itemStack.getNbt() == null || itemStack.getNbt().isEmpty()) && (equalsItemStack.getNbt() != null && !equalsItemStack.getNbt().isEmpty())) {
-            return false;
-        }
-
-        if ((itemStack.getNbt() != null && !itemStack.getNbt().isEmpty() && (equalsItemStack.getNbt() == null || !equalsItemStack.getNbt().isEmpty()))) {
-            return false;
-        }
-
-        if (itemStack.getNbt() != null && equalsItemStack.getNbt() != null) {
-            return itemStack.getNbt().equals(equalsItemStack.getNbt());
-        }
-
-        return true;
     }
 
 }

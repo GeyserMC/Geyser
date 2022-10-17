@@ -137,6 +137,24 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             }
         }
 
+        // Force-disable query if enabled, or else Geyser won't enable
+        for (ListenerInfo info : getProxy().getConfig().getListeners()) {
+            if (info.isQueryEnabled() && info.getQueryPort() == geyserConfig.getBedrock().port()) {
+                try {
+                    Field queryField = ListenerInfo.class.getDeclaredField("queryEnabled");
+                    queryField.setAccessible(true);
+                    queryField.setBoolean(info, false);
+                    geyserLogger.warning("We force-disabled query on port " + info.getQueryPort() + " in order for Geyser to boot up successfully. " +
+                            "To remove this message, disable query in your proxy's config.");
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                    geyserLogger.warning("Could not force-disable query. Geyser may not start correctly!");
+                    if (geyserLogger.isDebug()) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
         if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE && getProxy().getPluginManager().getPlugin("floodgate") == null) {
             geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
             return;

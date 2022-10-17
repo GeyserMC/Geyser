@@ -95,7 +95,10 @@ public class ItemRegistryPopulator {
 
         boolean customItemsAllowed = GeyserImpl.getInstance().getConfig().isAddNonBedrockItems();
 
-        Multimap<String, CustomItemData> customItems = MultimapBuilder.hashKeys().hashSetValues().build();
+        // List values here is important compared to HashSet - we need to preserve the order of what's given to us
+        // (as of 1.19.2 Java) to replicate some edge cases in Java predicate behavior where it checks from the bottom
+        // of the list first, then ascends.
+        Multimap<String, CustomItemData> customItems = MultimapBuilder.hashKeys().arrayListValues().build();
         List<NonVanillaCustomItemData> nonVanillaCustomItems;
 
         MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
@@ -468,10 +471,10 @@ public class ItemRegistryPopulator {
                 }
 
                 // Add the custom item properties, if applicable
-                Object2IntMap<CustomItemOptions> customItemOptions;
+                List<ObjectIntPair<CustomItemOptions>> customItemOptions;
                 Collection<CustomItemData> customItemsToLoad = customItems.get(javaIdentifier);
                 if (customItemsAllowed && !customItemsToLoad.isEmpty()) {
-                    customItemOptions = new Object2IntOpenHashMap<>(customItemsToLoad.size());
+                    customItemOptions = new ObjectArrayList<>(customItemsToLoad.size());
 
                     for (CustomItemData customItem : customItemsToLoad) {
                         int customProtocolId = nextFreeBedrockId++;
@@ -491,12 +494,15 @@ public class ItemRegistryPopulator {
                         entries.put(customMapping.stringId(), customMapping.startGamePacketItemEntry());
                         // ComponentItemData - used to register some custom properties
                         componentItemData.add(customMapping.componentItemData());
-                        customItemOptions.put(customItem.customItemOptions(), customProtocolId);
+                        customItemOptions.add(ObjectIntPair.of(customItem.customItemOptions(), customProtocolId));
 
                         customIdMappings.put(customMapping.integerId(), customMapping.stringId());
                     }
+
+                    // Important for later to find the best match and accurately replicate Java behavior
+                    Collections.reverse(customItemOptions);
                 } else {
-                    customItemOptions = Object2IntMaps.emptyMap();
+                    customItemOptions = Collections.emptyList();
                 }
                 mappingBuilder.customItemOptions(customItemOptions);
 
@@ -550,7 +556,7 @@ public class ItemRegistryPopulator {
                     .bedrockData(0)
                     .bedrockBlockId(-1)
                     .stackSize(1)
-                    .customItemOptions(Object2IntMaps.emptyMap())
+                    .customItemOptions(Collections.emptyList())
                     .build();
 
             if (customItemsAllowed) {
@@ -567,7 +573,7 @@ public class ItemRegistryPopulator {
                         .bedrockData(0)
                         .bedrockBlockId(-1)
                         .stackSize(1)
-                        .customItemOptions(Object2IntMaps.emptyMap()) // TODO check for custom items with furnace minecart
+                        .customItemOptions(Collections.emptyList()) // TODO check for custom items with furnace minecart
                         .build());
 
                 creativeItems.add(ItemData.builder()

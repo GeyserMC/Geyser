@@ -33,7 +33,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Lectern;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
@@ -41,7 +40,6 @@ import org.bukkit.plugin.Plugin;
 import org.geysermc.geyser.level.GameRule;
 import org.geysermc.geyser.level.GeyserWorldManager;
 import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;
@@ -54,11 +52,6 @@ import java.util.List;
  * The base world manager to use when there is no supported NMS revision
  */
 public class GeyserSpigotWorldManager extends GeyserWorldManager {
-    /**
-     * The current client protocol version for ViaVersion usage.
-     */
-    protected static final int CLIENT_PROTOCOL_VERSION = GameProtocol.getJavaProtocolVersion();
-
     private final Plugin plugin;
 
     public GeyserSpigotWorldManager(Plugin plugin) {
@@ -77,10 +70,10 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
             return BlockStateValues.JAVA_AIR_ID;
         }
 
-        return getBlockNetworkId(bukkitPlayer, world.getBlockAt(x, y, z), x, y, z);
+        return getBlockNetworkId(world.getBlockAt(x, y, z));
     }
 
-    public int getBlockNetworkId(Player player, Block block, int x, int y, int z) {
+    public int getBlockNetworkId(Block block) {
         return BlockRegistries.JAVA_IDENTIFIERS.getOrDefault(block.getBlockData().getAsString(), BlockStateValues.JAVA_AIR_ID);
     }
 
@@ -181,8 +174,6 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
     }
 
     /**
-     * This must be set to true if we are pre-1.13, and {@link BlockData#getAsString() does not exist}.
-     *
      * This should be set to true if we are post-1.13 but before the latest version, and we should convert the old block state id
      * to the current one.
      *

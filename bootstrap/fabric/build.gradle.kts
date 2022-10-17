@@ -50,22 +50,11 @@ repositories {
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
 }
 
+application {
+    mainClass.set("org.geysermc.platform.fabric.GeyserFabricMain")
+}
+
 tasks {
-    processResources {
-//        inputs.property "version", project.version
-//
-//        filesMatching("fabric.mod.json") {
-//            expand "version": project.version
-//        }
-    }
-
-    // ensure that the encoding is set to UTF-8, no matter what the system default is
-    // this fixes some edge cases with special characters not displaying correctly
-    // see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
-    compileJava {
-        options.encoding = "UTF-8"
-    }
-
     // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
     // if it is present.
     // If you remove this task, sources will not be generated.
@@ -75,15 +64,16 @@ tasks {
     }
 
     shadowJar {
+        // Mirrors the example fabric project, otherwise tons of dependencies are shaded that shouldn't be
+        configurations = listOf(project.configurations.shadow.get())
+        // The remapped shadowJar is the final desired Geyser-Fabric.jar
+        archiveVersion.set(project.version.toString())
+        archiveClassifier.set("shaded")
+
         relocate("org.objectweb.asm", "org.geysermc.relocate.asm")
         relocate("org.yaml", "org.geysermc.relocate.yaml") // https://github.com/CardboardPowered/cardboard/issues/139
         relocate("com.fasterxml.jackson", "org.geysermc.relocate.jackson")
         relocate("net.kyori", "org.geysermc.relocate.kyori")
-        archiveClassifier.set("unshaded") // We don't want it included in the archived artifacts
-    }
-
-    jar {
-        from("LICENSE")
     }
 
     remapJar {
