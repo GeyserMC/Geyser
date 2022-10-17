@@ -39,7 +39,6 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NBTOutputStream;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.network.VarInts;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -284,6 +283,9 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             }
             sectionCount++;
 
+            // As of 1.18.30, the amount of biomes read is dependent on how high Bedrock thinks the dimension is
+            int biomeCount = bedrockDimension.height() >> 4;
+
             // Estimate chunk size
             int size = 0;
             for (int i = 0; i < sectionCount; i++) {
@@ -294,9 +296,8 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     size += SERIALIZED_CHUNK_DATA.length;
                 }
             }
-            size += ChunkUtils.EMPTY_CHUNK_DATA.length; // Consists only of biome data
+            size += ChunkUtils.EMPTY_BIOME_DATA.length * biomeCount;
             size += 1; // Border blocks
-            size += 1; // Extra data length (always 0)
             size += bedrockBlockEntities.size() * 64; // Conservative estimate of 64 bytes per tile entity
 
             // Allocate output buffer
@@ -310,8 +311,6 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                 }
             }
 
-            // As of 1.18.30, the amount of biomes read is dependent on how high Bedrock thinks the dimension is
-            int biomeCount = bedrockDimension.height() >> 4;
             int dimensionOffset = bedrockDimension.minY() >> 4;
             for (int i = 0; i < biomeCount; i++) {
                 int biomeYOffset = dimensionOffset + i;
@@ -331,7 +330,6 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             }
 
             byteBuf.writeByte(0); // Border blocks - Edu edition only
-            VarInts.writeUnsignedInt(byteBuf, 0); // extra data length, 0 for now
 
             // Encode tile entities into buffer
             NBTOutputStream nbtStream = NbtUtils.createNetworkWriter(new ByteBufOutputStream(byteBuf));

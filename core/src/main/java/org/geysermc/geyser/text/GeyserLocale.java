@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.text;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrays;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 
@@ -177,11 +178,32 @@ public class GeyserLocale {
      * Get a formatted language string with the default locale for Geyser
      *
      * @param key Language string to translate
+     * @return Translated string or the original message if it was not found in the given locale
+     */
+    public static String getLocaleStringLog(String key) {
+        return getLocaleStringLog(key, ObjectArrays.EMPTY_ARRAY);
+    }
+
+    /**
+     * Get a formatted language string with the default locale for Geyser
+     *
+     * @param key Language string to translate
      * @param values Values to put into the string
      * @return Translated string or the original message if it was not found in the given locale
      */
     public static String getLocaleStringLog(String key, Object... values) {
         return getPlayerLocaleString(key, getDefaultLocale(), values);
+    }
+
+    /**
+     * Get a formatted language string with the given locale for Geyser
+     *
+     * @param key Language string to translate
+     * @param locale Locale to translate to
+     * @return Translated string or the original message if it was not found in the given locale
+     */
+    public static String getPlayerLocaleString(String key, String locale) {
+        return getPlayerLocaleString(key, locale, ObjectArrays.EMPTY_ARRAY);
     }
 
     /**
