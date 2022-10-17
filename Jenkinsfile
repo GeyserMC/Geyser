@@ -20,7 +20,7 @@ pipeline {
             }
             post {
                 success {
-                    archiveArtifacts artifacts: 'bootstrap/**/build/libs/*.jar', excludes: 'bootstrap/**/build/libs/*-sources.jar,bootstrap/**/build/libs/*-unshaded.jar', fingerprint: true
+                    archiveArtifacts artifacts: 'bootstrap/**/build/libs/Geyser-*.jar', fingerprint: true
                 }
             }
         }

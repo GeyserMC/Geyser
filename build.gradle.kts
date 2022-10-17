@@ -15,6 +15,7 @@ allprojects {
 }
 
 val platforms = setOf(
+    projects.fabric,
     projects.bungeecord,
     projects.spigot,
     projects.sponge,

@@ -50,6 +50,10 @@ repositories {
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
 }
 
+application {
+    mainClass.set("org.geysermc.geyser.platform.fabric.GeyserFabricMain")
+}
+
 tasks {
     // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
     // if it is present.
@@ -60,6 +64,12 @@ tasks {
     }
 
     shadowJar {
+        // Mirrors the example fabric project, otherwise tons of dependencies are shaded that shouldn't be
+        configurations = listOf(project.configurations.shadow.get())
+        // The remapped shadowJar is the final desired Geyser-Fabric.jar
+        archiveVersion.set(project.version.toString())
+        archiveClassifier.set("shaded")
+
         relocate("org.objectweb.asm", "org.geysermc.relocate.asm")
         relocate("org.yaml", "org.geysermc.relocate.yaml") // https://github.com/CardboardPowered/cardboard/issues/139
         relocate("com.fasterxml.jackson", "org.geysermc.relocate.jackson")
