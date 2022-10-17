@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,44 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.fabric;
+package org.geysermc.geyser.platform.fabric.command;
 
-import net.fabricmc.loader.api.ModContainer;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.command.GeyserCommandManager;
 
-import java.util.ArrayList;
-import java.util.List;
+public class GeyserFabricCommandManager extends GeyserCommandManager {
 
-/**
- * A wrapper for Fabric mod information to be presented in a Geyser dump
- */
-public class ModInfo {
-
-    private final String name;
-    private final String id;
-    private final String version;
-    private final List<String> authors;
-
-    public ModInfo(ModContainer mod) {
-        this.name = mod.getMetadata().getName();
-        this.id = mod.getMetadata().getId();
-        this.authors = new ArrayList<>();
-        mod.getMetadata().getAuthors().forEach((person) -> this.authors.add(person.getName()));
-        this.version = mod.getMetadata().getVersion().getFriendlyString();
+    public GeyserFabricCommandManager(GeyserImpl connector) {
+        super(connector);
     }
 
-    public String getName() {
-        return this.name;
-    }
-
-    public String getId() {
-        return this.id;
-    }
-
-    public String getVersion() {
-        return this.version;
-    }
-
-    public List<String> getAuthors() {
-        return this.authors;
+    @Override
+    public String description(String command) {
+        return "";
     }
 }

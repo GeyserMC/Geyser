@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,26 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.fabric;
+package org.geysermc.geyser.platform.fabric;
 
-import net.minecraft.server.MinecraftServer;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Represents a getter to the server port in the dedicated server and in the integrated server.
+ * A class outline of the permissions.yml file
  */
-public interface GeyserServerPortGetter {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class GeyserFabricPermissions {
+
     /**
-     * Returns the server port.
-     *
-     * <ul>
-     *     <li>If it's a dedicated server, it will return the server port specified in the {@code server.properties} file.</li>
-     *     <li>If it's an integrated server, it will return the LAN port if opened, else -1.</li>
-     * </ul>
-     *
-     * The reason is that {@link MinecraftServer#getServerPort()} doesn't return the LAN port if it's the integrated server,
-     * and changing the behavior of this method via a mixin should be avoided as it could have unexpected consequences.
-     *
-     * @return The server port.
+     * The minimum permission level a command source must have in order for it to run commands that are restricted
      */
-    int geyser$getServerPort();
+    @JsonIgnore
+    public static final int RESTRICTED_MIN_LEVEL = 2;
+
+    @JsonProperty("commands")
+    private String[] commands;
+
+    public String[] getCommands() {
+        return this.commands;
+    }
 }

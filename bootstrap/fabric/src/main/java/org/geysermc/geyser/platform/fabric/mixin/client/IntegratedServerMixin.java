@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.fabric.mixin.client;
+package org.geysermc.geyser.platform.fabric.mixin.client;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -32,9 +32,9 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.integrated.IntegratedServer;
 import net.minecraft.text.Text;
 import net.minecraft.world.GameMode;
+import org.geysermc.geyser.platform.fabric.GeyserFabricMod;
+import org.geysermc.geyser.platform.fabric.GeyserServerPortGetter;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.platform.fabric.GeyserFabricMod;
-import org.geysermc.platform.fabric.GeyserServerPortGetter;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;

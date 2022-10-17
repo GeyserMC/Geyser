@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.fabric;
+package org.geysermc.geyser.platform.fabric;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.fabricmc.api.EnvType;
@@ -49,9 +49,9 @@ import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.util.FileUtils;
-import org.geysermc.platform.fabric.command.GeyserFabricCommandExecutor;
-import org.geysermc.platform.fabric.command.GeyserFabricCommandManager;
-import org.geysermc.platform.fabric.world.GeyserFabricWorldManager;
+import org.geysermc.geyser.platform.fabric.command.GeyserFabricCommandExecutor;
+import org.geysermc.geyser.platform.fabric.command.GeyserFabricCommandManager;
+import org.geysermc.geyser.platform.fabric.world.GeyserFabricWorldManager;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;

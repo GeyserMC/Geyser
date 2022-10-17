@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.fabric.world;
+package org.geysermc.geyser.platform.fabric.world;
 
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
@@ -39,11 +39,11 @@ import net.minecraft.nbt.NbtList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import org.geysermc.geyser.level.GeyserWorldManager;
+import org.geysermc.geyser.platform.fabric.GeyserFabricMod;
+import org.geysermc.geyser.platform.fabric.command.GeyserFabricCommandExecutor;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;
 import org.geysermc.geyser.util.BlockEntityUtils;
-import org.geysermc.platform.fabric.GeyserFabricMod;
-import org.geysermc.platform.fabric.command.GeyserFabricCommandExecutor;
 
 import java.util.ArrayList;
 import java.util.List;

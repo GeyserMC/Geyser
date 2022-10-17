@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,15 +23,15 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.fabric.command;
+package org.geysermc.geyser.platform.fabric.command;
 
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.platform.fabric.GeyserFabricMod;
 import org.geysermc.geyser.text.ChatColor;
-import org.geysermc.platform.fabric.GeyserFabricMod;
 
 public class FabricCommandSender implements GeyserCommandSource {
 

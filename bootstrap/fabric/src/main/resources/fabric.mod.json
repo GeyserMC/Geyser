@@ -16,7 +16,7 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "org.geysermc.platform.fabric.GeyserFabricMod"
+        "org.geysermc.geyser.platform.fabric.GeyserFabricMod"
     ]
   },
   "mixins": [

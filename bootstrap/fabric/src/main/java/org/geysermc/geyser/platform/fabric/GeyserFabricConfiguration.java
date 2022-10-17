@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,19 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.fabric.command;
+package org.geysermc.geyser.platform.fabric;
 
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
+import org.geysermc.geyser.FloodgateKeyLoader;
+import org.geysermc.geyser.configuration.GeyserJacksonConfiguration;
 
-public class GeyserFabricCommandManager extends GeyserCommandManager {
+import java.nio.file.Path;
 
-    public GeyserFabricCommandManager(GeyserImpl connector) {
-        super(connector);
+public class GeyserFabricConfiguration extends GeyserJacksonConfiguration {
+    @JsonIgnore
+    private Path floodgateKeyPath;
+
+    public void loadFloodgate(GeyserFabricMod geyser, ModContainer floodgate) {
+        Path geyserDataFolder = geyser.getConfigFolder();
+        Path floodgateDataFolder = floodgate != null ? FabricLoader.getInstance().getConfigDir().resolve("floodgate") : null;
+
+        floodgateKeyPath = FloodgateKeyLoader.getKeyPath(this, floodgateDataFolder, geyserDataFolder, geyser.getGeyserLogger());
     }
 
     @Override
-    public String description(String command) {
-        return "";
+    public Path getFloodgateKeyPath() {
+        return floodgateKeyPath;
     }
 }

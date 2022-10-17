@@ -10,23 +10,14 @@ java {
     sourceCompatibility = JavaVersion.VERSION_17
 }
 
-//archivesBaseName = project.archives_base_name
-//version = project.mod_version
-//group = project.maven_group
-
-val minecraftVersion = project.property("minecraft_version") as String
-val yarnVersion = project.property("yarn_mappings") as String
-val loaderVersion = project.property("loader_version") as String
-val fabricVersion = project.property("fabric_version") as String
-
 dependencies {
     //to change the versions see the gradle.properties file
-    minecraft("com.mojang:minecraft:$minecraftVersion")
-    mappings("net.fabricmc:yarn:$yarnVersion:v2")
-    modImplementation("net.fabricmc:fabric-loader:$loaderVersion")
+    minecraft(libs.fabric.minecraft)
+    mappings(libs.fabric.yarn) { artifact { classifier = "v2" } }
+    modImplementation(libs.fabric.loader)
 
     // Fabric API. This is technically optional, but you probably want it anyway.
-    modImplementation("net.fabricmc.fabric-api:fabric-api:$fabricVersion")
+    modImplementation(libs.fabric.api)
 
     // PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
     // You may need to force-disable transitiveness on them.
@@ -51,7 +42,7 @@ repositories {
 }
 
 application {
-    mainClass.set("org.geysermc.platform.fabric.GeyserFabricMain")
+    mainClass.set("org.geysermc.geyser.platform.fabric.GeyserFabricMain")
 }
 
 tasks {

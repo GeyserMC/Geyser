@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.fabric.mixin.server;
+package org.geysermc.geyser.platform.fabric.mixin.server;
 
 import com.mojang.datafixers.DataFixer;
 import net.minecraft.resource.ResourcePackManager;
@@ -33,7 +33,7 @@ import net.minecraft.server.WorldGenerationProgressListenerFactory;
 import net.minecraft.server.dedicated.MinecraftDedicatedServer;
 import net.minecraft.util.ApiServices;
 import net.minecraft.world.level.storage.LevelStorage;
-import org.geysermc.platform.fabric.GeyserServerPortGetter;
+import org.geysermc.geyser.platform.fabric.GeyserServerPortGetter;
 import org.spongepowered.asm.mixin.Mixin;
 
 import java.net.Proxy;

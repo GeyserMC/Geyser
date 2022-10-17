@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,29 +23,44 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.fabric;
+package org.geysermc.geyser.platform.fabric;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
-import org.geysermc.geyser.FloodgateKeyLoader;
-import org.geysermc.geyser.configuration.GeyserJacksonConfiguration;
 
-import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
-public class GeyserFabricConfiguration extends GeyserJacksonConfiguration {
-    @JsonIgnore
-    private Path floodgateKeyPath;
+/**
+ * A wrapper for Fabric mod information to be presented in a Geyser dump
+ */
+public class ModInfo {
 
-    public void loadFloodgate(GeyserFabricMod geyser, ModContainer floodgate) {
-        Path geyserDataFolder = geyser.getConfigFolder();
-        Path floodgateDataFolder = floodgate != null ? FabricLoader.getInstance().getConfigDir().resolve("floodgate") : null;
+    private final String name;
+    private final String id;
+    private final String version;
+    private final List<String> authors;
 
-        floodgateKeyPath = FloodgateKeyLoader.getKeyPath(this, floodgateDataFolder, geyserDataFolder, geyser.getGeyserLogger());
+    public ModInfo(ModContainer mod) {
+        this.name = mod.getMetadata().getName();
+        this.id = mod.getMetadata().getId();
+        this.authors = new ArrayList<>();
+        mod.getMetadata().getAuthors().forEach((person) -> this.authors.add(person.getName()));
+        this.version = mod.getMetadata().getVersion().getFriendlyString();
     }
 
-    @Override
-    public Path getFloodgateKeyPath() {
-        return floodgateKeyPath;
+    public String getName() {
+        return this.name;
+    }
+
+    public String getId() {
+        return this.id;
+    }
+
+    public String getVersion() {
+        return this.version;
+    }
+
+    public List<String> getAuthors() {
+        return this.authors;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,28 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.fabric;
+package org.geysermc.geyser.platform.fabric;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.geysermc.geyser.GeyserMain;
 
-/**
- * A class outline of the permissions.yml file
- */
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class GeyserFabricPermissions {
+public class GeyserFabricMain extends GeyserMain {
 
-    /**
-     * The minimum permission level a command source must have in order for it to run commands that are restricted
-     */
-    @JsonIgnore
-    public static final int RESTRICTED_MIN_LEVEL = 2;
+    public static void main(String[] args) {
+        new GeyserFabricMain().displayMessage();
+    }
 
-    @JsonProperty("commands")
-    private String[] commands;
+    @Override
+    public String getPluginType() {
+        return "Fabric";
+    }
 
-    public String[] getCommands() {
-        return this.commands;
+    @Override
+    public String getPluginFolder() {
+        return "mods";
     }
 }

@@ -23,23 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.fabric;
+package org.geysermc.geyser.platform.fabric;
 
-import org.geysermc.geyser.GeyserMain;
+import net.minecraft.server.MinecraftServer;
 
-public class GeyserFabricMain extends GeyserMain {
-
-    public static void main(String[] args) {
-        new GeyserFabricMain().displayMessage();
-    }
-
-    @Override
-    public String getPluginType() {
-        return "Fabric";
-    }
-
-    @Override
-    public String getPluginFolder() {
-        return "mods";
-    }
+/**
+ * Represents a getter to the server port in the dedicated server and in the integrated server.
+ */
+public interface GeyserServerPortGetter {
+    /**
+     * Returns the server port.
+     *
+     * <ul>
+     *     <li>If it's a dedicated server, it will return the server port specified in the {@code server.properties} file.</li>
+     *     <li>If it's an integrated server, it will return the LAN port if opened, else -1.</li>
+     * </ul>
+     *
+     * The reason is that {@link MinecraftServer#getServerPort()} doesn't return the LAN port if it's the integrated server,
+     * and changing the behavior of this method via a mixin should be avoided as it could have unexpected consequences.
+     *
+     * @return The server port.
+     */
+    int geyser$getServerPort();
 }
