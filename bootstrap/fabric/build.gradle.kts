@@ -51,7 +51,7 @@ repositories {
 }
 
 application {
-    mainClass.set("org.geysermc.geyser.platform.fabric.GeyserFabricMain")
+    mainClass.set("org.geysermc.platform.fabric.GeyserFabricMain")
 }
 
 tasks {
