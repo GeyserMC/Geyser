@@ -1,7 +1,7 @@
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+//    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         // Floodgate, Cumulus etc.
         maven("https://repo.opencollab.dev/main")
@@ -47,6 +47,8 @@ dependencyResolutionManagement {
 pluginManagement {
     repositories {
         gradlePluginPortal()
+        maven("https://maven.fabricmc.net/")
+        maven("https://repo.opencollab.dev/maven-snapshots")
     }
     plugins {
         id("net.kyori.blossom") version "1.2.0"
@@ -62,6 +64,7 @@ include(":ap")
 include(":api")
 include(":geyser-api")
 include(":bungeecord")
+include(":fabric")
 include(":spigot")
 include(":sponge")
 include(":standalone")
@@ -73,6 +76,7 @@ include(":core")
 project(":api").projectDir = file("api/base")
 project(":geyser-api").projectDir = file("api/geyser")
 project(":bungeecord").projectDir = file("bootstrap/bungeecord")
+project(":fabric").projectDir = file("bootstrap/fabric")
 project(":spigot").projectDir = file("bootstrap/spigot")
 project(":sponge").projectDir = file("bootstrap/sponge")
 project(":standalone").projectDir = file("bootstrap/standalone")

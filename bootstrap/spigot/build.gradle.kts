@@ -1,8 +1,3 @@
-val paperVersion = "1.19-R0.1-SNAPSHOT"
-val viaVersion = "4.0.0"
-val adaptersVersion = "1.5-SNAPSHOT"
-val commodoreVersion = "2.2"
-
 dependencies {
     api(projects.core)
 
@@ -34,7 +29,7 @@ platformRelocate("me.lucko.commodore")
 platformRelocate("io.netty.channel.kqueue")
 
 // These dependencies are already present on the platform
-provided("com.viaversion", "viaversion", viaVersion)
+provided(libs.viaversion)
 
 application {
     mainClass.set("org.geysermc.geyser.platform.spigot.GeyserSpigotMain")
