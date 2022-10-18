@@ -27,7 +27,7 @@ package org.geysermc.geyser.platform.fabric.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.commands.CommandSourceStack;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandExecutor;
@@ -39,7 +39,7 @@ import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Collections;
 
-public class GeyserFabricCommandExecutor extends GeyserCommandExecutor implements Command<ServerCommandSource> {
+public class GeyserFabricCommandExecutor extends GeyserCommandExecutor implements Command<CommandSourceStack> {
 
     private final GeyserCommand command;
     /**
@@ -59,13 +59,13 @@ public class GeyserFabricCommandExecutor extends GeyserCommandExecutor implement
      * @param source The command source attempting to run the command
      * @return True if the command source is allowed to
      */
-    public boolean canRun(ServerCommandSource source) {
-        return !requiresPermission() || source.hasPermissionLevel(GeyserFabricPermissions.RESTRICTED_MIN_LEVEL);
+    public boolean canRun(CommandSourceStack source) {
+        return !requiresPermission() || source.hasPermission(GeyserFabricPermissions.RESTRICTED_MIN_LEVEL);
     }
 
     @Override
     public int run(CommandContext context) {
-        ServerCommandSource source = (ServerCommandSource) context.getSource();
+        CommandSourceStack source = (CommandSourceStack) context.getSource();
         FabricCommandSender sender = new FabricCommandSender(source);
         GeyserSession session = getGeyserSession(sender);
         if (!canRun(source)) {

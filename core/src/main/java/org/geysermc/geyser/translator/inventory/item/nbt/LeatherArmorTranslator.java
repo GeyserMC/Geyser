@@ -32,13 +32,12 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
 import org.geysermc.geyser.translator.inventory.item.NbtItemStackTranslator;
 
-import java.util.Arrays;
 import java.util.List;
 
 @ItemRemapper
 public class LeatherArmorTranslator extends NbtItemStackTranslator {
 
-    private static final List<String> ITEMS = Arrays.asList("minecraft:leather_helmet", "minecraft:leather_chestplate",
+    private static final List<String> ITEMS = List.of("minecraft:leather_helmet", "minecraft:leather_chestplate",
             "minecraft:leather_leggings", "minecraft:leather_boots", "minecraft:leather_horse_armor");
 
     @Override
@@ -47,10 +46,9 @@ public class LeatherArmorTranslator extends NbtItemStackTranslator {
         if (displayTag == null) {
             return;
         }
-        IntTag color = displayTag.get("color");
+        IntTag color = displayTag.remove("color");
         if (color != null) {
             itemTag.put(new IntTag("customColor", color.getValue()));
-            displayTag.remove("color");
         }
     }
 

@@ -48,7 +48,6 @@ import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.velocity.command.GeyserVelocityCommandExecutor;
-import org.geysermc.geyser.platform.velocity.command.GeyserVelocityCommandManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 import org.jetbrains.annotations.Nullable;
@@ -75,7 +74,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     @Inject
     private CommandManager commandManager;
 
-    private GeyserVelocityCommandManager geyserCommandManager;
+    private GeyserCommandManager geyserCommandManager;
     private GeyserVelocityConfiguration geyserConfig;
     private GeyserVelocityInjector geyserInjector;
     private GeyserVelocityLogger geyserLogger;
@@ -163,7 +162,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         this.geyserInjector = new GeyserVelocityInjector(proxyServer);
         // Will be initialized after the proxy has been bound
 
-        this.geyserCommandManager = new GeyserVelocityCommandManager(geyser);
+        this.geyserCommandManager = new GeyserCommandManager(geyser);
         this.geyserCommandManager.init();
 
         this.commandManager.register("geyser", new GeyserVelocityCommandExecutor(geyser, geyserCommandManager.getCommands()));

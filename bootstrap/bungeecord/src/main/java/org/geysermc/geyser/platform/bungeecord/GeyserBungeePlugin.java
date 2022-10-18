@@ -43,7 +43,6 @@ import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.bungeecord.command.GeyserBungeeCommandExecutor;
-import org.geysermc.geyser.platform.bungeecord.command.GeyserBungeeCommandManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 
@@ -62,7 +61,7 @@ import java.util.logging.Level;
 
 public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
-    private GeyserBungeeCommandManager geyserCommandManager;
+    private GeyserCommandManager geyserCommandManager;
     private GeyserBungeeConfiguration geyserConfig;
     private GeyserBungeeInjector geyserInjector;
     private GeyserBungeeLogger geyserLogger;
@@ -205,7 +204,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         this.geyserInjector = new GeyserBungeeInjector(this);
         this.geyserInjector.initializeLocalChannel(this);
 
-        this.geyserCommandManager = new GeyserBungeeCommandManager(geyser);
+        this.geyserCommandManager = new GeyserCommandManager(geyser);
         this.geyserCommandManager.init();
 
         this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor("geyser", this.geyser, this.geyserCommandManager.getCommands()));

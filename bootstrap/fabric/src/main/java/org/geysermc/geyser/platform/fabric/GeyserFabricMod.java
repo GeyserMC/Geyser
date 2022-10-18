@@ -31,27 +31,27 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.ServerCommandSource;
 import org.apache.logging.log4j.LogManager;
 import org.geysermc.common.PlatformType;
+import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandManager;
-import org.geysermc.geyser.dump.BootstrapDumpInfo;
-import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
-import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
+import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.level.WorldManager;
+import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
-import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.platform.fabric.command.GeyserFabricCommandExecutor;
-import org.geysermc.geyser.platform.fabric.command.GeyserFabricCommandManager;
 import org.geysermc.geyser.platform.fabric.world.GeyserFabricWorldManager;
+import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.FileUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -78,7 +78,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     private List<String> playerCommands;
     private final List<GeyserFabricCommandExecutor> commandExecutors = new ArrayList<>();
 
-    private GeyserFabricCommandManager geyserCommandManager;
+    private GeyserCommandManager geyserCommandManager;
     private GeyserFabricConfiguration geyserConfig;
     private GeyserFabricLogger geyserLogger;
     private IGeyserPingPassthrough geyserPingPassthrough;
@@ -145,7 +145,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
         if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
             this.geyserConfig.setAutoconfiguredRemote(true);
-            String ip = server.getServerIp();
+            String ip = server.getLocalIp();
             int port = ((GeyserServerPortGetter) server).geyser$getServerPort();
             if (ip != null && !ip.isEmpty() && !ip.equals("0.0.0.0")) {
                 this.geyserConfig.getRemote().setAddress(ip);
@@ -175,7 +175,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
         this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
 
-        this.geyserCommandManager = new GeyserFabricCommandManager(connector);
+        this.geyserCommandManager = new GeyserCommandManager(connector);
         this.geyserCommandManager.init();
 
         this.geyserWorldManager = new GeyserFabricWorldManager(server);
@@ -185,16 +185,16 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
         GeyserFabricCommandExecutor helpExecutor = new GeyserFabricCommandExecutor(connector,
                 (GeyserCommand) connector.commandManager().getCommands().get("help"), !playerCommands.contains("help"));
         commandExecutors.add(helpExecutor);
-        LiteralArgumentBuilder<ServerCommandSource> builder = net.minecraft.server.command.CommandManager.literal("geyser").executes(helpExecutor);
+        LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("geyser").executes(helpExecutor);
 
         // Register all subcommands as valid
         for (Map.Entry<String, Command> command : connector.commandManager().getCommands().entrySet()) {
             GeyserFabricCommandExecutor executor = new GeyserFabricCommandExecutor(connector, (GeyserCommand) command.getValue(),
                     !playerCommands.contains(command.getKey()));
             commandExecutors.add(executor);
-            builder.then(net.minecraft.server.command.CommandManager.literal(command.getKey()).executes(executor));
+            builder.then(Commands.literal(command.getKey()).executes(executor));
         }
-        server.getCommandManager().getDispatcher().register(builder);
+        server.getCommands().getDispatcher().register(builder);
     }
 
     @Override
@@ -245,7 +245,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
     @Override
     public String getMinecraftServerVersion() {
-        return this.server.getVersion();
+        return this.server.getServerVersion();
     }
 
     @Nullable

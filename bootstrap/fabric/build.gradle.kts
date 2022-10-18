@@ -13,7 +13,7 @@ java {
 dependencies {
     //to change the versions see the gradle.properties file
     minecraft(libs.fabric.minecraft)
-    mappings(libs.fabric.yarn) { artifact { classifier = "v2" } }
+    mappings(loom.officialMojangMappings())
     modImplementation(libs.fabric.loader)
 
     // Fabric API. This is technically optional, but you probably want it anyway.

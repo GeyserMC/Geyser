@@ -25,31 +25,33 @@
 
 package org.geysermc.geyser.platform.fabric.command;
 
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.platform.fabric.GeyserFabricMod;
 import org.geysermc.geyser.text.ChatColor;
 
+import javax.annotation.Nonnull;
+
 public class FabricCommandSender implements GeyserCommandSource {
 
-    private final ServerCommandSource source;
+    private final CommandSourceStack source;
 
-    public FabricCommandSender(ServerCommandSource source) {
+    public FabricCommandSender(CommandSourceStack source) {
         this.source = source;
     }
 
     @Override
     public String name() {
-        return source.getName();
+        return source.getTextName();
     }
 
     @Override
-    public void sendMessage(String message) {
-        if (source.getEntity() instanceof ServerPlayerEntity) {
-            ((ServerPlayerEntity) source.getEntity()).sendMessage(Text.literal(message), false);
+    public void sendMessage(@Nonnull String message) {
+        if (source.getEntity() instanceof ServerPlayer) {
+            ((ServerPlayer) source.getEntity()).displayClientMessage(Component.literal(message), false);
         } else {
             GeyserImpl.getInstance().getLogger().info(ChatColor.toANSI(message + ChatColor.RESET));
         }
@@ -57,7 +59,7 @@ public class FabricCommandSender implements GeyserCommandSource {
 
     @Override
     public boolean isConsole() {
-        return !(source.getEntity() instanceof ServerPlayerEntity);
+        return !(source.getEntity() instanceof ServerPlayer);
     }
 
     @Override
