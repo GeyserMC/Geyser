@@ -49,7 +49,6 @@ import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.fabric.command.GeyserFabricCommandExecutor;
-import org.geysermc.geyser.platform.fabric.command.GeyserFabricCommandManager;
 import org.geysermc.geyser.platform.fabric.world.GeyserFabricWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
@@ -79,7 +78,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     private List<String> playerCommands;
     private final List<GeyserFabricCommandExecutor> commandExecutors = new ArrayList<>();
 
-    private GeyserFabricCommandManager geyserCommandManager;
+    private GeyserCommandManager geyserCommandManager;
     private GeyserFabricConfiguration geyserConfig;
     private GeyserFabricLogger geyserLogger;
     private IGeyserPingPassthrough geyserPingPassthrough;
@@ -176,7 +175,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
         this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
 
-        this.geyserCommandManager = new GeyserFabricCommandManager(connector);
+        this.geyserCommandManager = new GeyserCommandManager(connector);
         this.geyserCommandManager.init();
 
         this.geyserWorldManager = new GeyserFabricWorldManager(server);
