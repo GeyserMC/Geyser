@@ -46,7 +46,7 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.DimensionUtils;
-import org.geysermc.geyser.util.JavaCodecEntry;
+import org.geysermc.geyser.util.JavaCodecUtil;
 import org.geysermc.geyser.util.PluginMessageUtils;
 
 import java.util.Map;
@@ -66,7 +66,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
 
         Int2ObjectMap<TextDecoration> chatTypes = session.getChatTypes();
         chatTypes.clear();
-        for (CompoundTag tag : JavaCodecEntry.iterateAsTag(packet.getRegistry().get("minecraft:chat_type"))) {
+        for (CompoundTag tag : JavaCodecUtil.iterateAsTag(packet.getRegistry().get("minecraft:chat_type"))) {
             // The ID is NOT ALWAYS THE SAME! ViaVersion as of 1.19 adds two registry entries that do NOT match vanilla.
             int id = ((IntTag) tag.get("id")).getValue();
             CompoundTag element = tag.get("element");

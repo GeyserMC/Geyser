@@ -32,7 +32,7 @@ import com.github.steveice10.opennbt.tag.builtin.Tag;
 import javax.annotation.Nonnull;
 import java.util.Iterator;
 
-public record JavaCodecEntry() {
+public final class JavaCodecUtil {
 
     /**
      * Iterate over a Java Edition codec and return each entry as a CompoundTag
@@ -57,5 +57,8 @@ public record JavaCodecEntry() {
                 };
             }
         };
+    }
+
+    private JavaCodecUtil() {
     }
 }
