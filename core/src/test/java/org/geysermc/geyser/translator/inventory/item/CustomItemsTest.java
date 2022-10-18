@@ -72,7 +72,7 @@ public class CustomItemsTest {
         tagToCustomItemWithDamage = new Object2IntOpenHashMap<>();
 
         CompoundTag tag = new CompoundTag("");
-        tag.put(new IntTag("CustomModelData", 6));
+        addCustomModelData(6, tag);
         // Test item with no damage should be treated as unbreakable
         tagToCustomItemWithDamage.put(tag, optionsToId.getInt(a));
 
@@ -121,7 +121,7 @@ public class CustomItemsTest {
         tagToCustomItemWithNoDamage = new Object2IntOpenHashMap<>();
 
         tag = new CompoundTag("");
-        tag.put(new IntTag("CustomModelData", 2));
+        addCustomModelData(2, tag);
         // Damage predicates existing mean an item will never match if the item mapping has no max damage
         tagToCustomItemWithNoDamage.put(tag, -1);
 
