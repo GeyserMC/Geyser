@@ -23,48 +23,44 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.level.chunk.bitarray;
+package org.geysermc.geyser.platform.fabric;
 
-import io.netty.buffer.ByteBuf;
-import it.unimi.dsi.fastutil.ints.IntArrays;
+import net.fabricmc.loader.api.ModContainer;
 
-public class SingletonBitArray implements BitArray {
-    public static final SingletonBitArray INSTANCE = new SingletonBitArray();
+import java.util.ArrayList;
+import java.util.List;
 
-    private SingletonBitArray() {
+/**
+ * A wrapper for Fabric mod information to be presented in a Geyser dump
+ */
+public class ModInfo {
+
+    private final String name;
+    private final String id;
+    private final String version;
+    private final List<String> authors;
+
+    public ModInfo(ModContainer mod) {
+        this.name = mod.getMetadata().getName();
+        this.id = mod.getMetadata().getId();
+        this.authors = new ArrayList<>();
+        mod.getMetadata().getAuthors().forEach((person) -> this.authors.add(person.getName()));
+        this.version = mod.getMetadata().getVersion().getFriendlyString();
     }
 
-    @Override
-    public void set(int index, int value) {
+    public String getName() {
+        return this.name;
     }
 
-    @Override
-    public int get(int index) {
-        return 0;
+    public String getId() {
+        return this.id;
     }
 
-    @Override
-    public int size() {
-        return 1;
+    public String getVersion() {
+        return this.version;
     }
 
-    @Override
-    public void writeSizeToNetwork(ByteBuf buffer, int size) {
-        // no-op - size is fixed
-    }
-
-    @Override
-    public int[] getWords() {
-        return IntArrays.EMPTY_ARRAY;
-    }
-
-    @Override
-    public BitArrayVersion getVersion() {
-        return BitArrayVersion.V0;
-    }
-
-    @Override
-    public SingletonBitArray copy() {
-        return new SingletonBitArray();
+    public List<String> getAuthors() {
+        return this.authors;
     }
 }

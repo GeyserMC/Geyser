@@ -23,48 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.level.chunk.bitarray;
+package org.geysermc.geyser.platform.fabric.mixin.server;
 
-import io.netty.buffer.ByteBuf;
-import it.unimi.dsi.fastutil.ints.IntArrays;
+import com.mojang.datafixers.DataFixer;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.Services;
+import net.minecraft.server.WorldStem;
+import net.minecraft.server.dedicated.DedicatedServer;
+import net.minecraft.server.level.progress.ChunkProgressListenerFactory;
+import net.minecraft.server.packs.repository.PackRepository;
+import net.minecraft.world.level.storage.LevelStorageSource;
+import org.geysermc.geyser.platform.fabric.GeyserServerPortGetter;
+import org.spongepowered.asm.mixin.Mixin;
 
-public class SingletonBitArray implements BitArray {
-    public static final SingletonBitArray INSTANCE = new SingletonBitArray();
+import java.net.Proxy;
 
-    private SingletonBitArray() {
+@Mixin(DedicatedServer.class)
+public abstract class MinecraftDedicatedServerMixin extends MinecraftServer implements GeyserServerPortGetter {
+    public MinecraftDedicatedServerMixin(Thread thread, LevelStorageSource.LevelStorageAccess levelStorageAccess, PackRepository packRepository, WorldStem worldStem, Proxy proxy, DataFixer dataFixer, Services services, ChunkProgressListenerFactory chunkProgressListenerFactory) {
+        super(thread, levelStorageAccess, packRepository, worldStem, proxy, dataFixer, services, chunkProgressListenerFactory);
     }
 
     @Override
-    public void set(int index, int value) {
-    }
-
-    @Override
-    public int get(int index) {
-        return 0;
-    }
-
-    @Override
-    public int size() {
-        return 1;
-    }
-
-    @Override
-    public void writeSizeToNetwork(ByteBuf buffer, int size) {
-        // no-op - size is fixed
-    }
-
-    @Override
-    public int[] getWords() {
-        return IntArrays.EMPTY_ARRAY;
-    }
-
-    @Override
-    public BitArrayVersion getVersion() {
-        return BitArrayVersion.V0;
-    }
-
-    @Override
-    public SingletonBitArray copy() {
-        return new SingletonBitArray();
+    public int geyser$getServerPort() {
+        return this.getPort();
     }
 }

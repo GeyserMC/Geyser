@@ -62,6 +62,11 @@ jline-reader = { group = "org.jline", name = "jline-reader", version.ref = "jlin
 paper-api = { group = "io.papermc.paper", name = "paper-api", version.ref = "paper" }
 paper-mojangapi = { group = "io.papermc.paper", name = "paper-mojangapi", version.ref = "paper" }
 
+# check these on https://modmuss50.me/fabric.html
+fabric-minecraft = { group = "com.mojang", name = "minecraft", version = "1.19.1" }
+fabric-loader = { group = "net.fabricmc", name = "fabric-loader", version = "0.14.8" }
+fabric-api = { group = "net.fabricmc.fabric-api", name = "fabric-api", version = "0.58.5+1.19.1" }
+
 adapters-spigot = { group = "org.geysermc.geyser.adapters", name = "spigot-all", version.ref = "adapters" }
 bungeecord-proxy = { group = "com.github.SpigotMC.BungeeCord", name = "bungeecord-proxy", version.ref = "bungeecord" }
 checker-qual = { group = "org.checkerframework", name = "checker-qual", version.ref = "checkerframework" }
@@ -79,6 +84,7 @@ raknet = { group = "com.nukkitx.network", name = "raknet", version.ref = "raknet
 sponge-api = { group = "org.spongepowered", name = "spongeapi", version.ref = "sponge" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }
 velocity-api = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }
+viaversion = { group = "com.viaversion", name = "viaversion", version.ref = "viaversion" }
 websocket = { group = "org.java-websocket", name = "Java-WebSocket", version.ref = "websocket" }
 
 [bundles]

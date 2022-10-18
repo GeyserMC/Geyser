@@ -23,48 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.level.chunk.bitarray;
+package org.geysermc.geyser.platform.fabric.command;
 
-import io.netty.buffer.ByteBuf;
-import it.unimi.dsi.fastutil.ints.IntArrays;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.command.GeyserCommandManager;
 
-public class SingletonBitArray implements BitArray {
-    public static final SingletonBitArray INSTANCE = new SingletonBitArray();
+public class GeyserFabricCommandManager extends GeyserCommandManager {
 
-    private SingletonBitArray() {
+    public GeyserFabricCommandManager(GeyserImpl connector) {
+        super(connector);
     }
 
     @Override
-    public void set(int index, int value) {
-    }
-
-    @Override
-    public int get(int index) {
-        return 0;
-    }
-
-    @Override
-    public int size() {
-        return 1;
-    }
-
-    @Override
-    public void writeSizeToNetwork(ByteBuf buffer, int size) {
-        // no-op - size is fixed
-    }
-
-    @Override
-    public int[] getWords() {
-        return IntArrays.EMPTY_ARRAY;
-    }
-
-    @Override
-    public BitArrayVersion getVersion() {
-        return BitArrayVersion.V0;
-    }
-
-    @Override
-    public SingletonBitArray copy() {
-        return new SingletonBitArray();
+    public String description(String command) {
+        return "";
     }
 }

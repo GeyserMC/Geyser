@@ -23,48 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.level.chunk.bitarray;
+package org.geysermc.geyser.platform.fabric;
 
-import io.netty.buffer.ByteBuf;
-import it.unimi.dsi.fastutil.ints.IntArrays;
+import net.minecraft.server.MinecraftServer;
 
-public class SingletonBitArray implements BitArray {
-    public static final SingletonBitArray INSTANCE = new SingletonBitArray();
-
-    private SingletonBitArray() {
-    }
-
-    @Override
-    public void set(int index, int value) {
-    }
-
-    @Override
-    public int get(int index) {
-        return 0;
-    }
-
-    @Override
-    public int size() {
-        return 1;
-    }
-
-    @Override
-    public void writeSizeToNetwork(ByteBuf buffer, int size) {
-        // no-op - size is fixed
-    }
-
-    @Override
-    public int[] getWords() {
-        return IntArrays.EMPTY_ARRAY;
-    }
-
-    @Override
-    public BitArrayVersion getVersion() {
-        return BitArrayVersion.V0;
-    }
-
-    @Override
-    public SingletonBitArray copy() {
-        return new SingletonBitArray();
-    }
+/**
+ * Represents a getter to the server port in the dedicated server and in the integrated server.
+ */
+public interface GeyserServerPortGetter {
+    /**
+     * Returns the server port.
+     *
+     * <ul>
+     *     <li>If it's a dedicated server, it will return the server port specified in the {@code server.properties} file.</li>
+     *     <li>If it's an integrated server, it will return the LAN port if opened, else -1.</li>
+     * </ul>
+     *
+     * The reason is that {@link MinecraftServer#getPort()} doesn't return the LAN port if it's the integrated server,
+     * and changing the behavior of this method via a mixin should be avoided as it could have unexpected consequences.
+     *
+     * @return The server port.
+     */
+    int geyser$getServerPort();
 }

@@ -23,48 +23,66 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.level.chunk.bitarray;
+package org.geysermc.geyser.platform.fabric;
 
-import io.netty.buffer.ByteBuf;
-import it.unimi.dsi.fastutil.ints.IntArrays;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.geysermc.geyser.GeyserLogger;
 
-public class SingletonBitArray implements BitArray {
-    public static final SingletonBitArray INSTANCE = new SingletonBitArray();
+public class GeyserFabricLogger implements GeyserLogger {
 
-    private SingletonBitArray() {
+    private final Logger logger = LogManager.getLogger("geyser-fabric");
+
+    private boolean debug;
+
+    public GeyserFabricLogger(boolean isDebug) {
+        debug = isDebug;
     }
 
     @Override
-    public void set(int index, int value) {
+    public void severe(String message) {
+        logger.fatal(message);
     }
 
     @Override
-    public int get(int index) {
-        return 0;
+    public void severe(String message, Throwable error) {
+        logger.fatal(message, error);
     }
 
     @Override
-    public int size() {
-        return 1;
+    public void error(String message) {
+        logger.error(message);
     }
 
     @Override
-    public void writeSizeToNetwork(ByteBuf buffer, int size) {
-        // no-op - size is fixed
+    public void error(String message, Throwable error) {
+        logger.error(message, error);
     }
 
     @Override
-    public int[] getWords() {
-        return IntArrays.EMPTY_ARRAY;
+    public void warning(String message) {
+        logger.warn(message);
     }
 
     @Override
-    public BitArrayVersion getVersion() {
-        return BitArrayVersion.V0;
+    public void info(String message) {
+        logger.info(message);
     }
 
     @Override
-    public SingletonBitArray copy() {
-        return new SingletonBitArray();
+    public void debug(String message) {
+        if (debug) {
+            logger.info(message);
+        }
+    }
+
+    @Override
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
+
+    @Override
+    public boolean isDebug() {
+        return debug;
     }
 }

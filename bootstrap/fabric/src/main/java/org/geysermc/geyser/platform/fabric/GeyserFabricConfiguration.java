@@ -23,48 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.level.chunk.bitarray;
+package org.geysermc.geyser.platform.fabric;
 
-import io.netty.buffer.ByteBuf;
-import it.unimi.dsi.fastutil.ints.IntArrays;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
+import org.geysermc.geyser.FloodgateKeyLoader;
+import org.geysermc.geyser.configuration.GeyserJacksonConfiguration;
 
-public class SingletonBitArray implements BitArray {
-    public static final SingletonBitArray INSTANCE = new SingletonBitArray();
+import java.nio.file.Path;
 
-    private SingletonBitArray() {
+public class GeyserFabricConfiguration extends GeyserJacksonConfiguration {
+    @JsonIgnore
+    private Path floodgateKeyPath;
+
+    public void loadFloodgate(GeyserFabricMod geyser, ModContainer floodgate) {
+        Path geyserDataFolder = geyser.getConfigFolder();
+        Path floodgateDataFolder = floodgate != null ? FabricLoader.getInstance().getConfigDir().resolve("floodgate") : null;
+
+        floodgateKeyPath = FloodgateKeyLoader.getKeyPath(this, floodgateDataFolder, geyserDataFolder, geyser.getGeyserLogger());
     }
 
     @Override
-    public void set(int index, int value) {
-    }
-
-    @Override
-    public int get(int index) {
-        return 0;
-    }
-
-    @Override
-    public int size() {
-        return 1;
-    }
-
-    @Override
-    public void writeSizeToNetwork(ByteBuf buffer, int size) {
-        // no-op - size is fixed
-    }
-
-    @Override
-    public int[] getWords() {
-        return IntArrays.EMPTY_ARRAY;
-    }
-
-    @Override
-    public BitArrayVersion getVersion() {
-        return BitArrayVersion.V0;
-    }
-
-    @Override
-    public SingletonBitArray copy() {
-        return new SingletonBitArray();
+    public Path getFloodgateKeyPath() {
+        return floodgateKeyPath;
     }
 }

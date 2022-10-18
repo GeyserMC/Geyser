@@ -23,48 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.level.chunk.bitarray;
+package org.geysermc.geyser.platform.fabric;
 
-import io.netty.buffer.ByteBuf;
-import it.unimi.dsi.fastutil.ints.IntArrays;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class SingletonBitArray implements BitArray {
-    public static final SingletonBitArray INSTANCE = new SingletonBitArray();
+/**
+ * A class outline of the permissions.yml file
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class GeyserFabricPermissions {
 
-    private SingletonBitArray() {
-    }
+    /**
+     * The minimum permission level a command source must have in order for it to run commands that are restricted
+     */
+    @JsonIgnore
+    public static final int RESTRICTED_MIN_LEVEL = 2;
 
-    @Override
-    public void set(int index, int value) {
-    }
+    @JsonProperty("commands")
+    private String[] commands;
 
-    @Override
-    public int get(int index) {
-        return 0;
-    }
-
-    @Override
-    public int size() {
-        return 1;
-    }
-
-    @Override
-    public void writeSizeToNetwork(ByteBuf buffer, int size) {
-        // no-op - size is fixed
-    }
-
-    @Override
-    public int[] getWords() {
-        return IntArrays.EMPTY_ARRAY;
-    }
-
-    @Override
-    public BitArrayVersion getVersion() {
-        return BitArrayVersion.V0;
-    }
-
-    @Override
-    public SingletonBitArray copy() {
-        return new SingletonBitArray();
+    public String[] getCommands() {
+        return this.commands;
     }
 }
