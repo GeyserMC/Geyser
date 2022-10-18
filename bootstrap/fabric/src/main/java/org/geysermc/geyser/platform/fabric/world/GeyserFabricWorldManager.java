@@ -29,15 +29,15 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.LecternBlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.WritableBookItem;
-import net.minecraft.item.WrittenBookItem;
-import net.minecraft.nbt.NbtList;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.WritableBookItem;
+import net.minecraft.world.item.WrittenBookItem;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import org.geysermc.geyser.level.GeyserWorldManager;
 import org.geysermc.geyser.platform.fabric.GeyserFabricMod;
 import org.geysermc.geyser.platform.fabric.command.GeyserFabricCommandExecutor;
@@ -65,9 +65,9 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
     public NbtMap getLecternDataAt(GeyserSession session, int x, int y, int z, boolean isChunkLoad) {
         Runnable lecternGet = () -> {
             // Mostly a reimplementation of Spigot lectern support
-            PlayerEntity player = getPlayer(session);
+            ServerPlayer player = getPlayer(session);
             if (player != null) {
-                BlockEntity blockEntity = player.world.getBlockEntity(new BlockPos(x, y, z));
+                BlockEntity blockEntity = player.level.getBlockEntity(new BlockPos(x, y, z));
                 if (!(blockEntity instanceof LecternBlockEntity lectern)) {
                     return;
                 }
@@ -83,14 +83,14 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
                 int pageCount = WrittenBookItem.getPageCount(book);
                 boolean hasBookPages = pageCount > 0;
                 NbtMapBuilder lecternTag = LecternInventoryTranslator.getBaseLecternTag(x, y, z, hasBookPages ? pageCount : 1);
-                lecternTag.putInt("page", lectern.getCurrentPage() / 2);
+                lecternTag.putInt("page", lectern.getPage() / 2);
                 NbtMapBuilder bookTag = NbtMap.builder()
                         .putByte("Count", (byte) book.getCount())
                         .putShort("Damage", (short) 0)
                         .putString("Name", "minecraft:writable_book");
                 List<NbtMap> pages = new ArrayList<>(hasBookPages ? pageCount : 1);
-                if (hasBookPages && WritableBookItem.isValid(book.getNbt())) {
-                    NbtList listTag = book.getNbt().getList("pages", 8);
+                if (hasBookPages && WritableBookItem.makeSureTagIsValid(book.getTag())) {
+                    ListTag listTag = book.getTag().getList("pages", 8);
 
                     for (int i = 0; i < listTag.size(); i++) {
                         String page = listTag.getString(i);
@@ -127,14 +127,14 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
         // Workaround for our commands because fabric doesn't have native permissions
         for (GeyserFabricCommandExecutor executor : GeyserFabricMod.getInstance().getCommandExecutors()) {
             if (executor.getCommand().permission().equals(permission)) {
-                return executor.canRun(getPlayer(session).getCommandSource());
+                return executor.canRun(getPlayer(session).createCommandSourceStack());
             }
         }
 
         return false;
     }
 
-    private PlayerEntity getPlayer(GeyserSession session) {
-        return server.getPlayerManager().getPlayer(session.getPlayerEntity().getUuid());
+    private ServerPlayer getPlayer(GeyserSession session) {
+        return server.getPlayerList().getPlayer(session.getPlayerEntity().getUuid());
     }
 }

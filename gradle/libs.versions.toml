@@ -64,7 +64,6 @@ paper-mojangapi = { group = "io.papermc.paper", name = "paper-mojangapi", versio
 
 # check these on https://modmuss50.me/fabric.html
 fabric-minecraft = { group = "com.mojang", name = "minecraft", version = "1.19.1" }
-fabric-yarn = { group = "net.fabricmc", name = "yarn", version = "1.19.1+build.1" }
 fabric-loader = { group = "net.fabricmc", name = "fabric-loader", version = "0.14.8" }
 fabric-api = { group = "net.fabricmc.fabric-api", name = "fabric-api", version = "0.58.5+1.19.1" }
 

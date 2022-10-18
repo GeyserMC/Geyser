@@ -39,7 +39,7 @@ public interface GeyserServerPortGetter {
      *     <li>If it's an integrated server, it will return the LAN port if opened, else -1.</li>
      * </ul>
      *
-     * The reason is that {@link MinecraftServer#getServerPort()} doesn't return the LAN port if it's the integrated server,
+     * The reason is that {@link MinecraftServer#getPort()} doesn't return the LAN port if it's the integrated server,
      * and changing the behavior of this method via a mixin should be avoided as it could have unexpected consequences.
      *
      * @return The server port.

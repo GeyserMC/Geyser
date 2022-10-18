@@ -27,11 +27,11 @@ package org.geysermc.geyser.platform.fabric.mixin.client;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.server.IntegratedServer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.integrated.IntegratedServer;
-import net.minecraft.text.Text;
-import net.minecraft.world.GameMode;
+import net.minecraft.world.level.GameType;
 import org.geysermc.geyser.platform.fabric.GeyserFabricMod;
 import org.geysermc.geyser.platform.fabric.GeyserServerPortGetter;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -46,25 +46,25 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(IntegratedServer.class)
 public class IntegratedServerMixin implements GeyserServerPortGetter {
     @Shadow
-    private int lanPort;
+    private int publishedPort;
 
-    @Shadow @Final private MinecraftClient client;
+    @Shadow @Final private Minecraft minecraft;
 
-    @Inject(method = "openToLan", at = @At("RETURN"))
-    private void onOpenToLan(GameMode gameMode, boolean cheatsAllowed, int port, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "publishServer", at = @At("RETURN"))
+    private void onOpenToLan(GameType gameType, boolean cheatsAllowed, int port, CallbackInfoReturnable<Boolean> cir) {
         if (cir.getReturnValueZ()) {
             // If the LAN is opened, starts Geyser.
             GeyserFabricMod.getInstance().startGeyser((MinecraftServer) (Object) this);
             // Ensure player locale has been loaded, in case it's different from Java system language
-            GeyserLocale.loadGeyserLocale(this.client.options.language);
+            GeyserLocale.loadGeyserLocale(this.minecraft.options.languageCode);
             // Give indication that Geyser is loaded
-            this.client.player.sendMessage(Text.literal(GeyserLocale.getPlayerLocaleString("geyser.core.start",
-                    this.client.options.language, "localhost", String.valueOf(this.lanPort))), false);
+            this.minecraft.player.displayClientMessage(Component.literal(GeyserLocale.getPlayerLocaleString("geyser.core.start",
+                    this.minecraft.options.languageCode, "localhost", String.valueOf(this.publishedPort))), false);
         }
     }
 
     @Override
     public int geyser$getServerPort() {
-        return this.lanPort;
+        return this.publishedPort;
     }
 }

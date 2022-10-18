@@ -54,12 +54,12 @@ public class GeyserFabricDumpInfo extends BootstrapDumpInfo {
             }
         }
         this.environmentType = FabricLoader.getInstance().getEnvironmentType();
-        if (AsteriskSerializer.showSensitive || (server.getServerIp() == null || server.getServerIp().equals("") || server.getServerIp().equals("0.0.0.0"))) {
-            this.serverIP = server.getServerIp();
+        if (AsteriskSerializer.showSensitive || (server.getLocalIp() == null || server.getLocalIp().equals("") || server.getLocalIp().equals("0.0.0.0"))) {
+            this.serverIP = server.getLocalIp();
         } else {
             this.serverIP = "***";
         }
-        this.serverPort = server.getServerPort();
+        this.serverPort = server.getPort();
         this.mods = new ArrayList<>();
 
         for (ModContainer mod : FabricLoader.getInstance().getAllMods()) {

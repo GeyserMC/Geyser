@@ -26,26 +26,26 @@
 package org.geysermc.geyser.platform.fabric.mixin.server;
 
 import com.mojang.datafixers.DataFixer;
-import net.minecraft.resource.ResourcePackManager;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.SaveLoader;
-import net.minecraft.server.WorldGenerationProgressListenerFactory;
-import net.minecraft.server.dedicated.MinecraftDedicatedServer;
-import net.minecraft.util.ApiServices;
-import net.minecraft.world.level.storage.LevelStorage;
+import net.minecraft.server.Services;
+import net.minecraft.server.WorldStem;
+import net.minecraft.server.dedicated.DedicatedServer;
+import net.minecraft.server.level.progress.ChunkProgressListenerFactory;
+import net.minecraft.server.packs.repository.PackRepository;
+import net.minecraft.world.level.storage.LevelStorageSource;
 import org.geysermc.geyser.platform.fabric.GeyserServerPortGetter;
 import org.spongepowered.asm.mixin.Mixin;
 
 import java.net.Proxy;
 
-@Mixin(MinecraftDedicatedServer.class)
+@Mixin(DedicatedServer.class)
 public abstract class MinecraftDedicatedServerMixin extends MinecraftServer implements GeyserServerPortGetter {
-    public MinecraftDedicatedServerMixin(Thread serverThread, LevelStorage.Session session, ResourcePackManager dataPackManager, SaveLoader saveLoader, Proxy proxy, DataFixer dataFixer, ApiServices apiServices, WorldGenerationProgressListenerFactory worldGenerationProgressListenerFactory) {
-        super(serverThread, session, dataPackManager, saveLoader, proxy, dataFixer, apiServices, worldGenerationProgressListenerFactory);
+    public MinecraftDedicatedServerMixin(Thread thread, LevelStorageSource.LevelStorageAccess levelStorageAccess, PackRepository packRepository, WorldStem worldStem, Proxy proxy, DataFixer dataFixer, Services services, ChunkProgressListenerFactory chunkProgressListenerFactory) {
+        super(thread, levelStorageAccess, packRepository, worldStem, proxy, dataFixer, services, chunkProgressListenerFactory);
     }
 
     @Override
     public int geyser$getServerPort() {
-        return this.getServerPort();
+        return this.getPort();
     }
 }
