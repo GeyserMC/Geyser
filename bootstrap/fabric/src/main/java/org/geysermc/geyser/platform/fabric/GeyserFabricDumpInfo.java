@@ -41,6 +41,7 @@ public class GeyserFabricDumpInfo extends BootstrapDumpInfo {
     private String platformVersion = null;
     private final EnvType environmentType;
 
+    @AsteriskSerializer.Asterisk(isIp = true)
     private final String serverIP;
     private final int serverPort;
     private final List<ModInfo> mods;
@@ -54,11 +55,7 @@ public class GeyserFabricDumpInfo extends BootstrapDumpInfo {
             }
         }
         this.environmentType = FabricLoader.getInstance().getEnvironmentType();
-        if (AsteriskSerializer.showSensitive || (server.getServerIp() == null || server.getServerIp().equals("") || server.getServerIp().equals("0.0.0.0"))) {
-            this.serverIP = server.getServerIp();
-        } else {
-            this.serverIP = "***";
-        }
+        this.serverIP = server.getServerIp() == null ? "unknown" : server.getServerIp();
         this.serverPort = server.getServerPort();
         this.mods = new ArrayList<>();
 
