@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.platform.fabric;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
@@ -49,7 +50,7 @@ public class GeyserFabricDumpInfo extends BootstrapDumpInfo {
     @AsteriskSerializer.Asterisk(isIp = true)
     private final String serverIP;
     private final int serverPort;
-    private final List<PluginInfo> mods;
+    private final List<ModInfo> mods;
 
     public GeyserFabricDumpInfo(MinecraftServer server) {
         FabricLoader.getInstance().getModContainer("fabricloader").ifPresent(mod ->
@@ -62,13 +63,21 @@ public class GeyserFabricDumpInfo extends BootstrapDumpInfo {
 
         for (ModContainer mod : FabricLoader.getInstance().getAllMods()) {
             ModMetadata meta = mod.getMetadata();
-            this.mods.add(new PluginInfo(
+            this.mods.add(new ModInfo(
                 FabricLoader.getInstance().isModLoaded(meta.getId()),
-                meta.getName(),
                 meta.getId(),
                 meta.getVersion().getFriendlyString(),
                 meta.getAuthors().stream().map(Person::getName).collect(Collectors.toList()))
             );
         }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class ModInfo {
+        public boolean enabled;
+        public String name;
+        public String version;
+        public List<String> authors;
     }
 }
