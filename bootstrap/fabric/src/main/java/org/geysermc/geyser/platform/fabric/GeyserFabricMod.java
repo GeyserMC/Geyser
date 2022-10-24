@@ -29,6 +29,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.commands.CommandSourceStack;
@@ -55,28 +56,20 @@ import org.geysermc.geyser.util.FileUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.*;
 
 public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
-
     private static GeyserFabricMod instance;
 
     private boolean reloading;
 
-    private GeyserImpl connector;
+    private GeyserImpl geyser;
     private ModContainer mod;
     private Path dataFolder;
     private MinecraftServer server;
-
-    /**
-     * Commands that don't require any permission level to ran
-     */
-    private List<String> playerCommands;
-    private final List<GeyserFabricCommandExecutor> commandExecutors = new ArrayList<>();
 
     private GeyserCommandManager geyserCommandManager;
     private GeyserFabricConfiguration geyserConfig;
@@ -111,8 +104,6 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
             File configFile = FileUtils.fileOrCopiedFromResource(dataFolder.resolve("config.yml").toFile(), "config.yml",
                     (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserFabricConfiguration.class);
-            File permissionsFile = fileOrCopiedFromResource(dataFolder.resolve("permissions.yml").toFile(), "permissions.yml");
-            this.playerCommands = Arrays.asList(FileUtils.loadConfig(permissionsFile, GeyserFabricPermissions.class).getCommands());
         } catch (IOException ex) {
             LogManager.getLogger("geyser-fabric").error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
@@ -123,10 +114,14 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
+        this.geyser = GeyserImpl.load(PlatformType.FABRIC, this);
+
         if (server == null) {
             // Server has yet to start
             // Register onDisable so players are properly kicked
             ServerLifecycleEvents.SERVER_STOPPING.register((server) -> onDisable());
+
+            ServerPlayConnectionEvents.JOIN.register((handler, $, $$) -> GeyserFabricUpdateListener.onPlayReady(handler));
         } else {
             // Server has started and this is a reload
             startGeyser(this.server);
@@ -170,38 +165,37 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
         geyserConfig.loadFloodgate(this, floodgate.orElse(null));
 
-        this.connector = GeyserImpl.load(PlatformType.FABRIC, this);
-        GeyserImpl.start(); // shrug
+        GeyserImpl.start();
 
-        this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
+        this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
 
-        this.geyserCommandManager = new GeyserCommandManager(connector);
+        this.geyserCommandManager = new GeyserCommandManager(geyser);
         this.geyserCommandManager.init();
 
         this.geyserWorldManager = new GeyserFabricWorldManager(server);
 
         // Start command building
         // Set just "geyser" as the help command
-        GeyserFabricCommandExecutor helpExecutor = new GeyserFabricCommandExecutor(connector,
-                (GeyserCommand) connector.commandManager().getCommands().get("help"), !playerCommands.contains("help"));
-        commandExecutors.add(helpExecutor);
+        GeyserFabricCommandExecutor helpExecutor = new GeyserFabricCommandExecutor(geyser,
+                (GeyserCommand) geyser.commandManager().getCommands().get("help"));
         LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("geyser").executes(helpExecutor);
 
         // Register all subcommands as valid
-        for (Map.Entry<String, Command> command : connector.commandManager().getCommands().entrySet()) {
-            GeyserFabricCommandExecutor executor = new GeyserFabricCommandExecutor(connector, (GeyserCommand) command.getValue(),
-                    !playerCommands.contains(command.getKey()));
-            commandExecutors.add(executor);
-            builder.then(Commands.literal(command.getKey()).executes(executor));
+        for (Map.Entry<String, Command> command : geyser.commandManager().getCommands().entrySet()) {
+            GeyserFabricCommandExecutor executor = new GeyserFabricCommandExecutor(geyser, (GeyserCommand) command.getValue());
+            builder.then(Commands.literal(command.getKey())
+                    .executes(executor)
+                    // Could also test for Bedrock but depending on when this is called it may backfire
+                    .requires(executor::testPermission));
         }
         server.getCommands().getDispatcher().register(builder);
     }
 
     @Override
     public void onDisable() {
-        if (connector != null) {
-            connector.shutdown();
-            connector = null;
+        if (geyser != null) {
+            geyser.shutdown();
+            geyser = null;
         }
         if (!reloading) {
             this.server = null;
@@ -268,34 +262,6 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
     public void setReloading(boolean reloading) {
         this.reloading = reloading;
-    }
-
-    private File fileOrCopiedFromResource(File file, String name) throws IOException {
-        if (!file.exists()) {
-            //noinspection ResultOfMethodCallIgnored
-            file.createNewFile();
-            FileOutputStream fos = new FileOutputStream(file);
-            InputStream input = getResource(name);
-
-            byte[] bytes = new byte[input.available()];
-
-            //noinspection ResultOfMethodCallIgnored
-            input.read(bytes);
-
-            for(char c : new String(bytes).toCharArray()) {
-                fos.write(c);
-            }
-
-            fos.flush();
-            input.close();
-            fos.close();
-        }
-
-        return file;
-    }
-
-    public List<GeyserFabricCommandExecutor> getCommandExecutors() {
-        return commandExecutors;
     }
 
     public static GeyserFabricMod getInstance() {

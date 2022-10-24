@@ -23,28 +23,42 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.fabric;
+package org.geysermc.geyser.util;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.ListTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
 
-/**
- * A class outline of the permissions.yml file
- */
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class GeyserFabricPermissions {
+import javax.annotation.Nonnull;
+import java.util.Iterator;
+
+public final class JavaCodecUtil {
 
     /**
-     * The minimum permission level a command source must have in order for it to run commands that are restricted
+     * Iterate over a Java Edition codec and return each entry as a CompoundTag
      */
-    @JsonIgnore
-    public static final int RESTRICTED_MIN_LEVEL = 2;
+    public static Iterable<CompoundTag> iterateAsTag(CompoundTag tag) {
+        ListTag value = tag.get("value");
+        Iterator<Tag> originalIterator = value.iterator();
+        return new Iterable<>() {
+            @Nonnull
+            @Override
+            public Iterator<CompoundTag> iterator() {
+                return new Iterator<>() {
+                    @Override
+                    public boolean hasNext() {
+                        return originalIterator.hasNext();
+                    }
 
-    @JsonProperty("commands")
-    private String[] commands;
+                    @Override
+                    public CompoundTag next() {
+                        return (CompoundTag) originalIterator.next();
+                    }
+                };
+            }
+        };
+    }
 
-    public String[] getCommands() {
-        return this.commands;
+    private JavaCodecUtil() {
     }
 }

@@ -16,6 +16,9 @@ dependencies {
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation(libs.fabric.api)
 
+    // This should be in the libs TOML, but something about modImplementation AND include just doesn't work
+    include(modImplementation("me.lucko", "fabric-permissions-api", "0.2-SNAPSHOT"))
+
     // PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
     // You may need to force-disable transitiveness on them.
 

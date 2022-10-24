@@ -29,6 +29,7 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.server.MinecraftServer;
@@ -39,8 +40,6 @@ import net.minecraft.world.item.WrittenBookItem;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import org.geysermc.geyser.level.GeyserWorldManager;
-import org.geysermc.geyser.platform.fabric.GeyserFabricMod;
-import org.geysermc.geyser.platform.fabric.command.GeyserFabricCommandExecutor;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;
 import org.geysermc.geyser.util.BlockEntityUtils;
@@ -124,14 +123,8 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
 
     @Override
     public boolean hasPermission(GeyserSession session, String permission) {
-        // Workaround for our commands because fabric doesn't have native permissions
-        for (GeyserFabricCommandExecutor executor : GeyserFabricMod.getInstance().getCommandExecutors()) {
-            if (executor.getCommand().permission().equals(permission)) {
-                return executor.canRun(getPlayer(session).createCommandSourceStack());
-            }
-        }
-
-        return false;
+        ServerPlayer player = getPlayer(session);
+        return Permissions.check(player, permission);
     }
 
     private ServerPlayer getPlayer(GeyserSession session) {

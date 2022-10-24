@@ -27,12 +27,12 @@ package org.geysermc.geyser.platform.fabric.command;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.commands.CommandSourceStack;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandExecutor;
 import org.geysermc.geyser.platform.fabric.GeyserFabricMod;
-import org.geysermc.geyser.platform.fabric.GeyserFabricPermissions;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -40,27 +40,15 @@ import org.geysermc.geyser.text.GeyserLocale;
 import java.util.Collections;
 
 public class GeyserFabricCommandExecutor extends GeyserCommandExecutor implements Command<CommandSourceStack> {
-
     private final GeyserCommand command;
-    /**
-     * Whether the command requires an OP permission level of 2 or greater
-     */
-    private final boolean requiresPermission;
 
-    public GeyserFabricCommandExecutor(GeyserImpl connector, GeyserCommand command, boolean requiresPermission) {
+    public GeyserFabricCommandExecutor(GeyserImpl connector, GeyserCommand command) {
         super(connector, Collections.singletonMap(command.name(), command));
         this.command = command;
-        this.requiresPermission = requiresPermission;
     }
 
-    /**
-     * Determine whether or not a command source is allowed to run a given executor.
-     *
-     * @param source The command source attempting to run the command
-     * @return True if the command source is allowed to
-     */
-    public boolean canRun(CommandSourceStack source) {
-        return !requiresPermission() || source.hasPermission(GeyserFabricPermissions.RESTRICTED_MIN_LEVEL);
+    public boolean testPermission(CommandSourceStack source) {
+        return Permissions.check(source, command.permission(), command.isSuggestedOpOnly() ? 2 : 0);
     }
 
     @Override
@@ -68,8 +56,8 @@ public class GeyserFabricCommandExecutor extends GeyserCommandExecutor implement
         CommandSourceStack source = (CommandSourceStack) context.getSource();
         FabricCommandSender sender = new FabricCommandSender(source);
         GeyserSession session = getGeyserSession(sender);
-        if (!canRun(source)) {
-            sender.sendMessage(GeyserLocale.getLocaleStringLog("geyser.bootstrap.command.permission_fail"));
+        if (!testPermission(source)) {
+            sender.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", sender.locale()));
             return 0;
         }
         if (this.command.name().equals("reload")) {
@@ -82,16 +70,5 @@ public class GeyserFabricCommandExecutor extends GeyserCommandExecutor implement
         }
         command.execute(session, sender, new String[0]);
         return 0;
-    }
-
-    public GeyserCommand getCommand() {
-        return command;
-    }
-
-    /**
-     * Returns whether the command requires permission level of {@link GeyserFabricPermissions#RESTRICTED_MIN_LEVEL} or higher to be ran
-     */
-    public boolean requiresPermission() {
-        return requiresPermission;
     }
 }
