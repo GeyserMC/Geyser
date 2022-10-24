@@ -25,26 +25,19 @@
 
 package org.geysermc.geyser.platform.fabric;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import org.geysermc.geyser.Constants;
+import org.geysermc.geyser.platform.fabric.command.FabricCommandSender;
+import org.geysermc.geyser.util.VersionCheckUtils;
 
-/**
- * A class outline of the permissions.yml file
- */
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class GeyserFabricPermissions {
+public final class GeyserFabricUpdateListener {
+    public static void onPlayReady(ServerGamePacketListenerImpl handler) {
+        if (Permissions.check(handler.player, Constants.UPDATE_PERMISSION, 2)) {
+            VersionCheckUtils.checkForGeyserUpdate(() -> new FabricCommandSender(handler.player.createCommandSourceStack()));
+        }
+    }
 
-    /**
-     * The minimum permission level a command source must have in order for it to run commands that are restricted
-     */
-    @JsonIgnore
-    public static final int RESTRICTED_MIN_LEVEL = 2;
-
-    @JsonProperty("commands")
-    private String[] commands;
-
-    public String[] getCommands() {
-        return this.commands;
+    private GeyserFabricUpdateListener() {
     }
 }

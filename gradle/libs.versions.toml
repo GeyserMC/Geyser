@@ -26,6 +26,9 @@ commodore = "2.2"
 bungeecord = "a7c6ede"
 velocity = "3.0.0"
 sponge = "8.0.0"
+fabric-minecraft = "1.19.1"
+fabric-loader = "0.14.8"
+fabric-api = "0.58.5+1.19.1"
 
 [libraries]
 jackson-annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson" }
@@ -63,9 +66,9 @@ paper-api = { group = "io.papermc.paper", name = "paper-api", version.ref = "pap
 paper-mojangapi = { group = "io.papermc.paper", name = "paper-mojangapi", version.ref = "paper" }
 
 # check these on https://modmuss50.me/fabric.html
-fabric-minecraft = { group = "com.mojang", name = "minecraft", version = "1.19.1" }
-fabric-loader = { group = "net.fabricmc", name = "fabric-loader", version = "0.14.8" }
-fabric-api = { group = "net.fabricmc.fabric-api", name = "fabric-api", version = "0.58.5+1.19.1" }
+fabric-minecraft = { group = "com.mojang", name = "minecraft", version.ref = "fabric-minecraft" }
+fabric-loader = { group = "net.fabricmc", name = "fabric-loader", version.ref = "fabric-loader" }
+fabric-api = { group = "net.fabricmc.fabric-api", name = "fabric-api", version.ref = "fabric-api" }
 
 adapters-spigot = { group = "org.geysermc.geyser.adapters", name = "spigot-all", version.ref = "adapters" }
 bungeecord-proxy = { group = "com.github.SpigotMC.BungeeCord", name = "bungeecord-proxy", version.ref = "bungeecord" }

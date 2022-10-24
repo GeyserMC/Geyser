@@ -25,12 +25,14 @@
 
 package org.geysermc.geyser.platform.fabric;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.text.ChatColor;
 
 public class GeyserFabricLogger implements GeyserLogger {
-
     private final Logger logger = LogManager.getLogger("geyser-fabric");
 
     private boolean debug;
@@ -67,6 +69,16 @@ public class GeyserFabricLogger implements GeyserLogger {
     @Override
     public void info(String message) {
         logger.info(message);
+    }
+
+    @Override
+    public void sendMessage(Component message) {
+        // As of Java Edition 1.19.2, Fabric's console doesn't natively support legacy format
+        String flattened = LegacyComponentSerializer.legacySection().serialize(message);
+        // Add the reset at the end, or else format will persist... forever.
+        // https://cdn.discordapp.com/attachments/573909525132738590/1033904509170225242/unknown.png
+        String text = ChatColor.toANSI(flattened) + ChatColor.ANSI_RESET;
+        info(text);
     }
 
     @Override
