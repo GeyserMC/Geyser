@@ -51,7 +51,7 @@ dependencies {
     implementation(libs.netty.transport.native.kqueue) { artifact { classifier = "osx-x86_64" } }
 
     // Adventure text serialization
-    implementation(libs.bundles.adventure)
+    api(libs.bundles.adventure)
 
     // Test
     testImplementation(libs.junit)
