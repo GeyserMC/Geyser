@@ -66,6 +66,13 @@ public class CustomItemRegistryPopulator {
         if (!item.customItemOptions().hasCustomItemOptions()) {
             GeyserImpl.getInstance().getLogger().error("The custom item " + item.name() + " has no registration types");
         }
+        String name = item.name();
+        if (name.isEmpty()) {
+            GeyserImpl.getInstance().getLogger().warning("Custom item name is empty?");
+        } else if (Character.isDigit(name.charAt(0))) {
+            // As of 1.19.31
+            GeyserImpl.getInstance().getLogger().warning("Custom item name (" + name + ") begins with a digit. This may cause issues!");
+        }
         return true;
     }
 

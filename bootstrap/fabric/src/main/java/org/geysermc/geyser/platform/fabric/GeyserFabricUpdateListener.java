@@ -23,39 +23,21 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.util;
+package org.geysermc.geyser.platform.fabric;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
+import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import org.geysermc.geyser.Constants;
+import org.geysermc.geyser.platform.fabric.command.FabricCommandSender;
+import org.geysermc.geyser.util.VersionCheckUtils;
 
-import javax.annotation.Nonnull;
-import java.util.Iterator;
+public final class GeyserFabricUpdateListener {
+    public static void onPlayReady(ServerGamePacketListenerImpl handler) {
+        if (Permissions.check(handler.player, Constants.UPDATE_PERMISSION, 2)) {
+            VersionCheckUtils.checkForGeyserUpdate(() -> new FabricCommandSender(handler.player.createCommandSourceStack()));
+        }
+    }
 
-public record JavaCodecEntry() {
-
-    /**
-     * Iterate over a Java Edition codec and return each entry as a CompoundTag
-     */
-    public static Iterable<CompoundTag> iterateAsTag(CompoundTag tag) {
-        ListTag value = tag.get("value");
-        Iterator<Tag> originalIterator = value.iterator();
-        return new Iterable<>() {
-            @Nonnull
-            @Override
-            public Iterator<CompoundTag> iterator() {
-                return new Iterator<>() {
-                    @Override
-                    public boolean hasNext() {
-                        return originalIterator.hasNext();
-                    }
-
-                    @Override
-                    public CompoundTag next() {
-                        return (CompoundTag) originalIterator.next();
-                    }
-                };
-            }
-        };
+    private GeyserFabricUpdateListener() {
     }
 }

@@ -26,17 +26,17 @@
 package org.geysermc.geyser.util;
 
 import com.github.steveice10.mc.protocol.data.game.statistic.StatisticFormat;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.IntFunction;
 
-public class StatisticFormatters {
+public final class StatisticFormatters {
 
-    private static final Map<StatisticFormat, IntFunction<String>> FORMATTERS = new Object2ObjectOpenHashMap<>();
+    private static final Map<StatisticFormat, IntFunction<String>> FORMATTERS = new EnumMap<>(StatisticFormat.class);
     private static final DecimalFormat FORMAT = new DecimalFormat("###,###,##0.00");
 
     public static final IntFunction<String> INTEGER = NumberFormat.getIntegerInstance(Locale.US)::format;
@@ -77,5 +77,8 @@ public class StatisticFormatters {
 
     public static IntFunction<String> get(StatisticFormat format) {
         return FORMATTERS.getOrDefault(format, INTEGER);
+    }
+
+    private StatisticFormatters() {
     }
 }

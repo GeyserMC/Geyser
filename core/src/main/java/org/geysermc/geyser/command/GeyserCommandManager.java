@@ -63,7 +63,7 @@ import java.util.Locale;
 import java.util.Map;
 
 @RequiredArgsConstructor
-public abstract class GeyserCommandManager {
+public class GeyserCommandManager {
 
     @Getter
     private final Map<String, Command> commands = new Object2ObjectOpenHashMap<>(12);
@@ -198,7 +198,9 @@ public abstract class GeyserCommandManager {
      * @param command Command to get the description for
      * @return Command description
      */
-    public abstract String description(String command);
+    public String description(String command) {
+        return "";
+    }
 
     @RequiredArgsConstructor
     public static class CommandBuilder<T extends CommandSource> implements Command.Builder<T> {

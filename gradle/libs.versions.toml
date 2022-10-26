@@ -5,7 +5,7 @@ netty = "4.1.80.Final"
 guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8
 websocket = "1.5.1"
-protocol = "2.9.12-20220926.095446-6"
+protocol = "2.9.14-20221025.193624-1"
 raknet = "1.6.28-20220125.214016-6"
 mcauthlib = "d9d773e"
 mcprotocollib = "9f78bd5"
@@ -26,6 +26,9 @@ commodore = "2.2"
 bungeecord = "a7c6ede"
 velocity = "3.0.0"
 sponge = "8.0.0"
+fabric-minecraft = "1.19.1"
+fabric-loader = "0.14.8"
+fabric-api = "0.58.5+1.19.1"
 
 [libraries]
 jackson-annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson" }
@@ -63,9 +66,9 @@ paper-api = { group = "io.papermc.paper", name = "paper-api", version.ref = "pap
 paper-mojangapi = { group = "io.papermc.paper", name = "paper-mojangapi", version.ref = "paper" }
 
 # check these on https://modmuss50.me/fabric.html
-fabric-minecraft = { group = "com.mojang", name = "minecraft", version = "1.19.1" }
-fabric-loader = { group = "net.fabricmc", name = "fabric-loader", version = "0.14.8" }
-fabric-api = { group = "net.fabricmc.fabric-api", name = "fabric-api", version = "0.58.5+1.19.1" }
+fabric-minecraft = { group = "com.mojang", name = "minecraft", version.ref = "fabric-minecraft" }
+fabric-loader = { group = "net.fabricmc", name = "fabric-loader", version.ref = "fabric-loader" }
+fabric-api = { group = "net.fabricmc.fabric-api", name = "fabric-api", version.ref = "fabric-api" }
 
 adapters-spigot = { group = "org.geysermc.geyser.adapters", name = "spigot-all", version.ref = "adapters" }
 bungeecord-proxy = { group = "com.github.SpigotMC.BungeeCord", name = "bungeecord-proxy", version.ref = "bungeecord" }
@@ -79,7 +82,7 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 mcauthlib = { group = "com.github.GeyserMC", name = "MCAuthLib", version.ref = "mcauthlib" }
 mcprotocollib = { group = "com.github.GeyserMC", name = "MCProtocolLib", version.ref = "mcprotocollib" }
 packetlib = { group = "com.github.steveice10", name = "packetlib", version.ref = "packetlib" }
-protocol = { group = "com.nukkitx.protocol", name = "bedrock-v554", version.ref = "protocol" }
+protocol = { group = "com.nukkitx.protocol", name = "bedrock-v557", version.ref = "protocol" }
 raknet = { group = "com.nukkitx.network", name = "raknet", version.ref = "raknet" }
 sponge-api = { group = "org.spongepowered", name = "spongeapi", version.ref = "sponge" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }

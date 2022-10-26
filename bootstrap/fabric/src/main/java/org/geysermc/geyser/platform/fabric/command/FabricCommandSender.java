@@ -25,12 +25,13 @@
 
 package org.geysermc.geyser.platform.fabric.command;
 
+import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.platform.fabric.GeyserFabricMod;
 import org.geysermc.geyser.text.ChatColor;
 
 import javax.annotation.Nonnull;
@@ -58,21 +59,22 @@ public class FabricCommandSender implements GeyserCommandSource {
     }
 
     @Override
+    public void sendMessage(net.kyori.adventure.text.Component message) {
+        if (source.getEntity() instanceof ServerPlayer player) {
+            String decoded = GsonComponentSerializer.gson().serialize(message);
+            player.displayClientMessage(Component.Serializer.fromJson(decoded), false);
+            return;
+        }
+        GeyserCommandSource.super.sendMessage(message);
+    }
+
+    @Override
     public boolean isConsole() {
         return !(source.getEntity() instanceof ServerPlayer);
     }
 
     @Override
-    public boolean hasPermission(String s) {
-        // Mostly copied from fabric's world manager since the method there takes a GeyserSession
-
-        // Workaround for our commands because fabric doesn't have native permissions
-        for (GeyserFabricCommandExecutor executor : GeyserFabricMod.getInstance().getCommandExecutors()) {
-            if (executor.getCommand().permission().equals(s)) {
-                return executor.canRun(source);
-            }
-        }
-
-        return false;
+    public boolean hasPermission(String permission) {
+        return Permissions.check(source, permission);
     }
 }
