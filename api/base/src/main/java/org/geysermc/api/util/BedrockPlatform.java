@@ -35,7 +35,7 @@ public enum BedrockPlatform {
     AMAZON("Amazon"),
     GEARVR("Gear VR"),
     HOLOLENS("Hololens"),
-    UWP("Windows 10"),
+    UWP("Windows"),
     WIN32("Windows x86"),
     DEDICATED("Dedicated"),
     TVOS("Apple TV"),

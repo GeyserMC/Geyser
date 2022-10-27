@@ -23,19 +23,42 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.standalone.command;
+package org.geysermc.geyser.util;
 
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.ListTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
 
-public class GeyserStandaloneCommandManager extends GeyserCommandManager {
+import javax.annotation.Nonnull;
+import java.util.Iterator;
 
-    public GeyserStandaloneCommandManager(GeyserImpl geyser) {
-        super(geyser);
+public final class JavaCodecUtil {
+
+    /**
+     * Iterate over a Java Edition codec and return each entry as a CompoundTag
+     */
+    public static Iterable<CompoundTag> iterateAsTag(CompoundTag tag) {
+        ListTag value = tag.get("value");
+        Iterator<Tag> originalIterator = value.iterator();
+        return new Iterable<>() {
+            @Nonnull
+            @Override
+            public Iterator<CompoundTag> iterator() {
+                return new Iterator<>() {
+                    @Override
+                    public boolean hasNext() {
+                        return originalIterator.hasNext();
+                    }
+
+                    @Override
+                    public CompoundTag next() {
+                        return (CompoundTag) originalIterator.next();
+                    }
+                };
+            }
+        };
     }
 
-    @Override
-    public String description(String command) {
-        return ""; // this is not sent over the protocol, so we return none
+    private JavaCodecUtil() {
     }
 }

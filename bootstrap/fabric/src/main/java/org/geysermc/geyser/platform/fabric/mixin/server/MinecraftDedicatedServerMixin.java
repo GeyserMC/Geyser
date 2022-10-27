@@ -23,19 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.velocity.command;
+package org.geysermc.geyser.platform.fabric.mixin.server;
 
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import com.mojang.datafixers.DataFixer;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.Services;
+import net.minecraft.server.WorldStem;
+import net.minecraft.server.dedicated.DedicatedServer;
+import net.minecraft.server.level.progress.ChunkProgressListenerFactory;
+import net.minecraft.server.packs.repository.PackRepository;
+import net.minecraft.world.level.storage.LevelStorageSource;
+import org.geysermc.geyser.platform.fabric.GeyserServerPortGetter;
+import org.spongepowered.asm.mixin.Mixin;
 
-public class GeyserVelocityCommandManager extends GeyserCommandManager {
+import java.net.Proxy;
 
-    public GeyserVelocityCommandManager(GeyserImpl geyser) {
-        super(geyser);
+@Mixin(DedicatedServer.class)
+public abstract class MinecraftDedicatedServerMixin extends MinecraftServer implements GeyserServerPortGetter {
+    public MinecraftDedicatedServerMixin(Thread thread, LevelStorageSource.LevelStorageAccess levelStorageAccess, PackRepository packRepository, WorldStem worldStem, Proxy proxy, DataFixer dataFixer, Services services, ChunkProgressListenerFactory chunkProgressListenerFactory) {
+        super(thread, levelStorageAccess, packRepository, worldStem, proxy, dataFixer, services, chunkProgressListenerFactory);
     }
 
     @Override
-    public String description(String command) {
-        return ""; // no support for command descriptions in velocity
+    public int geyser$getServerPort() {
+        return this.getPort();
     }
 }

@@ -23,19 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.bungeecord.command;
+package org.geysermc.geyser.platform.fabric;
 
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import net.minecraft.server.MinecraftServer;
 
-public class GeyserBungeeCommandManager extends GeyserCommandManager {
-
-    public GeyserBungeeCommandManager(GeyserImpl geyser) {
-        super(geyser);
-    }
-
-    @Override
-    public String description(String command) {
-        return ""; // no support for command descriptions in bungee
-    }
+/**
+ * Represents a getter to the server port in the dedicated server and in the integrated server.
+ */
+public interface GeyserServerPortGetter {
+    /**
+     * Returns the server port.
+     *
+     * <ul>
+     *     <li>If it's a dedicated server, it will return the server port specified in the {@code server.properties} file.</li>
+     *     <li>If it's an integrated server, it will return the LAN port if opened, else -1.</li>
+     * </ul>
+     *
+     * The reason is that {@link MinecraftServer#getPort()} doesn't return the LAN port if it's the integrated server,
+     * and changing the behavior of this method via a mixin should be avoided as it could have unexpected consequences.
+     *
+     * @return The server port.
+     */
+    int geyser$getServerPort();
 }

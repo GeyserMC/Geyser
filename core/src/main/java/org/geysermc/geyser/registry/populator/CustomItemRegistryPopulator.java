@@ -30,11 +30,11 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
+import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.components.ToolBreakSpeedsUtils;
 import org.geysermc.geyser.item.components.WearableSlot;
@@ -43,6 +43,7 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
@@ -65,6 +66,13 @@ public class CustomItemRegistryPopulator {
         if (!item.customItemOptions().hasCustomItemOptions()) {
             GeyserImpl.getInstance().getLogger().error("The custom item " + item.name() + " has no registration types");
         }
+        String name = item.name();
+        if (name.isEmpty()) {
+            GeyserImpl.getInstance().getLogger().warning("Custom item name is empty?");
+        } else if (Character.isDigit(name.charAt(0))) {
+            // As of 1.19.31
+            GeyserImpl.getInstance().getLogger().warning("Custom item name (" + name + ") begins with a digit. This may cause issues!");
+        }
         return true;
     }
 
@@ -85,7 +93,7 @@ public class CustomItemRegistryPopulator {
                 .maxDamage(customItemData.maxDamage())
                 .repairMaterials(customItemData.repairMaterials())
                 .hasSuspiciousStewEffect(false)
-                .customItemOptions(Object2IntMaps.emptyMap())
+                .customItemOptions(Collections.emptyList())
                 .build();
 
         NbtMapBuilder builder = createComponentNbt(customItemData, customItemData.identifier(), customItemId,
@@ -171,7 +179,8 @@ public class CustomItemRegistryPopulator {
         itemProperties.putBoolean("allow_off_hand", customItemData.allowOffhand());
         itemProperties.putBoolean("hand_equipped", isTool);
         itemProperties.putInt("max_stack_size", stackSize);
-        if (maxDamage > 0) {
+        // Ignore durability if the item's predicate requires that it be unbreakable
+        if (maxDamage > 0 && customItemData.customItemOptions().unbreakable() != TriState.TRUE) {
             componentBuilder.putCompound("minecraft:durability", NbtMap.builder()
                     .putCompound("damage_chance", NbtMap.builder()
                             .putInt("max", 1)

@@ -45,7 +45,7 @@ import org.geysermc.geyser.level.chunk.bitarray.BitArrayVersion;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.util.JavaCodecEntry;
+import org.geysermc.geyser.util.JavaCodecUtil;
 import org.geysermc.geyser.util.MathUtils;
 
 // Array index formula by https://wiki.vg/Chunk_Format
@@ -59,7 +59,7 @@ public class BiomeTranslator {
         ListTag serverBiomes = worldGen.get("value");
         session.setBiomeGlobalPalette(MathUtils.getGlobalPaletteForSize(serverBiomes.size()));
 
-        for (CompoundTag biomeTag : JavaCodecEntry.iterateAsTag(worldGen)) {
+        for (CompoundTag biomeTag : JavaCodecUtil.iterateAsTag(worldGen)) {
             String javaIdentifier = ((StringTag) biomeTag.get("name")).getValue();
             int bedrockId = Registries.BIOME_IDENTIFIERS.get().getOrDefault(javaIdentifier, 0);
             int javaId = ((IntTag) biomeTag.get("id")).getValue();

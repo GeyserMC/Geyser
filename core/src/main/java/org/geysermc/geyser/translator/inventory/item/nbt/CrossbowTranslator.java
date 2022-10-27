@@ -39,8 +39,8 @@ public class CrossbowTranslator extends NbtItemStackTranslator {
 
     @Override
     public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
-        if (itemTag.get("ChargedProjectiles") != null) {
-            ListTag chargedProjectiles = itemTag.get("ChargedProjectiles");
+        ListTag chargedProjectiles = itemTag.get("ChargedProjectiles");
+        if (chargedProjectiles != null) {
             if (!chargedProjectiles.getValue().isEmpty()) {
                 CompoundTag projectile = (CompoundTag) chargedProjectiles.getValue().get(0);
 

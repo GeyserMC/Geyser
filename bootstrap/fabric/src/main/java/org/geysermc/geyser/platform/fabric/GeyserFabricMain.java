@@ -23,34 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.spigot.world.manager;
+package org.geysermc.geyser.platform.fabric;
 
-import org.bukkit.plugin.Plugin;
-import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.GeyserMain;
 
-/**
- * Should only be used when we know {@link GeyserSpigotWorldManager#getBlockAt(GeyserSession, int, int, int)}
- * cannot be accurate. Typically, this is when ViaVersion is not installed but a client still manages to connect.
- * If this occurs to you somehow, please let us know!!
- */
-public class GeyserSpigotFallbackWorldManager extends GeyserSpigotWorldManager {
-    public GeyserSpigotFallbackWorldManager(Plugin plugin) {
-        super(plugin);
+public class GeyserFabricMain extends GeyserMain {
+
+    public static void main(String[] args) {
+        new GeyserFabricMain().displayMessage();
     }
 
     @Override
-    public int getBlockAt(GeyserSession session, int x, int y, int z) {
-        return BlockStateValues.JAVA_AIR_ID;
+    public String getPluginType() {
+        return "Fabric";
     }
 
     @Override
-    public boolean hasOwnChunkCache() {
-        return false;
-    }
-
-    @Override
-    public boolean isLegacy() {
-        return true;
+    public String getPluginFolder() {
+        return "mods";
     }
 }

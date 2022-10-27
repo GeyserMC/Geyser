@@ -20,7 +20,7 @@ pipeline {
             }
             post {
                 success {
-                    archiveArtifacts artifacts: 'bootstrap/**/build/libs/*.jar', excludes: 'bootstrap/**/build/libs/*-sources.jar,bootstrap/**/build/libs/*-unshaded.jar', fingerprint: true
+                    archiveArtifacts artifacts: 'bootstrap/**/build/libs/Geyser-*.jar', fingerprint: true
                 }
             }
         }
@@ -101,7 +101,6 @@ pipeline {
         success {
             script {
                 if (env.BRANCH_NAME == 'master') {
-                    build propagate: false, wait: false, job: 'GeyserMC/Geyser-Fabric/master', parameters: [booleanParam(name: 'SKIP_DISCORD', value: true)]
                     build propagate: false, wait: false, job: 'GeyserMC/GeyserConnect/master', parameters: [booleanParam(name: 'SKIP_DISCORD', value: true)]
                 }
             }
