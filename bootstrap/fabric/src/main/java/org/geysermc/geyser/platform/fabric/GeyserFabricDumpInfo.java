@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
-@SuppressWarnings("unused") // The way that the dump renders makes them used
 public class GeyserFabricDumpInfo extends BootstrapDumpInfo {
 
     private String platformVersion = null;
