@@ -427,15 +427,6 @@ public class Entity {
         setBoundingBoxWidth(definition.width());
     }
 
-    /**
-     * Since 1.19.40, the client must be re-informed of its bounding box on respawn
-     * See https://github.com/GeyserMC/Geyser/issues/3370
-     */
-    public void refreshBoundingBox() {
-        dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, boundingBoxHeight);
-        dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, boundingBoxWidth);
-    }
-
     public boolean setBoundingBoxHeight(float height) {
         if (height != boundingBoxHeight) {
             boundingBoxHeight = height;
