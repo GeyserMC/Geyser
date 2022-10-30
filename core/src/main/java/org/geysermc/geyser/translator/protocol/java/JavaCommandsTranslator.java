@@ -137,7 +137,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             // Get and update the commandArgs list with the found arguments
             if (node.getChildIndices().length >= 1) {
                 for (int childIndex : node.getChildIndices()) {
-                    commandArgs.computeIfAbsent(nodeIndex, ArrayList::new).add(nodes[childIndex]);
+                    commandArgs.computeIfAbsent(nodeIndex, ($) -> new ArrayList<>()).add(nodes[childIndex]);
                 }
             }
 

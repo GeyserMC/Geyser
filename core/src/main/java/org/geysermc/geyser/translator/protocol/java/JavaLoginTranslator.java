@@ -105,6 +105,10 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
 
             // It is now safe to send these packets
             session.getUpstream().sendPostStartGamePackets();
+        } else if (!session.isSpawned()) {
+            // Called for online mode, being presented with a GUI before logging ing
+            session.setDimensionType(dimensions.get(newDimension));
+            ChunkUtils.loadDimension(session);
         }
 
         AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();

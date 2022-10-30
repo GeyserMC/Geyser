@@ -75,6 +75,9 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 attributesPacket.setRuntimeEntityId(entity.getGeyserId());
                 attributesPacket.getAttributes().addAll(entity.getAttributes().values());
                 session.sendUpstreamPacket(attributesPacket);
+
+                // Bounding box must be sent after a player dies and respawns since 1.19.40
+                entity.updateBoundingBox();
                 break;
             case START_SWIMMING:
                 if (!entity.getFlag(EntityFlag.SWIMMING)) {

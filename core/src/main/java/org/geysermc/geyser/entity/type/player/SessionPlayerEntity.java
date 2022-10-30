@@ -120,6 +120,16 @@ public class SessionPlayerEntity extends PlayerEntity {
         refreshSpeed = true;
     }
 
+    /**
+     * Since 1.19.40, the client must be re-informed of its bounding box on respawn
+     * See https://github.com/GeyserMC/Geyser/issues/3370
+     */
+    public void updateBoundingBox() {
+        dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, getBoundingBoxHeight());
+        dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, getBoundingBoxWidth());
+        updateBedrockMetadata();
+    }
+
     @Override
     public boolean setBoundingBoxHeight(float height) {
         if (super.setBoundingBoxHeight(height)) {
