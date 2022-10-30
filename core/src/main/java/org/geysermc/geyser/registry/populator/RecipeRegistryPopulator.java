@@ -232,7 +232,7 @@ public class RecipeRegistryPopulator {
                 .definition(mapping.getBedrockDefinition())
                 .damage(damage)
                 .count(count)
-                .blockRuntimeId(mapping.isBlock() ? mapping.getBedrockBlockId() : 0)
+                .blockDefinition(mapping.getBedrockBlockDefinition())
                 .tag(tag)
                 .build();
     }

@@ -127,13 +127,13 @@ public class ItemMappings {
             return lodestoneCompass;
         }
 
-        boolean isBlock = data.getBlockRuntimeId() != 0;
+        boolean isBlock = data.getBlockDefinition() != null;
         boolean hasDamage = data.getDamage() != 0;
 
         for (ItemMapping mapping : this.items) {
             if (mapping.getBedrockDefinition().equals(definition)) {
                 if (isBlock && !hasDamage) { // Pre-1.16.220 will not use block runtime IDs at all, so we shouldn't check either
-                    if (data.getBlockRuntimeId() != mapping.getBedrockBlockId()) {
+                    if (data.getBlockDefinition() != mapping.getBedrockBlockDefinition()) {
                         continue;
                     }
                 } else {

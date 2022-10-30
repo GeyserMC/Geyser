@@ -73,18 +73,11 @@ public class BlockMappings {
         return this.javaToBedrockBlocks[state];
     }
 
-    public int getItemFrame(NbtMap tag) {
-        BlockDefinition definition = this.itemFrames.get(tag);
-        return definition == null ? -1 : definition.getRuntimeId();
+    public BlockDefinition getItemFrame(NbtMap tag) {
+        return this.itemFrames.get(tag);
     }
 
-    public boolean isItemFrame(int bedrockBlockRuntimeId) {
-        for (Map.Entry<NbtMap, BlockDefinition> entry : this.itemFrames.entrySet()) {
-            if (entry.getValue().getRuntimeId() == bedrockBlockRuntimeId) {
-                return true;
-            }
-        }
-
-        return false;
+    public boolean isItemFrame(BlockDefinition definition) {
+        return this.itemFrames.containsKey(definition.getState());
     }
 }

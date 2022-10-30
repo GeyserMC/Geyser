@@ -26,13 +26,11 @@
 package org.geysermc.geyser.registry.populator;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
-import com.nukkitx.nbt.NbtUtils;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -45,7 +43,6 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.codec.v527.Bedrock_v527;
 import org.cloudburstmc.protocol.bedrock.codec.v534.Bedrock_v534;
 import org.cloudburstmc.protocol.bedrock.codec.v544.Bedrock_v544;
@@ -60,10 +57,8 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
-import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
-import org.geysermc.geyser.item.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -75,24 +70,22 @@ import org.geysermc.geyser.registry.type.PaletteItem;
 import org.geysermc.geyser.util.ItemUtils;
 import org.geysermc.geyser.util.collection.FixedInt2IntMap;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Populates the item registries.
  */
 public class ItemRegistryPopulator {
 
-    private record PaletteVersion(int protocolVersion, Map<String, String> additionalTranslatedItems) {
+    record PaletteVersion(int protocolVersion, Map<String, String> additionalTranslatedItems) {
     }
 
     public static void populate() {
@@ -120,48 +113,10 @@ public class ItemRegistryPopulator {
         // (as of 1.19.2 Java) to replicate some edge cases in Java predicate behavior where it checks from the bottom
         // of the list first, then ascends.
         Multimap<String, CustomItemData> customItems = MultimapBuilder.hashKeys().arrayListValues().build();
-        List<NonVanillaCustomItemData> nonVanillaCustomItems;
+        List<NonVanillaCustomItemData> nonVanillaCustomItems = customItemsAllowed ? new ObjectArrayList<>() : Collections.emptyList();
 
-        MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
         if (customItemsAllowed) {
-            // Load custom items from mappings files
-            mappingsConfigReader.loadMappingsFromJson((key, item) -> {
-                if (CustomItemRegistryPopulator.initialCheck(key, item, items)) {
-                    customItems.get(key).add(item);
-                }
-            });
-
-            nonVanillaCustomItems = new ObjectArrayList<>();
-            GeyserImpl.getInstance().eventBus().fire(new GeyserDefineCustomItemsEventImpl(customItems, nonVanillaCustomItems) {
-                @Override
-                public boolean register(@NonNull String identifier, @NonNull CustomItemData customItemData) {
-                    if (CustomItemRegistryPopulator.initialCheck(identifier, customItemData, items)) {
-                        customItems.get(identifier).add(customItemData);
-                        return true;
-                    }
-                    return false;
-                }
-
-                @Override
-                public boolean register(@NonNull NonVanillaCustomItemData customItemData) {
-                    if (customItemData.identifier().startsWith("minecraft:")) {
-                        GeyserImpl.getInstance().getLogger().error("The custom item " + customItemData.identifier() +
-                                " is attempting to masquerade as a vanilla Minecraft item!");
-                        return false;
-                    }
-
-                    if (customItemData.javaId() < items.size()) {
-                        // Attempting to overwrite an item that already exists in the protocol
-                        GeyserImpl.getInstance().getLogger().error("The custom item " + customItemData.identifier() +
-                                " is attempting to overwrite a vanilla Minecraft item!");
-                        return false;
-                    }
-                    nonVanillaCustomItems.add(customItemData);
-                    return true;
-                }
-            });
-        } else {
-            nonVanillaCustomItems = Collections.emptyList();
+            CustomItemRegistryPopulator.populate(items, customItems, nonVanillaCustomItems);
         }
 
         int customItemCount = customItems.size() + nonVanillaCustomItems.size();
@@ -209,15 +164,6 @@ public class ItemRegistryPopulator {
             Object2IntMap<String> bedrockBlockIdOverrides = new Object2IntOpenHashMap<>();
             Object2IntMap<String> blacklistedIdentifiers = new Object2IntOpenHashMap<>();
 
-            // Load creative items
-            // We load this before item mappings to get overridden block runtime ID mappings
-            JsonNode creativeItemEntries;
-            try (InputStream stream = bootstrap.getResource(String.format("bedrock/creative_items.%s.json", palette.getKey()))) {
-                creativeItemEntries = GeyserImpl.JSON_MAPPER.readTree(stream).get("items");
-            } catch (Exception e) {
-                throw new AssertionError("Unable to load creative items", e);
-            }
-
             List<ItemDefinition> boats = new ObjectArrayList<>();
             List<ItemDefinition> buckets = new ObjectArrayList<>();
             List<ItemDefinition> spawnEggs = new ObjectArrayList<>();
@@ -225,74 +171,31 @@ public class ItemRegistryPopulator {
 
             List<ItemMapping> mappings = new ObjectArrayList<>();
             // Temporary mapping to create stored items
-            Map<String, ItemMapping> identifierToMapping = new Object2ObjectOpenHashMap<>();
+            Map<String, ItemMapping> javaIdentifierToMapping = new Object2ObjectOpenHashMap<>();
 
-            int netId = 1;
             List<ItemData> creativeItems = new ArrayList<>();
-            for (JsonNode itemNode : creativeItemEntries) {
-                int count = 1;
-                int damage = 0;
-                int blockRuntimeId = 0;
-                NbtMap tag = null;
-                JsonNode damageNode = itemNode.get("damage");
-                if (damageNode != null) {
-                    damage = damageNode.asInt();
-                }
-                JsonNode countNode = itemNode.get("count");
-                if (countNode != null) {
-                    count = countNode.asInt();
-                }
-                JsonNode blockRuntimeIdNode = itemNode.get("blockRuntimeId");
-                if (blockRuntimeIdNode != null) {
-                    blockRuntimeId = blockRuntimeIdNode.asInt();
-                }
-                JsonNode nbtNode = itemNode.get("nbt_b64");
-                if (nbtNode != null) {
-                    byte[] bytes = Base64.getDecoder().decode(nbtNode.asText());
-                    ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-                    try {
-                        tag = (NbtMap) NbtUtils.createReaderLE(bais).readTag();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
 
-                String identifier = itemNode.get("id").textValue();
-                if (identifier.equals("minecraft:debug_stick")) {
-                    // Just shows an empty texture; either way it doesn't exist in the creative menu on Java
-                    continue;
-                } else if (identifier.equals("minecraft:empty_map") && damage == 2) {
-                    // Bedrock-only as its own item
-                    continue;
-                } else if (identifier.equals("minecraft:bordure_indented_banner_pattern") || identifier.equals("minecraft:field_masoned_banner_pattern")) {
-                    // Bedrock-only banner patterns
-                    continue;
-                }
+            AtomicInteger creativeNetId = new AtomicInteger();
+            CreativeItemRegistryPopulator.populate(palette, definitions, itemBuilder -> {
+                ItemData item = itemBuilder.netId(creativeNetId.getAndIncrement()).build();
+                creativeItems.add(item);
 
-                ItemDefinition definition = definitions.get(identifier);
-                creativeItems.add(ItemData.builder()
-                        .definition(definition)
-                        .damage(damage)
-                        .count(count)
-                        .blockRuntimeId(blockRuntimeId)
-                        .tag(tag)
-                        .netId(netId++)
-                        .build());
+                if (item.getBlockDefinition() != null) {
+                    String identifier = item.getDefinition().getIdentifier();
 
-                if (blockRuntimeId != 0) {
                     // Add override for item mapping, unless it already exists... then we know multiple states can exist
                     if (!blacklistedIdentifiers.containsKey(identifier)) {
                         if (bedrockBlockIdOverrides.containsKey(identifier)) {
                             bedrockBlockIdOverrides.removeInt(identifier);
                             // Save this as a blacklist, but also as knowledge of what the block state name should be
-                            blacklistedIdentifiers.put(identifier, blockRuntimeId);
+                            blacklistedIdentifiers.put(identifier, item.getBlockDefinition().getRuntimeId());
                         } else {
                             // Unless there's multiple possibilities for this one state, let this be
-                            bedrockBlockIdOverrides.put(identifier, blockRuntimeId);
+                            bedrockBlockIdOverrides.put(identifier, item.getBlockDefinition().getRuntimeId());
                         }
                     }
                 }
-            }
+            });
 
             BlockMappings blockMappings = BlockRegistries.BLOCKS.forVersion(palette.getValue().protocolVersion());
 
@@ -435,7 +338,7 @@ public class ItemRegistryPopulator {
                                         break;
                                     }
 
-                                    NbtMap states = blockMappings.getBedrockBlockPalette().get(itemData.getBlockRuntimeId()).getCompound("states");
+                                    NbtMap states = blockMappings.getBedrockBlockPalette().get(itemData.getBlockDefinition().getRuntimeId()).getCompound("states");
                                     boolean valid = true;
                                     for (Map.Entry<String, Object> nbtEntry : requiredBlockStates.entrySet()) {
                                         if (!states.get(nbtEntry.getKey()).equals(nbtEntry.getValue())) {
@@ -445,7 +348,7 @@ public class ItemRegistryPopulator {
                                         }
                                     }
                                     if (valid) {
-                                        creativeItems.set(j, itemData.toBuilder().blockRuntimeId(bedrockBlockId).build());
+                                        creativeItems.set(j, itemData.toBuilder().blockDefinition(blockMappings.getBedrockBlock(bedrockBlockId)).build());
                                         break;
                                     }
                                 }
@@ -460,7 +363,7 @@ public class ItemRegistryPopulator {
                         .bedrockIdentifier(bedrockIdentifier.intern())
                         .bedrockDefinition(definition)
                         .bedrockData(mappingItem.getBedrockData())
-                        .bedrockBlockId(bedrockBlockId)
+                        .bedrockBlockDefinition(blockMappings.getBedrockBlock(bedrockBlockId))
                         .stackSize(stackSize)
                         .maxDamage(mappingItem.getMaxDamage())
                         .hasSuspiciousStewEffect(mappingItem.isHasSuspiciousStewEffect());
@@ -534,7 +437,7 @@ public class ItemRegistryPopulator {
                             .definition(definition)
                             .damage(mapping.getBedrockData())
                             .count(1)
-                            .blockRuntimeId(mapping.getBedrockBlockId())
+                            .blockDefinition(mapping.getBedrockBlockDefinition())
                             .build());
                 } else if (javaIdentifier.startsWith("minecraft:music_disc_")) {
                     // The Java record level event uses the item ID as the "key" to play the record
@@ -545,7 +448,7 @@ public class ItemRegistryPopulator {
                 }
 
                 mappings.add(mapping);
-                identifierToMapping.put(javaIdentifier, mapping);
+                javaIdentifierToMapping.put(javaIdentifier, mapping);
 
                 itemNames.add(javaIdentifier);
 
@@ -570,16 +473,14 @@ public class ItemRegistryPopulator {
                     .javaId(-1)
                     .bedrockDefinition(lodestoneCompass)
                     .bedrockData(0)
-                    .bedrockBlockId(-1)
+                    .bedrockBlockDefinition(null)
                     .stackSize(1)
                     .customItemOptions(Collections.emptyList())
                     .build();
 
             if (customItemsAllowed) {
-                // Add the furnace minecart as a custom item
-                int furnaceMinecartId = nextFreeBedrockId++;
-
-                ItemDefinition definition = new ItemDefinition("geysermc:furnace_minecart", (short) furnaceMinecartId, true);
+                // Add furnace minecart
+                ItemDefinition definition = new ItemDefinition("geysermc:furnace_minecart", nextFreeBedrockId, true);
                 definitions.put("geysermc:furnace_minecart", definition);
                 registry.add(definition);
 
@@ -589,49 +490,18 @@ public class ItemRegistryPopulator {
                         .javaId(javaFurnaceMinecartId)
                         .bedrockDefinition(definition)
                         .bedrockData(0)
-                        .bedrockBlockId(-1)
+                        .bedrockBlockDefinition(null)
                         .stackSize(1)
                         .customItemOptions(Collections.emptyList()) // TODO check for custom items with furnace minecart
                         .build());
 
                 creativeItems.add(ItemData.builder()
-                        .netId(netId++)
+                        .netId(creativeNetId.getAndIncrement())
                         .definition(definition)
-                        .count(1).build());
-
-                NbtMapBuilder builder = NbtMap.builder();
-                builder.putString("name", "geysermc:furnace_minecart")
-                        .putInt("id", furnaceMinecartId);
-
-                NbtMapBuilder itemProperties = NbtMap.builder();
-
-                NbtMapBuilder componentBuilder = NbtMap.builder();
-                // Conveniently, as of 1.16.200, the furnace minecart has a texture AND translation string already.
-                itemProperties.putCompound("minecraft:icon", NbtMap.builder()
-                        .putString("texture", "minecart_furnace")
-                        .putString("frame", "0.000000")
-                        .putInt("frame_version", 1)
-                        .putString("legacy_id", "").build());
-                componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", "item.minecartFurnace.name").build());
-
-                // Indicate that the arm animation should play on rails
-                List<NbtMap> useOnTag = Collections.singletonList(NbtMap.builder().putString("tags", "q.any_tag('rail')").build());
-                componentBuilder.putCompound("minecraft:entity_placer", NbtMap.builder()
-                        .putList("dispense_on", NbtType.COMPOUND, useOnTag)
-                        .putString("entity", "minecraft:minecart")
-                        .putList("use_on", NbtType.COMPOUND, useOnTag)
+                        .count(1)
                         .build());
 
-                // We always want to allow offhand usage when we can - matches Java Edition
-                itemProperties.putBoolean("allow_off_hand", true);
-                itemProperties.putBoolean("hand_equipped", false);
-                itemProperties.putInt("max_stack_size", 1);
-                itemProperties.putString("creative_group", "itemGroup.name.minecart");
-                itemProperties.putInt("creative_category", 4); // 4 - "Items"
-
-                componentBuilder.putCompound("item_properties", itemProperties.build());
-                builder.putCompound("components", componentBuilder.build());
-                componentItemData.add(new ComponentItemData("geysermc:furnace_minecart", builder.build()));
+                registerFurnaceMinecart(nextFreeBedrockId++, componentItemData);
 
                 // Register any completely custom items given to us
                 IntSet registeredJavaIds = new IntOpenHashSet(); // Used to check for duplicate item java ids
@@ -657,8 +527,9 @@ public class ItemRegistryPopulator {
                     if (customItem.creativeGroup() != null || customItem.creativeCategory().isPresent()) {
                         creativeItems.add(ItemData.builder()
                                 .definition(registration.mapping().getBedrockDefinition())
-                                .netId(netId++)
-                                .count(1).build());
+                                .netId(creativeNetId.getAndIncrement())
+                                .count(1)
+                                .build());
                     }
                 }
             }
@@ -669,7 +540,7 @@ public class ItemRegistryPopulator {
                     .definitionRegistry(registry.build())
                     .itemDefinitions(List.copyOf(definitions.values()))
                     .itemNames(itemNames.toArray(new String[0]))
-                    .storedItems(new StoredItemMappings(identifierToMapping))
+                    .storedItems(new StoredItemMappings(javaIdentifierToMapping))
                     .javaOnlyItems(javaOnlyItems)
                     .buckets(buckets)
                     .boats(boats)
@@ -686,5 +557,41 @@ public class ItemRegistryPopulator {
         }
 
         ItemUtils.setDyeColors(dyeColors);
+    }
+
+    private static void registerFurnaceMinecart(int nextFreeBedrockId, List<ComponentItemData> componentItemData) {
+        NbtMapBuilder builder = NbtMap.builder();
+        builder.putString("name", "geysermc:furnace_minecart")
+                .putInt("id", nextFreeBedrockId);
+
+        NbtMapBuilder itemProperties = NbtMap.builder();
+
+        NbtMapBuilder componentBuilder = NbtMap.builder();
+        // Conveniently, as of 1.16.200, the furnace minecart has a texture AND translation string already.
+        itemProperties.putCompound("minecraft:icon", NbtMap.builder()
+                .putString("texture", "minecart_furnace")
+                .putString("frame", "0.000000")
+                .putInt("frame_version", 1)
+                .putString("legacy_id", "").build());
+        componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", "item.minecartFurnace.name").build());
+
+        // Indicate that the arm animation should play on rails
+        List<NbtMap> useOnTag = Collections.singletonList(NbtMap.builder().putString("tags", "q.any_tag('rail')").build());
+        componentBuilder.putCompound("minecraft:entity_placer", NbtMap.builder()
+                .putList("dispense_on", NbtType.COMPOUND, useOnTag)
+                .putString("entity", "minecraft:minecart")
+                .putList("use_on", NbtType.COMPOUND, useOnTag)
+                .build());
+
+        // We always want to allow offhand usage when we can - matches Java Edition
+        itemProperties.putBoolean("allow_off_hand", true);
+        itemProperties.putBoolean("hand_equipped", false);
+        itemProperties.putInt("max_stack_size", 1);
+        itemProperties.putString("creative_group", "itemGroup.name.minecart");
+        itemProperties.putInt("creative_category", 4); // 4 - "Items"
+
+        componentBuilder.putCompound("item_properties", itemProperties.build());
+        builder.putCompound("components", componentBuilder.build());
+        componentItemData.add(new ComponentItemData("geysermc:furnace_minecart", builder.build()));
     }
 }

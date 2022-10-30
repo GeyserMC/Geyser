@@ -25,20 +25,24 @@
 
 package org.geysermc.geyser.registry.populator;
 
+import com.google.common.collect.Multimap;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
-import org.cloudburstmc.protocol.bedrock.packet.StartGamePacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.util.TriState;
+import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.components.ToolBreakSpeedsUtils;
 import org.geysermc.geyser.item.components.WearableSlot;
+import org.geysermc.geyser.item.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
@@ -50,6 +54,51 @@ import java.util.Map;
 import java.util.OptionalInt;
 
 public class CustomItemRegistryPopulator {
+    public static void populate(Map<String, GeyserMappingItem> items, Multimap<String, CustomItemData> customItems, List<NonVanillaCustomItemData> nonVanillaCustomItems) {
+        MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
+        // Load custom items from mappings files
+        mappingsConfigReader.loadMappingsFromJson((key, item) -> {
+            if (CustomItemRegistryPopulator.initialCheck(key, item, items)) {
+                customItems.get(key).add(item);
+            }
+        });
+
+        GeyserImpl.getInstance().eventBus().fire(new GeyserDefineCustomItemsEventImpl(customItems, nonVanillaCustomItems) {
+            @Override
+            public boolean register(@NonNull String identifier, @NonNull CustomItemData customItemData) {
+                if (CustomItemRegistryPopulator.initialCheck(identifier, customItemData, items)) {
+                    customItems.get(identifier).add(customItemData);
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            public boolean register(@NonNull NonVanillaCustomItemData customItemData) {
+                if (customItemData.identifier().startsWith("minecraft:")) {
+                    GeyserImpl.getInstance().getLogger().error("The custom item " + customItemData.identifier() +
+                            " is attempting to masquerade as a vanilla Minecraft item!");
+                    return false;
+                }
+
+                if (customItemData.javaId() < items.size()) {
+                    // Attempting to overwrite an item that already exists in the protocol
+                    GeyserImpl.getInstance().getLogger().error("The custom item " + customItemData.identifier() +
+                            " is attempting to overwrite a vanilla Minecraft item!");
+                    return false;
+                }
+
+                nonVanillaCustomItems.add(customItemData);
+                return true;
+            }
+        });
+
+        int customItemCount = customItems.size() + nonVanillaCustomItems.size();
+        if (customItemCount > 0) {
+            GeyserImpl.getInstance().getLogger().info("Registered " + customItemCount + " custom items");
+        }
+    }
+
     public static GeyserCustomMappingData registerCustomItem(String customItemName, GeyserMappingItem javaItem, CustomItemData customItemData, int bedrockId) {
         ItemDefinition itemDefinition = new ItemDefinition(customItemName, bedrockId, true);
 
@@ -86,7 +135,7 @@ public class CustomItemRegistryPopulator {
                 .javaId(customItemData.javaId())
                 .bedrockDefinition(new ItemDefinition(customIdentifier, customItemId, true))
                 .bedrockData(0)
-                .bedrockBlockId(0)
+                .bedrockBlockDefinition(null)
                 .stackSize(customItemData.stackSize())
                 .toolType(customItemData.toolType())
                 .toolTier(customItemData.toolTier())

@@ -27,6 +27,7 @@ package org.geysermc.geyser.util;
 
 import org.cloudburstmc.math.vector.Vector2i;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
 import org.cloudburstmc.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
@@ -133,12 +134,12 @@ public class ChunkUtils {
         // Prevent moving_piston from being placed
         // It's used for extending piston heads, but it isn't needed on Bedrock and causes pistons to flicker
         if (!BlockStateValues.isMovingPiston(blockState)) {
-            int blockId = session.getBlockMappings().getBedrockBlockId(blockState);
+            BlockDefinition definition = session.getBlockMappings().getBedrockBlock(blockState);
 
             UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
             updateBlockPacket.setDataLayer(0);
             updateBlockPacket.setBlockPosition(position);
-            updateBlockPacket.setRuntimeId(blockId);
+            updateBlockPacket.setDefinition(definition);
             updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
             updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
             session.sendUpstreamPacket(updateBlockPacket);
@@ -147,9 +148,9 @@ public class ChunkUtils {
             waterPacket.setDataLayer(1);
             waterPacket.setBlockPosition(position);
             if (BlockRegistries.WATERLOGGED.get().contains(blockState)) {
-                waterPacket.setRuntimeId(session.getBlockMappings().getBedrockWater().getRuntimeId());
+                waterPacket.setDefinition(session.getBlockMappings().getBedrockWater());
             } else {
-                waterPacket.setRuntimeId(session.getBlockMappings().getBedrockAir().getRuntimeId());
+                waterPacket.setDefinition(session.getBlockMappings().getBedrockAir());
             }
             session.sendUpstreamPacket(waterPacket);
         }
@@ -197,7 +198,7 @@ public class ChunkUtils {
             UpdateBlockPacket blockPacket = new UpdateBlockPacket();
             blockPacket.setBlockPosition(pos);
             blockPacket.setDataLayer(0);
-            blockPacket.setRuntimeId(1);
+            blockPacket.setDefinition(session.getBlockMappings().getBedrockBlock(1));
             session.sendUpstreamPacket(blockPacket);
         }
     }

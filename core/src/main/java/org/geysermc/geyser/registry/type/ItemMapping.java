@@ -26,11 +26,11 @@
 package org.geysermc.geyser.registry.type;
 
 import it.unimi.dsi.fastutil.Pair;
-import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 
@@ -48,7 +48,7 @@ public class ItemMapping {
             0,
             ItemDefinition.AIR,
             0,
-            0, // Air is never sent in full over the network for this to serialize.
+            null, // Air is never sent in full over the network for this to serialize.
             64,
             null,
             null,
@@ -69,7 +69,7 @@ public class ItemMapping {
      * The Bedrock block runtime ID to render this item with. The specific state *does* matter in how this item is rendered and used as a crafting ingredient.
      * Required since 1.16.220.
      */
-    int bedrockBlockId;
+    BlockDefinition bedrockBlockDefinition;
     int stackSize;
 
     String toolType;
@@ -92,7 +92,7 @@ public class ItemMapping {
      * @return if this item is a block
      */
     public boolean isBlock() {
-        return this.bedrockBlockId != -1;
+        return this.bedrockBlockDefinition != null;
     }
 
     /**
