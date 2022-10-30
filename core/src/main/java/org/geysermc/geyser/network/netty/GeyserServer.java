@@ -64,7 +64,7 @@ public final class GeyserServer {
 
     private ServerBootstrap createBootstrap(EventLoopGroup group) {
         return new ServerBootstrap()
-                .channelFactory(RakChannelFactory.server(NioDatagramChannel.class))
+                .channelFactory(RakChannelFactory.server(EventLoops.getChannelType().getDatagramChannel()))
                 .option(RakChannelOption.RAK_ADVERTISEMENT, bedrockPong().toByteBuf())
                 .group(group)
                 .childHandler(new GeyserServerInitializer(this.geyser));
