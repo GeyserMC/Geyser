@@ -25,14 +25,16 @@
 
 package org.geysermc.geyser.session;
 
-import com.nukkitx.protocol.bedrock.BedrockPacket;
-import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
+import org.cloudburstmc.protocol.bedrock.codec.BedrockCodecHelper;
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
@@ -79,11 +81,12 @@ public class UpstreamSession {
     }
 
     public boolean isClosed() {
-        return session.isClosed();
+        return !session.getPeer().isConnected() && !session.getPeer().isConnecting();
     }
 
     public InetSocketAddress getAddress() {
-        return session.getRealAddress();
+        // Will always be an InetSocketAddress. See ProxyChannel#remoteAddress
+        return (InetSocketAddress) session.getSocketAddress();
     }
 
     /**
@@ -92,6 +95,15 @@ public class UpstreamSession {
      * @return the session's protocol version.
      */
     public int getProtocolVersion() {
-        return this.session.getPacketCodec().getProtocolVersion();
+        return this.session.getCodec().getProtocolVersion();
+    }
+
+    /**
+     * Gets the codec helper for this session.
+     *
+     * @return the codec helper for this session
+     */
+    public BedrockCodecHelper getCodecHelper() {
+        return this.session.getPeer().getCodecHelper();
     }
 }

@@ -26,10 +26,10 @@
 package org.geysermc.geyser.scoreboard;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
-import com.nukkitx.protocol.bedrock.data.ScoreInfo;
-import com.nukkitx.protocol.bedrock.packet.RemoveObjectivePacket;
-import com.nukkitx.protocol.bedrock.packet.SetDisplayObjectivePacket;
-import com.nukkitx.protocol.bedrock.packet.SetScorePacket;
+import org.cloudburstmc.protocol.bedrock.data.ScoreInfo;
+import org.cloudburstmc.protocol.bedrock.packet.RemoveObjectivePacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetDisplayObjectivePacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetScorePacket;
 import lombok.Getter;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;

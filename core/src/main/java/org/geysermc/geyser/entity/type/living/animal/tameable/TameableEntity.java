@@ -27,9 +27,9 @@ package org.geysermc.geyser.entity.type.living.animal.tameable;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import lombok.Getter;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.Entity;
@@ -80,7 +80,7 @@ public class TameableEntity extends AnimalEntity {
             // Reset
             ownerBedrockId = 0L;
         }
-        dirtyMetadata.put(EntityData.OWNER_EID, ownerBedrockId);
+        dirtyMetadata.put(EntityDataTypes.OWNER_EID, ownerBedrockId);
     }
 
     @Override

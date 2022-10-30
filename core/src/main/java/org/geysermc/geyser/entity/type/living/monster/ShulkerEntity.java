@@ -28,9 +28,9 @@ package org.geysermc.geyser.entity.type.living.monster;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.living.GolemEntity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -47,22 +47,22 @@ public class ShulkerEntity extends GolemEntity {
 
     public void setAttachedFace(EntityMetadata<Direction, ?> entityMetadata) {
         Direction direction = entityMetadata.getValue();
-        dirtyMetadata.put(EntityData.SHULKER_ATTACH_FACE, (byte) direction.ordinal());
+        dirtyMetadata.put(EntityDataTypes.SHULKER_ATTACH_FACE, (byte) direction.ordinal());
     }
 
     public void setShulkerHeight(ByteEntityMetadata entityMetadata) {
         int height = entityMetadata.getPrimitiveValue();
-        dirtyMetadata.put(EntityData.SHULKER_PEEK_ID, height);
+        dirtyMetadata.put(EntityDataTypes.SHULKER_PEEK_ID, height);
     }
 
     public void setShulkerColor(ByteEntityMetadata entityMetadata) {
         byte color = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
         if (color == 16) {
             // 16 is default on both editions
-            dirtyMetadata.put(EntityData.VARIANT, 16);
+            dirtyMetadata.put(EntityDataTypes.VARIANT, 16);
         } else {
             // Every other shulker color is offset 15 in bedrock edition
-            dirtyMetadata.put(EntityData.VARIANT, Math.abs(color - 15));
+            dirtyMetadata.put(EntityDataTypes.VARIANT, Math.abs(color - 15));
         }
     }
 

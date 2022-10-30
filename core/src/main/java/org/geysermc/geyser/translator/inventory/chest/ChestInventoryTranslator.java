@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.translator.inventory.chest;
 
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.updater.ChestInventoryUpdater;

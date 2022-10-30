@@ -23,24 +23,42 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.type.living.monster;
+package org.geysermc.geyser.session;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
-import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.session.GeyserSession;
+import com.github.steveice10.mc.protocol.codec.MinecraftCodecHelper;
+import com.github.steveice10.packetlib.packet.Packet;
+import com.github.steveice10.packetlib.tcp.TcpSession;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.util.UUID;
+@Getter
+@RequiredArgsConstructor
+public class DownstreamSession {
+    private final TcpSession session;
 
-public class SpiderEntity extends MonsterEntity {
-
-    public SpiderEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public void sendPacket(@NonNull Packet packet) {
+        this.session.send(packet);
     }
 
-    public void setSpiderFlags(ByteEntityMetadata entityMetadata) {
-        byte xd = entityMetadata.getPrimitiveValue();
-        setFlag(EntityFlag.WALL_CLIMBING, (xd & 0x01) == 0x01);
+    public void disconnect(String reason) {
+        this.session.disconnect(reason);
+    }
+
+    public void disconnect(String reason, Throwable throwable) {
+        this.session.disconnect(reason, throwable);
+    }
+
+    public boolean isClosed() {
+        return !this.session.isConnected();
+    }
+
+    /**
+     * Gets the codec helper for this session.
+     *
+     * @return the codec helper for this session
+     */
+    public MinecraftCodecHelper getCodecHelper() {
+        return (MinecraftCodecHelper) this.session.getCodecHelper();
     }
 }

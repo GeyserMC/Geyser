@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.protocol.java;
 
 import com.github.steveice10.mc.protocol.data.game.advancement.Advancement;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateAdvancementsPacket;
-import com.nukkitx.protocol.bedrock.packet.ToastRequestPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ToastRequestPacket;
 import org.geysermc.geyser.level.GeyserAdvancement;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.AdvancementsCache;

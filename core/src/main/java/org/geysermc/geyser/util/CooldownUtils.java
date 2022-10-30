@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.util;
 
-import com.nukkitx.protocol.bedrock.packet.SetTitlePacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
 import lombok.Getter;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.PreferencesCache;

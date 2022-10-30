@@ -26,13 +26,13 @@
 package org.geysermc.geyser.translator.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemStackRequest;
-import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.CraftRecipeOptionalStackRequestActionData;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionData;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionType;
-import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemStackRequest;
+import org.cloudburstmc.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.CraftRecipeOptionalStackRequestActionData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionType;
+import org.cloudburstmc.protocol.bedrock.packet.ItemStackResponsePacket;
 import org.geysermc.geyser.inventory.AnvilContainer;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.Inventory;
@@ -44,7 +44,7 @@ import java.util.Objects;
 
 public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator {
     public AnvilInventoryTranslator() {
-        super(3, "minecraft:anvil[facing=north]", com.nukkitx.protocol.bedrock.data.inventory.ContainerType.ANVIL, AnvilInventoryUpdater.INSTANCE,
+        super(3, "minecraft:anvil[facing=north]", org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.ANVIL, AnvilInventoryUpdater.INSTANCE,
                 "minecraft:chipped_anvil", "minecraft:damaged_anvil");
     }
 

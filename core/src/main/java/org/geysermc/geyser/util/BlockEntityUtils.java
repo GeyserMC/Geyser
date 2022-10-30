@@ -26,9 +26,9 @@
 package org.geysermc.geyser.util;
 
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
-import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
+import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.block.entity.BedrockOnlyBlockEntity;

@@ -33,14 +33,14 @@ import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
-import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
-import com.nukkitx.protocol.bedrock.data.inventory.PotionMixData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.CraftingData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.PotionMixData;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.item.Enchantment.JavaEnchantment;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
@@ -148,10 +148,10 @@ public final class Registries {
     public static final VersionedRegistry<Int2ObjectMap<GeyserRecipe>> RECIPES = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
     /**
-     * A mapped registry holding the available records, with the ID of the record being the key, and the {@link com.nukkitx.protocol.bedrock.data.SoundEvent}
+     * A mapped registry holding the available records, with the ID of the record being the key, and the {@link org.cloudburstmc.protocol.bedrock.data.SoundEvent}
      * as the value.
      */
-    public static final IntMappedRegistry<com.nukkitx.protocol.bedrock.data.SoundEvent> RECORDS = IntMappedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
+    public static final IntMappedRegistry<org.cloudburstmc.protocol.bedrock.data.SoundEvent> RECORDS = IntMappedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
     /**
      * A mapped registry holding sound identifiers to their corresponding {@link SoundMapping}.

@@ -27,9 +27,9 @@ package org.geysermc.geyser.entity.type.living.animal;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -43,7 +43,7 @@ public class FoxEntity extends AnimalEntity {
     }
 
     public void setFoxVariant(IntEntityMetadata entityMetadata) {
-        dirtyMetadata.put(EntityData.VARIANT, entityMetadata.getPrimitiveValue());
+        dirtyMetadata.put(EntityDataTypes.VARIANT, entityMetadata.getPrimitiveValue());
     }
 
     public void setFoxFlags(ByteEntityMetadata entityMetadata) {

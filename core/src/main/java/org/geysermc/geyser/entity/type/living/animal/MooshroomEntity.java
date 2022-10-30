@@ -27,8 +27,8 @@ package org.geysermc.geyser.entity.type.living.animal;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
@@ -48,7 +48,7 @@ public class MooshroomEntity extends AnimalEntity {
 
     public void setVariant(ObjectEntityMetadata<String> entityMetadata) {
         isBrown = entityMetadata.getValue().equals("brown");
-        dirtyMetadata.put(EntityData.VARIANT, isBrown ? 1 : 0);
+        dirtyMetadata.put(EntityDataTypes.VARIANT, isBrown ? 1 : 0);
     }
 
     @Nonnull

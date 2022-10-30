@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.protocol.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.nukkitx.protocol.bedrock.packet.EntityPickRequestPacket;
+import org.cloudburstmc.protocol.bedrock.packet.EntityPickRequestPacket;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.registry.type.ItemMapping;

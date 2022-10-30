@@ -31,41 +31,57 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.Builder;
 import lombok.Value;
+import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
 
 import java.util.Map;
+import java.util.Set;
 
 @Builder
 @Value
 public class BlockMappings {
-    int bedrockAirId;
-    int bedrockWaterId;
-    int bedrockMovingBlockId;
+    BlockDefinition bedrockAir;
+    BlockDefinition bedrockWater;
+    BlockDefinition bedrockMovingBlock;
 
     int blockStateVersion;
 
-    int[] javaToBedrockBlocks;
+    BlockDefinition[] javaToBedrockBlocks;
 
-    NbtList<NbtMap> bedrockBlockStates;
+    NbtList<NbtMap> bedrockBlockPalette;
 
-    int commandBlockRuntimeId;
+    BlockDefinition commandBlock;
 
-    Object2IntMap<NbtMap> itemFrames;
+    Map<NbtMap, BlockDefinition> itemFrames;
     Map<String, NbtMap> flowerPotBlocks;
 
-    IntSet jigsawStateIds;
+    Set<BlockDefinition> jigsawStates;
 
     public int getBedrockBlockId(int state) {
         if (state >= this.javaToBedrockBlocks.length) {
-            return bedrockAirId;
+            return bedrockAir.getRuntimeId();
+        }
+        return this.javaToBedrockBlocks[state].getRuntimeId();
+    }
+
+    public BlockDefinition getBedrockBlock(int state) {
+        if (state >= this.javaToBedrockBlocks.length) {
+            return bedrockAir;
         }
         return this.javaToBedrockBlocks[state];
     }
 
     public int getItemFrame(NbtMap tag) {
-        return this.itemFrames.getOrDefault(tag, -1);
+        BlockDefinition definition = this.itemFrames.get(tag);
+        return definition == null ? -1 : definition.getRuntimeId();
     }
 
     public boolean isItemFrame(int bedrockBlockRuntimeId) {
-        return this.itemFrames.values().contains(bedrockBlockRuntimeId);
+        for (Map.Entry<NbtMap, BlockDefinition> entry : this.itemFrames.entrySet()) {
+            if (entry.getValue().getRuntimeId() == bedrockBlockRuntimeId) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -28,13 +28,13 @@ package org.geysermc.geyser.entity.type.living.animal.horse;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.google.common.collect.ImmutableSet;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
-import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
-import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
+import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
@@ -60,7 +60,7 @@ public class AbstractHorseEntity extends AnimalEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
 
         // Specifies the size of the entity's inventory. Required to place slots in the entity.
-        dirtyMetadata.put(EntityData.CONTAINER_BASE_SIZE, getContainerBaseSize());
+        dirtyMetadata.put(EntityDataTypes.CONTAINER_SIZE, getContainerBaseSize());
 
         setFlag(EntityFlag.WASD_CONTROLLED, true);
     }
@@ -102,8 +102,8 @@ public class AbstractHorseEntity extends AnimalEntity {
         // Only set eating when we don't have mouth open so a player interaction doesn't trigger the eating animation
         horseFlags = (xd & 0x10) == 0x10 && (xd & 0x40) != 0x40 ? horseFlags | 0x20 : horseFlags;
 
-        // Set the flags into the display item
-        dirtyMetadata.put(EntityData.DISPLAY_ITEM, horseFlags);
+        // Set the flags into the horse flags
+        dirtyMetadata.put(EntityDataTypes.HORSE_FLAGS, horseFlags);
 
         // Send the eating particles
         // We use the wheat metadata as static particles since Java
@@ -112,12 +112,12 @@ public class AbstractHorseEntity extends AnimalEntity {
             EntityEventPacket entityEventPacket = new EntityEventPacket();
             entityEventPacket.setRuntimeEntityId(geyserId);
             entityEventPacket.setType(EntityEventType.EATING_ITEM);
-            entityEventPacket.setData(session.getItemMappings().getStoredItems().wheat().getBedrockId() << 16);
+            entityEventPacket.setData(session.getItemMappings().getStoredItems().wheat().getBedrockDefinition().getRuntimeId() << 16);
             session.sendUpstreamPacket(entityEventPacket);
         }
 
         // Set container type if tamed
-        dirtyMetadata.put(EntityData.CONTAINER_TYPE, tamed ? (byte) ContainerType.HORSE.getId() : (byte) 0);
+        dirtyMetadata.put(EntityDataTypes.CONTAINER_TYPE, tamed ? (byte) ContainerType.HORSE.getId() : (byte) 0);
 
         // Shows the jump meter
         setFlag(EntityFlag.CAN_POWER_JUMP, saddled);

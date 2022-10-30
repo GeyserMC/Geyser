@@ -25,11 +25,13 @@
 
 package org.geysermc.geyser.registry.type;
 
+import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 
 import java.util.Collections;
@@ -40,14 +42,27 @@ import java.util.Set;
 @Builder
 @EqualsAndHashCode
 public class ItemMapping {
-    public static final ItemMapping AIR = new ItemMapping("minecraft:air", "minecraft:air", 0, 0, 0,
+    public static final ItemMapping AIR = new ItemMapping(
+            "minecraft:air",
+            "minecraft:air",
+            0,
+            ItemDefinition.AIR,
+            0,
             0, // Air is never sent in full over the network for this to serialize.
-            64, null, null, null, Collections.emptyList(), 0, null, false);
+            64,
+            null,
+            null,
+            null
+            , Collections.emptyList(),
+            0,
+            null,
+            false
+    );
 
     String javaIdentifier;
     String bedrockIdentifier;
     int javaId;
-    int bedrockId;
+    ItemDefinition bedrockDefinition;
     int bedrockData;
 
     /**
@@ -63,7 +78,7 @@ public class ItemMapping {
     String translationString;
 
     @NonNull
-    List<ObjectIntPair<CustomItemOptions>> customItemOptions;
+    List<Pair<CustomItemOptions, ItemDefinition>> customItemOptions;
 
     int maxDamage;
 

@@ -28,8 +28,9 @@ package org.geysermc.geyser.registry.populator;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
-import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
-import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
+import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
+import org.cloudburstmc.protocol.bedrock.packet.StartGamePacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
@@ -50,12 +51,12 @@ import java.util.OptionalInt;
 
 public class CustomItemRegistryPopulator {
     public static GeyserCustomMappingData registerCustomItem(String customItemName, GeyserMappingItem javaItem, CustomItemData customItemData, int bedrockId) {
-        StartGamePacket.ItemEntry startGamePacketItemEntry = new StartGamePacket.ItemEntry(customItemName, (short) bedrockId, true);
+        ItemDefinition itemDefinition = new ItemDefinition(customItemName, bedrockId, true);
 
         NbtMapBuilder builder = createComponentNbt(customItemData, javaItem, customItemName, bedrockId);
         ComponentItemData componentItemData = new ComponentItemData(customItemName, builder.build());
 
-        return new GeyserCustomMappingData(componentItemData, startGamePacketItemEntry, customItemName, bedrockId);
+        return new GeyserCustomMappingData(componentItemData, itemDefinition, customItemName, bedrockId);
     }
 
     static boolean initialCheck(String identifier, CustomItemData item, Map<String, GeyserMappingItem> mappings) {
@@ -83,7 +84,7 @@ public class CustomItemRegistryPopulator {
                 .javaIdentifier(customIdentifier)
                 .bedrockIdentifier(customIdentifier)
                 .javaId(customItemData.javaId())
-                .bedrockId(customItemId)
+                .bedrockDefinition(new ItemDefinition(customIdentifier, customItemId, true))
                 .bedrockData(0)
                 .bedrockBlockId(0)
                 .stackSize(customItemData.stackSize())

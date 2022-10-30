@@ -28,10 +28,10 @@ package org.geysermc.geyser.entity.type.living.animal;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
@@ -89,6 +89,6 @@ public class GoatEntity extends AnimalEntity {
     }
 
     private void setHornCount() {
-        dirtyMetadata.put(EntityData.GOAT_HORN_COUNT, (hasLeftHorn ? 1 : 0) + (hasRightHorn ? 1 : 0));
+        dirtyMetadata.put(EntityDataTypes.GOAT_HORN_COUNT, (hasLeftHorn ? 1 : 0) + (hasRightHorn ? 1 : 0));
     }
 }

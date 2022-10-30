@@ -32,7 +32,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.steveice10.packetlib.tcp.TcpSession;
 import com.nukkitx.network.raknet.RakNetConstants;
 import com.nukkitx.network.util.EventLoops;
-import com.nukkitx.protocol.bedrock.BedrockServer;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.kqueue.KQueue;
 import io.netty.util.NettyRuntime;
@@ -70,7 +69,7 @@ import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.extension.GeyserExtensionManager;
 import org.geysermc.geyser.level.WorldManager;
-import org.geysermc.geyser.network.ConnectorServerEventHandler;
+import org.geysermc.geyser.network.netty.GeyserServer;
 import org.geysermc.geyser.pack.ResourcePack;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -84,7 +83,12 @@ import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.util.*;
+import org.geysermc.geyser.util.CooldownUtils;
+import org.geysermc.geyser.util.DimensionUtils;
+import org.geysermc.geyser.util.Metrics;
+import org.geysermc.geyser.util.NewsHandler;
+import org.geysermc.geyser.util.VersionCheckUtils;
+import org.geysermc.geyser.util.WebUtils;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -94,7 +98,12 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.security.Key;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -142,7 +151,7 @@ public class GeyserImpl implements GeyserApi {
 
     private ScheduledExecutorService scheduledThread;
 
-    private BedrockServer bedrockServer;
+    private GeyserServer geyserServer;
     private final PlatformType platformType;
     private final GeyserBootstrap bootstrap;
 
@@ -286,13 +295,6 @@ public class GeyserImpl implements GeyserApi {
         }
 
         boolean enableProxyProtocol = config.getBedrock().isEnableProxyProtocol();
-        bedrockServer = new BedrockServer(
-                new InetSocketAddress(config.getBedrock().address(), config.getBedrock().port()),
-                bedrockThreadCount,
-                EventLoops.commonGroup(),
-                enableProxyProtocol
-        );
-
         if (config.isDebugMode()) {
             logger.debug("EventLoop type: " + EventLoops.getChannelType());
             if (EventLoops.getChannelType() == EventLoops.ChannelType.NIO) {
@@ -305,23 +307,23 @@ public class GeyserImpl implements GeyserApi {
             }
         }
 
-        bedrockServer.setHandler(new ConnectorServerEventHandler(this));
-
         if (shouldStartListener) {
-            bedrockServer.bind().whenComplete((avoid, throwable) -> {
-                if (throwable == null) {
-                    logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start", config.getBedrock().address(),
-                            String.valueOf(config.getBedrock().port())));
-                } else {
-                    String address = config.getBedrock().address();
-                    int port = config.getBedrock().port();
-                    logger.severe(GeyserLocale.getLocaleStringLog("geyser.core.fail", address, String.valueOf(port)));
-                    if (!"0.0.0.0".equals(address)) {
-                        logger.info(Component.text("Suggestion: try setting `address` under `bedrock` in the Geyser config back to 0.0.0.0", NamedTextColor.GREEN));
-                        logger.info(Component.text("Then, restart this server.", NamedTextColor.GREEN));
-                    }
+            try {
+                this.geyserServer = new GeyserServer(this, bedrockThreadCount);
+                this.geyserServer.bind(new InetSocketAddress(config.getBedrock().address(), config.getBedrock().port()))
+                        .syncUninterruptibly();
+
+                logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start", config.getBedrock().address(),
+                        String.valueOf(config.getBedrock().port())));
+            } catch (Throwable t) {
+                String address = config.getBedrock().address();
+                int port = config.getBedrock().port();
+                logger.severe(GeyserLocale.getLocaleStringLog("geyser.core.fail", address, String.valueOf(port)));
+                if (!"0.0.0.0".equals(address)) {
+                    logger.info(Component.text("Suggestion: try setting `address` under `bedrock` in the Geyser config back to 0.0.0.0", NamedTextColor.GREEN));
+                    logger.info(Component.text("Then, restart this server.", NamedTextColor.GREEN));
                 }
-            }).join();
+            }
         }
 
         if (config.getRemote().authType() == AuthType.FLOODGATE) {
@@ -542,7 +544,7 @@ public class GeyserImpl implements GeyserApi {
         }
 
         scheduledThread.shutdown();
-        bedrockServer.close();
+        geyserServer.shutdown();
         if (skinUploader != null) {
             skinUploader.close();
         }

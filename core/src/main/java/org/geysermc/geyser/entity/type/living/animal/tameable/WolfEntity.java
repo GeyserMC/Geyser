@@ -29,9 +29,9 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEnti
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.google.common.collect.ImmutableSet;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -66,7 +66,7 @@ public class WolfEntity extends TameableEntity {
         byte xd = entityMetadata.getPrimitiveValue();
         boolean angry = (xd & 0x02) == 0x02;
         if (angry) {
-            dirtyMetadata.put(EntityData.COLOR, (byte) 0);
+            dirtyMetadata.put(EntityDataTypes.COLOR, (byte) 0);
         }
     }
 
@@ -76,11 +76,11 @@ public class WolfEntity extends TameableEntity {
             return;
         }
 
-        dirtyMetadata.put(EntityData.COLOR, collarColor);
+        dirtyMetadata.put(EntityDataTypes.COLOR, collarColor);
         if (ownerBedrockId == 0) {
             // If a color is set and there is no owner entity ID, set one.
             // Otherwise, the entire wolf is set to that color: https://user-images.githubusercontent.com/9083212/99209989-92691200-2792-11eb-911d-9a315c955be9.png
-            dirtyMetadata.put(EntityData.OWNER_EID, session.getPlayerEntity().getGeyserId());
+            dirtyMetadata.put(EntityDataTypes.OWNER_EID, session.getPlayerEntity().getGeyserId());
         }
     }
 
@@ -88,7 +88,7 @@ public class WolfEntity extends TameableEntity {
     public void setWolfAngerTime(IntEntityMetadata entityMetadata) {
         int time = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.ANGRY, time != 0);
-        dirtyMetadata.put(EntityData.COLOR, time != 0 ? (byte) 0 : collarColor);
+        dirtyMetadata.put(EntityDataTypes.COLOR, time != 0 ? (byte) 0 : collarColor);
     }
 
     @Override

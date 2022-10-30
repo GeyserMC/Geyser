@@ -33,14 +33,14 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.FloatEnt
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.data.*;
-import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
-import com.nukkitx.protocol.bedrock.packet.*;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.bedrock.data.*;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
+import org.cloudburstmc.protocol.bedrock.packet.*;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
@@ -108,7 +108,7 @@ public class PlayerEntity extends LivingEntity {
     protected void initializeMetadata() {
         super.initializeMetadata();
         // For the OptionalPack, set all bits as invisible by default as this matches Java Edition behavior
-        dirtyMetadata.put(EntityData.MARK_VARIANT, 0xff);
+        dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, 0xff);
     }
 
     @Override
@@ -255,7 +255,7 @@ public class PlayerEntity extends LivingEntity {
         // In Java Edition, a bit being set means that part should be enabled
         // However, to ensure that the pack still works on other servers, we invert the bit so all values by default
         // are true (0).
-        dirtyMetadata.put(EntityData.MARK_VARIANT, ~entityMetadata.getPrimitiveValue() & 0xff);
+        dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, ~entityMetadata.getPrimitiveValue() & 0xff);
     }
 
     public void setLeftParrot(EntityMetadata<CompoundTag, ?> entityMetadata) {
@@ -280,11 +280,11 @@ public class PlayerEntity extends LivingEntity {
             ParrotEntity parrot = new ParrotEntity(session, 0, session.getEntityCache().getNextEntityId().incrementAndGet(),
                     null, EntityDefinitions.PARROT, position, motion, getYaw(), getPitch(), getHeadYaw());
             parrot.spawnEntity();
-            parrot.getDirtyMetadata().put(EntityData.VARIANT, tag.get("Variant").getValue());
+            parrot.getDirtyMetadata().put(EntityDataTypes.VARIANT, tag.get("Variant").getValue());
             // Different position whether the parrot is left or right
             float offset = isLeft ? 0.4f : -0.4f;
-            parrot.getDirtyMetadata().put(EntityData.RIDER_SEAT_POSITION, Vector3f.from(offset, -0.22, -0.1));
-            parrot.getDirtyMetadata().put(EntityData.RIDER_ROTATION_LOCKED, 1);
+            parrot.getDirtyMetadata().put(EntityDataTypes.RIDER_SEAT_POSITION, Vector3f.from(offset, -0.22, -0.1));
+            parrot.getDirtyMetadata().put(EntityDataTypes.RIDER_ROTATION_LOCKED, 1);
             parrot.updateBedrockMetadata();
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
             EntityLinkData.Type type = isLeft ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER;
@@ -342,11 +342,11 @@ public class PlayerEntity extends LivingEntity {
             }
             needsUpdate = useGivenTeam && !newDisplayName.equals(nametag);
             nametag = newDisplayName;
-            dirtyMetadata.put(EntityData.NAMETAG, newDisplayName);
+            dirtyMetadata.put(EntityDataTypes.NAMETAG, newDisplayName);
         } else if (useGivenTeam) {
             // The name has reset, if it was previously something else
             needsUpdate = !newDisplayName.equals(nametag);
-            dirtyMetadata.put(EntityData.NAMETAG, this.username);
+            dirtyMetadata.put(EntityDataTypes.NAMETAG, this.username);
         } else {
             needsUpdate = false;
         }
@@ -354,7 +354,7 @@ public class PlayerEntity extends LivingEntity {
         if (needsUpdate) {
             // Update the metadata as it won't be updated later
             SetEntityDataPacket packet = new SetEntityDataPacket();
-            packet.getMetadata().put(EntityData.NAMETAG, newDisplayName);
+            packet.getMetadata().put(EntityDataTypes.NAMETAG, newDisplayName);
             packet.setRuntimeEntityId(geyserId);
             session.sendUpstreamPacket(packet);
         }
@@ -407,13 +407,13 @@ public class PlayerEntity extends LivingEntity {
                 // providing the information
                 SetEntityDataPacket packet = new SetEntityDataPacket();
                 packet.setRuntimeEntityId(geyserId);
-                packet.getMetadata().put(EntityData.SCORE_TAG, displayString);
+                packet.getMetadata().put(EntityDataTypes.SCORE_TAG, displayString);
                 session.sendUpstreamPacket(packet);
             }
         } else if (valid) {
             SetEntityDataPacket packet = new SetEntityDataPacket();
             packet.setRuntimeEntityId(geyserId);
-            packet.getMetadata().put(EntityData.SCORE_TAG, "");
+            packet.getMetadata().put(EntityDataTypes.SCORE_TAG, "");
             session.sendUpstreamPacket(packet);
         }
     }

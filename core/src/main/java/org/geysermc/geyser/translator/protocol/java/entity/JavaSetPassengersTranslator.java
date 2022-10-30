@@ -26,9 +26,9 @@
 package org.geysermc.geyser.translator.protocol.java.entity;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundSetPassengersPacket;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
-import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -98,7 +98,7 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
 
         switch (entity.getDefinition().entityType()) {
             case HORSE, SKELETON_HORSE, DONKEY, MULE, RAVAGER -> {
-                entity.getDirtyMetadata().put(EntityData.RIDER_MAX_ROTATION, 181.0f);
+                entity.getDirtyMetadata().put(EntityDataTypes.RIDER_MAX_ROTATION, 181.0f);
                 entity.updateBedrockMetadata();
             }
         }

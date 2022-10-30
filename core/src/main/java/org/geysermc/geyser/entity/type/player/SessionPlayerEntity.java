@@ -30,11 +30,11 @@ import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeTyp
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.GlobalPos;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.AttributeData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.AttributeData;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
@@ -167,7 +167,7 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     public void addFakeTradeExperience(int tradeXp) {
         fakeTradeXp += tradeXp;
-        dirtyMetadata.put(EntityData.TRADE_XP, fakeTradeXp);
+        dirtyMetadata.put(EntityDataTypes.TRADE_XP, fakeTradeXp);
     }
 
     @Override
@@ -233,11 +233,11 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     public void setLastDeathPosition(@Nullable GlobalPos pos) {
         if (pos != null) {
-            dirtyMetadata.put(EntityData.PLAYER_LAST_DEATH_POS, pos.getPosition());
-            dirtyMetadata.put(EntityData.PLAYER_LAST_DEATH_DIMENSION, DimensionUtils.javaToBedrock(pos.getDimension()));
-            dirtyMetadata.put(EntityData.PLAYER_HAS_DIED, (byte) 1);
+            dirtyMetadata.put(EntityDataTypes.PLAYER_LAST_DEATH_POS, pos.getPosition());
+            dirtyMetadata.put(EntityDataTypes.PLAYER_LAST_DEATH_DIMENSION, DimensionUtils.javaToBedrock(pos.getDimension()));
+            dirtyMetadata.put(EntityDataTypes.PLAYER_HAS_DIED, (byte) 1);
         } else {
-            dirtyMetadata.put(EntityData.PLAYER_HAS_DIED, (byte) 0);
+            dirtyMetadata.put(EntityDataTypes.PLAYER_HAS_DIED, (byte) 0);
         }
     }
 }

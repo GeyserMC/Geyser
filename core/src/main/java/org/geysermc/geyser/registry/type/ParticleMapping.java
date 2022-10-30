@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.registry.type;
 
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
 import org.geysermc.geyser.session.GeyserSession;
 
 import javax.annotation.ParametersAreNullableByDefault;

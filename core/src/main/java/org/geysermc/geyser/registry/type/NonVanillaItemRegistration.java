@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.registry.type;
 
-import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
 
 /**
  * The return data of a successful registration of a custom item.

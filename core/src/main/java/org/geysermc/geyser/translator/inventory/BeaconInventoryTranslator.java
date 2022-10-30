@@ -27,17 +27,17 @@ package org.geysermc.geyser.translator.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetBeaconPacket;
-import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemStackRequest;
-import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.BeaconPaymentStackRequestActionData;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionData;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionType;
-import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
-import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemStackRequest;
+import org.cloudburstmc.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.BeaconPaymentStackRequestActionData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionType;
+import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ItemStackResponsePacket;
 import it.unimi.dsi.fastutil.ints.IntSets;
 import org.geysermc.geyser.inventory.BeaconContainer;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
@@ -52,7 +52,7 @@ import java.util.OptionalInt;
 
 public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator {
     public BeaconInventoryTranslator() {
-        super(1, new BlockInventoryHolder("minecraft:beacon", com.nukkitx.protocol.bedrock.data.inventory.ContainerType.BEACON) {
+        super(1, new BlockInventoryHolder("minecraft:beacon", org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.BEACON) {
             @Override
             protected boolean checkInteractionPosition(GeyserSession session) {
                 // Since we can't fall back to a virtual inventory, let's make opening one easier

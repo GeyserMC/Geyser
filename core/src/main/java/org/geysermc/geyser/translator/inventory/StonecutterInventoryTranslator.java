@@ -28,13 +28,13 @@ package org.geysermc.geyser.translator.inventory;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemStackRequest;
-import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.CraftRecipeStackRequestActionData;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionData;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionType;
-import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemStackRequest;
+import org.cloudburstmc.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.CraftRecipeStackRequestActionData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionType;
+import org.cloudburstmc.protocol.bedrock.packet.ItemStackResponsePacket;
 import org.geysermc.geyser.inventory.*;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
@@ -42,7 +42,7 @@ import org.geysermc.geyser.session.GeyserSession;
 
 public class StonecutterInventoryTranslator extends AbstractBlockInventoryTranslator {
     public StonecutterInventoryTranslator() {
-        super(2, "minecraft:stonecutter[facing=north]", com.nukkitx.protocol.bedrock.data.inventory.ContainerType.STONECUTTER, UIInventoryUpdater.INSTANCE);
+        super(2, "minecraft:stonecutter[facing=north]", org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.STONECUTTER, UIInventoryUpdater.INSTANCE);
     }
 
     @Override

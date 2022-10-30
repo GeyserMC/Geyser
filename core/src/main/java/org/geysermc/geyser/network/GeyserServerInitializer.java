@@ -25,10 +25,12 @@
 
 package org.geysermc.geyser.network;
 
-import com.nukkitx.protocol.bedrock.BedrockPong;
-import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
-import com.nukkitx.protocol.bedrock.BedrockServerSession;
-import com.nukkitx.protocol.bedrock.v554.Bedrock_v554;
+import io.netty.channel.Channel;
+import org.cloudburstmc.protocol.bedrock.BedrockPong;
+import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
+import org.cloudburstmc.protocol.bedrock.BedrockSession;
+import org.cloudburstmc.protocol.bedrock.codec.v554.Bedrock_v554;
+import org.cloudburstmc.protocol.bedrock.netty.initializer.BedrockServerInitializer;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.DefaultEventLoopGroup;
@@ -47,7 +49,7 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-public class ConnectorServerEventHandler implements BedrockServerEventHandler {
+public class GeyserServerInitializer extends BedrockServerInitializer {
     private static final boolean PRINT_DEBUG_PINGS = Boolean.parseBoolean(System.getProperty("Geyser.PrintPingsInDebugMode", "true"));
 
     /*
@@ -64,10 +66,11 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
     // There is a constructor that doesn't require inputting threads, but older Netty versions don't have it
     private final DefaultEventLoopGroup eventLoopGroup = new DefaultEventLoopGroup(0, new DefaultThreadFactory("Geyser player thread"));
 
-    public ConnectorServerEventHandler(GeyserImpl geyser) {
+    public GeyserServerInitializer(GeyserImpl geyser) {
         this.geyser = geyser;
     }
 
+    /*
     @Override
     public boolean onConnectionRequest(InetSocketAddress inetSocketAddress) {
         List<String> allowedProxyIPs = geyser.getConfig().getBedrock().getProxyProtocolWhitelistedIPs();
@@ -169,10 +172,12 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         return pong;
     }
 
+     */
+
     @Override
-    public void onSessionCreation(@Nonnull BedrockServerSession bedrockServerSession) {
+    public void initSession(@Nonnull BedrockServerSession bedrockServerSession) {
         try {
-            bedrockServerSession.setPacketCodec(Bedrock_v554.V554_CODEC); // Has the RequestNetworkSettingsPacket
+            bedrockServerSession.setCodec(Bedrock_v554.CODEC); // Has the RequestNetworkSettingsPacket
             bedrockServerSession.setLogging(true);
             bedrockServerSession.setCompressionLevel(geyser.getConfig().getBedrock().getCompressionLevel());
             bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(geyser, new GeyserSession(geyser, bedrockServerSession, eventLoopGroup.next())));
@@ -184,6 +189,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         }
     }
 
+    /*
     @Override
     public void onUnhandledDatagram(@Nonnull ChannelHandlerContext ctx, @Nonnull DatagramPacket packet) {
         try {
@@ -198,4 +204,5 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
             }
         }
     }
+     */
 }

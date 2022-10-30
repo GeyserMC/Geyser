@@ -33,19 +33,25 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
-import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import it.unimi.dsi.fastutil.ints.*;
-import com.nukkitx.protocol.bedrock.v527.Bedrock_v527;
-import com.nukkitx.protocol.bedrock.v534.Bedrock_v534;
-import com.nukkitx.protocol.bedrock.v544.Bedrock_v544;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.objects.*;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectIntPair;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.protocol.bedrock.codec.v527.Bedrock_v527;
+import org.cloudburstmc.protocol.bedrock.codec.v534.Bedrock_v534;
+import org.cloudburstmc.protocol.bedrock.codec.v544.Bedrock_v544;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
@@ -57,14 +63,27 @@ import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.type.*;
+import org.geysermc.geyser.registry.type.BlockMappings;
+import org.geysermc.geyser.registry.type.GeyserMappingItem;
+import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.registry.type.ItemMappings;
+import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
+import org.geysermc.geyser.registry.type.PaletteItem;
 import org.geysermc.geyser.util.ItemUtils;
 import org.geysermc.geyser.util.collection.FixedInt2IntMap;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Populates the item registries.
@@ -76,10 +95,10 @@ public class ItemRegistryPopulator {
 
     public static void populate() {
         Map<String, PaletteVersion> paletteVersions = new Object2ObjectOpenHashMap<>();
-        paletteVersions.put("1_19_0", new PaletteVersion(Bedrock_v527.V527_CODEC.getProtocolVersion(),
+        paletteVersions.put("1_19_0", new PaletteVersion(Bedrock_v527.CODEC.getProtocolVersion(),
                 Collections.singletonMap("minecraft:trader_llama_spawn_egg", "minecraft:llama_spawn_egg")));
-        paletteVersions.put("1_19_10", new PaletteVersion(Bedrock_v534.V534_CODEC.getProtocolVersion(), Collections.emptyMap()));
-        paletteVersions.put("1_19_20", new PaletteVersion(Bedrock_v544.V544_CODEC.getProtocolVersion(), Collections.emptyMap()));
+        paletteVersions.put("1_19_10", new PaletteVersion(Bedrock_v534.CODEC.getProtocolVersion(), Collections.emptyMap()));
+        paletteVersions.put("1_19_20", new PaletteVersion(Bedrock_v544.CODEC.getProtocolVersion(), Collections.emptyMap()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
@@ -157,8 +176,7 @@ public class ItemRegistryPopulator {
             TypeReference<List<PaletteItem>> paletteEntriesType = new TypeReference<>() {};
 
             // Used to get the Bedrock namespaced ID (in instances where there are small differences)
-            Object2IntMap<String> bedrockIdentifierToId = new Object2IntOpenHashMap<>();
-            bedrockIdentifierToId.defaultReturnValue(Short.MIN_VALUE);
+            Map<String, ItemDefinition> bedrockIdentifierToDefinition = new HashMap<>();
 
             List<String> itemNames = new ArrayList<>();
 
@@ -173,7 +191,7 @@ public class ItemRegistryPopulator {
             int nextFreeBedrockId = 0;
             List<ComponentItemData> componentItemData = new ObjectArrayList<>();
 
-            Map<String, StartGamePacket.ItemEntry> entries = new Object2ObjectOpenHashMap<>();
+            Map<String, ItemDefinition> definitions = new Object2ObjectOpenHashMap<>();
 
             for (PaletteItem entry : itemEntries) {
                 int id = entry.getId();
@@ -181,8 +199,9 @@ public class ItemRegistryPopulator {
                     nextFreeBedrockId = id + 1;
                 }
 
-                entries.put(entry.getName(), new StartGamePacket.ItemEntry(entry.getName(), (short) id));
-                bedrockIdentifierToId.put(entry.getName(), id);
+                ItemDefinition definition = new ItemDefinition(entry.getName(), id, false);
+                definitions.put(entry.getName(), definition);
+                bedrockIdentifierToDefinition.put(entry.getName(), definition);
             }
 
             Object2IntMap<String> bedrockBlockIdOverrides = new Object2IntOpenHashMap<>();
@@ -197,9 +216,9 @@ public class ItemRegistryPopulator {
                 throw new AssertionError("Unable to load creative items", e);
             }
 
-            IntList boats = new IntArrayList();
-            IntList buckets = new IntArrayList();
-            IntList spawnEggs = new IntArrayList();
+            List<ItemDefinition> boats = new ObjectArrayList<>();
+            List<ItemDefinition> buckets = new ObjectArrayList<>();
+            List<ItemDefinition> spawnEggs = new ObjectArrayList<>();
             List<ItemData> carpets = new ObjectArrayList<>();
 
             List<ItemMapping> mappings = new ObjectArrayList<>();
@@ -247,18 +266,9 @@ public class ItemRegistryPopulator {
                     // Bedrock-only banner patterns
                     continue;
                 }
-                StartGamePacket.ItemEntry entry = entries.get(identifier);
-                int id = -1;
-                if (entry != null) {
-                    id = entry.getId();
-                }
-
-                if (id == -1) {
-                    throw new RuntimeException("Unable to find matching Bedrock item for " + identifier);
-                }
-
+                ItemDefinition definition = definitions.get(identifier);
                 creativeItems.add(ItemData.builder()
-                        .id(id)
+                        .definition(definition)
                         .damage(damage)
                         .count(count)
                         .blockRuntimeId(blockRuntimeId)
@@ -318,10 +328,11 @@ public class ItemRegistryPopulator {
                 }
 
                 String bedrockIdentifier = mappingItem.getBedrockIdentifier();
-                int bedrockId = bedrockIdentifierToId.getInt(bedrockIdentifier);
-                if (bedrockId == Short.MIN_VALUE) {
-                    throw new RuntimeException("Missing Bedrock ID in mappings: " + bedrockIdentifier);
+                ItemDefinition definition = bedrockIdentifierToDefinition.get(bedrockIdentifier);
+                if (definition == null) {
+                    throw new RuntimeException("Missing Bedrock ItemDefinition in mappings: " + bedrockIdentifier);
                 }
+
                 int stackSize = mappingItem.getStackSize();
 
                 int bedrockBlockId = -1;
@@ -344,14 +355,14 @@ public class ItemRegistryPopulator {
                             // as indexed by Bedrock's block palette
                             // There are exceptions! But, ideally, the block ID override should take care of those.
                             NbtMapBuilder requiredBlockStatesBuilder = NbtMap.builder();
-                            String correctBedrockIdentifier = blockMappings.getBedrockBlockStates().get(aValidBedrockBlockId).getString("name");
+                            String correctBedrockIdentifier = blockMappings.getBedrockBlockPalette().get(aValidBedrockBlockId).getString("name");
                             boolean firstPass = true;
                             // Block states are all grouped together. In the mappings, we store the first block runtime ID in order,
                             // and the last, if relevant. We then iterate over all those values and get their Bedrock equivalents
                             Integer lastBlockRuntimeId = entry.getValue().getLastBlockRuntimeId() == null ? firstBlockRuntimeId : entry.getValue().getLastBlockRuntimeId();
                             for (int i = firstBlockRuntimeId; i <= lastBlockRuntimeId; i++) {
                                 int bedrockBlockRuntimeId = blockMappings.getBedrockBlockId(i);
-                                NbtMap blockTag = blockMappings.getBedrockBlockStates().get(bedrockBlockRuntimeId);
+                                NbtMap blockTag = blockMappings.getBedrockBlockPalette().get(bedrockBlockRuntimeId);
                                 String bedrockName = blockTag.getString("name");
                                 if (!bedrockName.equals(correctBedrockIdentifier)) {
                                     continue;
@@ -389,7 +400,7 @@ public class ItemRegistryPopulator {
                                 int i = -1;
                                 // We need to loop around again (we can't cache the block tags above) because Bedrock can include states that we don't have a pairing for
                                 // in it's "preferred" block state - I.E. the first matching block state in the list
-                                for (NbtMap blockTag : blockMappings.getBedrockBlockStates()) {
+                                for (NbtMap blockTag : blockMappings.getBedrockBlockPalette()) {
                                     i++;
                                     if (blockTag.getString("name").equals(correctBedrockIdentifier)) {
                                         NbtMap states = blockTag.getCompound("states");
@@ -416,11 +427,12 @@ public class ItemRegistryPopulator {
                             // That way, creative items work correctly for these blocks
                             for (int j = 0; j < creativeItems.size(); j++) {
                                 ItemData itemData = creativeItems.get(j);
-                                if (itemData.getId() == bedrockId) {
+                                if (itemData.getDefinition().equals(definition)) {
                                     if (itemData.getDamage() != 0) {
                                         break;
                                     }
-                                    NbtMap states = blockMappings.getBedrockBlockStates().get(itemData.getBlockRuntimeId()).getCompound("states");
+
+                                    NbtMap states = blockMappings.getBedrockBlockPalette().get(itemData.getBlockRuntimeId()).getCompound("states");
                                     boolean valid = true;
                                     for (Map.Entry<String, Object> nbtEntry : requiredBlockStates.entrySet()) {
                                         if (!states.get(nbtEntry.getKey()).equals(nbtEntry.getValue())) {
@@ -443,7 +455,7 @@ public class ItemRegistryPopulator {
                         .javaIdentifier(javaIdentifier)
                         .javaId(itemIndex)
                         .bedrockIdentifier(bedrockIdentifier.intern())
-                        .bedrockId(bedrockId)
+                        .bedrockDefinition(definition)
                         .bedrockData(mappingItem.getBedrockData())
                         .bedrockBlockId(bedrockBlockId)
                         .stackSize(stackSize)
@@ -491,7 +503,7 @@ public class ItemRegistryPopulator {
                                 customItemName, mappingItem, customItem, customProtocolId
                         );
                         // StartGamePacket entry - needed for Bedrock to recognize the item through the protocol
-                        entries.put(customMapping.stringId(), customMapping.startGamePacketItemEntry());
+                        definitions.put(customMapping.stringId(), customMapping.itemDefinition());
                         // ComponentItemData - used to register some custom properties
                         componentItemData.add(customMapping.componentItemData());
                         customItemOptions.add(ObjectIntPair.of(customItem.customItemOptions(), customProtocolId));
@@ -509,13 +521,13 @@ public class ItemRegistryPopulator {
                 ItemMapping mapping = mappingBuilder.build();
 
                 if (javaIdentifier.contains("boat")) {
-                    boats.add(bedrockId);
+                    boats.add(definition);
                 } else if (javaIdentifier.contains("bucket") && !javaIdentifier.contains("milk")) {
-                    buckets.add(bedrockId);
+                    buckets.add(definition);
                 } else if (javaIdentifier.contains("_carpet") && !javaIdentifier.contains("moss")) {
                     // This should be the numerical order Java sends as an integer value for llamas
                     carpets.add(ItemData.builder()
-                            .id(mapping.getBedrockId())
+                            .definition(definition)
                             .damage(mapping.getBedrockData())
                             .count(1)
                             .blockRuntimeId(mapping.getBedrockBlockId())
@@ -525,7 +537,7 @@ public class ItemRegistryPopulator {
                     Registries.RECORDS.register(itemIndex, SoundEvent.valueOf("RECORD_" +
                             javaIdentifier.replace("minecraft:music_disc_", "").toUpperCase(Locale.ENGLISH)));
                 } else if (javaIdentifier.endsWith("_spawn_egg")) {
-                    spawnEggs.add(mapping.getBedrockId());
+                    spawnEggs.add(definition);
                 }
 
                 mappings.add(mapping);
@@ -542,8 +554,8 @@ public class ItemRegistryPopulator {
 
             itemNames.add("minecraft:furnace_minecart");
 
-            int lodestoneCompassId = entries.get("minecraft:lodestone_compass").getId();
-            if (lodestoneCompassId == 0) {
+            ItemDefinition lodestoneCompass = definitions.get("minecraft:lodestone_compass");
+            if (lodestoneCompass == null) {
                 throw new RuntimeException("Lodestone compass not found in item palette!");
             }
 
@@ -552,7 +564,7 @@ public class ItemRegistryPopulator {
                     .javaIdentifier("")
                     .bedrockIdentifier("minecraft:lodestone_compass")
                     .javaId(-1)
-                    .bedrockId(lodestoneCompassId)
+                    .bedrockDefinition(lodestoneCompass)
                     .bedrockData(0)
                     .bedrockBlockId(-1)
                     .stackSize(1)
@@ -563,13 +575,14 @@ public class ItemRegistryPopulator {
                 // Add the furnace minecart as a custom item
                 int furnaceMinecartId = nextFreeBedrockId++;
 
-                entries.put("geysermc:furnace_minecart", new StartGamePacket.ItemEntry("geysermc:furnace_minecart", (short) furnaceMinecartId, true));
+                ItemDefinition definition = new ItemDefinition("geysermc:furnace_minecart", (short) furnaceMinecartId, true);
+                definitions.put("geysermc:furnace_minecart", definition);
 
                 mappings.set(javaFurnaceMinecartId, ItemMapping.builder()
                         .javaIdentifier("minecraft:furnace_minecart")
                         .bedrockIdentifier("geysermc:furnace_minecart")
                         .javaId(javaFurnaceMinecartId)
-                        .bedrockId(furnaceMinecartId)
+                        .bedrockDefinition(definition)
                         .bedrockData(0)
                         .bedrockBlockId(-1)
                         .stackSize(1)
@@ -578,7 +591,7 @@ public class ItemRegistryPopulator {
 
                 creativeItems.add(ItemData.builder()
                         .netId(netId++)
-                        .id(furnaceMinecartId)
+                        .definition(definition)
                         .count(1).build());
 
                 NbtMapBuilder builder = NbtMap.builder();
@@ -638,7 +651,7 @@ public class ItemRegistryPopulator {
 
                     if (customItem.creativeGroup() != null || customItem.creativeCategory().isPresent()) {
                         creativeItems.add(ItemData.builder()
-                                .id(customItemId)
+                                .definition(registration.mapping().getBedrockDefinition())
                                 .netId(netId++)
                                 .count(1).build());
                     }
@@ -648,13 +661,13 @@ public class ItemRegistryPopulator {
             ItemMappings itemMappings = ItemMappings.builder()
                     .items(mappings.toArray(new ItemMapping[0]))
                     .creativeItems(creativeItems.toArray(new ItemData[0]))
-                    .itemEntries(List.copyOf(entries.values()))
+                    .itemDefinitions(List.copyOf(definitions.values()))
                     .itemNames(itemNames.toArray(new String[0]))
                     .storedItems(new StoredItemMappings(identifierToMapping))
                     .javaOnlyItems(javaOnlyItems)
-                    .bucketIds(buckets)
-                    .boatIds(boats)
-                    .spawnEggIds(spawnEggs)
+                    .buckets(buckets)
+                    .boats(boats)
+                    .spawnEggs(spawnEggs)
                     .carpets(carpets)
                     .componentItemData(componentItemData)
                     .lodestoneCompass(lodestoneEntry)

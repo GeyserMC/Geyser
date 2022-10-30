@@ -31,7 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
-import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacketCodec;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.AllArgsConstructor;

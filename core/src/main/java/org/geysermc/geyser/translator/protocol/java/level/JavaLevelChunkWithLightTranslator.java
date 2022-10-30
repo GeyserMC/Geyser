@@ -35,11 +35,11 @@ import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelChunkWithLightPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.math.vector.Vector3i;
 import com.nukkitx.nbt.NBTOutputStream;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
@@ -102,14 +102,13 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         int maxBedrockSectionY = (bedrockDimension.height() >> 4) - 1;
 
         int sectionCount;
-        byte[] payload;
         ByteBuf byteBuf = null;
         GeyserChunkSection[] sections = new GeyserChunkSection[javaChunks.length - (yOffset + (bedrockDimension.minY() >> 4))];
 
         try {
             ByteBuf in = Unpooled.wrappedBuffer(packet.getChunkData());
             for (int sectionY = 0; sectionY < chunkSize; sectionY++) {
-                ChunkSection javaSection = session.getCodecHelper().readChunkSection(in, biomeGlobalPalette);
+                ChunkSection javaSection = session.getDownstream().getCodecHelper().readChunkSection(in, biomeGlobalPalette);
                 javaChunks[sectionY] = javaSection.getChunkData();
                 javaBiomes[sectionY] = javaSection.getBiomeData();
 
@@ -129,7 +128,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
                 if (javaPalette instanceof GlobalPalette) {
                     // As this is the global palette, simply iterate through the whole chunk section once
-                    GeyserChunkSection section = new GeyserChunkSection(session.getBlockMappings().getBedrockAirId());
+                    GeyserChunkSection section = new GeyserChunkSection(session.getBlockMappings().getBedrockAir());
                     for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
                         int javaId = javaData.get(yzx);
                         int bedrockId = session.getBlockMappings().getBedrockBlockId(javaId);
@@ -137,7 +136,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                         section.getBlockStorageArray()[0].setFullBlock(xzy, bedrockId);
 
                         if (BlockRegistries.WATERLOGGED.get().contains(javaId)) {
-                            section.getBlockStorageArray()[1].setFullBlock(xzy, session.getBlockMappings().getBedrockWaterId());
+                            section.getBlockStorageArray()[1].setFullBlock(xzy, session.getBlockMappings().getBedrockWater());
                         }
 
                         // Check if block is piston or flower to see if we'll need to create additional block entities, as they're only block entities in Bedrock
@@ -159,7 +158,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     BlockStorage blockStorage = new BlockStorage(SingletonBitArray.INSTANCE, IntLists.singleton(bedrockId));
 
                     if (BlockRegistries.WATERLOGGED.get().contains(javaId)) {
-                        BlockStorage waterlogged = new BlockStorage(SingletonBitArray.INSTANCE, IntLists.singleton(session.getBlockMappings().getBedrockWaterId()));
+                        BlockStorage waterlogged = new BlockStorage(SingletonBitArray.INSTANCE, IntLists.singleton(session.getBlockMappings().getBedrockWater()));
                         sections[bedrockSectionY] = new GeyserChunkSection(new BlockStorage[] {blockStorage, waterlogged});
                     } else {
                         sections[bedrockSectionY] = new GeyserChunkSection(new BlockStorage[] {blockStorage});
@@ -231,8 +230,8 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
                     // V1 palette
                     IntList layer1Palette = IntList.of(
-                            session.getBlockMappings().getBedrockAirId(), // Air - see BlockStorage's constructor for more information
-                            session.getBlockMappings().getBedrockWaterId());
+                            session.getBlockMappings().getBedrockAir(), // Air - see BlockStorage's constructor for more information
+                            session.getBlockMappings().getBedrockWater());
 
                     layers = new BlockStorage[]{ layer0, new BlockStorage(BitArrayVersion.V1.createArray(BlockStorage.SIZE, layer1Data), layer1Palette) };
                 }
@@ -336,9 +335,6 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             for (NbtMap blockEntity : bedrockBlockEntities) {
                 nbtStream.writeTag(blockEntity);
             }
-
-            // Copy data into byte[], because the protocol lib really likes things that are s l o w
-            byteBuf.readBytes(payload = new byte[byteBuf.readableBytes()]);
         } catch (IOException e) {
             session.getGeyser().getLogger().error("IO error while encoding chunk", e);
             return;
@@ -353,7 +349,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         levelChunkPacket.setCachingEnabled(false);
         levelChunkPacket.setChunkX(packet.getX());
         levelChunkPacket.setChunkZ(packet.getZ());
-        levelChunkPacket.setData(payload);
+        levelChunkPacket.setData(byteBuf);
         session.sendUpstreamPacket(levelChunkPacket);
 
         for (Map.Entry<Vector3i, ItemFrameEntity> entry : session.getItemFrameCache().entrySet()) {

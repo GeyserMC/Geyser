@@ -26,8 +26,8 @@
 package org.geysermc.geyser.entity.type;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.item.TippedArrowPotion;
 import org.geysermc.geyser.session.GeyserSession;
@@ -47,13 +47,13 @@ public class TippedArrowEntity extends AbstractArrowEntity {
         int potionColor = entityMetadata.getPrimitiveValue();
         // -1 means no color
         if (potionColor == -1) {
-            dirtyMetadata.put(EntityData.CUSTOM_DISPLAY, 0);
+            dirtyMetadata.put(EntityDataTypes.CUSTOM_DISPLAY, 0);
         } else {
             TippedArrowPotion potion = TippedArrowPotion.getByJavaColor(potionColor);
             if (potion != null && potion.getJavaColor() != -1) {
-                dirtyMetadata.put(EntityData.CUSTOM_DISPLAY, (byte) potion.getBedrockId());
+                dirtyMetadata.put(EntityDataTypes.CUSTOM_DISPLAY, (byte) potion.getBedrockId());
             } else {
-                dirtyMetadata.put(EntityData.CUSTOM_DISPLAY, 0);
+                dirtyMetadata.put(EntityDataTypes.CUSTOM_DISPLAY, 0);
             }
         }
     }

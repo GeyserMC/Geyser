@@ -28,9 +28,9 @@ package org.geysermc.geyser.util;
 import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
@@ -201,15 +201,15 @@ public final class EntityUtils {
     public static void updateRiderRotationLock(Entity passenger, Entity mount, boolean isRiding) {
         if (isRiding && mount instanceof BoatEntity) {
             // Head rotation is locked while riding in a boat
-            passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 1);
-            passenger.getDirtyMetadata().put(EntityData.RIDER_MAX_ROTATION, 90f);
-            passenger.getDirtyMetadata().put(EntityData.RIDER_MIN_ROTATION, 1f);
-            passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_OFFSET, -90f);
+            passenger.getDirtyMetadata().put(EntityDataTypes.RIDER_ROTATION_LOCKED, (byte) 1);
+            passenger.getDirtyMetadata().put(EntityDataTypes.RIDER_MAX_ROTATION, 90f);
+            passenger.getDirtyMetadata().put(EntityDataTypes.RIDER_MIN_ROTATION, 1f);
+            passenger.getDirtyMetadata().put(EntityDataTypes.RIDER_ROTATION_OFFSET, -90f);
         } else {
-            passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 0);
-            passenger.getDirtyMetadata().put(EntityData.RIDER_MAX_ROTATION, 0f);
-            passenger.getDirtyMetadata().put(EntityData.RIDER_MIN_ROTATION, 0f);
-            passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_OFFSET, 0f);
+            passenger.getDirtyMetadata().put(EntityDataTypes.RIDER_ROTATION_LOCKED, (byte) 0);
+            passenger.getDirtyMetadata().put(EntityDataTypes.RIDER_MAX_ROTATION, 0f);
+            passenger.getDirtyMetadata().put(EntityDataTypes.RIDER_MIN_ROTATION, 0f);
+            passenger.getDirtyMetadata().put(EntityDataTypes.RIDER_ROTATION_OFFSET, 0f);
         }
     }
 

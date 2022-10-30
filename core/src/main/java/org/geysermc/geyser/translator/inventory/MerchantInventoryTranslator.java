@@ -27,16 +27,16 @@ package org.geysermc.geyser.translator.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSelectTradePacket;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemStackRequest;
-import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.AutoCraftRecipeStackRequestActionData;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.CraftRecipeStackRequestActionData;
-import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
-import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemStackRequest;
+import org.cloudburstmc.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.AutoCraftRecipeStackRequestActionData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.CraftRecipeStackRequestActionData;
+import org.cloudburstmc.protocol.bedrock.packet.ItemStackResponsePacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.inventory.*;
@@ -103,9 +103,9 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
             Entity villager = new Entity(session, 0, geyserId, null, EntityDefinitions.VILLAGER, pos, Vector3f.ZERO, 0f, 0f, 0f) {
                 @Override
                 protected void initializeMetadata() {
-                    dirtyMetadata.put(EntityData.SCALE, 0f);
-                    dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, 0f);
-                    dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0f);
+                    dirtyMetadata.put(EntityDataTypes.SCALE, 0f);
+                    dirtyMetadata.put(EntityDataTypes.BOUNDING_BOX_WIDTH, 0f);
+                    dirtyMetadata.put(EntityDataTypes.BOUNDING_BOX_HEIGHT, 0f);
                 }
             };
             villager.spawnEntity();

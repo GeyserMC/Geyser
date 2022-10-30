@@ -20,9 +20,7 @@ dependencies {
     // Network libraries
     implementation(libs.websocket)
 
-    api(libs.protocol) {
-        exclude("com.nukkitx.network", "raknet")
-    }
+    api(libs.bundles.protocol)
 
     api(libs.mcauthlib)
     api(libs.mcprotocollib) {

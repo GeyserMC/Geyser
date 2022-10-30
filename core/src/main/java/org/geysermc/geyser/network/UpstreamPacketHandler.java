@@ -25,12 +25,27 @@
 
 package org.geysermc.geyser.network;
 
-import com.nukkitx.protocol.bedrock.BedrockPacket;
-import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
-import com.nukkitx.protocol.bedrock.data.ExperimentData;
-import com.nukkitx.protocol.bedrock.data.PacketCompressionAlgorithm;
-import com.nukkitx.protocol.bedrock.data.ResourcePackType;
-import com.nukkitx.protocol.bedrock.packet.*;
+import io.netty.buffer.Unpooled;
+import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
+import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
+import org.cloudburstmc.protocol.bedrock.data.ExperimentData;
+import org.cloudburstmc.protocol.bedrock.data.PacketCompressionAlgorithm;
+import org.cloudburstmc.protocol.bedrock.data.ResourcePackType;
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LoginPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ModalFormResponsePacket;
+import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
+import org.cloudburstmc.protocol.bedrock.packet.NetworkSettingsPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
+import org.cloudburstmc.protocol.bedrock.packet.RequestNetworkSettingsPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ResourcePackChunkDataPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ResourcePackChunkRequestPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ResourcePackClientResponsePacket;
+import org.cloudburstmc.protocol.bedrock.packet.ResourcePackDataInfoPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ResourcePackStackPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ResourcePacksInfoPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
+import org.cloudburstmc.protocol.common.PacketSignal;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -53,19 +68,19 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         super(geyser, session);
     }
 
-    private boolean translateAndDefault(BedrockPacket packet) {
-        return Registries.BEDROCK_PACKET_TRANSLATORS.translate(packet.getClass(), packet, session);
+    private PacketSignal translateAndDefault(BedrockPacket packet) {
+        return Registries.BEDROCK_PACKET_TRANSLATORS.translate(packet.getClass(), packet, session) ? PacketSignal.HANDLED : PacketSignal.UNHANDLED;
     }
 
     @Override
-    boolean defaultHandler(BedrockPacket packet) {
+    PacketSignal defaultHandler(BedrockPacket packet) {
         return translateAndDefault(packet);
     }
 
     private boolean newProtocol = false; // TEMPORARY
 
     private boolean setCorrectCodec(int protocolVersion) {
-        BedrockPacketCodec packetCodec = GameProtocol.getBedrockCodec(protocolVersion);
+        BedrockCodec packetCodec = GameProtocol.getBedrockCodec(protocolVersion);
         if (packetCodec == null) {
             String supportedVersions = GameProtocol.getAllSupportedBedrockVersions();
             if (protocolVersion > GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
@@ -78,16 +93,26 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             }
         }
 
-        session.getUpstream().getSession().setPacketCodec(packetCodec);
+        session.getUpstream().getSession().setCodec(packetCodec);
         return true;
     }
 
     @Override
-    public boolean handle(RequestNetworkSettingsPacket packet) {
+    public void onDisconnect(String reason) {
+        // Use our own disconnect messages for these reasons
+        if (BedrockDisconnectReasons.CLOSED.equals(reason)) {
+            this.session.getUpstream().getSession().setDisconnectReason(GeyserLocale.getLocaleStringLog("geyser.network.disconnect.closed_by_remote_peer"));
+        } else if (BedrockDisconnectReasons.TIMEOUT.equals(reason)) {
+            this.session.getUpstream().getSession().setDisconnectReason(GeyserLocale.getLocaleStringLog("geyser.network.disconnect.timed_out"));
+        }
+    }
+
+    @Override
+    public PacketSignal handle(RequestNetworkSettingsPacket packet) {
         if (setCorrectCodec(packet.getProtocolVersion())) {
             newProtocol = true;
         } else {
-            return true;
+            return PacketSignal.HANDLED;
         }
 
         // New since 1.19.30 - sent before login packet
@@ -99,20 +124,20 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         session.sendUpstreamPacketImmediately(responsePacket);
 
         session.getUpstream().getSession().setCompression(algorithm);
-        return true;
+        return PacketSignal.HANDLED;
     }
 
     @Override
-    public boolean handle(LoginPacket loginPacket) {
+    public PacketSignal handle(LoginPacket loginPacket) {
         if (geyser.isShuttingDown()) {
             // Don't allow new players in if we're no longer operating
             session.disconnect(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.message"));
-            return true;
+            return PacketSignal.HANDLED;
         }
 
         if (!newProtocol) {
             if (!setCorrectCodec(loginPacket.getProtocolVersion())) { // REMOVE WHEN ONLY 1.19.30 IS SUPPORTED OR 1.20
-                return true;
+                return PacketSignal.HANDLED;
             }
         }
 
@@ -124,7 +149,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         if (session.isClosed()) {
             // Can happen if Xbox validation fails
-            return true;
+            return PacketSignal.HANDLED;
         }
 
         PlayStatusPacket playStatus = new PlayStatusPacket();
@@ -144,11 +169,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         session.sendUpstreamPacket(resourcePacksInfo);
 
         GeyserLocale.loadGeyserLocale(session.locale());
-        return true;
+        return PacketSignal.HANDLED;
     }
 
     @Override
-    public boolean handle(ResourcePackClientResponsePacket packet) {
+    public PacketSignal handle(ResourcePackClientResponsePacket packet) {
         switch (packet.getStatus()) {
             case COMPLETED:
                 if (geyser.getConfig().getRemote().authType() != AuthType.ONLINE) {
@@ -175,7 +200,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     data.setHash(pack.getSha256());
                     data.setPackVersion(packID[1]);
                     data.setPremium(false);
-                    data.setType(ResourcePackType.RESOURCE);
+                    data.setType(ResourcePackType.RESOURCES);
 
                     session.sendUpstreamPacket(data);
                 }
@@ -205,13 +230,13 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 break;
         }
 
-        return true;
+        return PacketSignal.HANDLED;
     }
 
     @Override
-    public boolean handle(ModalFormResponsePacket packet) {
+    public PacketSignal handle(ModalFormResponsePacket packet) {
         session.executeInEventLoop(() -> session.getFormCache().handleResponse(packet));
-        return true;
+        return PacketSignal.HANDLED;
     }
 
     private boolean couldLoginUserByName(String bedrockUsername) {
@@ -244,7 +269,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     @Override
-    public boolean handle(MovePlayerPacket packet) {
+    public PacketSignal handle(MovePlayerPacket packet) {
         if (session.isLoggingIn()) {
             SetTitlePacket titlePacket = new SetTitlePacket();
             titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
@@ -261,7 +286,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     @Override
-    public boolean handle(ResourcePackChunkRequestPacket packet) {
+    public PacketSignal handle(ResourcePackChunkRequestPacket packet) {
         ResourcePackChunkDataPacket data = new ResourcePackChunkDataPacket();
         ResourcePack pack = ResourcePack.PACKS.get(packet.getPackId().toString());
 
@@ -280,9 +305,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             e.printStackTrace();
         }
 
-        data.setData(packData);
+        data.setData(Unpooled.wrappedBuffer(packData));
 
         session.sendUpstreamPacket(data);
-        return true;
+        return PacketSignal.HANDLED;
     }
 }

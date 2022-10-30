@@ -34,11 +34,11 @@ import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeDa
 import com.github.steveice10.mc.protocol.data.game.recipe.data.SmithingRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.StoneCuttingRecipeData;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateRecipesPacket;
-import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
-import com.nukkitx.protocol.bedrock.data.inventory.descriptor.DefaultDescriptor;
-import com.nukkitx.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
-import com.nukkitx.protocol.bedrock.packet.CraftingDataPacket;
+import org.cloudburstmc.protocol.bedrock.data.inventory.CraftingData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.DefaultDescriptor;
+import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
+import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import it.unimi.dsi.fastutil.ints.*;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -226,7 +226,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     int idCount = 0;
                     //not optimal
                     for (ItemMapping mapping : session.getItemMappings().getItems()) {
-                        if (mapping.getBedrockId() == groupedItem.id) {
+                        if (mapping.getBedrockDefinition() == groupedItem.id) {
                             idCount++;
                         }
                     }

@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.entity;
 
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataMap;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
 
 import java.util.Map;
 
@@ -35,9 +35,9 @@ import java.util.Map;
  * A write-only wrapper for temporarily storing entity metadata that will be sent to Bedrock.
  */
 public final class GeyserDirtyMetadata {
-    private final Map<EntityData, Object> metadata = new Object2ObjectLinkedOpenHashMap<>();
+    private final Map<EntityDataType<?>, Object> metadata = new Object2ObjectLinkedOpenHashMap<>();
 
-    public void put(EntityData entityData, Object value) {
+    public void put(EntityDataType<?> entityData, Object value) {
         metadata.put(entityData, value);
     }
 

@@ -26,7 +26,7 @@
 package org.geysermc.geyser.registry.populator;
 
 import com.github.steveice10.packetlib.packet.Packet;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;

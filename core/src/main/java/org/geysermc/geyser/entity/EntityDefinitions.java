@@ -29,8 +29,8 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.type.*;
 import org.geysermc.geyser.entity.type.living.*;
 import org.geysermc.geyser.entity.type.living.animal.*;
@@ -196,7 +196,7 @@ public final class EntityDefinitions {
                     .type(EntityType.AREA_EFFECT_CLOUD)
                     .height(0.5f).width(1.0f)
                     .addTranslator(MetadataType.FLOAT, AreaEffectCloudEntity::setRadius)
-                    .addTranslator(MetadataType.INT, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityData.EFFECT_COLOR, entityMetadata.getValue()))
+                    .addTranslator(MetadataType.INT, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityDataTypes.EFFECT_COLOR, entityMetadata.getValue()))
                     .addTranslator(null) // Waiting
                     .addTranslator(MetadataType.PARTICLE, AreaEffectCloudEntity::setParticle)
                     .build();
@@ -204,15 +204,15 @@ public final class EntityDefinitions {
                     .type(EntityType.BOAT)
                     .height(0.6f).width(1.6f)
                     .offset(0.35f)
-                    .addTranslator(MetadataType.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityData.HURT_TIME, entityMetadata.getValue())) // Time since last hit
-                    .addTranslator(MetadataType.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityData.HURT_DIRECTION, entityMetadata.getValue())) // Rocking direction
+                    .addTranslator(MetadataType.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityDataTypes.HURT_TIME, entityMetadata.getValue())) // Time since last hit
+                    .addTranslator(MetadataType.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityDataTypes.HURT_DIRECTION, entityMetadata.getValue())) // Rocking direction
                     .addTranslator(MetadataType.FLOAT, (boatEntity, entityMetadata) ->
                             // 'Health' in Bedrock, damage taken in Java - it makes motion in Bedrock
-                            boatEntity.getDirtyMetadata().put(EntityData.HEALTH, 40 - ((int) ((FloatEntityMetadata) entityMetadata).getPrimitiveValue())))
+                            boatEntity.getDirtyMetadata().put(EntityDataTypes.HEALTH, 40 - ((int) ((FloatEntityMetadata) entityMetadata).getPrimitiveValue())))
                     .addTranslator(MetadataType.INT, BoatEntity::setVariant)
                     .addTranslator(MetadataType.BOOLEAN, BoatEntity::setPaddlingLeft)
                     .addTranslator(MetadataType.BOOLEAN, BoatEntity::setPaddlingRight)
-                    .addTranslator(MetadataType.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityData.BOAT_BUBBLE_TIME, entityMetadata.getValue())) // May not actually do anything
+                    .addTranslator(MetadataType.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityDataTypes.BOAT_BUBBLE_TIME, entityMetadata.getValue())) // May not actually do anything
                     .build();
             CHEST_BOAT = EntityDefinition.inherited(ChestBoatEntity::new, BOAT)
                     .type(EntityType.CHEST_BOAT)
@@ -367,11 +367,11 @@ public final class EntityDefinitions {
                     .type(EntityType.MINECART)
                     .height(0.7f).width(0.98f)
                     .offset(0.35f)
-                    .addTranslator(MetadataType.INT, (minecartEntity, entityMetadata) -> minecartEntity.getDirtyMetadata().put(EntityData.HEALTH, entityMetadata.getValue()))
-                    .addTranslator(MetadataType.INT, (minecartEntity, entityMetadata) -> minecartEntity.getDirtyMetadata().put(EntityData.HURT_DIRECTION, entityMetadata.getValue())) // Direction in which the minecart is shaking
+                    .addTranslator(MetadataType.INT, (minecartEntity, entityMetadata) -> minecartEntity.getDirtyMetadata().put(EntityDataTypes.HEALTH, entityMetadata.getValue()))
+                    .addTranslator(MetadataType.INT, (minecartEntity, entityMetadata) -> minecartEntity.getDirtyMetadata().put(EntityDataTypes.HURT_DIRECTION, entityMetadata.getValue())) // Direction in which the minecart is shaking
                     .addTranslator(MetadataType.FLOAT, (minecartEntity, entityMetadata) ->
                             // Power in Java, time in Bedrock
-                            minecartEntity.getDirtyMetadata().put(EntityData.HURT_TIME, Math.min((int) ((FloatEntityMetadata) entityMetadata).getPrimitiveValue(), 15)))
+                            minecartEntity.getDirtyMetadata().put(EntityDataTypes.HURT_TIME, Math.min((int) ((FloatEntityMetadata) entityMetadata).getPrimitiveValue(), 15)))
                     .addTranslator(MetadataType.INT, MinecartEntity::setCustomBlock)
                     .addTranslator(MetadataType.INT, MinecartEntity::setCustomBlockOffset)
                     .addTranslator(MetadataType.BOOLEAN, MinecartEntity::setShowCustomBlock)
@@ -381,8 +381,8 @@ public final class EntityDefinitions {
                     .build();
             COMMAND_BLOCK_MINECART = EntityDefinition.inherited(CommandBlockMinecartEntity::new, MINECART)
                     .type(EntityType.COMMAND_BLOCK_MINECART)
-                    .addTranslator(MetadataType.STRING, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityData.COMMAND_BLOCK_COMMAND, entityMetadata.getValue()))
-                    .addTranslator(MetadataType.CHAT, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityData.COMMAND_BLOCK_LAST_OUTPUT, MessageTranslator.convertMessage(entityMetadata.getValue())))
+                    .addTranslator(MetadataType.STRING, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityDataTypes.COMMAND_BLOCK_COMMAND, entityMetadata.getValue()))
+                    .addTranslator(MetadataType.CHAT, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityDataTypes.COMMAND_BLOCK_LAST_OUTPUT, MessageTranslator.convertMessage(entityMetadata.getValue())))
                     .build();
             FURNACE_MINECART = EntityDefinition.inherited(FurnaceMinecartEntity::new, MINECART)
                     .type(EntityType.FURNACE_MINECART)
@@ -413,9 +413,9 @@ public final class EntityDefinitions {
                 .addTranslator(MetadataType.BYTE, LivingEntity::setLivingEntityFlags)
                 .addTranslator(MetadataType.FLOAT, LivingEntity::setHealth)
                 .addTranslator(MetadataType.INT,
-                        (livingEntity, entityMetadata) -> livingEntity.getDirtyMetadata().put(EntityData.EFFECT_COLOR, entityMetadata.getValue()))
+                        (livingEntity, entityMetadata) -> livingEntity.getDirtyMetadata().put(EntityDataTypes.EFFECT_COLOR, entityMetadata.getValue()))
                 .addTranslator(MetadataType.BOOLEAN,
-                        (livingEntity, entityMetadata) -> livingEntity.getDirtyMetadata().put(EntityData.EFFECT_AMBIENT, (byte) (((BooleanEntityMetadata) entityMetadata).getPrimitiveValue() ? 1 : 0)))
+                        (livingEntity, entityMetadata) -> livingEntity.getDirtyMetadata().put(EntityDataTypes.EFFECT_AMBIENT, (byte) (((BooleanEntityMetadata) entityMetadata).getPrimitiveValue() ? 1 : 0)))
                 .addTranslator(null) // Arrow count
                 .addTranslator(null) // Stinger count
                 .addTranslator(MetadataType.OPTIONAL_POSITION, LivingEntity::setBedPosition)
@@ -886,9 +886,9 @@ public final class EntityDefinitions {
             LLAMA = EntityDefinition.inherited(LlamaEntity::new, chestedHorseEntityBase)
                     .type(EntityType.LLAMA)
                     .height(1.87f).width(0.9f)
-                    .addTranslator(MetadataType.INT, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityData.STRENGTH, entityMetadata.getValue()))
+                    .addTranslator(MetadataType.INT, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityDataTypes.STRENGTH, entityMetadata.getValue()))
                     .addTranslator(MetadataType.INT, LlamaEntity::setCarpetedColor)
-                    .addTranslator(MetadataType.INT, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityData.VARIANT, entityMetadata.getValue()))
+                    .addTranslator(MetadataType.INT, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityDataTypes.VARIANT, entityMetadata.getValue()))
                     .build();
             TRADER_LLAMA = EntityDefinition.inherited(TraderLlamaEntity::new, LLAMA)
                     .type(EntityType.TRADER_LLAMA)
@@ -911,7 +911,7 @@ public final class EntityDefinitions {
         PARROT = EntityDefinition.inherited(ParrotEntity::new, tameableEntityBase)
                 .type(EntityType.PARROT)
                 .height(0.9f).width(0.5f)
-                .addTranslator(MetadataType.INT, (parrotEntity, entityMetadata) -> parrotEntity.getDirtyMetadata().put(EntityData.VARIANT, entityMetadata.getValue())) // Parrot color
+                .addTranslator(MetadataType.INT, (parrotEntity, entityMetadata) -> parrotEntity.getDirtyMetadata().put(EntityDataTypes.VARIANT, entityMetadata.getValue())) // Parrot color
                 .build();
         WOLF = EntityDefinition.inherited(WolfEntity::new, tameableEntityBase)
                 .type(EntityType.WOLF)

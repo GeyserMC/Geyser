@@ -28,7 +28,7 @@ package org.geysermc.geyser.translator.inventory.item;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.TippedArrowPotion;
 import org.geysermc.geyser.network.GameProtocol;
@@ -57,7 +57,7 @@ public class TippedArrowTranslator extends ItemTranslator {
             TippedArrowPotion tippedArrowPotion = TippedArrowPotion.getByJavaIdentifier(((StringTag) potionTag).getValue());
             if (tippedArrowPotion != null) {
                 return ItemData.builder()
-                        .id(mapping.getBedrockId())
+                        .id(mapping.getBedrockDefinition())
                         .damage(tippedArrowPotion.getBedrockId())
                         .count(itemStack.getAmount())
                         .tag(translateNbtToBedrock(itemStack.getNbt()));

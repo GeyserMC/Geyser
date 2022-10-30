@@ -31,10 +31,10 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.Cli
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
-import com.nukkitx.protocol.bedrock.packet.UpdateTradePacket;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateTradePacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.MerchantContainer;
@@ -73,9 +73,9 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
         // Retrieve the fake villager involved in the trade, and update its metadata to match with the window information
         merchantInventory.setVillagerTrades(packet.getTrades());
         Entity villager = merchantInventory.getVillager();
-        villager.getDirtyMetadata().put(EntityData.TRADE_TIER, packet.getVillagerLevel() - 1);
-        villager.getDirtyMetadata().put(EntityData.MAX_TRADE_TIER, 4);
-        villager.getDirtyMetadata().put(EntityData.TRADE_XP, packet.getExperience());
+        villager.getDirtyMetadata().put(EntityDataTypes.TRADE_TIER, packet.getVillagerLevel() - 1);
+        villager.getDirtyMetadata().put(EntityDataTypes.MAX_TRADE_TIER, 4);
+        villager.getDirtyMetadata().put(EntityDataTypes.TRADE_XP, packet.getExperience());
         villager.updateBedrockMetadata();
 
         // Construct the packet that opens the trading window

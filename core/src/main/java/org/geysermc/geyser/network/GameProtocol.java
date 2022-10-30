@@ -27,13 +27,14 @@ package org.geysermc.geyser.network;
 
 import com.github.steveice10.mc.protocol.codec.MinecraftCodec;
 import com.github.steveice10.mc.protocol.codec.PacketCodec;
-import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
-import com.nukkitx.protocol.bedrock.v527.Bedrock_v527;
-import com.nukkitx.protocol.bedrock.v534.Bedrock_v534;
-import com.nukkitx.protocol.bedrock.v544.Bedrock_v544;
-import com.nukkitx.protocol.bedrock.v545.Bedrock_v545;
-import com.nukkitx.protocol.bedrock.v554.Bedrock_v554;
-import com.nukkitx.protocol.bedrock.v557.Bedrock_v557;
+import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
+import org.cloudburstmc.protocol.bedrock.codec.v527.Bedrock_v527;
+import org.cloudburstmc.protocol.bedrock.codec.v534.Bedrock_v534;
+import org.cloudburstmc.protocol.bedrock.codec.v544.Bedrock_v544;
+import org.cloudburstmc.protocol.bedrock.codec.v545.Bedrock_v545;
+import org.cloudburstmc.protocol.bedrock.codec.v554.Bedrock_v554;
+import org.cloudburstmc.protocol.bedrock.codec.v557.Bedrock_v557;
+import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.ArrayList;
@@ -48,11 +49,11 @@ public final class GameProtocol {
      * Default Bedrock codec that should act as a fallback. Should represent the latest available
      * release of the game that Geyser supports.
      */
-    public static final BedrockPacketCodec DEFAULT_BEDROCK_CODEC = Bedrock_v557.V557_CODEC;
+    public static final BedrockCodec DEFAULT_BEDROCK_CODEC = Bedrock_v557.CODEC;
     /**
      * A list of all supported Bedrock versions that can join Geyser
      */
-    public static final List<BedrockPacketCodec> SUPPORTED_BEDROCK_CODECS = new ArrayList<>();
+    public static final List<BedrockCodec> SUPPORTED_BEDROCK_CODECS = new ArrayList<>();
 
     /**
      * Java codec that is supported. We only ever support one version for
@@ -61,17 +62,17 @@ public final class GameProtocol {
     private static final PacketCodec DEFAULT_JAVA_CODEC = MinecraftCodec.CODEC;
 
     static {
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v527.V527_CODEC.toBuilder()
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v527.CODEC.toBuilder()
                 .minecraftVersion("1.19.0/1.19.2")
                 .build());
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v534.V534_CODEC.toBuilder()
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v534.CODEC.toBuilder()
                 .minecraftVersion("1.19.10/1.19.11")
                 .build());
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v544.V544_CODEC);
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v545.V545_CODEC.toBuilder()
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v544.CODEC);
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v545.CODEC.toBuilder()
                 .minecraftVersion("1.19.21/1.19.22")
                 .build());
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v554.V554_CODEC.toBuilder()
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v554.CODEC.toBuilder()
                 .minecraftVersion("1.19.30/1.19.31")
                 .build());
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
@@ -82,8 +83,8 @@ public final class GameProtocol {
      * @param protocolVersion The protocol version to attempt to find
      * @return The packet codec, or null if the client's protocol is unsupported
      */
-    public static BedrockPacketCodec getBedrockCodec(int protocolVersion) {
-        for (BedrockPacketCodec packetCodec : SUPPORTED_BEDROCK_CODECS) {
+    public static BedrockCodec getBedrockCodec(int protocolVersion) {
+        for (BedrockCodec packetCodec : SUPPORTED_BEDROCK_CODECS) {
             if (packetCodec.getProtocolVersion() == protocolVersion) {
                 return packetCodec;
             }
@@ -94,11 +95,11 @@ public final class GameProtocol {
     /* Bedrock convenience methods to gatekeep features and easily remove the check on version removal */
 
     public static boolean supports1_19_10(GeyserSession session) {
-        return session.getUpstream().getProtocolVersion() >= Bedrock_v534.V534_CODEC.getProtocolVersion();
+        return session.getUpstream().getProtocolVersion() >= Bedrock_v534.CODEC.getProtocolVersion();
     }
 
     public static boolean supports1_19_30(GeyserSession session) {
-        return session.getUpstream().getProtocolVersion() >= Bedrock_v554.V554_CODEC.getProtocolVersion();
+        return session.getUpstream().getProtocolVersion() >= Bedrock_v554.CODEC.getProtocolVersion();
     }
 
     /**
@@ -142,7 +143,7 @@ public final class GameProtocol {
      */
     public static String getAllSupportedBedrockVersions() {
         StringJoiner joiner = new StringJoiner(", ");
-        for (BedrockPacketCodec packetCodec : SUPPORTED_BEDROCK_CODECS) {
+        for (BedrockCodec packetCodec : SUPPORTED_BEDROCK_CODECS) {
             joiner.add(packetCodec.getMinecraftVersion());
         }
 

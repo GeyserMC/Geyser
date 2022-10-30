@@ -26,9 +26,9 @@
 package org.geysermc.geyser.entity.type;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.packet.PlaySoundPacket;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
 import lombok.Getter;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
@@ -66,7 +66,7 @@ public class FishingHookEntity extends ThrowableEntity {
         setBoundingBoxHeight(128);
 
         this.bedrockOwnerId = owner.getGeyserId();
-        this.dirtyMetadata.put(EntityData.OWNER_EID, this.bedrockOwnerId);
+        this.dirtyMetadata.put(EntityDataTypes.OWNER_EID, this.bedrockOwnerId);
     }
 
     public void setHookedEntity(IntEntityMetadata entityMetadata) {
@@ -74,7 +74,7 @@ public class FishingHookEntity extends ThrowableEntity {
         Entity entity = session.getEntityCache().getEntityByJavaId(hookedEntityId);
         if (entity != null) {
             bedrockTargetId = entity.getGeyserId();
-            dirtyMetadata.put(EntityData.TARGET_EID, bedrockTargetId);
+            dirtyMetadata.put(EntityDataTypes.TARGET_EID, bedrockTargetId);
             hooked = true;
         } else {
             hooked = false;

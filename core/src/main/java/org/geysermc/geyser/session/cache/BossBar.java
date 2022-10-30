@@ -25,11 +25,11 @@
 
 package org.geysermc.geyser.session.cache;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
-import com.nukkitx.protocol.bedrock.packet.BossEventPacket;
-import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
+import org.cloudburstmc.protocol.bedrock.packet.BossEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.RemoveEntityPacket;
 import lombok.AllArgsConstructor;
 import net.kyori.adventure.text.Component;
 import org.geysermc.geyser.session.GeyserSession;
@@ -119,9 +119,9 @@ public class BossBar {
         addEntityPacket.setRotation(Vector3f.ZERO);
         addEntityPacket.setMotion(Vector3f.ZERO);
         addEntityPacket.getMetadata()
-                .putFloat(EntityData.SCALE, 0F)
-                .putFloat(EntityData.BOUNDING_BOX_WIDTH, 0F)
-                .putFloat(EntityData.BOUNDING_BOX_HEIGHT, 0F);
+                .putFloat(EntityDataTypes.SCALE, 0F)
+                .putFloat(EntityDataTypes.BOUNDING_BOX_WIDTH, 0F)
+                .putFloat(EntityDataTypes.BOUNDING_BOX_HEIGHT, 0F);
 
         session.sendUpstreamPacket(addEntityPacket);
     }

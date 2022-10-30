@@ -103,7 +103,7 @@ public class MathUtils {
 
     /**
      * Clamps the value between the low and high boundaries
-     * Copied from {@link com.nukkitx.math.GenericMath} with floats instead.
+     * Copied from {@link org.cloudburstmc.math.GenericMath} with floats instead.
      *
      * @param value The value to clamp
      * @param low The low bound of the clamp

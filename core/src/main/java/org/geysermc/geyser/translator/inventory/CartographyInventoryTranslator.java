@@ -26,15 +26,15 @@
 package org.geysermc.geyser.translator.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
-import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
 import org.geysermc.geyser.inventory.*;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.session.GeyserSession;
 
 public class CartographyInventoryTranslator extends AbstractBlockInventoryTranslator {
     public CartographyInventoryTranslator() {
-        super(3, "minecraft:cartography_table", com.nukkitx.protocol.bedrock.data.inventory.ContainerType.CARTOGRAPHY, UIInventoryUpdater.INSTANCE);
+        super(3, "minecraft:cartography_table", org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.CARTOGRAPHY, UIInventoryUpdater.INSTANCE);
     }
 
     @Override

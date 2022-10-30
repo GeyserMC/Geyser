@@ -29,9 +29,9 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanE
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -70,7 +70,7 @@ public class CatEntity extends TameableEntity {
         super.setTameableFlags(entityMetadata);
         // Update collar color if tamed
         if (getFlag(EntityFlag.TAMED)) {
-            dirtyMetadata.put(EntityData.COLOR, collarColor);
+            dirtyMetadata.put(EntityDataTypes.COLOR, collarColor);
         }
     }
 
@@ -84,7 +84,7 @@ public class CatEntity extends TameableEntity {
             case 10 -> 9;
             default -> metadataValue;
         };
-        dirtyMetadata.put(EntityData.VARIANT, variantColor);
+        dirtyMetadata.put(EntityDataTypes.VARIANT, variantColor);
     }
 
     public void setResting(BooleanEntityMetadata entityMetadata) {
@@ -95,7 +95,7 @@ public class CatEntity extends TameableEntity {
         collarColor = (byte) entityMetadata.getPrimitiveValue();
         // Needed or else wild cats are a red color
         if (getFlag(EntityFlag.TAMED)) {
-            dirtyMetadata.put(EntityData.COLOR, collarColor);
+            dirtyMetadata.put(EntityDataTypes.COLOR, collarColor);
         }
     }
 

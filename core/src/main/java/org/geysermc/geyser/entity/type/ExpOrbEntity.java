@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.entity.type;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -35,6 +35,6 @@ public class ExpOrbEntity extends Entity {
     public ExpOrbEntity(GeyserSession session, int amount, int entityId, long geyserId, Vector3f position) {
         super(session, entityId, geyserId, null, EntityDefinitions.EXPERIENCE_ORB, position, Vector3f.ZERO, 0, 0, 0);
 
-        this.dirtyMetadata.put(EntityData.EXPERIENCE_VALUE, amount);
+        this.dirtyMetadata.put(EntityDataTypes.EXPERIENCE_VALUE, amount);
     }
 }

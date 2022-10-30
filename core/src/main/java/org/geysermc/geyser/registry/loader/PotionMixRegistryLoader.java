@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.registry.loader;
 
-import com.nukkitx.protocol.bedrock.data.inventory.PotionMixData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.PotionMixData;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.Registries;
@@ -83,9 +83,9 @@ public class PotionMixRegistryLoader implements RegistryLoader<Object, Set<Potio
         for (ItemMapping entryInput : inputs) {
             for (Potion potion : Potion.values()) {
                 potionMixes.add(new PotionMixData(
-                        entryInput.getBedrockId(), potion.getBedrockId(),
-                        fillerIngredient.getBedrockId(), fillerIngredient.getBedrockData(),
-                        glassBottle.getBedrockId(), glassBottle.getBedrockData())
+                        entryInput.getBedrockDefinition(), potion.getBedrockId(),
+                        fillerIngredient.getBedrockDefinition(), fillerIngredient.getBedrockData(),
+                        glassBottle.getBedrockDefinition(), glassBottle.getBedrockData())
                 );
             }
         }
@@ -94,9 +94,9 @@ public class PotionMixRegistryLoader implements RegistryLoader<Object, Set<Potio
         // Also adds glass bottle as input
         for (ItemMapping ingredient : ingredients) {
             potionMixes.add(new PotionMixData(
-                    glassBottle.getBedrockId(), glassBottle.getBedrockData(),
-                    ingredient.getBedrockId(), ingredient.getBedrockData(),
-                    glassBottle.getBedrockId(), glassBottle.getBedrockData())
+                    glassBottle.getBedrockDefinition(), glassBottle.getBedrockData(),
+                    ingredient.getBedrockDefinition(), ingredient.getBedrockData(),
+                    glassBottle.getBedrockDefinition(), glassBottle.getBedrockData())
             );
         }
         return potionMixes;

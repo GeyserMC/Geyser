@@ -28,8 +28,8 @@ package org.geysermc.geyser.entity.type;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.session.GeyserSession;
@@ -45,17 +45,17 @@ public class MinecartEntity extends Entity {
     }
 
     public void setCustomBlock(IntEntityMetadata entityMetadata) {
-        dirtyMetadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getBedrockBlockId(entityMetadata.getPrimitiveValue()));
+        dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getBedrockBlockId(entityMetadata.getPrimitiveValue()));
     }
 
     public void setCustomBlockOffset(IntEntityMetadata entityMetadata) {
-        dirtyMetadata.put(EntityData.DISPLAY_OFFSET, entityMetadata.getPrimitiveValue());
+        dirtyMetadata.put(EntityDataTypes.DISPLAY_OFFSET, entityMetadata.getPrimitiveValue());
     }
 
     public void setShowCustomBlock(BooleanEntityMetadata entityMetadata) {
         // If the custom block should be enabled
         // Needs a byte based off of Java's boolean
-        dirtyMetadata.put(EntityData.CUSTOM_DISPLAY, (byte) (entityMetadata.getPrimitiveValue() ? 1 : 0));
+        dirtyMetadata.put(EntityDataTypes.CUSTOM_DISPLAY, (byte) (entityMetadata.getPrimitiveValue() ? 1 : 0));
     }
 
     @Override

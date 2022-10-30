@@ -25,11 +25,11 @@
 
 package org.geysermc.geyser.util;
 
-import com.nukkitx.math.vector.Vector2i;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
-import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
-import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
+import org.cloudburstmc.math.vector.Vector2i;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
+import org.cloudburstmc.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
@@ -147,9 +147,9 @@ public class ChunkUtils {
             waterPacket.setDataLayer(1);
             waterPacket.setBlockPosition(position);
             if (BlockRegistries.WATERLOGGED.get().contains(blockState)) {
-                waterPacket.setRuntimeId(session.getBlockMappings().getBedrockWaterId());
+                waterPacket.setRuntimeId(session.getBlockMappings().getBedrockWater());
             } else {
-                waterPacket.setRuntimeId(session.getBlockMappings().getBedrockAirId());
+                waterPacket.setRuntimeId(session.getBlockMappings().getBedrockAir());
             }
             session.sendUpstreamPacket(waterPacket);
         }

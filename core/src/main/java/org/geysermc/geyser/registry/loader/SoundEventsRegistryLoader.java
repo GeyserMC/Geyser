@@ -27,7 +27,7 @@ package org.geysermc.geyser.registry.loader;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.protocol.data.game.level.event.LevelEvent;
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
@@ -65,7 +65,7 @@ public class SoundEventsRegistryLoader extends EffectRegistryLoader<Map<LevelEve
                     }
                     case "soundEvent" -> {
                         javaEffect = LevelEvent.valueOf(entry.getKey());
-                        com.nukkitx.protocol.bedrock.data.SoundEvent soundEvent = com.nukkitx.protocol.bedrock.data.SoundEvent.valueOf(node.get("name").asText());
+                        org.cloudburstmc.protocol.bedrock.data.SoundEvent soundEvent = org.cloudburstmc.protocol.bedrock.data.SoundEvent.valueOf(node.get("name").asText());
                         String identifier = node.has("identifier") ? node.get("identifier").asText() : "";
                         int extraData = node.has("extraData") ? node.get("extraData").intValue() : -1;
                         transformer = new SoundEventEventTranslator(soundEvent, identifier, extraData);

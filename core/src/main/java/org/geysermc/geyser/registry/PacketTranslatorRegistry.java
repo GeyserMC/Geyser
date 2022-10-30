@@ -27,7 +27,7 @@ package org.geysermc.geyser.registry;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundTabListPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLightUpdatePacket;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import io.netty.channel.EventLoop;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;

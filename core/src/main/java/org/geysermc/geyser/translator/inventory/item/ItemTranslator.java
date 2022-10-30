@@ -31,7 +31,9 @@ import com.nukkitx.nbt.NbtList;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.kyori.adventure.text.Component;
@@ -263,22 +265,24 @@ public abstract class ItemTranslator {
     }
 
     /**
-     * Given an item stack, determine the Bedrock item ID that should be applied to Bedrock players.
+     * Given an item stack, determine the Bedrock item definition that should be applied to Bedrock players.
      */
-    public static int getBedrockItemId(GeyserSession session, @Nonnull GeyserItemStack itemStack) {
+    @NonNull
+    public static ItemDefinition getBedrockItemDefinition(GeyserSession session, @Nonnull GeyserItemStack itemStack) {
         if (itemStack.isEmpty()) {
-            return ItemMapping.AIR.getJavaId();
+            return ItemDefinition.AIR;
         }
+
         int javaId = itemStack.getJavaId();
         ItemMapping mapping = ITEM_STACK_TRANSLATORS.getOrDefault(javaId, DEFAULT_TRANSLATOR)
                 .getItemMapping(javaId, itemStack.getNbt(), session.getItemMappings());
 
-        int customItemId = CustomItemTranslator.getCustomItem(itemStack.getNbt(), mapping);
-        if (customItemId == -1) {
+        ItemDefinition definition = CustomItemTranslator.getCustomItem(itemStack.getNbt(), mapping);
+        if (definition == null) {
             // No custom item
-            return mapping.getBedrockId();
+            return mapping.getBedrockDefinition();
         } else {
-            return customItemId;
+            return definition;
         }
     }
 
@@ -295,7 +299,7 @@ public abstract class ItemTranslator {
             return ItemData.builder();
         }
         ItemData.Builder builder = ItemData.builder()
-                .id(mapping.getBedrockId())
+                .definition(mapping.getBedrockDefinition())
                 .damage(mapping.getBedrockData())
                 .count(itemStack.getAmount());
         if (itemStack.getNbt() != null) {
@@ -504,10 +508,9 @@ public abstract class ItemTranslator {
      * Translates the custom model data of an item
      */
     private static void translateCustomItem(CompoundTag nbt, ItemData.Builder builder, ItemMapping mapping) {
-        int bedrockId = CustomItemTranslator.getCustomItem(nbt, mapping);
-        if (bedrockId != -1) {
-            builder.id(bedrockId);
+        ItemDefinition definition = CustomItemTranslator.getCustomItem(nbt, mapping);
+        if (definition != null) {
+            builder.definition(definition);
         }
     }
-
 }

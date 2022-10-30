@@ -29,10 +29,11 @@ import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.github.steveice10.opennbt.tag.builtin.ByteTag;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
-import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.math.vector.Vector3i;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
@@ -143,9 +144,9 @@ public abstract class Inventory {
 
     protected void updateItemNetId(GeyserItemStack oldItem, GeyserItemStack newItem, GeyserSession session) {
         if (!newItem.isEmpty()) {
-            int oldMapping = ItemTranslator.getBedrockItemId(session, oldItem);
-            int newMapping = ItemTranslator.getBedrockItemId(session, newItem);
-            if (oldMapping == newMapping) {
+            ItemDefinition oldMapping = ItemTranslator.getBedrockItemDefinition(session, oldItem);
+            ItemDefinition newMapping = ItemTranslator.getBedrockItemDefinition(session, newItem);
+            if (oldMapping.equals(newMapping)) {
                 newItem.setNetId(oldItem.getNetId());
             } else {
                 newItem.setNetId(session.getNextItemNetId());

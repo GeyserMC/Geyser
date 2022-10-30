@@ -27,9 +27,9 @@ package org.geysermc.geyser.entity.type.living;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import lombok.Getter;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.LivingEntity;
@@ -67,7 +67,7 @@ public class MobEntity extends LivingEntity {
 
     public void setLeashHolderBedrockId(long bedrockId) {
         this.leashHolderBedrockId = bedrockId;
-        dirtyMetadata.put(EntityData.LEASH_HOLDER_EID, bedrockId);
+        dirtyMetadata.put(EntityDataTypes.LEASH_HOLDER_EID, bedrockId);
     }
 
     @Override

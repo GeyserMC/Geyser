@@ -35,16 +35,16 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntit
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.data.AttributeData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
-import com.nukkitx.protocol.bedrock.packet.MobArmorEquipmentPacket;
-import com.nukkitx.protocol.bedrock.packet.MobEquipmentPacket;
-import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.bedrock.data.AttributeData;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.packet.MobArmorEquipmentPacket;
+import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -88,7 +88,7 @@ public class LivingEntity extends Entity {
     protected void initializeMetadata() {
         super.initializeMetadata();
         // Matches Bedrock behavior; is always set to this
-        dirtyMetadata.put(EntityData.HEALTH, 1);
+        dirtyMetadata.put(EntityDataTypes.HEALTH, 1);
     }
 
     public void setLivingEntityFlags(ByteEntityMetadata entityMetadata) {
@@ -125,27 +125,27 @@ public class LivingEntity extends Entity {
         Optional<Vector3i> optionalPos = entityMetadata.getValue();
         if (optionalPos.isPresent()) {
             Vector3i bedPosition = optionalPos.get();
-            dirtyMetadata.put(EntityData.BED_POSITION, bedPosition);
+            dirtyMetadata.put(EntityDataTypes.BED_POSITION, bedPosition);
             int bed = session.getGeyser().getWorldManager().getBlockAt(session, bedPosition);
             // Bed has to be updated, or else player is floating in the air
             ChunkUtils.updateBlock(session, bed, bedPosition);
             // Indicate that the player should enter the sleep cycle
             // Has to be a byte or it does not work
             // (Bed position is what actually triggers sleep - "pose" is only optional)
-            dirtyMetadata.put(EntityData.PLAYER_FLAGS, (byte) 2);
+            dirtyMetadata.put(EntityDataTypes.PLAYER_FLAGS, (byte) 2);
             return bedPosition;
         } else {
             // Player is no longer sleeping
-            dirtyMetadata.put(EntityData.PLAYER_FLAGS, (byte) 0);
+            dirtyMetadata.put(EntityDataTypes.PLAYER_FLAGS, (byte) 0);
             return null;
         }
     }
 
     protected boolean hasShield(boolean offhand, ItemMapping shieldMapping) {
         if (offhand) {
-            return offHand.getId() == shieldMapping.getBedrockId();
+            return offHand.getId() == shieldMapping.getBedrockDefinition();
         } else {
-            return hand.getId() == shieldMapping.getBedrockId();
+            return hand.getId() == shieldMapping.getBedrockDefinition();
         }
     }
 
@@ -219,10 +219,10 @@ public class LivingEntity extends Entity {
         // If an entity has a banner on them, it will be in the helmet slot in Java but the chestplate spot in Bedrock
         // But don't overwrite the chestplate if it isn't empty
         ItemMapping banner = session.getItemMappings().getStoredItems().banner();
-        if (chestplate.getId() == ItemData.AIR.getId() && helmet.getId() == banner.getBedrockId()) {
+        if (chestplate.getId() == ItemData.AIR.getId() && helmet.getId() == banner.getBedrockDefinition()) {
             chestplate = this.helmet;
             helmet = ItemData.AIR;
-        } else if (chestplate.getId() == banner.getBedrockId()) {
+        } else if (chestplate.getId() == banner.getBedrockDefinition()) {
             // Prevent chestplate banners from showing erroneously
             chestplate = ItemData.AIR;
         }

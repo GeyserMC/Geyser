@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.protocol.java.entity.player;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.player.ClientboundPlayerCombatKillPacket;
-import com.nukkitx.protocol.bedrock.packet.DeathInfoPacket;
+import org.cloudburstmc.protocol.bedrock.packet.DeathInfoPacket;
 import net.kyori.adventure.text.Component;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;

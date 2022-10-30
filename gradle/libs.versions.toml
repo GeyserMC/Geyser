@@ -5,10 +5,10 @@ netty = "4.1.80.Final"
 guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8
 websocket = "1.5.1"
-protocol = "2.9.14-20221025.193624-1"
+protocol = "3.0.0.Beta2-SNAPSHOT"
 raknet = "1.6.28-20220125.214016-6"
 mcauthlib = "d9d773e"
-mcprotocollib = "9f78bd5"
+mcprotocollib = "1.19.2-SNAPSHOT"
 packetlib = "3.0"
 adventure = "4.12.0-20220629.025215-9"
 adventure-platform = "4.1.2"
@@ -80,9 +80,8 @@ guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 mcauthlib = { group = "com.github.GeyserMC", name = "MCAuthLib", version.ref = "mcauthlib" }
-mcprotocollib = { group = "com.github.GeyserMC", name = "MCProtocolLib", version.ref = "mcprotocollib" }
+mcprotocollib = { group = "com.github.steveice10", name = "mcprotocollib", version.ref = "mcprotocollib" }
 packetlib = { group = "com.github.steveice10", name = "packetlib", version.ref = "packetlib" }
-protocol = { group = "com.nukkitx.protocol", name = "bedrock-v557", version.ref = "protocol" }
 raknet = { group = "com.nukkitx.network", name = "raknet", version.ref = "raknet" }
 sponge-api = { group = "org.spongepowered", name = "spongeapi", version.ref = "sponge" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }
@@ -90,9 +89,13 @@ velocity-api = { group = "com.velocitypowered", name = "velocity-api", version.r
 viaversion = { group = "com.viaversion", name = "viaversion", version.ref = "viaversion" }
 websocket = { group = "org.java-websocket", name = "Java-WebSocket", version.ref = "websocket" }
 
+protocol-codec = { group = "org.cloudburstmc.protocol", name = "bedrock-codec", version.ref = "protocol" }
+protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol" }
+
 [bundles]
 jackson = [ "jackson-annotations", "jackson-core", "jackson-dataformat-yaml" ]
 fastutil = [ "fastutil-int-int-maps", "fastutil-int-long-maps", "fastutil-int-byte-maps", "fastutil-int-boolean-maps", "fastutil-object-int-maps", "fastutil-object-object-maps" ]
 adventure = [ "adventure-text-serializer-gson", "adventure-text-serializer-legacy", "adventure-text-serializer-plain" ]
 log4j = [ "log4j-api", "log4j-core", "log4j-slf4j18-impl" ]
 jline = [ "jline-terminal", "jline-terminal-jna", "jline-reader" ]
+protocol = [ "protocol-codec", "protocol-connection" ]
