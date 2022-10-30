@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.level.block;
 
-import com.nukkitx.network.util.Preconditions;
+import org.cloudburstmc.protocol.common.util.Preconditions;
 
 public class BlockPositionIterator {
     private final int minX;

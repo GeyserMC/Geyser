@@ -25,36 +25,76 @@
 
 package org.geysermc.geyser.network.netty;
 
-import com.nukkitx.network.util.EventLoops;
+import com.github.steveice10.packetlib.helper.TransportHelper;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollDatagramChannel;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.kqueue.KQueue;
+import io.netty.channel.kqueue.KQueueDatagramChannel;
+import io.netty.channel.kqueue.KQueueEventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import org.cloudburstmc.netty.channel.raknet.RakChannelFactory;
 import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
+import org.cloudburstmc.netty.handler.codec.raknet.common.UnconnectedPingEncoder;
+import org.cloudburstmc.netty.handler.codec.raknet.common.UnconnectedPongDecoder;
+import org.cloudburstmc.netty.handler.codec.raknet.common.UnconnectedPongEncoder;
+import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerOfflineHandler;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.GeyserServerInitializer;
+import org.geysermc.geyser.ping.GeyserPingInfo;
+import org.geysermc.geyser.ping.IGeyserPingPassthrough;
+import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.Random;
+import java.util.function.Function;
 
 public final class GeyserServer {
+    private static final boolean PRINT_DEBUG_PINGS = Boolean.parseBoolean(System.getProperty("Geyser.PrintPingsInDebugMode", "true"));
+
+    /*
+    The following constants are all used to ensure the ping does not reach a length where it is unparsable by the Bedrock client
+     */
+    private static final int MINECRAFT_VERSION_BYTES_LENGTH = GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion().getBytes(StandardCharsets.UTF_8).length;
+    private static final int BRAND_BYTES_LENGTH = GeyserImpl.NAME.getBytes(StandardCharsets.UTF_8).length;
+    /**
+     * The MOTD, sub-MOTD and Minecraft version ({@link #MINECRAFT_VERSION_BYTES_LENGTH}) combined cannot reach this length.
+     */
+    private static final int MAGIC_RAKNET_LENGTH = 338;
+
+    private static final Transport TRANSPORT = compatibleTransport();
+
     private final GeyserImpl geyser;
     private final EventLoopGroup group;
     private final ServerBootstrap bootstrap;
 
     private ChannelFuture future;
+    private Channel channel;
 
     public GeyserServer(GeyserImpl geyser, int threadCount) {
         this.geyser = geyser;
-        this.group = EventLoops.newEventLoopGroup(threadCount);
+        this.group = TRANSPORT.eventLoopGroupFactory().apply(threadCount);
 
-        this.bootstrap = this.createBootstrap(group);
+        this.bootstrap = this.createBootstrap(this.group);
     }
 
-    public ChannelFuture bind(InetSocketAddress address) {
-        return this.future = this.bootstrap.bind(address);
+    public void bind(InetSocketAddress address) {
+        this.future = this.bootstrap.bind(address).syncUninterruptibly();
+        this.channel = this.future.channel();
+
+        // Add our ping handler
+        this.channel.pipeline().addAfter(RakServerOfflineHandler.NAME, RakPingHandler.NAME, new RakPingHandler(this));
     }
 
     public void shutdown() {
@@ -63,25 +103,122 @@ public final class GeyserServer {
     }
 
     private ServerBootstrap createBootstrap(EventLoopGroup group) {
+        // TODO
+        boolean enableProxyProtocol = this.geyser.getConfig().getBedrock().isEnableProxyProtocol();
+        if (this.geyser.getConfig().isDebugMode()) {
+            this.geyser.getLogger().debug("EventLoop type: " + TRANSPORT.datagramChannel());
+            if (TRANSPORT.datagramChannel() == NioDatagramChannel.class) {
+                if (System.getProperties().contains("disableNativeEventLoop")) {
+                    this.geyser.getLogger().debug("EventLoop type is NIO because native event loops are disabled.");
+                } else {
+                    this.geyser.getLogger().debug("Reason for no Epoll: " + Epoll.unavailabilityCause().toString());
+                    this.geyser.getLogger().debug("Reason for no KQueue: " + KQueue.unavailabilityCause().toString());
+                }
+            }
+        }
+
         return new ServerBootstrap()
-                .channelFactory(RakChannelFactory.server(EventLoops.getChannelType().getDatagramChannel()))
-                .option(RakChannelOption.RAK_ADVERTISEMENT, bedrockPong().toByteBuf())
+                .channelFactory(RakChannelFactory.server(TRANSPORT.datagramChannel()))
                 .group(group)
+                .option(RakChannelOption.RAK_HANDLE_PING, true)
                 .childHandler(new GeyserServerInitializer(this.geyser));
     }
 
-    // TODO: Temp
-    private BedrockPong bedrockPong() {
-        return new BedrockPong()
+    public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {
+        if (geyser.getConfig().isDebugMode() && PRINT_DEBUG_PINGS) {
+            String ip = geyser.getConfig().isLogPlayerIpAddresses() ? inetSocketAddress.toString() : "<IP address withheld>";
+            geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.network.pinged", ip));
+        }
+
+        GeyserConfiguration config = geyser.getConfig();
+
+        GeyserPingInfo pingInfo = null;
+        if (config.isPassthroughMotd() || config.isPassthroughPlayerCounts()) {
+            IGeyserPingPassthrough pingPassthrough = geyser.getBootstrap().getGeyserPingPassthrough();
+            pingInfo = pingPassthrough.getPingInformation(inetSocketAddress);
+        }
+
+        BedrockPong pong = new BedrockPong()
                 .edition("MCPE")
                 .gameType("Survival") // Can only be Survival or Creative as of 1.16.210.59
                 .nintendoLimited(false)
                 .protocolVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
                 .version(GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()) // Required to not be empty as of 1.16.210.59. Can only contain . and numbers.
-                .ipv4Port(this.geyser.getConfig().getBedrock().port())
-                .motd(this.geyser.getConfig().getBedrock().primaryMotd())
-                .subMotd(this.geyser.getConfig().getBedrock().secondaryMotd())
-                .playerCount(geyser.getSessionManager().getSessions().size())
-                .maximumPlayerCount(this.geyser.getConfig().getMaxPlayers());
+                .ipv4Port(this.geyser.getConfig().getBedrock().port());
+
+        if (config.isPassthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
+            String[] motd = MessageTranslator.convertMessageLenient(pingInfo.getDescription()).split("\n");
+            String mainMotd = motd[0]; // First line of the motd.
+            String subMotd = (motd.length != 1) ? motd[1] : GeyserImpl.NAME; // Second line of the motd if present, otherwise default.
+
+            pong.motd(mainMotd.trim());
+            pong.subMotd(subMotd.trim()); // Trimmed to shift it to the left, prevents the universe from collapsing on us just because we went 2 characters over the text box's limit.
+        } else {
+            pong.motd(config.getBedrock().primaryMotd());
+            pong.subMotd(config.getBedrock().secondaryMotd());
+        }
+
+        if (config.isPassthroughPlayerCounts() && pingInfo != null) {
+            pong.playerCount(pingInfo.getPlayers().getOnline());
+            pong.maximumPlayerCount(pingInfo.getPlayers().getMax());
+        } else {
+            pong.playerCount(geyser.getSessionManager().getSessions().size());
+            pong.maximumPlayerCount(config.getMaxPlayers());
+        }
+
+        // Fallbacks to prevent errors and allow Bedrock to see the server
+        if (pong.motd() == null || pong.motd().isBlank()) {
+            pong.motd(GeyserImpl.NAME);
+        }
+        if (pong.subMotd() == null || pong.subMotd().isBlank()) {
+            // Sub-MOTD cannot be empty as of 1.16.210.59
+            pong.subMotd(GeyserImpl.NAME);
+        }
+
+        // The ping will not appear if the MOTD + sub-MOTD is of a certain length.
+        // We don't know why, though
+        byte[] motdArray = pong.motd().getBytes(StandardCharsets.UTF_8);
+        int subMotdLength = pong.subMotd().getBytes(StandardCharsets.UTF_8).length;
+        if (motdArray.length + subMotdLength > (MAGIC_RAKNET_LENGTH - MINECRAFT_VERSION_BYTES_LENGTH)) {
+            // Shorten the sub-MOTD first since that only appears locally
+            if (subMotdLength > BRAND_BYTES_LENGTH) {
+                pong.subMotd(GeyserImpl.NAME);
+                subMotdLength = BRAND_BYTES_LENGTH;
+            }
+            if (motdArray.length > (MAGIC_RAKNET_LENGTH - MINECRAFT_VERSION_BYTES_LENGTH - subMotdLength)) {
+                // If the top MOTD is still too long, we chop it down
+                byte[] newMotdArray = new byte[MAGIC_RAKNET_LENGTH - MINECRAFT_VERSION_BYTES_LENGTH - subMotdLength];
+                System.arraycopy(motdArray, 0, newMotdArray, 0, newMotdArray.length);
+                pong.motd(new String(newMotdArray, StandardCharsets.UTF_8));
+            }
+        }
+
+        //Bedrock will not even attempt a connection if the client thinks the server is full
+        //so we have to fake it not being full
+        if (pong.playerCount() >= pong.maximumPlayerCount()) {
+            pong.maximumPlayerCount(pong.playerCount() + 1);
+        }
+
+        return pong;
+    }
+
+    private static Transport compatibleTransport() {
+        TransportHelper.TransportMethod transportMethod = TransportHelper.determineTransportMethod();
+        if (transportMethod == TransportHelper.TransportMethod.EPOLL) {
+            return new Transport(EpollDatagramChannel.class, EpollEventLoopGroup::new);
+        }
+
+        if (transportMethod == TransportHelper.TransportMethod.KQUEUE) {
+            return new Transport(KQueueDatagramChannel.class, KQueueEventLoopGroup::new);
+        }
+
+        // if (transportMethod == TransportHelper.TransportMethod.IO_URING) {
+        //     return new Transport(IOUringDatagramChannel.class, IOUringEventLoopGroup::new);
+        // }
+
+        return new Transport(NioDatagramChannel.class, NioEventLoopGroup::new);
+    }
+
+    private record Transport(Class<? extends DatagramChannel> datagramChannel, Function<Integer, EventLoopGroup> eventLoopGroupFactory) {
     }
 }

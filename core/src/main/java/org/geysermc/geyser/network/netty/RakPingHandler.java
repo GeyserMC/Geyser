@@ -23,29 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.level.chunk.bitarray;
+package org.geysermc.geyser.network.netty;
 
-import io.netty.buffer.ByteBuf;
-import org.cloudburstmc.protocol.common.util.VarInts;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+import lombok.RequiredArgsConstructor;
+import org.cloudburstmc.netty.channel.raknet.RakPing;
+import org.cloudburstmc.netty.channel.raknet.RakPong;
+import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
 
-public interface BitArray {
+@ChannelHandler.Sharable
+@RequiredArgsConstructor
+public class RakPingHandler extends SimpleChannelInboundHandler<RakPing> {
+    public static final String NAME = "rak-ping-handler";
 
-    void set(int index, int value);
+    private final GeyserServer server;
 
-    int get(int index);
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, RakPing msg) throws Exception {
+        long guid = ctx.channel().config().getOption(RakChannelOption.RAK_GUID);
 
-    int size();
-
-    /**
-     * Overridden if the bit array implementation does not require size.
-     */
-    default void writeSizeToNetwork(ByteBuf buffer, int size) {
-        VarInts.writeInt(buffer, size);
+        RakPong pong = msg.reply(guid, this.server.onQuery(msg.getSender()).toByteBuf());
+        ctx.writeAndFlush(pong);
     }
-
-    int[] getWords();
-
-    BitArrayVersion getVersion();
-
-    BitArray copy();
 }

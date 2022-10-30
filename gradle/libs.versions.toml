@@ -6,7 +6,7 @@ guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8
 websocket = "1.5.1"
 protocol = "3.0.0.Beta2-SNAPSHOT"
-raknet = "1.6.28-20220125.214016-6"
+raknet = "0.0.1.Final-SNAPSHOT"
 mcauthlib = "d9d773e"
 mcprotocollib = "1.19.2-SNAPSHOT"
 packetlib = "3.0"
@@ -82,7 +82,7 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 mcauthlib = { group = "com.github.GeyserMC", name = "MCAuthLib", version.ref = "mcauthlib" }
 mcprotocollib = { group = "com.github.steveice10", name = "mcprotocollib", version.ref = "mcprotocollib" }
 packetlib = { group = "com.github.steveice10", name = "packetlib", version.ref = "packetlib" }
-raknet = { group = "com.nukkitx.network", name = "raknet", version.ref = "raknet" }
+raknet = { group = "org.cloudburstmc.netty", name = "netty-transport-raknet", version.ref = "raknet" }
 sponge-api = { group = "org.spongepowered", name = "spongeapi", version.ref = "sponge" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }
 velocity-api = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }

@@ -60,14 +60,14 @@ public class BlockMappings {
     Set<BlockDefinition> jigsawStates;
 
     public int getBedrockBlockId(int state) {
-        if (state >= this.javaToBedrockBlocks.length) {
+        if (state < 0 || state >= this.javaToBedrockBlocks.length) {
             return bedrockAir.getRuntimeId();
         }
         return this.javaToBedrockBlocks[state].getRuntimeId();
     }
 
     public BlockDefinition getBedrockBlock(int state) {
-        if (state >= this.javaToBedrockBlocks.length) {
+        if (state < 0 || state >= this.javaToBedrockBlocks.length) {
             return bedrockAir;
         }
         return this.javaToBedrockBlocks[state];

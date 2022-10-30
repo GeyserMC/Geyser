@@ -35,21 +35,8 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 
 import javax.annotation.Nonnull;
-import java.nio.charset.StandardCharsets;
 
 public class GeyserServerInitializer extends BedrockServerInitializer {
-    private static final boolean PRINT_DEBUG_PINGS = Boolean.parseBoolean(System.getProperty("Geyser.PrintPingsInDebugMode", "true"));
-
-    /*
-    The following constants are all used to ensure the ping does not reach a length where it is unparsable by the Bedrock client
-     */
-    private static final int MINECRAFT_VERSION_BYTES_LENGTH = GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion().getBytes(StandardCharsets.UTF_8).length;
-    private static final int BRAND_BYTES_LENGTH = GeyserImpl.NAME.getBytes(StandardCharsets.UTF_8).length;
-    /**
-     * The MOTD, sub-MOTD and Minecraft version ({@link #MINECRAFT_VERSION_BYTES_LENGTH}) combined cannot reach this length.
-     */
-    private static final int MAGIC_RAKNET_LENGTH = 338;
-
     private final GeyserImpl geyser;
     // There is a constructor that doesn't require inputting threads, but older Netty versions don't have it
     private final DefaultEventLoopGroup eventLoopGroup = new DefaultEventLoopGroup(0, new DefaultThreadFactory("Geyser player thread"));
@@ -81,89 +68,11 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
         return true;
     }
 
-    @Override
-    public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {
-        if (geyser.getConfig().isDebugMode() && PRINT_DEBUG_PINGS) {
-            String ip = geyser.getConfig().isLogPlayerIpAddresses() ? inetSocketAddress.toString() : "<IP address withheld>";
-            geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.network.pinged", ip));
-        }
-
-        GeyserConfiguration config = geyser.getConfig();
-
-        GeyserPingInfo pingInfo = null;
-        if (config.isPassthroughMotd() || config.isPassthroughPlayerCounts()) {
-            IGeyserPingPassthrough pingPassthrough = geyser.getBootstrap().getGeyserPingPassthrough();
-            pingInfo = pingPassthrough.getPingInformation(inetSocketAddress);
-        }
-
-        BedrockPong pong = new BedrockPong();
-        pong.setEdition("MCPE");
-        pong.setGameType("Survival"); // Can only be Survival or Creative as of 1.16.210.59
-        pong.setNintendoLimited(false);
-        pong.setProtocolVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion());
-        pong.setVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()); // Required to not be empty as of 1.16.210.59. Can only contain . and numbers.
-        pong.setIpv4Port(config.getBedrock().port());
-
-        if (config.isPassthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
-            String[] motd = MessageTranslator.convertMessageLenient(pingInfo.getDescription()).split("\n");
-            String mainMotd = motd[0]; // First line of the motd.
-            String subMotd = (motd.length != 1) ? motd[1] : GeyserImpl.NAME; // Second line of the motd if present, otherwise default.
-
-            pong.setMotd(mainMotd.trim());
-            pong.setSubMotd(subMotd.trim()); // Trimmed to shift it to the left, prevents the universe from collapsing on us just because we went 2 characters over the text box's limit.
-        } else {
-            pong.setMotd(config.getBedrock().primaryMotd());
-            pong.setSubMotd(config.getBedrock().secondaryMotd());
-        }
-
-        if (config.isPassthroughPlayerCounts() && pingInfo != null) {
-            pong.setPlayerCount(pingInfo.getPlayers().getOnline());
-            pong.setMaximumPlayerCount(pingInfo.getPlayers().getMax());
-        } else {
-            pong.setPlayerCount(geyser.getSessionManager().getSessions().size());
-            pong.setMaximumPlayerCount(config.getMaxPlayers());
-        }
-
-        // Fallbacks to prevent errors and allow Bedrock to see the server
-        if (pong.getMotd() == null || pong.getMotd().isBlank()) {
-            pong.setMotd(GeyserImpl.NAME);
-        }
-        if (pong.getSubMotd() == null || pong.getSubMotd().isBlank()) {
-            // Sub-MOTD cannot be empty as of 1.16.210.59
-            pong.setSubMotd(GeyserImpl.NAME);
-        }
-
-        // The ping will not appear if the MOTD + sub-MOTD is of a certain length.
-        // We don't know why, though
-        byte[] motdArray = pong.getMotd().getBytes(StandardCharsets.UTF_8);
-        int subMotdLength = pong.getSubMotd().getBytes(StandardCharsets.UTF_8).length;
-        if (motdArray.length + subMotdLength > (MAGIC_RAKNET_LENGTH - MINECRAFT_VERSION_BYTES_LENGTH)) {
-            // Shorten the sub-MOTD first since that only appears locally
-            if (subMotdLength > BRAND_BYTES_LENGTH) {
-                pong.setSubMotd(GeyserImpl.NAME);
-                subMotdLength = BRAND_BYTES_LENGTH;
-            }
-            if (motdArray.length > (MAGIC_RAKNET_LENGTH - MINECRAFT_VERSION_BYTES_LENGTH - subMotdLength)) {
-                // If the top MOTD is still too long, we chop it down
-                byte[] newMotdArray = new byte[MAGIC_RAKNET_LENGTH - MINECRAFT_VERSION_BYTES_LENGTH - subMotdLength];
-                System.arraycopy(motdArray, 0, newMotdArray, 0, newMotdArray.length);
-                pong.setMotd(new String(newMotdArray, StandardCharsets.UTF_8));
-            }
-        }
-
-        //Bedrock will not even attempt a connection if the client thinks the server is full
-        //so we have to fake it not being full
-        if (pong.getPlayerCount() >= pong.getMaximumPlayerCount()) {
-            pong.setMaximumPlayerCount(pong.getPlayerCount() + 1);
-        }
-
-        return pong;
-    }
-
      */
 
     @Override
     public void initSession(@Nonnull BedrockServerSession bedrockServerSession) {
+        System.out.println("init session");
         try {
             bedrockServerSession.setCodec(Bedrock_v554.CODEC); // Has the RequestNetworkSettingsPacket
             bedrockServerSession.setLogging(true);

@@ -30,8 +30,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.steveice10.packetlib.tcp.TcpSession;
-import com.nukkitx.network.raknet.RakNetConstants;
-import com.nukkitx.network.util.EventLoops;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.kqueue.KQueue;
 import io.netty.util.NettyRuntime;
@@ -284,34 +282,16 @@ public class GeyserImpl implements GeyserApi {
         CooldownUtils.setDefaultShowCooldown(config.getShowCooldown());
         DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
 
-        // https://github.com/GeyserMC/Geyser/issues/957
-        RakNetConstants.MAXIMUM_MTU_SIZE = (short) config.getMtu();
-        logger.debug("Setting MTU to " + config.getMtu());
-
         Integer bedrockThreadCount = Integer.getInteger("Geyser.BedrockNetworkThreads");
         if (bedrockThreadCount == null) {
             // Copy the code from Netty's default thread count fallback
             bedrockThreadCount = Math.max(1, SystemPropertyUtil.getInt("io.netty.eventLoopThreads", NettyRuntime.availableProcessors() * 2));
         }
 
-        boolean enableProxyProtocol = config.getBedrock().isEnableProxyProtocol();
-        if (config.isDebugMode()) {
-            logger.debug("EventLoop type: " + EventLoops.getChannelType());
-            if (EventLoops.getChannelType() == EventLoops.ChannelType.NIO) {
-                if (System.getProperties().contains("disableNativeEventLoop")) {
-                    logger.debug("EventLoop type is NIO because native event loops are disabled.");
-                } else {
-                    logger.debug("Reason for no Epoll: " + Epoll.unavailabilityCause().toString());
-                    logger.debug("Reason for no KQueue: " + KQueue.unavailabilityCause().toString());
-                }
-            }
-        }
-
         if (shouldStartListener) {
             try {
                 this.geyserServer = new GeyserServer(this, bedrockThreadCount);
-                this.geyserServer.bind(new InetSocketAddress(config.getBedrock().address(), config.getBedrock().port()))
-                        .awaitUninterruptibly();
+                this.geyserServer.bind(new InetSocketAddress(config.getBedrock().address(), config.getBedrock().port()));
 
                 logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start", config.getBedrock().address(),
                         String.valueOf(config.getBedrock().port())));
