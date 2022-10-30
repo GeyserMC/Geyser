@@ -287,10 +287,10 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             int blockState = session.getGeyser().getWorldManager().getBlockAt(session, packet.getBlockPosition());
                             // Otherwise boats will not be able to be placed in survival and buckets, lily pads, frogspawn, and glass bottles won't work on mobile
                             if (session.getItemMappings().getBoats().contains(definition) ||
-                                    definition == session.getItemMappings().getStoredItems().lilyPad() ||
-                                    definition == session.getItemMappings().getStoredItems().frogspawn()) {
+                                    definition == session.getItemMappings().getStoredItems().lilyPad().getBedrockDefinition() ||
+                                    definition == session.getItemMappings().getStoredItems().frogspawn().getBedrockDefinition()) {
                                 useItem(session, packet, blockState);
-                            } else if (definition == session.getItemMappings().getStoredItems().glassBottle()) {
+                            } else if (definition == session.getItemMappings().getStoredItems().glassBottle().getBedrockDefinition()) {
                                 if (!session.isSneaking() && BlockStateValues.isCauldron(blockState) && !BlockStateValues.isNonWaterCauldron(blockState)) {
                                     // ServerboundUseItemPacket is not sent for water cauldrons and glass bottles
                                     return;
@@ -350,7 +350,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             } else if (session.getItemMappings().getSpawnEggs().contains(packet.getItemInHand().getDefinition())) {
                                 // Handled in case 0
                                 break;
-                            } else if (packet.getItemInHand().getDefinition() == session.getItemMappings().getStoredItems().glassBottle()) {
+                            } else if (packet.getItemInHand().getDefinition() == session.getItemMappings().getStoredItems().glassBottle().getBedrockDefinition()) {
                                 // Handled in case 0
                                 break;
                             }
@@ -574,8 +574,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         int heldItemSlot = playerInventory.getOffsetForHotbar(packet.getHotbarSlot());
         InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, playerInventory, heldItemSlot);
         if (playerInventory.getItem(heldItemSlot).getAmount() > 1) {
-            if (packet.getItemInHand().getDefinition() == session.getItemMappings().getStoredItems().bucket() ||
-                packet.getItemInHand().getDefinition() == session.getItemMappings().getStoredItems().glassBottle()) {
+            if (packet.getItemInHand().getDefinition() == session.getItemMappings().getStoredItems().bucket().getBedrockDefinition() ||
+                packet.getItemInHand().getDefinition() == session.getItemMappings().getStoredItems().glassBottle().getBedrockDefinition()) {
                 // Using a stack of buckets or glass bottles will result in an item being added to the first empty slot.
                 // We need to revert the item in case the interaction fails. The order goes from left to right in the
                 // hotbar. Then left to right and top to bottom in the inventory.

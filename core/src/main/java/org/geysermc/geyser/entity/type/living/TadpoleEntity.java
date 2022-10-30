@@ -61,6 +61,6 @@ public class TadpoleEntity extends AbstractFishEntity {
     }
 
     private boolean isFood(GeyserItemStack itemStack) {
-        return itemStack.getJavaId() == session.getItemMappings().getStoredItems().slimeBall();
+        return itemStack.getJavaId() == session.getItemMappings().getStoredItems().slimeBall().getJavaId();
     }
 }

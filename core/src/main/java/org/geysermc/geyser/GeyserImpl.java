@@ -311,7 +311,7 @@ public class GeyserImpl implements GeyserApi {
             try {
                 this.geyserServer = new GeyserServer(this, bedrockThreadCount);
                 this.geyserServer.bind(new InetSocketAddress(config.getBedrock().address(), config.getBedrock().port()))
-                        .syncUninterruptibly();
+                        .awaitUninterruptibly();
 
                 logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start", config.getBedrock().address(),
                         String.valueOf(config.getBedrock().port())));

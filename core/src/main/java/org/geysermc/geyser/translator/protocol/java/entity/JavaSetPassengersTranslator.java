@@ -98,7 +98,7 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
 
         switch (entity.getDefinition().entityType()) {
             case HORSE, SKELETON_HORSE, DONKEY, MULE, RAVAGER -> {
-                entity.getDirtyMetadata().put(EntityDataTypes.RIDER_MAX_ROTATION, 181.0f);
+                entity.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET, 181.0f);
                 entity.updateBedrockMetadata();
             }
         }

@@ -76,6 +76,6 @@ public class FrogEntity extends AnimalEntity {
 
     @Override
     public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
-        return mapping.getJavaId() == session.getItemMappings().getStoredItems().slimeBall();
+        return mapping.getJavaId() == session.getItemMappings().getStoredItems().slimeBall().getJavaId();
     }
 }

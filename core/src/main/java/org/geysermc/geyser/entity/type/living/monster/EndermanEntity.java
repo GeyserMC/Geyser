@@ -44,7 +44,7 @@ public class EndermanEntity extends MonsterEntity {
     }
 
     public void setCarriedBlock(IntEntityMetadata entityMetadata) {
-        dirtyMetadata.put(EntityDataTypes.CARRIED_BLOCK, session.getBlockMappings().getBedrockBlockId(entityMetadata.getPrimitiveValue()));
+        dirtyMetadata.put(EntityDataTypes.BLOCK, session.getBlockMappings().getBedrockBlock(entityMetadata.getPrimitiveValue()));
     }
 
     /**

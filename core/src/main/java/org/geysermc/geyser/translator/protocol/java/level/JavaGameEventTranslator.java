@@ -35,6 +35,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.Clientb
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundClientCommandPacket;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
+import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.*;
@@ -55,7 +56,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
         switch (packet.getNotification()) {
             case START_RAIN:
                 LevelEventPacket startRainPacket = new LevelEventPacket();
-                startRainPacket.setType(LevelEventType.START_RAINING);
+                startRainPacket.setType(LevelEvent.START_RAINING);
                 startRainPacket.setData(Integer.MAX_VALUE);
                 startRainPacket.setPosition(Vector3f.ZERO);
                 session.sendUpstreamPacket(startRainPacket);
@@ -63,7 +64,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 break;
             case STOP_RAIN:
                 LevelEventPacket stopRainPacket = new LevelEventPacket();
-                stopRainPacket.setType(LevelEventType.STOP_RAINING);
+                stopRainPacket.setType(LevelEvent.STOP_RAINING);
                 stopRainPacket.setData(0);
                 stopRainPacket.setPosition(Vector3f.ZERO);
                 session.sendUpstreamPacket(stopRainPacket);
@@ -78,7 +79,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 // Java sends the rain level. Bedrock doesn't care, so we don't care if it's already raining.
                 if (isCurrentlyRaining != session.isRaining()) {
                     LevelEventPacket changeRainPacket = new LevelEventPacket();
-                    changeRainPacket.setType(isCurrentlyRaining ? LevelEventType.START_RAINING : LevelEventType.STOP_RAINING);
+                    changeRainPacket.setType(isCurrentlyRaining ? LevelEvent.START_RAINING : LevelEvent.STOP_RAINING);
                     changeRainPacket.setData(Integer.MAX_VALUE); // Dunno what this does; used to be implemented with ThreadLocalRandom
                     changeRainPacket.setPosition(Vector3f.ZERO);
                     session.sendUpstreamPacket(changeRainPacket);
@@ -91,7 +92,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 boolean isCurrentlyThundering = thunderValue.getStrength() > 0f;
                 if (isCurrentlyThundering != session.isThunder()) {
                     LevelEventPacket changeThunderPacket = new LevelEventPacket();
-                    changeThunderPacket.setType(isCurrentlyThundering ? LevelEventType.START_THUNDERSTORM : LevelEventType.STOP_THUNDERSTORM);
+                    changeThunderPacket.setType(isCurrentlyThundering ? LevelEvent.START_THUNDERSTORM : LevelEvent.STOP_THUNDERSTORM);
                     changeThunderPacket.setData(Integer.MAX_VALUE);
                     changeThunderPacket.setPosition(Vector3f.ZERO);
                     session.sendUpstreamPacket(changeThunderPacket);

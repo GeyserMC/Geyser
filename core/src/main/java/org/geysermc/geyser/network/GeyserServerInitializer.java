@@ -25,29 +25,17 @@
 
 package org.geysermc.geyser.network;
 
-import io.netty.channel.Channel;
-import org.cloudburstmc.protocol.bedrock.BedrockPong;
-import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
-import org.cloudburstmc.protocol.bedrock.BedrockSession;
-import org.cloudburstmc.protocol.bedrock.codec.v554.Bedrock_v554;
-import org.cloudburstmc.protocol.bedrock.netty.initializer.BedrockServerInitializer;
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.DefaultEventLoopGroup;
-import io.netty.channel.socket.DatagramPacket;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
+import org.cloudburstmc.protocol.bedrock.codec.v554.Bedrock_v554;
+import org.cloudburstmc.protocol.bedrock.data.PacketCompressionAlgorithm;
+import org.cloudburstmc.protocol.bedrock.netty.initializer.BedrockServerInitializer;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.configuration.GeyserConfiguration;
-import org.geysermc.geyser.ping.GeyserPingInfo;
-import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import javax.annotation.Nonnull;
-import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 public class GeyserServerInitializer extends BedrockServerInitializer {
     private static final boolean PRINT_DEBUG_PINGS = Boolean.parseBoolean(System.getProperty("Geyser.PrintPingsInDebugMode", "true"));
@@ -179,12 +167,13 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
         try {
             bedrockServerSession.setCodec(Bedrock_v554.CODEC); // Has the RequestNetworkSettingsPacket
             bedrockServerSession.setLogging(true);
-            bedrockServerSession.setCompressionLevel(geyser.getConfig().getBedrock().getCompressionLevel());
-            bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(geyser, new GeyserSession(geyser, bedrockServerSession, eventLoopGroup.next())));
+            bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(this.geyser, new GeyserSession(this.geyser, bedrockServerSession, this.eventLoopGroup.next())));
+            bedrockServerSession.setCompression(PacketCompressionAlgorithm.ZLIB);
+            bedrockServerSession.setCompressionLevel(this.geyser.getConfig().getBedrock().getCompressionLevel());
             // Set the packet codec to default just in case we need to send disconnect packets.
         } catch (Throwable e) {
             // Error must be caught or it will be swallowed
-            geyser.getLogger().error("Error occurred while initializing player!", e);
+            this.geyser.getLogger().error("Error occurred while initializing player!", e);
             bedrockServerSession.disconnect(e.getMessage());
         }
     }

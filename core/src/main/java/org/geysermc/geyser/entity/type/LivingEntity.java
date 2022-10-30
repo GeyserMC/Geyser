@@ -38,6 +38,7 @@ import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
+import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
@@ -88,7 +89,7 @@ public class LivingEntity extends Entity {
     protected void initializeMetadata() {
         super.initializeMetadata();
         // Matches Bedrock behavior; is always set to this
-        dirtyMetadata.put(EntityDataTypes.HEALTH, 1);
+        dirtyMetadata.put(EntityDataTypes.STRUCTURAL_INTEGRITY, 1);
     }
 
     public void setLivingEntityFlags(ByteEntityMetadata entityMetadata) {
@@ -143,9 +144,9 @@ public class LivingEntity extends Entity {
 
     protected boolean hasShield(boolean offhand, ItemMapping shieldMapping) {
         if (offhand) {
-            return offHand.getId() == shieldMapping.getBedrockDefinition();
+            return offHand.getDefinition().equals(shieldMapping.getBedrockDefinition());
         } else {
-            return hand.getId() == shieldMapping.getBedrockDefinition();
+            return hand.getDefinition().equals(shieldMapping.getBedrockDefinition());
         }
     }
 
@@ -189,7 +190,7 @@ public class LivingEntity extends Entity {
     @Override
     public InteractionResult interact(Hand hand) {
         GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand(hand);
-        if (itemStack.getJavaId() == session.getItemMappings().getStoredItems().nameTag()) {
+        if (itemStack.getJavaId() == session.getItemMappings().getStoredItems().nameTag().getJavaId()) {
             InteractionResult result = checkInteractWithNameTag(itemStack);
             if (result.consumesAction()) {
                 return result;
@@ -219,10 +220,10 @@ public class LivingEntity extends Entity {
         // If an entity has a banner on them, it will be in the helmet slot in Java but the chestplate spot in Bedrock
         // But don't overwrite the chestplate if it isn't empty
         ItemMapping banner = session.getItemMappings().getStoredItems().banner();
-        if (chestplate.getId() == ItemData.AIR.getId() && helmet.getId() == banner.getBedrockDefinition()) {
+        if (ItemDefinition.AIR.equals(chestplate.getDefinition()) && helmet.getDefinition().equals(banner.getBedrockDefinition())) {
             chestplate = this.helmet;
             helmet = ItemData.AIR;
-        } else if (chestplate.getId() == banner.getBedrockDefinition()) {
+        } else if (chestplate.getDefinition().equals(banner.getBedrockDefinition())) {
             // Prevent chestplate banners from showing erroneously
             chestplate = ItemData.AIR;
         }

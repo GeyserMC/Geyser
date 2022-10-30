@@ -65,7 +65,7 @@ public class CreeperEntity extends MonsterEntity {
     @Nonnull
     @Override
     protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().flintAndSteel()) {
+        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().flintAndSteel().getJavaId()) {
             return InteractiveTag.IGNITE_CREEPER;
         } else {
             return super.testMobInteraction(hand, itemInHand);
@@ -75,7 +75,7 @@ public class CreeperEntity extends MonsterEntity {
     @Nonnull
     @Override
     protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().flintAndSteel()) {
+        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().flintAndSteel().getJavaId()) {
             // Ignite creeper
             session.playSoundEvent(SoundEvent.IGNITE, position);
             return InteractionResult.SUCCESS;

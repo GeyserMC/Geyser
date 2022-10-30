@@ -45,7 +45,7 @@ public class MinecartEntity extends Entity {
     }
 
     public void setCustomBlock(IntEntityMetadata entityMetadata) {
-        dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getBedrockBlockId(entityMetadata.getPrimitiveValue()));
+        dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getBedrockBlock(entityMetadata.getPrimitiveValue()));
     }
 
     public void setCustomBlockOffset(IntEntityMetadata entityMetadata) {

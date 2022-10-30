@@ -147,9 +147,9 @@ public class ChunkUtils {
             waterPacket.setDataLayer(1);
             waterPacket.setBlockPosition(position);
             if (BlockRegistries.WATERLOGGED.get().contains(blockState)) {
-                waterPacket.setRuntimeId(session.getBlockMappings().getBedrockWater());
+                waterPacket.setRuntimeId(session.getBlockMappings().getBedrockWater().getRuntimeId());
             } else {
-                waterPacket.setRuntimeId(session.getBlockMappings().getBedrockAir());
+                waterPacket.setRuntimeId(session.getBlockMappings().getBedrockAir().getRuntimeId());
             }
             session.sendUpstreamPacket(waterPacket);
         }
@@ -171,8 +171,6 @@ public class ChunkUtils {
         BedrockDimension bedrockDimension = session.getChunkCache().getBedrockDimension();
         int bedrockSubChunkCount = bedrockDimension.height() >> 4;
 
-        byte[] payload;
-
         // Allocate output buffer
         ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer(ChunkUtils.EMPTY_BIOME_DATA.length * bedrockSubChunkCount + 1); // Consists only of biome data and border blocks
         try {
@@ -182,9 +180,6 @@ public class ChunkUtils {
             }
 
             byteBuf.writeByte(0); // Border blocks - Edu edition only
-
-            payload = new byte[byteBuf.readableBytes()];
-            byteBuf.readBytes(payload);
         } finally {
             byteBuf.release();
         }
@@ -193,7 +188,7 @@ public class ChunkUtils {
         data.setChunkX(chunkX);
         data.setChunkZ(chunkZ);
         data.setSubChunksLength(0);
-        data.setData(payload);
+        data.setData(byteBuf);
         data.setCachingEnabled(false);
         session.sendUpstreamPacket(data);
 

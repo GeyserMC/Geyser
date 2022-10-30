@@ -29,12 +29,13 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
+import lombok.Getter;
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import lombok.Getter;
-import net.kyori.adventure.text.Component;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.LivingEntity;
@@ -205,7 +206,7 @@ public class ArmorStandEntity extends LivingEntity {
      * @param negativeZToggle the flag to set true if the Z value of rotation is negative
      * @param rotation the Java rotation value
      */
-    private void onRotationUpdate(EntityData dataLeech, EntityFlag negativeXToggle, EntityFlag negativeYToggle, EntityFlag negativeZToggle, Vector3f rotation) {
+    private void onRotationUpdate(EntityDataType dataLeech, EntityFlag negativeXToggle, EntityFlag negativeYToggle, EntityFlag negativeZToggle, Vector3f rotation) {
         // Indicate that rotation should be checked
         setFlag(EntityFlag.BRIBED, true);
 
@@ -246,7 +247,7 @@ public class ArmorStandEntity extends LivingEntity {
 
     @Override
     public InteractionResult interactAt(Hand hand) {
-        if (!isMarker && session.getPlayerInventory().getItemInHand(hand).getJavaId() != session.getItemMappings().getStoredItems().nameTag()) {
+        if (!isMarker && session.getPlayerInventory().getItemInHand(hand).getJavaId() != session.getItemMappings().getStoredItems().nameTag().getJavaId()) {
             // Java Edition returns SUCCESS if in spectator mode, but this is overrided with an earlier check on the client
             return InteractionResult.CONSUME;
         } else {
@@ -341,16 +342,16 @@ public class ArmorStandEntity extends LivingEntity {
             secondEntity.isSmall = isSmall;
             secondEntity.isMarker = isMarker;
             secondEntity.positionRequiresOffset = true; // Offset should always be applied
-            secondEntity.getDirtyMetadata().put(EntityDataTypes.NAMETAG, nametag);
+            secondEntity.getDirtyMetadata().put(EntityDataTypes.NAME, nametag);
             secondEntity.getDirtyMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, isNameTagVisible ? (byte) 1 : (byte) 0);
-            secondEntity.flags.merge(this.flags);
+            secondEntity.flags.addAll(this.flags);
             // Guarantee this copy is NOT invisible
             secondEntity.setFlag(EntityFlag.INVISIBLE, false);
             // Scale to 0 to show nametag
             secondEntity.getDirtyMetadata().put(EntityDataTypes.SCALE, 0.0f);
             // No bounding box as we don't want to interact with this entity
-            secondEntity.getDirtyMetadata().put(EntityDataTypes.BOUNDING_BOX_WIDTH, 0.0f);
-            secondEntity.getDirtyMetadata().put(EntityDataTypes.BOUNDING_BOX_HEIGHT, 0.0f);
+            secondEntity.getDirtyMetadata().put(EntityDataTypes.WIDTH, 0.0f);
+            secondEntity.getDirtyMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
             if (!secondEntity.valid) { // Spawn the entity once
                 secondEntity.spawnEntity();
             }

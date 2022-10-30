@@ -27,6 +27,7 @@ package org.geysermc.geyser.translator.protocol.java;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundRespawnPacket;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetPlayerGameTypePacket;
@@ -64,7 +65,7 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
 
         if (session.isRaining()) {
             LevelEventPacket stopRainPacket = new LevelEventPacket();
-            stopRainPacket.setType(LevelEventType.STOP_RAINING);
+            stopRainPacket.setType(LevelEvent.STOP_RAINING);
             stopRainPacket.setData(0);
             stopRainPacket.setPosition(Vector3f.ZERO);
             session.sendUpstreamPacket(stopRainPacket);
@@ -73,7 +74,7 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
 
         if (session.isThunder()) {
             LevelEventPacket stopThunderPacket = new LevelEventPacket();
-            stopThunderPacket.setType(LevelEventType.STOP_THUNDERSTORM);
+            stopThunderPacket.setType(LevelEvent.STOP_THUNDERSTORM);
             stopThunderPacket.setData(0);
             stopThunderPacket.setPosition(Vector3f.ZERO);
             session.sendUpstreamPacket(stopThunderPacket);

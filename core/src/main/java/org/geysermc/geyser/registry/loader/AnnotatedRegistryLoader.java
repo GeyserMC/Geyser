@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.util.FileUtils;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -66,8 +67,8 @@ public class AnnotatedRegistryLoader<R, A extends Annotation, V> implements Regi
         Map<R, V> entries = new Object2ObjectOpenHashMap<>();
         for (Class<?> clazz : FileUtils.getGeneratedClassesForAnnotation(input)) {
             try {
-                entries.put(this.mapper.apply(clazz.getAnnotation(this.annotation)), (V) clazz.newInstance());
-            } catch (InstantiationException | IllegalAccessException ex) {
+                entries.put(this.mapper.apply(clazz.getAnnotation(this.annotation)), (V) clazz.getConstructor().newInstance());
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
                 ex.printStackTrace();
             }
         }

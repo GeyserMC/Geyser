@@ -61,7 +61,7 @@ public class PandaEntity extends AnimalEntity {
             EntityEventPacket packet = new EntityEventPacket();
             packet.setRuntimeEntityId(geyserId);
             packet.setType(EntityEventType.EATING_ITEM);
-            packet.setData(session.getItemMappings().getStoredItems().bamboo().getBedrockDefinition() << 16);
+            packet.setData(session.getItemMappings().getStoredItems().bamboo().getBedrockDefinition().getRuntimeId() << 16);
             session.sendUpstreamPacket(packet);
         }
     }

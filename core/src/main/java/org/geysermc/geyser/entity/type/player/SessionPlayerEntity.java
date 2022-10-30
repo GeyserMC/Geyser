@@ -167,7 +167,7 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     public void addFakeTradeExperience(int tradeXp) {
         fakeTradeXp += tradeXp;
-        dirtyMetadata.put(EntityDataTypes.TRADE_XP, fakeTradeXp);
+        dirtyMetadata.put(EntityDataTypes.TRADE_EXPERIENCE, fakeTradeXp);
     }
 
     @Override

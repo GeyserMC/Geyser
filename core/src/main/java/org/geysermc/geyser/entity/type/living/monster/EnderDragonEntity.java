@@ -27,12 +27,16 @@ package org.geysermc.geyser.entity.type.living.monster;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
+import lombok.Data;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
+import org.cloudburstmc.protocol.bedrock.data.ParticleType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.protocol.bedrock.packet.*;
-import lombok.Data;
+import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
+import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SpawnParticleEffectPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.living.MobEntity;
@@ -249,7 +253,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
                     Vector3f particlePos = headCenter.add(random.nextGaussian() / 2f, random.nextGaussian() / 2f, random.nextGaussian() / 2f);
                     // This is missing velocity information
                     LevelEventPacket particlePacket = new LevelEventPacket();
-                    particlePacket.setType(LevelEventType.PARTICLE_DRAGONS_BREATH);
+                    particlePacket.setType(ParticleType.DRAGON_BREATH);
                     particlePacket.setPosition(particlePos);
                     session.sendUpstreamPacket(particlePacket);
                 }
@@ -277,7 +281,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
                     float zOffset = 8f * (random.nextFloat() - 0.5f);
                     Vector3f particlePos = position.add(xOffset, yOffset, zOffset);
                     LevelEventPacket particlePacket = new LevelEventPacket();
-                    particlePacket.setType(LevelEventType.PARTICLE_EXPLOSION);
+                    particlePacket.setType(ParticleType.EXPLODE);
                     particlePacket.setPosition(particlePos);
                     session.sendUpstreamPacket(particlePacket);
                 }

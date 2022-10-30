@@ -43,7 +43,7 @@ public class JavaCooldownTranslator extends PacketTranslator<ClientboundCooldown
         // Not every item, as of 1.19, appears to be server-driven. Just these two.
         // Use a map here if it gets too big.
         String cooldownCategory;
-        if (itemId == itemMappings.goatHorn()) {
+        if (itemId == itemMappings.goatHorn().getJavaId()) {
             cooldownCategory = "goat_horn";
         } else if (itemId == itemMappings.shield().getJavaId()) {
             cooldownCategory = "shield";

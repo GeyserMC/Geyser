@@ -52,7 +52,7 @@ public class ThrownPotionEntity extends ThrowableItemEntity {
     public void setItem(EntityMetadata<ItemStack, ?> entityMetadata) {
         ItemStack itemStack = entityMetadata.getValue();
         if (itemStack == null) {
-            dirtyMetadata.put(EntityDataTypes.POTION_AUX_VALUE, 0);
+            dirtyMetadata.put(EntityDataTypes.EFFECT_COLOR, 0);
             setFlag(EntityFlag.ENCHANTED, false);
             setFlag(EntityFlag.LINGERING, false);
         } else {
@@ -62,10 +62,10 @@ public class ThrownPotionEntity extends ThrowableItemEntity {
                 if (potionTag instanceof StringTag) {
                     Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
                     if (potion != null) {
-                        dirtyMetadata.put(EntityDataTypes.POTION_AUX_VALUE, potion.getBedrockId());
+                        dirtyMetadata.put(EntityDataTypes.EFFECT_COLOR, potion.getBedrockId());
                         setFlag(EntityFlag.ENCHANTED, !NON_ENCHANTED_POTIONS.contains(potion));
                     } else {
-                        dirtyMetadata.put(EntityDataTypes.POTION_AUX_VALUE, 0);
+                        dirtyMetadata.put(EntityDataTypes.EFFECT_COLOR, 0);
                         GeyserImpl.getInstance().getLogger().debug("Unknown java potion: " + potionTag.getValue());
                     }
                 }

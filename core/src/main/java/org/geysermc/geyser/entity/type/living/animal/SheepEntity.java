@@ -57,7 +57,7 @@ public class SheepEntity extends AnimalEntity {
     @Nonnull
     @Override
     protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().shears()) {
+        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().shears().getJavaId()) {
             return InteractiveTag.SHEAR;
         } else {
             InteractiveTag tag = super.testMobInteraction(hand, itemInHand);
@@ -76,7 +76,7 @@ public class SheepEntity extends AnimalEntity {
     @Nonnull
     @Override
     protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().shears()) {
+        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().shears().getJavaId()) {
             return InteractionResult.CONSUME;
         } else {
             InteractionResult superResult = super.mobInteract(hand, itemInHand);

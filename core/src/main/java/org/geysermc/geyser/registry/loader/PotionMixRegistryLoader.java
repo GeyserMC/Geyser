@@ -83,9 +83,9 @@ public class PotionMixRegistryLoader implements RegistryLoader<Object, Set<Potio
         for (ItemMapping entryInput : inputs) {
             for (Potion potion : Potion.values()) {
                 potionMixes.add(new PotionMixData(
-                        entryInput.getBedrockDefinition(), potion.getBedrockId(),
-                        fillerIngredient.getBedrockDefinition(), fillerIngredient.getBedrockData(),
-                        glassBottle.getBedrockDefinition(), glassBottle.getBedrockData())
+                        entryInput.getBedrockDefinition().getRuntimeId(), potion.getBedrockId(),
+                        fillerIngredient.getBedrockDefinition().getRuntimeId(), fillerIngredient.getBedrockData(),
+                        glassBottle.getBedrockDefinition().getRuntimeId(), glassBottle.getBedrockData())
                 );
             }
         }
@@ -94,9 +94,9 @@ public class PotionMixRegistryLoader implements RegistryLoader<Object, Set<Potio
         // Also adds glass bottle as input
         for (ItemMapping ingredient : ingredients) {
             potionMixes.add(new PotionMixData(
-                    glassBottle.getBedrockDefinition(), glassBottle.getBedrockData(),
-                    ingredient.getBedrockDefinition(), ingredient.getBedrockData(),
-                    glassBottle.getBedrockDefinition(), glassBottle.getBedrockData())
+                    glassBottle.getBedrockDefinition().getRuntimeId(), glassBottle.getBedrockData(),
+                    ingredient.getBedrockDefinition().getRuntimeId(), ingredient.getBedrockData(),
+                    glassBottle.getBedrockDefinition().getRuntimeId(), glassBottle.getBedrockData())
             );
         }
         return potionMixes;

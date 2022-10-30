@@ -42,7 +42,7 @@ public class PufferFishEntity extends AbstractFishEntity {
 
     public void setPufferfishSize(IntEntityMetadata entityMetadata) {
         int puffsize = entityMetadata.getPrimitiveValue();
-        dirtyMetadata.put(EntityDataTypes.PUFFERFISH_SIZE, (byte) puffsize);
+        dirtyMetadata.put(EntityDataTypes.PUFFED_STATE, (byte) puffsize);
         dirtyMetadata.put(EntityDataTypes.VARIANT, puffsize);
     }
 }

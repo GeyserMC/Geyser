@@ -147,7 +147,7 @@ public class BlockInventoryHolder extends InventoryHolder {
             // But send a container close packet because we aren't destroying the original.
             ContainerClosePacket packet = new ContainerClosePacket();
             packet.setId((byte) inventory.getBedrockId());
-            packet.setUnknownBool0(true); //TODO needs to be changed in Protocol to "server-side" or something
+            packet.setServerInitiated(true);
             session.sendUpstreamPacket(packet);
             return;
         }

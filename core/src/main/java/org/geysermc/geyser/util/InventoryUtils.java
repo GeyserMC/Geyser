@@ -186,7 +186,7 @@ public class InventoryUtils {
 
         root.put("display", display.build());
         return protocolVersion -> ItemData.builder()
-                .id(Registries.ITEMS.forVersion(protocolVersion).getStoredItems().barrier().getBedrockDefinition())
+                .definition(Registries.ITEMS.forVersion(protocolVersion).getStoredItems().barrier().getBedrockDefinition())
                 .count(1)
                 .tag(root.build()).build();
     }

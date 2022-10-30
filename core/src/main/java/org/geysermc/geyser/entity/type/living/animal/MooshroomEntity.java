@@ -56,10 +56,10 @@ public class MooshroomEntity extends AnimalEntity {
     protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
         StoredItemMappings storedItems = session.getItemMappings().getStoredItems();
         if (!isBaby()) {
-            if (itemInHand.getJavaId() == storedItems.bowl()) {
+            if (itemInHand.getJavaId() == storedItems.bowl().getJavaId()) {
                 // Stew
                 return InteractiveTag.MOOSHROOM_MILK_STEW;
-            } else if (isAlive() && itemInHand.getJavaId() == storedItems.shears()) {
+            } else if (isAlive() && itemInHand.getJavaId() == storedItems.shears().getJavaId()) {
                 // Shear items
                 return InteractiveTag.MOOSHROOM_SHEAR;
             }
@@ -72,10 +72,10 @@ public class MooshroomEntity extends AnimalEntity {
     protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
         StoredItemMappings storedItems = session.getItemMappings().getStoredItems();
         boolean isBaby = isBaby();
-        if (!isBaby && itemInHand.getJavaId() == storedItems.bowl()) {
+        if (!isBaby && itemInHand.getJavaId() == storedItems.bowl().getJavaId()) {
             // Stew
             return InteractionResult.SUCCESS;
-        } else if (!isBaby && isAlive() && itemInHand.getJavaId() == storedItems.shears()) {
+        } else if (!isBaby && isAlive() && itemInHand.getJavaId() == storedItems.shears().getJavaId()) {
             // Shear items
             return InteractionResult.SUCCESS;
         } else if (isBrown && session.getTagCache().isSmallFlower(itemInHand) && itemInHand.getMapping(session).isHasSuspiciousStewEffect()) {

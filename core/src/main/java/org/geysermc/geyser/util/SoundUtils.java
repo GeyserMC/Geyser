@@ -29,7 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.level.sound.BuiltinSound;
 import com.github.steveice10.mc.protocol.data.game.level.sound.CustomSound;
 import com.github.steveice10.mc.protocol.data.game.level.sound.Sound;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
+import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
@@ -123,7 +123,7 @@ public final class SoundUtils {
             LevelEventPacket levelEventPacket = new LevelEventPacket();
             levelEventPacket.setPosition(position);
             levelEventPacket.setData(0);
-            levelEventPacket.setType(LevelEventType.valueOf(soundMapping.getBedrock()));
+            levelEventPacket.setType(LevelEvent.valueOf(soundMapping.getBedrock()));
             session.sendUpstreamPacket(levelEventPacket);
             return;
         }

@@ -51,7 +51,7 @@ public class FurnaceMinecartEntity extends DefaultBlockMinecartEntity {
 
     @Override
     public void updateDefaultBlockMetadata() {
-        dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getBedrockBlockId(hasFuel ? BlockStateValues.JAVA_FURNACE_LIT_ID : BlockStateValues.JAVA_FURNACE_ID));
+        dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getBedrockBlock(hasFuel ? BlockStateValues.JAVA_FURNACE_LIT_ID : BlockStateValues.JAVA_FURNACE_ID));
         dirtyMetadata.put(EntityDataTypes.DISPLAY_OFFSET, 6);
     }
 

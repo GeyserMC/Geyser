@@ -31,7 +31,10 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import org.cloudburstmc.netty.channel.raknet.RakChannelFactory;
+import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
+import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.GeyserServerInitializer;
 
 import java.net.InetSocketAddress;
@@ -62,7 +65,23 @@ public final class GeyserServer {
     private ServerBootstrap createBootstrap(EventLoopGroup group) {
         return new ServerBootstrap()
                 .channelFactory(RakChannelFactory.server(NioDatagramChannel.class))
+                .option(RakChannelOption.RAK_ADVERTISEMENT, bedrockPong().toByteBuf())
                 .group(group)
                 .childHandler(new GeyserServerInitializer(this.geyser));
+    }
+
+    // TODO: Temp
+    private BedrockPong bedrockPong() {
+        return new BedrockPong()
+                .edition("MCPE")
+                .gameType("Survival") // Can only be Survival or Creative as of 1.16.210.59
+                .nintendoLimited(false)
+                .protocolVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
+                .version(GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()) // Required to not be empty as of 1.16.210.59. Can only contain . and numbers.
+                .ipv4Port(this.geyser.getConfig().getBedrock().port())
+                .motd(this.geyser.getConfig().getBedrock().primaryMotd())
+                .subMotd(this.geyser.getConfig().getBedrock().secondaryMotd())
+                .playerCount(geyser.getSessionManager().getSessions().size())
+                .maximumPlayerCount(this.geyser.getConfig().getMaxPlayers());
     }
 }

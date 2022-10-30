@@ -47,7 +47,7 @@ public class JavaExplodeTranslator extends PacketTranslator<ClientboundExplodePa
     @Override
     public void translate(GeyserSession session, ClientboundExplodePacket packet) {
         LevelEventGenericPacket levelEventPacket = new LevelEventGenericPacket();
-        levelEventPacket.setEventId(2026/*LevelEventType.PARTICLE_BLOCK_EXPLOSION*/);
+        levelEventPacket.setEventId(2026/*LevelEvent.PARTICLE_BLOCK_EXPLOSION*/);
         NbtMapBuilder builder = NbtMap.builder();
         builder.putFloat("originX", packet.getX());
         builder.putFloat("originY", packet.getY());

@@ -204,11 +204,11 @@ public final class EntityDefinitions {
                     .type(EntityType.BOAT)
                     .height(0.6f).width(1.6f)
                     .offset(0.35f)
-                    .addTranslator(MetadataType.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityDataTypes.HURT_TIME, entityMetadata.getValue())) // Time since last hit
+                    .addTranslator(MetadataType.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityDataTypes.HURT_TICKS, entityMetadata.getValue())) // Time since last hit
                     .addTranslator(MetadataType.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityDataTypes.HURT_DIRECTION, entityMetadata.getValue())) // Rocking direction
                     .addTranslator(MetadataType.FLOAT, (boatEntity, entityMetadata) ->
                             // 'Health' in Bedrock, damage taken in Java - it makes motion in Bedrock
-                            boatEntity.getDirtyMetadata().put(EntityDataTypes.HEALTH, 40 - ((int) ((FloatEntityMetadata) entityMetadata).getPrimitiveValue())))
+                            boatEntity.getDirtyMetadata().put(EntityDataTypes.STRUCTURAL_INTEGRITY, 40 - ((int) ((FloatEntityMetadata) entityMetadata).getPrimitiveValue())))
                     .addTranslator(MetadataType.INT, BoatEntity::setVariant)
                     .addTranslator(MetadataType.BOOLEAN, BoatEntity::setPaddlingLeft)
                     .addTranslator(MetadataType.BOOLEAN, BoatEntity::setPaddlingRight)
@@ -367,11 +367,11 @@ public final class EntityDefinitions {
                     .type(EntityType.MINECART)
                     .height(0.7f).width(0.98f)
                     .offset(0.35f)
-                    .addTranslator(MetadataType.INT, (minecartEntity, entityMetadata) -> minecartEntity.getDirtyMetadata().put(EntityDataTypes.HEALTH, entityMetadata.getValue()))
+                    .addTranslator(MetadataType.INT, (minecartEntity, entityMetadata) -> minecartEntity.getDirtyMetadata().put(EntityDataTypes.STRUCTURAL_INTEGRITY, entityMetadata.getValue()))
                     .addTranslator(MetadataType.INT, (minecartEntity, entityMetadata) -> minecartEntity.getDirtyMetadata().put(EntityDataTypes.HURT_DIRECTION, entityMetadata.getValue())) // Direction in which the minecart is shaking
                     .addTranslator(MetadataType.FLOAT, (minecartEntity, entityMetadata) ->
-                            // Power in Java, time in Bedrock
-                            minecartEntity.getDirtyMetadata().put(EntityDataTypes.HURT_TIME, Math.min((int) ((FloatEntityMetadata) entityMetadata).getPrimitiveValue(), 15)))
+                            // Power in Java, hurt ticks in Bedrock
+                            minecartEntity.getDirtyMetadata().put(EntityDataTypes.HURT_TICKS, Math.min((int) ((FloatEntityMetadata) entityMetadata).getPrimitiveValue(), 15)))
                     .addTranslator(MetadataType.INT, MinecartEntity::setCustomBlock)
                     .addTranslator(MetadataType.INT, MinecartEntity::setCustomBlockOffset)
                     .addTranslator(MetadataType.BOOLEAN, MinecartEntity::setShowCustomBlock)
@@ -381,7 +381,7 @@ public final class EntityDefinitions {
                     .build();
             COMMAND_BLOCK_MINECART = EntityDefinition.inherited(CommandBlockMinecartEntity::new, MINECART)
                     .type(EntityType.COMMAND_BLOCK_MINECART)
-                    .addTranslator(MetadataType.STRING, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityDataTypes.COMMAND_BLOCK_COMMAND, entityMetadata.getValue()))
+                    .addTranslator(MetadataType.STRING, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityDataTypes.COMMAND_BLOCK_NAME, entityMetadata.getValue()))
                     .addTranslator(MetadataType.CHAT, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityDataTypes.COMMAND_BLOCK_LAST_OUTPUT, MessageTranslator.convertMessage(entityMetadata.getValue())))
                     .build();
             FURNACE_MINECART = EntityDefinition.inherited(FurnaceMinecartEntity::new, MINECART)
@@ -415,7 +415,7 @@ public final class EntityDefinitions {
                 .addTranslator(MetadataType.INT,
                         (livingEntity, entityMetadata) -> livingEntity.getDirtyMetadata().put(EntityDataTypes.EFFECT_COLOR, entityMetadata.getValue()))
                 .addTranslator(MetadataType.BOOLEAN,
-                        (livingEntity, entityMetadata) -> livingEntity.getDirtyMetadata().put(EntityDataTypes.EFFECT_AMBIENT, (byte) (((BooleanEntityMetadata) entityMetadata).getPrimitiveValue() ? 1 : 0)))
+                        (livingEntity, entityMetadata) -> livingEntity.getDirtyMetadata().put(EntityDataTypes.EFFECT_AMBIENCE, (byte) (((BooleanEntityMetadata) entityMetadata).getPrimitiveValue() ? 1 : 0)))
                 .addTranslator(null) // Arrow count
                 .addTranslator(null) // Stinger count
                 .addTranslator(MetadataType.OPTIONAL_POSITION, LivingEntity::setBedPosition)

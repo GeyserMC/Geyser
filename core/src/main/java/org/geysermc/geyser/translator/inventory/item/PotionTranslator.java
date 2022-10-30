@@ -51,7 +51,7 @@ public class PotionTranslator extends ItemTranslator {
             Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
             if (potion != null) {
                 return ItemData.builder()
-                        .id(mapping.getBedrockDefinition())
+                        .definition(mapping.getBedrockDefinition())
                         .damage(potion.getBedrockId())
                         .count(itemStack.getAmount())
                         .tag(translateNbtToBedrock(itemStack.getNbt()));

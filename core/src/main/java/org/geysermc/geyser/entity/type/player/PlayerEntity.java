@@ -33,17 +33,25 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.FloatEnt
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import lombok.Getter;
+import lombok.Setter;
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.protocol.bedrock.data.*;
+import org.cloudburstmc.protocol.bedrock.data.Ability;
+import org.cloudburstmc.protocol.bedrock.data.AbilityLayer;
+import org.cloudburstmc.protocol.bedrock.data.AttributeData;
+import org.cloudburstmc.protocol.bedrock.data.GameType;
+import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
-import org.cloudburstmc.protocol.bedrock.packet.*;
-import lombok.Getter;
-import lombok.Setter;
-import net.kyori.adventure.text.Component;
+import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
+import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
@@ -131,7 +139,7 @@ public class PlayerEntity extends LivingEntity {
         addPlayerPacket.setRotation(getBedrockRotation());
         addPlayerPacket.setMotion(motion);
         addPlayerPacket.setHand(hand);
-        addPlayerPacket.getAdventureSettings().setCommandPermission(CommandPermission.NORMAL);
+        addPlayerPacket.getAdventureSettings().setCommandPermission(CommandPermission.ANY);
         addPlayerPacket.getAdventureSettings().setPlayerPermission(PlayerPermission.MEMBER);
         addPlayerPacket.setDeviceId("");
         addPlayerPacket.setPlatformChatId("");
@@ -283,8 +291,8 @@ public class PlayerEntity extends LivingEntity {
             parrot.getDirtyMetadata().put(EntityDataTypes.VARIANT, tag.get("Variant").getValue());
             // Different position whether the parrot is left or right
             float offset = isLeft ? 0.4f : -0.4f;
-            parrot.getDirtyMetadata().put(EntityDataTypes.RIDER_SEAT_POSITION, Vector3f.from(offset, -0.22, -0.1));
-            parrot.getDirtyMetadata().put(EntityDataTypes.RIDER_ROTATION_LOCKED, 1);
+            parrot.getDirtyMetadata().put(EntityDataTypes.SEAT_OFFSET, Vector3f.from(offset, -0.22, -0.1));
+            parrot.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, true);
             parrot.updateBedrockMetadata();
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
             EntityLinkData.Type type = isLeft ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER;
@@ -342,11 +350,11 @@ public class PlayerEntity extends LivingEntity {
             }
             needsUpdate = useGivenTeam && !newDisplayName.equals(nametag);
             nametag = newDisplayName;
-            dirtyMetadata.put(EntityDataTypes.NAMETAG, newDisplayName);
+            dirtyMetadata.put(EntityDataTypes.NAME, newDisplayName);
         } else if (useGivenTeam) {
             // The name has reset, if it was previously something else
             needsUpdate = !newDisplayName.equals(nametag);
-            dirtyMetadata.put(EntityDataTypes.NAMETAG, this.username);
+            dirtyMetadata.put(EntityDataTypes.NAME, this.username);
         } else {
             needsUpdate = false;
         }
@@ -354,7 +362,7 @@ public class PlayerEntity extends LivingEntity {
         if (needsUpdate) {
             // Update the metadata as it won't be updated later
             SetEntityDataPacket packet = new SetEntityDataPacket();
-            packet.getMetadata().put(EntityDataTypes.NAMETAG, newDisplayName);
+            packet.getMetadata().put(EntityDataTypes.NAME, newDisplayName);
             packet.setRuntimeEntityId(geyserId);
             session.sendUpstreamPacket(packet);
         }
@@ -407,13 +415,13 @@ public class PlayerEntity extends LivingEntity {
                 // providing the information
                 SetEntityDataPacket packet = new SetEntityDataPacket();
                 packet.setRuntimeEntityId(geyserId);
-                packet.getMetadata().put(EntityDataTypes.SCORE_TAG, displayString);
+                packet.getMetadata().put(EntityDataTypes.SCORE, displayString);
                 session.sendUpstreamPacket(packet);
             }
         } else if (valid) {
             SetEntityDataPacket packet = new SetEntityDataPacket();
             packet.setRuntimeEntityId(geyserId);
-            packet.getMetadata().put(EntityDataTypes.SCORE_TAG, "");
+            packet.getMetadata().put(EntityDataTypes.SCORE, "");
             session.sendUpstreamPacket(packet);
         }
     }

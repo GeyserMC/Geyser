@@ -201,15 +201,15 @@ public final class EntityUtils {
     public static void updateRiderRotationLock(Entity passenger, Entity mount, boolean isRiding) {
         if (isRiding && mount instanceof BoatEntity) {
             // Head rotation is locked while riding in a boat
-            passenger.getDirtyMetadata().put(EntityDataTypes.RIDER_ROTATION_LOCKED, (byte) 1);
-            passenger.getDirtyMetadata().put(EntityDataTypes.RIDER_MAX_ROTATION, 90f);
-            passenger.getDirtyMetadata().put(EntityDataTypes.RIDER_MIN_ROTATION, 1f);
-            passenger.getDirtyMetadata().put(EntityDataTypes.RIDER_ROTATION_OFFSET, -90f);
+            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, true);
+            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 90f);
+            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET, 1f);
+            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, -90f);
         } else {
-            passenger.getDirtyMetadata().put(EntityDataTypes.RIDER_ROTATION_LOCKED, (byte) 0);
-            passenger.getDirtyMetadata().put(EntityDataTypes.RIDER_MAX_ROTATION, 0f);
-            passenger.getDirtyMetadata().put(EntityDataTypes.RIDER_MIN_ROTATION, 0f);
-            passenger.getDirtyMetadata().put(EntityDataTypes.RIDER_ROTATION_OFFSET, 0f);
+            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, false);
+            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 0f);
+            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET, 0f);
+            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, 0f);
         }
     }
 
@@ -217,14 +217,14 @@ public final class EntityUtils {
      * Determine if an action would result in a successful bucketing of the given entity.
      */
     public static boolean attemptToBucket(GeyserSession session, GeyserItemStack itemInHand) {
-        return itemInHand.getJavaId() == session.getItemMappings().getStoredItems().waterBucket();
+        return itemInHand.getJavaId() == session.getItemMappings().getStoredItems().waterBucket().getJavaId();
     }
 
     /**
      * Attempt to determine the result of saddling the given entity.
      */
     public static InteractionResult attemptToSaddle(GeyserSession session, Entity entityToSaddle, GeyserItemStack itemInHand) {
-        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().saddle()) {
+        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().saddle().getJavaId()) {
             if (!entityToSaddle.getFlag(EntityFlag.SADDLED) && !entityToSaddle.getFlag(EntityFlag.BABY)) {
                 // Saddle
                 return InteractionResult.SUCCESS;

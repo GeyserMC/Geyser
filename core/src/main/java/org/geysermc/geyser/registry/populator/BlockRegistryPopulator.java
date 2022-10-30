@@ -44,6 +44,8 @@ import org.cloudburstmc.protocol.bedrock.codec.v527.Bedrock_v527;
 import org.cloudburstmc.protocol.bedrock.codec.v544.Bedrock_v544;
 import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.defintions.SimpleBlockDefinition;
+import org.cloudburstmc.protocol.bedrock.data.defintions.SimpleDefinitionRegistry;
+import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.physics.PistonBehavior;
@@ -55,6 +57,7 @@ import org.geysermc.geyser.util.BlockUtils;
 import java.io.DataInputStream;
 import java.io.InputStream;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.Map;
@@ -126,6 +129,7 @@ public final class BlockRegistryPopulator {
             BiFunction<String, NbtMapBuilder, String> stateMapper = blockMappers.getOrDefault(palette.getKey(), emptyMapper);
 
             BlockDefinition[] javaToBedrockBlocks = new BlockDefinition[BLOCKS_JSON.size()];
+            DefinitionRegistry.Builder<BlockDefinition> registry = SimpleDefinitionRegistry.builder();
 
             Map<String, NbtMap> flowerPotBlocks = new Object2ObjectOpenHashMap<>();
             Map<NbtMap, BlockDefinition> itemFrames = new Object2ObjectOpenHashMap<>();
@@ -173,6 +177,8 @@ public final class BlockRegistryPopulator {
                 javaToBedrockBlocks[javaRuntimeId] = bedrockDefinition;
             }
 
+            Arrays.stream(javaToBedrockBlocks).distinct().forEach(registry::add);
+
             if (commandBlockDefinition == null) {
                 throw new AssertionError("Unable to find command block in palette");
             }
@@ -205,6 +211,7 @@ public final class BlockRegistryPopulator {
             builder.bedrockBlockPalette(blocksTag);
 
             BlockRegistries.BLOCKS.register(palette.getKey().valueInt(), builder.blockStateVersion(stateVersion)
+                    .definitionRegistry(registry.build())
                     .javaToBedrockBlocks(javaToBedrockBlocks)
                     .itemFrames(itemFrames)
                     .flowerPotBlocks(flowerPotBlocks)

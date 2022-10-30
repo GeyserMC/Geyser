@@ -69,7 +69,7 @@ public class ZombieVillagerEntity extends ZombieEntity {
     @Nonnull
     @Override
     protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().goldenApple()) {
+        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().goldenApple().getJavaId()) {
             return InteractiveTag.CURE;
         } else {
             return super.testMobInteraction(hand, itemInHand);
@@ -79,7 +79,7 @@ public class ZombieVillagerEntity extends ZombieEntity {
     @Nonnull
     @Override
     protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().goldenApple()) {
+        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().goldenApple().getJavaId()) {
             // The client doesn't know if the entity has weakness as that's not usually sent over the network
             return InteractionResult.CONSUME;
         } else {

@@ -31,8 +31,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.github.steveice10.mc.auth.service.MsaAuthenticationService;
 import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.shaded.json.JSONObject;
 import com.nimbusds.jose.shaded.json.JSONValue;
+import com.nimbusds.jwt.SignedJWT;
 import com.nukkitx.network.util.Preconditions;
 import org.cloudburstmc.protocol.bedrock.packet.LoginPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ServerToClientHandshakePacket;
@@ -60,6 +62,7 @@ import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECGenParameterSpec;
 import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 
@@ -68,17 +71,18 @@ public class LoginEncryptionUtils {
 
     private static boolean HAS_SENT_ENCRYPTION_MESSAGE = false;
 
-    private static boolean validateChainData(JsonNode data) throws Exception {
-        if (data.size() != 3) {
+    private static boolean validateChainData(List<SignedJWT> chain) throws Exception {
+        if (chain.size() != 3) {
             return false;
         }
 
+        Payload identity = null;
         ECPublicKey lastKey = null;
         boolean mojangSigned = false;
-        Iterator<JsonNode> iterator = data.iterator();
+        Iterator<SignedJWT> iterator = chain.iterator();
         while (iterator.hasNext()) {
-            JsonNode node = iterator.next();
-            JWSObject jwt = JWSObject.parse(node.asText());
+            SignedJWT jwt = iterator.next();
+            identity = jwt.getPayload();
 
             // x509 cert is expected in every claim
             URI x5u = jwt.getHeader().getX509CertURL();
@@ -118,22 +122,10 @@ public class LoginEncryptionUtils {
     }
 
     public static void encryptPlayerConnection(GeyserSession session, LoginPacket loginPacket) {
-        JsonNode certData;
-        try {
-            certData = JSON_MAPPER.readTree(loginPacket.getChainData().toByteArray());
-        } catch (IOException ex) {
-            throw new RuntimeException("Certificate JSON can not be read.");
-        }
-
-        JsonNode certChainData = certData.get("chain");
-        if (certChainData.getNodeType() != JsonNodeType.ARRAY) {
-            throw new RuntimeException("Certificate data is not valid");
-        }
-
-        encryptConnectionWithCert(session, loginPacket.getSkinData().toString(), certChainData);
+        encryptConnectionWithCert(session, loginPacket.getExtra().toString(), loginPacket.getChain());
     }
 
-    private static void encryptConnectionWithCert(GeyserSession session, String clientData, JsonNode certChainData) {
+    private static void encryptConnectionWithCert(GeyserSession session, String clientData, List<SignedJWT> certChainData) {
         try {
             GeyserImpl geyser = session.getGeyser();
 
@@ -145,7 +137,7 @@ public class LoginEncryptionUtils {
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
                 return;
             }
-            JWSObject jwt = JWSObject.parse(certChainData.get(certChainData.size() - 1).asText());
+            JWSObject jwt = certChainData.get(certChainData.size() - 1);
             JsonNode payload = JSON_MAPPER.readTree(jwt.getPayload().toBytes());
 
             if (payload.get("extraData").getNodeType() != JsonNodeType.OBJECT) {

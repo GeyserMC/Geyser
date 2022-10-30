@@ -93,6 +93,6 @@ public class PiglinEntity extends BasePiglinEntity {
     }
 
     private boolean canGiveGoldTo(@Nonnull GeyserItemStack itemInHand) {
-        return !getFlag(EntityFlag.BABY) && itemInHand.getJavaId() == session.getItemMappings().getStoredItems().goldIngot() && !getFlag(EntityFlag.ADMIRING);
+        return !getFlag(EntityFlag.BABY) && itemInHand.getJavaId() == session.getItemMappings().getStoredItems().goldIngot().getJavaId() && !getFlag(EntityFlag.ADMIRING);
     }
 }

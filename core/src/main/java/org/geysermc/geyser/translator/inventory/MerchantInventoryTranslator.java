@@ -32,14 +32,18 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemStackRequest;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemStackResponse;
 import org.cloudburstmc.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.AutoCraftRecipeStackRequestActionData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.CraftRecipeStackRequestActionData;
-import org.cloudburstmc.protocol.bedrock.packet.ItemStackResponsePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.inventory.*;
+import org.geysermc.geyser.inventory.BedrockContainerSlot;
+import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.MerchantContainer;
+import org.geysermc.geyser.inventory.PlayerInventory;
+import org.geysermc.geyser.inventory.SlotType;
 import org.geysermc.geyser.inventory.updater.InventoryUpdater;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.session.GeyserSession;
@@ -104,8 +108,8 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
                 @Override
                 protected void initializeMetadata() {
                     dirtyMetadata.put(EntityDataTypes.SCALE, 0f);
-                    dirtyMetadata.put(EntityDataTypes.BOUNDING_BOX_WIDTH, 0f);
-                    dirtyMetadata.put(EntityDataTypes.BOUNDING_BOX_HEIGHT, 0f);
+                    dirtyMetadata.put(EntityDataTypes.WIDTH, 0f);
+                    dirtyMetadata.put(EntityDataTypes.HEIGHT, 0f);
                 }
             };
             villager.spawnEntity();
@@ -134,7 +138,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public ItemStackResponsePacket.Response translateCraftingRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+    public ItemStackResponse translateCraftingRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
         // Behavior as of 1.18.10.
         // We set the net ID to the trade index + 1. This doesn't appear to cause issues and means we don't have to
         // store a map of net ID to trade index on our end.
@@ -143,7 +147,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public ItemStackResponsePacket.Response translateAutoCraftingRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+    public ItemStackResponse translateAutoCraftingRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
         // 1.18.10 update - seems impossible to call without consoles/controller input
         // We set the net ID to the trade index + 1. This doesn't appear to cause issues and means we don't have to
         // store a map of net ID to trade index on our end.
@@ -151,7 +155,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
         return handleTrade(session, inventory, request, tradeChoice);
     }
 
-    private ItemStackResponsePacket.Response handleTrade(GeyserSession session, Inventory inventory, ItemStackRequest request, int tradeChoice) {
+    private ItemStackResponse handleTrade(GeyserSession session, Inventory inventory, ItemStackRequest request, int tradeChoice) {
         ServerboundSelectTradePacket packet = new ServerboundSelectTradePacket(tradeChoice);
         session.sendDownstreamPacket(packet);
 

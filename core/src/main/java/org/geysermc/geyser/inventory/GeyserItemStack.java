@@ -94,7 +94,6 @@ public class GeyserItemStack {
     public ItemData getItemData(GeyserSession session) {
         ItemData itemData = ItemTranslator.translateToBedrock(session, getItemStack());
         itemData.setNetId(getNetId());
-        itemData.setUsingNetId(true); // Seems silly - this should probably be on the protocol level
         return itemData;
     }
 

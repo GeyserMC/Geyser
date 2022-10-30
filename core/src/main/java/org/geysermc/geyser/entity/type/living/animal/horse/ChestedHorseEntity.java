@@ -53,7 +53,7 @@ public class ChestedHorseEntity extends AbstractHorseEntity {
 
     @Override
     protected boolean testForChest(@Nonnull GeyserItemStack itemInHand) {
-        return itemInHand.getJavaId() == session.getItemMappings().getStoredItems().chest() && !getFlag(EntityFlag.CHESTED);
+        return itemInHand.getJavaId() == session.getItemMappings().getStoredItems().chest().getJavaId() && !getFlag(EntityFlag.CHESTED);
     }
 
     @Override

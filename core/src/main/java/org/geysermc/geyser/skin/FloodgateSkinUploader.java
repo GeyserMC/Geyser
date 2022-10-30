@@ -29,6 +29,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.nimbusds.jwt.SignedJWT;
 import lombok.Getter;
 import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.floodgate.util.WebsocketEventType;
@@ -184,13 +185,13 @@ public final class FloodgateSkinUploader {
         };
     }
 
-    public void uploadSkin(JsonNode chainData, String clientData) {
-        if (chainData == null || !chainData.isArray() || clientData == null) {
+    public void uploadSkin(List<SignedJWT> chainData, String clientData) {
+        if (chainData == null || clientData == null) {
             return;
         }
 
         ObjectNode node = JACKSON.createObjectNode();
-        node.set("chain_data", chainData);
+        node.put("chain_data", chainData.toString()); // TODO: Check this
         node.put("client_data", clientData);
 
         // The reason why I don't like Jackson

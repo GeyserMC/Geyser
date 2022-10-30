@@ -58,8 +58,8 @@ public class PillagerEntity extends AbstractIllagerEntity {
      */
     protected void checkForCrossbow() {
         ItemMapping crossbow = session.getItemMappings().getStoredItems().crossbow();
-        boolean hasCrossbow = this.hand.getId() == crossbow.getBedrockDefinition()
-                || this.offHand.getId() == crossbow.getBedrockDefinition();
+        boolean hasCrossbow = this.hand.getDefinition() == crossbow.getBedrockDefinition()
+                || this.offHand.getDefinition() == crossbow.getBedrockDefinition();
         setFlag(EntityFlag.USING_ITEM, hasCrossbow);
         setFlag(EntityFlag.CHARGED, hasCrossbow);
 

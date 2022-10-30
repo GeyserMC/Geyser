@@ -32,6 +32,7 @@ import lombok.Value;
 import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
 
@@ -56,6 +57,7 @@ public class ItemMappings {
 
     ItemData[] creativeItems;
     List<ItemDefinition> itemDefinitions;
+    DefinitionRegistry<ItemDefinition> definitionRegistry;
 
     StoredItemMappings storedItems;
     String[] itemNames;

@@ -67,7 +67,7 @@ public class MobEntity extends LivingEntity {
 
     public void setLeashHolderBedrockId(long bedrockId) {
         this.leashHolderBedrockId = bedrockId;
-        dirtyMetadata.put(EntityDataTypes.LEASH_HOLDER_EID, bedrockId);
+        dirtyMetadata.put(EntityDataTypes.LEASH_HOLDER, bedrockId);
     }
 
     @Override
@@ -80,10 +80,10 @@ public class MobEntity extends LivingEntity {
         } else {
             GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand(hand);
             StoredItemMappings storedItems = session.getItemMappings().getStoredItems();
-            if (itemStack.getJavaId() == storedItems.lead() && canBeLeashed()) {
+            if (itemStack.getJavaId() == storedItems.lead().getJavaId() && canBeLeashed()) {
                 // We shall leash
                 return InteractiveTag.LEASH;
-            } else if (itemStack.getJavaId() == storedItems.nameTag()) {
+            } else if (itemStack.getJavaId() == storedItems.nameTag().getJavaId()) {
                 InteractionResult result = checkInteractWithNameTag(itemStack);
                 if (result.consumesAction()) {
                     return InteractiveTag.NAME;
@@ -117,10 +117,10 @@ public class MobEntity extends LivingEntity {
 
     private InteractionResult checkPriorityInteractions(GeyserItemStack itemInHand) {
         StoredItemMappings storedItems = session.getItemMappings().getStoredItems();
-        if (itemInHand.getJavaId() == storedItems.lead() && canBeLeashed()) {
+        if (itemInHand.getJavaId() == storedItems.lead().getJavaId() && canBeLeashed()) {
             // We shall leash
             return InteractionResult.SUCCESS;
-        } else if (itemInHand.getJavaId() == storedItems.nameTag()) {
+        } else if (itemInHand.getJavaId() == storedItems.nameTag().getJavaId()) {
             InteractionResult result = checkInteractWithNameTag(itemInHand);
             if (result.consumesAction()) {
                 return result;

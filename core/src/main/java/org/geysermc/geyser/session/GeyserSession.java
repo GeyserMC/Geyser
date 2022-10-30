@@ -66,6 +66,7 @@ import com.github.steveice10.packetlib.event.session.SessionAdapter;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpClientSession;
 import com.github.steveice10.packetlib.tcp.TcpSession;
+import com.nimbusds.jwt.SignedJWT;
 import com.nukkitx.nbt.NbtMap;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
@@ -205,7 +206,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Used for Floodgate skin uploading
      */
     @Setter
-    private JsonNode certChainData;
+    private List<SignedJWT> certChainData;
 
     @Accessors(fluent = true)
     @Setter
@@ -1438,6 +1439,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     private void startGame() {
+        this.upstream.getCodecHelper().setItemDefinitions(this.itemMappings.getDefinitionRegistry());
+        this.upstream.getCodecHelper().setBlockDefinitions(this.blockMappings.getDefinitionRegistry());
+
         StartGamePacket startGamePacket = new StartGamePacket();
         startGamePacket.setUniqueEntityId(playerEntity.getGeyserId());
         startGamePacket.setRuntimeEntityId(playerEntity.getGeyserId());
@@ -1489,7 +1493,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setMultiplayerCorrelationId("");
 
         startGamePacket.setItemDefinitions(this.itemMappings.getItemDefinitions());
-        startGamePacket.setBlockPalette(this.blockMappings.getBedrockBlockPalette());
+        // startGamePacket.setBlockPalette(this.blockMappings.getBedrockBlockPalette());
 
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);

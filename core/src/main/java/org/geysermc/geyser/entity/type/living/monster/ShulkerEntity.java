@@ -52,7 +52,7 @@ public class ShulkerEntity extends GolemEntity {
 
     public void setShulkerHeight(ByteEntityMetadata entityMetadata) {
         int height = entityMetadata.getPrimitiveValue();
-        dirtyMetadata.put(EntityDataTypes.SHULKER_PEEK_ID, height);
+        dirtyMetadata.put(EntityDataTypes.SHULKER_PEEK_AMOUNT, height);
     }
 
     public void setShulkerColor(ByteEntityMetadata entityMetadata) {

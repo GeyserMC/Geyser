@@ -165,7 +165,7 @@ public class AbstractHorseEntity extends AnimalEntity {
                 return InteractiveTag.ATTACH_CHEST;
             }
 
-            if (additionalTestForInventoryOpen(itemInHand) || !isBaby && !getFlag(EntityFlag.SADDLED) && itemInHand.getJavaId() == session.getItemMappings().getStoredItems().saddle()) {
+            if (additionalTestForInventoryOpen(itemInHand) || !isBaby && !getFlag(EntityFlag.SADDLED) && itemInHand.getJavaId() == session.getItemMappings().getStoredItems().saddle().getJavaId()) {
                 // Will open the inventory to be saddled
                 return InteractiveTag.OPEN_CONTAINER;
             }
@@ -221,7 +221,7 @@ public class AbstractHorseEntity extends AnimalEntity {
             }
 
             // Note: yes, this code triggers for llamas too. lol (as of Java Edition 1.18.1)
-            if (additionalTestForInventoryOpen(itemInHand) || (!isBaby && !getFlag(EntityFlag.SADDLED) && itemInHand.getJavaId() == session.getItemMappings().getStoredItems().saddle())) {
+            if (additionalTestForInventoryOpen(itemInHand) || (!isBaby && !getFlag(EntityFlag.SADDLED) && itemInHand.getJavaId() == session.getItemMappings().getStoredItems().saddle().getJavaId())) {
                 // Will open the inventory to be saddled
                 return InteractionResult.SUCCESS;
             }
@@ -260,7 +260,7 @@ public class AbstractHorseEntity extends AnimalEntity {
         } else if (!passengers.isEmpty()) {
             return testHorseInteraction(hand, itemInHand);
         } else {
-            if (session.getItemMappings().getStoredItems().saddle() == itemInHand.getJavaId()) {
+            if (session.getItemMappings().getStoredItems().saddle().getJavaId() == itemInHand.getJavaId()) {
                 return InteractiveTag.OPEN_CONTAINER;
             }
 

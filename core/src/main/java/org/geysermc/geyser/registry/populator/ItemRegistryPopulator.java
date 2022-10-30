@@ -33,6 +33,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.nbt.NbtUtils;
+import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -40,9 +41,9 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.codec.v527.Bedrock_v527;
@@ -50,8 +51,10 @@ import org.cloudburstmc.protocol.bedrock.codec.v534.Bedrock_v534;
 import org.cloudburstmc.protocol.bedrock.codec.v544.Bedrock_v544;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.defintions.SimpleDefinitionRegistry;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
@@ -79,7 +82,6 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -176,7 +178,6 @@ public class ItemRegistryPopulator {
             TypeReference<List<PaletteItem>> paletteEntriesType = new TypeReference<>() {};
 
             // Used to get the Bedrock namespaced ID (in instances where there are small differences)
-            Map<String, ItemDefinition> bedrockIdentifierToDefinition = new HashMap<>();
 
             List<String> itemNames = new ArrayList<>();
 
@@ -191,7 +192,8 @@ public class ItemRegistryPopulator {
             int nextFreeBedrockId = 0;
             List<ComponentItemData> componentItemData = new ObjectArrayList<>();
 
-            Map<String, ItemDefinition> definitions = new Object2ObjectOpenHashMap<>();
+            DefinitionRegistry.Builder<ItemDefinition> registry = SimpleDefinitionRegistry.builder();
+            Map<String, ItemDefinition> definitions = new Object2ObjectLinkedOpenHashMap<>();
 
             for (PaletteItem entry : itemEntries) {
                 int id = entry.getId();
@@ -201,7 +203,7 @@ public class ItemRegistryPopulator {
 
                 ItemDefinition definition = new ItemDefinition(entry.getName(), id, false);
                 definitions.put(entry.getName(), definition);
-                bedrockIdentifierToDefinition.put(entry.getName(), definition);
+                registry.add(definition);
             }
 
             Object2IntMap<String> bedrockBlockIdOverrides = new Object2IntOpenHashMap<>();
@@ -266,6 +268,7 @@ public class ItemRegistryPopulator {
                     // Bedrock-only banner patterns
                     continue;
                 }
+
                 ItemDefinition definition = definitions.get(identifier);
                 creativeItems.add(ItemData.builder()
                         .definition(definition)
@@ -328,7 +331,7 @@ public class ItemRegistryPopulator {
                 }
 
                 String bedrockIdentifier = mappingItem.getBedrockIdentifier();
-                ItemDefinition definition = bedrockIdentifierToDefinition.get(bedrockIdentifier);
+                ItemDefinition definition = definitions.get(bedrockIdentifier);
                 if (definition == null) {
                     throw new RuntimeException("Missing Bedrock ItemDefinition in mappings: " + bedrockIdentifier);
                 }
@@ -483,7 +486,7 @@ public class ItemRegistryPopulator {
                 }
 
                 // Add the custom item properties, if applicable
-                List<ObjectIntPair<CustomItemOptions>> customItemOptions;
+                List<Pair<CustomItemOptions, ItemDefinition>> customItemOptions;
                 Collection<CustomItemData> customItemsToLoad = customItems.get(javaIdentifier);
                 if (customItemsAllowed && !customItemsToLoad.isEmpty()) {
                     customItemOptions = new ObjectArrayList<>(customItemsToLoad.size());
@@ -504,9 +507,10 @@ public class ItemRegistryPopulator {
                         );
                         // StartGamePacket entry - needed for Bedrock to recognize the item through the protocol
                         definitions.put(customMapping.stringId(), customMapping.itemDefinition());
+                        registry.add(customMapping.itemDefinition());
                         // ComponentItemData - used to register some custom properties
                         componentItemData.add(customMapping.componentItemData());
-                        customItemOptions.add(ObjectIntPair.of(customItem.customItemOptions(), customProtocolId));
+                        customItemOptions.add(Pair.of(customItem.customItemOptions(), customMapping.itemDefinition()));
 
                         customIdMappings.put(customMapping.integerId(), customMapping.stringId());
                     }
@@ -577,6 +581,7 @@ public class ItemRegistryPopulator {
 
                 ItemDefinition definition = new ItemDefinition("geysermc:furnace_minecart", (short) furnaceMinecartId, true);
                 definitions.put("geysermc:furnace_minecart", definition);
+                registry.add(definition);
 
                 mappings.set(javaFurnaceMinecartId, ItemMapping.builder()
                         .javaIdentifier("minecraft:furnace_minecart")
@@ -661,6 +666,7 @@ public class ItemRegistryPopulator {
             ItemMappings itemMappings = ItemMappings.builder()
                     .items(mappings.toArray(new ItemMapping[0]))
                     .creativeItems(creativeItems.toArray(new ItemData[0]))
+                    .definitionRegistry(registry.build())
                     .itemDefinitions(List.copyOf(definitions.values()))
                     .itemNames(itemNames.toArray(new String[0]))
                     .storedItems(new StoredItemMappings(identifierToMapping))

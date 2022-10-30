@@ -87,6 +87,6 @@ public class AllayEntity extends MobEntity {
     }
 
     private boolean isDuplicationItem(GeyserItemStack itemStack) {
-        return itemStack.getJavaId() == session.getItemMappings().getStoredItems().amethystShard();
+        return itemStack.getJavaId() == session.getItemMappings().getStoredItems().amethystShard().getJavaId();
     }
 }

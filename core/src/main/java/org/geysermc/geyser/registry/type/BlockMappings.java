@@ -32,6 +32,8 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.Builder;
 import lombok.Value;
 import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
+import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
+import org.cloudburstmc.protocol.common.DefinitionRegistry;
 
 import java.util.Map;
 import java.util.Set;
@@ -46,6 +48,7 @@ public class BlockMappings {
     int blockStateVersion;
 
     BlockDefinition[] javaToBedrockBlocks;
+    DefinitionRegistry<BlockDefinition> definitionRegistry;
 
     NbtList<NbtMap> bedrockBlockPalette;
 

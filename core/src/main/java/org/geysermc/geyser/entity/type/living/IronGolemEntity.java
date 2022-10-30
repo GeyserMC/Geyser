@@ -53,7 +53,7 @@ public class IronGolemEntity extends GolemEntity {
     @Nonnull
     @Override
     protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().ironIngot()) {
+        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().ironIngot().getJavaId()) {
             if (health < maxHealth) {
                 // Healing the iron golem
                 return InteractionResult.SUCCESS;

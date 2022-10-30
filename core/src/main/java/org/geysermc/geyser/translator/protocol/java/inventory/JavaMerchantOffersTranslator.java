@@ -75,7 +75,7 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
         Entity villager = merchantInventory.getVillager();
         villager.getDirtyMetadata().put(EntityDataTypes.TRADE_TIER, packet.getVillagerLevel() - 1);
         villager.getDirtyMetadata().put(EntityDataTypes.MAX_TRADE_TIER, 4);
-        villager.getDirtyMetadata().put(EntityDataTypes.TRADE_XP, packet.getExperience());
+        villager.getDirtyMetadata().put(EntityDataTypes.TRADE_EXPERIENCE, packet.getExperience());
         villager.updateBedrockMetadata();
 
         // Construct the packet that opens the trading window
@@ -170,7 +170,7 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
 
     private static NbtMap getItemTag(GeyserSession session, ItemStack stack, ItemMapping mapping, int count) {
         ItemData itemData = ItemTranslator.translateToBedrock(session, stack);
-        String customIdentifier = session.getItemMappings().getCustomIdMappings().get(itemData.getId());
+        String customIdentifier = session.getItemMappings().getCustomIdMappings().get(itemData.getDefinition().getRuntimeId());
 
         NbtMapBuilder builder = NbtMap.builder();
         builder.putByte("Count", (byte) count);

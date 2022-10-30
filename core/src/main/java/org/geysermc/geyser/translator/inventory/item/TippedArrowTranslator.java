@@ -57,7 +57,7 @@ public class TippedArrowTranslator extends ItemTranslator {
             TippedArrowPotion tippedArrowPotion = TippedArrowPotion.getByJavaIdentifier(((StringTag) potionTag).getValue());
             if (tippedArrowPotion != null) {
                 return ItemData.builder()
-                        .id(mapping.getBedrockDefinition())
+                        .definition(mapping.getBedrockDefinition())
                         .damage(tippedArrowPotion.getBedrockId())
                         .count(itemStack.getAmount())
                         .tag(translateNbtToBedrock(itemStack.getNbt()));
