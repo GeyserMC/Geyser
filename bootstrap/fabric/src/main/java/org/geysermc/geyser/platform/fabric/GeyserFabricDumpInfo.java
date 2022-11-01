@@ -25,65 +25,58 @@
 
 package org.geysermc.geyser.platform.fabric;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
+import net.fabricmc.loader.api.metadata.ModMetadata;
+import net.fabricmc.loader.api.metadata.Person;
 import net.minecraft.server.MinecraftServer;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.text.AsteriskSerializer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-@SuppressWarnings("unused") // The way that the dump renders makes them used
+@Getter
 public class GeyserFabricDumpInfo extends BootstrapDumpInfo {
 
     private String platformVersion = null;
     private final EnvType environmentType;
 
+    @AsteriskSerializer.Asterisk(isIp = true)
     private final String serverIP;
     private final int serverPort;
     private final List<ModInfo> mods;
 
     public GeyserFabricDumpInfo(MinecraftServer server) {
-        super();
-        for (ModContainer modContainer : FabricLoader.getInstance().getAllMods()) {
-            if (modContainer.getMetadata().getId().equals("fabricloader")) {
-                this.platformVersion = modContainer.getMetadata().getVersion().getFriendlyString();
-                break;
-            }
-        }
+        FabricLoader.getInstance().getModContainer("fabricloader").ifPresent(mod ->
+            this.platformVersion = mod.getMetadata().getVersion().getFriendlyString());
+
         this.environmentType = FabricLoader.getInstance().getEnvironmentType();
-        if (AsteriskSerializer.showSensitive || (server.getLocalIp() == null || server.getLocalIp().equals("") || server.getLocalIp().equals("0.0.0.0"))) {
-            this.serverIP = server.getLocalIp();
-        } else {
-            this.serverIP = "***";
-        }
+        this.serverIP = server.getLocalIp() == null ? "unknown" : server.getLocalIp();
         this.serverPort = server.getPort();
         this.mods = new ArrayList<>();
 
         for (ModContainer mod : FabricLoader.getInstance().getAllMods()) {
-            this.mods.add(new ModInfo(mod));
+            ModMetadata meta = mod.getMetadata();
+            this.mods.add(new ModInfo(
+                FabricLoader.getInstance().isModLoaded(meta.getId()),
+                meta.getId(),
+                meta.getVersion().getFriendlyString(),
+                meta.getAuthors().stream().map(Person::getName).collect(Collectors.toList()))
+            );
         }
     }
 
-    public String getPlatformVersion() {
-        return platformVersion;
-    }
-
-    public EnvType getEnvironmentType() {
-        return environmentType;
-    }
-
-    public String getServerIP() {
-        return this.serverIP;
-    }
-
-    public int getServerPort() {
-        return this.serverPort;
-    }
-
-    public List<ModInfo> getMods() {
-        return this.mods;
+    @Getter
+    @AllArgsConstructor
+    public static class ModInfo {
+        public boolean enabled;
+        public String name;
+        public String version;
+        public List<String> authors;
     }
 }
