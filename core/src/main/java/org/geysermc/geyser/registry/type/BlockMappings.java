@@ -40,8 +40,7 @@ public class BlockMappings {
     int bedrockAirId;
     int bedrockWaterId;
     int bedrockMovingBlockId;
-
-    int blockStateVersion;
+    int bedrockUnknownId;
 
     int[] javaToBedrockBlocks;
 
@@ -56,7 +55,7 @@ public class BlockMappings {
 
     public int getBedrockBlockId(int state) {
         if (state >= this.javaToBedrockBlocks.length) {
-            return bedrockAirId;
+            return bedrockUnknownId;
         }
         return this.javaToBedrockBlocks[state];
     }

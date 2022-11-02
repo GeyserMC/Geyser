@@ -547,6 +547,11 @@ public class ItemRegistryPopulator {
                 throw new RuntimeException("Lodestone compass not found in item palette!");
             }
 
+            int unknownId = entries.get("minecraft:unknown").getId();
+            if (unknownId == 0) {
+                throw new RuntimeException("Unknown not found in item palette!");
+            }
+
             // Add the lodestone compass since it doesn't exist on java but we need it for item conversion
             ItemMapping lodestoneEntry = ItemMapping.builder()
                     .javaIdentifier("")
@@ -556,6 +561,16 @@ public class ItemRegistryPopulator {
                     .bedrockData(0)
                     .bedrockBlockId(-1)
                     .stackSize(1)
+                    .customItemOptions(Collections.emptyList())
+                    .build();
+            ItemMapping unknownEntry = ItemMapping.builder()
+                    .javaIdentifier("")
+                    .bedrockIdentifier("minecraft:unknown")
+                    .javaId(-1)
+                    .bedrockId(unknownId)
+                    .bedrockData(0)
+                    .bedrockBlockId(-1)
+                    .stackSize(64)
                     .customItemOptions(Collections.emptyList())
                     .build();
 
@@ -658,6 +673,7 @@ public class ItemRegistryPopulator {
                     .carpets(carpets)
                     .componentItemData(componentItemData)
                     .lodestoneCompass(lodestoneEntry)
+                    .unknown(unknownEntry)
                     .customIdMappings(customIdMappings)
                     .build();
 

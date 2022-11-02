@@ -54,6 +54,7 @@ public class ItemMappings {
      * A unique exception as this is an item in Bedrock, but not in Java.
      */
     ItemMapping lodestoneCompass;
+    ItemMapping unknown;
 
     ItemData[] creativeItems;
     List<StartGamePacket.ItemEntry> itemEntries;
@@ -90,7 +91,7 @@ public class ItemMappings {
      */
     @Nonnull
     public ItemMapping getMapping(int javaId) {
-        return javaId >= 0 && javaId < this.items.length ? this.items[javaId] : ItemMapping.AIR;
+        return javaId >= 0 && javaId < this.items.length ? this.items[javaId] : unknown;
     }
 
     /**
