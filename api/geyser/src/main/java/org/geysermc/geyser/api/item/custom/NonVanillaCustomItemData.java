@@ -136,6 +136,18 @@ public interface NonVanillaCustomItemData extends CustomItemData {
      */
     boolean isHat();
 
+    /**
+     * Gets if the item is a tool. This is used to set the render type of the item, if the item is handheld.
+     *
+     * @return if the item is a tool
+     *
+     * @deprecated Use {@link #displayHandheld()} instead.
+     */
+    @Deprecated
+    default boolean isTool() {
+        return displayHandheld();
+    }
+
     static NonVanillaCustomItemData.Builder builder() {
         return GeyserApi.api().provider(NonVanillaCustomItemData.Builder.class);
     }
@@ -171,11 +183,22 @@ public interface NonVanillaCustomItemData extends CustomItemData {
 
         Builder hat(boolean isHat);
 
+        /**
+         * @deprecated Use {@link #displayHandheld(boolean)} instead.
+         */
+        @Deprecated
+        default Builder tool(boolean isTool) {
+            return displayHandheld(isTool);
+        }
+
         @Override
         Builder displayName(@NonNull String displayName);
 
         @Override
         Builder allowOffhand(boolean allowOffhand);
+
+        @Override
+        Builder displayHandheld(boolean displayHandheld);
 
         @Override
         Builder textureSize(int textureSize);
