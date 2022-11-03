@@ -47,16 +47,16 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     private final String toolType;
     private final String toolTier;
     private final String armorType;
+    private final String armorTier;
     private final int protectionValue;
     private final String translationString;
     private final Set<String> repairMaterials;
     private final OptionalInt creativeCategory;
     private final String creativeGroup;
     private final boolean isHat;
-    private final boolean isTool;
 
     public GeyserNonVanillaCustomItemData(NonVanillaCustomItemDataBuilder builder) {
-        super(builder.name, builder.customItemOptions, builder.displayName, builder.icon, builder.allowOffhand,
+        super(builder.name, builder.customItemOptions, builder.displayName, builder.icon, builder.allowOffhand, builder.displayHandheld,
                 builder.textureSize, builder.renderOffsets);
 
         this.identifier = builder.identifier;
@@ -66,13 +66,13 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         this.toolType = builder.toolType;
         this.toolTier = builder.toolTier;
         this.armorType = builder.armorType;
+        this.armorTier = builder.armorTier;
         this.protectionValue = builder.protectionValue;
         this.translationString = builder.translationString;
         this.repairMaterials = builder.repairMaterials;
         this.creativeCategory = builder.creativeCategory;
         this.creativeGroup = builder.creativeGroup;
         this.isHat = builder.hat;
-        this.isTool = builder.tool;
     }
 
     @Override
@@ -111,6 +111,11 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     }
 
     @Override
+    public @Nullable String armorTier() {
+        return armorTier;
+    }
+
+    @Override
     public int protectionValue() {
         return protectionValue;
     }
@@ -140,11 +145,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         return isHat;
     }
 
-    @Override
-    public boolean isTool() {
-        return isTool;
-    }
-
     public static class NonVanillaCustomItemDataBuilder extends GeyserCustomItemData.CustomItemDataBuilder implements NonVanillaCustomItemData.Builder {
         private String identifier = null;
         private int javaId = -1;
@@ -157,6 +157,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         private String toolTier = null;
 
         private String armorType = null;
+        private String armorTier = null;
         private int protectionValue = 0;
 
         private String translationString;
@@ -167,7 +168,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         private String creativeGroup = null;
 
         private boolean hat = false;
-        private boolean tool = false;
 
         @Override
         public NonVanillaCustomItemData.Builder name(@NonNull String name) {
@@ -183,6 +183,11 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         @Override
         public NonVanillaCustomItemData.Builder allowOffhand(boolean allowOffhand) {
             return (NonVanillaCustomItemData.Builder) super.allowOffhand(allowOffhand);
+        }
+
+        @Override
+        public NonVanillaCustomItemData.Builder displayHandheld(boolean displayHandheld) {
+            return (NonVanillaCustomItemData.Builder) super.displayHandheld(displayHandheld);
         }
 
         @Override
@@ -248,6 +253,12 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         }
 
         @Override
+        public NonVanillaCustomItemData.Builder armorTier(@Nullable String armorTier) {
+            this.armorTier = armorTier;
+            return this;
+        }
+
+        @Override
         public NonVanillaCustomItemData.Builder protectionValue(int protectionValue) {
             this.protectionValue = protectionValue;
             return this;
@@ -280,12 +291,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         @Override
         public NonVanillaCustomItemData.Builder hat(boolean isHat) {
             this.hat = isHat;
-            return this;
-        }
-
-        @Override
-        public NonVanillaCustomItemData.Builder tool(boolean isTool) {
-            this.tool = isTool;
             return this;
         }
 

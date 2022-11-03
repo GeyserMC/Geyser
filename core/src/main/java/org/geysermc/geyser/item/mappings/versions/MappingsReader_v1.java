@@ -108,6 +108,10 @@ public class MappingsReader_v1 extends MappingsReader {
             customItemData.allowOffhand(node.get("allow_offhand").asBoolean());
         }
 
+        if (node.has("display_handheld")) {
+            customItemData.displayHandheld(node.get("display_handheld").asBoolean());
+        }
+
         if (node.has("texture_size")) {
             customItemData.textureSize(node.get("texture_size").asInt());
         }

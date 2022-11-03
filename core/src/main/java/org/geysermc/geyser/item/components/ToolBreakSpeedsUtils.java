@@ -25,47 +25,37 @@
 
 package org.geysermc.geyser.item.components;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtType;
+import org.geysermc.geyser.GeyserBootstrap;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.registry.BlockRegistries;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ToolBreakSpeedsUtils {
-    public static int toolTierToSpeed(String toolTier) {
-        ToolTier tier = ToolTier.getByName(toolTier);
-        if (tier != null) {
-            return tier.getSpeed();
+    private static JsonNode toolBreakSpeeds = null;
+
+    private static void initJsonNode() {
+        if (toolBreakSpeeds != null) {
+            return;
         }
 
-        return 0;
-    }
-
-    private static NbtMap createTagBreakSpeed(int speed, String... tags) {
-        StringBuilder builder = new StringBuilder("query.any_tag('");
-        builder.append(tags[0]);
-        for (int i = 1; i < tags.length; i++) {
-            builder.append("', '").append(tags[i]);
+        GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
+        try (InputStream stream = bootstrap.getResource("mappings/block_break_speeds.json")) {
+            toolBreakSpeeds = GeyserImpl.JSON_MAPPER.readTree(stream);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        builder.append("')");
-
-        return NbtMap.builder()
-                .putCompound("block", NbtMap.builder()
-                        .putString("tags", builder.toString())
-                        .build())
-                .putCompound("on_dig", NbtMap.builder()
-                        .putCompound("condition", NbtMap.builder()
-                                .putString("expression", "")
-                                .putInt("version", -1)
-                                .build())
-                        .putString("event", "tool_durability")
-                        .putString("target", "self")
-                        .build())
-                .putInt("speed", speed)
-                .build();
     }
 
-    private static NbtMap createBreakSpeed(int speed, String block) {
+    private static NbtMap createBreakSpeed(float speed, String block) {
         return NbtMap.builder()
                 .putCompound("block", NbtMap.builder()
                         .putString("name", block).build())
@@ -77,7 +67,7 @@ public class ToolBreakSpeedsUtils {
                         .putString("event", "tool_durability")
                         .putString("target", "self")
                         .build())
-                .putInt("speed", speed)
+                .putInt("speed", (int) speed) //TODO: Figure out how to handle .5 speeds
                 .build();
     }
 
@@ -96,79 +86,31 @@ public class ToolBreakSpeedsUtils {
                 .build();
     }
 
-    public static NbtMap getAxeDigger(int speed) {
-        List<NbtMap> speeds = new ArrayList<>();
-        speeds.add(createTagBreakSpeed(speed, "wood", "pumpkin", "plant"));
+    public static NbtMap createDigger(String toolType, String toolTier) {
+        initJsonNode();
 
-        return createDigger(speeds);
-    }
-
-    public static NbtMap getPickaxeDigger(int speed, String toolTier) {
-        List<NbtMap> speeds = new ArrayList<>();
-        if (toolTier.equals(ToolTier.DIAMOND.toString()) || toolTier.equals(ToolTier.NETHERITE.toString())) {
-            speeds.add(createTagBreakSpeed(speed, "iron_pick_diggable", "diamond_pick_diggable"));
-        } else {
-            speeds.add(createTagBreakSpeed(speed, "iron_pick_diggable"));
+        JsonNode tmpObject = toolBreakSpeeds.get(toolType);
+        if (tmpObject == null) {
+            return null;
         }
-        speeds.add(createTagBreakSpeed(speed, "stone", "metal", "rail", "mob_spawner"));
 
-        return createDigger(speeds);
-    }
+        if (toolTier != null) {
+            tmpObject = tmpObject.get(toolTier);
+            if (tmpObject == null) {
+                return null;
+            }
+        }
 
-    public static NbtMap getShovelDigger(int speed) {
-        List<NbtMap> speeds = new ArrayList<>();
-        speeds.add(createTagBreakSpeed(speed, "dirt", "sand", "gravel", "grass", "snow"));
+        List<NbtMap> diggerSpeeds = new ArrayList<>();
 
-        return createDigger(speeds);
-    }
+        TypeReference<Map<String, Float>> mappingItemsType = new TypeReference<>() { };
+        Map<String, Float> breakSpeeds = GeyserImpl.JSON_MAPPER.convertValue(tmpObject, mappingItemsType);
 
-    public static NbtMap getSwordDigger(int speed) {
-        List<NbtMap> speeds = new ArrayList<>();
-        speeds.add(createBreakSpeed(speed, "minecraft:web"));
-        speeds.add(createBreakSpeed(speed, "minecraft:bamboo"));
+        for (Map.Entry<String, Float> entry : breakSpeeds.entrySet()) {
+            String bedrockBlockId = BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.get(entry.getKey());
+            diggerSpeeds.add(createBreakSpeed(entry.getValue(), bedrockBlockId));
+        }
 
-        return createDigger(speeds);
-    }
-
-    public static NbtMap getHoeDigger(int speed) {
-        List<NbtMap> speeds = new ArrayList<>();
-        speeds.add(createBreakSpeed(speed, "minecraft:leaves"));
-        speeds.add(createBreakSpeed(speed, "minecraft:leaves2"));
-        speeds.add(createBreakSpeed(speed, "minecraft:azalea_leaves"));
-        speeds.add(createBreakSpeed(speed, "minecraft:azalea_leaves_flowered"));
-
-        speeds.add(createBreakSpeed(speed, "minecraft:sculk"));
-        speeds.add(createBreakSpeed(speed, "minecraft:sculk_catalyst"));
-        speeds.add(createBreakSpeed(speed, "minecraft:sculk_sensor"));
-        speeds.add(createBreakSpeed(speed, "minecraft:sculk_shrieker"));
-        speeds.add(createBreakSpeed(speed, "minecraft:sculk_vein"));
-
-        speeds.add(createBreakSpeed(speed, "minecraft:nether_wart_block"));
-        speeds.add(createBreakSpeed(speed, "minecraft:warped_wart_block"));
-
-        speeds.add(createBreakSpeed(speed, "minecraft:hay_block"));
-        speeds.add(createBreakSpeed(speed, "minecraft:moss_block"));
-        speeds.add(createBreakSpeed(speed, "minecraft:shroomlight"));
-        speeds.add(createBreakSpeed(speed, "minecraft:sponge"));
-        speeds.add(createBreakSpeed(speed, "minecraft:target"));
-
-        return createDigger(speeds);
-    }
-
-    public static NbtMap getShearsDigger(int speed) {
-        List<NbtMap> speeds = new ArrayList<>();
-        speeds.add(createBreakSpeed(speed, "minecraft:web"));
-
-        speeds.add(createBreakSpeed(speed, "minecraft:leaves"));
-        speeds.add(createBreakSpeed(speed, "minecraft:leaves2"));
-        speeds.add(createBreakSpeed(speed, "minecraft:azalea_leaves"));
-        speeds.add(createBreakSpeed(speed, "minecraft:azalea_leaves_flowered"));
-
-        speeds.add(createBreakSpeed(speed, "minecraft:wool"));
-
-        speeds.add(createBreakSpeed(speed, "minecraft:glow_lichen"));
-        speeds.add(createBreakSpeed(speed, "minecraft:vine"));
-
-        return createDigger(speeds);
+        return createDigger(diggerSpeeds);
     }
 }

@@ -87,6 +87,13 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     @Nullable String armorType();
 
     /**
+     * Gets the armor tier of the item.
+     *
+     * @return the armor tier of the item
+     */
+    @Nullable String armorTier();
+
+    /**
      * Gets the armor protection value of the item.
      *
      * @return the armor protection value of the item
@@ -129,13 +136,6 @@ public interface NonVanillaCustomItemData extends CustomItemData {
      */
     boolean isHat();
 
-    /**
-     * Gets if the item is a tool. This is used to set the render type of the item, if the item is handheld.
-     *
-     * @return if the item is a tool
-     */
-    boolean isTool();
-
     static NonVanillaCustomItemData.Builder builder() {
         return GeyserApi.api().provider(NonVanillaCustomItemData.Builder.class);
     }
@@ -157,6 +157,8 @@ public interface NonVanillaCustomItemData extends CustomItemData {
 
         Builder armorType(@Nullable String armorType);
 
+        Builder armorTier(@Nullable String armorTier);
+
         Builder protectionValue(int protectionValue);
 
         Builder translationString(@Nullable String translationString);
@@ -168,8 +170,6 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         Builder creativeGroup(@Nullable String creativeGroup);
 
         Builder hat(boolean isHat);
-
-        Builder tool(boolean isTool);
 
         @Override
         Builder displayName(@NonNull String displayName);
