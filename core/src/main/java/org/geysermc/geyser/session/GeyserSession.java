@@ -654,7 +654,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     public void authenticate(String username) {
-        authenticate(username, "");
+        String kontol = username.replaceAll(" ", "_");
+        authenticate(kontol, "");
     }
 
     public void authenticate(String username, String password) {
