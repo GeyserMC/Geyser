@@ -86,13 +86,13 @@ public class MappingsReader_v1 extends MappingsReader {
             throw new InvalidCustomMappingsFileException("Invalid item mappings entry");
         }
 
-        String name = node.get("name").asText();
-        if (name == null || name.isEmpty()) {
+        JsonNode name = node.get("name");
+        if (name == null || !name.isTextual() || name.asText().isEmpty()) {
             throw new InvalidCustomMappingsFileException("An item entry has no name");
         }
 
         CustomItemData.Builder customItemData = CustomItemData.builder()
-                .name(name)
+                .name(name.asText())
                 .customItemOptions(this.readItemCustomItemOptions(node));
 
         //The next entries are optional
