@@ -36,7 +36,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.geysermc.floodgate.util.DeviceOs;
+import org.geysermc.api.util.BedrockPlatform;
 import org.geysermc.floodgate.util.FloodgateInfoHolder;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.GeyserApi;
@@ -73,7 +73,7 @@ public class DumpInfo {
     private final GitInfo gitInfo;
     private final GeyserConfiguration config;
     private final Floodgate floodgate;
-    private final Object2IntMap<DeviceOs> userPlatforms;
+    private final Object2IntMap<BedrockPlatform> userPlatforms;
     private final HashInfo hashInfo;
     private final RamInfo ramInfo;
     private LogsInfo logsInfo;
@@ -121,7 +121,7 @@ public class DumpInfo {
 
         this.userPlatforms = new Object2IntOpenHashMap<>();
         for (GeyserSession session : GeyserImpl.getInstance().getSessionManager().getAllSessions()) {
-            DeviceOs device = session.getClientData().getDeviceOs();
+            BedrockPlatform device = session.getClientData().getDeviceOs();
             userPlatforms.put(device, userPlatforms.getOrDefault(device, 0) + 1);
         }
 

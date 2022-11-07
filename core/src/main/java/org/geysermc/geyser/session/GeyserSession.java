@@ -112,6 +112,8 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.geyser.hybrid.FloodgateHybridProvider;
+import org.geysermc.geyser.hybrid.HybridProvider;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
@@ -128,7 +130,7 @@ import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.session.cache.*;
-import org.geysermc.geyser.skin.FloodgateSkinUploader;
+import org.geysermc.geyser.skin.BedrockSkinUploader;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.text.TextDecoration;
@@ -857,7 +859,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         if (geyser.getBootstrap().getSocketAddress() != null) {
             // We're going to connect through the JVM and not through TCP
-            downstream = new LocalSession(this.remoteServer.address(), this.remoteServer.port(),
+            downstream = new LocalSession(this, this.remoteServer.address(), this.remoteServer.port(),
                     geyser.getBootstrap().getSocketAddress(), upstream.getAddress().getAddress().getHostAddress(),
                     this.protocol, this.protocol.createHelper());
         } else {
@@ -879,12 +881,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 //todo move this somewhere else
                 if (event.getPacket() instanceof ClientIntentionPacket) {
                     String addressSuffix;
-                    if (floodgate) {
+                    HybridProvider provider;
+                    if (floodgate && (provider = geyser.getHybridProvider()) instanceof FloodgateHybridProvider) {
                         byte[] encryptedData;
 
                         try {
-                            FloodgateSkinUploader skinUploader = geyser.getSkinUploader();
-                            FloodgateCipher cipher = geyser.getCipher();
+                            BedrockSkinUploader skinUploader = geyser.getSkinUploader();
+                            FloodgateCipher cipher = provider.getCipher();
 
                             String bedrockAddress = upstream.getAddress().getAddress().getHostAddress();
                             // both BungeeCord and Velocity remove the IPv6 scope (if there is one) for Spigot
@@ -1377,7 +1380,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         upstream.sendPacket(chunkRadiusUpdatedPacket);
     }
 
-    public InetSocketAddress getSocketAddress() {
+    @Override
+    public InetSocketAddress socketAddress() {
         return this.upstream.getAddress();
     }
 
@@ -1857,7 +1861,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public @NonNull BedrockPlatform platform() {
-        return BedrockPlatform.values()[clientData.getDeviceOs().ordinal()]; //todo
+        return clientData.getDeviceOs();
     }
 
     @Override
@@ -1867,12 +1871,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public @NonNull UiProfile uiProfile() {
-        return UiProfile.values()[clientData.getUiProfile().ordinal()]; //todo
+        return clientData.getUiProfile();
     }
 
     @Override
     public @NonNull InputMode inputMode() {
-        return InputMode.values()[clientData.getCurrentInputMode().ordinal()]; //todo
+        return clientData.getCurrentInputMode();
     }
 
     @Override

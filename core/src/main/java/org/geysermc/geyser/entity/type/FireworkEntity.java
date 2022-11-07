@@ -36,7 +36,6 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
-import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.level.FireworkColor;
@@ -62,13 +61,6 @@ public class FireworkEntity extends Entity {
         CompoundTag tag = item.getNbt();
 
         if (tag == null) {
-            return;
-        }
-
-        // TODO: Remove once Mojang fixes bugs with fireworks crashing clients on these specific devices.
-        // https://bugs.mojang.com/browse/MCPE-89115
-        if (session.getClientData().getDeviceOs() == DeviceOs.XBOX
-                || session.getClientData().getDeviceOs() == DeviceOs.PS4) {
             return;
         }
 

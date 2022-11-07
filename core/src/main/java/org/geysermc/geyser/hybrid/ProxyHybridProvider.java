@@ -23,51 +23,38 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.util;
+package org.geysermc.geyser.hybrid;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.floodgate.crypto.FloodgateCipher;
+import org.geysermc.floodgate.util.BedrockData;
+import org.geysermc.geyser.GeyserImpl;
 
-public enum BedrockPlatform {
-    UNKNOWN("Unknown"),
-    GOOGLE("Android"),
-    IOS("iOS"),
-    OSX("macOS"),
-    AMAZON("Amazon"),
-    GEARVR("Gear VR"),
-    HOLOLENS("Hololens"),
-    UWP("Windows"),
-    WIN32("Windows x86"),
-    DEDICATED("Dedicated"),
-    TVOS("Apple TV"),
-    PS4("PS4"),
-    NX("Switch"),
-    XBOX("Xbox One"),
-    WINDOWS_PHONE("Windows Phone");
+import java.nio.charset.StandardCharsets;
 
-    private static final BedrockPlatform[] VALUES = values();
+public final class ProxyHybridProvider extends IntegratedHybridProvider {
+    private final FloodgateCipher cipher;
 
-    private final String displayName;
-
-    BedrockPlatform(String displayName) {
-        this.displayName = displayName;
+    public ProxyHybridProvider(GeyserImpl geyser) {
+        super(geyser);
+        this.cipher = HybridProvider.getOrCreateKey(geyser);
     }
 
-    /**
-     * Get the BedrockPlatform from the identifier.
-     *
-     * @param id the BedrockPlatform identifier
-     * @return The BedrockPlatform or {@link #UNKNOWN} if the platform wasn't found
-     */
-    @NonNull
-    public static BedrockPlatform fromId(int id) {
-        return id < VALUES.length ? VALUES[id] : VALUES[0];
-    }
-
-    /**
-     * @return friendly display name of platform.
-     */
     @Override
-    public String toString() {
-        return displayName;
+    public FloodgateCipher getCipher() {
+        return cipher;
+    }
+
+    // TODO copied from ProxyFloodgateApi
+    public byte[] createEncryptedData(BedrockData bedrockData) {
+        try {
+            return cipher.encryptFromString(bedrockData.toString());
+        } catch (Exception exception) {
+            throw new IllegalStateException("We failed to create the encrypted data, " +
+                    "but creating encrypted data is mandatory!", exception);
+        }
+    }
+
+    public String createEncryptedDataString(BedrockData bedrockData) {
+        return new String(createEncryptedData(bedrockData), StandardCharsets.UTF_8);
     }
 }

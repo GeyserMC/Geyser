@@ -6,7 +6,7 @@ plugins {
 
 allprojects {
     group = "org.geysermc"
-    version = "2.1.0-SNAPSHOT"
+    version = "3.0.0-SNAPSHOT"
     description = "Allows for players from Minecraft: Bedrock Edition to join Minecraft: Java Edition servers."
 
     tasks.withType<JavaCompile> {
@@ -23,8 +23,6 @@ val platforms = setOf(
     projects.velocity
 ).map { it.dependencyProject }
 
-val api: Project = projects.api.dependencyProject
-
 subprojects {
     apply {
         plugin("java-library")
@@ -40,7 +38,7 @@ subprojects {
         group = rootProject.group as String + ".geyser"
         when (this) {
             in platforms -> plugins.apply("geyser.platform-conventions")
-            api -> plugins.apply("geyser.publish-conventions")
+            //api -> plugins.apply("geyser.publish-conventions") FIXME
             else -> plugins.apply("geyser.base-conventions")
         }
     }

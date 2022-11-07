@@ -41,6 +41,7 @@ public final class GeyserSpigotConfiguration extends GeyserJacksonConfiguration 
     @JsonIgnore
     private Path floodgateKeyPath;
 
+    // TODO REMOVE
     public void loadFloodgate(GeyserSpigotPlugin plugin) {
         Plugin floodgate = Bukkit.getPluginManager().getPlugin("floodgate");
         Path geyserDataFolder = plugin.getDataFolder().toPath();

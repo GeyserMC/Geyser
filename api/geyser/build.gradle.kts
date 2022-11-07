@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    api(projects.api)
+    api(libs.baseApi)
 }
 
 publishing {

@@ -2,6 +2,8 @@ dependencies {
     api(projects.core)
 
     implementation(libs.adventure.text.serializer.bungeecord)
+
+    implementation("org.geysermc.floodgate", "bungee", "2.2.0-SNAPSHOT")
 }
 
 platformRelocate("net.md_5.bungee.jni")

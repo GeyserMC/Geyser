@@ -40,6 +40,7 @@ public final class GeyserBungeeConfiguration extends GeyserJacksonConfiguration 
     @JsonIgnore
     private Path floodgateKeyPath;
 
+    // TODO remove
     public void loadFloodgate(GeyserBungeePlugin plugin) {
         Plugin floodgate = plugin.getProxy().getPluginManager().getPlugin("floodgate");
         Path geyserDataFolder = plugin.getDataFolder().toPath();

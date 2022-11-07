@@ -43,16 +43,20 @@ import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.common.PlatformType;
+import org.geysermc.floodgate.pluginmessage.SpigotSkinApplier;
+import org.geysermc.floodgate.skin.SkinApplier;
+import org.geysermc.floodgate.util.SpigotVersionSpecificMethods;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.extension.Extension;
-import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
+import org.geysermc.geyser.hybrid.HybridProvider;
+import org.geysermc.geyser.hybrid.IntegratedHybridProvider;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
@@ -62,7 +66,9 @@ import org.geysermc.geyser.platform.spigot.command.GeyserSpigotCommandExecutor;
 import org.geysermc.geyser.platform.spigot.command.GeyserSpigotCommandManager;
 import org.geysermc.geyser.platform.spigot.world.GeyserPistonListener;
 import org.geysermc.geyser.platform.spigot.world.GeyserSpigotBlockPlaceListener;
-import org.geysermc.geyser.platform.spigot.world.manager.*;
+import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotLegacyNativeWorldManager;
+import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotNativeWorldManager;
+import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 
@@ -163,13 +169,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             return;
         }
 
-        // Remove this in like a year
-        if (Bukkit.getPluginManager().getPlugin("floodgate-bukkit") != null) {
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.outdated", Constants.FLOODGATE_DOWNLOAD_LOCATION));
-            this.getPluginLoader().disablePlugin(this);
-            return;
-        }
-
         // By default this should be localhost but may need to be changed in some circumstances
         if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
             geyserConfig.setAutoconfiguredRemote(true);
@@ -184,16 +183,9 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             geyserConfig.getBedrock().setPort(Bukkit.getPort());
         }
 
-        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE && Bukkit.getPluginManager().getPlugin("floodgate") == null) {
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
-            this.getPluginLoader().disablePlugin(this);
-        } else if (geyserConfig.isAutoconfiguredRemote() && Bukkit.getPluginManager().getPlugin("floodgate") != null) {
-            // Floodgate installed means that the user wants Floodgate authentication
-            geyserLogger.debug("Auto-setting to Floodgate authentication.");
-            geyserConfig.getRemote().setAuthType(AuthType.FLOODGATE);
+        if (Bukkit.getPluginManager().getPlugin("floodgate") != null) {
+            geyserLogger.severe("WHY DO YOU HAVE FLOODGATE INSTALLED!!!!!!! REMOVE IT!!!!");
         }
-
-        geyserConfig.loadFloodgate(this);
 
         if (!INITIALIZED) {
             // Needs to be an anonymous inner class otherwise Bukkit complains about missing classes
@@ -431,38 +423,14 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         return this.geyserInjector.getServerSocketAddress();
     }
 
-    public boolean isCompatible(String version, String whichVersion) {
-        int[] currentVersion = parseVersion(version);
-        int[] otherVersion = parseVersion(whichVersion);
-        int length = Math.max(currentVersion.length, otherVersion.length);
-        for (int index = 0; index < length; index = index + 1) {
-            int self = (index < currentVersion.length) ? currentVersion[index] : 0;
-            int other = (index < otherVersion.length) ? otherVersion[index] : 0;
-
-            if (self != other) {
-                return (self - other) > 0;
-            }
-        }
-        return true;
+    @Override
+    public HybridProvider createHybridProvider(GeyserImpl geyser) {
+        return new IntegratedHybridProvider(geyser);
     }
 
-    private int[] parseVersion(String versionParam) {
-        versionParam = (versionParam == null) ? "" : versionParam;
-        if (versionParam.contains("(MC: ")) {
-            versionParam = versionParam.split("\\(MC: ")[1];
-            versionParam = versionParam.split("\\)")[0];
-        }
-        String[] stringArray = versionParam.split("[_.-]");
-        int[] temp = new int[stringArray.length];
-        for (int index = 0; index <= (stringArray.length - 1); index = index + 1) {
-            String t = stringArray[index].replaceAll("\\D", "");
-            try {
-                temp[index] = Integer.parseInt(t);
-            } catch (NumberFormatException ex) {
-                temp[index] = 0;
-            }
-        }
-        return temp;
+    @Override
+    public SkinApplier createSkinApplier() {
+        return new SpigotSkinApplier(new SpigotVersionSpecificMethods(this), this);
     }
 
     /**

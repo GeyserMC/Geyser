@@ -60,6 +60,10 @@ dependencies {
     compileOnly(projects.ap)
 
     annotationProcessor(projects.ap)
+
+    implementation("org.geysermc.floodgate", "core", "2.2.0-SNAPSHOT") {
+        exclude("org.geysermc", "api")
+    }
 }
 
 configurations.api {

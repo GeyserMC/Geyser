@@ -1,4 +1,5 @@
 [versions]
+geyser-base-api = "3.0.0-SNAPSHOT"
 jackson = "2.13.4"
 fastutil = "8.5.2"
 netty = "4.1.80.Final"
@@ -31,6 +32,8 @@ fabric-loader = "0.14.8"
 fabric-api = "0.58.5+1.19.1"
 
 [libraries]
+baseApi = { group = "org.geysermc", name = "api", version.ref = "geyser-base-api" }
+
 jackson-annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson" }
 jackson-core = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
 jackson-dataformat-yaml = { group = "com.fasterxml.jackson.dataformat", name = "jackson-dataformat-yaml", version.ref = "jackson" }

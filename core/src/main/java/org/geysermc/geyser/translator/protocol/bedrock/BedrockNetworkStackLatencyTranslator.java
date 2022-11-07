@@ -29,7 +29,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundKe
 import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
-import org.geysermc.floodgate.util.DeviceOs;
+import org.geysermc.api.util.BedrockPlatform;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -50,7 +50,7 @@ public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<Netwo
         // so apparently, as of 1.16.200
         // PS4 divides the network stack latency timestamp FOR US!!!
         // WTF
-        if (session.getClientData().getDeviceOs().equals(DeviceOs.PS4)) {
+        if (session.getClientData().getDeviceOs() == BedrockPlatform.PS4) {
             pingId = packet.getTimestamp();
         } else {
             pingId = packet.getTimestamp() / 1000;

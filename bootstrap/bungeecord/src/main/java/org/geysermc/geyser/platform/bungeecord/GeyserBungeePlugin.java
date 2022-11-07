@@ -32,6 +32,9 @@ import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.protocol.ProtocolConstants;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.common.PlatformType;
+import org.geysermc.floodgate.BungeePlatform;
+import org.geysermc.floodgate.pluginmessage.BungeeSkinApplier;
+import org.geysermc.floodgate.skin.SkinApplier;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
@@ -40,6 +43,8 @@ import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
+import org.geysermc.geyser.hybrid.HybridProvider;
+import org.geysermc.geyser.hybrid.ProxyHybridProvider;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.bungeecord.command.GeyserBungeeCommandExecutor;
@@ -110,12 +115,6 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     @Override
     public void onEnable() {
-        // Remove this in like a year
-        if (getProxy().getPluginManager().getPlugin("floodgate-bungee") != null) {
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.outdated", "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/"));
-            return;
-        }
-
         if (getProxy().getConfig().getListeners().size() == 1) {
             ListenerInfo listener = getProxy().getConfig().getListeners().toArray(new ListenerInfo[0])[0];
 
@@ -154,16 +153,13 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             }
         }
 
-        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE && getProxy().getPluginManager().getPlugin("floodgate") == null) {
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
-            return;
-        } else if (geyserConfig.isAutoconfiguredRemote() && getProxy().getPluginManager().getPlugin("floodgate") != null) {
-            // Floodgate installed means that the user wants Floodgate authentication
-            geyserLogger.debug("Auto-setting to Floodgate authentication.");
-            geyserConfig.getRemote().setAuthType(AuthType.FLOODGATE);
+        if (getProxy().getPluginManager().getPlugin("floodgate") != null) {
+            geyserLogger.warning("WHY DO YOU HAVE FLOODGATE INSTALLED???1/");
         }
 
-        geyserConfig.loadFloodgate(this);
+        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE) {
+            getProxy().getPluginManager().registerListener(this, new BungeeHybridListener());
+        }
 
         // Big hack - Bungee does not provide us an event to listen to, so schedule a repeating
         // task that waits for a field to be filled which is set after the plugin enable
@@ -273,5 +269,16 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     @Override
     public SocketAddress getSocketAddress() {
         return this.geyserInjector.getServerSocketAddress();
+    }
+
+    @Override
+    public HybridProvider createHybridProvider(GeyserImpl geyser) {
+        return new ProxyHybridProvider(geyser);
+    }
+
+    @Override
+    public SkinApplier createSkinApplier() {
+        new BungeePlatform(this); // TODO hack to ensure ReflectionUtils prefix is applied and I don't forget about dealing with it
+        return new BungeeSkinApplier(null); // Also TODO
     }
 }

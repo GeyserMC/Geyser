@@ -18,6 +18,8 @@ dependencies {
             attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
         }
     }
+
+    implementation("org.geysermc.floodgate", "spigot", "2.2.0-SNAPSHOT")
 }
 
 platformRelocate("it.unimi.dsi.fastutil")
@@ -30,6 +32,7 @@ platformRelocate("io.netty.channel.kqueue")
 
 // These dependencies are already present on the platform
 provided(libs.viaversion)
+provided("com.mojang", "authlib", "1.5.21")
 
 application {
     mainClass.set("org.geysermc.geyser.platform.spigot.GeyserSpigotMain")

@@ -23,24 +23,32 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.floodgate.util;
+package org.geysermc.geyser.hybrid;
 
-public enum InputMode {
-    UNKNOWN,
-    KEYBOARD_MOUSE,
-    TOUCH,
-    CONTROLLER,
-    VR;
+import org.geysermc.floodgate.crypto.FloodgateCipher;
+import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.PluginMessageUtils;
 
-    private static final InputMode[] VALUES = values();
+import java.nio.charset.StandardCharsets;
 
-    /**
-     * Get the InputMode instance from the identifier.
-     *
-     * @param id the InputMode identifier
-     * @return The InputMode or {@link #UNKNOWN} if the DeviceOs wasn't found
-     */
-    public static InputMode fromId(int id) {
-        return VALUES.length > id ? VALUES[id] : VALUES[0];
+public final class FloodgateHybridProvider implements HybridProvider {
+    private final FloodgateCipher cipher;
+
+    public FloodgateHybridProvider(GeyserImpl geyser) {
+        cipher = HybridProvider.getOrCreateKey(geyser);
+    }
+
+    @Override
+    public void onSkinUpload(GeyserSession session, String value, String signature) {
+        byte[] bytes = (value + '\0' + signature)
+                .getBytes(StandardCharsets.UTF_8);
+        PluginMessageUtils.sendMessage(session, PluginMessageChannels.SKIN, bytes);
+    }
+
+    @Override
+    public FloodgateCipher getCipher() {
+        return cipher;
     }
 }

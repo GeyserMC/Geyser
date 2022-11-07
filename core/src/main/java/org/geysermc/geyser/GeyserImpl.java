@@ -50,10 +50,8 @@ import org.geysermc.api.Geyser;
 import org.geysermc.common.PlatformType;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
-import org.geysermc.floodgate.crypto.AesCipher;
-import org.geysermc.floodgate.crypto.AesKeyProducer;
-import org.geysermc.floodgate.crypto.Base64Topping;
-import org.geysermc.floodgate.crypto.FloodgateCipher;
+import org.geysermc.floodgate.api.InstanceHolder;
+import org.geysermc.floodgate.api.impl.FloodgateApiWrapper;
 import org.geysermc.floodgate.news.NewsItemAction;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.event.EventBus;
@@ -69,6 +67,7 @@ import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.extension.GeyserExtensionManager;
+import org.geysermc.geyser.hybrid.HybridProvider;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.ConnectorServerEventHandler;
 import org.geysermc.geyser.pack.ResourcePack;
@@ -78,7 +77,7 @@ import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
 import org.geysermc.geyser.session.SessionManager;
-import org.geysermc.geyser.skin.FloodgateSkinUploader;
+import org.geysermc.geyser.skin.BedrockSkinUploader;
 import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
@@ -92,7 +91,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
-import java.security.Key;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -134,8 +132,8 @@ public class GeyserImpl implements GeyserApi {
     @Setter
     private static boolean shouldStartListener = true;
 
-    private FloodgateCipher cipher;
-    private FloodgateSkinUploader skinUploader;
+    private HybridProvider hybridProvider;
+    private BedrockSkinUploader skinUploader;
     private NewsHandler newsHandler;
 
     private volatile boolean shuttingDown = false;
@@ -161,6 +159,7 @@ public class GeyserImpl implements GeyserApi {
         instance = this;
 
         Geyser.set(this);
+        InstanceHolder.set(new FloodgateApiWrapper(this), null, null, null, null); // TODO
 
         this.platformType = platformType;
         this.bootstrap = bootstrap;
@@ -325,16 +324,14 @@ public class GeyserImpl implements GeyserApi {
         }
 
         if (config.getRemote().authType() == AuthType.FLOODGATE) {
+            hybridProvider = bootstrap.createHybridProvider(this);
             try {
-                Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyPath());
-                cipher = new AesCipher(new Base64Topping());
-                cipher.init(key);
-                logger.debug(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.loaded_key"));
                 // Note: this is positioned after the bind so the skin uploader doesn't try to run if Geyser fails
                 // to load successfully. Spigot complains about class loader if the plugin is disabled.
-                skinUploader = new FloodgateSkinUploader(this).start();
+                // TODO not Floodgate exclusive?
+                skinUploader = new BedrockSkinUploader(this).start();
             } catch (Exception exception) {
-                logger.severe(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.bad_key"), exception);
+                logger.severe("Could not start the skin uploader!", exception);
             }
         }
 

@@ -46,6 +46,8 @@ public interface GeyserConfiguration {
 
     IRemoteConfiguration getRemote();
 
+    HybridInfo getHybridInfo();
+
     List<String> getSavedUserLogins();
 
     @Deprecated
@@ -150,6 +152,13 @@ public interface GeyserConfiguration {
         default int protocolVersion() {
             return GameProtocol.getJavaProtocolVersion();
         }
+    }
+
+    // TODO this is definitely temporary
+    interface HybridInfo {
+        String usernamePrefix();
+
+        boolean replaceSpaces();
     }
 
     interface IUserAuthenticationInfo {

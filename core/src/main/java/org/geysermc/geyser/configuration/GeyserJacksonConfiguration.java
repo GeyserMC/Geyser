@@ -62,6 +62,18 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     private BedrockConfiguration bedrock = new BedrockConfiguration();
     private RemoteConfiguration remote = new RemoteConfiguration();
 
+    private HybridInfo hybridInfo = new HybridInfo() {
+        @Override
+        public String usernamePrefix() {
+            return ".";
+        }
+
+        @Override
+        public boolean replaceSpaces() {
+            return true;
+        }
+    };
+
     @JsonProperty("saved-user-logins")
     private List<String> savedUserLogins = Collections.emptyList();
 
