@@ -23,21 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.hybrid;
+package org.geysermc.geyser.floodgate;
 
-import org.geysermc.floodgate.crypto.FloodgateCipher;
-import org.geysermc.geyser.GeyserImpl;
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 
-public final class ProxyHybridProvider extends IntegratedHybridProvider {
-    private final FloodgateCipher cipher;
-
-    public ProxyHybridProvider(GeyserImpl geyser) {
-        super(geyser);
-        this.cipher = geyser.getFloodgatePlatform().getInstance(FloodgateCipher.class);
-    }
-
-    @Override
-    public FloodgateCipher getCipher() {
-        return cipher;
+public class GeyserLoadStage extends AbstractModule {
+    @Provides
+    @Singleton
+    @Named("configFile")
+    private String floodgateConfigName() {
+        return "floodgate.yml";
     }
 }

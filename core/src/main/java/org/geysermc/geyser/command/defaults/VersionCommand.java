@@ -26,7 +26,6 @@
 package org.geysermc.geyser.command.defaults;
 
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
-import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
@@ -34,6 +33,7 @@ import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.PlatformType;
 import org.geysermc.geyser.util.WebUtils;
 
 import java.io.IOException;

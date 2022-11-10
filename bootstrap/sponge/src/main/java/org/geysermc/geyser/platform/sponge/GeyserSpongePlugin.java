@@ -27,7 +27,6 @@ package org.geysermc.geyser.platform.sponge;
 
 import com.google.inject.Inject;
 import org.apache.logging.log4j.Logger;
-import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
@@ -37,10 +36,11 @@ import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
-import org.geysermc.geyser.platform.sponge.command.GeyserSpongeCommandManager;
-import org.geysermc.geyser.util.FileUtils;
-import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.platform.sponge.command.GeyserSpongeCommandExecutor;
+import org.geysermc.geyser.platform.sponge.command.GeyserSpongeCommandManager;
+import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.util.PlatformType;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
@@ -141,7 +141,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
         this.geyserLogger = new GeyserSpongeLogger(logger, geyserConfig.isDebugMode());
 
-        this.geyser = GeyserImpl.load(PlatformType.SPONGE, this);
+        this.geyser = GeyserImpl.load(PlatformType.SPONGE, this, null);
 
         this.geyserCommandManager = new GeyserSpongeCommandManager(geyser);
         this.geyserCommandManager.init();

@@ -27,9 +27,9 @@ package org.geysermc.connector;
 
 import com.nukkitx.protocol.bedrock.BedrockServer;
 import org.geysermc.api.Geyser;
-import org.geysermc.common.PlatformType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.util.PlatformType;
 
 import java.util.UUID;
 

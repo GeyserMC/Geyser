@@ -37,7 +37,6 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.api.util.BedrockPlatform;
-import org.geysermc.floodgate.util.FloodgateInfoHolder;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.extension.Extension;
@@ -233,8 +232,11 @@ public class DumpInfo {
         private final Object config;
 
         Floodgate() {
-            this.gitInfo = FloodgateInfoHolder.getGitProperties();
-            this.config = FloodgateInfoHolder.getConfig();
+            //todo we can get the information from Floodgate directly now
+            this.gitInfo = null;
+            this.config = null;
+//            this.gitInfo = FloodgateInfoHolder.getGitProperties();
+//            this.config = FloodgateInfoHolder.getConfig();
         }
     }
 

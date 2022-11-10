@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    api(libs.baseApi)
+    compileOnly(libs.baseApi)
 }
 
 publishing {

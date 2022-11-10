@@ -26,6 +26,7 @@
 package org.geysermc.geyser.platform.velocity;
 
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.velocitypowered.api.command.CommandManager;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ListenerBoundEvent;
@@ -36,7 +37,7 @@ import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
 import net.kyori.adventure.util.Codec;
-import org.geysermc.common.PlatformType;
+import org.geysermc.floodgate.FloodgatePlatform;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
@@ -48,8 +49,10 @@ import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.velocity.command.GeyserVelocityCommandExecutor;
+import org.geysermc.geyser.platform.velocity.floodgate.FloodgateVelocityPlatform;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.util.PlatformType;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
@@ -84,6 +87,9 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     @Getter
     private final Path configFolder = Paths.get("plugins/" + GeyserImpl.NAME + "-Velocity/");
+
+    @Inject
+    private Injector guice;
 
     @Override
     public void onEnable() {
@@ -130,7 +136,12 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         this.geyserLogger = new GeyserVelocityLogger(logger, geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
-        this.geyser = GeyserImpl.load(PlatformType.VELOCITY, this);
+        FloodgatePlatform platform = null;
+        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE) {
+            platform = guice.getInstance(FloodgateVelocityPlatform.class);
+        }
+
+        this.geyser = GeyserImpl.load(PlatformType.VELOCITY, this, platform);
 
         // Remove this in like a year
         try {
@@ -142,15 +153,15 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         } catch (ClassNotFoundException ignored) {
         }
 
-        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE && proxyServer.getPluginManager().getPlugin("floodgate").isEmpty()) {
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " "
-                    + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
-            return;
-        } else if (geyserConfig.isAutoconfiguredRemote() && proxyServer.getPluginManager().getPlugin("floodgate").isPresent()) {
-            // Floodgate installed means that the user wants Floodgate authentication
-            geyserLogger.debug("Auto-setting to Floodgate authentication.");
-            geyserConfig.getRemote().setAuthType(AuthType.FLOODGATE);
-        }
+//        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE && proxyServer.getPluginManager().getPlugin("floodgate").isEmpty()) {
+//            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " "
+//                    + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
+//            return;
+//        } else if (geyserConfig.isAutoconfiguredRemote() && proxyServer.getPluginManager().getPlugin("floodgate").isPresent()) {
+//            // Floodgate installed means that the user wants Floodgate authentication
+//            geyserLogger.debug("Auto-setting to Floodgate authentication.");
+//            geyserConfig.getRemote().setAuthType(AuthType.FLOODGATE);
+//        }
 
         geyserConfig.loadFloodgate(this, proxyServer, configFolder.toFile());
 

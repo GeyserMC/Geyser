@@ -36,7 +36,6 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
-import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
@@ -49,6 +48,7 @@ import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.ChunkUtils;
+import org.geysermc.geyser.util.PlatformType;
 
 import java.util.LinkedList;
 import java.util.Map;

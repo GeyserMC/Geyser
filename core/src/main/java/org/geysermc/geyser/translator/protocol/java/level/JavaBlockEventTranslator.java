@@ -33,7 +33,6 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
 import it.unimi.dsi.fastutil.objects.Object2IntMaps;
-import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.session.GeyserSession;
@@ -41,6 +40,7 @@ import org.geysermc.geyser.session.cache.PistonCache;
 import org.geysermc.geyser.translator.level.block.entity.PistonBlockEntity;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.PlatformType;
 
 @Translator(packet = ClientboundBlockEventPacket.class)
 public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockEventPacket> {

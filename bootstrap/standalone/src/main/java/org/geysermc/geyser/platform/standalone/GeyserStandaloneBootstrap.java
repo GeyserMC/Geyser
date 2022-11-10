@@ -38,7 +38,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.appender.ConsoleAppender;
-import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommandManager;
@@ -51,6 +50,7 @@ import org.geysermc.geyser.platform.standalone.gui.GeyserStandaloneGUI;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.LoopbackUtil;
+import org.geysermc.geyser.util.PlatformType;
 
 import java.io.File;
 import java.io.IOException;
@@ -216,7 +216,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         // Allow libraries like Protocol to have their debug information passthrough
         logger.get().setLevel(geyserConfig.isDebugMode() ? Level.DEBUG : Level.INFO);
 
-        geyser = GeyserImpl.load(PlatformType.STANDALONE, this);
+        geyser = GeyserImpl.load(PlatformType.STANDALONE, this, null);
         GeyserImpl.start();
 
         geyserCommandManager = new GeyserCommandManager(geyser);

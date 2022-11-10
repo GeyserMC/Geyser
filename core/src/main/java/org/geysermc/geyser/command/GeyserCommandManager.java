@@ -29,38 +29,22 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.command.CommandExecutor;
 import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCommandsEvent;
 import org.geysermc.geyser.api.extension.Extension;
-import org.geysermc.geyser.command.defaults.AdvancedTooltipsCommand;
-import org.geysermc.geyser.command.defaults.AdvancementsCommand;
-import org.geysermc.geyser.command.defaults.ConnectionTestCommand;
-import org.geysermc.geyser.command.defaults.DumpCommand;
-import org.geysermc.geyser.command.defaults.ExtensionsCommand;
-import org.geysermc.geyser.command.defaults.HelpCommand;
-import org.geysermc.geyser.command.defaults.ListCommand;
-import org.geysermc.geyser.command.defaults.OffhandCommand;
-import org.geysermc.geyser.command.defaults.ReloadCommand;
-import org.geysermc.geyser.command.defaults.SettingsCommand;
-import org.geysermc.geyser.command.defaults.StatisticsCommand;
-import org.geysermc.geyser.command.defaults.StopCommand;
-import org.geysermc.geyser.command.defaults.VersionCommand;
+import org.geysermc.geyser.command.defaults.*;
 import org.geysermc.geyser.event.type.GeyserDefineCommandsEventImpl;
 import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.PlatformType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 @RequiredArgsConstructor
 public class GeyserCommandManager {

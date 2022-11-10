@@ -26,12 +26,12 @@
 package org.geysermc.geyser.translator.protocol.bedrock;
 
 import com.nukkitx.protocol.bedrock.packet.CommandRequestPacket;
-import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.PlatformType;
 
 @Translator(packet = CommandRequestPacket.class)
 public class BedrockCommandRequestTranslator extends PacketTranslator<CommandRequestPacket> {

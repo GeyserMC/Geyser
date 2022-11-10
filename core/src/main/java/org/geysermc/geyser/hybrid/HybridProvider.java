@@ -25,66 +25,11 @@
 
 package org.geysermc.geyser.hybrid;
 
-import org.geysermc.floodgate.crypto.AesCipher;
-import org.geysermc.floodgate.crypto.AesKeyProducer;
-import org.geysermc.floodgate.crypto.Base64Topping;
 import org.geysermc.floodgate.crypto.FloodgateCipher;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.GeyserLocale;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.Key;
 
 public interface HybridProvider {
     void onSkinUpload(GeyserSession session, String value, String signature);
 
     FloodgateCipher getCipher();
-
-    static FloodgateCipher getOrCreateKey(GeyserImpl geyser) {
-        GeyserLogger logger = geyser.getLogger();
-        GeyserConfiguration config = geyser.getConfig();
-        try {
-            // TODO make this common code with Floodgate. Like, make sure Geyser's core and Floodgate's core points to the same thing
-            FloodgateCipher cipher = new AesCipher(new Base64Topping());
-
-            Path keyPath = config.getFloodgateKeyPath();
-            if (!Files.exists(keyPath)) {
-                generateFloodgateKey(cipher, keyPath); // Should also init the cipher for us.
-                // TODO good?
-                logger.info("We just created a Floodgate key at " + keyPath + ". You will need to copy this file into " +
-                        "your Floodgate config folder(s).");
-            } else {
-                Key key = new AesKeyProducer().produceFrom(keyPath);
-                cipher.init(key);
-            }
-            logger.debug(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.loaded_key"));
-            return cipher;
-        } catch (Exception exception) {
-            logger.severe(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.bad_key"), exception);
-            return null;
-        }
-    }
-
-    static void generateFloodgateKey(FloodgateCipher cipher, Path keyPath) throws Exception {
-        Key key = new AesKeyProducer().produce();
-        cipher.init(key);
-
-        String test = "abcdefghijklmnopqrstuvwxyz0123456789";
-        byte[] encrypted = cipher.encryptFromString(test);
-        String decrypted = cipher.decryptToString(encrypted);
-
-        if (!test.equals(decrypted)) {
-            throw new RuntimeException("Failed to decrypt test message.\n" +
-                    "Original message: " + test + "." +
-                    "Decrypted message: " + decrypted + ".\n" +
-                    "The encrypted message itself: " + new String(encrypted)
-            );
-        }
-
-        Files.write(keyPath, key.getEncoded());
-    }
 }

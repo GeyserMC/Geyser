@@ -36,7 +36,6 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.MinecraftServer;
 import org.apache.logging.log4j.LogManager;
-import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
@@ -53,6 +52,7 @@ import org.geysermc.geyser.platform.fabric.command.GeyserFabricCommandExecutor;
 import org.geysermc.geyser.platform.fabric.world.GeyserFabricWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.util.PlatformType;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;

@@ -23,21 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.hybrid;
+package org.geysermc.geyser.platform.velocity.floodgate;
 
-import org.geysermc.floodgate.crypto.FloodgateCipher;
+import com.google.inject.Module;
+import org.geysermc.floodgate.VelocityPlatform;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.floodgate.GeyserLoadStage;
 
-public final class ProxyHybridProvider extends IntegratedHybridProvider {
-    private final FloodgateCipher cipher;
+import java.nio.file.Paths;
+import java.util.List;
 
-    public ProxyHybridProvider(GeyserImpl geyser) {
-        super(geyser);
-        this.cipher = geyser.getFloodgatePlatform().getInstance(FloodgateCipher.class);
-    }
-
+public class FloodgateVelocityPlatform extends VelocityPlatform {
     @Override
-    public FloodgateCipher getCipher() {
-        return cipher;
+    protected List<Module> loadStageModules() {
+        // Geyser being a dumb dumb
+        super.dataDirectory = Paths.get("plugins/" + GeyserImpl.NAME + "-Velocity/");
+
+        var loaded = super.loadStageModules();
+        loaded.add(new GeyserLoadStage());
+        return loaded;
     }
 }

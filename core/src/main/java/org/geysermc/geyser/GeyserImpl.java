@@ -47,11 +47,9 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.Geyser;
-import org.geysermc.common.PlatformType;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
-import org.geysermc.floodgate.api.InstanceHolder;
-import org.geysermc.floodgate.api.impl.FloodgateApiWrapper;
+import org.geysermc.floodgate.FloodgatePlatform;
 import org.geysermc.floodgate.news.NewsItemAction;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.event.EventBus;
@@ -155,11 +153,18 @@ public class GeyserImpl implements GeyserApi {
 
     private static GeyserImpl instance;
 
-    private GeyserImpl(PlatformType platformType, GeyserBootstrap bootstrap) {
-        instance = this;
+    private final FloodgatePlatform floodgatePlatform;
 
-        Geyser.set(this);
-        InstanceHolder.set(new FloodgateApiWrapper(this), null, null, null, null); // TODO
+    private GeyserImpl(PlatformType platformType, GeyserBootstrap bootstrap, FloodgatePlatform floodgatePlatform) {
+        instance = this;
+        this.floodgatePlatform = floodgatePlatform;
+
+        if (floodgatePlatform != null) {
+            floodgatePlatform.load();
+            floodgatePlatform.enable();
+        } else {
+            Geyser.set(this);
+        }
 
         this.platformType = platformType;
         this.bootstrap = bootstrap;
@@ -613,9 +618,9 @@ public class GeyserImpl implements GeyserApi {
         return Integer.parseInt(BUILD_NUMBER);
     }
 
-    public static GeyserImpl load(PlatformType platformType, GeyserBootstrap bootstrap) {
+    public static GeyserImpl load(PlatformType platformType, GeyserBootstrap bootstrap, FloodgatePlatform floodgatePlatform) {
         if (instance == null) {
-            return new GeyserImpl(platformType, bootstrap);
+            return new GeyserImpl(platformType, bootstrap, floodgatePlatform);
         }
 
         return instance;

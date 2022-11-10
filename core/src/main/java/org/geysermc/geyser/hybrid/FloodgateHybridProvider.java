@@ -26,10 +26,8 @@
 package org.geysermc.geyser.hybrid;
 
 import org.geysermc.floodgate.crypto.FloodgateCipher;
-import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.util.PluginMessageUtils;
 
 import java.nio.charset.StandardCharsets;
 
@@ -37,14 +35,15 @@ public final class FloodgateHybridProvider implements HybridProvider {
     private final FloodgateCipher cipher;
 
     public FloodgateHybridProvider(GeyserImpl geyser) {
-        cipher = HybridProvider.getOrCreateKey(geyser);
+        cipher = geyser.getFloodgatePlatform().getInstance(FloodgateCipher.class);
     }
 
     @Override
     public void onSkinUpload(GeyserSession session, String value, String signature) {
         byte[] bytes = (value + '\0' + signature)
                 .getBytes(StandardCharsets.UTF_8);
-        PluginMessageUtils.sendMessage(session, PluginMessageChannels.SKIN, bytes);
+        //todo
+//        PluginMessageUtils.sendMessage(session, PluginMessageChannels.SKIN, bytes);
     }
 
     @Override

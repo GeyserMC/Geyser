@@ -31,7 +31,6 @@ import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.protocol.ProtocolConstants;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.common.PlatformType;
 import org.geysermc.floodgate.BungeePlatform;
 import org.geysermc.floodgate.pluginmessage.BungeeSkinApplier;
 import org.geysermc.floodgate.skin.SkinApplier;
@@ -50,6 +49,7 @@ import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.bungeecord.command.GeyserBungeeCommandExecutor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.util.PlatformType;
 
 import java.io.File;
 import java.io.IOException;
@@ -110,7 +110,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         this.geyserLogger = new GeyserBungeeLogger(getLogger(), geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
-        this.geyser = GeyserImpl.load(PlatformType.BUNGEECORD, this);
+        this.geyser = GeyserImpl.load(PlatformType.BUNGEECORD, this, null);
     }
 
     @Override

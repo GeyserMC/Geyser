@@ -42,7 +42,6 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.geysermc.common.PlatformType;
 import org.geysermc.floodgate.pluginmessage.SpigotSkinApplier;
 import org.geysermc.floodgate.skin.SkinApplier;
 import org.geysermc.floodgate.util.SpigotVersionSpecificMethods;
@@ -71,6 +70,7 @@ import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotNativeWorld
 import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.util.PlatformType;
 
 import java.io.File;
 import java.io.IOException;
@@ -158,7 +158,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
-        this.geyser = GeyserImpl.load(PlatformType.SPIGOT, this);
+        this.geyser = GeyserImpl.load(PlatformType.SPIGOT, this, null);
     }
 
     @Override

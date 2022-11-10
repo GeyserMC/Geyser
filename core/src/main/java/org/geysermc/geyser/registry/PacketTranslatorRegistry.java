@@ -29,12 +29,12 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundTa
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLightUpdatePacket;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import io.netty.channel.EventLoop;
-import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.util.PlatformType;
 
 import java.util.Collections;
 import java.util.IdentityHashMap;
