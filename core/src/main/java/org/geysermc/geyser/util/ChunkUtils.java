@@ -222,7 +222,8 @@ public class ChunkUtils {
      * This must be done after the player has switched dimensions so we know what their dimension is
      */
     public static void loadDimension(GeyserSession session) {
-        JavaDimension dimension = session.getDimensionType();
+        JavaDimension dimension = session.getDimensions().get(session.getDimension());
+        session.setDimensionType(dimension);
         int minY = dimension.minY();
         int maxY = dimension.maxY();
 
@@ -233,13 +234,7 @@ public class ChunkUtils {
             throw new RuntimeException("Maximum Y must be a multiple of 16!");
         }
 
-        BedrockDimension bedrockDimension = switch (session.getDimension()) {
-            case DimensionUtils.THE_END -> BedrockDimension.THE_END;
-            case DimensionUtils.NETHER -> DimensionUtils.isCustomBedrockNetherId() ? BedrockDimension.THE_END : BedrockDimension.THE_NETHER;
-            default -> BedrockDimension.OVERWORLD;
-        };
-        session.getChunkCache().setBedrockDimension(bedrockDimension);
-
+        BedrockDimension bedrockDimension = session.getChunkCache().getBedrockDimension();
         // Yell in the console if the world height is too height in the current scenario
         // The constraints change depending on if the player is in the overworld or not, and if experimental height is enabled
         // (Ignore this for the Nether. We can't change that at the moment without the workaround. :/ )

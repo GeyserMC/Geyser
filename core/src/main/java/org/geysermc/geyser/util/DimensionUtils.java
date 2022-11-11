@@ -32,6 +32,7 @@ import com.nukkitx.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
 import com.nukkitx.protocol.bedrock.packet.MobEffectPacket;
 import com.nukkitx.protocol.bedrock.packet.StopSoundPacket;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Set;
@@ -94,8 +95,11 @@ public class DimensionUtils {
         changeDimensionPacket.setPosition(pos);
         session.sendUpstreamPacket(changeDimensionPacket);
         session.setDimension(javaDimension);
-        session.setDimensionType(session.getDimensions().get(javaDimension));
-        ChunkUtils.loadDimension(session);
+        session.getChunkCache().setBedrockDimension(switch (javaDimension) {
+            case DimensionUtils.THE_END -> BedrockDimension.THE_END;
+            case DimensionUtils.NETHER -> DimensionUtils.isCustomBedrockNetherId() ? BedrockDimension.THE_END : BedrockDimension.THE_NETHER;
+            default -> BedrockDimension.OVERWORLD;
+        });
         player.setPosition(pos);
         session.setSpawned(false);
         session.setLastChunkPosition(null);
