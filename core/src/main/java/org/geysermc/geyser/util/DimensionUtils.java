@@ -95,11 +95,7 @@ public class DimensionUtils {
         changeDimensionPacket.setPosition(pos);
         session.sendUpstreamPacket(changeDimensionPacket);
         session.setDimension(javaDimension);
-        session.getChunkCache().setBedrockDimension(switch (javaDimension) {
-            case DimensionUtils.THE_END -> BedrockDimension.THE_END;
-            case DimensionUtils.NETHER -> DimensionUtils.isCustomBedrockNetherId() ? BedrockDimension.THE_END : BedrockDimension.THE_NETHER;
-            default -> BedrockDimension.OVERWORLD;
-        });
+        setBedrockDimension(session, javaDimension);
         player.setPosition(pos);
         session.setSpawned(false);
         session.setLastChunkPosition(null);
@@ -134,6 +130,24 @@ public class DimensionUtils {
             } else if (previousDimension == BEDROCK_NETHER_ID) {
                 session.removeFog("minecraft:fog_hell");
             }
+        }
+    }
+
+    public static void setBedrockDimension(GeyserSession session, String javaDimension) {
+        session.getChunkCache().setBedrockDimension(switch (javaDimension) {
+            case DimensionUtils.THE_END -> BedrockDimension.THE_END;
+            case DimensionUtils.NETHER -> DimensionUtils.isCustomBedrockNetherId() ? BedrockDimension.THE_END : BedrockDimension.THE_NETHER;
+            default -> BedrockDimension.OVERWORLD;
+        });
+    }
+
+    public static int javaToBedrock(BedrockDimension dimension) {
+        if (dimension == BedrockDimension.THE_NETHER) {
+            return BEDROCK_NETHER_ID;
+        } else if (dimension == BedrockDimension.THE_END) {
+            return 2;
+        } else {
+            return 0;
         }
     }
 

@@ -99,6 +99,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         if (needsSpawnPacket) {
             // The player has yet to spawn so let's do that using some of the information in this Java packet
             session.setDimension(newDimension);
+            DimensionUtils.setBedrockDimension(session, newDimension);
             session.connect();
 
             // It is now safe to send these packets
