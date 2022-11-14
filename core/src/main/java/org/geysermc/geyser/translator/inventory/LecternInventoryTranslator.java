@@ -55,7 +55,8 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public void prepareInventory(GeyserSession session, Inventory inventory) {
+    public boolean prepareInventory(GeyserSession session, Inventory inventory) {
+        return true;
     }
 
     @Override

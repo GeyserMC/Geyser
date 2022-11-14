@@ -35,6 +35,7 @@ import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
@@ -49,6 +50,8 @@ import java.util.Set;
  * This class will attempt to use a real block first, if possible.
  */
 public class BlockInventoryHolder extends InventoryHolder {
+    private static final int FAKE_BLOCK_DISTANCE = 1;
+
     /**
      * The default Java block ID to translate as a fake block
      */
@@ -70,7 +73,7 @@ public class BlockInventoryHolder extends InventoryHolder {
     }
 
     @Override
-    public void prepareInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
+    public boolean prepareInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         // Check to see if there is an existing block we can use that the player just selected.
         // First, verify that the player's position has not changed, so we don't try to select a block wildly out of range.
         // (This could be a virtual inventory that the player is opening)
@@ -83,13 +86,26 @@ public class BlockInventoryHolder extends InventoryHolder {
                 inventory.setHolderPosition(session.getLastInteractionBlockPosition());
                 ((Container) inventory).setUsingRealBlock(true, javaBlockString[0]);
                 setCustomName(session, session.getLastInteractionBlockPosition(), inventory, javaBlockId);
-                return;
+
+                return true;
             }
         }
 
-        // Otherwise, time to conjure up a fake block!
-        Vector3i position = session.getPlayerEntity().getPosition().toInt();
-        position = position.add(Vector3i.UP);
+        // Check if a fake block can be placed, either above the player or beneath.
+        BedrockDimension dimension = session.getChunkCache().getBedrockDimension();
+        int minY = dimension.minY(), maxY = minY + dimension.height();
+        Vector3i flatPlayerPosition = session.getPlayerEntity().getPosition().toInt();
+        Vector3i position = flatPlayerPosition.add(Vector3i.UP);
+        if (position.getY() < minY) {
+            return false;
+        }
+        if (position.getY() >= maxY) {
+            position = flatPlayerPosition.sub(0, 4, 0);
+            if (position.getY() >= maxY) {
+                return false;
+            }
+        }
+
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(position);
@@ -99,6 +115,8 @@ public class BlockInventoryHolder extends InventoryHolder {
         inventory.setHolderPosition(position);
 
         setCustomName(session, position, inventory, defaultJavaBlockState);
+
+        return true;
     }
 
     /**

@@ -85,8 +85,7 @@ public class InventoryUtils {
 
     public static void displayInventory(GeyserSession session, Inventory inventory) {
         InventoryTranslator translator = session.getInventoryTranslator();
-        if (translator != null) {
-            translator.prepareInventory(session, inventory);
+        if (translator != null && translator.prepareInventory(session, inventory)) {
             if (translator instanceof DoubleChestInventoryTranslator && !((Container) inventory).isUsingRealBlock()) {
                 session.scheduleInEventLoop(() -> {
                     Inventory openInv = session.getOpenInventory();
@@ -103,7 +102,6 @@ public class InventoryUtils {
                 translator.updateInventory(session, inventory);
             }
         } else {
-            // Precaution - as of 1.16 every inventory should be translated so this shouldn't happen
             session.setOpenInventory(null);
         }
     }
