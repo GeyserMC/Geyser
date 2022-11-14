@@ -124,6 +124,10 @@ public class CustomItemRegistryPopulator {
             computeArmorProperties(mapping.getArmorType(), mapping.getProtectionValue(), componentBuilder);
         }
 
+        if (mapping.getFirstBlockRuntimeId() != null) {
+            computeBlockItemProperties(mapping.getBedrockIdentifier(), componentBuilder);
+        }
+
         computeRenderOffsets(false, customItemData, componentBuilder);
 
         componentBuilder.putCompound("item_properties", itemProperties.build());
@@ -258,6 +262,15 @@ public class CustomItemRegistryPopulator {
                 componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", protectionValue).build());
             }
         }
+    }
+
+    private static void computeBlockItemProperties(String blockItem, NbtMapBuilder componentBuilder) {
+        // carved pumpkin should be able to be worn and for that we would need to add wearable and armor with protection 0 here
+        // however this would have the side effect of preventing carved pumpkins from working as an attachable on the RP side outside the head slot
+        // it also causes the item to glitch when right clicked to "equip" so this should only be added here later if these issues can be overcome
+
+        // all block items registered should be given this component to prevent double placement
+        componentBuilder.putCompound("minecraft:block_placer", NbtMap.builder().putString("block", blockItem).build());
     }
 
     private static void computeRenderOffsets(boolean isHat, CustomItemData customItemData, NbtMapBuilder componentBuilder) {
