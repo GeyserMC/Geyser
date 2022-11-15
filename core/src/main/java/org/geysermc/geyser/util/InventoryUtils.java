@@ -31,6 +31,7 @@ import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundPickItemPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetCreativeModeSlotPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
@@ -46,6 +47,7 @@ import org.geysermc.geyser.inventory.click.Click;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
+import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -134,6 +136,28 @@ public class InventoryUtils {
         }
     }
 
+    /**
+     * Finds a usable block space in the world to place a fake inventory block, and returns the position.
+     */
+    @Nullable
+    public static Vector3i findAvailableWorldSpace(GeyserSession session) {
+        // Check if a fake block can be placed, either above the player or beneath.
+        BedrockDimension dimension = session.getChunkCache().getBedrockDimension();
+        int minY = dimension.minY(), maxY = minY + dimension.height();
+        Vector3i flatPlayerPosition = session.getPlayerEntity().getPosition().toInt();
+        Vector3i position = flatPlayerPosition.add(Vector3i.UP);
+        if (position.getY() < minY) {
+            return null;
+        }
+        if (position.getY() >= maxY) {
+            position = flatPlayerPosition.sub(0, 4, 0);
+            if (position.getY() >= maxY) {
+                return null;
+            }
+        }
+        return position;
+    }
+
     public static void updateCursor(GeyserSession session) {
         InventorySlotPacket cursorPacket = new InventorySlotPacket();
         cursorPacket.setContainerId(ContainerId.UI);
@@ -146,18 +170,6 @@ public class InventoryUtils {
         if (item1.isEmpty() || item2.isEmpty())
             return false;
         return item1.getJavaId() == item2.getJavaId() && Objects.equals(item1.getNbt(), item2.getNbt());
-    }
-
-    public static boolean canStack(ItemStack item1, ItemStack item2) {
-        if (item1 == null || item2 == null)
-            return false;
-        return item1.getId() == item2.getId() && Objects.equals(item1.getNbt(), item2.getNbt());
-    }
-
-    public static boolean canStack(ItemData item1, ItemData item2) {
-        if (item1 == null || item2 == null)
-            return false;
-        return item1.equals(item2, false, true, true);
     }
 
     /**
