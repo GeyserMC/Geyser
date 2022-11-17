@@ -190,7 +190,7 @@ public class InventoryUtils {
                 .tag(root.build()).build();
     }
 
-    private static int getUnusableSpaceBlockID(int protocolVersion){
+    private static int getUnusableSpaceBlockID(int protocolVersion) {
         String unusableSpaceBlock = GeyserImpl.getInstance().getConfig().getUnusableSpaceBlock();
         ItemMapping unusableSpaceBlockID = Registries.ITEMS.forVersion(protocolVersion).getMapping(unusableSpaceBlock);
         if (unusableSpaceBlockID != null){
