@@ -629,6 +629,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         creativePacket.setContents(this.itemMappings.getCreativeItems());
         upstream.sendPacket(creativePacket);
 
+        // Potion mixes are registered by default, as they are needed to be able to put ingredients into the brewing stand.
+        CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
+        craftingDataPacket.setCleanRecipes(true);
+        craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.get());
+        upstream.sendPacket(craftingDataPacket);
+
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
         playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
         upstream.sendPacket(playStatusPacket);
