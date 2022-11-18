@@ -84,6 +84,10 @@ pending-authentication-timeout: 120
 # Disabling this will prevent command suggestions from being sent and solve freezing for Bedrock clients.
 command-suggestions: true
 
+# Enables support for the Java Edition Query Protocol, which is running on the same port as the Bedrock server.
+enable-query: true
+# Hides the version in ping, which is normally be appended as " - 1.x.x".
+hide-version: false
 # The following three options enable "ping passthrough" - the MOTD, player count and/or protocol name gets retrieved from the Java server.
 # Relay the MOTD from the remote server to Bedrock players.
 passthrough-motd: false

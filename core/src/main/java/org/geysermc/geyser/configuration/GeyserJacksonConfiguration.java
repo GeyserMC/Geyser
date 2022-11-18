@@ -75,6 +75,12 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("command-suggestions")
     private boolean commandSuggestions = true;
 
+    @JsonProperty("enable-query")
+    private boolean isEnableQuery = true;
+
+    @JsonProperty("hide-version")
+    private boolean isHideVersion = false;
+
     @JsonProperty("passthrough-motd")
     private boolean isPassthroughMotd = false;
 

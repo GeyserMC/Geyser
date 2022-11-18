@@ -53,6 +53,10 @@ public interface GeyserConfiguration {
 
     boolean isCommandSuggestions();
 
+    boolean isEnableQuery();
+
+    boolean isHideVersion();
+
     @JsonIgnore
     boolean isPassthroughMotd();
 

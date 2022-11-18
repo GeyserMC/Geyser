@@ -110,7 +110,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         pong.setGameType("Survival"); // Can only be Survival or Creative as of 1.16.210.59
         pong.setNintendoLimited(false);
         pong.setProtocolVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion());
-        pong.setVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()); // Required to not be empty as of 1.16.210.59. Can only contain . and numbers.
+        pong.setVersion(config.isHideVersion() ? "" : GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()); // When empty, no version is appended in the motd, and therefore freeing up space.
         pong.setIpv4Port(config.getBedrock().port());
 
         if (config.isPassthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
@@ -190,15 +190,17 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
     @Override
     public void onUnhandledDatagram(@Nonnull ChannelHandlerContext ctx, @Nonnull DatagramPacket packet) {
-        try {
-            ByteBuf content = packet.content();
-            if (QueryPacketHandler.isQueryPacket(content)) {
-                new QueryPacketHandler(geyser, packet.sender(), content);
-            }
-        } catch (Throwable e) {
-            // Error must be caught or it will be swallowed
-            if (geyser.getConfig().isDebugMode()) {
-                geyser.getLogger().error("Error occurred during unhandled datagram!", e);
+        if (geyser.getConfig().isEnableQuery()) {
+            try {
+                ByteBuf content = packet.content();
+                if (QueryPacketHandler.isQueryPacket(content)) {
+                    new QueryPacketHandler(geyser, packet.sender(), content);
+                }
+            } catch (Throwable e) {
+                // Error must be caught or it will be swallowed
+                if (geyser.getConfig().isDebugMode()) {
+                    geyser.getLogger().error("Error occurred during unhandled datagram!", e);
+                }
             }
         }
     }
