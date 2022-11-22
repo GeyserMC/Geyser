@@ -1360,18 +1360,20 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return clientData.getLanguageCode();
     }
 
+    // TODO: 1.19.3 int offest and ack'd messages BitSet???
+
     /**
      * Sends a chat message to the Java server.
      */
     public void sendChat(String message) {
-        sendDownstreamPacket(new ServerboundChatPacket(message, Instant.now().toEpochMilli(), 0L, ByteArrays.EMPTY_ARRAY, false, Collections.emptyList(), null));
+        sendDownstreamPacket(new ServerboundChatPacket(message, Instant.now().toEpochMilli(), 0L, null, 0, new BitSet()));
     }
 
     /**
      * Sends a command to the Java server.
      */
     public void sendCommand(String command) {
-        sendDownstreamPacket(new ServerboundChatCommandPacket(command, Instant.now().toEpochMilli(), 0L, Collections.emptyList(), false, Collections.emptyList(), null));
+        sendDownstreamPacket(new ServerboundChatCommandPacket(command, Instant.now().toEpochMilli(), 0L, Collections.emptyList(), 0, new BitSet()));
     }
 
     public void setServerRenderDistance(int renderDistance) {
