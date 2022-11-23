@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
+import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundUpdateMobEffectPacket;
 import com.nukkitx.protocol.bedrock.packet.MobEffectPacket;
 import org.geysermc.geyser.entity.type.Entity;
@@ -32,6 +33,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.EntityUtils;
+import org.geysermc.geyser.util.MathUtils;
 
 @Translator(packet = ClientboundUpdateMobEffectPacket.class)
 public class JavaUpdateMobEffectTranslator extends PacketTranslator<ClientboundUpdateMobEffectPacket> {
@@ -45,8 +47,13 @@ public class JavaUpdateMobEffectTranslator extends PacketTranslator<ClientboundU
         if (entity == null)
             return;
 
+        // There is no nearest equivalent for haste 0, and is therefore ignored
+        if (packet.getEffect() == Effect.HASTE && packet.getAmplifier() == 0) {
+            return;
+        }
+
         MobEffectPacket mobEffectPacket = new MobEffectPacket();
-        mobEffectPacket.setAmplifier(packet.getAmplifier());
+        mobEffectPacket.setAmplifier(packet.getEffect() != Effect.HASTE ? packet.getAmplifier() : MathUtils.floorLog2(packet.getAmplifier()) - 1);
         mobEffectPacket.setDuration(packet.getDuration());
         mobEffectPacket.setEvent(MobEffectPacket.Event.ADD);
         mobEffectPacket.setRuntimeEntityId(entity.getGeyserId());

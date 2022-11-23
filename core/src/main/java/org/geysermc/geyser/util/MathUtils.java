@@ -148,4 +148,31 @@ public class MathUtils {
     public static int getGlobalPaletteForSize(int size) {
         return 32 - Integer.numberOfLeadingZeros(size - 1);
     }
+
+    /**
+     * Returns the binary logarithm of the given value, rounded down.
+     *
+     * @param value the value to get the logb from
+     * @return the binary logarithm of the value, rounded down
+     */
+    public static int floorLog2(int value) {
+        int log = 0;
+        if (value > 0xffff) {
+            value >>>= 16;
+            log = 16;
+        }
+        if (value > 0xff) {
+            value >>>= 8;
+            log |= 8;
+        }
+        if (value > 0xf) {
+            value >>>= 4;
+            log |= 4;
+        }
+        if (value > 0b11) {
+            value >>>= 2;
+            log |= 2;
+        }
+        return log + (value >>> 1);
+    }
 }
