@@ -1,5 +1,5 @@
 [versions]
-jackson = "2.13.4"
+jackson = "2.14.0"
 fastutil = "8.5.2"
 netty = "4.1.80.Final"
 guava = "29.0-jre"
