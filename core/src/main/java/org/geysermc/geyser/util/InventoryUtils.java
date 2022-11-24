@@ -38,6 +38,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerHotbarPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
@@ -184,9 +185,20 @@ public class InventoryUtils {
 
         root.put("display", display.build());
         return protocolVersion -> ItemData.builder()
-                .id(Registries.ITEMS.forVersion(protocolVersion).getStoredItems().barrier().getBedrockId())
+                .id(getUnusableSpaceBlockID(protocolVersion))
                 .count(1)
                 .tag(root.build()).build();
+    }
+
+    private static int getUnusableSpaceBlockID(int protocolVersion) {
+        String unusableSpaceBlock = GeyserImpl.getInstance().getConfig().getUnusableSpaceBlock();
+        ItemMapping unusableSpaceBlockID = Registries.ITEMS.forVersion(protocolVersion).getMapping(unusableSpaceBlock);
+        if (unusableSpaceBlockID != null) {
+            return unusableSpaceBlockID.getBedrockId();
+        } else {
+            GeyserImpl.getInstance().getLogger().error("Invalid value" + unusableSpaceBlock + ". Resorting to barrier block.");
+            return Registries.ITEMS.forVersion(protocolVersion).getStoredItems().barrier().getBedrockId();
+        }
     }
 
     /**
