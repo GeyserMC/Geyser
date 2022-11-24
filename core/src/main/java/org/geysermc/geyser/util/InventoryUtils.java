@@ -193,7 +193,7 @@ public class InventoryUtils {
     private static int getUnusableSpaceBlockID(int protocolVersion) {
         String unusableSpaceBlock = GeyserImpl.getInstance().getConfig().getUnusableSpaceBlock();
         ItemMapping unusableSpaceBlockID = Registries.ITEMS.forVersion(protocolVersion).getMapping(unusableSpaceBlock);
-        if (unusableSpaceBlockID != null){
+        if (unusableSpaceBlockID != null) {
             return unusableSpaceBlockID.getBedrockId();
         } else {
             GeyserImpl.getInstance().getLogger().error("Invalid value" + unusableSpaceBlock + ". Resorting to barrier block.");
