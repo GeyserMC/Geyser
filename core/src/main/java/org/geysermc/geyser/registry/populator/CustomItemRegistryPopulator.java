@@ -43,6 +43,8 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
 
 import javax.annotation.Nullable;
+
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -126,6 +128,36 @@ public class CustomItemRegistryPopulator {
 
         if (mapping.getFirstBlockRuntimeId() != null) {
             computeBlockItemProperties(mapping.getBedrockIdentifier(), componentBuilder);
+        }
+
+        if (Arrays.asList(new String[]{
+            "minecraft:fire_charge", 
+            "minecraft:flint_and_steel"
+        }).contains(mapping.getBedrockIdentifier())) {
+            computeBlockItemProperties("minecraft:fire", componentBuilder);
+        }
+
+        // TODO: once the mappings are added we should add computeEntityPlacerProperties here to prevent double entity placement
+
+        // TODO: once the mappings are added we should add computeFoodProperties here to properly play consume animation
+
+        if (Arrays.asList(new String[]{
+            "minecraft:bow", 
+            "minecraft:crossbow", 
+            "minecraft:trident"
+        }).contains(mapping.getBedrockIdentifier())) {
+            computeChargeableProperties(itemProperties, componentBuilder);
+        }
+
+        if (Arrays.asList(new String[]{
+            "minecraft:experience_bottle", 
+            "minecraft:egg", 
+            "minecraft:ender_pearl", 
+            "minecraft:ender_eye", 
+            "minecraft:lingering_potion", 
+            "minecraft:snowball"
+        }).contains(mapping.getBedrockIdentifier())) {
+            computeThrowableProperties(componentBuilder);
         }
 
         computeRenderOffsets(false, customItemData, componentBuilder);
@@ -271,6 +303,23 @@ public class CustomItemRegistryPopulator {
 
         // all block items registered should be given this component to prevent double placement
         componentBuilder.putCompound("minecraft:block_placer", NbtMap.builder().putString("block", blockItem).build());
+    }
+
+    private static void computeChargeableProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
+        // setting high use_duration prevents the consume animation from playing
+        itemProperties.putInt("use_duration", 2147483647);
+        // display item as tool (mainly for crossbow and bow)
+        itemProperties.putBoolean("hand_equipped", true);
+        // ensure client moves at slow speed while charging (note: this was calculated by hand as the movement modifer value does not seem to scale linearly)
+        componentBuilder.putCompound("minecraft:chargeable", NbtMap.builder().putFloat("movement_modifier", 0.35F).build());
+    }
+
+    private static void computeThrowableProperties(NbtMapBuilder componentBuilder) {
+        // allows item to be thrown when holding down right click (individual presses are required w/o this component)
+        componentBuilder.putCompound("minecraft:throwable", NbtMap.builder().putBoolean("do_swing_animation", true).build());
+        // this must be set to something for the swing animation to play
+        // it is okay that the projectile here does not match the actual one since we control what entity actually spawns
+        componentBuilder.putCompound("minecraft:projectile", NbtMap.builder().putString("projectile_entity", "minecraft:snowball").build());
     }
 
     private static void computeRenderOffsets(boolean isHat, CustomItemData customItemData, NbtMapBuilder componentBuilder) {
