@@ -130,34 +130,20 @@ public class CustomItemRegistryPopulator {
             computeBlockItemProperties(mapping.getBedrockIdentifier(), componentBuilder);
         }
 
-        if (Arrays.asList(new String[]{
-            "minecraft:fire_charge", 
-            "minecraft:flint_and_steel"
-        }).contains(mapping.getBedrockIdentifier())) {
-            computeBlockItemProperties("minecraft:fire", componentBuilder);
-        }
-
         // TODO: once the mappings are added we should add computeEntityPlacerProperties here to prevent double entity placement
 
         // TODO: once the mappings are added we should add computeFoodProperties here to properly play consume animation
 
-        if (Arrays.asList(new String[]{
-            "minecraft:bow", 
-            "minecraft:crossbow", 
-            "minecraft:trident"
-        }).contains(mapping.getBedrockIdentifier())) {
-            computeChargeableProperties(itemProperties, componentBuilder);
-        }
-
-        if (Arrays.asList(new String[]{
-            "minecraft:experience_bottle", 
-            "minecraft:egg", 
-            "minecraft:ender_pearl", 
-            "minecraft:ender_eye", 
-            "minecraft:lingering_potion", 
-            "minecraft:snowball"
-        }).contains(mapping.getBedrockIdentifier())) {
-            computeThrowableProperties(componentBuilder);
+        switch (mapping.getBedrockIdentifier()) {
+            case "minecraft:fire_charge", "minecraft:flint_and_steel" -> {
+                computeBlockItemProperties("minecraft:fire", componentBuilder);
+            }
+            case "minecraft:bow", "minecraft:crossbow", "minecraft:trident" -> {
+                computeChargeableProperties(itemProperties, componentBuilder);
+            }
+            case "minecraft:experience_bottle", "minecraft:egg", "minecraft:ender_pearl", "minecraft:ender_eye", "minecraft:lingering_potion", "minecraft:snowball" -> {
+                computeThrowableProperties(componentBuilder);
+            }
         }
 
         computeRenderOffsets(false, customItemData, componentBuilder);
