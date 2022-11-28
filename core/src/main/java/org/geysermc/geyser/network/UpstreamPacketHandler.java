@@ -46,8 +46,12 @@ import org.geysermc.geyser.util.MathUtils;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 public class UpstreamPacketHandler extends LoggingPacketHandler {
+
+    private Deque<String> packsToSent = new ArrayDeque<>();
 
     public UpstreamPacketHandler(GeyserImpl geyser, GeyserSession session) {
         super(geyser, session);
@@ -161,24 +165,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 break;
 
             case SEND_PACKS:
-                for(String id : packet.getPackIds()) {
-                    ResourcePackDataInfoPacket data = new ResourcePackDataInfoPacket();
-                    String[] packID = id.split("_");
-                    ResourcePack pack = ResourcePack.PACKS.get(packID[0]);
-                    ResourcePackManifest.Header header = pack.getManifest().getHeader();
-
-                    data.setPackId(header.getUuid());
-                    int chunkCount = (int) Math.ceil((int) pack.getFile().length() / (double) ResourcePack.CHUNK_SIZE);
-                    data.setChunkCount(chunkCount);
-                    data.setCompressedPackSize(pack.getFile().length());
-                    data.setMaxChunkSize(ResourcePack.CHUNK_SIZE);
-                    data.setHash(pack.getSha256());
-                    data.setPackVersion(packID[1]);
-                    data.setPremium(false);
-                    data.setType(ResourcePackType.RESOURCE);
-
-                    session.sendUpstreamPacket(data);
-                }
+                packsToSent.addAll(packet.getPackIds());
+                sendPackDataInfo(packsToSent.pop());
                 break;
 
             case HAVE_ALL_PACKS:
@@ -271,7 +259,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         data.setPackId(packet.getPackId());
 
         int offset = packet.getChunkIndex() * ResourcePack.CHUNK_SIZE;
-        byte[] packData = new byte[(int) MathUtils.constrain(pack.getFile().length() - offset, 0, ResourcePack.CHUNK_SIZE)];
+        long remainingSize = pack.getFile().length() - offset;
+        byte[] packData = new byte[(int) MathUtils.constrain(remainingSize, 0, ResourcePack.CHUNK_SIZE)];
 
         try (InputStream inputStream = new FileInputStream(pack.getFile())) {
             inputStream.skip(offset);
@@ -283,6 +272,31 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         data.setData(packData);
 
         session.sendUpstreamPacket(data);
+
+        // Check if it is the last chunk and send next pack in queue when available.
+        if (remainingSize <= ResourcePack.CHUNK_SIZE && !packsToSent.isEmpty()) {
+            sendPackDataInfo(packsToSent.pop());
+        }
+
         return true;
+    }
+
+    private void sendPackDataInfo(String id) {
+        ResourcePackDataInfoPacket data = new ResourcePackDataInfoPacket();
+        String[] packID = id.split("_");
+        ResourcePack pack = ResourcePack.PACKS.get(packID[0]);
+        ResourcePackManifest.Header header = pack.getManifest().getHeader();
+
+        data.setPackId(header.getUuid());
+        int chunkCount = (int) Math.ceil((int) pack.getFile().length() / (double) ResourcePack.CHUNK_SIZE);
+        data.setChunkCount(chunkCount);
+        data.setCompressedPackSize(pack.getFile().length());
+        data.setMaxChunkSize(ResourcePack.CHUNK_SIZE);
+        data.setHash(pack.getSha256());
+        data.setPackVersion(packID[1]);
+        data.setPremium(false);
+        data.setType(ResourcePackType.RESOURCE);
+
+        session.sendUpstreamPacket(data);
     }
 }
