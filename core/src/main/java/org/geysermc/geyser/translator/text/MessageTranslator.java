@@ -214,7 +214,7 @@ public class MessageTranslator {
         int outputSize = 0;
         for (int i = 0, inputLength = input.length; i < inputLength; i++) {
             char c = input[i];
-            if (c == '§') {
+            if (c == ChatColor.ESCAPE) {
                 i++;
             } else {
                 output[outputSize++] = c;
