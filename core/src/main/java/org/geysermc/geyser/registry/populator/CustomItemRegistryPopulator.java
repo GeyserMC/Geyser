@@ -43,8 +43,6 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
 
 import javax.annotation.Nullable;
-
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -132,7 +130,9 @@ public class CustomItemRegistryPopulator {
 
         // TODO: once the mappings are added we should add computeEntityPlacerProperties here to prevent double entity placement
 
-        // TODO: once the mappings are added we should add computeFoodProperties here to properly play consume animation
+        if (mapping.isEdible()) {
+
+        }
 
         switch (mapping.getBedrockIdentifier()) {
             case "minecraft:fire_charge", "minecraft:flint_and_steel" -> {
