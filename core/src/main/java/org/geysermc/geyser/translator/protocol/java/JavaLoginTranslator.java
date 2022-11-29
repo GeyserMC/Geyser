@@ -82,7 +82,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         // are swapping servers
         if (session.isSpawned()) {
             String fakeDim = DimensionUtils.getTemporaryDimension(session.getDimension(), packet.getDimension());
-            DimensionUtils.switchDimension(session, fakeDim);
+            //DimensionUtils.switchDimension(session, fakeDim);
 
             session.getWorldCache().removeScoreboard();
         }

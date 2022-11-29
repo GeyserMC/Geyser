@@ -198,9 +198,9 @@ public class ChunkUtils {
         data.setCachingEnabled(false);
         session.sendUpstreamPacket(data);
 
-        if (GameProtocol.supports1_19_50(session)) {
-            DimensionUtils.sendDimensionChangeAck(session);
-        }
+        //if (GameProtocol.supports1_19_50(session)) {
+            //DimensionUtils.sendDimensionChangeAck(session);
+        //}
 
         if (forceUpdate) {
             Vector3i pos = Vector3i.from(chunkX << 4, 80, chunkZ << 4);
