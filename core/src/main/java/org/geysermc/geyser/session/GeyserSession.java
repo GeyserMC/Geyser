@@ -1284,11 +1284,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             this.pose = Pose.SNEAKING;
             playerEntity.setBoundingBoxHeight(1.5f);
         }
-
-        // As of 1.19.50, the client does not want sneaking set on itself
-        if (!GameProtocol.supports1_19_50(this)) {
-            playerEntity.setFlag(EntityFlag.SNEAKING, sneaking);
-        }
+        playerEntity.setFlag(EntityFlag.SNEAKING, sneaking);
     }
 
     public void setSwimming(boolean swimming) {
