@@ -116,7 +116,9 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Override
     public void setFlags(ByteEntityMetadata entityMetadata) {
         super.setFlags(entityMetadata);
-        session.setSwimmingInWater((entityMetadata.getPrimitiveValue() & 0x10) == 0x10 && getFlag(EntityFlag.SPRINTING));
+
+        byte flags = entityMetadata.getPrimitiveValue();
+        session.setSwimmingInWater((flags & 0x10) == 0x10 && (flags & 0x08) == 0x08);
         refreshSpeed = true;
     }
 
