@@ -42,6 +42,7 @@ import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.chunk.BlockStorage;
 import org.geysermc.geyser.level.chunk.GeyserChunkSection;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -196,6 +197,10 @@ public class ChunkUtils {
         data.setData(payload);
         data.setCachingEnabled(false);
         session.sendUpstreamPacket(data);
+
+        if (GameProtocol.supports1_19_50(session)) {
+            DimensionUtils.sendDimensionChangeAck(session);
+        }
 
         if (forceUpdate) {
             Vector3i pos = Vector3i.from(chunkX << 4, 80, chunkZ << 4);
