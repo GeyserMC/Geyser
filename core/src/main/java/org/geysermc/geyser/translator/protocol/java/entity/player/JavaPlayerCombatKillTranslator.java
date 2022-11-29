@@ -39,7 +39,7 @@ public class JavaPlayerCombatKillTranslator extends PacketTranslator<Clientbound
 
     @Override
     public void translate(GeyserSession session, ClientboundPlayerCombatKillPacket packet) {
-        if (packet.getPlayerId() == session.getPlayerEntity().getEntityId() && GameProtocol.supports1_19_10(session)) {
+        if (packet.getPlayerId() == session.getPlayerEntity().getEntityId()) {
             Component deathMessage = packet.getMessage();
             // TODO - could inject score in, but as of 1.19.10 newlines don't center and start at the left of the first text
             DeathInfoPacket deathInfoPacket = new DeathInfoPacket();
