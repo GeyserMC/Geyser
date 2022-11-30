@@ -42,7 +42,6 @@ import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.chunk.BlockStorage;
 import org.geysermc.geyser.level.chunk.GeyserChunkSection;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
