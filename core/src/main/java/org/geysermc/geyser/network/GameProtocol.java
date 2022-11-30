@@ -28,8 +28,6 @@ package org.geysermc.geyser.network;
 import com.github.steveice10.mc.protocol.codec.MinecraftCodec;
 import com.github.steveice10.mc.protocol.codec.PacketCodec;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
-import com.nukkitx.protocol.bedrock.v527.Bedrock_v527;
-import com.nukkitx.protocol.bedrock.v534.Bedrock_v534;
 import com.nukkitx.protocol.bedrock.v544.Bedrock_v544;
 import com.nukkitx.protocol.bedrock.v545.Bedrock_v545;
 import com.nukkitx.protocol.bedrock.v554.Bedrock_v554;
