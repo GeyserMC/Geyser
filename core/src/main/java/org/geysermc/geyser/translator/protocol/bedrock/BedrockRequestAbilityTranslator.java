@@ -43,11 +43,6 @@ public class BedrockRequestAbilityTranslator extends PacketTranslator<RequestAbi
 
     @Override
     public void translate(GeyserSession session, RequestAbilityPacket packet) {
-        // Gatekeep to 1.19.30 so older versions don't fire twice
-        if (!GameProtocol.supports1_19_30(session)) {
-            return;
-        }
-        
         if (packet.getAbility() == Ability.FLYING) {
             handle(session, packet.isBoolValue());
         }
