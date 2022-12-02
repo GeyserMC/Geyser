@@ -201,6 +201,28 @@ public class MessageTranslator {
         return GSON_SERIALIZER.serialize(component);
     }
 
+
+    /**
+     * Convert legacy format message to plain text
+     *
+     * @param message Message to convert
+     * @return The plain text of the message
+     */
+    public static String convertToPlainText(String message) {
+        char[] input = message.toCharArray();
+        char[] output = new char[input.length];
+        int outputSize = 0;
+        for (int i = 0, inputLength = input.length; i < inputLength; i++) {
+            char c = input[i];
+            if (c == ChatColor.ESCAPE) {
+                i++;
+            } else {
+                output[outputSize++] = c;
+            }
+        }
+        return new String(output, 0, outputSize);
+    }
+
     /**
      * Convert JSON and legacy format message to plain text
      *

@@ -35,12 +35,12 @@ import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.level.BedrockDimension;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.DoubleChestValue;
-import org.geysermc.geyser.translator.level.block.entity.DoubleChestBlockEntityTranslator;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.level.block.entity.DoubleChestBlockEntityTranslator;
+import org.geysermc.geyser.util.InventoryUtils;
 
 public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
     private final int defaultJavaBlockState;
@@ -82,18 +82,9 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
             }
         }
 
-        // Check if a fake block can be placed, either above the player or beneath.
-        BedrockDimension dimension = session.getChunkCache().getBedrockDimension();
-        int minY = dimension.minY(), maxY = minY + dimension.height();
-        Vector3i position = session.getPlayerEntity().getPosition().toInt().add(0, 5, 0);
-        if (position.getY() < minY) {
+        Vector3i position = InventoryUtils.findAvailableWorldSpace(session);
+        if (position == null) {
             return false;
-        }
-        if (position.getY() >= maxY) {
-            position = session.getPlayerEntity().getPosition().toInt().sub(0, 5, 0);
-            if (position.getY() >= maxY) {
-                return false;
-            }
         }
 
         Vector3i pairPosition = position.add(Vector3i.UNIT_X);
