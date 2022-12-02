@@ -58,8 +58,6 @@ public class JavaPlayerInfoRemoveTranslator extends PacketTranslator<Clientbound
             }
         }
 
-        if (!translate.getEntries().isEmpty()) {
-            session.sendUpstreamPacket(translate);
-        }
+        session.sendUpstreamPacket(translate);
     }
 }

@@ -50,28 +50,23 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
         translate.setAction(PlayerListPacket.Action.ADD);
 
         for (PlayerListEntry entry : packet.getEntries()) {
-            for (PlayerListEntryAction action : packet.getActions()) {
-                if (action != PlayerListEntryAction.ADD_PLAYER) {
-                    continue;
-                }
+            GameProfile profile = entry.getProfile();
+            PlayerEntity playerEntity;
+            boolean self = profile.getId().equals(session.getPlayerEntity().getUuid());
 
-                GameProfile profile = entry.getProfile();
-                PlayerEntity playerEntity;
-                boolean self = profile.getId().equals(session.getPlayerEntity().getUuid());
+            if (self) {
+                // Entity is ourself
+                playerEntity = session.getPlayerEntity();
+            } else {
+                playerEntity = session.getEntityCache().getPlayerEntity(profile.getId());
+            }
 
-                if (self) {
-                    // Entity is ourself
-                    playerEntity = session.getPlayerEntity();
-                } else {
-                    playerEntity = session.getEntityCache().getPlayerEntity(profile.getId());
-                }
+            GameProfile.Property textures = profile.getProperty("textures");
+            String texturesProperty = textures == null ? null : textures.getValue();
 
-                GameProfile.Property textures = profile.getProperty("textures");
-                String texturesProperty = textures == null ? null : textures.getValue();
-
-                if (playerEntity == null) {
-                    // It's a new player
-                    playerEntity = new PlayerEntity(
+            if (playerEntity == null) {
+                // It's a new player
+                playerEntity = new PlayerEntity(
                         session,
                         -1,
                         session.getEntityCache().getNextEntityId().incrementAndGet(),
@@ -81,28 +76,27 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                         0, 0, 0,
                         profile.getName(),
                         texturesProperty
-                    );
+                );
 
-                    session.getEntityCache().addPlayerEntity(playerEntity);
-                } else {
-                    playerEntity.setUsername(profile.getName());
-                    playerEntity.setTexturesProperty(texturesProperty);
-                }
+                session.getEntityCache().addPlayerEntity(playerEntity);
+            } else {
+                playerEntity.setUsername(profile.getName());
+                playerEntity.setTexturesProperty(texturesProperty);
+            }
 
-                playerEntity.setPlayerList(true);
+            playerEntity.setPlayerList(true);
 
-                // We'll send our own PlayerListEntry in requestAndHandleSkinAndCape
-                // But we need to send other player's entries so they show up in the player list
-                // without processing their skin information - that'll be processed when they spawn in
-                if (self) {
-                    SkinManager.requestAndHandleSkinAndCape(playerEntity, session, skinAndCape ->
+            // We'll send our own PlayerListEntry in requestAndHandleSkinAndCape
+            // But we need to send other player's entries so they show up in the player list
+            // without processing their skin information - that'll be processed when they spawn in
+            if (self) {
+                SkinManager.requestAndHandleSkinAndCape(playerEntity, session, skinAndCape ->
                         GeyserImpl.getInstance().getLogger().debug("Loaded Local Bedrock Java Skin Data for " + session.getClientData().getUsername()));
-                } else {
-                    playerEntity.setValid(true);
-                    PlayerListPacket.Entry playerListEntry = SkinManager.buildCachedEntry(session, playerEntity);
+            } else {
+                playerEntity.setValid(true);
+                PlayerListPacket.Entry playerListEntry = SkinManager.buildCachedEntry(session, playerEntity);
 
-                    translate.getEntries().add(playerListEntry);
-                }
+                translate.getEntries().add(playerListEntry);
             }
         }
 
