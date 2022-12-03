@@ -58,19 +58,55 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.Server
 import com.github.steveice10.mc.protocol.packet.login.serverbound.ServerboundCustomQueryPacket;
 import com.github.steveice10.packetlib.BuiltinFlags;
 import com.github.steveice10.packetlib.Session;
-import com.github.steveice10.packetlib.event.session.*;
+import com.github.steveice10.packetlib.event.session.ConnectedEvent;
+import com.github.steveice10.packetlib.event.session.DisconnectedEvent;
+import com.github.steveice10.packetlib.event.session.PacketErrorEvent;
+import com.github.steveice10.packetlib.event.session.PacketSendingEvent;
+import com.github.steveice10.packetlib.event.session.SessionAdapter;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpClientSession;
 import com.github.steveice10.packetlib.tcp.TcpSession;
 import com.nukkitx.math.GenericMath;
-import com.nukkitx.math.vector.*;
+import com.nukkitx.math.vector.Vector2f;
+import com.nukkitx.math.vector.Vector2i;
+import com.nukkitx.math.vector.Vector3d;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
-import com.nukkitx.protocol.bedrock.data.*;
+import com.nukkitx.protocol.bedrock.data.Ability;
+import com.nukkitx.protocol.bedrock.data.AbilityLayer;
+import com.nukkitx.protocol.bedrock.data.AttributeData;
+import com.nukkitx.protocol.bedrock.data.AuthoritativeMovementMode;
+import com.nukkitx.protocol.bedrock.data.ChatRestrictionLevel;
+import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
+import com.nukkitx.protocol.bedrock.data.GameRuleData;
+import com.nukkitx.protocol.bedrock.data.GameType;
+import com.nukkitx.protocol.bedrock.data.PlayerPermission;
+import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import com.nukkitx.protocol.bedrock.data.SyncedPlayerMovementSettings;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.packet.*;
+import com.nukkitx.protocol.bedrock.packet.AvailableEntityIdentifiersPacket;
+import com.nukkitx.protocol.bedrock.packet.BiomeDefinitionListPacket;
+import com.nukkitx.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
+import com.nukkitx.protocol.bedrock.packet.ClientboundMapItemDataPacket;
+import com.nukkitx.protocol.bedrock.packet.CraftingDataPacket;
+import com.nukkitx.protocol.bedrock.packet.CreativeContentPacket;
+import com.nukkitx.protocol.bedrock.packet.EmoteListPacket;
+import com.nukkitx.protocol.bedrock.packet.GameRulesChangedPacket;
+import com.nukkitx.protocol.bedrock.packet.ItemComponentPacket;
+import com.nukkitx.protocol.bedrock.packet.LevelSoundEvent2Packet;
+import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
+import com.nukkitx.protocol.bedrock.packet.PlayerFogPacket;
+import com.nukkitx.protocol.bedrock.packet.SetTimePacket;
+import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
+import com.nukkitx.protocol.bedrock.packet.TextPacket;
+import com.nukkitx.protocol.bedrock.packet.TransferPacket;
+import com.nukkitx.protocol.bedrock.packet.UpdateAbilitiesPacket;
+import com.nukkitx.protocol.bedrock.packet.UpdateAdventureSettingsPacket;
+import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
 import it.unimi.dsi.fastutil.bytes.ByteArrays;
@@ -127,7 +163,20 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
-import org.geysermc.geyser.session.cache.*;
+import org.geysermc.geyser.session.cache.AdvancementsCache;
+import org.geysermc.geyser.session.cache.BookEditCache;
+import org.geysermc.geyser.session.cache.ChunkCache;
+import org.geysermc.geyser.session.cache.EntityCache;
+import org.geysermc.geyser.session.cache.EntityEffectCache;
+import org.geysermc.geyser.session.cache.FormCache;
+import org.geysermc.geyser.session.cache.LodestoneCache;
+import org.geysermc.geyser.session.cache.PistonCache;
+import org.geysermc.geyser.session.cache.PreferencesCache;
+import org.geysermc.geyser.session.cache.SkullCache;
+import org.geysermc.geyser.session.cache.TagCache;
+import org.geysermc.geyser.session.cache.TeleportCache;
+import org.geysermc.geyser.session.cache.WorldBorder;
+import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
@@ -143,7 +192,14 @@ import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -1628,76 +1684,40 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         boolean spectator = gameMode == GameMode.SPECTATOR;
         boolean worldImmutable = gameMode == GameMode.ADVENTURE || spectator;
 
-        if (GameProtocol.supports1_19_10(this)) {
-            UpdateAdventureSettingsPacket adventureSettingsPacket = new UpdateAdventureSettingsPacket();
-            adventureSettingsPacket.setNoMvP(false);
-            adventureSettingsPacket.setNoPvM(false);
-            adventureSettingsPacket.setImmutableWorld(worldImmutable);
-            adventureSettingsPacket.setShowNameTags(false);
-            adventureSettingsPacket.setAutoJump(true);
-            sendUpstreamPacket(adventureSettingsPacket);
+        UpdateAdventureSettingsPacket adventureSettingsPacket = new UpdateAdventureSettingsPacket();
+        adventureSettingsPacket.setNoMvP(false);
+        adventureSettingsPacket.setNoPvM(false);
+        adventureSettingsPacket.setImmutableWorld(worldImmutable);
+        adventureSettingsPacket.setShowNameTags(false);
+        adventureSettingsPacket.setAutoJump(true);
+        sendUpstreamPacket(adventureSettingsPacket);
 
-            UpdateAbilitiesPacket updateAbilitiesPacket = new UpdateAbilitiesPacket();
-            updateAbilitiesPacket.setUniqueEntityId(bedrockId);
-            updateAbilitiesPacket.setCommandPermission(commandPermission);
-            updateAbilitiesPacket.setPlayerPermission(playerPermission);
+        UpdateAbilitiesPacket updateAbilitiesPacket = new UpdateAbilitiesPacket();
+        updateAbilitiesPacket.setUniqueEntityId(bedrockId);
+        updateAbilitiesPacket.setCommandPermission(commandPermission);
+        updateAbilitiesPacket.setPlayerPermission(playerPermission);
 
-            AbilityLayer abilityLayer = new AbilityLayer();
-            Set<Ability> abilities = abilityLayer.getAbilityValues();
-            if (canFly || spectator) {
-                abilities.add(Ability.MAY_FLY);
-            }
-
-            // Default stuff we have to fill in
-            abilities.add(Ability.BUILD);
-            abilities.add(Ability.MINE);
-            // Needed so you can drop items
-            abilities.add(Ability.DOORS_AND_SWITCHES);
-            if (gameMode == GameMode.CREATIVE) {
-                // Needed so the client doesn't attempt to take away items
-                abilities.add(Ability.INSTABUILD);
-            }
-
-            if (commandPermission == CommandPermission.OPERATOR) {
-                // Fixes a bug? since 1.19.11 where the player can change their gamemode in Bedrock settings and
-                // a packet is not sent to the server.
-                // https://github.com/GeyserMC/Geyser/issues/3191
-                abilities.add(Ability.OPERATOR_COMMANDS);
-            }
-
-            if (flying || spectator) {
-                if (spectator && !flying) {
-                    // We're "flying locked" in this gamemode
-                    flying = true;
-                    ServerboundPlayerAbilitiesPacket abilitiesPacket = new ServerboundPlayerAbilitiesPacket(true);
-                    sendDownstreamPacket(abilitiesPacket);
-                }
-                abilities.add(Ability.FLYING);
-            }
-
-            if (spectator) {
-                abilities.add(Ability.NO_CLIP);
-            }
-
-            abilityLayer.setLayerType(AbilityLayer.Type.BASE);
-            abilityLayer.setFlySpeed(flySpeed);
-            // https://github.com/GeyserMC/Geyser/issues/3139 as of 1.19.10
-            abilityLayer.setWalkSpeed(walkSpeed == 0f ? 0.01f : walkSpeed);
-            Collections.addAll(abilityLayer.getAbilitiesSet(), USED_ABILITIES);
-
-            updateAbilitiesPacket.getAbilityLayers().add(abilityLayer);
-            sendUpstreamPacket(updateAbilitiesPacket);
-            return;
+        AbilityLayer abilityLayer = new AbilityLayer();
+        Set<Ability> abilities = abilityLayer.getAbilityValues();
+        if (canFly || spectator) {
+            abilities.add(Ability.MAY_FLY);
         }
 
-        AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
-        adventureSettingsPacket.setUniqueEntityId(bedrockId);
-        adventureSettingsPacket.setCommandPermission(commandPermission);
-        adventureSettingsPacket.setPlayerPermission(playerPermission);
+        // Default stuff we have to fill in
+        abilities.add(Ability.BUILD);
+        abilities.add(Ability.MINE);
+        // Needed so you can drop items
+        abilities.add(Ability.DOORS_AND_SWITCHES);
+        if (gameMode == GameMode.CREATIVE) {
+            // Needed so the client doesn't attempt to take away items
+            abilities.add(Ability.INSTABUILD);
+        }
 
-        Set<AdventureSetting> flags = adventureSettingsPacket.getSettings();
-        if (canFly || spectator) {
-            flags.add(AdventureSetting.MAY_FLY);
+        if (commandPermission == CommandPermission.OPERATOR) {
+            // Fixes a bug? since 1.19.11 where the player can change their gamemode in Bedrock settings and
+            // a packet is not sent to the server.
+            // https://github.com/GeyserMC/Geyser/issues/3191
+            abilities.add(Ability.OPERATOR_COMMANDS);
         }
 
         if (flying || spectator) {
@@ -1707,20 +1727,21 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 ServerboundPlayerAbilitiesPacket abilitiesPacket = new ServerboundPlayerAbilitiesPacket(true);
                 sendDownstreamPacket(abilitiesPacket);
             }
-            flags.add(AdventureSetting.FLYING);
-        }
-
-        if (worldImmutable) {
-            flags.add(AdventureSetting.WORLD_IMMUTABLE);
+            abilities.add(Ability.FLYING);
         }
 
         if (spectator) {
-            flags.add(AdventureSetting.NO_CLIP);
+            abilities.add(Ability.NO_CLIP);
         }
 
-        flags.add(AdventureSetting.AUTO_JUMP);
+        abilityLayer.setLayerType(AbilityLayer.Type.BASE);
+        abilityLayer.setFlySpeed(flySpeed);
+        // https://github.com/GeyserMC/Geyser/issues/3139 as of 1.19.10
+        abilityLayer.setWalkSpeed(walkSpeed == 0f ? 0.01f : walkSpeed);
+        Collections.addAll(abilityLayer.getAbilitiesSet(), USED_ABILITIES);
 
-        sendUpstreamPacket(adventureSettingsPacket);
+        updateAbilitiesPacket.getAbilityLayers().add(abilityLayer);
+        sendUpstreamPacket(updateAbilitiesPacket);
     }
 
     private int getRenderDistance() {

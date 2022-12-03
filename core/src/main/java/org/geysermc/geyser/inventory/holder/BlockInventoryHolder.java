@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.inventory.holder;
 
-import com.google.common.collect.ImmutableSet;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
@@ -35,11 +34,11 @@ import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.util.BlockUtils;
+import org.geysermc.geyser.util.InventoryUtils;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -50,8 +49,6 @@ import java.util.Set;
  * This class will attempt to use a real block first, if possible.
  */
 public class BlockInventoryHolder extends InventoryHolder {
-    private static final int FAKE_BLOCK_DISTANCE = 1;
-
     /**
      * The default Java block ID to translate as a fake block
      */
@@ -66,7 +63,7 @@ public class BlockInventoryHolder extends InventoryHolder {
             Set<String> validBlocksTemp = new HashSet<>(validBlocks.length + 1);
             Collections.addAll(validBlocksTemp, validBlocks);
             validBlocksTemp.add(BlockUtils.getCleanIdentifier(javaBlockIdentifier));
-            this.validBlocks = ImmutableSet.copyOf(validBlocksTemp);
+            this.validBlocks = Set.copyOf(validBlocksTemp);
         } else {
             this.validBlocks = Collections.singleton(BlockUtils.getCleanIdentifier(javaBlockIdentifier));
         }
@@ -91,19 +88,9 @@ public class BlockInventoryHolder extends InventoryHolder {
             }
         }
 
-        // Check if a fake block can be placed, either above the player or beneath.
-        BedrockDimension dimension = session.getChunkCache().getBedrockDimension();
-        int minY = dimension.minY(), maxY = minY + dimension.height();
-        Vector3i flatPlayerPosition = session.getPlayerEntity().getPosition().toInt();
-        Vector3i position = flatPlayerPosition.add(Vector3i.UP);
-        if (position.getY() < minY) {
+        Vector3i position = InventoryUtils.findAvailableWorldSpace(session);
+        if (position == null) {
             return false;
-        }
-        if (position.getY() >= maxY) {
-            position = flatPlayerPosition.sub(0, 4, 0);
-            if (position.getY() >= maxY) {
-                return false;
-            }
         }
 
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
