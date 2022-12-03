@@ -131,7 +131,7 @@ public class CustomItemRegistryPopulator {
         // TODO: once the mappings are added we should add computeEntityPlacerProperties here to prevent double entity placement
 
         if (mapping.isEdible()) {
-
+            computeConsumableProperties(itemProperties, componentBuilder, 1, false);
         }
 
         switch (mapping.getBedrockIdentifier()) {
@@ -140,6 +140,9 @@ public class CustomItemRegistryPopulator {
             }
             case "minecraft:bow", "minecraft:crossbow", "minecraft:trident" -> {
                 computeChargeableProperties(itemProperties, componentBuilder);
+            }
+            case "minecraft:honey_bottle", "minecraft:milk_bucket", "minecraft:potion" -> {
+                computeConsumableProperties(itemProperties, componentBuilder, 2, true);
             }
             case "minecraft:experience_bottle", "minecraft:egg", "minecraft:ender_pearl", "minecraft:ender_eye", "minecraft:lingering_potion", "minecraft:snowball" -> {
                 computeThrowableProperties(componentBuilder);
@@ -293,11 +296,21 @@ public class CustomItemRegistryPopulator {
 
     private static void computeChargeableProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
         // setting high use_duration prevents the consume animation from playing
-        itemProperties.putInt("use_duration", 2147483647);
+        itemProperties.putInt("use_duration", Integer.MAX_VALUE);
         // display item as tool (mainly for crossbow and bow)
         itemProperties.putBoolean("hand_equipped", true);
         // ensure client moves at slow speed while charging (note: this was calculated by hand as the movement modifer value does not seem to scale linearly)
         componentBuilder.putCompound("minecraft:chargeable", NbtMap.builder().putFloat("movement_modifier", 0.35F).build());
+    }
+
+    private static void computeConsumableProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder, int useAnimation, boolean canAlwaysEat) {
+        // this is the duration of the use animation in ticks; note that in behavior packs this is set as a float in seconds, but over the network it is an int in ticks
+        itemProperties.putInt("use_duration", 32);
+        // this dictates that the item will use the eat or drink animation (in the first person) and play eat or drink sounds
+        // note that in behavior packs this is set as the string "eat" or "drink", but over the network it as an int, with these values being 1 and 2 respectively
+        itemProperties.putInt("use_animation", useAnimation);
+        // this component is required to allow the eat animation to play
+        componentBuilder.putCompound("minecraft:food", NbtMap.builder().putBoolean("can_always_eat", canAlwaysEat).build());
     }
 
     private static void computeThrowableProperties(NbtMapBuilder componentBuilder) {
