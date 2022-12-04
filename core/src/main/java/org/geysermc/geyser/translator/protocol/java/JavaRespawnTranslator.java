@@ -83,11 +83,8 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
 
         String newDimension = packet.getDimension();
         if (!session.getDimension().equals(newDimension) || !packet.getWorldName().equals(session.getWorldName())) {
-            // Switching to a new world (based off the world name change); send a fake dimension change
-            if (!packet.getWorldName().equals(session.getWorldName()) && (session.getDimension().equals(newDimension)
-                    // Ensure that the player never ever dimension switches to the same dimension - BAD
-                    // Can likely be removed if the Above Bedrock Nether Building option can be removed
-                    || DimensionUtils.javaToBedrock(session.getDimension()) == DimensionUtils.javaToBedrock(newDimension))) {
+            // Switching to a new world (based off the world name change or new dimension); send a fake dimension change
+            if (DimensionUtils.javaToBedrock(session.getDimension()) == DimensionUtils.javaToBedrock(newDimension)) {
                 String fakeDim = DimensionUtils.getTemporaryDimension(session.getDimension(), newDimension);
                 DimensionUtils.switchDimension(session, fakeDim);
             }
