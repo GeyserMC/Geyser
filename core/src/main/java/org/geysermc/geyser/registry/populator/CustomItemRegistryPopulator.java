@@ -128,10 +128,12 @@ public class CustomItemRegistryPopulator {
             computeBlockItemProperties(mapping.getBedrockIdentifier(), componentBuilder);
         }
 
-        // TODO: once the mappings are added we should add computeEntityPlacerProperties here to prevent double entity placement
-
         if (mapping.isEdible()) {
             computeConsumableProperties(itemProperties, componentBuilder, 1, false);
+        }
+
+        if (mapping.isEntityPlacer()) {
+            computeEntityPlacerProperties(componentBuilder);
         }
 
         switch (mapping.getBedrockIdentifier()) {
@@ -311,6 +313,12 @@ public class CustomItemRegistryPopulator {
         itemProperties.putInt("use_animation", useAnimation);
         // this component is required to allow the eat animation to play
         componentBuilder.putCompound("minecraft:food", NbtMap.builder().putBoolean("can_always_eat", canAlwaysEat).build());
+    }
+
+    private static void computeEntityPlacerProperties(NbtMapBuilder componentBuilder) {
+        // all items registered that place entities should be given this component to prevent double placement
+        // it is okay that the entity here does not match the actual one since we control what entity actually spawns 
+        componentBuilder.putCompound("minecraft:entity_placer", NbtMap.builder().putString("entity", "minecraft:minecart").build());
     }
 
     private static void computeThrowableProperties(NbtMapBuilder componentBuilder) {

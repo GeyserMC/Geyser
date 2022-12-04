@@ -49,4 +49,5 @@ public class GeyserMappingItem {
     @JsonProperty("has_suspicious_stew_effect") boolean hasSuspiciousStewEffect = false;
     @JsonProperty("dye_color") int dyeColor = -1;
     @JsonProperty("is_edible") boolean edible = false;
+    @JsonProperty("is_entity_placer") boolean entityPlacer = false;
 }
