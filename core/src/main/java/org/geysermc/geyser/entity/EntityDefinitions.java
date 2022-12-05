@@ -860,6 +860,13 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataType.BYTE, AbstractHorseEntity::setHorseFlags)
                     .addTranslator(null) // UUID of owner
                     .build();
+            CAMEL = EntityDefinition.inherited(CamelEntity::new, abstractHorseEntityBase)
+                    .type(EntityType.CAMEL)
+                    .identifier("minecraft:llama") // todo 1.20
+                    .height(2.375f).width(1.7f)
+                    .addTranslator(MetadataType.BOOLEAN, CamelEntity::setDashing)
+                    .addTranslator(null) // Last pose change tick
+                    .build();
             HORSE = EntityDefinition.inherited(HorseEntity::new, abstractHorseEntityBase)
                     .type(EntityType.HORSE)
                     .height(1.6f).width(1.3965f)
@@ -895,13 +902,6 @@ public final class EntityDefinitions {
                     .type(EntityType.TRADER_LLAMA)
                     .identifier("minecraft:llama")
                     .build();
-            CAMEL = EntityDefinition.inherited(CamelEntity::new, abstractHorseEntityBase)
-                    .type(EntityType.CAMEL)
-                    .identifier("minecraft:llama") // todo 1.20
-                    .height(2.375f).width(1.7f)
-                    .addTranslator(MetadataType.BOOLEAN, CamelEntity::setDashing)
-                    .addTranslator(null) // Last pose change tick
-                .build();
         }
 
         EntityDefinition<TameableEntity> tameableEntityBase = EntityDefinition.inherited(TameableEntity::new, ageableEntityBase)
