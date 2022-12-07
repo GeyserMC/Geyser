@@ -51,7 +51,7 @@ public class JavaPlayerChatTranslator extends PacketTranslator<ClientboundPlayer
         textPacket.setType(TextPacket.Type.CHAT);
 
         textPacket.setNeedsTranslation(false);
-        Component message = packet.getUnsignedContent() == null ? packet.getMessageDecorated() : packet.getUnsignedContent();
+        Component message = packet.getUnsignedContent() == null ? Component.text(packet.getContent()) : packet.getUnsignedContent();
 
         TextDecoration decoration = session.getChatTypes().get(packet.getChatType());
         if (decoration != null) {

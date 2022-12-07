@@ -234,18 +234,18 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             case OPERATION -> CommandParam.OPERATOR; // ">=", "==", etc
             case BLOCK_STATE -> BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.get().keySet().toArray(new String[0]);
             case ITEM_STACK -> session.getItemMappings().getItemNames();
-            case ITEM_ENCHANTMENT -> Enchantment.JavaEnchantment.ALL_JAVA_IDENTIFIERS;
-            case ENTITY_SUMMON -> Registries.JAVA_ENTITY_IDENTIFIERS.get().keySet().toArray(new String[0]);
             case COLOR -> VALID_COLORS;
             case SCOREBOARD_SLOT -> VALID_SCOREBOARD_SLOTS;
-            case MOB_EFFECT -> ALL_EFFECT_IDENTIFIERS;
             case RESOURCE, RESOURCE_OR_TAG -> {
                 String resource = ((ResourceProperties) node.getProperties()).getRegistryKey();
-                if (resource.equals("minecraft:attribute")) {
-                    yield ATTRIBUTES;
-                } else {
-                    yield CommandParam.STRING;
-                }
+                yield switch (resource) {
+                    // minecraft:worldgen/biome is also valid but we currently don't cache biome IDs
+                    case "minecraft:attribute" -> ATTRIBUTES;
+                    case "minecraft:enchantment" -> Enchantment.JavaEnchantment.ALL_JAVA_IDENTIFIERS;
+                    case "minecraft:entity_type" -> Registries.JAVA_ENTITY_IDENTIFIERS.get().keySet().toArray(new String[0]);
+                    case "minecraft:mob_effect" -> ALL_EFFECT_IDENTIFIERS;
+                    default -> CommandParam.STRING;
+                };
             }
             default -> CommandParam.STRING;
         };
@@ -325,7 +325,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                     CommandParam type = null;
                     boolean optional = this.paramNode.isExecutable();
                     if (mappedType instanceof String[]) {
-                        enumData = new CommandEnumData(paramNode.getParser().name().toLowerCase(Locale.ROOT), (String[]) mappedType, false);
+                        enumData = new CommandEnumData(getEnumDataName(paramNode).toLowerCase(Locale.ROOT), (String[]) mappedType, false);
                     } else {
                         type = (CommandParam) mappedType;
                         // Bedrock throws a fit if an optional message comes after a string or target
@@ -345,6 +345,21 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             for (ParamInfo child : children) {
                 child.buildChildren(session, allNodes);
             }
+        }
+
+        /**
+         * Mitigates https://github.com/GeyserMC/Geyser/issues/3411. Not a perfect solution.
+         */
+        private static String getEnumDataName(CommandNode node) {
+            if (node.getProperties() instanceof ResourceProperties properties) {
+                String registryKey = properties.getRegistryKey();
+                int identifierSplit = registryKey.indexOf(':');
+                if (identifierSplit != -1) {
+                    return registryKey.substring(identifierSplit);
+                }
+                return registryKey;
+            }
+            return node.getParser().name();
         }
 
         /**

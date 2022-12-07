@@ -32,7 +32,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.SignUtils;
 
-@BlockEntity(type = BlockEntityType.SIGN)
+@BlockEntity(type = {BlockEntityType.SIGN, BlockEntityType.HANGING_SIGN})
 public class SignBlockEntityTranslator extends BlockEntityTranslator {
     /**
      * Maps a color stored in a sign's Color tag to its ARGB value.
@@ -88,6 +88,7 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
                     signWidth += SignUtils.getCharacterWidth(c);
                 }
 
+                // todo 1.20: update for hanging signs (smaller width). Currently OK because bedrock sees hanging signs as normal signs
                 if (signWidth <= SignUtils.BEDROCK_CHARACTER_WIDTH_MAX) {
                     finalSignLine.append(c);
                 } else {
