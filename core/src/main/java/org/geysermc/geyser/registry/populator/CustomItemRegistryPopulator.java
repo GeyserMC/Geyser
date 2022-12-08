@@ -146,7 +146,7 @@ public class CustomItemRegistryPopulator {
             case "minecraft:honey_bottle", "minecraft:milk_bucket", "minecraft:potion" -> {
                 computeConsumableProperties(itemProperties, componentBuilder, 2, true);
             }
-            case "minecraft:experience_bottle", "minecraft:egg", "minecraft:ender_pearl", "minecraft:ender_eye", "minecraft:lingering_potion", "minecraft:snowball" -> {
+            case "minecraft:experience_bottle", "minecraft:egg", "minecraft:ender_pearl", "minecraft:ender_eye", "minecraft:lingering_potion", "minecraft:snowball", "minecraft:splash_potion" -> {
                 computeThrowableProperties(componentBuilder);
             }
         }
