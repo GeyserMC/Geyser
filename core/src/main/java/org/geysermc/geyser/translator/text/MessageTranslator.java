@@ -27,7 +27,9 @@ package org.geysermc.geyser.translator.text;
 
 import com.github.steveice10.mc.protocol.data.DefaultComponentSerializer;
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
+import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -36,8 +38,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.*;
 
-import java.util.EnumMap;
-import java.util.Map;
+import java.util.*;
 
 public class MessageTranslator {
     // These are used for handling the translations of the messages
@@ -248,6 +249,46 @@ public class MessageTranslator {
             messageComponent = LegacyComponentSerializer.legacySection().deserialize(message);
         }
         return PlainTextComponentSerializer.plainText().serialize(messageComponent);
+    }
+
+    public static void handleChatPacket(GeyserSession session, Component message, int chatType, Component targetName, Component sender) {
+        TextPacket textPacket = new TextPacket();
+        textPacket.setPlatformChatId("");
+        textPacket.setSourceName("");
+        textPacket.setXuid(session.getAuthData().xuid());
+        textPacket.setType(TextPacket.Type.CHAT);
+
+        textPacket.setNeedsTranslation(false);
+
+        TextDecoration decoration = session.getChatTypes().get(chatType);
+        if (decoration != null) {
+            // As of 1.19 - do this to apply all the styling for signed messages
+            // Though, Bedrock cannot care about the signed stuff.
+            TranslatableComponent.Builder withDecoration = Component.translatable()
+                    .key(decoration.translationKey())
+                    .style(decoration.style());
+            Set<TextDecoration.Parameter> parameters = decoration.parameters();
+            List<Component> args = new ArrayList<>(3);
+            if (parameters.contains(TextDecoration.Parameter.TARGET)) {
+                args.add(targetName);
+            }
+            if (parameters.contains(TextDecoration.Parameter.SENDER)) {
+                args.add(sender);
+            }
+            if (parameters.contains(TextDecoration.Parameter.CONTENT)) {
+                args.add(message);
+            }
+            withDecoration.args(args);
+            textPacket.setMessage(MessageTranslator.convertMessage(withDecoration.build(), session.locale()));
+        } else {
+            session.getGeyser().getLogger().debug("Likely illegal chat type detection found.");
+            if (session.getGeyser().getConfig().isDebugMode()) {
+                Thread.dumpStack();
+            }
+            textPacket.setMessage(MessageTranslator.convertMessage(message, session.locale()));
+        }
+
+        session.sendUpstreamPacket(textPacket);
     }
 
     /**

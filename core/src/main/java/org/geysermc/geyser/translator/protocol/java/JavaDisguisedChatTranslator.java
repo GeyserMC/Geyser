@@ -25,19 +25,17 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundPlayerChatPacket;
-import net.kyori.adventure.text.Component;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundDisguisedChatPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
-@Translator(packet = ClientboundPlayerChatPacket.class)
-public class JavaPlayerChatTranslator extends PacketTranslator<ClientboundPlayerChatPacket> {
+@Translator(packet = ClientboundDisguisedChatPacket.class)
+public class JavaDisguisedChatTranslator extends PacketTranslator<ClientboundDisguisedChatPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundPlayerChatPacket packet) {
-        Component message = packet.getUnsignedContent() == null ? Component.text(packet.getContent()) : packet.getUnsignedContent();
-        MessageTranslator.handleChatPacket(session, message, packet.getChatType(), packet.getTargetName(), packet.getName());
+    public void translate(GeyserSession session, ClientboundDisguisedChatPacket packet) {
+        MessageTranslator.handleChatPacket(session, packet.getMessage(), packet.getChatType(), packet.getTargetName(), packet.getName());
     }
 }
