@@ -29,6 +29,14 @@
             "blockRuntimeId" : 1570
         },
         {
+            "id" : "minecraft:bamboo_planks",
+            "blockRuntimeId" : 8202
+        },
+        {
+            "id" : "minecraft:bamboo_mosaic",
+            "blockRuntimeId" : 12438
+        },
+        {
             "id" : "minecraft:crimson_planks",
             "blockRuntimeId" : 7399
         },
@@ -153,6 +161,10 @@
             "blockRuntimeId" : 10405
         },
         {
+            "id" : "minecraft:bamboo_fence",
+            "blockRuntimeId" : 863
+        },
+        {
             "id" : "minecraft:nether_brick_fence",
             "blockRuntimeId" : 6071
         },
@@ -191,6 +203,10 @@
         {
             "id" : "minecraft:mangrove_fence_gate",
             "blockRuntimeId" : 6406
+        },
+        {
+            "id" : "minecraft:bamboo_fence_gate",
+            "blockRuntimeId" : 7611
         },
         {
             "id" : "minecraft:crimson_fence_gate",
@@ -239,6 +255,14 @@
         {
             "id" : "minecraft:mangrove_stairs",
             "blockRuntimeId" : 6376
+        },
+        {
+            "id" : "minecraft:bamboo_stairs",
+            "blockRuntimeId" : 1339
+        },
+        {
+            "id" : "minecraft:bamboo_mosaic_stairs",
+            "blockRuntimeId" : 9958
         },
         {
             "id" : "minecraft:stone_brick_stairs",
@@ -422,6 +446,9 @@
             "id" : "minecraft:mangrove_door"
         },
         {
+            "id" : "minecraft:bamboo_door"
+        },
+        {
             "id" : "minecraft:iron_door"
         },
         {
@@ -457,6 +484,10 @@
         {
             "id" : "minecraft:mangrove_trapdoor",
             "blockRuntimeId" : 6266
+        },
+        {
+            "id" : "minecraft:bamboo_trapdoor",
+            "blockRuntimeId" : 7828
         },
         {
             "id" : "minecraft:iron_trapdoor",
@@ -665,6 +696,14 @@
         {
             "id" : "minecraft:mangrove_slab",
             "blockRuntimeId" : 1772
+        },
+        {
+            "id" : "minecraft:bamboo_slab",
+            "blockRuntimeId" : 10300
+        },
+        {
+            "id" : "minecraft:bamboo_mosaic_slab",
+            "blockRuntimeId" : 4081
         },
         {
             "id" : "minecraft:stone_block_slab",
@@ -2708,6 +2747,9 @@
             "id" : "minecraft:trader_llama_spawn_egg"
         },
         {
+            "id" : "minecraft:camel_spawn_egg"
+        },
+        {
             "id" : "minecraft:ghast_spawn_egg"
         },
         {
@@ -4074,6 +4116,10 @@
             "blockRuntimeId" : 10443
         },
         {
+            "id" : "minecraft:chiseled_bookshelf",
+            "blockRuntimeId" : 326
+        },
+        {
             "id" : "minecraft:lectern",
             "blockRuntimeId" : 10718
         },
@@ -4264,10 +4310,43 @@
             "id" : "minecraft:mangrove_sign"
         },
         {
+            "id" : "minecraft:bamboo_sign"
+        },
+        {
             "id" : "minecraft:crimson_sign"
         },
         {
             "id" : "minecraft:warped_sign"
+        },
+        {
+            "id" : "minecraft:oak_hanging_sign"
+        },
+        {
+            "id" : "minecraft:spruce_hanging_sign"
+        },
+        {
+            "id" : "minecraft:birch_hanging_sign"
+        },
+        {
+            "id" : "minecraft:jungle_hanging_sign"
+        },
+        {
+            "id" : "minecraft:acacia_hanging_sign"
+        },
+        {
+            "id" : "minecraft:dark_oak_hanging_sign"
+        },
+        {
+            "id" : "minecraft:crimson_hanging_sign"
+        },
+        {
+            "id" : "minecraft:warped_hanging_sign"
+        },
+        {
+            "id" : "minecraft:mangrove_hanging_sign"
+        },
+        {
+            "id" : "minecraft:bamboo_hanging_sign"
         },
         {
             "id" : "minecraft:painting"
@@ -4980,6 +5059,9 @@
             "id" : "minecraft:mangrove_boat"
         },
         {
+            "id" : "minecraft:bamboo_raft"
+        },
+        {
             "id" : "minecraft:oak_chest_boat"
         },
         {
@@ -4999,6 +5081,9 @@
         },
         {
             "id" : "minecraft:mangrove_chest_boat"
+        },
+        {
+            "id" : "minecraft:bamboo_chest_raft"
         },
         {
             "id" : "minecraft:rail",
@@ -5072,6 +5157,10 @@
             "blockRuntimeId" : 10840
         },
         {
+            "id" : "minecraft:bamboo_button",
+            "blockRuntimeId" : 10238
+        },
+        {
             "id" : "minecraft:stone_button",
             "blockRuntimeId" : 826
         },
@@ -5118,6 +5207,10 @@
         {
             "id" : "minecraft:mangrove_pressure_plate",
             "blockRuntimeId" : 5646
+        },
+        {
+            "id" : "minecraft:bamboo_pressure_plate",
+            "blockRuntimeId" : 9819
         },
         {
             "id" : "minecraft:crimson_pressure_plate",

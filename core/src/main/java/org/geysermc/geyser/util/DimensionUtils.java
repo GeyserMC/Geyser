@@ -208,7 +208,9 @@ public class DimensionUtils {
             // Prevents rare instances of Bedrock locking up
             return javaToBedrock(newDimension) == 2 ? OVERWORLD : NETHER;
         }
-        return currentDimension.equals(OVERWORLD) ? NETHER : OVERWORLD;
+        // Check current Bedrock dimension and not just the Java dimension.
+        // Fixes rare instances like https://github.com/GeyserMC/Geyser/issues/3161
+        return javaToBedrock(currentDimension) == 0 ? NETHER : OVERWORLD;
     }
 
     public static boolean isCustomBedrockNetherId() {
