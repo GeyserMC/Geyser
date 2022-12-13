@@ -31,6 +31,7 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import org.geysermc.geyser.session.GeyserSession;
 
+import javax.annotation.Nullable;
 import java.util.Locale;
 
 /**
@@ -157,4 +158,12 @@ public abstract class WorldManager {
      * @return True if the player has the requested permission, false if not
      */
     public abstract boolean hasPermission(GeyserSession session, String permission);
+
+    /**
+     * Returns a list of biome identifiers available on the server.
+     */
+    @Nullable
+    public String[] getBiomeIdentifiers(boolean withTags) {
+        return null;
+    }
 }

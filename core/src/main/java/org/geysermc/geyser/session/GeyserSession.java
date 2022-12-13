@@ -296,6 +296,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private String worldName = null;
+    /**
+     * As of Java 1.19.3, the client only uses these for commands.
+     */
+    @Setter
+    private String[] levels;
 
     private boolean sneaking;
 

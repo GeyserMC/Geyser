@@ -87,6 +87,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             session.getWorldCache().removeScoreboard();
         }
         session.setWorldName(packet.getWorldName());
+        session.setLevels(packet.getWorldNames());
 
         BiomeTranslator.loadServerBiomes(session, packet.getRegistry());
         session.getTagCache().clear();
