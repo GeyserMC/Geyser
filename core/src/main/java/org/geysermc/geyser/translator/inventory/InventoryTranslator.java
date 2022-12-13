@@ -101,7 +101,7 @@ public abstract class InventoryTranslator {
 
     public final int size;
 
-    public abstract void prepareInventory(GeyserSession session, Inventory inventory);
+    public abstract boolean prepareInventory(GeyserSession session, Inventory inventory);
     public abstract void openInventory(GeyserSession session, Inventory inventory);
     public abstract void closeInventory(GeyserSession session, Inventory inventory);
     public abstract void updateProperty(GeyserSession session, Inventory inventory, int key, int value);

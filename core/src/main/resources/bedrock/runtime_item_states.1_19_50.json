@@ -9,7 +9,7 @@
     },
     {
         "name" : "minecraft:acacia_chest_boat",
-        "id" : 642
+        "id" : 645
     },
     {
         "name" : "minecraft:acacia_door",
@@ -18,6 +18,10 @@
     {
         "name" : "minecraft:acacia_fence_gate",
         "id" : 187
+    },
+    {
+        "name" : "minecraft:acacia_hanging_sign",
+        "id" : -504
     },
     {
         "name" : "minecraft:acacia_pressure_plate",
@@ -132,8 +136,88 @@
         "id" : -163
     },
     {
+        "name" : "minecraft:bamboo_button",
+        "id" : -511
+    },
+    {
+        "name" : "minecraft:bamboo_chest_raft",
+        "id" : 648
+    },
+    {
+        "name" : "minecraft:bamboo_door",
+        "id" : -517
+    },
+    {
+        "name" : "minecraft:bamboo_double_slab",
+        "id" : -521
+    },
+    {
+        "name" : "minecraft:bamboo_fence",
+        "id" : -515
+    },
+    {
+        "name" : "minecraft:bamboo_fence_gate",
+        "id" : -516
+    },
+    {
+        "name" : "minecraft:bamboo_hanging_sign",
+        "id" : -522
+    },
+    {
+        "name" : "minecraft:bamboo_mosaic",
+        "id" : -509
+    },
+    {
+        "name" : "minecraft:bamboo_mosaic_double_slab",
+        "id" : -525
+    },
+    {
+        "name" : "minecraft:bamboo_mosaic_slab",
+        "id" : -524
+    },
+    {
+        "name" : "minecraft:bamboo_mosaic_stairs",
+        "id" : -523
+    },
+    {
+        "name" : "minecraft:bamboo_planks",
+        "id" : -510
+    },
+    {
+        "name" : "minecraft:bamboo_pressure_plate",
+        "id" : -514
+    },
+    {
+        "name" : "minecraft:bamboo_raft",
+        "id" : 638
+    },
+    {
         "name" : "minecraft:bamboo_sapling",
         "id" : -164
+    },
+    {
+        "name" : "minecraft:bamboo_sign",
+        "id" : 637
+    },
+    {
+        "name" : "minecraft:bamboo_slab",
+        "id" : -513
+    },
+    {
+        "name" : "minecraft:bamboo_stairs",
+        "id" : -512
+    },
+    {
+        "name" : "minecraft:bamboo_standing_sign",
+        "id" : -518
+    },
+    {
+        "name" : "minecraft:bamboo_trapdoor",
+        "id" : -520
+    },
+    {
+        "name" : "minecraft:bamboo_wall_sign",
+        "id" : -519
     },
     {
         "name" : "minecraft:banner",
@@ -141,7 +225,7 @@
     },
     {
         "name" : "minecraft:banner_pattern",
-        "id" : 651
+        "id" : 655
     },
     {
         "name" : "minecraft:barrel",
@@ -217,7 +301,7 @@
     },
     {
         "name" : "minecraft:birch_chest_boat",
-        "id" : 639
+        "id" : 642
     },
     {
         "name" : "minecraft:birch_door",
@@ -226,6 +310,10 @@
     {
         "name" : "minecraft:birch_fence_gate",
         "id" : 184
+    },
+    {
+        "name" : "minecraft:birch_hanging_sign",
+        "id" : -502
     },
     {
         "name" : "minecraft:birch_pressure_plate",
@@ -329,7 +417,7 @@
     },
     {
         "name" : "minecraft:boat",
-        "id" : 649
+        "id" : 653
     },
     {
         "name" : "minecraft:bone",
@@ -434,6 +522,10 @@
     {
         "name" : "minecraft:calcite",
         "id" : -326
+    },
+    {
+        "name" : "minecraft:camel_spawn_egg",
+        "id" : 633
     },
     {
         "name" : "minecraft:camera",
@@ -541,7 +633,7 @@
     },
     {
         "name" : "minecraft:chest_boat",
-        "id" : 645
+        "id" : 649
     },
     {
         "name" : "minecraft:chest_minecart",
@@ -554,6 +646,10 @@
     {
         "name" : "minecraft:chicken_spawn_egg",
         "id" : 435
+    },
+    {
+        "name" : "minecraft:chiseled_bookshelf",
+        "id" : -526
     },
     {
         "name" : "minecraft:chiseled_deepslate",
@@ -828,6 +924,10 @@
         "id" : -228
     },
     {
+        "name" : "minecraft:crimson_hanging_sign",
+        "id" : -506
+    },
+    {
         "name" : "minecraft:crimson_hyphae",
         "id" : -299
     },
@@ -921,7 +1021,7 @@
     },
     {
         "name" : "minecraft:dark_oak_chest_boat",
-        "id" : 643
+        "id" : 646
     },
     {
         "name" : "minecraft:dark_oak_door",
@@ -930,6 +1030,10 @@
     {
         "name" : "minecraft:dark_oak_fence_gate",
         "id" : 186
+    },
+    {
+        "name" : "minecraft:dark_oak_hanging_sign",
+        "id" : -505
     },
     {
         "name" : "minecraft:dark_oak_pressure_plate",
@@ -1121,7 +1225,7 @@
     },
     {
         "name" : "minecraft:disc_fragment_5",
-        "id" : 637
+        "id" : 640
     },
     {
         "name" : "minecraft:dispenser",
@@ -1193,11 +1297,11 @@
     },
     {
         "name" : "minecraft:dye",
-        "id" : 650
+        "id" : 654
     },
     {
         "name" : "minecraft:echo_shard",
-        "id" : 647
+        "id" : 651
     },
     {
         "name" : "minecraft:egg",
@@ -1725,7 +1829,7 @@
     },
     {
         "name" : "minecraft:end_crystal",
-        "id" : 653
+        "id" : 657
     },
     {
         "name" : "minecraft:end_gateway",
@@ -1933,7 +2037,7 @@
     },
     {
         "name" : "minecraft:glow_berries",
-        "id" : 654
+        "id" : 658
     },
     {
         "name" : "minecraft:glow_frame",
@@ -2405,7 +2509,7 @@
     },
     {
         "name" : "minecraft:jungle_chest_boat",
-        "id" : 640
+        "id" : 643
     },
     {
         "name" : "minecraft:jungle_door",
@@ -2414,6 +2518,10 @@
     {
         "name" : "minecraft:jungle_fence_gate",
         "id" : 185
+    },
+    {
+        "name" : "minecraft:jungle_hanging_sign",
+        "id" : -503
     },
     {
         "name" : "minecraft:jungle_pressure_plate",
@@ -2665,7 +2773,7 @@
     },
     {
         "name" : "minecraft:mangrove_boat",
-        "id" : 635
+        "id" : 636
     },
     {
         "name" : "minecraft:mangrove_button",
@@ -2673,11 +2781,11 @@
     },
     {
         "name" : "minecraft:mangrove_chest_boat",
-        "id" : 644
+        "id" : 647
     },
     {
         "name" : "minecraft:mangrove_door",
-        "id" : 633
+        "id" : 634
     },
     {
         "name" : "minecraft:mangrove_double_slab",
@@ -2690,6 +2798,10 @@
     {
         "name" : "minecraft:mangrove_fence_gate",
         "id" : -492
+    },
+    {
+        "name" : "minecraft:mangrove_hanging_sign",
+        "id" : -508
     },
     {
         "name" : "minecraft:mangrove_leaves",
@@ -2717,7 +2829,7 @@
     },
     {
         "name" : "minecraft:mangrove_sign",
-        "id" : 634
+        "id" : 635
     },
     {
         "name" : "minecraft:mangrove_slab",
@@ -2861,7 +2973,7 @@
     },
     {
         "name" : "minecraft:music_disc_5",
-        "id" : 636
+        "id" : 639
     },
     {
         "name" : "minecraft:music_disc_blocks",
@@ -3037,7 +3149,11 @@
     },
     {
         "name" : "minecraft:oak_chest_boat",
-        "id" : 638
+        "id" : 641
+    },
+    {
+        "name" : "minecraft:oak_hanging_sign",
+        "id" : -500
     },
     {
         "name" : "minecraft:oak_sign",
@@ -3473,7 +3589,7 @@
     },
     {
         "name" : "minecraft:recovery_compass",
-        "id" : 646
+        "id" : 650
     },
     {
         "name" : "minecraft:red_candle",
@@ -3781,7 +3897,7 @@
     },
     {
         "name" : "minecraft:spawn_egg",
-        "id" : 652
+        "id" : 656
     },
     {
         "name" : "minecraft:spider_eye",
@@ -3813,7 +3929,7 @@
     },
     {
         "name" : "minecraft:spruce_chest_boat",
-        "id" : 641
+        "id" : 644
     },
     {
         "name" : "minecraft:spruce_door",
@@ -3822,6 +3938,10 @@
     {
         "name" : "minecraft:spruce_fence_gate",
         "id" : 183
+    },
+    {
+        "name" : "minecraft:spruce_hanging_sign",
+        "id" : -501
     },
     {
         "name" : "minecraft:spruce_pressure_plate",
@@ -4081,7 +4201,7 @@
     },
     {
         "name" : "minecraft:trader_llama_spawn_egg",
-        "id" : 648
+        "id" : 652
     },
     {
         "name" : "minecraft:trapdoor",
@@ -4222,6 +4342,10 @@
     {
         "name" : "minecraft:warped_fungus_on_a_stick",
         "id" : 618
+    },
+    {
+        "name" : "minecraft:warped_hanging_sign",
+        "id" : -507
     },
     {
         "name" : "minecraft:warped_hyphae",

@@ -16,7 +16,7 @@ dependencies {
 
     // Within the gradle plugin classpath, there is a version conflict between loom and some other
     // plugin for databind. This fixes it: minimum 2.13.2 is required by loom.
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.3")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.14.0")
 }
 
 tasks.withType<KotlinCompile> {
