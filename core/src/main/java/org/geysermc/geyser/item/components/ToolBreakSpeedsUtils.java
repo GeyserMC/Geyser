@@ -82,6 +82,8 @@ public class ToolBreakSpeedsUtils {
                         .putString("event", "tool_durability")
                         .putString("target", "self")
                         .build())
+                // note that use_efficiency is currently broken https://github.com/GeyserMC/Geyser/issues/3348#issuecomment-1347749396
+                // in theory we would expect it should allow efficiency enchantments to work, but this has never been officially confirmed by Mojang
                 .putBoolean("use_efficiency", true)
                 .build();
     }
