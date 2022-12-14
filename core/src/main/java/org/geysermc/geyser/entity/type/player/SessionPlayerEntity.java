@@ -47,7 +47,6 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * The entity class specifically for a {@link GeyserSession}'s player.
@@ -125,8 +124,8 @@ public class SessionPlayerEntity extends PlayerEntity {
      * See https://github.com/GeyserMC/Geyser/issues/3370
      */
     public void updateBoundingBox() {
-        dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, getBoundingBoxHeight());
-        dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, getBoundingBoxWidth());
+        dirtyMetadata.put(EntityDataTypes.HEIGHT, getBoundingBoxHeight());
+        dirtyMetadata.put(EntityDataTypes.WIDTH, getBoundingBoxWidth());
         updateBedrockMetadata();
     }
 

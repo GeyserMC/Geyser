@@ -28,7 +28,6 @@ package org.geysermc.geyser.entity.type.living.monster;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.OptionalIntMetadataType;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
@@ -51,10 +50,10 @@ public class EndermanEntity extends MonsterEntity {
         if (entityMetadata.getValue().isPresent()) {
             bedrockBlockId = session.getBlockMappings().getBedrockBlockId(entityMetadata.getValue().getAsInt());
         } else {
-            bedrockBlockId = session.getBlockMappings().getBedrockAirId();
+            bedrockBlockId = session.getBlockMappings().getBedrockAir().getRuntimeId();
         }
 
-        dirtyMetadata.put(EntityData.BLOCK, bedrockBlockId);
+        dirtyMetadata.put(EntityDataTypes.BLOCK, bedrockBlockId);
     }
 
     /**

@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.registry.loader;
 
-import org.cloudburstmc.protocol.bedrock.data.inventory.PotionMixData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.Registries;

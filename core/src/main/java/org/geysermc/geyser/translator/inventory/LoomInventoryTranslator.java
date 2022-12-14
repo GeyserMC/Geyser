@@ -28,19 +28,19 @@ package org.geysermc.geyser.translator.inventory;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtType;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemStackRequest;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemStackResponse;
-import org.cloudburstmc.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.CraftLoomStackRequestActionData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.CraftResultsDeprecatedStackRequestActionData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.CraftLoomAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.CraftResultsDeprecatedAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestActionType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
@@ -117,19 +117,19 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
     }
 
     @Override
-    protected boolean shouldHandleRequestFirst(StackRequestActionData action, Inventory inventory) {
+    protected boolean shouldHandleRequestFirst(ItemStackRequestAction action, Inventory inventory) {
         // If the LOOM_MATERIAL slot is not empty, we are crafting a pattern that does not come from an item
-        return action.getType() == StackRequestActionType.CRAFT_LOOM && inventory.getItem(2).isEmpty();
+        return action.getType() == ItemStackRequestActionType.CRAFT_LOOM && inventory.getItem(2).isEmpty();
     }
 
     @Override
     public ItemStackResponse translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
-        StackRequestActionData headerData = request.getActions()[0];
-        StackRequestActionData data = request.getActions()[1];
-        if (!(headerData instanceof CraftLoomStackRequestActionData)) {
+        ItemStackRequestAction headerData = request.getActions()[0];
+        ItemStackRequestAction data = request.getActions()[1];
+        if (!(headerData instanceof CraftLoomAction)) {
             return rejectRequest(request);
         }
-        if (!(data instanceof CraftResultsDeprecatedStackRequestActionData craftData)) {
+        if (!(data instanceof CraftResultsDeprecatedAction craftData)) {
             return rejectRequest(request);
         }
 
@@ -137,7 +137,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
         List<NbtMap> newBlockEntityTag = craftData.getResultItems()[0].getTag().getList("Patterns", NbtType.COMPOUND);
         // Get the pattern that the Bedrock client requests - the last pattern in the Patterns list
         NbtMap pattern = newBlockEntityTag.get(newBlockEntityTag.size() - 1);
-        String bedrockPattern = ((CraftLoomStackRequestActionData) headerData).getPatternId();
+        String bedrockPattern = ((CraftLoomAction) headerData).getPatternId();
 
         // Get the Java index of this pattern
         int index = PATTERN_TO_INDEX.getOrDefault(bedrockPattern, -1);
@@ -181,7 +181,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
     }
 
     @Override
-    public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
+    public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
         return switch (slotInfoData.getContainer()) {
             case LOOM_INPUT -> 0;
             case LOOM_DYE -> 1;

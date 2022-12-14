@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.registry;
 
+import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.registry.loader.RegistryLoader;
 
 import java.util.function.Consumer;

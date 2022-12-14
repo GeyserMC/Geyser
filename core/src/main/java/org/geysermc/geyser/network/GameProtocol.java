@@ -28,12 +28,11 @@ package org.geysermc.geyser.network;
 import com.github.steveice10.mc.protocol.codec.MinecraftCodec;
 import com.github.steveice10.mc.protocol.codec.PacketCodec;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
-import org.cloudburstmc.protocol.bedrock.codec.v527.Bedrock_v527;
-import org.cloudburstmc.protocol.bedrock.codec.v534.Bedrock_v534;
 import org.cloudburstmc.protocol.bedrock.codec.v544.Bedrock_v544;
 import org.cloudburstmc.protocol.bedrock.codec.v545.Bedrock_v545;
 import org.cloudburstmc.protocol.bedrock.codec.v554.Bedrock_v554;
 import org.cloudburstmc.protocol.bedrock.codec.v557.Bedrock_v557;
+import org.cloudburstmc.protocol.bedrock.codec.v560.Bedrock_v560;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -98,7 +97,7 @@ public final class GameProtocol {
     }
 
     public static boolean supports1_19_50(GeyserSession session) {
-        return session.getUpstream().getProtocolVersion() >= Bedrock_v560.V560_CODEC.getProtocolVersion();
+        return session.getUpstream().getProtocolVersion() >= Bedrock_v560.CODEC.getProtocolVersion();
     }
 
     /**

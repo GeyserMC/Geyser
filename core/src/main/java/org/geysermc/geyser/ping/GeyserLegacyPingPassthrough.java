@@ -27,7 +27,7 @@ package org.geysermc.geyser.ping;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.nukkitx.nbt.util.VarInts;
+import org.cloudburstmc.nbt.util.VarInts;
 import io.netty.handler.codec.haproxy.HAProxyCommand;
 import io.netty.handler.codec.haproxy.HAProxyProxiedProtocol;
 import io.netty.util.NetUtil;
