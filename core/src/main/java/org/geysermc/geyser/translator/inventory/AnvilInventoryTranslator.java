@@ -59,10 +59,12 @@ public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator {
         CraftRecipeOptionalStackRequestActionData data = (CraftRecipeOptionalStackRequestActionData) request.getActions()[0];
         AnvilContainer container = (AnvilContainer) inventory;
 
-        // Required as of 1.18.30 - FilterTextPackets no longer appear to be sent
-        String name = request.getFilterStrings()[data.getFilteredStringIndex()];
-        if (!Objects.equals(name, container.getNewName())) {
-            container.checkForRename(session, name);
+        if (request.getFilterStrings().length != 0) {
+            // Required as of 1.18.30 - FilterTextPackets no longer appear to be sent
+            String name = request.getFilterStrings()[data.getFilteredStringIndex()];
+            if (!Objects.equals(name, container.getNewName())) { // TODO is this still necessary after pre-1.19.50 support is dropped?
+                container.checkForRename(session, name);
+            }
         }
 
         return super.translateRequest(session, inventory, request);

@@ -32,6 +32,7 @@ import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
 import org.geysermc.geyser.adapters.spigot.SpigotWorldAdapter;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
+import org.jetbrains.annotations.Nullable;
 
 public class GeyserSpigotNativeWorldManager extends GeyserSpigotWorldManager {
     protected final SpigotWorldAdapter adapter;
@@ -48,5 +49,13 @@ public class GeyserSpigotNativeWorldManager extends GeyserSpigotWorldManager {
             return BlockStateValues.JAVA_AIR_ID;
         }
         return adapter.getBlockAt(player.getWorld(), x, y, z);
+    }
+
+    @Nullable
+    @Override
+    public String[] getBiomeIdentifiers(boolean withTags) {
+        // Biome identifiers will basically always be the same for one server, since you have to re-send the
+        // ClientboundLoginPacket to change the registry. Therefore, don't bother caching for each player.
+        return adapter.getBiomeSuggestions(withTags);
     }
 }

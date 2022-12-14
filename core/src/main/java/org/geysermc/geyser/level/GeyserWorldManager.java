@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.level;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
@@ -36,11 +34,8 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.ChunkCache;
 import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;
 
-import java.util.Locale;
-
 public class GeyserWorldManager extends WorldManager {
-
-    private static final Object2ObjectMap<String, String> gameruleCache = new Object2ObjectOpenHashMap<>();
+    private final Object2ObjectMap<String, String> gameruleCache = new Object2ObjectOpenHashMap<>();
 
     @Override
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
@@ -82,18 +77,18 @@ public class GeyserWorldManager extends WorldManager {
 
     @Override
     public void setGameRule(GeyserSession session, String name, Object value) {
-        session.sendCommand("gamerule " + name + " " + value);
+        super.setGameRule(session, name, value);
         gameruleCache.put(name, String.valueOf(value));
     }
 
     @Override
-    public Boolean getGameRuleBool(GeyserSession session, GameRule gameRule) {
+    public boolean getGameRuleBool(GeyserSession session, GameRule gameRule) {
         String value = gameruleCache.get(gameRule.getJavaID());
         if (value != null) {
             return Boolean.parseBoolean(value);
         }
 
-        return gameRule.getDefaultValue() != null ? (Boolean) gameRule.getDefaultValue() : false;
+        return gameRule.getDefaultBooleanValue();
     }
 
     @Override
@@ -103,17 +98,7 @@ public class GeyserWorldManager extends WorldManager {
             return Integer.parseInt(value);
         }
 
-        return gameRule.getDefaultValue() != null ? (int) gameRule.getDefaultValue() : 0;
-    }
-
-    @Override
-    public void setPlayerGameMode(GeyserSession session, GameMode gameMode) {
-        session.sendCommand("gamemode " + gameMode.name().toLowerCase(Locale.ROOT));
-    }
-
-    @Override
-    public void setDifficulty(GeyserSession session, Difficulty difficulty) {
-        session.sendCommand("difficulty " + difficulty.name().toLowerCase(Locale.ROOT));
+        return gameRule.getDefaultIntValue();
     }
 
     @Override

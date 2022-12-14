@@ -84,13 +84,9 @@ public final class BlockRegistryPopulator {
     private static void registerBedrockBlocks() {
         BiFunction<String, NbtMapBuilder, String> emptyMapper = (bedrockIdentifier, statesBuilder) -> null;
         ImmutableMap<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> blockMappers = ImmutableMap.<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>>builder()
-                .put(ObjectIntPair.of("1_19_0", Bedrock_v527.CODEC.getProtocolVersion()), (bedrockIdentifier, statesBuilder) -> {
-                    if (bedrockIdentifier.equals("minecraft:muddy_mangrove_roots")) {
-                        statesBuilder.remove("pillar_axis");
-                    }
-                    return null;
-                })
-                .put(ObjectIntPair.of("1_19_20", Bedrock_v544.CODEC.getProtocolVersion()), emptyMapper).build();
+                .put(ObjectIntPair.of("1_19_20", Bedrock_v544.CODEC.getProtocolVersion()), emptyMapper)
+                .put(ObjectIntPair.of("1_19_50", Bedrock_v560.CODEC.getProtocolVersion()), emptyMapper)
+                .build();
 
         for (Map.Entry<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> palette : blockMappers.entrySet()) {
             NbtList<NbtMap> blocksTag;

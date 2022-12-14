@@ -246,7 +246,10 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     @Override
     public InputStream getResourceOrNull(String resource) {
         // We need to handle this differently, because Fabric shares the classloader across multiple mods
-        Path path = this.mod.getPath(resource);
+        Path path = this.mod.findPath(resource).orElse(null);
+        if (path == null) {
+            return null;
+        }
 
         try {
             return path.getFileSystem()

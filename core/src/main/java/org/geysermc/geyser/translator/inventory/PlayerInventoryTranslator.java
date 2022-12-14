@@ -527,7 +527,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public void prepareInventory(GeyserSession session, Inventory inventory) {
+    public boolean prepareInventory(GeyserSession session, Inventory inventory) {
+        return true;
     }
 
     @Override

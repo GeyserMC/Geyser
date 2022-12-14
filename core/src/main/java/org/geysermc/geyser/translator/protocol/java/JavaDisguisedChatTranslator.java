@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java.level;
+package org.geysermc.geyser.translator.protocol.java;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundCustomSoundPacket;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -31,19 +31,13 @@ import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.util.SoundUtils;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 
-@Translator(packet = ClientboundCustomSoundPacket.class)
-public class JavaCustomSoundTranslator extends PacketTranslator<ClientboundCustomSoundPacket> {
+@Translator(packet = ClientboundDisguisedChatPacket.class)
+public class JavaDisguisedChatTranslator extends PacketTranslator<ClientboundDisguisedChatPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundCustomSoundPacket packet) {
-        PlaySoundPacket playSoundPacket = new PlaySoundPacket();
-        playSoundPacket.setSound(SoundUtils.translatePlaySound(packet.getSound()));
-        playSoundPacket.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
-        playSoundPacket.setVolume(packet.getVolume());
-        playSoundPacket.setPitch(packet.getPitch());
-
-        session.sendUpstreamPacket(playSoundPacket);
+    public void translate(GeyserSession session, ClientboundDisguisedChatPacket packet) {
+        MessageTranslator.handleChatPacket(session, packet.getMessage(), packet.getChatType(), packet.getTargetName(), packet.getName());
     }
 }

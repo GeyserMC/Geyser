@@ -49,9 +49,9 @@ public class JavaExplodeTranslator extends PacketTranslator<ClientboundExplodePa
         LevelEventGenericPacket levelEventPacket = new LevelEventGenericPacket();
         levelEventPacket.setEventId(2026/*LevelEvent.PARTICLE_BLOCK_EXPLOSION*/);
         NbtMapBuilder builder = NbtMap.builder();
-        builder.putFloat("originX", packet.getX());
-        builder.putFloat("originY", packet.getY());
-        builder.putFloat("originZ", packet.getZ());
+        builder.putFloat("originX", (float) packet.getX());
+        builder.putFloat("originY", (float) packet.getY());
+        builder.putFloat("originZ", (float) packet.getZ());
         builder.putFloat("radius", packet.getRadius());
         builder.putInt("size", packet.getExploded().size());
         int i = 0;
