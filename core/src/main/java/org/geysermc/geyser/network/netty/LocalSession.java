@@ -53,7 +53,7 @@ public final class LocalSession extends TcpSession {
     private final String clientIp;
     private final PacketCodecHelper codecHelper;
 
-    public LocalSession(String host, int port, SocketAddress targetAddress, String clientIp, PacketProtocol protocol, PacketCodecHelper codecHelper) {
+    public LocalSession(String host, int port, SocketAddress targetAddress, String clientIp, PacketProtocol protocol, MinecraftCodecHelper codecHelper) {
         super(host, port, protocol);
         this.targetAddress = targetAddress;
         this.clientIp = clientIp;

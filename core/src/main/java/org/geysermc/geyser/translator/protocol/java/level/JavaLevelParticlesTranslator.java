@@ -163,7 +163,7 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
 
                 return (position) -> {
                     LevelEventGenericPacket packet = new LevelEventGenericPacket();
-                    packet.setEventId(2027/*LevelEvent.PARTICLE_VIBRATION_SIGNAL*/);
+                    packet.setType(LevelEvent.PARTICLE_VIBRATION_SIGNAL);
                     packet.setTag(
                             NbtMap.builder()
                                     .putCompound("origin", buildVec3PositionTag(position))
