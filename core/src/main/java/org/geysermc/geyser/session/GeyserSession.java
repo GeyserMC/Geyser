@@ -1378,7 +1378,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     public void setServerRenderDistance(int renderDistance) {
-        renderDistance = GenericMath.ceil(++renderDistance * MathUtils.SQRT_OF_TWO); //square to circle
         this.serverRenderDistance = renderDistance;
 
         ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
