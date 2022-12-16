@@ -870,4 +870,9 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
     public boolean handle(RequestNetworkSettingsPacket packet) {
         return defaultHandler(packet);
     }
+
+    @Override
+    public boolean handle(SubChunkRequestPacket packet) {
+        return defaultHandler(packet);
+    }
 }

@@ -26,6 +26,8 @@
 package org.geysermc.geyser.session.cache;
 
 import com.github.steveice10.mc.protocol.data.game.chunk.DataPalette;
+import com.github.steveice10.mc.protocol.data.game.level.LightUpdateData;
+import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import lombok.Getter;
@@ -37,6 +39,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.MathUtils;
 
 public class ChunkCache {
+    @Getter
     private final boolean cache;
     private final Long2ObjectMap<GeyserChunk> chunks;
 
@@ -57,20 +60,20 @@ public class ChunkCache {
         chunks = cache ? new Long2ObjectOpenHashMap<>() : null;
     }
 
-    public void addToCache(int x, int z, DataPalette[] chunks) {
+    public void addToCache(int x, int z, DataPalette[] chunks, BlockEntityInfo[][] blockEntities, LightUpdateData lightData) {
         if (!cache) {
             return;
         }
 
         long chunkPosition = MathUtils.chunkPositionToLong(x, z);
-        GeyserChunk geyserChunk = GeyserChunk.from(chunks);
+        GeyserChunk geyserChunk = GeyserChunk.from(chunks, blockEntities, lightData);
         this.chunks.put(chunkPosition, geyserChunk);
     }
 
     /**
      * Doesn't check for cache enabled, so don't use this without checking that first!
      */
-    private GeyserChunk getChunk(int chunkX, int chunkZ) {
+    public GeyserChunk getChunk(int chunkX, int chunkZ) {
         long chunkPosition = MathUtils.chunkPositionToLong(chunkX, chunkZ);
         return chunks.getOrDefault(chunkPosition, null);
     }

@@ -26,13 +26,15 @@
 package org.geysermc.geyser.level.chunk;
 
 import com.github.steveice10.mc.protocol.data.game.chunk.DataPalette;
+import com.github.steveice10.mc.protocol.data.game.level.LightUpdateData;
+import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
 
 /**
- * Acts as a lightweight chunk class that doesn't store biomes, heightmaps or block entities.
+ * Acts as a lightweight chunk class that doesn't store biomes.
  */
-public record GeyserChunk(DataPalette[] sections) {
+public record GeyserChunk(DataPalette[] sections, BlockEntityInfo[][] blockEntities, LightUpdateData lightData) {
 
-    public static GeyserChunk from(DataPalette[] sections) {
-        return new GeyserChunk(sections);
+    public static GeyserChunk from(DataPalette[] sections, BlockEntityInfo[][] blockEntities, LightUpdateData lightData) {
+        return new GeyserChunk(sections, blockEntities, lightData);
     }
 }
