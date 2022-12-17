@@ -30,10 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.inventory.ContainerActionType
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.github.steveice10.mc.protocol.data.game.inventory.MoveToHotbarAction;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClickPacket;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.*;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.SlotType;
@@ -124,12 +121,14 @@ public final class ClickPlan {
             }
 
             ItemStack clickedItemStack;
-            if (!planIter.hasNext() && refresh) {
-                clickedItemStack = InventoryUtils.REFRESH_ITEM;
+            if (emulatePost1_16Logic) {
+                // The action must be simulated first as Java expects the new contents of the cursor (as of 1.18.1)
+                clickedItemStack = simulatedCursor.getItemStack();
             } else {
-                if (emulatePost1_16Logic) {
-                    // The action must be simulated first as Java expects the new contents of the cursor (as of 1.18.1)
-                    clickedItemStack = simulatedCursor.getItemStack();
+                if (!planIter.hasNext() && refresh) {
+                    // Doesn't have the intended effect with state IDs since this won't cause a complete window refresh
+                    // (It will eventually once state IDs desync, but this causes more problems than not)
+                    clickedItemStack = InventoryUtils.REFRESH_ITEM;
                 } else {
                     if (action.click.actionType == ContainerActionType.DROP_ITEM || action.slot == Click.OUTSIDE_SLOT) {
                         clickedItemStack = null;
