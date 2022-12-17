@@ -250,4 +250,9 @@ public class SessionPlayerEntity extends PlayerEntity {
             dirtyMetadata.put(EntityData.PLAYER_HAS_DIED, (byte) 0);
         }
     }
+
+    @Override
+    public UUID getTabListUuid() {
+        return session.getAuthData().uuid();
+    }
 }

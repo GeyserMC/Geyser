@@ -123,7 +123,8 @@ public class EntityCache {
     }
 
     public void addPlayerEntity(PlayerEntity entity) {
-        playerEntities.put(entity.getUuid(), entity);
+        // putIfAbsent matches the behavior of playerInfoMap in Java as of 1.19.3
+        playerEntities.putIfAbsent(entity.getUuid(), entity);
     }
 
     public PlayerEntity getPlayerEntity(UUID uuid) {

@@ -38,70 +38,91 @@ import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 @Translator(packet = ClientboundPlayerInfoUpdatePacket.class)
 public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<ClientboundPlayerInfoUpdatePacket> {
     @Override
     public void translate(GeyserSession session, ClientboundPlayerInfoUpdatePacket packet) {
-        if (!packet.getActions().contains(PlayerListEntryAction.ADD_PLAYER)) {
-            return;
-        }
+        Set<PlayerListEntryAction> actions = packet.getActions();
 
-        PlayerListPacket translate = new PlayerListPacket();
-        translate.setAction(PlayerListPacket.Action.ADD);
+        if (actions.contains(PlayerListEntryAction.ADD_PLAYER)) {
+            for (PlayerListEntry entry : packet.getEntries()) {
+                GameProfile profile = entry.getProfile();
+                PlayerEntity playerEntity;
+                boolean self = profile.getId().equals(session.getPlayerEntity().getUuid());
 
-        for (PlayerListEntry entry : packet.getEntries()) {
-            GameProfile profile = entry.getProfile();
-            PlayerEntity playerEntity;
-            boolean self = profile.getId().equals(session.getPlayerEntity().getUuid());
+                GameProfile.Property textures = profile.getProperty("textures");
+                String texturesProperty = textures == null ? null : textures.getValue();
 
-            if (self) {
-                // Entity is ourself
-                playerEntity = session.getPlayerEntity();
-            } else {
-                playerEntity = session.getEntityCache().getPlayerEntity(profile.getId());
-            }
+                if (self) {
+                    // Entity is ourself
+                    playerEntity = session.getPlayerEntity();
+                } else {
+                    // It's a new player
+                    playerEntity = new PlayerEntity(
+                            session,
+                            -1,
+                            session.getEntityCache().getNextEntityId().incrementAndGet(),
+                            profile.getId(),
+                            Vector3f.ZERO,
+                            Vector3f.ZERO,
+                            0, 0, 0,
+                            profile.getName(),
+                            texturesProperty
+                    );
 
-            GameProfile.Property textures = profile.getProperty("textures");
-            String texturesProperty = textures == null ? null : textures.getValue();
-
-            if (playerEntity == null) {
-                // It's a new player
-                playerEntity = new PlayerEntity(
-                        session,
-                        -1,
-                        session.getEntityCache().getNextEntityId().incrementAndGet(),
-                        profile.getId(),
-                        Vector3f.ZERO,
-                        Vector3f.ZERO,
-                        0, 0, 0,
-                        profile.getName(),
-                        texturesProperty
-                );
-
-                session.getEntityCache().addPlayerEntity(playerEntity);
-            } else {
+                    session.getEntityCache().addPlayerEntity(playerEntity);
+                }
                 playerEntity.setUsername(profile.getName());
                 playerEntity.setTexturesProperty(texturesProperty);
-            }
 
-            playerEntity.setPlayerList(true);
 
-            // We'll send our own PlayerListEntry in requestAndHandleSkinAndCape
-            // But we need to send other player's entries so they show up in the player list
-            // without processing their skin information - that'll be processed when they spawn in
-            if (self) {
-                SkinManager.requestAndHandleSkinAndCape(playerEntity, session, skinAndCape ->
-                        GeyserImpl.getInstance().getLogger().debug("Loaded Local Bedrock Java Skin Data for " + session.getClientData().getUsername()));
-            } else {
-                playerEntity.setValid(true);
-                PlayerListPacket.Entry playerListEntry = SkinManager.buildCachedEntry(session, playerEntity);
-
-                translate.getEntries().add(playerListEntry);
+                // We'll send our own PlayerListEntry in requestAndHandleSkinAndCape
+                // But we need to send other player's entries so they show up in the player list
+                // without processing their skin information - that'll be processed when they spawn in
+                if (self) {
+                    SkinManager.requestAndHandleSkinAndCape(playerEntity, session, skinAndCape ->
+                            GeyserImpl.getInstance().getLogger().debug("Loaded Local Bedrock Java Skin Data for " + session.getClientData().getUsername()));
+                } else {
+                    playerEntity.setValid(true);
+                }
             }
         }
 
-        if (!translate.getEntries().isEmpty()) {
-            session.sendUpstreamPacket(translate);
+        if (actions.contains(PlayerListEntryAction.UPDATE_LISTED)) {
+            List<PlayerListPacket.Entry> toAdd = new ArrayList<>();
+            List<PlayerListPacket.Entry> toRemove = new ArrayList<>();
+
+            for (PlayerListEntry entry : packet.getEntries()) {
+                PlayerEntity entity = session.getEntityCache().getPlayerEntity(entry.getProfileId());
+                if (entity == null) {
+                    session.getGeyser().getLogger().debug("Ignoring player info update for " + entry.getProfileId());
+                    continue;
+                }
+
+                if (entry.isListed()) {
+                    PlayerListPacket.Entry playerListEntry = SkinManager.buildCachedEntry(session, entity);
+                    toAdd.add(playerListEntry);
+                } else {
+                    toRemove.add(new PlayerListPacket.Entry(entity.getTabListUuid()));
+                }
+            }
+
+            if (!toAdd.isEmpty()) {
+                PlayerListPacket tabListPacket = new PlayerListPacket();
+                tabListPacket.setAction(PlayerListPacket.Action.ADD);
+                tabListPacket.getEntries().addAll(toAdd);
+                session.sendUpstreamPacket(tabListPacket);
+            }
+            if (!toRemove.isEmpty()) {
+                PlayerListPacket tabListPacket = new PlayerListPacket();
+                tabListPacket.setAction(PlayerListPacket.Action.REMOVE);
+                tabListPacket.getEntries().addAll(toRemove);
+                session.sendUpstreamPacket(tabListPacket);
+            }
         }
     }
 }
