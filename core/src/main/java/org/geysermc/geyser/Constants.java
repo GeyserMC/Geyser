@@ -30,7 +30,6 @@ import java.net.URISyntaxException;
 
 public final class Constants {
     public static final URI GLOBAL_API_WS_URI;
-    public static final String NTP_SERVER = "time.cloudflare.com";
 
     public static final String NEWS_OVERVIEW_URL = "https://api.geysermc.org/v2/news/";
     public static final String NEWS_PROJECT_NAME = "geyser";

@@ -79,10 +79,6 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                 playerEntity.setUsername(profile.getName());
                 playerEntity.setTexturesProperty(texturesProperty);
 
-
-                // We'll send our own PlayerListEntry in requestAndHandleSkinAndCape
-                // But we need to send other player's entries so they show up in the player list
-                // without processing their skin information - that'll be processed when they spawn in
                 if (self) {
                     SkinManager.requestAndHandleSkinAndCape(playerEntity, session, skinAndCape ->
                             GeyserImpl.getInstance().getLogger().debug("Loaded Local Bedrock Java Skin Data for " + session.getClientData().getUsername()));

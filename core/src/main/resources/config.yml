@@ -111,7 +111,7 @@ debug-mode: false
 
 # Allow third party capes to be visible. Currently allowing:
 # OptiFine capes, LabyMod capes, 5Zig capes and MinecraftCapes
-allow-third-party-capes: true
+allow-third-party-capes: false
 
 # Allow third party deadmau5 ears to be visible. Currently allowing:
 # MinecraftCapes

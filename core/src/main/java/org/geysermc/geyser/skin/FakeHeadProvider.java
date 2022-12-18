@@ -63,7 +63,7 @@ public class FakeHeadProvider {
 
                     SkinProvider.Skin skin = skinData.skin();
                     SkinProvider.Cape cape = skinData.cape();
-                    SkinProvider.SkinGeometry geometry = skinData.geometry().getGeometryName().equals("{\"geometry\" :{\"default\" :\"geometry.humanoid.customSlim\"}}")
+                    SkinProvider.SkinGeometry geometry = skinData.geometry().geometryName().equals("{\"geometry\" :{\"default\" :\"geometry.humanoid.customSlim\"}}")
                             ? SkinProvider.WEARING_CUSTOM_SKULL_SLIM : SkinProvider.WEARING_CUSTOM_SKULL;
 
                     SkinProvider.Skin headSkin = SkinProvider.getOrDefault(
