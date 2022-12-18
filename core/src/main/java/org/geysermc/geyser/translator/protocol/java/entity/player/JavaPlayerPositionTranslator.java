@@ -85,7 +85,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
 
             acceptTeleport(session, packet.getX(), packet.getY(), packet.getZ(), packet.getYaw(), packet.getPitch(), packet.getTeleportId());
 
-            if (session.getServerRenderDistance() > 47 && !session.isEmulatePost1_13Logic()) {
+            if (session.getServerRenderDistance() > 32 && !session.isEmulatePost1_13Logic()) {
                 // See DimensionUtils for an explanation
                 ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
                 chunkRadiusUpdatedPacket.setRadius(session.getServerRenderDistance());
