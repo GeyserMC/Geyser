@@ -1074,6 +1074,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     /**
+     * Moves task to the session event loop if already not in it. Otherwise, the task is automatically ran.
+     */
+    public void ensureInEventLoop(Runnable runnable) {
+        if (eventLoop.inEventLoop()) {
+            runnable.run();
+            return;
+        }
+        executeInEventLoop(runnable);
+    }
+
+    /**
      * Executes a task and prints a stack trace if an error occurs.
      */
     public void executeInEventLoop(Runnable runnable) {
