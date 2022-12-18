@@ -182,6 +182,8 @@ public interface GeyserConfiguration {
 
     boolean isUseDirectConnection();
 
+    boolean isDisableCompression();
+
     int getConfigVersion();
 
     static void checkGeyserConfiguration(GeyserConfiguration geyserConfig, GeyserLogger geyserLogger) {

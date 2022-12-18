@@ -219,4 +219,9 @@ mtu: 1400
 # If disabled on plugin versions, expect performance decrease and latency increase
 use-direct-connection: true
 
+# Whether Geyser should attempt to disable compression for Bedrock players. This should be a benefit as there is no need to compress data
+# when Java packets aren't being handled over the network.
+# This requires use-direct-connection to be true.
+disable-compression: true
+
 config-version: 4
