@@ -158,13 +158,9 @@ public final class GeyserServer {
             pong.subMotd(config.getBedrock().secondaryMotd());
         }
 
-        if (config.isPassthroughPlayerCounts() && pingInfo != null) {
-            pong.playerCount(pingInfo.getPlayers().getOnline());
-            pong.maximumPlayerCount(pingInfo.getPlayers().getMax());
-        } else {
-            pong.playerCount(geyser.getSessionManager().getSessions().size());
-            pong.maximumPlayerCount(config.getMaxPlayers());
-        }
+        // https://github.com/GeyserMC/Geyser/issues/3388
+        pong.motd(pong.motd().replace(';', ':'));
+        pong.subMotd(pong.subMotd().replace(';', ':'));
 
         // Fallbacks to prevent errors and allow Bedrock to see the server
         if (pong.motd() == null || pong.motd().isBlank()) {
@@ -191,6 +187,14 @@ public final class GeyserServer {
                 System.arraycopy(motdArray, 0, newMotdArray, 0, newMotdArray.length);
                 pong.motd(new String(newMotdArray, StandardCharsets.UTF_8));
             }
+        }
+
+        if (config.isPassthroughPlayerCounts() && pingInfo != null) {
+            pong.playerCount(pingInfo.getPlayers().getOnline());
+            pong.maximumPlayerCount(pingInfo.getPlayers().getMax());
+        } else {
+            pong.playerCount(geyser.getSessionManager().getSessions().size());
+            pong.maximumPlayerCount(config.getMaxPlayers());
         }
 
         //Bedrock will not even attempt a connection if the client thinks the server is full

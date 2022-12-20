@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.item.components;
 
-import com.nukkitx.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMap;
 
 import java.util.Locale;
 

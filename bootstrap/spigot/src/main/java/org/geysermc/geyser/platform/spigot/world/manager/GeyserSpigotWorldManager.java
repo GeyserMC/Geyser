@@ -26,9 +26,6 @@
 package org.geysermc.geyser.platform.spigot.world.manager;
 
 import org.cloudburstmc.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -37,8 +34,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.plugin.Plugin;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.level.GameRule;
-import org.geysermc.geyser.level.GeyserWorldManager;
+import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
@@ -51,7 +51,7 @@ import java.util.List;
 /**
  * The base world manager to use when there is no supported NMS revision
  */
-public class GeyserSpigotWorldManager extends GeyserWorldManager {
+public class GeyserSpigotWorldManager extends WorldManager {
     private final Plugin plugin;
 
     public GeyserSpigotWorldManager(Plugin plugin) {
@@ -151,12 +151,12 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
         return true;
     }
 
-    public Boolean getGameRuleBool(GeyserSession session, GameRule gameRule) {
+    public boolean getGameRuleBool(GeyserSession session, GameRule gameRule) {
         String value = Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getGameRuleValue(gameRule.getJavaID());
         if (!value.isEmpty()) {
             return Boolean.parseBoolean(value);
         }
-        return (Boolean) gameRule.getDefaultValue();
+        return gameRule.getDefaultBooleanValue();
     }
 
     @Override
@@ -165,7 +165,7 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
         if (!value.isEmpty()) {
             return Integer.parseInt(value);
         }
-        return (int) gameRule.getDefaultValue();
+        return gameRule.getDefaultIntValue();
     }
 
     @Override

@@ -41,6 +41,8 @@ public class GeyserVelocityDumpInfo extends BootstrapDumpInfo {
     private final String platformVersion;
     private final String platformVendor;
     private final boolean onlineMode;
+
+    @AsteriskSerializer.Asterisk(isIp = true)
     private final String serverIP;
     private final int serverPort;
     private final List<PluginInfo> plugins;
@@ -51,12 +53,7 @@ public class GeyserVelocityDumpInfo extends BootstrapDumpInfo {
         this.platformVersion = proxy.getVersion().getVersion();
         this.platformVendor = proxy.getVersion().getVendor();
         this.onlineMode = proxy.getConfiguration().isOnlineMode();
-        String hostString = proxy.getBoundAddress().getHostString();
-        if (AsteriskSerializer.showSensitive || (hostString.equals("") || hostString.equals("0.0.0.0"))) {
-            this.serverIP = hostString;
-        } else {
-            this.serverIP = "***";
-        }
+        this.serverIP = proxy.getBoundAddress().getHostString();
         this.serverPort = proxy.getBoundAddress().getPort();
         this.plugins = new ArrayList<>();
 

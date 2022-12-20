@@ -31,13 +31,16 @@ import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundPickItemPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetCreativeModeSlotPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerHotbarPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
@@ -46,6 +49,7 @@ import org.geysermc.geyser.inventory.click.Click;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
+import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -85,8 +89,7 @@ public class InventoryUtils {
 
     public static void displayInventory(GeyserSession session, Inventory inventory) {
         InventoryTranslator translator = session.getInventoryTranslator();
-        if (translator != null) {
-            translator.prepareInventory(session, inventory);
+        if (translator != null && translator.prepareInventory(session, inventory)) {
             if (translator instanceof DoubleChestInventoryTranslator && !((Container) inventory).isUsingRealBlock()) {
                 session.scheduleInEventLoop(() -> {
                     Inventory openInv = session.getOpenInventory();
@@ -103,7 +106,6 @@ public class InventoryUtils {
                 translator.updateInventory(session, inventory);
             }
         } else {
-            // Precaution - as of 1.16 every inventory should be translated so this shouldn't happen
             session.setOpenInventory(null);
         }
     }
@@ -136,6 +138,28 @@ public class InventoryUtils {
         }
     }
 
+    /**
+     * Finds a usable block space in the world to place a fake inventory block, and returns the position.
+     */
+    @Nullable
+    public static Vector3i findAvailableWorldSpace(GeyserSession session) {
+        // Check if a fake block can be placed, either above the player or beneath.
+        BedrockDimension dimension = session.getChunkCache().getBedrockDimension();
+        int minY = dimension.minY(), maxY = minY + dimension.height();
+        Vector3i flatPlayerPosition = session.getPlayerEntity().getPosition().toInt();
+        Vector3i position = flatPlayerPosition.add(Vector3i.UP);
+        if (position.getY() < minY) {
+            return null;
+        }
+        if (position.getY() >= maxY) {
+            position = flatPlayerPosition.sub(0, 4, 0);
+            if (position.getY() >= maxY) {
+                return null;
+            }
+        }
+        return position;
+    }
+
     public static void updateCursor(GeyserSession session) {
         InventorySlotPacket cursorPacket = new InventorySlotPacket();
         cursorPacket.setContainerId(ContainerId.UI);
@@ -148,18 +172,6 @@ public class InventoryUtils {
         if (item1.isEmpty() || item2.isEmpty())
             return false;
         return item1.getJavaId() == item2.getJavaId() && Objects.equals(item1.getNbt(), item2.getNbt());
-    }
-
-    public static boolean canStack(ItemStack item1, ItemStack item2) {
-        if (item1 == null || item2 == null)
-            return false;
-        return item1.getId() == item2.getId() && Objects.equals(item1.getNbt(), item2.getNbt());
-    }
-
-    public static boolean canStack(ItemData item1, ItemData item2) {
-        if (item1 == null || item2 == null)
-            return false;
-        return item1.equals(item2, false, true, true);
     }
 
     /**
@@ -186,9 +198,20 @@ public class InventoryUtils {
 
         root.put("display", display.build());
         return protocolVersion -> ItemData.builder()
-                .definition(Registries.ITEMS.forVersion(protocolVersion).getStoredItems().barrier().getBedrockDefinition())
+                .definition(getUnusableSpaceBlockID(protocolVersion))
                 .count(1)
                 .tag(root.build()).build();
+    }
+
+    private static ItemDefinition getUnusableSpaceBlockID(int protocolVersion) {
+        String unusableSpaceBlock = GeyserImpl.getInstance().getConfig().getUnusableSpaceBlock();
+        ItemMapping unusableSpaceBlockID = Registries.ITEMS.forVersion(protocolVersion).getMapping(unusableSpaceBlock);
+        if (unusableSpaceBlockID != null) {
+            return unusableSpaceBlockID.getBedrockDefinition();
+        } else {
+            GeyserImpl.getInstance().getLogger().error("Invalid value" + unusableSpaceBlock + ". Resorting to barrier block.");
+            return Registries.ITEMS.forVersion(protocolVersion).getStoredItems().barrier().getBedrockDefinition();
+        }
     }
 
     /**

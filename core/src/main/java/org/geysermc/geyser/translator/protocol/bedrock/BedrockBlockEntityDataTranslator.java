@@ -28,7 +28,7 @@ package org.geysermc.geyser.translator.protocol.bedrock;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetJigsawBlockPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundSignUpdatePacket;
 import org.cloudburstmc.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -57,6 +57,10 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
             // This converts the message into the array'd message Java wants
             for (char character : text.toCharArray()) {
                 widthCount += SignUtils.getCharacterWidth(character);
+
+                // todo 1.20: update for hanging signs (smaller width). Currently bedrock thinks hanging signs are normal,
+                // so it thinks hanging signs have more width than they actually do. Seems like JE just truncates it.
+
                 // If we get a return in Bedrock, or go over the character width max, that signals to use the next line.
                 if (character == '\n' || widthCount > SignUtils.JAVA_CHARACTER_WIDTH_MAX) {
                     // We need to apply some more logic if we went over the character width max

@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.util;
 
-import com.github.steveice10.mc.protocol.data.game.level.sound.BuiltinSound;
-import com.github.steveice10.mc.protocol.data.game.level.sound.CustomSound;
 import com.github.steveice10.mc.protocol.data.game.level.sound.Sound;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
@@ -63,30 +61,20 @@ public final class SoundUtils {
     /**
      * Translates a Java Custom or Builtin Sound to its Bedrock equivalent
      *
-     * @param sound the sound to translate
+     * @param javaIdentifier the sound to translate
      * @return a Bedrock sound
      */
-    public static String translatePlaySound(Sound sound) {
-        String packetSound;
-        if (sound instanceof BuiltinSound builtinSound) {
-            packetSound = builtinSound.getName();
-        } else if (sound instanceof CustomSound customSound) {
-            packetSound = customSound.getName();
-        } else {
-            GeyserImpl.getInstance().getLogger().debug("Unknown sound, we were unable to map this. " + sound);
-            return "";
-        }
-
+    public static String translatePlaySound(String javaIdentifier) {
         // Drop the Minecraft namespace if applicable
-        if (packetSound.startsWith("minecraft:")) {
-            packetSound = packetSound.substring("minecraft:".length());
+        if (javaIdentifier.startsWith("minecraft:")) {
+            javaIdentifier = javaIdentifier.substring("minecraft:".length());
         }
 
-        SoundMapping soundMapping = Registries.SOUNDS.get(packetSound);
+        SoundMapping soundMapping = Registries.SOUNDS.get(javaIdentifier);
         if (soundMapping == null || soundMapping.getPlaysound() == null) {
             // no mapping
-            GeyserImpl.getInstance().getLogger().debug("[PlaySound] Defaulting to sound server gave us for " + sound);
-            return packetSound;
+            GeyserImpl.getInstance().getLogger().debug("[PlaySound] Defaulting to sound server gave us for " + javaIdentifier);
+            return javaIdentifier;
         }
         return soundMapping.getPlaysound();
     }
@@ -99,7 +87,7 @@ public final class SoundUtils {
      * @param position the position
      * @param pitch the pitch
      */
-    public static void playBuiltinSound(GeyserSession session, BuiltinSound javaSound, Vector3f position, float volume, float pitch) {
+    public static void playSound(GeyserSession session, Sound javaSound, Vector3f position, float volume, float pitch) {
         String packetSound = javaSound.getName();
 
         SoundMapping soundMapping = Registries.SOUNDS.get(packetSound);

@@ -183,6 +183,10 @@ log-player-ip-addresses: true
 # auto-update.
 notify-on-new-bedrock-update: true
 
+# Which item to use to mark unavailable slots in a Bedrock player inventory. Examples of this are the 2x2 crafting grid while in creative,
+# or custom inventory menus with sizes different from the usual 3x9. A barrier block is the default item.
+unusable-space-block: minecraft:barrier
+
 # bStats is a stat tracker that is entirely anonymous and tracks only basic information
 # about Geyser, such as how many people are online, how many servers are using Geyser,
 # what OS is being used, etc. You can learn more about bStats here: https://bstats.org/.

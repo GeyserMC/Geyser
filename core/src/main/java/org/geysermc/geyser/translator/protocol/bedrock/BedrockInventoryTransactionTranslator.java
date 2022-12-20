@@ -47,10 +47,10 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.InventoryActionData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.InventorySource;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.LegacySetItemSlotData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.InventoryActionData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.InventorySource;
+import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.LegacySetItemSlotData;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryTransactionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
@@ -64,7 +64,6 @@ import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.click.Click;
 import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
@@ -478,10 +477,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 InteractAction.ATTACK, session.isSneaking());
                         session.sendDownstreamPacket(attackPacket);
 
-                        if (GameProtocol.supports1_19_10(session)) {
-                            // Since 1.19.10, LevelSoundEventPackets are no longer sent by the client when attacking entities
-                            CooldownUtils.sendCooldown(session);
-                        }
+                        // Since 1.19.10, LevelSoundEventPackets are no longer sent by the client when attacking entities
+                        CooldownUtils.sendCooldown(session);
                     }
                 }
                 break;

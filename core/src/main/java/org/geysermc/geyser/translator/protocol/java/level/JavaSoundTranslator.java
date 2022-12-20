@@ -38,6 +38,6 @@ public class JavaSoundTranslator extends PacketTranslator<ClientboundSoundPacket
     @Override
     public void translate(GeyserSession session, ClientboundSoundPacket packet) {
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
-        SoundUtils.playBuiltinSound(session, packet.getSound(), position, packet.getVolume(), packet.getPitch());
+        SoundUtils.playSound(session, packet.getSound(), position, packet.getVolume(), packet.getPitch());
     }
 }

@@ -122,7 +122,7 @@ public class LoginEncryptionUtils {
     }
 
     public static void encryptPlayerConnection(GeyserSession session, LoginPacket loginPacket) {
-        encryptConnectionWithCert(session, loginPacket.getExtra().toString(), loginPacket.getChain());
+        encryptConnectionWithCert(session, loginPacket.getExtra().getParsedString(), loginPacket.getChain());
     }
 
     private static void encryptConnectionWithCert(GeyserSession session, String clientData, List<SignedJWT> certChainData) {

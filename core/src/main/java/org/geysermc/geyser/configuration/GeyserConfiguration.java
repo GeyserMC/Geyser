@@ -111,6 +111,8 @@ public interface GeyserConfiguration {
 
     boolean isNotifyOnNewBedrockUpdate();
 
+    String getUnusableSpaceBlock();
+
     IMetricsInfo getMetrics();
 
     int getPendingAuthenticationTimeout();

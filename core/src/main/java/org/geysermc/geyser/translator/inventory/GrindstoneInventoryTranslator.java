@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.inventory;
 
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 
@@ -37,7 +37,7 @@ public class GrindstoneInventoryTranslator extends AbstractBlockInventoryTransla
     }
 
     @Override
-    public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
+    public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
         return switch (slotInfoData.getContainer()) {
             case GRINDSTONE_INPUT -> 0;
             case GRINDSTONE_ADDITIONAL -> 1;
