@@ -19,12 +19,19 @@ jobs:
         uses: snickerbockers/submodules-init@v4
       - name: Build with Gradle
         run: ./gradlew build
+
+      - name: Archive artifacts (Geyser Fabric)
+        uses: actions/upload-artifact@v2
+        if: success()
+        with:
+          name: Geyser Fabric
+          path: bootstrap/fabric/build/libs/Geyser-Fabric.jar
       - name: Archive artifacts (Geyser Standalone)
         uses: actions/upload-artifact@v2
         if: success()
         with:
           name: Geyser Standalone
-          path: bootstrap/standalone/build/libs/Geyser.jar
+          path: bootstrap/standalone/build/libs/Geyser-Standalone.jar
       - name: Archive artifacts (Geyser Spigot)
         uses: actions/upload-artifact@v2
         if: success()

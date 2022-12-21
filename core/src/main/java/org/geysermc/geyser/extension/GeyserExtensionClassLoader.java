@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.extension;
 
-import it.unimi.dsi.fastutil.objects.Object2ReferenceMap;
-import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.extension.ExtensionDescription;
 import org.geysermc.geyser.api.extension.exception.InvalidExtensionException;
@@ -39,7 +39,7 @@ import java.nio.file.Path;
 
 public class GeyserExtensionClassLoader extends URLClassLoader {
     private final GeyserExtensionLoader loader;
-    private final Object2ReferenceMap<String, Class<?>> classes = new Object2ReferenceOpenHashMap<>();
+    private final Object2ObjectMap<String, Class<?>> classes = new Object2ObjectOpenHashMap<>();
 
     public GeyserExtensionClassLoader(GeyserExtensionLoader loader, ClassLoader parent, Path path) throws MalformedURLException {
         super(new URL[] { path.toUri().toURL() }, parent);

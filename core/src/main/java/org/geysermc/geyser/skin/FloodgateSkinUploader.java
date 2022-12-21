@@ -114,7 +114,7 @@ public final class FloodgateSkinUploader {
 
                             if (session != null) {
                                 if (!node.get("success").asBoolean()) {
-                                    logger.info("Failed to upload skin for " + session.name());
+                                    logger.info("Failed to upload skin for " + session.bedrockUsername());
                                     return;
                                 }
 

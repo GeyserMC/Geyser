@@ -33,6 +33,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
+import com.nukkitx.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -81,8 +82,6 @@ public class RecipeRegistryPopulator {
                     Collections.singletonList(CraftingData.fromMulti(UUID.fromString("d392b075-4ba1-40ae-8789-af868d56f6ce"), ++LAST_RECIPE_NET_ID)));
             craftingData.put(RecipeType.CRAFTING_SPECIAL_MAPCLONING,
                     Collections.singletonList(CraftingData.fromMulti(UUID.fromString("85939755-ba10-4d9d-a4cc-efb7a8e943c4"), ++LAST_RECIPE_NET_ID)));
-            craftingData.put(RecipeType.CRAFTING_SPECIAL_BANNERADDPATTERN,
-                    Collections.singletonList(CraftingData.fromMulti(UUID.fromString("b5c5d105-75a2-4076-af2b-923ea2bf4bf0"), ++LAST_RECIPE_NET_ID)));
 
             // https://github.com/pmmp/PocketMine-MP/blob/stable/src/pocketmine/inventory/MultiRecipe.php
 
@@ -171,7 +170,7 @@ public class RecipeRegistryPopulator {
             /* Convert end */
 
             return CraftingData.fromShaped(uuid.toString(), shape.get(0).length(), shape.size(),
-                    inputs, Collections.singletonList(output), uuid, "crafting_table", 0, netId);
+                    inputs.stream().map(ItemDescriptorWithCount::fromItem).toList(), Collections.singletonList(output), uuid, "crafting_table", 0, netId);
         }
         List<ItemData> inputs = new ObjectArrayList<>();
         for (JsonNode entry : node.get("inputs")) {
@@ -191,10 +190,10 @@ public class RecipeRegistryPopulator {
         if (type == 5) {
             // Shulker box
             return CraftingData.fromShulkerBox(uuid.toString(),
-                    inputs, Collections.singletonList(output), uuid, "crafting_table", 0, netId);
+                    inputs.stream().map(ItemDescriptorWithCount::fromItem).toList(), Collections.singletonList(output), uuid, "crafting_table", 0, netId);
         }
         return CraftingData.fromShapeless(uuid.toString(),
-                inputs, Collections.singletonList(output), uuid, "crafting_table", 0, netId);
+                inputs.stream().map(ItemDescriptorWithCount::fromItem).toList(), Collections.singletonList(output), uuid, "crafting_table", 0, netId);
     }
 
     private static ItemData getBedrockItemFromIdentifierJson(ItemMapping mapping, JsonNode itemNode) {

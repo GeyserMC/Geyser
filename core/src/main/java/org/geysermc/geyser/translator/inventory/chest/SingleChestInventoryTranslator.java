@@ -52,8 +52,8 @@ public class SingleChestInventoryTranslator extends ChestInventoryTranslator {
     }
 
     @Override
-    public void prepareInventory(GeyserSession session, Inventory inventory) {
-        holder.prepareInventory(this, session, inventory);
+    public boolean prepareInventory(GeyserSession session, Inventory inventory) {
+        return holder.prepareInventory(this, session, inventory);
     }
 
     @Override

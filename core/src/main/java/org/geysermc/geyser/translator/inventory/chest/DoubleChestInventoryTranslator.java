@@ -40,6 +40,7 @@ import org.geysermc.geyser.level.block.DoubleChestValue;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.block.entity.DoubleChestBlockEntityTranslator;
+import org.geysermc.geyser.util.InventoryUtils;
 
 public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
     private final int defaultJavaBlockState;
@@ -50,7 +51,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
     }
 
     @Override
-    public void prepareInventory(GeyserSession session, Inventory inventory) {
+    public boolean prepareInventory(GeyserSession session, Inventory inventory) {
         // See BlockInventoryHolder - same concept there except we're also dealing with a specific block state
         if (session.getLastInteractionPlayerPosition().equals(session.getPlayerEntity().getPosition())) {
             int javaBlockId = session.getGeyser().getWorldManager().getBlockAt(session, session.getLastInteractionBlockPosition());
@@ -76,11 +77,16 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
                 dataPacket.setData(tag.build());
                 dataPacket.setBlockPosition(session.getLastInteractionBlockPosition());
                 session.sendUpstreamPacket(dataPacket);
-                return;
+
+                return true;
             }
         }
 
-        Vector3i position = session.getPlayerEntity().getPosition().toInt().add(Vector3i.UP);
+        Vector3i position = InventoryUtils.findAvailableWorldSpace(session);
+        if (position == null) {
+            return false;
+        }
+
         Vector3i pairPosition = position.add(Vector3i.UNIT_X);
         int bedrockBlockId = session.getBlockMappings().getBedrockBlockId(defaultJavaBlockState);
 
@@ -125,12 +131,14 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         session.sendUpstreamPacket(dataPacket);
 
         inventory.setHolderPosition(position);
+
+        return true;
     }
 
     @Override
     public void openInventory(GeyserSession session, Inventory inventory) {
         ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
-        containerOpenPacket.setId((byte) inventory.getId());
+        containerOpenPacket.setId((byte) inventory.getBedrockId());
         containerOpenPacket.setType(ContainerType.CONTAINER);
         containerOpenPacket.setBlockPosition(inventory.getHolderPosition());
         containerOpenPacket.setUniqueEntityId(inventory.getHolderId());
@@ -143,7 +151,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
             // No need to reset a block since we didn't change any blocks
             // But send a container close packet because we aren't destroying the original.
             ContainerClosePacket packet = new ContainerClosePacket();
-            packet.setId((byte) inventory.getId());
+            packet.setId((byte) inventory.getBedrockId());
             packet.setUnknownBool0(true); //TODO needs to be changed in Protocol to "server-side" or something
             session.sendUpstreamPacket(packet);
             return;

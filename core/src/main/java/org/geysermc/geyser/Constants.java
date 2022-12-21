@@ -37,6 +37,9 @@ public final class Constants {
 
     public static final String FLOODGATE_DOWNLOAD_LOCATION = "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/";
 
+    public static final String GEYSER_DOWNLOAD_LOCATION = "https://ci.geysermc.org";
+    public static final String UPDATE_PERMISSION = "geyser.update";
+
     static final String SAVED_REFRESH_TOKEN_FILE = "saved-refresh-tokens.json";
 
     public static final String GEYSER_NAMESPACE = "geyser:";

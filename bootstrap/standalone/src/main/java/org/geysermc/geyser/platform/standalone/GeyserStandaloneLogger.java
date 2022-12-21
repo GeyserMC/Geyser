@@ -95,24 +95,4 @@ public class GeyserStandaloneLogger extends SimpleTerminalConsole implements Gey
     public boolean isDebug() {
         return log.isDebugEnabled();
     }
-
-    @Override
-    public String name() {
-        return "CONSOLE";
-    }
-
-    @Override
-    public void sendMessage(String message) {
-        info(message);
-    }
-
-    @Override
-    public boolean isConsole() {
-        return true;
-    }
-
-    @Override
-    public boolean hasPermission(String permission) {
-        return true;
-    }
 }

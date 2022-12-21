@@ -34,14 +34,12 @@ import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeDa
 import com.github.steveice10.mc.protocol.data.game.recipe.data.SmithingRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.StoneCuttingRecipeData;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateRecipesPacket;
-import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
+import com.nukkitx.protocol.bedrock.data.inventory.descriptor.DefaultDescriptor;
+import com.nukkitx.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import com.nukkitx.protocol.bedrock.packet.CraftingDataPacket;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.*;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
@@ -99,8 +97,8 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     }
                     // Strip NBT - tools won't appear in the recipe book otherwise
                     output = output.toBuilder().tag(null).build();
-                    ItemData[][] inputCombinations = combinations(session, shapelessRecipeData.getIngredients());
-                    for (ItemData[] inputs : inputCombinations) {
+                    ItemDescriptorWithCount[][] inputCombinations = combinations(session, shapelessRecipeData.getIngredients());
+                    for (ItemDescriptorWithCount[] inputs : inputCombinations) {
                         UUID uuid = UUID.randomUUID();
                         craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
                                 Arrays.asList(inputs), Collections.singletonList(output), uuid, "crafting_table", 0, netId));
@@ -116,8 +114,8 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     }
                     // See above
                     output = output.toBuilder().tag(null).build();
-                    ItemData[][] inputCombinations = combinations(session, shapedRecipeData.getIngredients());
-                    for (ItemData[] inputs : inputCombinations) {
+                    ItemDescriptorWithCount[][] inputCombinations = combinations(session, shapedRecipeData.getIngredients());
+                    for (ItemDescriptorWithCount[] inputs : inputCombinations) {
                         UUID uuid = UUID.randomUUID();
                         craftingDataPacket.getCraftingData().add(CraftingData.fromShaped(uuid.toString(),
                                 shapedRecipeData.getWidth(), shapedRecipeData.getHeight(), Arrays.asList(inputs),
@@ -141,14 +139,14 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     SmithingRecipeData recipeData = (SmithingRecipeData) recipe.getData();
                     ItemData output = ItemTranslator.translateToBedrock(session, recipeData.getResult());
                     for (ItemStack base : recipeData.getBase().getOptions()) {
-                        ItemData bedrockBase = ItemTranslator.translateToBedrock(session, base);
+                        ItemDescriptorWithCount bedrockBase = ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, base));
 
                         for (ItemStack addition : recipeData.getAddition().getOptions()) {
-                            ItemData bedrockAddition = ItemTranslator.translateToBedrock(session, addition);
+                            ItemDescriptorWithCount bedrockAddition = ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, addition));
 
                             UUID uuid = UUID.randomUUID();
                             craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
-                                    Arrays.asList(bedrockBase, bedrockAddition),
+                                    List.of(bedrockBase, bedrockAddition),
                                     Collections.singletonList(output), uuid, "smithing_table", 2, netId++));
                         }
                     }
@@ -178,6 +176,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 // As of 1.16.4, all stonecutter recipes have one ingredient option
                 ItemStack ingredient = stoneCuttingData.getIngredient().getOptions()[0];
                 ItemData input = ItemTranslator.translateToBedrock(session, ingredient);
+                ItemDescriptorWithCount descriptor = ItemDescriptorWithCount.fromItem(input);
                 ItemStack javaOutput = stoneCuttingData.getResult();
                 ItemData output = ItemTranslator.translateToBedrock(session, javaOutput);
                 if (input.equals(ItemData.AIR) || output.equals(ItemData.AIR)) {
@@ -188,7 +187,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
 
                 // We need to register stonecutting recipes so they show up on Bedrock
                 craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
-                        Collections.singletonList(input), Collections.singletonList(output), uuid, "stonecutter", 0, netId));
+                        Collections.singletonList(descriptor), Collections.singletonList(output), uuid, "stonecutter", 0, netId));
 
                 // Save the recipe list for reference when crafting
                 // Add the net ID as the key and the button required + output for the value
@@ -209,19 +208,19 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
      *
      * @return the Java ingredient list as an array that Bedrock can understand
      */
-    private ItemData[][] combinations(GeyserSession session, Ingredient[] ingredients) {
-        Map<Set<ItemData>, IntSet> squashedOptions = new HashMap<>();
+    private ItemDescriptorWithCount[][] combinations(GeyserSession session, Ingredient[] ingredients) {
+        Map<Set<ItemDescriptorWithCount>, IntSet> squashedOptions = new HashMap<>();
         for (int i = 0; i < ingredients.length; i++) {
             if (ingredients[i].getOptions().length == 0) {
-                squashedOptions.computeIfAbsent(Collections.singleton(ItemData.AIR), k -> new IntOpenHashSet()).add(i);
+                squashedOptions.computeIfAbsent(Collections.singleton(ItemDescriptorWithCount.EMPTY), k -> new IntOpenHashSet()).add(i);
                 continue;
             }
             Ingredient ingredient = ingredients[i];
-            Map<GroupedItem, List<ItemData>> groupedByIds = Arrays.stream(ingredient.getOptions())
-                    .map(item -> ItemTranslator.translateToBedrock(session, item))
-                    .collect(Collectors.groupingBy(item -> new GroupedItem(item.getId(), item.getCount(), item.getTag())));
-            Set<ItemData> optionSet = new HashSet<>(groupedByIds.size());
-            for (Map.Entry<GroupedItem, List<ItemData>> entry : groupedByIds.entrySet()) {
+            Map<GroupedItem, List<ItemDescriptorWithCount>> groupedByIds = Arrays.stream(ingredient.getOptions())
+                    .map(item -> ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, item)))
+                    .collect(Collectors.groupingBy(item -> item == ItemDescriptorWithCount.EMPTY ? new GroupedItem(0, 0) : new GroupedItem(((DefaultDescriptor) item.getDescriptor()).getItemId(), item.getCount())));
+            Set<ItemDescriptorWithCount> optionSet = new HashSet<>(groupedByIds.size());
+            for (Map.Entry<GroupedItem, List<ItemDescriptorWithCount>> entry : groupedByIds.entrySet()) {
                 if (entry.getValue().size() > 1) {
                     GroupedItem groupedItem = entry.getKey();
                     int idCount = 0;
@@ -234,46 +233,42 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     if (entry.getValue().size() < idCount) {
                         optionSet.addAll(entry.getValue());
                     } else {
-                        optionSet.add(ItemData.builder()
-                                .id(groupedItem.id)
-                                .damage(Short.MAX_VALUE)
-                                .count(groupedItem.count)
-                                .tag(groupedItem.tag).build());
+                        optionSet.add(groupedItem.id == 0 ? ItemDescriptorWithCount.EMPTY : new ItemDescriptorWithCount(new DefaultDescriptor(groupedItem.id, Short.MAX_VALUE), groupedItem.count));
                     }
                 } else {
-                    ItemData item = entry.getValue().get(0);
+                    ItemDescriptorWithCount item = entry.getValue().get(0);
                     optionSet.add(item);
                 }
             }
             squashedOptions.computeIfAbsent(optionSet, k -> new IntOpenHashSet()).add(i);
         }
         int totalCombinations = 1;
-        for (Set<ItemData> optionSet : squashedOptions.keySet()) {
+        for (Set<ItemDescriptorWithCount> optionSet : squashedOptions.keySet()) {
             totalCombinations *= optionSet.size();
         }
         if (totalCombinations > 500) {
-            ItemData[] translatedItems = new ItemData[ingredients.length];
+            ItemDescriptorWithCount[] translatedItems = new ItemDescriptorWithCount[ingredients.length];
             for (int i = 0; i < ingredients.length; i++) {
                 if (ingredients[i].getOptions().length > 0) {
-                    translatedItems[i] = ItemTranslator.translateToBedrock(session, ingredients[i].getOptions()[0]);
+                    translatedItems[i] = ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, ingredients[i].getOptions()[0]));
                 } else {
-                    translatedItems[i] = ItemData.AIR;
+                    translatedItems[i] = ItemDescriptorWithCount.EMPTY;
                 }
             }
-            return new ItemData[][]{translatedItems};
+            return new ItemDescriptorWithCount[][]{translatedItems};
         }
-        List<Set<ItemData>> sortedSets = new ArrayList<>(squashedOptions.keySet());
+        List<Set<ItemDescriptorWithCount>> sortedSets = new ArrayList<>(squashedOptions.keySet());
         sortedSets.sort(Comparator.comparing(Set::size, Comparator.reverseOrder()));
-        ItemData[][] combinations = new ItemData[totalCombinations][ingredients.length];
+        ItemDescriptorWithCount[][] combinations = new ItemDescriptorWithCount[totalCombinations][ingredients.length];
         int x = 1;
-        for (Set<ItemData> set : sortedSets) {
+        for (Set<ItemDescriptorWithCount> set : sortedSets) {
             IntSet slotSet = squashedOptions.get(set);
             int i = 0;
-            for (ItemData item : set) {
+            for (ItemDescriptorWithCount item : set) {
                 for (int j = 0; j < totalCombinations / set.size(); j++) {
                     final int comboIndex = (i * x) + (j % x) + ((j / x) * set.size() * x);
-                    for (int slot : slotSet) {
-                        combinations[comboIndex][slot] = item;
+                    for (IntIterator it = slotSet.iterator(); it.hasNext(); ) {
+                        combinations[comboIndex][it.nextInt()] = item;
                     }
                 }
                 i++;
@@ -288,6 +283,5 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
     private static class GroupedItem {
         int id;
         int count;
-        NbtMap tag;
     }
 }

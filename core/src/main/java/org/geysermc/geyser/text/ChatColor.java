@@ -26,6 +26,7 @@
 package org.geysermc.geyser.text;
 
 public class ChatColor {
+    public static final String ANSI_RESET = (char) 0x1b + "[0m";
 
     public static final char ESCAPE = '§';
     public static final String BLACK = ESCAPE + "0";
@@ -64,7 +65,7 @@ public class ChatColor {
         string = string.replace(ITALIC, (char) 0x1b + "[3m");
         string = string.replace(UNDERLINE, (char) 0x1b + "[4m");
         string = string.replace(STRIKETHROUGH, (char) 0x1b + "[9m");
-        string = string.replace(RESET, (char) 0x1b + "[0m");
+        string = string.replace(RESET, ANSI_RESET);
         string = string.replace(BLACK, (char) 0x1b + "[0;30m");
         string = string.replace(DARK_BLUE, (char) 0x1b + "[0;34m");
         string = string.replace(DARK_GREEN, (char) 0x1b + "[0;32m");
@@ -82,20 +83,5 @@ public class ChatColor {
         string = string.replace(YELLOW, (char) 0x1b + "[33;1m");
         string = string.replace(WHITE, (char) 0x1b + "[37;1m");
         return string;
-    }
-
-    public String translateAlternateColorCodes(char color, String message) {
-        return message.replace(color, ESCAPE);
-    }
-
-    /**
-     * Remove all colour formatting tags from a message
-     *
-     * @param message Message to remove colour tags from
-     *
-     * @return The sanitised message
-     */
-    public static String stripColors(String message) {
-        return message = message.replaceAll("(&([a-fk-or0-9]))","").replaceAll("(§([a-fk-or0-9]))","").replaceAll("s/\\x1b\\[[0-9;]*[a-zA-Z]//g","");
     }
 }

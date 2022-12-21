@@ -20,7 +20,7 @@ pipeline {
             }
             post {
                 success {
-                    archiveArtifacts artifacts: 'bootstrap/**/build/libs/*.jar', excludes: 'bootstrap/**/build/libs/*-sources.jar,bootstrap/**/build/libs/*-unshaded.jar', fingerprint: true
+                    archiveArtifacts artifacts: 'bootstrap/**/build/libs/Geyser-*.jar', fingerprint: true
                 }
             }
         }
@@ -29,7 +29,6 @@ pipeline {
             when {
                 anyOf {
                     branch "master"
-                    branch "feature/extensions"
                 }
             }
 
@@ -50,7 +49,7 @@ pipeline {
                         rootDir: "",
                         useWrapper: true,
                         buildFile: 'build.gradle.kts',
-                        tasks: 'build artifactoryPublish',
+                        tasks: 'artifactoryPublish',
                         deployerId: "GRADLE_DEPLOYER",
                         resolverId: "GRADLE_RESOLVER"
                 )
@@ -102,7 +101,6 @@ pipeline {
         success {
             script {
                 if (env.BRANCH_NAME == 'master') {
-                    build propagate: false, wait: false, job: 'GeyserMC/Geyser-Fabric/java-1.18', parameters: [booleanParam(name: 'SKIP_DISCORD', value: true)]
                     build propagate: false, wait: false, job: 'GeyserMC/GeyserConnect/master', parameters: [booleanParam(name: 'SKIP_DISCORD', value: true)]
                 }
             }

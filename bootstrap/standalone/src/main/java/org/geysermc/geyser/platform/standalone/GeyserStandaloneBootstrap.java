@@ -47,10 +47,10 @@ import org.geysermc.geyser.configuration.GeyserJacksonConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
-import org.geysermc.geyser.platform.standalone.command.GeyserStandaloneCommandManager;
 import org.geysermc.geyser.platform.standalone.gui.GeyserStandaloneGUI;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.util.LoopbackUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -63,7 +63,7 @@ import java.util.stream.Collectors;
 
 public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
-    private GeyserStandaloneCommandManager geyserCommandManager;
+    private GeyserCommandManager geyserCommandManager;
     private GeyserStandaloneConfiguration geyserConfig;
     private GeyserStandaloneLogger geyserLogger;
     private IGeyserPingPassthrough geyserPingPassthrough;
@@ -188,7 +188,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
         geyserLogger = new GeyserStandaloneLogger();
 
-        LoopbackUtil.checkLoopback(geyserLogger);
+        LoopbackUtil.checkAndApplyLoopback(geyserLogger);
         
         try {
             File configFile = FileUtils.fileOrCopiedFromResource(new File(configFilename), "config.yml",
@@ -216,8 +216,10 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         // Allow libraries like Protocol to have their debug information passthrough
         logger.get().setLevel(geyserConfig.isDebugMode() ? Level.DEBUG : Level.INFO);
 
-        geyser = GeyserImpl.start(PlatformType.STANDALONE, this);
-        geyserCommandManager = new GeyserStandaloneCommandManager(geyser);
+        geyser = GeyserImpl.load(PlatformType.STANDALONE, this);
+        GeyserImpl.start();
+
+        geyserCommandManager = new GeyserCommandManager(geyser);
         geyserCommandManager.init();
 
         if (gui != null) {

@@ -245,13 +245,7 @@ public class LoginEncryptionUtils {
                             }
 
                             if (response.clickedButtonId() == 1) {
-                                if (isPasswordAuthEnabled) {
-                                    session.setMicrosoftAccount(true);
-                                    buildAndShowMicrosoftAuthenticationWindow(session);
-                                } else {
-                                    // Just show the OAuth code
-                                    session.authenticateWithMicrosoftCode();
-                                }
+                                session.authenticateWithMicrosoftCode();
                                 return;
                             }
 
@@ -315,37 +309,8 @@ public class LoginEncryptionUtils {
                         .input("geyser.auth.login.form.details.email", "account@geysermc.org", "")
                         .input("geyser.auth.login.form.details.pass", "123456", "")
                         .invalidResultHandler(() -> buildAndShowLoginDetailsWindow(session))
-                        .closedResultHandler(() -> {
-                            if (session.isMicrosoftAccount()) {
-                                buildAndShowMicrosoftAuthenticationWindow(session);
-                            } else {
-                                buildAndShowLoginWindow(session);
-                            }
-                        })
+                        .closedResultHandler(() -> buildAndShowLoginWindow(session))
                         .validResultHandler((response) -> session.authenticate(response.next(), response.next())));
-    }
-
-    /**
-     * Prompts the user between either OAuth code login or manual password authentication
-     */
-    public static void buildAndShowMicrosoftAuthenticationWindow(GeyserSession session) {
-        session.sendForm(
-                SimpleForm.builder()
-                        .translator(GeyserLocale::getPlayerLocaleString, session.locale())
-                        .title("geyser.auth.login.form.notice.btn_login.microsoft")
-                        .button("geyser.auth.login.method.browser")
-                        .button("geyser.auth.login.method.password")
-                        .button("geyser.auth.login.form.notice.btn_disconnect")
-                        .closedOrInvalidResultHandler(() -> buildAndShowLoginWindow(session))
-                        .validResultHandler((response) -> {
-                            if (response.clickedButtonId() == 0) {
-                                session.authenticateWithMicrosoftCode();
-                            } else if (response.clickedButtonId() == 1) {
-                                buildAndShowLoginDetailsWindow(session);
-                            } else {
-                                session.disconnect(GeyserLocale.getPlayerLocaleString("geyser.auth.login.form.disconnect", session.locale()));
-                            }
-                        }));
     }
 
     /**
@@ -374,7 +339,7 @@ public class LoginEncryptionUtils {
                         .content(message.toString())
                         .button1("%gui.done")
                         .button2("%menu.disconnect")
-                        .closedOrInvalidResultHandler(() -> buildAndShowMicrosoftAuthenticationWindow(session))
+                        .closedOrInvalidResultHandler(() -> buildAndShowLoginWindow(session))
                         .validResultHandler((response) -> {
                             if (response.clickedButtonId() == 1) {
                                 session.disconnect(GeyserLocale.getPlayerLocaleString("geyser.auth.login.form.disconnect", locale));

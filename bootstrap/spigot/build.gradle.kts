@@ -1,22 +1,19 @@
-val paperVersion = "1.19-R0.1-SNAPSHOT"
-val viaVersion = "4.0.0"
-val adaptersVersion = "1.5-SNAPSHOT"
-val commodoreVersion = "1.13"
-
 dependencies {
     api(projects.core)
 
-    implementation("org.geysermc.geyser.adapters", "spigot-all", adaptersVersion)
+    implementation(libs.adapters.spigot)
 
-    implementation("me.lucko", "commodore", commodoreVersion)
+    implementation(libs.commodore)
+
+    implementation(libs.adventure.text.serializer.bungeecord)
     
     // Both paper-api and paper-mojangapi only provide Java 17 versions for 1.19
-    compileOnly("io.papermc.paper", "paper-api", paperVersion) {
+    compileOnly(libs.paper.api) {
         attributes {
             attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
         }
     }
-    compileOnly("io.papermc.paper", "paper-mojangapi", paperVersion) {
+    compileOnly(libs.paper.mojangapi) {
         attributes {
             attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
         }
@@ -25,13 +22,14 @@ dependencies {
 
 platformRelocate("it.unimi.dsi.fastutil")
 platformRelocate("com.fasterxml.jackson")
-platformRelocate("net.kyori")
+// Relocate net.kyori but exclude the component logger
+platformRelocate("net.kyori", "net.kyori.adventure.text.logger.slf4j.ComponentLogger")
 platformRelocate("org.objectweb.asm")
 platformRelocate("me.lucko.commodore")
 platformRelocate("io.netty.channel.kqueue")
 
 // These dependencies are already present on the platform
-provided("com.viaversion", "viaversion", viaVersion)
+provided(libs.viaversion)
 
 application {
     mainClass.set("org.geysermc.geyser.platform.spigot.GeyserSpigotMain")

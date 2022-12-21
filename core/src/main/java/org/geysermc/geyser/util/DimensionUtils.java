@@ -27,11 +27,16 @@ package org.geysermc.geyser.util;
 
 import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.protocol.bedrock.data.PlayerActionType;
 import com.nukkitx.protocol.bedrock.packet.ChangeDimensionPacket;
 import com.nukkitx.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
 import com.nukkitx.protocol.bedrock.packet.MobEffectPacket;
+import com.nukkitx.protocol.bedrock.packet.PlayerActionPacket;
 import com.nukkitx.protocol.bedrock.packet.StopSoundPacket;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.level.BedrockDimension;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Set;
@@ -93,7 +98,10 @@ public class DimensionUtils {
         changeDimensionPacket.setRespawn(true);
         changeDimensionPacket.setPosition(pos);
         session.sendUpstreamPacket(changeDimensionPacket);
+
         session.setDimension(javaDimension);
+        setBedrockDimension(session, javaDimension);
+
         player.setPosition(pos);
         session.setSpawned(false);
         session.setLastChunkPosition(null);
@@ -115,6 +123,19 @@ public class DimensionUtils {
         stopSoundPacket.setSoundName("");
         session.sendUpstreamPacket(stopSoundPacket);
 
+        // Kind of silly but Bedrock 1.19.50 requires an acknowledgement after the
+        // initial chunks are sent, prior to the client acknowledgement
+        if (GameProtocol.supports1_19_50(session)) {
+            // Note: send this before chunks are sent. Fixed https://github.com/GeyserMC/Geyser/issues/3421
+            PlayerActionPacket ackPacket = new PlayerActionPacket();
+            ackPacket.setRuntimeEntityId(player.getGeyserId());
+            ackPacket.setAction(PlayerActionType.DIMENSION_CHANGE_SUCCESS);
+            ackPacket.setBlockPosition(Vector3i.ZERO);
+            ackPacket.setResultPosition(Vector3i.ZERO);
+            ackPacket.setFace(0);
+            session.sendUpstreamPacket(ackPacket);
+        }
+
         // TODO - fix this hack of a fix by sending the final dimension switching logic after sections have been sent.
         // The client wants sections sent to it before it can successfully respawn.
         ChunkUtils.sendEmptyChunks(session, player.getPosition().toInt(), 3, true);
@@ -128,6 +149,24 @@ public class DimensionUtils {
             } else if (previousDimension == BEDROCK_NETHER_ID) {
                 session.removeFog("minecraft:fog_hell");
             }
+        }
+    }
+
+    public static void setBedrockDimension(GeyserSession session, String javaDimension) {
+        session.getChunkCache().setBedrockDimension(switch (javaDimension) {
+            case DimensionUtils.THE_END -> BedrockDimension.THE_END;
+            case DimensionUtils.NETHER -> DimensionUtils.isCustomBedrockNetherId() ? BedrockDimension.THE_END : BedrockDimension.THE_NETHER;
+            default -> BedrockDimension.OVERWORLD;
+        });
+    }
+
+    public static int javaToBedrock(BedrockDimension dimension) {
+        if (dimension == BedrockDimension.THE_NETHER) {
+            return BEDROCK_NETHER_ID;
+        } else if (dimension == BedrockDimension.THE_END) {
+            return 2;
+        } else {
+            return 0;
         }
     }
 
@@ -169,7 +208,9 @@ public class DimensionUtils {
             // Prevents rare instances of Bedrock locking up
             return javaToBedrock(newDimension) == 2 ? OVERWORLD : NETHER;
         }
-        return currentDimension.equals(OVERWORLD) ? NETHER : OVERWORLD;
+        // Check current Bedrock dimension and not just the Java dimension.
+        // Fixes rare instances like https://github.com/GeyserMC/Geyser/issues/3161
+        return javaToBedrock(currentDimension) == 0 ? NETHER : OVERWORLD;
     }
 
     public static boolean isCustomBedrockNetherId() {

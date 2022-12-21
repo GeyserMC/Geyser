@@ -28,6 +28,7 @@ package org.geysermc.geyser.network;
 import com.nukkitx.protocol.bedrock.BedrockPong;
 import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
+import com.nukkitx.protocol.bedrock.v554.Bedrock_v554;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.DefaultEventLoopGroup;
@@ -84,14 +85,16 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
             }
         }
 
-        geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.attempt_connect", inetSocketAddress));
+        String ip = geyser.getConfig().isLogPlayerIpAddresses() ? inetSocketAddress.toString() : "<IP address withheld>";
+        geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.attempt_connect", ip));
         return true;
     }
 
     @Override
     public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {
         if (geyser.getConfig().isDebugMode() && PRINT_DEBUG_PINGS) {
-            geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.network.pinged", inetSocketAddress));
+            String ip = geyser.getConfig().isLogPlayerIpAddresses() ? inetSocketAddress.toString() : "<IP address withheld>";
+            geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.network.pinged", ip));
         }
 
         GeyserConfiguration config = geyser.getConfig();
@@ -122,13 +125,9 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
             pong.setSubMotd(config.getBedrock().secondaryMotd());
         }
 
-        if (config.isPassthroughPlayerCounts() && pingInfo != null) {
-            pong.setPlayerCount(pingInfo.getPlayers().getOnline());
-            pong.setMaximumPlayerCount(pingInfo.getPlayers().getMax());
-        } else {
-            pong.setPlayerCount(geyser.getSessionManager().getSessions().size());
-            pong.setMaximumPlayerCount(config.getMaxPlayers());
-        }
+        // https://github.com/GeyserMC/Geyser/issues/3388
+        pong.setMotd(pong.getMotd().replace(';', ':'));
+        pong.setSubMotd(pong.getSubMotd().replace(';', ':'));
 
         // Fallbacks to prevent errors and allow Bedrock to see the server
         if (pong.getMotd() == null || pong.getMotd().isBlank()) {
@@ -157,6 +156,14 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
             }
         }
 
+        if (config.isPassthroughPlayerCounts() && pingInfo != null) {
+            pong.setPlayerCount(pingInfo.getPlayers().getOnline());
+            pong.setMaximumPlayerCount(pingInfo.getPlayers().getMax());
+        } else {
+            pong.setPlayerCount(geyser.getSessionManager().getSessions().size());
+            pong.setMaximumPlayerCount(config.getMaxPlayers());
+        }
+
         //Bedrock will not even attempt a connection if the client thinks the server is full
         //so we have to fake it not being full
         if (pong.getPlayerCount() >= pong.getMaximumPlayerCount()) {
@@ -169,7 +176,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
     @Override
     public void onSessionCreation(@Nonnull BedrockServerSession bedrockServerSession) {
         try {
-            bedrockServerSession.setPacketCodec(GameProtocol.DEFAULT_BEDROCK_CODEC);
+            bedrockServerSession.setPacketCodec(Bedrock_v554.V554_CODEC); // Has the RequestNetworkSettingsPacket
             bedrockServerSession.setLogging(true);
             bedrockServerSession.setCompressionLevel(geyser.getConfig().getBedrock().getCompressionLevel());
             bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(geyser, new GeyserSession(geyser, bedrockServerSession, eventLoopGroup.next())));

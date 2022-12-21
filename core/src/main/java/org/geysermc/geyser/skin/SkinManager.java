@@ -258,21 +258,26 @@ public class SkinManager {
             JsonNode skinObject = GeyserImpl.JSON_MAPPER.readTree(new String(Base64.getDecoder().decode(encodedJson), StandardCharsets.UTF_8));
             JsonNode textures = skinObject.get("textures");
 
-            if (textures != null) {
-                JsonNode skinTexture = textures.get("SKIN");
-                String skinUrl = skinTexture.get("url").asText().replace("http://", "https://");
-
-                boolean isAlex = skinTexture.has("metadata");
-
-                String capeUrl = null;
-                JsonNode capeTexture = textures.get("CAPE");
-                if (capeTexture != null) {
-                    capeUrl = capeTexture.get("url").asText().replace("http://", "https://");
-                }
-
-                return new GameProfileData(skinUrl, capeUrl, isAlex);
+            if (textures == null) {
+                return null;
             }
-            return null;
+
+            JsonNode skinTexture = textures.get("SKIN");
+            if (skinTexture == null) {
+                return null;
+            }
+
+            String skinUrl = skinTexture.get("url").asText().replace("http://", "https://");
+
+            boolean isAlex = skinTexture.has("metadata");
+
+            String capeUrl = null;
+            JsonNode capeTexture = textures.get("CAPE");
+            if (capeTexture != null) {
+                capeUrl = capeTexture.get("url").asText().replace("http://", "https://");
+            }
+
+            return new GameProfileData(skinUrl, capeUrl, isAlex);
         }
 
         /**

@@ -40,23 +40,23 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
 
     @Override
     public void translate(GeyserSession session, ContainerClosePacket packet) {
-        byte windowId = packet.getId();
+        byte bedrockId = packet.getId();
 
         //Client wants close confirmation
         session.sendUpstreamPacket(packet);
         session.setClosingInventory(false);
 
-        if (windowId == -1 && session.getOpenInventory() instanceof MerchantContainer) {
+        if (bedrockId == -1 && session.getOpenInventory() instanceof MerchantContainer) {
             // 1.16.200 - window ID is always -1 sent from Bedrock
-            windowId = (byte) session.getOpenInventory().getId();
+            bedrockId = (byte) session.getOpenInventory().getBedrockId();
         }
 
         Inventory openInventory = session.getOpenInventory();
         if (openInventory != null) {
-            if (windowId == openInventory.getId()) {
-                ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(windowId);
+            if (bedrockId == openInventory.getBedrockId()) {
+                ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(openInventory.getJavaId());
                 session.sendDownstreamPacket(closeWindowPacket);
-                InventoryUtils.closeInventory(session, windowId, false);
+                InventoryUtils.closeInventory(session, openInventory.getJavaId(), false);
             } else if (openInventory.isPending()) {
                 InventoryUtils.displayInventory(session, openInventory);
                 openInventory.setPending(false);

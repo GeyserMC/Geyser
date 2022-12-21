@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.protocol.java.level;
 import com.github.steveice10.mc.protocol.data.game.level.map.MapData;
 import com.github.steveice10.mc.protocol.data.game.level.map.MapIcon;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundMapItemDataPacket;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.MapDecoration;
 import com.nukkitx.protocol.bedrock.data.MapTrackedObject;
 import org.geysermc.geyser.level.BedrockMapIcon;
@@ -48,7 +49,10 @@ public class JavaMapItemDataTranslator extends PacketTranslator<ClientboundMapIt
         mapItemDataPacket.setUniqueMapId(packet.getMapId());
         mapItemDataPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
         mapItemDataPacket.setLocked(packet.isLocked());
+        mapItemDataPacket.setOrigin(Vector3i.ZERO); // Required since 1.19.20
         mapItemDataPacket.setScale(packet.getScale());
+        // Required as of 1.19.50
+        mapItemDataPacket.getTrackedEntityIds().add(packet.getMapId());
 
         MapData data = packet.getData();
         if (data != null) {

@@ -65,8 +65,8 @@ public abstract class AbstractBlockInventoryTranslator extends BaseInventoryTran
     }
 
     @Override
-    public void prepareInventory(GeyserSession session, Inventory inventory) {
-        holder.prepareInventory(this, session, inventory);
+    public boolean prepareInventory(GeyserSession session, Inventory inventory) {
+        return holder.prepareInventory(this, session, inventory);
     }
 
     @Override

@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "org.geysermc.geyser.platform.fabric.mixin",
+  "compatibilityLevel": "JAVA_16",
+  "client": [
+    "client.IntegratedServerMixin"
+  ],
+  "server": [
+    "server.MinecraftDedicatedServerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

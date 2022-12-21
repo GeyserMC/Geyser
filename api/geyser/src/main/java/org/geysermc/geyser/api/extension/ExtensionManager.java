@@ -29,7 +29,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * Manages Geyser {@link Extension}s
@@ -60,15 +59,6 @@ public abstract class ExtensionManager {
     public abstract void disable(@NonNull Extension extension);
 
     /**
-     * Gets the {@link ExtensionLoader} responsible for loading
-     * the given {@link Extension}.
-     *
-     * @return the extension loader for loading the given extension
-     */
-    @Nullable
-    public abstract ExtensionLoader extensionLoader(@NonNull Extension extension);
-
-    /**
      * Gets all the {@link Extension}s currently loaded.
      *
      * @return all the extensions currently loaded
@@ -77,37 +67,19 @@ public abstract class ExtensionManager {
     public abstract Collection<Extension> extensions();
 
     /**
-     * Gets the {@link ExtensionLoader} with the given identifier.
+     * Gets the {@link ExtensionLoader}.
      *
-     * @param identifier the identifier
-     * @return the extension loader at the given identifier
+     * @return the extension loader
      */
     @Nullable
-    public abstract ExtensionLoader extensionLoader(@NonNull String identifier);
-
-    /**
-     * Registers an {@link ExtensionLoader} with the given identifier.
-     *
-     * @param identifier the identifier
-     * @param extensionLoader the extension loader
-     */
-    public abstract void registerExtensionLoader(@NonNull String identifier, @NonNull ExtensionLoader extensionLoader);
-
-    /**
-     * Gets all the currently registered {@link ExtensionLoader}s.
-     *
-     * @return all the currently registered extension loaders
-     */
-    @NonNull
-    public abstract Map<String, ExtensionLoader> extensionLoaders();
+    public abstract ExtensionLoader extensionLoader();
 
     /**
      * Registers an {@link Extension} with the given {@link ExtensionLoader}.
      *
      * @param extension the extension
-     * @param loader the loader
      */
-    public abstract void register(@NonNull Extension extension, @NonNull ExtensionLoader loader);
+    public abstract void register(@NonNull Extension extension);
 
     /**
      * Loads all extensions from the given {@link ExtensionLoader}.

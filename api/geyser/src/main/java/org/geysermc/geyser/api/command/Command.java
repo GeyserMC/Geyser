@@ -27,6 +27,8 @@ package org.geysermc.geyser.api.command;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.extension.Extension;
 
 import java.util.Collections;
 import java.util.List;
@@ -104,11 +106,31 @@ public interface Command {
         return false;
     }
 
-    static <T extends CommandSource> Command.Builder<T> builder(Class<T> sourceType) {
-        return GeyserApi.api().provider(Builder.class, sourceType);
+    /**
+     * Creates a new {@link Command.Builder} used to construct commands.
+     *
+     * @param extension the extension
+     * @param <T> the source type
+     * @return a new command builder used to construct commands
+     */
+    static <T extends CommandSource> Command.Builder<T> builder(@NonNull Extension extension) {
+        return GeyserApi.api().provider(Builder.class, extension);
     }
 
     interface Builder<T extends CommandSource> {
+
+        /**
+         * Defines the source type to use for this command.
+         * <p>
+         * Command source types can be anything that extend
+         * {@link CommandSource}, such as {@link GeyserConnection}.
+         * This will guarantee that the source used in the executor
+         * is an instance of this source.
+         *
+         * @param sourceType the source type
+         * @return the builder
+         */
+        Builder<T> source(@NonNull Class<? extends T> sourceType);
 
         /**
          * Sets the command name.
@@ -116,7 +138,7 @@ public interface Command {
          * @param name the command name
          * @return the builder
          */
-        Builder<T> name(String name);
+        Builder<T> name(@NonNull String name);
 
         /**
          * Sets the command description.
@@ -124,7 +146,7 @@ public interface Command {
          * @param description the command description
          * @return the builder
          */
-        Builder<T> description(String description);
+        Builder<T> description(@NonNull String description);
 
         /**
          * Sets the permission node.
@@ -132,7 +154,7 @@ public interface Command {
          * @param permission the permission node
          * @return the builder
          */
-        Builder<T> permission(String permission);
+        Builder<T> permission(@NonNull String permission);
 
         /**
          * Sets the aliases.
@@ -140,7 +162,7 @@ public interface Command {
          * @param aliases the aliases
          * @return the builder
          */
-        Builder<T> aliases(List<String> aliases);
+        Builder<T> aliases(@NonNull List<String> aliases);
 
         /**
          * Sets if this command is designed to be used only by server operators.
@@ -164,7 +186,7 @@ public interface Command {
          * @param subCommands the subcommands
          * @return the builder
          */
-        Builder<T> subCommands(List<String> subCommands);
+        Builder<T> subCommands(@NonNull List<String> subCommands);
 
         /**
          * Sets if this command is bedrock only.
@@ -180,13 +202,14 @@ public interface Command {
          * @param executor the command executor
          * @return the builder
          */
-        Builder<T> executor(CommandExecutor<T> executor);
+        Builder<T> executor(@NonNull CommandExecutor<T> executor);
 
         /**
          * Builds the command.
          *
          * @return the command
          */
+        @NonNull
         Command build();
     }
 }

@@ -33,7 +33,6 @@ import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.session.GeyserSession;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -49,7 +48,7 @@ public abstract class GeyserCommand implements Command {
     protected final String description;
     protected final String permission;
 
-    private List<String> aliases = new ArrayList<>();
+    private List<String> aliases = Collections.emptyList();
 
     public abstract void execute(@Nullable GeyserSession session, GeyserCommandSource sender, String[] args);
 

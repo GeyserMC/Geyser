@@ -1,3 +1,8 @@
+plugins {
+    id("geyser.publish-conventions")
+}
+
 dependencies {
-    api("org.geysermc.cumulus", "cumulus", Versions.cumulusVersion)
+    api(libs.cumulus)
+    api(libs.gson)
 }

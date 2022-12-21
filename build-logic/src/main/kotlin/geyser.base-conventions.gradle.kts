@@ -4,14 +4,15 @@ plugins {
 }
 
 dependencies {
-    compileOnly("org.checkerframework", "checker-qual", Versions.checkerQualVersion)
+    compileOnly("org.checkerframework", "checker-qual", "3.19.0")
 }
 
 tasks {
     processResources {
-        filesMatching(listOf("plugin.yml", "bungee.yml", "velocity-plugin.json")) {
+        // Spigot, BungeeCord, Velocity, Sponge, Fabric
+        filesMatching(listOf("plugin.yml", "bungee.yml", "velocity-plugin.json", "META-INF/sponge_plugins.json", "fabric.mod.json")) {
             expand(
-                "id" to "Geyser",
+                "id" to "geyser",
                 "name" to "Geyser",
                 "version" to project.version,
                 "description" to project.description,

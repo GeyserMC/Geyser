@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.inventory.holder;
 
-import com.google.common.collect.ImmutableSet;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
@@ -39,6 +38,7 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.util.BlockUtils;
+import org.geysermc.geyser.util.InventoryUtils;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -63,14 +63,14 @@ public class BlockInventoryHolder extends InventoryHolder {
             Set<String> validBlocksTemp = new HashSet<>(validBlocks.length + 1);
             Collections.addAll(validBlocksTemp, validBlocks);
             validBlocksTemp.add(BlockUtils.getCleanIdentifier(javaBlockIdentifier));
-            this.validBlocks = ImmutableSet.copyOf(validBlocksTemp);
+            this.validBlocks = Set.copyOf(validBlocksTemp);
         } else {
             this.validBlocks = Collections.singleton(BlockUtils.getCleanIdentifier(javaBlockIdentifier));
         }
     }
 
     @Override
-    public void prepareInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
+    public boolean prepareInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         // Check to see if there is an existing block we can use that the player just selected.
         // First, verify that the player's position has not changed, so we don't try to select a block wildly out of range.
         // (This could be a virtual inventory that the player is opening)
@@ -83,13 +83,16 @@ public class BlockInventoryHolder extends InventoryHolder {
                 inventory.setHolderPosition(session.getLastInteractionBlockPosition());
                 ((Container) inventory).setUsingRealBlock(true, javaBlockString[0]);
                 setCustomName(session, session.getLastInteractionBlockPosition(), inventory, javaBlockId);
-                return;
+
+                return true;
             }
         }
 
-        // Otherwise, time to conjure up a fake block!
-        Vector3i position = session.getPlayerEntity().getPosition().toInt();
-        position = position.add(Vector3i.UP);
+        Vector3i position = InventoryUtils.findAvailableWorldSpace(session);
+        if (position == null) {
+            return false;
+        }
+
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(position);
@@ -99,6 +102,8 @@ public class BlockInventoryHolder extends InventoryHolder {
         inventory.setHolderPosition(position);
 
         setCustomName(session, position, inventory, defaultJavaBlockState);
+
+        return true;
     }
 
     /**
@@ -133,7 +138,7 @@ public class BlockInventoryHolder extends InventoryHolder {
     @Override
     public void openInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
-        containerOpenPacket.setId((byte) inventory.getId());
+        containerOpenPacket.setId((byte) inventory.getBedrockId());
         containerOpenPacket.setType(containerType);
         containerOpenPacket.setBlockPosition(inventory.getHolderPosition());
         containerOpenPacket.setUniqueEntityId(inventory.getHolderId());
@@ -146,7 +151,7 @@ public class BlockInventoryHolder extends InventoryHolder {
             // No need to reset a block since we didn't change any blocks
             // But send a container close packet because we aren't destroying the original.
             ContainerClosePacket packet = new ContainerClosePacket();
-            packet.setId((byte) inventory.getId());
+            packet.setId((byte) inventory.getBedrockId());
             packet.setUnknownBool0(true); //TODO needs to be changed in Protocol to "server-side" or something
             session.sendUpstreamPacket(packet);
             return;

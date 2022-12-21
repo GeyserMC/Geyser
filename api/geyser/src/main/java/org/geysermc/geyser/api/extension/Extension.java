@@ -25,16 +25,19 @@
 
 package org.geysermc.geyser.api.extension;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.api.GeyserApiBase;
 import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.event.ExtensionEventBus;
 
 import java.nio.file.Path;
+import java.util.Objects;
 
 /**
  * Represents an extension within Geyser.
  */
-public interface Extension {
+public interface Extension extends EventRegistrar {
 
     /**
      * Gets if the extension is enabled
@@ -59,6 +62,7 @@ public interface Extension {
      *
      * @return the extension's data folder
      */
+    @NonNull
     default Path dataFolder() {
         return this.extensionLoader().dataFolder(this);
     }
@@ -68,6 +72,7 @@ public interface Extension {
      *
      * @return the extension event bus
      */
+    @NonNull
     default ExtensionEventBus eventBus() {
         return this.extensionLoader().eventBus(this);
     }
@@ -77,6 +82,7 @@ public interface Extension {
      *
      * @return the extension manager
      */
+    @NonNull
     default ExtensionManager extensionManager() {
         return this.geyserApi().extensionManager();
     }
@@ -86,6 +92,7 @@ public interface Extension {
      *
      * @return the extension's name
      */
+    @NonNull
     default String name() {
         return this.description().name();
     }
@@ -95,6 +102,7 @@ public interface Extension {
      *
      * @return the extension's description
      */
+    @NonNull
     default ExtensionDescription description() {
         return this.extensionLoader().description(this);
     }
@@ -104,6 +112,7 @@ public interface Extension {
      *
      * @return the extension's logger
      */
+    @NonNull
     default ExtensionLogger logger() {
         return this.extensionLoader().logger(this);
     }
@@ -113,8 +122,9 @@ public interface Extension {
      *
      * @return the extension loader
      */
+    @NonNull
     default ExtensionLoader extensionLoader() {
-        return this.extensionManager().extensionLoader(this);
+        return Objects.requireNonNull(this.extensionManager().extensionLoader());
     }
 
     /**
@@ -122,6 +132,7 @@ public interface Extension {
      *
      * @return the geyser api instance
      */
+    @NonNull
     default GeyserApi geyserApi() {
         return GeyserApi.api();
     }

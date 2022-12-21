@@ -25,17 +25,22 @@
 
 package org.geysermc.geyser.pack;
 
+import lombok.Getter;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserLoadResourcePacksEvent;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -59,6 +64,9 @@ public class ResourcePack {
     private File file;
     private ResourcePackManifest manifest;
     private ResourcePackManifest.Version version;
+
+    @Getter
+    private String contentKey;
 
     /**
      * Loop through the packs directory and locate valid resource pack files
@@ -121,6 +129,11 @@ public class ResourcePack {
                             }
                         }
                     });
+
+                    // Check if a file exists with the same name as the resource pack suffixed by .key,
+                    // and set this as content key. (e.g. test.zip, key file would be test.zip.key)
+                    File keyFile = new File(file.getParentFile(), file.getName() + ".key");
+                    pack.contentKey = keyFile.exists() ? Files.readString(keyFile.toPath(), StandardCharsets.UTF_8) : "";
                 } catch (Exception e) {
                     GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", file.getName()));
                     e.printStackTrace();

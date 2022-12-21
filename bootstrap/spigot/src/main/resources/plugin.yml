@@ -9,6 +9,3 @@ commands:
   geyser:
     description: The main command for Geyser.
     usage: /geyser <subcommand>
-  geyserext:
-    description: The command any extensions can register to.
-    usage: /geyserext <subcommand>

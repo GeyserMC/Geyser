@@ -111,6 +111,12 @@ public interface GeyserConfiguration {
 
     int getCustomSkullRenderDistance();
 
+    boolean isLogPlayerIpAddresses();
+
+    boolean isNotifyOnNewBedrockUpdate();
+
+    String getUnusableSpaceBlock();
+
     IMetricsInfo getMetrics();
 
     int getPendingAuthenticationTimeout();

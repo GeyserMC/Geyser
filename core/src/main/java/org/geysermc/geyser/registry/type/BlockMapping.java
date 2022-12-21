@@ -45,7 +45,7 @@ public class BlockMapping {
      */
     int javaBlockId;
 
-    double hardness;
+    float hardness;
     boolean canBreakWithHand;
     /**
      * The index of this collision in collision.json

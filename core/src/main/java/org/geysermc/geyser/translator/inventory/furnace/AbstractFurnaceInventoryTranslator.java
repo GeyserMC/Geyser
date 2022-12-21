@@ -43,7 +43,7 @@ public abstract class AbstractFurnaceInventoryTranslator extends AbstractBlockIn
     @Override
     public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
         ContainerSetDataPacket dataPacket = new ContainerSetDataPacket();
-        dataPacket.setWindowId((byte) inventory.getId());
+        dataPacket.setWindowId((byte) inventory.getBedrockId());
         switch (key) {
             case 0:
                 dataPacket.setProperty(ContainerSetDataPacket.FURNACE_LIT_TIME);

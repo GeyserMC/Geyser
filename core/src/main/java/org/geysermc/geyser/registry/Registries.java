@@ -32,6 +32,7 @@ import com.github.steveice10.mc.protocol.data.game.level.particle.ParticleType;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import com.nukkitx.protocol.bedrock.data.inventory.PotionMixData;
@@ -180,5 +181,18 @@ public final class Registries {
         // Create registries that require other registries to load first
         POTION_MIXES = SimpleRegistry.create(PotionMixRegistryLoader::new);
         ENCHANTMENTS = SimpleMappedRegistry.create("mappings/enchantments.json", EnchantmentRegistryLoader::new);
+
+        // Remove unneeded client generation data from NbtMapBuilder
+        NbtMapBuilder biomesNbt = NbtMap.builder();
+        for (Map.Entry<String, Object> entry : BIOMES_NBT.get().entrySet()) {
+            String key = entry.getKey();
+            NbtMapBuilder value = ((NbtMap) entry.getValue()).toBuilder();
+            value.remove("minecraft:consolidated_features");
+            value.remove("minecraft:multinoise_generation_rules");
+            value.remove("minecraft:surface_material_adjustments");
+            value.remove( "minecraft:surface_parameters");
+            biomesNbt.put(key, value.build());
+        }
+        BIOMES_NBT.set(biomesNbt.build());
     }
 }

@@ -32,12 +32,21 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.InteractAction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClickPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.*;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundUseItemPacket;
 import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import com.nukkitx.protocol.bedrock.data.inventory.*;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
+import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
+import com.nukkitx.protocol.bedrock.data.inventory.InventorySource;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
+import com.nukkitx.protocol.bedrock.data.inventory.LegacySetItemSlotData;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.InventoryTransactionPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
@@ -64,6 +73,7 @@ import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.BlockUtils;
+import org.geysermc.geyser.util.CooldownUtils;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InventoryUtils;
@@ -117,7 +127,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 changedItem = Int2ObjectMaps.singleton(hotbarSlot, itemStack.getItemStack());
                             }
                             ServerboundContainerClickPacket dropPacket = new ServerboundContainerClickPacket(
-                                    inventory.getId(), inventory.getStateId(), hotbarSlot, clickType.actionType, clickType.action,
+                                    inventory.getJavaId(), inventory.getStateId(), hotbarSlot, clickType.actionType, clickType.action,
                                     inventory.getCursor().getItemStack(), changedItem);
                             session.sendDownstreamPacket(dropPacket);
                             return;
@@ -130,7 +140,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 dropAll ? PlayerAction.DROP_ITEM_STACK : PlayerAction.DROP_ITEM,
                                 Vector3i.ZERO,
                                 Direction.DOWN,
-                                session.getWorldCache().nextPredictionSequence()
+                                0
                         );
                         session.sendDownstreamPacket(dropPacket);
 
@@ -374,7 +384,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                         changedSlots.put(bedrockHotbarSlot, armorSlotItem.getItemStack());
 
                                         ServerboundContainerClickPacket clickPacket = new ServerboundContainerClickPacket(
-                                                playerInventory.getId(), playerInventory.getStateId(), armorSlot,
+                                                playerInventory.getJavaId(), playerInventory.getStateId(), armorSlot,
                                                 click.actionType, click.action, null, changedSlots);
                                         session.sendDownstreamPacket(clickPacket);
                                     }
@@ -411,13 +421,10 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         int sequence = session.getWorldCache().nextPredictionSequence();
-                        if (blockState != -1) {
-                            session.getWorldCache().addServerCorrectBlockState(packet.getBlockPosition(), blockState);
-                        } else {
+                        session.getWorldCache().markPositionInSequence(packet.getBlockPosition());
+                        // -1 means we don't know what block they're breaking
+                        if (blockState == -1) {
                             blockState = BlockStateValues.JAVA_AIR_ID;
-                            // Client will desync here anyway
-                            session.getWorldCache().addServerCorrectBlockState(packet.getBlockPosition(),
-                                    session.getGeyser().getWorldManager().getBlockAt(session, packet.getBlockPosition()));
                         }
 
                         LevelEventPacket blockBreakPacket = new LevelEventPacket();
@@ -445,7 +452,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 if (packet.getActionType() == 0) {
                     // Followed to the Minecraft Protocol specification outlined at wiki.vg
                     ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, Vector3i.ZERO,
-                            Direction.DOWN, session.getWorldCache().nextPredictionSequence());
+                            Direction.DOWN, 0);
                     session.sendDownstreamPacket(releaseItemPacket);
                 }
                 break;
@@ -469,6 +476,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         ServerboundInteractPacket attackPacket = new ServerboundInteractPacket(entityId,
                                 InteractAction.ATTACK, session.isSneaking());
                         session.sendDownstreamPacket(attackPacket);
+
+                        // Since 1.19.10, LevelSoundEventPackets are no longer sent by the client when attacking entities
+                        CooldownUtils.sendCooldown(session);
                     }
                 }
                 break;
@@ -556,7 +566,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         int heldItemId = packet.getItemInHand() == null ? ItemData.AIR.getId() : packet.getItemInHand().getId();
 
         if (expectedItemId != heldItemId) {
-            session.getGeyser().getLogger().debug(session.name() + "'s held item has desynced! Expected: " + expectedItemId + " Received: " + heldItemId);
+            session.getGeyser().getLogger().debug(session.bedrockUsername() + "'s held item has desynced! Expected: " + expectedItemId + " Received: " + heldItemId);
             session.getGeyser().getLogger().debug("Packet: " + packet);
             return true;
         }

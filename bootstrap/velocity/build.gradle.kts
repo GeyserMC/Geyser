@@ -1,7 +1,5 @@
-val velocityVersion = "3.0.0"
-
 dependencies {
-    annotationProcessor("com.velocitypowered", "velocity-api", velocityVersion)
+    annotationProcessor(libs.velocity.api)
     api(projects.core)
 }
 
@@ -34,7 +32,7 @@ exclude("net.kyori:adventure-text-serializer-legacy:*")
 exclude("net.kyori:adventure-nbt:*")
         
 // These dependencies are already present on the platform
-provided("com.velocitypowered", "velocity-api", velocityVersion)
+provided(libs.velocity.api)
 
 application {
     mainClass.set("org.geysermc.geyser.platform.velocity.GeyserVelocityMain")

@@ -33,7 +33,7 @@ public enum BedrockMapIcon {
     ICON_ITEM_FRAME(MapIconType.GREEN_ARROW, 7),
     ICON_RED_ARROW(MapIconType.RED_ARROW, 2),
     ICON_BLUE_ARROW(MapIconType.BLUE_ARROW, 3),
-    ICON_TREASURE_MARKER(MapIconType.TREASURE_MARKER, 4),
+    ICON_WHITE_CROSS(MapIconType.WHITE_CROSS, 4, 0, 0, 0), // Doesn't exist on Bedrock, replaced with a black cross
     ICON_RED_POINTER(MapIconType.RED_POINTER, 5),
     ICON_WHITE_CIRCLE(MapIconType.WHITE_CIRCLE, 6),
     ICON_SMALL_WHITE_CIRCLE(MapIconType.SMALL_WHITE_CIRCLE, 13),
@@ -54,7 +54,8 @@ public enum BedrockMapIcon {
     ICON_BROWN_BANNER(MapIconType.BROWN_BANNER, 13, 131, 84, 50),
     ICON_GREEN_BANNER(MapIconType.GREEN_BANNER, 13, 94, 124, 22),
     ICON_RED_BANNER(MapIconType.RED_BANNER, 13, 176, 46, 38),
-    ICON_BLACK_BANNER(MapIconType.BLACK_BANNER, 13, 29, 29, 33);
+    ICON_BLACK_BANNER(MapIconType.BLACK_BANNER, 13, 29, 29, 33),
+    ICON_TREASURE_MARKER(MapIconType.TREASURE_MARKER, 4);
 
     private static final BedrockMapIcon[] VALUES = values();
 

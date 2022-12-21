@@ -26,6 +26,7 @@
 package org.geysermc.geyser.util;
 
 import com.github.steveice10.mc.protocol.data.game.statistic.*;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.util.FormImage;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -37,7 +38,6 @@ import org.geysermc.geyser.text.MinecraftLocale;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.function.IntFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -79,23 +79,23 @@ public class StatisticsUtils {
                                 case 0:
                                     builder.title("stat.generalButton");
 
-                                    for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
+                                    for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof CustomStatistic statistic) {
                                             String statName = statistic.name().toLowerCase(Locale.ROOT);
                                             IntFunction<String> formatter = StatisticFormatters.get(statistic.getFormat());
-                                            content.add("stat.minecraft." + statName + ": " + formatter.apply(entry.getValue()));
+                                            content.add("stat.minecraft." + statName + ": " + formatter.apply(entry.getIntValue()));
                                         }
                                     }
                                     break;
                                 case 1:
                                     builder.title("stat.itemsButton - stat_type.minecraft.mined");
 
-                                    for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
+                                    for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof BreakBlockStatistic statistic) {
                                             String identifier = BlockRegistries.CLEAN_JAVA_IDENTIFIERS.get(statistic.getId());
                                             if (identifier != null) {
                                                 String block = identifier.replace("minecraft:", "block.minecraft.");
-                                                content.add(block + ": " + entry.getValue());
+                                                content.add(block + ": " + entry.getIntValue());
                                             }
                                         }
                                     }
@@ -103,71 +103,70 @@ public class StatisticsUtils {
                                 case 2:
                                     builder.title("stat.itemsButton - stat_type.minecraft.broken");
 
-                                    for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
+                                    for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof BreakItemStatistic statistic) {
                                             String item = mappings.getMapping(statistic.getId()).getJavaIdentifier();
-                                            content.add(getItemTranslateKey(item, language) + ": " + entry.getValue());
+                                            content.add(getItemTranslateKey(item, language) + ": " + entry.getIntValue());
                                         }
                                     }
                                     break;
                                 case 3:
                                     builder.title("stat.itemsButton - stat_type.minecraft.crafted");
 
-                                    for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
+                                    for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof CraftItemStatistic statistic) {
                                             String item = mappings.getMapping(statistic.getId()).getJavaIdentifier();
-                                            content.add(getItemTranslateKey(item, language) + ": " + entry.getValue());
+                                            content.add(getItemTranslateKey(item, language) + ": " + entry.getIntValue());
                                         }
                                     }
                                     break;
                                 case 4:
                                     builder.title("stat.itemsButton - stat_type.minecraft.used");
 
-                                    for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
+                                    for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof UseItemStatistic statistic) {
                                             String item = mappings.getMapping(statistic.getId()).getJavaIdentifier();
-                                            content.add(getItemTranslateKey(item, language) + ": " + entry.getValue());
+                                            content.add(getItemTranslateKey(item, language) + ": " + entry.getIntValue());
                                         }
                                     }
                                     break;
                                 case 5:
                                     builder.title("stat.itemsButton - stat_type.minecraft.picked_up");
 
-                                    for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
+                                    for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof PickupItemStatistic statistic) {
                                             String item = mappings.getMapping(statistic.getId()).getJavaIdentifier();
-                                            content.add(getItemTranslateKey(item, language) + ": " + entry.getValue());
+                                            content.add(getItemTranslateKey(item, language) + ": " + entry.getIntValue());
                                         }
                                     }
                                     break;
                                 case 6:
                                     builder.title("stat.itemsButton - stat_type.minecraft.dropped");
 
-                                    for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
+                                    for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof DropItemStatistic statistic) {
                                             String item = mappings.getMapping(statistic.getId()).getJavaIdentifier();
-                                            content.add(getItemTranslateKey(item, language) + ": " + entry.getValue());
+                                            content.add(getItemTranslateKey(item, language) + ": " + entry.getIntValue());
                                         }
                                     }
                                     break;
                                 case 7:
                                     builder.title("stat.mobsButton - geyser.statistics.killed");
 
-                                    for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
+                                    for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof KillEntityStatistic statistic) {
                                             String entityName = statistic.getEntity().name().toLowerCase(Locale.ROOT);
-                                            content.add("entity.minecraft." + entityName + ": " + entry.getValue());
+                                            content.add("entity.minecraft." + entityName + ": " + entry.getIntValue());
                                         }
                                     }
                                     break;
                                 case 8:
                                     builder.title("stat.mobsButton - geyser.statistics.killed_by");
 
-                                    for (Map.Entry<Statistic, Integer> entry : session
-                                            .getStatistics().entrySet()) {
+                                    for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof KilledByEntityStatistic statistic) {
                                             String entityName = statistic.getEntity().name().toLowerCase(Locale.ROOT);
-                                            content.add("entity.minecraft." + entityName + ": " + entry.getValue());
+                                            content.add("entity.minecraft." + entityName + ": " + entry.getIntValue());
                                         }
                                     }
                                     break;

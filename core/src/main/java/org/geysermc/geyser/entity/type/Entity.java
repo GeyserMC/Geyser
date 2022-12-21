@@ -44,6 +44,8 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.EntityUtils;
@@ -216,19 +218,41 @@ public class Entity {
     }
 
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        setYaw(yaw);
-        setPitch(pitch);
-        setHeadYaw(headYaw);
-        setOnGround(isOnGround);
-        this.position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
+        position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
 
-        MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
+        MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
-        moveEntityPacket.setPosition(position);
-        moveEntityPacket.setRotation(getBedrockRotation());
-        moveEntityPacket.setOnGround(isOnGround);
-        moveEntityPacket.setTeleported(false);
-
+        if (relX != 0.0) {
+            moveEntityPacket.setX(position.getX());
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
+        }
+        if (relY != 0.0) {
+            moveEntityPacket.setY(position.getY());
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
+        }
+        if (relZ != 0.0) {
+            moveEntityPacket.setZ(position.getZ());
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
+        }
+        if (pitch != this.pitch) {
+            this.pitch = pitch;
+            moveEntityPacket.setPitch(pitch);
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
+        }
+        if (yaw != this.yaw) {
+            this.yaw = yaw;
+            moveEntityPacket.setYaw(yaw);
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
+        }
+        if (headYaw != this.headYaw) {
+            this.headYaw = headYaw;
+            moveEntityPacket.setHeadYaw(headYaw);
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
+        }
+        setOnGround(isOnGround);
+        if (isOnGround) {
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
+        }
         session.sendUpstreamPacket(moveEntityPacket);
     }
 
@@ -333,6 +357,7 @@ public class Entity {
         setFlag(EntityFlag.ON_FIRE, ((xd & 0x01) == 0x01) && !getFlag(EntityFlag.FIRE_IMMUNE)); // Otherwise immune entities sometimes flicker onfire
         setFlag(EntityFlag.SNEAKING, (xd & 0x02) == 0x02);
         setFlag(EntityFlag.SPRINTING, (xd & 0x08) == 0x08);
+
         // Swimming is ignored here and instead we rely on the pose
         setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
 

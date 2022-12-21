@@ -26,62 +26,60 @@
 package org.geysermc.geyser.extension.event;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.event.Event;
+import org.geysermc.event.Event;
+import org.geysermc.event.PostOrder;
+import org.geysermc.event.subscribe.Subscriber;
 import org.geysermc.geyser.api.event.EventBus;
-import org.geysermc.geyser.api.event.EventSubscription;
+import org.geysermc.geyser.api.event.EventRegistrar;
+import org.geysermc.geyser.api.event.EventSubscriber;
 import org.geysermc.geyser.api.event.ExtensionEventBus;
 import org.geysermc.geyser.api.extension.Extension;
 
 import java.util.Set;
 import java.util.function.Consumer;
 
-public record GeyserExtensionEventBus(EventBus eventBus,
-                                      Extension extension) implements ExtensionEventBus {
-    @NonNull
-    @Override
-    public <T extends Event> EventSubscription<T> subscribe(@NonNull Class<T> eventClass, @NonNull Consumer<? super T> consumer) {
-        return this.eventBus.subscribe(this.extension, eventClass, consumer);
-    }
+public record GeyserExtensionEventBus(EventBus<EventRegistrar> eventBus, Extension extension) implements ExtensionEventBus {
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public void register(@NonNull Object eventHolder) {
-        this.eventBus.register(this.extension, eventHolder);
-    }
-
-    @Override
-    public void unregisterAll() {
-        this.eventBus.unregisterAll(this.extension);
-    }
-
-    @NonNull
-    @Override
-    public <T extends Event> EventSubscription<T> subscribe(@NonNull Extension extension, @NonNull Class<T> eventClass, @NonNull Consumer<? super T> consumer) {
-        return this.eventBus.subscribe(extension, eventClass, consumer);
-    }
-
-    @Override
-    public <T extends Event> void unsubscribe(@NonNull EventSubscription<T> subscription) {
-        this.eventBus.unsubscribe(subscription);
-    }
-
-    @Override
-    public void register(@NonNull Extension extension, @NonNull Object eventHolder) {
-        this.eventBus.register(extension, eventHolder);
-    }
-
-    @Override
-    public void unregisterAll(@NonNull Extension extension) {
-        this.eventBus.unregisterAll(extension);
+    public void unsubscribe(@NonNull EventSubscriber<Extension, ? extends Event> subscription) {
+        eventBus.unsubscribe((EventSubscriber) subscription);
     }
 
     @Override
     public boolean fire(@NonNull Event event) {
-        return this.eventBus.fire(event);
+        return eventBus.fire(event);
     }
 
-    @NonNull
     @Override
-    public <T extends Event> Set<EventSubscription<T>> subscriptions(@NonNull Class<T> eventClass) {
-        return this.eventBus.subscriptions(eventClass);
+    public @NonNull <T extends Event> Set<? extends EventSubscriber<EventRegistrar, T>> subscribers(@NonNull Class<T> eventClass) {
+        return eventBus.subscribers(eventClass);
+    }
+
+    @Override
+    public void register(@NonNull Object listener) {
+        eventBus.register(extension, listener);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T extends Event, U extends Subscriber<T>> @NonNull U subscribe(
+            @NonNull Class<T> eventClass, @NonNull Consumer<T> consumer) {
+        return eventBus.subscribe(extension, eventClass, consumer);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T extends Event, U extends Subscriber<T>> @NonNull U subscribe(
+            @NonNull Class<T> eventClass,
+            @NonNull Consumer<T> consumer,
+            @NonNull PostOrder postOrder
+    ) {
+        return eventBus.subscribe(extension, eventClass, consumer, postOrder);
+    }
+
+    @Override
+    public void unregisterAll() {
+        eventBus.unregisterAll(extension);
     }
 }

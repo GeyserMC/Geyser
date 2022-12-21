@@ -73,7 +73,7 @@ public class SessionPlayerEntity extends PlayerEntity {
     private int fakeTradeXp;
 
     public SessionPlayerEntity(GeyserSession session) {
-        super(session, -1, 1, UUID.randomUUID(), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, "unknown", null);
+        super(session, -1, 1, null, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, null, null);
 
         valid = true;
     }
@@ -118,6 +118,16 @@ public class SessionPlayerEntity extends PlayerEntity {
         super.setFlags(entityMetadata);
         session.setSwimmingInWater((entityMetadata.getPrimitiveValue() & 0x10) == 0x10 && getFlag(EntityFlag.SPRINTING));
         refreshSpeed = true;
+    }
+
+    /**
+     * Since 1.19.40, the client must be re-informed of its bounding box on respawn
+     * See https://github.com/GeyserMC/Geyser/issues/3370
+     */
+    public void updateBoundingBox() {
+        dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, getBoundingBoxHeight());
+        dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, getBoundingBoxWidth());
+        updateBedrockMetadata();
     }
 
     @Override

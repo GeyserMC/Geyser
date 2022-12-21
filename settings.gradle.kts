@@ -1,20 +1,10 @@
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+//    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         // Floodgate, Cumulus etc.
-        maven("https://repo.opencollab.dev/maven-releases") {
-            mavenContent { releasesOnly() }
-        }
-        maven("https://repo.opencollab.dev/maven-snapshots") {
-            mavenContent {
-                // This has the unintended side effect of not allowing snapshot version pinning.
-                // Likely a bug in Gradle's implementation of snapshot pinning
-                // See https://github.com/gradle/gradle/pull/406
-                snapshotsOnly() 
-            }
-        }
+        maven("https://repo.opencollab.dev/main")
 
         // Paper, Velocity
         maven("https://repo.papermc.io/repository/maven-public")
@@ -48,12 +38,17 @@ dependencyResolutionManagement {
         maven("https://jitpack.io") {
             content { includeGroupByRegex("com\\.github\\..*") }
         }
+
+        // For Adventure snapshots
+        maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     }
 }
 
 pluginManagement {
     repositories {
         gradlePluginPortal()
+        maven("https://maven.fabricmc.net/")
+        maven("https://repo.opencollab.dev/maven-snapshots")
     }
     plugins {
         id("net.kyori.blossom") version "1.2.0"
@@ -69,6 +64,7 @@ include(":ap")
 include(":api")
 include(":geyser-api")
 include(":bungeecord")
+include(":fabric")
 include(":spigot")
 include(":sponge")
 include(":standalone")
@@ -80,6 +76,7 @@ include(":core")
 project(":api").projectDir = file("api/base")
 project(":geyser-api").projectDir = file("api/geyser")
 project(":bungeecord").projectDir = file("bootstrap/bungeecord")
+project(":fabric").projectDir = file("bootstrap/fabric")
 project(":spigot").projectDir = file("bootstrap/spigot")
 project(":sponge").projectDir = file("bootstrap/sponge")
 project(":standalone").projectDir = file("bootstrap/standalone")

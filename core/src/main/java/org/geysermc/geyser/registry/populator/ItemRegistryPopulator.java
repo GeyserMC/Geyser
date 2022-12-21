@@ -37,8 +37,11 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
+import com.nukkitx.protocol.bedrock.v560.Bedrock_v560;
 import it.unimi.dsi.fastutil.ints.*;
 import com.nukkitx.protocol.bedrock.v527.Bedrock_v527;
+import com.nukkitx.protocol.bedrock.v534.Bedrock_v534;
+import com.nukkitx.protocol.bedrock.v544.Bedrock_v544;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -51,6 +54,7 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomItemsEvent;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
+import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.mappings.MappingsConfigReader;
@@ -75,7 +79,8 @@ public class ItemRegistryPopulator {
 
     public static void populate() {
         Map<String, PaletteVersion> paletteVersions = new Object2ObjectOpenHashMap<>();
-        paletteVersions.put("1_19_0", new PaletteVersion(Bedrock_v527.V527_CODEC.getProtocolVersion(), Collections.emptyMap()));
+        paletteVersions.put("1_19_20", new PaletteVersion(Bedrock_v544.V544_CODEC.getProtocolVersion(), Collections.emptyMap()));
+        paletteVersions.put("1_19_50", new PaletteVersion(Bedrock_v560.V560_CODEC.getProtocolVersion(), Collections.emptyMap()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
@@ -91,7 +96,10 @@ public class ItemRegistryPopulator {
 
         boolean customItemsAllowed = GeyserImpl.getInstance().getConfig().isAddNonBedrockItems();
 
-        Multimap<String, CustomItemData> customItems = MultimapBuilder.hashKeys().hashSetValues().build();
+        // List values here is important compared to HashSet - we need to preserve the order of what's given to us
+        // (as of 1.19.2 Java) to replicate some edge cases in Java predicate behavior where it checks from the bottom
+        // of the list first, then ascends.
+        Multimap<String, CustomItemData> customItems = MultimapBuilder.hashKeys().arrayListValues().build();
         List<NonVanillaCustomItemData> nonVanillaCustomItems;
 
         MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
@@ -104,7 +112,7 @@ public class ItemRegistryPopulator {
             });
 
             nonVanillaCustomItems = new ObjectArrayList<>();
-            GeyserImpl.getInstance().eventBus().fire(new GeyserDefineCustomItemsEvent(customItems, nonVanillaCustomItems) {
+            GeyserImpl.getInstance().eventBus().fire(new GeyserDefineCustomItemsEventImpl(customItems, nonVanillaCustomItems) {
                 @Override
                 public boolean register(@NonNull String identifier, @NonNull CustomItemData customItemData) {
                     if (CustomItemRegistryPopulator.initialCheck(identifier, customItemData, items)) {
@@ -285,8 +293,7 @@ public class ItemRegistryPopulator {
 
             Set<String> javaOnlyItems = new ObjectOpenHashSet<>();
             Collections.addAll(javaOnlyItems, "minecraft:spectral_arrow", "minecraft:debug_stick",
-                    "minecraft:knowledge_book", "minecraft:tipped_arrow", "minecraft:trader_llama_spawn_egg",
-                    "minecraft:bundle");
+                    "minecraft:knowledge_book", "minecraft:tipped_arrow", "minecraft:bundle");
             if (!customItemsAllowed) {
                 javaOnlyItems.add("minecraft:furnace_minecart");
             }
@@ -469,10 +476,10 @@ public class ItemRegistryPopulator {
                 }
 
                 // Add the custom item properties, if applicable
-                Object2IntMap<CustomItemOptions> customItemOptions;
+                List<ObjectIntPair<CustomItemOptions>> customItemOptions;
                 Collection<CustomItemData> customItemsToLoad = customItems.get(javaIdentifier);
                 if (customItemsAllowed && !customItemsToLoad.isEmpty()) {
-                    customItemOptions = new Object2IntOpenHashMap<>(customItemsToLoad.size());
+                    customItemOptions = new ObjectArrayList<>(customItemsToLoad.size());
 
                     for (CustomItemData customItem : customItemsToLoad) {
                         int customProtocolId = nextFreeBedrockId++;
@@ -492,12 +499,15 @@ public class ItemRegistryPopulator {
                         entries.put(customMapping.stringId(), customMapping.startGamePacketItemEntry());
                         // ComponentItemData - used to register some custom properties
                         componentItemData.add(customMapping.componentItemData());
-                        customItemOptions.put(customItem.customItemOptions(), customProtocolId);
+                        customItemOptions.add(ObjectIntPair.of(customItem.customItemOptions(), customProtocolId));
 
                         customIdMappings.put(customMapping.integerId(), customMapping.stringId());
                     }
+
+                    // Important for later to find the best match and accurately replicate Java behavior
+                    Collections.reverse(customItemOptions);
                 } else {
-                    customItemOptions = Object2IntMaps.emptyMap();
+                    customItemOptions = Collections.emptyList();
                 }
                 mappingBuilder.customItemOptions(customItemOptions);
 
@@ -551,7 +561,7 @@ public class ItemRegistryPopulator {
                     .bedrockData(0)
                     .bedrockBlockId(-1)
                     .stackSize(1)
-                    .customItemOptions(Object2IntMaps.emptyMap())
+                    .customItemOptions(Collections.emptyList())
                     .build();
 
             if (customItemsAllowed) {
@@ -568,6 +578,7 @@ public class ItemRegistryPopulator {
                         .bedrockData(0)
                         .bedrockBlockId(-1)
                         .stackSize(1)
+                        .customItemOptions(Collections.emptyList()) // TODO check for custom items with furnace minecart
                         .build());
 
                 creativeItems.add(ItemData.builder()

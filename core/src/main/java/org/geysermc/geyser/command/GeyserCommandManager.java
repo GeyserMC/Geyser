@@ -33,30 +33,46 @@ import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.command.CommandExecutor;
-import org.geysermc.geyser.api.command.CommandManager;
 import org.geysermc.geyser.api.command.CommandSource;
-import org.geysermc.geyser.command.defaults.*;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCommandsEvent;
+import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.command.defaults.AdvancedTooltipsCommand;
+import org.geysermc.geyser.command.defaults.AdvancementsCommand;
+import org.geysermc.geyser.command.defaults.ConnectionTestCommand;
+import org.geysermc.geyser.command.defaults.DumpCommand;
+import org.geysermc.geyser.command.defaults.ExtensionsCommand;
+import org.geysermc.geyser.command.defaults.HelpCommand;
+import org.geysermc.geyser.command.defaults.ListCommand;
+import org.geysermc.geyser.command.defaults.OffhandCommand;
+import org.geysermc.geyser.command.defaults.ReloadCommand;
+import org.geysermc.geyser.command.defaults.SettingsCommand;
+import org.geysermc.geyser.command.defaults.StatisticsCommand;
+import org.geysermc.geyser.command.defaults.StopCommand;
+import org.geysermc.geyser.command.defaults.VersionCommand;
+import org.geysermc.geyser.event.type.GeyserDefineCommandsEventImpl;
+import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 @RequiredArgsConstructor
-public abstract class GeyserCommandManager extends CommandManager {
+public class GeyserCommandManager {
 
     @Getter
     private final Map<String, Command> commands = new Object2ObjectOpenHashMap<>(12);
-    private final Map<String, Command> extensionCommands = new Object2ObjectOpenHashMap<>(0);
+    private final Map<Extension, Map<String, Command>> extensionCommands = new Object2ObjectOpenHashMap<>(0);
 
     private final GeyserImpl geyser;
 
     public void init() {
-        registerBuiltInCommand(new HelpCommand(geyser, "help", "geyser.commands.help.desc", "geyser.command.help", "geyser", commands));
+        registerBuiltInCommand(new HelpCommand(geyser, "help", "geyser.commands.help.desc", "geyser.command.help", "geyser", this.commands));
         registerBuiltInCommand(new ListCommand(geyser, "list", "geyser.commands.list.desc", "geyser.command.list"));
         registerBuiltInCommand(new ReloadCommand(geyser, "reload", "geyser.commands.reload.desc", "geyser.command.reload"));
         registerBuiltInCommand(new OffhandCommand(geyser, "offhand", "geyser.commands.offhand.desc", "geyser.command.offhand"));
@@ -66,11 +82,33 @@ public abstract class GeyserCommandManager extends CommandManager {
         registerBuiltInCommand(new StatisticsCommand(geyser, "statistics", "geyser.commands.statistics.desc", "geyser.command.statistics"));
         registerBuiltInCommand(new AdvancementsCommand("advancements", "geyser.commands.advancements.desc", "geyser.command.advancements"));
         registerBuiltInCommand(new AdvancedTooltipsCommand("tooltips", "geyser.commands.advancedtooltips.desc", "geyser.command.tooltips"));
-        if (GeyserImpl.getInstance().getPlatformType() == PlatformType.STANDALONE) {
+        registerBuiltInCommand(new ConnectionTestCommand(geyser, "connectiontest", "geyser.commands.connectiontest.desc", "geyser.command.connectiontest"));
+        if (this.geyser.getPlatformType() == PlatformType.STANDALONE) {
             registerBuiltInCommand(new StopCommand(geyser, "stop", "geyser.commands.stop.desc", "geyser.command.stop"));
         }
 
-        register(new HelpCommand(geyser, "help", "geyser.commands.exthelp.desc", "geyser.command.exthelp", "geyserext", extensionCommands));
+        if (this.geyser.extensionManager().extensions().size() > 0) {
+            registerBuiltInCommand(new ExtensionsCommand(this.geyser, "extensions", "geyser.commands.extensions.desc", "geyser.command.extensions"));
+        }
+
+        GeyserDefineCommandsEvent defineCommandsEvent = new GeyserDefineCommandsEventImpl(this.commands) {
+
+            @Override
+            public void register(@NonNull Command command) {
+                if (!(command instanceof GeyserExtensionCommand extensionCommand)) {
+                    throw new IllegalArgumentException("Expected GeyserExtensionCommand as part of command registration but got " + command + "! Did you use the Command builder properly?");
+                }
+
+                registerExtensionCommand(extensionCommand.extension(), extensionCommand);
+            }
+        };
+
+        this.geyser.eventBus().fire(defineCommandsEvent);
+
+        // Register help commands for all extensions with commands
+        for (Map.Entry<Extension, Map<String, Command>> entry : this.extensionCommands.entrySet()) {
+            registerExtensionCommand(entry.getKey(), new HelpCommand(this.geyser, "help", "geyser.commands.exthelp.desc", "geyser.command.exthelp", entry.getKey().description().id(), entry.getValue()));
+        }
     }
 
     /**
@@ -80,9 +118,8 @@ public abstract class GeyserCommandManager extends CommandManager {
         register(command, this.commands);
     }
 
-    @Override
-    public void register(@NonNull Command command) {
-        register(command, this.extensionCommands);
+    public void registerExtensionCommand(@NonNull Extension extension, @NonNull Command command) {
+        register(command, this.extensionCommands.computeIfAbsent(extension, e -> new HashMap<>()));
     }
 
     private void register(Command command, Map<String, Command> commands) {
@@ -98,32 +135,30 @@ public abstract class GeyserCommandManager extends CommandManager {
         }
     }
 
-    @Override
-    public void unregister(@NonNull Command command) {
-        this.extensionCommands.remove(command.name(), command);
-
-        if (command.aliases().isEmpty()) {
-            return;
-        }
-
-        for (String alias : command.aliases()) {
-            this.extensionCommands.remove(alias, command);
-        }
+    @NotNull
+    public Map<String, Command> commands() {
+        return Collections.unmodifiableMap(this.commands);
     }
 
     @NotNull
-    @Override
-    public Map<String, Command> commands() {
+    public Map<Extension, Map<String, Command>> extensionCommands() {
         return Collections.unmodifiableMap(this.extensionCommands);
     }
 
     public boolean runCommand(GeyserCommandSource sender, String command) {
-        boolean extensionCommand = command.startsWith("geyserext ");
-        if (!command.startsWith("geyser ") && !extensionCommand) {
+        Extension extension = null;
+        for (Extension loopedExtension : this.extensionCommands.keySet()) {
+            if (command.startsWith(loopedExtension.description().id() + " ")) {
+                extension = loopedExtension;
+                break;
+            }
+        }
+
+        if (!command.startsWith("geyser ") && extension == null) {
             return false;
         }
 
-        command = command.trim().replace(extensionCommand ? "geyserext " : "geyser ", "");
+        command = command.trim().replace(extension != null ? extension.description().id() + " " : "geyser ", "");
         String label;
         String[] args;
 
@@ -136,9 +171,9 @@ public abstract class GeyserCommandManager extends CommandManager {
             args = argLine.contains(" ") ? argLine.split(" ") : new String[] { argLine };
         }
 
-        Command cmd = (extensionCommand ? this.extensionCommands : this.commands).get(label);
+        Command cmd = (extension != null ? this.extensionCommands.getOrDefault(extension, Collections.emptyMap()) : this.commands).get(label);
         if (cmd == null) {
-            geyser.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.commands.invalid"));
+            sender.sendMessage(GeyserLocale.getLocaleStringLog("geyser.commands.invalid"));
             return false;
         }
 
@@ -163,11 +198,14 @@ public abstract class GeyserCommandManager extends CommandManager {
      * @param command Command to get the description for
      * @return Command description
      */
-    public abstract String description(String command);
+    public String description(String command) {
+        return "";
+    }
 
     @RequiredArgsConstructor
     public static class CommandBuilder<T extends CommandSource> implements Command.Builder<T> {
-        private final Class<T> sourceType;
+        private final Extension extension;
+        private Class<? extends T> sourceType;
         private String name;
         private String description = "";
         private String permission = "";
@@ -178,22 +216,28 @@ public abstract class GeyserCommandManager extends CommandManager {
         private boolean bedrockOnly;
         private CommandExecutor<T> executor;
 
-        public CommandBuilder<T> name(String name) {
+        @Override
+        public Command.Builder<T> source(@NonNull Class<? extends T> sourceType) {
+            this.sourceType = sourceType;
+            return this;
+        }
+
+        public CommandBuilder<T> name(@NonNull String name) {
             this.name = name;
             return this;
         }
 
-        public CommandBuilder<T> description(String description) {
+        public CommandBuilder<T> description(@NonNull String description) {
             this.description = description;
             return this;
         }
 
-        public CommandBuilder<T> permission(String permission) {
+        public CommandBuilder<T> permission(@NonNull String permission) {
             this.permission = permission;
             return this;
         }
 
-        public CommandBuilder<T> aliases(List<String> aliases) {
+        public CommandBuilder<T> aliases(@NonNull List<String> aliases) {
             this.aliases = aliases;
             return this;
         }
@@ -209,7 +253,7 @@ public abstract class GeyserCommandManager extends CommandManager {
             return this;
         }
 
-        public CommandBuilder<T> subCommands(List<String> subCommands) {
+        public CommandBuilder<T> subCommands(@NonNull List<String> subCommands) {
             this.subCommands = subCommands;
             return this;
         }
@@ -219,22 +263,27 @@ public abstract class GeyserCommandManager extends CommandManager {
             return this;
         }
 
-        public CommandBuilder<T> executor(CommandExecutor<T> executor) {
+        public CommandBuilder<T> executor(@NonNull CommandExecutor<T> executor) {
             this.executor = executor;
             return this;
         }
 
-        public GeyserCommand build() {
+        @NonNull
+        public GeyserExtensionCommand build() {
             if (this.name == null || this.name.isBlank()) {
                 throw new IllegalArgumentException("Command cannot be null or blank!");
             }
 
-            return new GeyserCommand(this.name, this.description, this.permission) {
+            if (this.sourceType == null) {
+                throw new IllegalArgumentException("Source type was not defined for command " + this.name + " in extension " + this.extension.name());
+            }
+
+            return new GeyserExtensionCommand(this.extension, this.name, this.description, this.permission) {
 
                 @SuppressWarnings("unchecked")
                 @Override
                 public void execute(@Nullable GeyserSession session, GeyserCommandSource sender, String[] args) {
-                    Class<T> sourceType = CommandBuilder.this.sourceType;
+                    Class<? extends T> sourceType = CommandBuilder.this.sourceType;
                     CommandExecutor<T> executor = CommandBuilder.this.executor;
                     if (sourceType.isInstance(session)) {
                         executor.execute((T) session, this, args);
