@@ -97,7 +97,7 @@ public final class GameProtocol {
     }
 
     public static boolean supports1_19_50(GeyserSession session) {
-        return session.getUpstream().getProtocolVersion() >= Bedrock_v554.CODEC.getProtocolVersion();
+        return session.getUpstream().getProtocolVersion() >= Bedrock_v560.CODEC.getProtocolVersion();
     }
 
     /**
