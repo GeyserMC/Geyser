@@ -81,17 +81,24 @@ public final class BlockRegistryPopulator {
 
         for (Map.Entry<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> palette : blockMappers.entrySet()) {
             int protocolVersion = palette.getKey().valueInt();
-            NbtList<NbtMap> blocksTag;
+            List<NbtMap> vanillaBlockStates;
             List<NbtMap> blockStates;
             try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource(String.format("bedrock/block_palette.%s.nbt", palette.getKey().key()));
                 NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(new GZIPInputStream(stream)), true, true)) {
                 NbtMap blockPalette = (NbtMap) nbtInputStream.readTag();
-                blocksTag = (NbtList<NbtMap>) blockPalette.getList("blocks", NbtType.COMPOUND);
-                blockStates = new ArrayList<>(blocksTag);
+
+                vanillaBlockStates = new ArrayList<>(blockPalette.getList("blocks", NbtType.COMPOUND));
+                for (int i = 0; i < vanillaBlockStates.size(); i++) {
+                    NbtMapBuilder builder = vanillaBlockStates.get(i).toBuilder();
+                    builder.remove("name_hash"); // Quick workaround - was added in 1.19.20
+                    vanillaBlockStates.set(i, builder.build());
+                }
+
+                blockStates = new ArrayList<>(vanillaBlockStates);
             } catch (Exception e) {
                 throw new AssertionError("Unable to get blocks from runtime block states", e);
             }
-            int stateVersion = blocksTag.get(0).getInt("version");
+            int stateVersion = vanillaBlockStates.get(0).getInt("version");
 
             List<BlockPropertyData> customBlockProperties = new ArrayList<>();
             List<NbtMap> customBlockStates = new ArrayList<>();
@@ -113,9 +120,7 @@ public final class BlockRegistryPopulator {
             // as we no longer send a block palette
             Object2IntMap<NbtMap> blockStateOrderedMap = new Object2IntOpenHashMap<>(blockStates.size());
             for (int i = 0; i < blockStates.size(); i++) {
-                NbtMapBuilder builder = blockStates.get(i).toBuilder();
-                builder.remove("name_hash"); // Quick workaround - was added in 1.19.20
-                NbtMap tag = builder.build();
+                NbtMap tag = blockStates.get(i);
                 if (blockStateOrderedMap.containsKey(tag)) {
                     throw new AssertionError("Duplicate block states in Bedrock palette: " + tag);
                 }
@@ -128,12 +133,12 @@ public final class BlockRegistryPopulator {
                 for (int i = 0; i < customExtBlockStates.size(); i++) {
                     NbtMap tag = customBlockStates.get(i);
                     CustomBlockState blockState = customExtBlockStates.get(i);
-                    customBlockStateIds.put(blockState, blockStateOrderedMap.getInt(tag));
+                    customBlockStateIds.put(blockState, blockStateOrderedMap.getOrDefault(tag, -1));
                 }
 
-                remappedVanillaIds = new int[blocksTag.size()];
-                for (int i = 0; i < blocksTag.size(); i++) {
-                    remappedVanillaIds[i] = blockStateOrderedMap.getInt(blocksTag.get(i));
+                remappedVanillaIds = new int[vanillaBlockStates.size()];
+                for (int i = 0; i < vanillaBlockStates.size(); i++) {
+                    remappedVanillaIds[i] = blockStateOrderedMap.getOrDefault(vanillaBlockStates.get(i), -1);
                 }
             }
 
