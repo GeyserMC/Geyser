@@ -106,7 +106,7 @@ public final class SoundUtils {
         String packetSound;
         if (!(javaSound instanceof BuiltinSound)) {
             // Identifier needs trimmed probably.
-            packetSound = translatePlaySound(javaSound.getName());
+            packetSound = trim(javaSound.getName());
         } else {
             packetSound = javaSound.getName();
         }
