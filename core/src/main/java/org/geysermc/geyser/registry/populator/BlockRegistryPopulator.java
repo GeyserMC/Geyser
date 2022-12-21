@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableMap;
 import com.nukkitx.nbt.*;
 import com.nukkitx.protocol.bedrock.data.BlockPropertyData;
-import com.nukkitx.protocol.bedrock.v527.Bedrock_v527;
 import com.nukkitx.protocol.bedrock.v544.Bedrock_v544;
 import com.nukkitx.protocol.bedrock.v560.Bedrock_v560;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -180,7 +179,12 @@ public final class BlockRegistryPopulator {
 
         NbtMap propertyTag = NbtMap.builder()
                 .putCompound("components", convertComponents(customBlock.components(), protocolVersion))
-                .putInt("molangVersion", 0)
+                .putCompound("menu_category", NbtMap.builder()
+                    .putString("category", "none")
+                    .putString("group", "")
+                    .putBoolean("is_hidden_in_commands", false)
+                .build())
+                .putInt("molangVersion", 1)
                 .putList("permutations", NbtType.COMPOUND, permutations)
                 .putList("properties", NbtType.COMPOUND, properties)
                 .build();
@@ -199,7 +203,7 @@ public final class BlockRegistryPopulator {
             NbtList<NbtMap> blocksTag;
             List<NbtMap> blockStates;
             try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource(String.format("bedrock/block_palette.%s.nbt", palette.getKey().key()));
-                 NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(new GZIPInputStream(stream)), true, true)) {
+                NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(new GZIPInputStream(stream)), true, true)) {
                 NbtMap blockPalette = (NbtMap) nbtInputStream.readTag();
                 blocksTag = (NbtList<NbtMap>) blockPalette.getList("blocks", NbtType.COMPOUND);
                 blockStates = new ArrayList<>(blocksTag);
@@ -366,14 +370,10 @@ public final class BlockRegistryPopulator {
         }
         NbtMapBuilder builder = NbtMap.builder();
         if (components.selectionBox() != null) {
-            builder.putCompound("minecraft:aim_collision", convertBox(components.selectionBox()));
+            builder.putCompound("minecraft:selection_box", convertBox(components.selectionBox()));
         }
         if (components.collisionBox() != null) {
-            String tagName = "minecraft:block_collision";
-            if (protocolVersion >= Bedrock_v534.V534_CODEC.getProtocolVersion()) {
-                tagName = "minecraft:collision_box";
-            }
-            builder.putCompound(tagName, convertBox(components.collisionBox()));
+            builder.putCompound("minecraft:collision_box", convertBox(components.collisionBox()));
         }
         if (components.geometry() != null) {
             builder.putCompound("minecraft:geometry", NbtMap.builder()
@@ -397,7 +397,7 @@ public final class BlockRegistryPopulator {
                     .build());
         }
         if (components.destroyTime() != null) {
-            builder.putCompound("minecraft:destroy_time", NbtMap.builder()
+            builder.putCompound("minecraft:destructible_by_mining", NbtMap.builder()
                     .putFloat("value", components.destroyTime())
                     .build());
         }
@@ -407,8 +407,8 @@ public final class BlockRegistryPopulator {
                     .build());
         }
         if (components.lightEmission() != null) {
-            builder.putCompound("minecraft:block_light_emission", NbtMap.builder()
-                    .putFloat("value", ((float) components.lightEmission()) / 15f)
+            builder.putCompound("minecraft:light_emission", NbtMap.builder()
+                    .putInt("value", components.lightEmission())
                     .build());
         }
         if (components.lightDampening() != null) {

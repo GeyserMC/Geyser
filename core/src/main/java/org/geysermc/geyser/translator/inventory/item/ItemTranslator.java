@@ -560,34 +560,4 @@ public abstract class ItemTranslator {
         }
     }
 
-    private static CustomSkull getCustomSkull(GeyserSession session, CompoundTag nbt) {
-        if (nbt != null && nbt.contains("SkullOwner")) {
-            if (!(nbt.get("SkullOwner") instanceof CompoundTag skullOwner)) {
-                // It's a username give up d:
-                return null;
-            }
-            SkinManager.GameProfileData data = SkinManager.GameProfileData.from(skullOwner);
-            if (data == null) {
-                session.getGeyser().getLogger().debug("Not sure how to handle skull head item display. " + nbt);
-                return null;
-            }
-
-            String skinHash = data.skinUrl().substring(data.skinUrl().lastIndexOf('/') + 1);
-            return BlockRegistries.CUSTOM_SKULLS.get(skinHash);
-        }
-        return null;
-    }
-
-    private static void translatePlayerHead(GeyserSession session, CompoundTag nbt, ItemData.Builder builder) {
-        CustomSkull customSkull = getCustomSkull(session, nbt);
-        if (customSkull != null) {
-            CustomBlockData customBlockData = customSkull.getCustomBlockData();
-            int itemId = session.getItemMappings().getCustomBlockItemIds().getInt(customBlockData);
-            int blockRuntimeId = session.getBlockMappings().getCustomBlockStateIds().getInt(customBlockData.defaultBlockState());
-
-            builder.id(itemId);
-            builder.blockRuntimeId(blockRuntimeId);
-        }
-    }
-
 }
