@@ -26,7 +26,7 @@
 package org.geysermc.geyser.util.collection;
 
 import org.cloudburstmc.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;

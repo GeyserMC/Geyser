@@ -30,10 +30,12 @@ import com.github.steveice10.mc.protocol.data.game.level.event.*;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelEventPacket;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.protocol.bedrock.packet.*;
+import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
@@ -263,7 +265,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 LevelEventGenericPacket levelEventPacket = new LevelEventGenericPacket();
                 // TODO add SCULK_BLOCK_CHARGE sound
                 if (eventData.getCharge() > 0) {
-                    levelEventPacket.setEventId(2037/*LevelEvent.SCULK_CHARGE*/);
+                    levelEventPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.SCULK_CHARGE);
                     levelEventPacket.setTag(
                             NbtMap.builder()
                                     .putInt("x", packet.getPosition().getX())
@@ -274,7 +276,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                                     .build()
                     );
                 } else {
-                    levelEventPacket.setEventId(2038/*LevelEvent.SCULK_CHARGE_POP*/);
+                    levelEventPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.SCULK_CHARGE_POP);
                     levelEventPacket.setTag(
                             NbtMap.builder()
                                     .putInt("x", packet.getPosition().getX())
@@ -288,7 +290,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             }
             case SCULK_SHRIEKER_SHRIEK -> {
                 LevelEventGenericPacket levelEventPacket = new LevelEventGenericPacket();
-                levelEventPacket.setEventId(2035/*LevelEvent.PARTICLE_SCULK_SHRIEK*/);
+                levelEventPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_SCULK_SHRIEK);
                 levelEventPacket.setTag(
                         NbtMap.builder()
                                 .putInt("originX", packet.getPosition().getX())

@@ -29,18 +29,13 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemStackRequest;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemStackResponse;
-import org.cloudburstmc.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.CraftRecipeStackRequestActionData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionType;
-import org.geysermc.geyser.inventory.BedrockContainerSlot;
-import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.inventory.SlotType;
-import org.geysermc.geyser.inventory.StonecutterContainer;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.CraftRecipeAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestActionType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
+import org.geysermc.geyser.inventory.*;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.session.GeyserSession;
@@ -51,14 +46,14 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
     }
 
     @Override
-    protected boolean shouldHandleRequestFirst(StackRequestActionData action, Inventory inventory) {
-        return action.getType() == StackRequestActionType.CRAFT_RECIPE;
+    protected boolean shouldHandleRequestFirst(ItemStackRequestAction action, Inventory inventory) {
+        return action.getType() == ItemStackRequestActionType.CRAFT_RECIPE;
     }
 
     @Override
     protected ItemStackResponse translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
         // Guarded by shouldHandleRequestFirst
-        CraftRecipeStackRequestActionData data = (CraftRecipeStackRequestActionData) request.getActions()[0];
+        CraftRecipeAction data = (CraftRecipeAction) request.getActions()[0];
 
         // Look up all possible options of cutting from this ID
         GeyserStonecutterData craftingData = session.getStonecutterRecipes().get(data.getRecipeNetworkId());
@@ -86,7 +81,7 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
     }
 
     @Override
-    public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
+    public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
         return switch (slotInfoData.getContainer()) {
             case STONECUTTER_INPUT -> 0;
             case STONECUTTER_RESULT, CREATIVE_OUTPUT -> 1;

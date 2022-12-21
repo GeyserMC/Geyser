@@ -51,6 +51,8 @@ public class JavaMapItemDataTranslator extends PacketTranslator<ClientboundMapIt
         mapItemDataPacket.setLocked(packet.isLocked());
         mapItemDataPacket.setOrigin(Vector3i.ZERO); // Required since 1.19.20
         mapItemDataPacket.setScale(packet.getScale());
+        // Required as of 1.19.50
+        mapItemDataPacket.getTrackedEntityIds().add(packet.getMapId());
 
         MapData data = packet.getData();
         if (data != null) {

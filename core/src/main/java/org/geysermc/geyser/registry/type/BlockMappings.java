@@ -25,14 +25,11 @@
 
 package org.geysermc.geyser.registry.type;
 
-import com.nukkitx.nbt.NbtList;
-import com.nukkitx.nbt.NbtMap;
-import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.Builder;
 import lombok.Value;
+import org.cloudburstmc.nbt.NbtList;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
-import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
 
 import java.util.Map;
@@ -78,6 +75,6 @@ public class BlockMappings {
     }
 
     public boolean isItemFrame(BlockDefinition definition) {
-        return this.itemFrames.containsKey(definition.getState());
+        return this.itemFrames.containsKey(definition.getRuntimeId());
     }
 }

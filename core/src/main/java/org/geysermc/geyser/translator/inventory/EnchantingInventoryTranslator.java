@@ -30,18 +30,14 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.Ser
 import it.unimi.dsi.fastutil.ints.IntSets;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.EnchantOptionData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemStackRequest;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemStackResponse;
-import org.cloudburstmc.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.CraftRecipeStackRequestActionData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.CraftRecipeAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestActionType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerEnchantOptionsPacket;
-import org.geysermc.geyser.inventory.BedrockContainerSlot;
-import org.geysermc.geyser.inventory.EnchantingContainer;
-import org.geysermc.geyser.inventory.GeyserEnchantOption;
-import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.inventory.PlayerInventory;
+import org.geysermc.geyser.inventory.*;
 import org.geysermc.geyser.inventory.item.Enchantment;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.session.GeyserSession;
@@ -107,14 +103,14 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
     }
 
     @Override
-    protected boolean shouldHandleRequestFirst(StackRequestActionData action, Inventory inventory) {
-        return action.getType() == StackRequestActionType.CRAFT_RECIPE;
+    protected boolean shouldHandleRequestFirst(ItemStackRequestAction action, Inventory inventory) {
+        return action.getType() == ItemStackRequestActionType.CRAFT_RECIPE;
     }
 
     @Override
     public ItemStackResponse translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
         // Client has requested an item to be enchanted
-        CraftRecipeStackRequestActionData craftRecipeData = (CraftRecipeStackRequestActionData) request.getActions()[0];
+        CraftRecipeAction craftRecipeData = (CraftRecipeAction) request.getActions()[0];
         EnchantingContainer enchantingInventory = (EnchantingContainer) inventory;
         int javaSlot = -1;
         for (int i = 0; i < enchantingInventory.getEnchantOptions().length; i++) {
@@ -137,7 +133,7 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
     }
 
     @Override
-    public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
+    public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
         if (slotInfoData.getContainer() == ContainerSlotType.ENCHANTING_INPUT) {
             return 0;
         }

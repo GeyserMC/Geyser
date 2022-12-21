@@ -60,6 +60,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<BeeEntity> BEE;
     public static final EntityDefinition<BlazeEntity> BLAZE;
     public static final EntityDefinition<BoatEntity> BOAT;
+    public static final EntityDefinition<CamelEntity> CAMEL;
     public static final EntityDefinition<CatEntity> CAT;
     public static final EntityDefinition<SpiderEntity> CAVE_SPIDER;
     public static final EntityDefinition<MinecartEntity> CHEST_MINECART;
@@ -858,6 +859,13 @@ public final class EntityDefinitions {
             EntityDefinition<AbstractHorseEntity> abstractHorseEntityBase = EntityDefinition.inherited(AbstractHorseEntity::new, ageableEntityBase)
                     .addTranslator(MetadataType.BYTE, AbstractHorseEntity::setHorseFlags)
                     .addTranslator(null) // UUID of owner
+                    .build();
+            CAMEL = EntityDefinition.inherited(CamelEntity::new, abstractHorseEntityBase)
+                    .type(EntityType.CAMEL)
+                    .identifier("minecraft:llama") // todo 1.20
+                    .height(2.375f).width(1.7f)
+                    .addTranslator(MetadataType.BOOLEAN, CamelEntity::setDashing)
+                    .addTranslator(null) // Last pose change tick
                     .build();
             HORSE = EntityDefinition.inherited(HorseEntity::new, abstractHorseEntityBase)
                     .type(EntityType.HORSE)

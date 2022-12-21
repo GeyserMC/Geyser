@@ -27,12 +27,12 @@ package org.geysermc.geyser.translator.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemStackRequest;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemStackResponse;
-import org.cloudburstmc.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.CraftRecipeOptionalStackRequestActionData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.CraftRecipeOptionalAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestActionType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
 import org.geysermc.geyser.inventory.AnvilContainer;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.Inventory;
@@ -49,27 +49,29 @@ public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator {
     }
 
     @Override
-    protected boolean shouldHandleRequestFirst(StackRequestActionData action, Inventory inventory) {
-        return action.getType() == StackRequestActionType.CRAFT_RECIPE_OPTIONAL;
+    protected boolean shouldHandleRequestFirst(ItemStackRequestAction action, Inventory inventory) {
+        return action.getType() == ItemStackRequestActionType.CRAFT_RECIPE_OPTIONAL;
     }
 
     @Override
     protected ItemStackResponse translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
         // Guarded by shouldHandleRequestFirst check
-        CraftRecipeOptionalStackRequestActionData data = (CraftRecipeOptionalStackRequestActionData) request.getActions()[0];
+        CraftRecipeOptionalAction data = (CraftRecipeOptionalAction) request.getActions()[0];
         AnvilContainer container = (AnvilContainer) inventory;
 
-        // Required as of 1.18.30 - FilterTextPackets no longer appear to be sent
-        String name = request.getFilterStrings()[data.getFilteredStringIndex()];
-        if (!Objects.equals(name, container.getNewName())) {
-            container.checkForRename(session, name);
+        if (request.getFilterStrings().length != 0) {
+            // Required as of 1.18.30 - FilterTextPackets no longer appear to be sent
+            String name = request.getFilterStrings()[data.getFilteredStringIndex()];
+            if (!Objects.equals(name, container.getNewName())) { // TODO is this still necessary after pre-1.19.50 support is dropped?
+                container.checkForRename(session, name);
+            }
         }
 
         return super.translateRequest(session, inventory, request);
     }
 
     @Override
-    public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
+    public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
         return switch (slotInfoData.getContainer()) {
             case ANVIL_INPUT -> 0;
             case ANVIL_MATERIAL -> 1;

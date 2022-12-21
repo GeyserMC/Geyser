@@ -43,6 +43,8 @@ import java.util.Optional;
 
 public class AsteriskSerializer extends StdSerializer<Object> implements ContextualSerializer {
 
+    public static final String[] NON_SENSITIVE_ADDRESSES = {"", "0.0.0.0", "localhost", "127.0.0.1", "auto", "unknown"};
+
     public static boolean showSensitive = false;
 
     @Target({ElementType.FIELD})
@@ -91,11 +93,11 @@ public class AsteriskSerializer extends StdSerializer<Object> implements Context
     }
 
     private boolean isSensitiveIp(String ip) {
-        if (ip.equalsIgnoreCase("localhost") || ip.equalsIgnoreCase("auto")) {
-            // `auto` should not be shown unless there is an obscure issue with setting the localhost address
-            return false;
+        for (String address : NON_SENSITIVE_ADDRESSES) {
+            if (address.equalsIgnoreCase(ip)) {
+                return false;
+            }
         }
-
-        return !ip.isEmpty() && !ip.equals("0.0.0.0") && !ip.equals("127.0.0.1");
+        return true;
     }
 }

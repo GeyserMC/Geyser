@@ -28,9 +28,9 @@ package org.geysermc.geyser.translator.protocol.java.level;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundExplodePacket;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
@@ -47,11 +47,11 @@ public class JavaExplodeTranslator extends PacketTranslator<ClientboundExplodePa
     @Override
     public void translate(GeyserSession session, ClientboundExplodePacket packet) {
         LevelEventGenericPacket levelEventPacket = new LevelEventGenericPacket();
-        levelEventPacket.setEventId(2026/*LevelEvent.PARTICLE_BLOCK_EXPLOSION*/);
+        levelEventPacket.setType(LevelEvent.PARTICLE_BLOCK_EXPLOSION);
         NbtMapBuilder builder = NbtMap.builder();
-        builder.putFloat("originX", packet.getX());
-        builder.putFloat("originY", packet.getY());
-        builder.putFloat("originZ", packet.getZ());
+        builder.putFloat("originX", (float) packet.getX());
+        builder.putFloat("originY", (float) packet.getY());
+        builder.putFloat("originZ", (float) packet.getZ());
         builder.putFloat("radius", packet.getRadius());
         builder.putInt("size", packet.getExploded().size());
         int i = 0;

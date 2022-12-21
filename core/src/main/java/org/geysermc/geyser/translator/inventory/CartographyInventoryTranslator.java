@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.geysermc.geyser.inventory.*;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.session.GeyserSession;
@@ -53,7 +53,7 @@ public class CartographyInventoryTranslator extends AbstractBlockInventoryTransl
     }
 
     @Override
-    public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
+    public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
         return switch (slotInfoData.getContainer()) {
             case CARTOGRAPHY_INPUT -> 0;
             case CARTOGRAPHY_ADDITIONAL -> 1;

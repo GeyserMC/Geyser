@@ -30,13 +30,13 @@ import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeTyp
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.GlobalPos;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import lombok.Getter;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import lombok.Getter;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -47,7 +47,6 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * The entity class specifically for a {@link GeyserSession}'s player.
@@ -118,6 +117,16 @@ public class SessionPlayerEntity extends PlayerEntity {
         super.setFlags(entityMetadata);
         session.setSwimmingInWater((entityMetadata.getPrimitiveValue() & 0x10) == 0x10 && getFlag(EntityFlag.SPRINTING));
         refreshSpeed = true;
+    }
+
+    /**
+     * Since 1.19.40, the client must be re-informed of its bounding box on respawn
+     * See https://github.com/GeyserMC/Geyser/issues/3370
+     */
+    public void updateBoundingBox() {
+        dirtyMetadata.put(EntityDataTypes.HEIGHT, getBoundingBoxHeight());
+        dirtyMetadata.put(EntityDataTypes.WIDTH, getBoundingBoxWidth());
+        updateBedrockMetadata();
     }
 
     @Override

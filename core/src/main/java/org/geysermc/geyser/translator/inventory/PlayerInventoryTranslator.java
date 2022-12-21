@@ -36,22 +36,13 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemStackRequest;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemStackResponse;
-import org.cloudburstmc.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.CraftCreativeStackRequestActionData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.DestroyStackRequestActionData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.DropStackRequestActionData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.SwapStackRequestActionData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.TransferStackRequestActionData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.*;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
-import org.geysermc.geyser.inventory.BedrockContainerSlot;
-import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.inventory.SlotType;
+import org.geysermc.geyser.inventory.*;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.FakeHeadProvider;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -174,7 +165,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
+    public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
         int slotnum = slotInfoData.getSlot();
         switch (slotInfoData.getContainer()) {
             case HOTBAR_AND_INVENTORY:
@@ -246,10 +237,10 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
 
         PlayerInventory playerInv = session.getPlayerInventory();
         IntSet affectedSlots = new IntOpenHashSet();
-        for (StackRequestActionData action : request.getActions()) {
+        for (ItemStackRequestAction action : request.getActions()) {
             switch (action.getType()) {
                 case TAKE, PLACE -> {
-                    TransferStackRequestActionData transferAction = (TransferStackRequestActionData) action;
+                    TransferItemStackRequestAction  transferAction = (TransferItemStackRequestAction ) action;
                     if (!(checkNetId(session, inventory, transferAction.getSource()) && checkNetId(session, inventory, transferAction.getDestination()))) {
                         return rejectRequest(request);
                     }
@@ -296,7 +287,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     }
                 }
                 case SWAP -> {
-                    SwapStackRequestActionData swapAction = (SwapStackRequestActionData) action;
+                    SwapAction swapAction = (SwapAction) action;
                     if (!(checkNetId(session, inventory, swapAction.getSource()) && checkNetId(session, inventory, swapAction.getDestination()))) {
                         return rejectRequest(request);
                     }
@@ -336,7 +327,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     }
                 }
                 case DROP -> {
-                    DropStackRequestActionData dropAction = (DropStackRequestActionData) action;
+                    DropAction dropAction = (DropAction) action;
                     if (!checkNetId(session, inventory, dropAction.getSource())) {
                         return rejectRequest(request);
                     }
@@ -364,7 +355,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                 }
                 case DESTROY -> {
                     // Only called when a creative client wants to destroy an item... I think - Camotoy
-                    DestroyStackRequestActionData destroyAction = (DestroyStackRequestActionData) action;
+                    DestroyAction destroyAction = (DestroyAction) action;
                     if (!checkNetId(session, inventory, destroyAction.getSource())) {
                         return rejectRequest(request);
                     }
@@ -403,10 +394,10 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         ItemStack javaCreativeItem = null;
         IntSet affectedSlots = new IntOpenHashSet();
         CraftState craftState = CraftState.START;
-        for (StackRequestActionData action : request.getActions()) {
+        for (ItemStackRequestAction action : request.getActions()) {
             switch (action.getType()) {
                 case CRAFT_CREATIVE: {
-                    CraftCreativeStackRequestActionData creativeAction = (CraftCreativeStackRequestActionData) action;
+                    CraftCreativeAction creativeAction = (CraftCreativeAction) action;
                     if (craftState != CraftState.START) {
                         return rejectRequest(request);
                     }
@@ -430,7 +421,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     break;
                 }
                 case DESTROY: {
-                    DestroyStackRequestActionData destroyAction = (DestroyStackRequestActionData) action;
+                    DestroyAction destroyAction = (DestroyAction) action;
                     if (craftState != CraftState.DEPRECATED) {
                         return rejectRequest(request);
                     }
@@ -442,7 +433,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                 }
                 case TAKE:
                 case PLACE: {
-                    TransferStackRequestActionData transferAction = (TransferStackRequestActionData) action;
+                    TransferItemStackRequestAction transferAction = (TransferItemStackRequestAction) action;
                     if (!(craftState == CraftState.DEPRECATED || craftState == CraftState.TRANSFER)) {
                         return rejectRequest(request);
                     }
@@ -480,7 +471,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         return rejectRequest(request);
                     }
 
-                    DropStackRequestActionData dropAction = (DropStackRequestActionData) action;
+                    DropAction dropAction = (DropAction) action;
                     if (dropAction.getSource().getContainer() != ContainerSlotType.CREATIVE_OUTPUT || dropAction.getSource().getSlot() != 50) {
                         return rejectRequest(request);
                     }
@@ -517,7 +508,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         session.sendDownstreamPacket(creativePacket);
     }
 
-    private static boolean isCraftingGrid(StackRequestSlotInfoData slotInfoData) {
+    private static boolean isCraftingGrid(ItemStackRequestSlotData slotInfoData) {
         return slotInfoData.getContainer() == ContainerSlotType.CRAFTING_INPUT;
     }
 
@@ -527,7 +518,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public void prepareInventory(GeyserSession session, Inventory inventory) {
+    public boolean prepareInventory(GeyserSession session, Inventory inventory) {
+        return true;
     }
 
     @Override

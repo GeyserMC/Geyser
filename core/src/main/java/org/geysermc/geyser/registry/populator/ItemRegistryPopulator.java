@@ -28,30 +28,19 @@ package org.geysermc.geyser.registry.populator;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
 import it.unimi.dsi.fastutil.Pair;
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import org.cloudburstmc.protocol.bedrock.codec.v527.Bedrock_v527;
-import org.cloudburstmc.protocol.bedrock.codec.v534.Bedrock_v534;
+import it.unimi.dsi.fastutil.ints.*;
+import it.unimi.dsi.fastutil.objects.*;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.codec.v544.Bedrock_v544;
+import org.cloudburstmc.protocol.bedrock.codec.v560.Bedrock_v560;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
-import org.cloudburstmc.protocol.bedrock.data.defintions.SimpleDefinitionRegistry;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.cloudburstmc.protocol.common.DefinitionRegistry;
+import org.cloudburstmc.protocol.common.SimpleDefinitionRegistry;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
@@ -61,23 +50,12 @@ import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.type.BlockMappings;
-import org.geysermc.geyser.registry.type.GeyserMappingItem;
-import org.geysermc.geyser.registry.type.ItemMapping;
-import org.geysermc.geyser.registry.type.ItemMappings;
-import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
-import org.geysermc.geyser.registry.type.PaletteItem;
+import org.geysermc.geyser.registry.type.*;
 import org.geysermc.geyser.util.ItemUtils;
 import org.geysermc.geyser.util.collection.FixedInt2IntMap;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -90,10 +68,8 @@ public class ItemRegistryPopulator {
 
     public static void populate() {
         Map<String, PaletteVersion> paletteVersions = new Object2ObjectOpenHashMap<>();
-        paletteVersions.put("1_19_0", new PaletteVersion(Bedrock_v527.CODEC.getProtocolVersion(),
-                Collections.singletonMap("minecraft:trader_llama_spawn_egg", "minecraft:llama_spawn_egg")));
-        paletteVersions.put("1_19_10", new PaletteVersion(Bedrock_v534.CODEC.getProtocolVersion(), Collections.emptyMap()));
         paletteVersions.put("1_19_20", new PaletteVersion(Bedrock_v544.CODEC.getProtocolVersion(), Collections.emptyMap()));
+        paletteVersions.put("1_19_50", new PaletteVersion(Bedrock_v560.CODEC.getProtocolVersion(), Collections.emptyMap()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
@@ -147,7 +123,7 @@ public class ItemRegistryPopulator {
             int nextFreeBedrockId = 0;
             List<ComponentItemData> componentItemData = new ObjectArrayList<>();
 
-            DefinitionRegistry.Builder<ItemDefinition> registry = SimpleDefinitionRegistry.builder();
+            SimpleDefinitionRegistry.Builder<ItemDefinition> registry = SimpleDefinitionRegistry.builder();
             Map<String, ItemDefinition> definitions = new Object2ObjectLinkedOpenHashMap<>();
 
             for (PaletteItem entry : itemEntries) {

@@ -35,7 +35,7 @@ import com.github.steveice10.mc.protocol.data.game.level.particle.VibrationParti
 import com.github.steveice10.mc.protocol.data.game.level.particle.positionsource.BlockPositionSource;
 import com.github.steveice10.mc.protocol.data.game.level.particle.positionsource.EntityPositionSource;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelParticlesPacket;
-import com.nukkitx.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.ParticleType;
@@ -163,7 +163,7 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
 
                 return (position) -> {
                     LevelEventGenericPacket packet = new LevelEventGenericPacket();
-                    packet.setEventId(2027/*LevelEvent.PARTICLE_VIBRATION_SIGNAL*/);
+                    packet.setType(LevelEvent.PARTICLE_VIBRATION_SIGNAL);
                     packet.setTag(
                             NbtMap.builder()
                                     .putCompound("origin", buildVec3PositionTag(position))

@@ -25,26 +25,38 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity.player;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.player.ClientboundPlayerCombatKillPacket;
-import org.cloudburstmc.protocol.bedrock.packet.DeathInfoPacket;
-import net.kyori.adventure.text.Component;
-import org.geysermc.geyser.network.GameProtocol;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundPlayerInfoRemovePacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 
-@Translator(packet = ClientboundPlayerCombatKillPacket.class)
-public class JavaPlayerCombatKillTranslator extends PacketTranslator<ClientboundPlayerCombatKillPacket> {
+import java.util.UUID;
 
+@Translator(packet = ClientboundPlayerInfoRemovePacket.class)
+public class JavaPlayerInfoRemoveTranslator extends PacketTranslator<ClientboundPlayerInfoRemovePacket> {
     @Override
-    public void translate(GeyserSession session, ClientboundPlayerCombatKillPacket packet) {
-        if (packet.getPlayerId() == session.getPlayerEntity().getEntityId()) {
-            Component deathMessage = packet.getMessage();
-            // TODO - could inject score in, but as of 1.19.10 newlines don't center and start at the left of the first text
-            DeathInfoPacket deathInfoPacket = new DeathInfoPacket();
-            deathInfoPacket.setCauseAttackName(MessageTranslator.convertMessage(deathMessage, session.locale()));
-            session.sendUpstreamPacket(deathInfoPacket);
+    public void translate(GeyserSession session, ClientboundPlayerInfoRemovePacket packet) {
+        PlayerListPacket translate = new PlayerListPacket();
+        translate.setAction(PlayerListPacket.Action.REMOVE);
+
+        for (UUID id : packet.getProfileIds()) {
+            // As the player entity is no longer present, we can remove the entry
+            PlayerEntity entity = session.getEntityCache().removePlayerEntity(id);
+            if (entity != null) {
+                // Just remove the entity's player list status
+                // Don't despawn the entity - the Java server will also take care of that.
+                entity.setPlayerList(false);
+            }
+            if (entity == session.getPlayerEntity()) {
+                // If removing ourself we use our AuthData UUID
+                translate.getEntries().add(new PlayerListPacket.Entry(session.getAuthData().uuid()));
+            } else {
+                translate.getEntries().add(new PlayerListPacket.Entry(id));
+            }
         }
+
+        session.sendUpstreamPacket(translate);
     }
 }

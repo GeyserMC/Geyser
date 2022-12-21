@@ -31,15 +31,15 @@ import com.github.steveice10.mc.protocol.data.game.level.event.LevelEvent;
 import com.github.steveice10.mc.protocol.data.game.level.particle.ParticleType;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
 import com.github.steveice10.packetlib.packet.Packet;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import org.cloudburstmc.protocol.bedrock.data.inventory.CraftingData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.PotionMixData;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.CraftingData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.item.Enchantment.JavaEnchantment;
@@ -181,12 +181,15 @@ public final class Registries {
         POTION_MIXES = SimpleRegistry.create(PotionMixRegistryLoader::new);
         ENCHANTMENTS = SimpleMappedRegistry.create("mappings/enchantments.json", EnchantmentRegistryLoader::new);
 
-        // TEMPORARY FIX TO MAKE OLD BIOMES NBT WORK WITH 1.19.30
+        // Remove unneeded client generation data from NbtMapBuilder
         NbtMapBuilder biomesNbt = NbtMap.builder();
         for (Map.Entry<String, Object> entry : BIOMES_NBT.get().entrySet()) {
             String key = entry.getKey();
             NbtMapBuilder value = ((NbtMap) entry.getValue()).toBuilder();
-            value.put("name_hash", key);
+            value.remove("minecraft:consolidated_features");
+            value.remove("minecraft:multinoise_generation_rules");
+            value.remove("minecraft:surface_material_adjustments");
+            value.remove( "minecraft:surface_parameters");
             biomesNbt.put(key, value.build());
         }
         BIOMES_NBT.set(biomesNbt.build());
