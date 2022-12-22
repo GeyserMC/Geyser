@@ -62,7 +62,6 @@ import com.github.steveice10.packetlib.event.session.*;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpClientSession;
 import com.github.steveice10.packetlib.tcp.TcpSession;
-import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.*;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
@@ -135,7 +134,6 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
-import org.geysermc.geyser.util.MathUtils;
 
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
@@ -538,6 +536,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private ScheduledFuture<?> lookBackScheduledFuture = null;
+
+    /**
+     * Used to return players back to their vehicles if the server doesn't want them unmounting.
+     */
+    @Setter
+    private ScheduledFuture<?> mountVehicleScheduledFuture = null;
 
     private MinecraftProtocol protocol;
 

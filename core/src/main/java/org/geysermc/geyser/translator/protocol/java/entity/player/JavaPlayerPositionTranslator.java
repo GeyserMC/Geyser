@@ -114,6 +114,13 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             EntityUtils.updateRiderRotationLock(entity, null, false);
             EntityUtils.updateMountOffset(entity, null, false, false, entity.getPassengers().size() > 1);
             entity.updateBedrockMetadata();
+
+            if (session.getMountVehicleScheduledFuture() != null) {
+                // Cancel this task as it is now unnecessary.
+                // Note that this isn't present in JavaSetPassengersTranslator as that code is not called for players
+                // as of Java 1.19.3, but the scheduled future checks for the vehicle being null anyway.
+                session.getMountVehicleScheduledFuture().cancel(false);
+            }
         }
 
         // If coordinates are relative, then add to the existing coordinate
