@@ -31,16 +31,11 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.Ser
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.CraftRecipeAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestActionType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.RecipeItemStackRequestAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
-import org.geysermc.geyser.inventory.BedrockContainerSlot;
-import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.inventory.SlotType;
-import org.geysermc.geyser.inventory.StonecutterContainer;
+import org.geysermc.geyser.inventory.*;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.session.GeyserSession;
@@ -58,7 +53,7 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
     @Override
     protected ItemStackResponse translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
         // Guarded by shouldHandleRequestFirst
-        RecipeItemStackRequestAction data = (RecipeItemStackRequestAction) request.getActions()[0];
+        CraftRecipeAction data = (CraftRecipeAction) request.getActions()[0];
 
         // Look up all possible options of cutting from this ID
         GeyserStonecutterData craftingData = session.getStonecutterRecipes().get(data.getRecipeNetworkId());

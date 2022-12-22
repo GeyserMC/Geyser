@@ -26,6 +26,12 @@
 package org.geysermc.geyser.platform.fabric.world;
 
 import org.cloudburstmc.math.vector.Vector3i;
+<<<<<<< HEAD
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
+=======
+>>>>>>> d1febe0b3904d52cdc6301711950f22d1caf09b5
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.ListTag;

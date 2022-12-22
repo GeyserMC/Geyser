@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.inventory.holder;
 
-import com.google.common.collect.ImmutableSet;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;

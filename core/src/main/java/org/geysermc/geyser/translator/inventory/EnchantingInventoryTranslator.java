@@ -32,16 +32,12 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.EnchantOptionData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.CraftRecipeAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestActionType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.RecipeItemStackRequestAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerEnchantOptionsPacket;
-import org.geysermc.geyser.inventory.BedrockContainerSlot;
-import org.geysermc.geyser.inventory.EnchantingContainer;
-import org.geysermc.geyser.inventory.GeyserEnchantOption;
-import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.inventory.PlayerInventory;
+import org.geysermc.geyser.inventory.*;
 import org.geysermc.geyser.inventory.item.Enchantment;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.session.GeyserSession;
@@ -114,7 +110,7 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
     @Override
     public ItemStackResponse translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
         // Client has requested an item to be enchanted
-        RecipeItemStackRequestAction craftRecipeData = (RecipeItemStackRequestAction) request.getActions()[0];
+        CraftRecipeAction craftRecipeData = (CraftRecipeAction) request.getActions()[0];
         EnchantingContainer enchantingInventory = (EnchantingContainer) inventory;
         int javaSlot = -1;
         for (int i = 0; i < enchantingInventory.getEnchantOptions().length; i++) {

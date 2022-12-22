@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.OptionalIntMe
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEvent2Packet;
@@ -46,14 +47,14 @@ public class EndermanEntity extends MonsterEntity {
     }
 
     public void setCarriedBlock(EntityMetadata<OptionalInt, OptionalIntMetadataType> entityMetadata) {
-        int bedrockBlockId;
+        BlockDefinition bedrockBlockId;
         if (entityMetadata.getValue().isPresent()) {
-            bedrockBlockId = session.getBlockMappings().getBedrockBlockId(entityMetadata.getValue().getAsInt());
+            bedrockBlockId = session.getBlockMappings().getBedrockBlock(entityMetadata.getValue().getAsInt());
         } else {
-            bedrockBlockId = session.getBlockMappings().getBedrockAir().getRuntimeId();
+            bedrockBlockId = session.getBlockMappings().getBedrockAir();
         }
 
-        dirtyMetadata.put(EntityDataTypes.BLOCK, bedrockBlockId);
+        dirtyMetadata.put(EntityDataTypes.CARRY_BLOCK_STATE, bedrockBlockId);
     }
 
     /**

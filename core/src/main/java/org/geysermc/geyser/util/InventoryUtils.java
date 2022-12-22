@@ -198,12 +198,12 @@ public class InventoryUtils {
 
         root.put("display", display.build());
         return protocolVersion -> ItemData.builder()
-                .definition(getUnusableSpaceBlockID(protocolVersion))
+                .definition(getUnusableSpaceBlockDefinition(protocolVersion))
                 .count(1)
                 .tag(root.build()).build();
     }
 
-    private static ItemDefinition getUnusableSpaceBlockID(int protocolVersion) {
+    private static ItemDefinition getUnusableSpaceBlockDefinition(int protocolVersion) {
         String unusableSpaceBlock = GeyserImpl.getInstance().getConfig().getUnusableSpaceBlock();
         ItemMapping unusableSpaceBlockID = Registries.ITEMS.forVersion(protocolVersion).getMapping(unusableSpaceBlock);
         if (unusableSpaceBlockID != null) {

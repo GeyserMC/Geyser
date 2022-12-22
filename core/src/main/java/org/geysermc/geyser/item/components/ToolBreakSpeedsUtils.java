@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.item.components;
 
-
-
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 

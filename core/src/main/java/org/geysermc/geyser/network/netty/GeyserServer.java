@@ -41,9 +41,6 @@ import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import org.cloudburstmc.netty.channel.raknet.RakChannelFactory;
 import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
-import org.cloudburstmc.netty.handler.codec.raknet.common.UnconnectedPingEncoder;
-import org.cloudburstmc.netty.handler.codec.raknet.common.UnconnectedPongDecoder;
-import org.cloudburstmc.netty.handler.codec.raknet.common.UnconnectedPongEncoder;
 import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerOfflineHandler;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.GeyserImpl;
@@ -57,7 +54,6 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
-import java.util.Random;
 import java.util.function.Function;
 
 public final class GeyserServer {
