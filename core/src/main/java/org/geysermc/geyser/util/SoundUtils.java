@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.util;
 
+import com.github.steveice10.mc.protocol.data.game.level.sound.BuiltinSound;
 import com.github.steveice10.mc.protocol.data.game.level.sound.Sound;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
@@ -65,10 +66,7 @@ public final class SoundUtils {
      * @return a Bedrock sound
      */
     public static String translatePlaySound(String javaIdentifier) {
-        // Drop the Minecraft namespace if applicable
-        if (javaIdentifier.startsWith("minecraft:")) {
-            javaIdentifier = javaIdentifier.substring("minecraft:".length());
-        }
+        javaIdentifier = trim(javaIdentifier);
 
         SoundMapping soundMapping = Registries.SOUNDS.get(javaIdentifier);
         if (soundMapping == null || soundMapping.getPlaysound() == null) {
@@ -77,6 +75,23 @@ public final class SoundUtils {
             return javaIdentifier;
         }
         return soundMapping.getPlaysound();
+    }
+
+    private static String trim(String identifier) {
+        // Drop the Minecraft namespace if applicable
+        if (identifier.startsWith("minecraft:")) {
+            return identifier.substring("minecraft:".length());
+        }
+        return identifier;
+    }
+
+    private static void playSound(GeyserSession session, String bedrockName, Vector3f position, float volume, float pitch) {
+        PlaySoundPacket playSoundPacket = new PlaySoundPacket();
+        playSoundPacket.setSound(bedrockName);
+        playSoundPacket.setPosition(position);
+        playSoundPacket.setVolume(volume);
+        playSoundPacket.setPitch(pitch);
+        session.sendUpstreamPacket(playSoundPacket);
     }
 
     /**
@@ -88,22 +103,24 @@ public final class SoundUtils {
      * @param pitch the pitch
      */
     public static void playSound(GeyserSession session, Sound javaSound, Vector3f position, float volume, float pitch) {
-        String packetSound = javaSound.getName();
+        String packetSound;
+        if (!(javaSound instanceof BuiltinSound)) {
+            // Identifier needs trimmed probably.
+            packetSound = trim(javaSound.getName());
+        } else {
+            packetSound = javaSound.getName();
+        }
 
         SoundMapping soundMapping = Registries.SOUNDS.get(packetSound);
         if (soundMapping == null) {
-            session.getGeyser().getLogger().debug("[Builtin] Sound mapping for " + packetSound + " not found");
+            session.getGeyser().getLogger().debug("[Builtin] Sound mapping for " + packetSound + " not found; assuming custom.");
+            playSound(session, packetSound, position, volume, pitch);
             return;
         }
 
         if (soundMapping.getPlaysound() != null) {
             // We always prefer the PlaySound mapping because we can control volume and pitch
-            PlaySoundPacket playSoundPacket = new PlaySoundPacket();
-            playSoundPacket.setSound(soundMapping.getPlaysound());
-            playSoundPacket.setPosition(position);
-            playSoundPacket.setVolume(volume);
-            playSoundPacket.setPitch(pitch);
-            session.sendUpstreamPacket(playSoundPacket);
+            playSound(session, soundMapping.getPlaysound(), position, volume, pitch);
             return;
         }
 
