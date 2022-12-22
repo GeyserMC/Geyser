@@ -44,8 +44,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v544.Bedrock_v544;
 import org.cloudburstmc.protocol.bedrock.codec.v560.Bedrock_v560;
 import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.defintions.SimpleBlockDefinition;
-import org.cloudburstmc.protocol.bedrock.data.defintions.SimpleDefinitionRegistry;
-import org.cloudburstmc.protocol.common.DefinitionRegistry;
+import org.cloudburstmc.protocol.common.SimpleDefinitionRegistry;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.physics.PistonBehavior;
@@ -125,7 +124,7 @@ public final class BlockRegistryPopulator {
             BiFunction<String, NbtMapBuilder, String> stateMapper = blockMappers.getOrDefault(palette.getKey(), emptyMapper);
 
             BlockDefinition[] javaToBedrockBlocks = new BlockDefinition[BLOCKS_JSON.size()];
-            DefinitionRegistry.Builder<BlockDefinition> registry = SimpleDefinitionRegistry.builder();
+            SimpleDefinitionRegistry.Builder<BlockDefinition> registry = SimpleDefinitionRegistry.builder();
 
             Map<String, NbtMap> flowerPotBlocks = new Object2ObjectOpenHashMap<>();
             Map<NbtMap, BlockDefinition> itemFrames = new Object2ObjectOpenHashMap<>();

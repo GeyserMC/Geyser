@@ -30,6 +30,7 @@ import lombok.Value;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
+import org.cloudburstmc.protocol.bedrock.data.defintions.SimpleBlockDefinition;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
 
 import java.util.Map;
@@ -75,6 +76,10 @@ public class BlockMappings {
     }
 
     public boolean isItemFrame(BlockDefinition definition) {
-        return this.itemFrames.containsKey(definition.getState());
+        if (definition instanceof SimpleBlockDefinition def) {
+            return this.itemFrames.containsKey(def.getState());
+        }
+
+        return false;
     }
 }

@@ -41,7 +41,7 @@ public class HopperInventoryTranslator extends AbstractBlockInventoryTranslator 
     @Override
     public BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot) {
         if (javaSlot < this.size) {
-            return new BedrockContainerSlot(ContainerSlotType.CONTAINER, javaSlot);
+            return new BedrockContainerSlot(ContainerSlotType.LEVEL_ENTITY, javaSlot);
         }
         return super.javaSlotToBedrockContainer(javaSlot);
     }

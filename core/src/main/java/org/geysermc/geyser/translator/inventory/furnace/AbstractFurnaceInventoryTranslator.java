@@ -74,7 +74,7 @@ public abstract class AbstractFurnaceInventoryTranslator extends AbstractBlockIn
             return new BedrockContainerSlot(ContainerSlotType.FURNACE_FUEL, javaSlotToBedrock(slot));
         }
         if (slot == 2) {
-            return new BedrockContainerSlot(ContainerSlotType.FURNACE_OUTPUT, javaSlotToBedrock(slot));
+            return new BedrockContainerSlot(ContainerSlotType.FURNACE_RESULT, javaSlotToBedrock(slot));
         }
         return super.javaSlotToBedrockContainer(slot);
     }

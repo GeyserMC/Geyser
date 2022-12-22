@@ -49,10 +49,9 @@ import org.cloudburstmc.protocol.bedrock.codec.v544.Bedrock_v544;
 import org.cloudburstmc.protocol.bedrock.codec.v560.Bedrock_v560;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
-import org.cloudburstmc.protocol.bedrock.data.defintions.SimpleDefinitionRegistry;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.cloudburstmc.protocol.common.DefinitionRegistry;
+import org.cloudburstmc.protocol.common.SimpleDefinitionRegistry;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
@@ -146,7 +145,7 @@ public class ItemRegistryPopulator {
             int nextFreeBedrockId = 0;
             List<ComponentItemData> componentItemData = new ObjectArrayList<>();
 
-            DefinitionRegistry.Builder<ItemDefinition> registry = SimpleDefinitionRegistry.builder();
+            SimpleDefinitionRegistry.Builder<ItemDefinition> registry = SimpleDefinitionRegistry.builder();
             Map<String, ItemDefinition> definitions = new Object2ObjectLinkedOpenHashMap<>();
 
             for (PaletteItem entry : itemEntries) {

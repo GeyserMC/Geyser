@@ -57,7 +57,7 @@ public class CartographyInventoryTranslator extends AbstractBlockInventoryTransl
         return switch (slotInfoData.getContainer()) {
             case CARTOGRAPHY_INPUT -> 0;
             case CARTOGRAPHY_ADDITIONAL -> 1;
-            case CARTOGRAPHY_RESULT, CREATIVE_OUTPUT -> 2;
+            case CARTOGRAPHY_RESULT, CREATED_OUTPUT -> 2;
             default -> super.bedrockSlotToJava(slotInfoData);
         };
     }

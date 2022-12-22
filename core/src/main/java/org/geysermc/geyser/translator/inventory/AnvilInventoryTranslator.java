@@ -75,7 +75,7 @@ public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator {
         return switch (slotInfoData.getContainer()) {
             case ANVIL_INPUT -> 0;
             case ANVIL_MATERIAL -> 1;
-            case ANVIL_RESULT, CREATIVE_OUTPUT -> 2;
+            case ANVIL_RESULT, CREATED_OUTPUT -> 2;
             default -> super.bedrockSlotToJava(slotInfoData);
         };
     }
