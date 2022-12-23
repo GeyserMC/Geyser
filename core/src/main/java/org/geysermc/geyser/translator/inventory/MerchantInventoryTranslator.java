@@ -68,8 +68,8 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
     @Override
     public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
         return switch (slot) {
-            case 0 -> new BedrockContainerSlot(ContainerSlotType.TRADE2_INGREDIENT1, 4);
-            case 1 -> new BedrockContainerSlot(ContainerSlotType.TRADE2_INGREDIENT2, 5);
+            case 0 -> new BedrockContainerSlot(ContainerSlotType.TRADE2_INGREDIENT_1, 4);
+            case 1 -> new BedrockContainerSlot(ContainerSlotType.TRADE2_INGREDIENT_2, 5);
             case 2 -> new BedrockContainerSlot(ContainerSlotType.TRADE2_RESULT, 50);
             default -> super.javaSlotToBedrockContainer(slot);
         };
@@ -78,9 +78,9 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
     @Override
     public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
         return switch (slotInfoData.getContainer()) {
-            case TRADE2_INGREDIENT1 -> 0;
-            case TRADE2_INGREDIENT2 -> 1;
-            case TRADE2_RESULT, CREATIVE_OUTPUT -> 2;
+            case TRADE2_INGREDIENT_1 -> 0;
+            case TRADE2_INGREDIENT_2 -> 1;
+            case TRADE2_RESULT, CREATED_OUTPUT -> 2;
             default -> super.bedrockSlotToJava(slotInfoData);
         };
     }

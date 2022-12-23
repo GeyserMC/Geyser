@@ -197,7 +197,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     return slotnum - 27;
                 }
                 break;
-            case CREATIVE_OUTPUT:
+            case CREATED_OUTPUT:
                 return 0;
         }
         return slotnum;
@@ -444,7 +444,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     }
                     craftState = CraftState.TRANSFER;
 
-                    if (transferAction.getSource().getContainer() != ContainerSlotType.CREATIVE_OUTPUT) {
+                    if (transferAction.getSource().getContainer() != ContainerSlotType.CREATED_OUTPUT) {
                         return rejectRequest(request);
                     }
 
@@ -477,7 +477,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     }
 
                     DropAction dropAction = (DropAction) action;
-                    if (dropAction.getSource().getContainer() != ContainerSlotType.CREATIVE_OUTPUT || dropAction.getSource().getSlot() != 50) {
+                    if (dropAction.getSource().getContainer() != ContainerSlotType.CREATED_OUTPUT || dropAction.getSource().getSlot() != 50) {
                         return rejectRequest(request);
                     }
 

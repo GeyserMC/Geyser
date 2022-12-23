@@ -186,7 +186,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
             case LOOM_INPUT -> 0;
             case LOOM_DYE -> 1;
             case LOOM_MATERIAL -> 2;
-            case LOOM_RESULT, CREATIVE_OUTPUT -> 3;
+            case LOOM_RESULT, CREATED_OUTPUT -> 3;
             default -> super.bedrockSlotToJava(slotInfoData);
         };
     }

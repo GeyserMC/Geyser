@@ -41,7 +41,7 @@ public class SmithingInventoryTranslator extends AbstractBlockInventoryTranslato
         return switch (slotInfoData.getContainer()) {
             case SMITHING_TABLE_INPUT -> 0;
             case SMITHING_TABLE_MATERIAL -> 1;
-            case SMITHING_TABLE_RESULT, CREATIVE_OUTPUT -> 2;
+            case SMITHING_TABLE_RESULT, CREATED_OUTPUT -> 2;
             default -> super.bedrockSlotToJava(slotInfoData);
         };
     }

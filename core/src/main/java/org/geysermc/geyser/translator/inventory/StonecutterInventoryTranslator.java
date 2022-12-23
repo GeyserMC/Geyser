@@ -84,7 +84,7 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
     public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
         return switch (slotInfoData.getContainer()) {
             case STONECUTTER_INPUT -> 0;
-            case STONECUTTER_RESULT, CREATIVE_OUTPUT -> 1;
+            case STONECUTTER_RESULT, CREATED_OUTPUT -> 1;
             default -> super.bedrockSlotToJava(slotInfoData);
         };
     }

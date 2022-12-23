@@ -45,10 +45,10 @@ public abstract class ChestInventoryTranslator extends BaseInventoryTranslator {
     protected boolean shouldRejectItemPlace(GeyserSession session, Inventory inventory, ContainerSlotType bedrockSourceContainer,
                                          int javaSourceSlot, ContainerSlotType bedrockDestinationContainer, int javaDestinationSlot) {
         // Reject any item placements that occur in the unusable inventory space
-        if (bedrockSourceContainer == ContainerSlotType.CONTAINER && javaSourceSlot >= this.size) {
+        if (bedrockSourceContainer == ContainerSlotType.LEVEL_ENTITY && javaSourceSlot >= this.size) {
             return true;
         }
-        return bedrockDestinationContainer == ContainerSlotType.CONTAINER && javaDestinationSlot >= this.size;
+        return bedrockDestinationContainer == ContainerSlotType.LEVEL_ENTITY && javaDestinationSlot >= this.size;
     }
 
     @Override
@@ -64,7 +64,7 @@ public abstract class ChestInventoryTranslator extends BaseInventoryTranslator {
     @Override
     public BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot) {
         if (javaSlot < this.size) {
-            return new BedrockContainerSlot(ContainerSlotType.CONTAINER, javaSlot);
+            return new BedrockContainerSlot(ContainerSlotType.LEVEL_ENTITY, javaSlot);
         }
         return super.javaSlotToBedrockContainer(javaSlot);
     }

@@ -478,7 +478,7 @@ public abstract class InventoryTranslator {
                     }
                     craftState = CraftState.TRANSFER;
 
-                    if (transferAction.getSource().getContainer() != ContainerSlotType.CREATIVE_OUTPUT) {
+                    if (transferAction.getSource().getContainer() != ContainerSlotType.CREATED_OUTPUT) {
                         return rejectRequest(request);
                     }
                     if (transferAction.getCount() <= 0) {
@@ -653,7 +653,7 @@ public abstract class InventoryTranslator {
                     }
                     craftState = CraftState.TRANSFER;
 
-                    if (transferAction.getSource().getContainer() != ContainerSlotType.CREATIVE_OUTPUT) {
+                    if (transferAction.getSource().getContainer() != ContainerSlotType.CREATED_OUTPUT) {
                         return rejectRequest(request);
                     }
                     if (transferAction.getCount() <= 0) {

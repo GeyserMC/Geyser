@@ -68,7 +68,7 @@ public class CraftingInventoryTranslator extends AbstractBlockInventoryTranslato
             // Bedrock is the same, but it starts from 32.
             return slotInfoData.getSlot() - 31;
         }
-        if (slotInfoData.getContainer() == ContainerSlotType.CRAFTING_OUTPUT || slotInfoData.getContainer() == ContainerSlotType.CREATIVE_OUTPUT) {
+        if (slotInfoData.getContainer() == ContainerSlotType.CRAFTING_OUTPUT || slotInfoData.getContainer() == ContainerSlotType.CREATED_OUTPUT) {
             return 0;
         }
         return super.bedrockSlotToJava(slotInfoData);

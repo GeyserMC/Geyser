@@ -41,7 +41,7 @@ public class GrindstoneInventoryTranslator extends AbstractBlockInventoryTransla
         return switch (slotInfoData.getContainer()) {
             case GRINDSTONE_INPUT -> 0;
             case GRINDSTONE_ADDITIONAL -> 1;
-            case GRINDSTONE_RESULT, CREATIVE_OUTPUT -> 2;
+            case GRINDSTONE_RESULT, CREATED_OUTPUT -> 2;
             default -> super.bedrockSlotToJava(slotInfoData);
         };
     }

@@ -137,7 +137,7 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
         if (slotInfoData.getContainer() == ContainerSlotType.ENCHANTING_INPUT) {
             return 0;
         }
-        if (slotInfoData.getContainer() == ContainerSlotType.ENCHANTING_LAPIS) {
+        if (slotInfoData.getContainer() == ContainerSlotType.ENCHANTING_MATERIAL) {
             return 1;
         }
         return super.bedrockSlotToJava(slotInfoData);
@@ -149,7 +149,7 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
             return new BedrockContainerSlot(ContainerSlotType.ENCHANTING_INPUT, 14);
         }
         if (slot == 1) {
-            return new BedrockContainerSlot(ContainerSlotType.ENCHANTING_LAPIS, 15);
+            return new BedrockContainerSlot(ContainerSlotType.ENCHANTING_MATERIAL, 15);
         }
         return super.javaSlotToBedrockContainer(slot);
     }
