@@ -250,14 +250,6 @@ public final class BlockRegistryPopulator {
         }
     }
 
-    static NbtMap convertBox(BoxComponent boxComponent) {
-        return NbtMap.builder()
-                .putBoolean("enabled", !boxComponent.isEmpty())
-                .putList("origin", NbtType.FLOAT, boxComponent.originX(), boxComponent.originY(), boxComponent.originZ())
-                .putList("size", NbtType.FLOAT, boxComponent.sizeX(), boxComponent.sizeY(), boxComponent.sizeZ())
-                .build();
-    }
-
     private static void registerJavaBlocks() {
         JsonNode blocksJson;
         try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource("mappings/blocks.json")) {

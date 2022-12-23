@@ -63,7 +63,7 @@ public interface CustomBlockComponents {
 
         Builder lightEmission(Integer lightEmission);
 
-        Builder lightFilter(Integer lightFilter);
+        Builder lightDampening(Integer lightDampening);
 
         Builder rotation(RotationComponent rotation);
 

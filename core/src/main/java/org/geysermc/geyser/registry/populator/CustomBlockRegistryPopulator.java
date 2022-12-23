@@ -1,16 +1,17 @@
 package org.geysermc.geyser.registry.populator;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockPermutation;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
+import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
@@ -34,17 +35,21 @@ public class CustomBlockRegistryPopulator {
         if (!GeyserImpl.getInstance().getConfig().isAddCustomBlocks()) {
             return;
         }
-        Set<String> customBlockNames = new HashSet<>();
-        Set<CustomBlockData> customBlocks = new HashSet<>();
+        Set<String> customBlockNames = new ObjectOpenHashSet<>();
+        Set<CustomBlockData> customBlocks = new ObjectOpenHashSet<>();
         Int2ObjectMap<CustomBlockState> blockStateOverrides = new Int2ObjectOpenHashMap<>();
         GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineCustomBlocksEvent() {
             @Override
             public void registerCustomBlock(@NonNull CustomBlockData customBlockData) {
+                if (customBlockData.name().length() == 0) {
+                    throw new IllegalArgumentException("Custom block name must have at least 1 character.");
+                }
                 if (!customBlockNames.add(customBlockData.name())) {
                     throw new IllegalArgumentException("Another custom block was already registered under the name: " + customBlockData.name());
                 }
-                // TODO validate collision+selection box bounds
-                // TODO validate names
+                if (Character.isDigit(customBlockData.name().charAt(0))) {
+                    throw new IllegalArgumentException("Custom block can not start with a digit. Name: " + customBlockData.name());
+                }
                 customBlocks.add(customBlockData);
             }
     
@@ -146,10 +151,10 @@ public class CustomBlockRegistryPopulator {
         }
         NbtMapBuilder builder = NbtMap.builder();
         if (components.selectionBox() != null) {
-            builder.putCompound("minecraft:selection_box", BlockRegistryPopulator.convertBox(components.selectionBox()));
+            builder.putCompound("minecraft:selection_box", convertBox(components.selectionBox()));
         }
         if (components.collisionBox() != null) {
-            builder.putCompound("minecraft:collision_box", BlockRegistryPopulator.convertBox(components.collisionBox()));
+            builder.putCompound("minecraft:collision_box", convertBox(components.collisionBox()));
         }
         if (components.geometry() != null) {
             builder.putCompound("minecraft:geometry", NbtMap.builder()
@@ -201,5 +206,12 @@ public class CustomBlockRegistryPopulator {
         }
         return builder.build();
     }
-    
+
+    private static NbtMap convertBox(BoxComponent boxComponent) {
+        return NbtMap.builder()
+                .putBoolean("enabled", !boxComponent.isEmpty())
+                .putList("origin", NbtType.FLOAT, boxComponent.originX(), boxComponent.originY(), boxComponent.originZ())
+                .putList("size", NbtType.FLOAT, boxComponent.sizeX(), boxComponent.sizeY(), boxComponent.sizeZ())
+                .build();
+    }
 }

@@ -67,7 +67,7 @@ public class CustomSkull {
         CustomBlockComponents components = new GeyserCustomBlockComponents.CustomBlockComponentsBuilder()
                 .destroyTime(1.5f)
                 .materialInstance("*", new MaterialInstance("geyser." + skinHash + "_player_skin", "alpha_test", true, true))
-                .lightFilter(0)
+                .lightDampening(0)
                 .build();
 
         List<CustomBlockPermutation> permutations = new ArrayList<>();
