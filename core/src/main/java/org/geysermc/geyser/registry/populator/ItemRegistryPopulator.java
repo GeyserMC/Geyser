@@ -104,11 +104,6 @@ public class ItemRegistryPopulator {
             CustomItemRegistryPopulator.populate(items, customItems, nonVanillaCustomItems);
         }
 
-        int customItemCount = customItems.size() + nonVanillaCustomItems.size();
-        if (customItemCount > 0) {
-            GeyserImpl.getInstance().getLogger().info("Registered " + customItemCount + " custom items");
-        }
-
         // We can reduce some operations as Java information is the same across all palette versions
         boolean firstMappingsPass = true;
         Int2IntMap dyeColors = new FixedInt2IntMap();
