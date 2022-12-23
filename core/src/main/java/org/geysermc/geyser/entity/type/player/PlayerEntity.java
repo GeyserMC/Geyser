@@ -288,7 +288,7 @@ public class PlayerEntity extends LivingEntity {
             ParrotEntity parrot = new ParrotEntity(session, 0, session.getEntityCache().getNextEntityId().incrementAndGet(),
                     null, EntityDefinitions.PARROT, position, motion, getYaw(), getPitch(), getHeadYaw());
             parrot.spawnEntity();
-            parrot.getDirtyMetadata().put(EntityDataTypes.VARIANT, tag.get("Variant").getValue());
+            parrot.getDirtyMetadata().put(EntityDataTypes.VARIANT, (Integer) tag.get("Variant").getValue());
             // Different position whether the parrot is left or right
             float offset = isLeft ? 0.4f : -0.4f;
             parrot.getDirtyMetadata().put(EntityDataTypes.SEAT_OFFSET, Vector3f.from(offset, -0.22, -0.1));

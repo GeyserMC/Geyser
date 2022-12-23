@@ -25,17 +25,17 @@
 
 package org.geysermc.geyser.util;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.Unpooled;
+import it.unimi.dsi.fastutil.ints.IntLists;
+import lombok.experimental.UtilityClass;
 import org.cloudburstmc.math.vector.Vector2i;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
 import org.cloudburstmc.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.Unpooled;
-import it.unimi.dsi.fastutil.ints.IntLists;
-import lombok.experimental.UtilityClass;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
@@ -181,17 +181,17 @@ public class ChunkUtils {
             }
 
             byteBuf.writeByte(0); // Border blocks - Edu edition only
+
+            LevelChunkPacket data = new LevelChunkPacket();
+            data.setChunkX(chunkX);
+            data.setChunkZ(chunkZ);
+            data.setSubChunksLength(0);
+            data.setData(byteBuf.retain());
+            data.setCachingEnabled(false);
+            session.sendUpstreamPacket(data);
         } finally {
             byteBuf.release();
         }
-
-        LevelChunkPacket data = new LevelChunkPacket();
-        data.setChunkX(chunkX);
-        data.setChunkZ(chunkZ);
-        data.setSubChunksLength(0);
-        data.setData(byteBuf);
-        data.setCachingEnabled(false);
-        session.sendUpstreamPacket(data);
 
         if (forceUpdate) {
             Vector3i pos = Vector3i.from(chunkX << 4, 80, chunkZ << 4);

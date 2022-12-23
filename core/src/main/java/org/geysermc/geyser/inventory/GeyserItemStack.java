@@ -92,9 +92,10 @@ public class GeyserItemStack {
     }
 
     public ItemData getItemData(GeyserSession session) {
-        ItemData itemData = ItemTranslator.translateToBedrock(session, getItemStack());
-        itemData.setNetId(getNetId());
-        return itemData;
+        ItemData.Builder itemData = ItemTranslator.translateToBedrock(session, javaId, amount, nbt);
+        itemData.netId(getNetId());
+        itemData.usingNetId(true);
+        return itemData.build();
     }
 
     public ItemMapping getMapping(GeyserSession session) {

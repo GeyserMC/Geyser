@@ -28,22 +28,13 @@ package org.geysermc.geyser.registry.populator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableMap;
-import org.cloudburstmc.nbt.NBTInputStream;
-import org.cloudburstmc.nbt.NbtList;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectIntPair;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.*;
+import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.protocol.bedrock.codec.v544.Bedrock_v544;
 import org.cloudburstmc.protocol.bedrock.codec.v560.Bedrock_v560;
 import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
-import org.cloudburstmc.protocol.bedrock.data.defintions.SimpleBlockDefinition;
 import org.cloudburstmc.protocol.common.SimpleDefinitionRegistry;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.block.BlockStateValues;
@@ -51,6 +42,7 @@ import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.BlockMappings;
+import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 import org.geysermc.geyser.util.BlockUtils;
 
 import java.io.DataInputStream;
@@ -93,7 +85,7 @@ public final class BlockRegistryPopulator {
             }
             // New since 1.16.100 - find the block runtime ID by the order given to us in the block palette,
             // as we no longer send a block palette
-            Object2ObjectMap<NbtMap, BlockDefinition> blockStateOrderedMap = new Object2ObjectOpenHashMap<>(blocksTag.size());
+            Object2ObjectMap<NbtMap, GeyserBedrockBlock> blockStateOrderedMap = new Object2ObjectOpenHashMap<>(blocksTag.size());
 
             int stateVersion = -1;
             for (int i = 0; i < blocksTag.size(); i++) {
@@ -103,14 +95,15 @@ public final class BlockRegistryPopulator {
                 if (blockStateOrderedMap.containsKey(tag)) {
                     throw new AssertionError("Duplicate block states in Bedrock palette: " + tag);
                 }
-                blockStateOrderedMap.put(tag, new SimpleBlockDefinition(tag.getString("name"), i, tag));
+                GeyserBedrockBlock block = new GeyserBedrockBlock(i, tag);
+                blockStateOrderedMap.put(tag, block);
                 if (stateVersion == -1) {
                     stateVersion = tag.getInt("version");
                 }
             }
             int javaRuntimeId = -1;
 
-            BlockDefinition airDefinition = null;
+            GeyserBedrockBlock airDefinition = null;
             BlockDefinition commandBlockDefinition = null;
             BlockDefinition waterDefinition = null;
             BlockDefinition movingBlockDefinition = null;
@@ -118,7 +111,7 @@ public final class BlockRegistryPopulator {
 
             BiFunction<String, NbtMapBuilder, String> stateMapper = blockMappers.getOrDefault(palette.getKey(), emptyMapper);
 
-            BlockDefinition[] javaToBedrockBlocks = new BlockDefinition[BLOCKS_JSON.size()];
+            GeyserBedrockBlock[] javaToBedrockBlocks = new GeyserBedrockBlock[BLOCKS_JSON.size()];
             SimpleDefinitionRegistry.Builder<BlockDefinition> registry = SimpleDefinitionRegistry.builder();
 
             Map<String, NbtMap> flowerPotBlocks = new Object2ObjectOpenHashMap<>();
@@ -132,7 +125,7 @@ public final class BlockRegistryPopulator {
                 Map.Entry<String, JsonNode> entry = blocksIterator.next();
                 String javaId = entry.getKey();
 
-                BlockDefinition bedrockDefinition = blockStateOrderedMap.get(buildBedrockState(entry.getValue(), stateVersion, stateMapper));
+                GeyserBedrockBlock bedrockDefinition = blockStateOrderedMap.get(buildBedrockState(entry.getValue(), stateVersion, stateMapper));
                 if (bedrockDefinition == null) {
                     throw new RuntimeException("Unable to find " + javaId + " Bedrock BlockDefinition! Built NBT tag: \n" +
                             buildBedrockState(entry.getValue(), stateVersion, stateMapper));

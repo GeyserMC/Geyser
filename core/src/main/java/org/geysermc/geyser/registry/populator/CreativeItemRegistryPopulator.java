@@ -34,7 +34,6 @@ import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMappings;
-import org.geysermc.geyser.registry.type.ItemMappings;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -80,7 +79,7 @@ public class CreativeItemRegistryPopulator {
     private static ItemData.Builder createItemData(JsonNode itemNode, BlockMappings blockMappings, Map<String, ItemDefinition> definitions) {
         int count = 1;
         int damage = 0;
-        int blockRuntimeId = 0;
+        int bedrockBlockRuntimeId = 0;
         NbtMap tag = null;
         JsonNode damageNode = itemNode.get("damage");
         if (damageNode != null) {
@@ -94,7 +93,7 @@ public class CreativeItemRegistryPopulator {
 
         JsonNode blockRuntimeIdNode = itemNode.get("blockRuntimeId");
         if (blockRuntimeIdNode != null) {
-            blockRuntimeId = blockRuntimeIdNode.asInt();
+            bedrockBlockRuntimeId = blockRuntimeIdNode.asInt();
         }
 
         JsonNode nbtNode = itemNode.get("nbt_b64");
@@ -126,6 +125,6 @@ public class CreativeItemRegistryPopulator {
                 .damage(damage)
                 .count(count)
                 .tag(tag)
-                .blockDefinition(blockMappings.getBedrockBlock(blockRuntimeId));
+                .blockDefinition(blockMappings.getDefinitionRegistry().getDefinition(bedrockBlockRuntimeId));
     }
 }

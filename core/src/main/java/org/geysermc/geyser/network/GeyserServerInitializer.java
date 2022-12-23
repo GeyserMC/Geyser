@@ -28,8 +28,6 @@ package org.geysermc.geyser.network;
 import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
-import org.cloudburstmc.protocol.bedrock.codec.v554.Bedrock_v554;
-import org.cloudburstmc.protocol.bedrock.data.PacketCompressionAlgorithm;
 import org.cloudburstmc.protocol.bedrock.netty.initializer.BedrockServerInitializer;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
@@ -72,14 +70,9 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
 
     @Override
     public void initSession(@Nonnull BedrockServerSession bedrockServerSession) {
-        System.out.println("init session");
         try {
-            bedrockServerSession.setCodec(Bedrock_v554.CODEC); // Has the RequestNetworkSettingsPacket
             bedrockServerSession.setLogging(true);
             bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(this.geyser, new GeyserSession(this.geyser, bedrockServerSession, this.eventLoopGroup.next())));
-            bedrockServerSession.setCompression(PacketCompressionAlgorithm.ZLIB);
-            bedrockServerSession.setCompressionLevel(this.geyser.getConfig().getBedrock().getCompressionLevel());
-            // Set the packet codec to default just in case we need to send disconnect packets.
         } catch (Throwable e) {
             // Error must be caught or it will be swallowed
             this.geyser.getLogger().error("Error occurred while initializing player!", e);

@@ -29,6 +29,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.objects.*;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
@@ -37,15 +38,10 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.cloudburstmc.protocol.bedrock.codec.v544.Bedrock_v544;
 import org.cloudburstmc.protocol.bedrock.codec.v560.Bedrock_v560;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -141,7 +137,7 @@ public class ItemRegistryPopulator {
                 registry.add(definition);
             }
 
-            Object2IntMap<String> bedrockBlockIdOverrides = new Object2IntOpenHashMap<>();
+            Object2ObjectMap<String, BlockDefinition> bedrockBlockIdOverrides = new Object2ObjectOpenHashMap<>();
             Object2IntMap<String> blacklistedIdentifiers = new Object2IntOpenHashMap<>();
 
             List<ItemDefinition> boats = new ObjectArrayList<>();
@@ -157,7 +153,7 @@ public class ItemRegistryPopulator {
 
             AtomicInteger creativeNetId = new AtomicInteger();
             CreativeItemRegistryPopulator.populate(palette, definitions, itemBuilder -> {
-                ItemData item = itemBuilder.netId(creativeNetId.getAndIncrement()).build();
+                ItemData item = itemBuilder.netId(creativeNetId.incrementAndGet()).build();
                 creativeItems.add(item);
 
                 if (item.getBlockDefinition() != null) {
@@ -166,12 +162,12 @@ public class ItemRegistryPopulator {
                     // Add override for item mapping, unless it already exists... then we know multiple states can exist
                     if (!blacklistedIdentifiers.containsKey(identifier)) {
                         if (bedrockBlockIdOverrides.containsKey(identifier)) {
-                            bedrockBlockIdOverrides.removeInt(identifier);
+                            bedrockBlockIdOverrides.remove(identifier);
                             // Save this as a blacklist, but also as knowledge of what the block state name should be
                             blacklistedIdentifiers.put(identifier, item.getBlockDefinition().getRuntimeId());
                         } else {
                             // Unless there's multiple possibilities for this one state, let this be
-                            bedrockBlockIdOverrides.put(identifier, item.getBlockDefinition().getRuntimeId());
+                            bedrockBlockIdOverrides.put(identifier, item.getBlockDefinition());
                         }
                     }
                 }
@@ -221,19 +217,19 @@ public class ItemRegistryPopulator {
 
                 int stackSize = mappingItem.getStackSize();
 
-                int bedrockBlockId = -1;
+                BlockDefinition bedrockBlock = null;
                 Integer firstBlockRuntimeId = entry.getValue().getFirstBlockRuntimeId();
                 if (firstBlockRuntimeId != null) {
-                    int blockIdOverride = bedrockBlockIdOverrides.getOrDefault(bedrockIdentifier, -1);
-                    if (blockIdOverride != -1) {
+                    BlockDefinition blockOverride = bedrockBlockIdOverrides.get(bedrockIdentifier);
+                    if (blockOverride != null) {
                         // Straight from BDS is our best chance of getting an item that doesn't run into issues
-                        bedrockBlockId = blockIdOverride;
+                        bedrockBlock = blockOverride;
                     } else {
                         // Try to get an example block runtime ID from the creative contents packet, for Bedrock identifier obtaining
                         int aValidBedrockBlockId = blacklistedIdentifiers.getOrDefault(bedrockIdentifier, -1);
                         if (aValidBedrockBlockId == -1) {
                             // Fallback
-                            bedrockBlockId = blockMappings.getBedrockBlockId(firstBlockRuntimeId);
+                            bedrockBlock = blockMappings.getBedrockBlock(firstBlockRuntimeId);
                         } else {
                             // As of 1.16.220, every item requires a block runtime ID attached to it.
                             // This is mostly for identifying different blocks with the same item ID - wool, slabs, some walls.
@@ -247,8 +243,8 @@ public class ItemRegistryPopulator {
                             // and the last, if relevant. We then iterate over all those values and get their Bedrock equivalents
                             Integer lastBlockRuntimeId = entry.getValue().getLastBlockRuntimeId() == null ? firstBlockRuntimeId : entry.getValue().getLastBlockRuntimeId();
                             for (int i = firstBlockRuntimeId; i <= lastBlockRuntimeId; i++) {
-                                int bedrockBlockRuntimeId = blockMappings.getBedrockBlockId(i);
-                                NbtMap blockTag = blockMappings.getBedrockBlockPalette().get(bedrockBlockRuntimeId);
+                                GeyserBedrockBlock bedrockBlockRuntimeId = blockMappings.getBedrockBlock(i);
+                                NbtMap blockTag = bedrockBlockRuntimeId.getState();
                                 String bedrockName = blockTag.getString("name");
                                 if (!bedrockName.equals(correctBedrockIdentifier)) {
                                     continue;
@@ -259,7 +255,7 @@ public class ItemRegistryPopulator {
                                     firstPass = false;
                                     if (states.size() == 0) {
                                         // No need to iterate and find all block states - this is the one, as there can't be any others
-                                        bedrockBlockId = bedrockBlockRuntimeId;
+                                        bedrockBlock = bedrockBlockRuntimeId;
                                         break;
                                     }
                                     requiredBlockStatesBuilder.putAll(states);
@@ -282,7 +278,7 @@ public class ItemRegistryPopulator {
                             }
 
                             NbtMap requiredBlockStates = requiredBlockStatesBuilder.build();
-                            if (bedrockBlockId == -1) {
+                            if (bedrockBlock == null) {
                                 int i = -1;
                                 // We need to loop around again (we can't cache the block tags above) because Bedrock can include states that we don't have a pairing for
                                 // in it's "preferred" block state - I.E. the first matching block state in the list
@@ -299,12 +295,12 @@ public class ItemRegistryPopulator {
                                             }
                                         }
                                         if (valid) {
-                                            bedrockBlockId = i;
+                                            bedrockBlock = blockMappings.getDefinitionRegistry().getDefinition(i);
                                             break;
                                         }
                                     }
                                 }
-                                if (bedrockBlockId == -1) {
+                                if (bedrockBlock == null) {
                                     throw new RuntimeException("Could not find a block match for " + entry.getKey());
                                 }
                             }
@@ -328,7 +324,7 @@ public class ItemRegistryPopulator {
                                         }
                                     }
                                     if (valid) {
-                                        creativeItems.set(j, itemData.toBuilder().blockDefinition(blockMappings.getBedrockBlock(bedrockBlockId)).build());
+                                        creativeItems.set(j, itemData.toBuilder().blockDefinition(bedrockBlock).build());
                                         break;
                                     }
                                 }
@@ -343,7 +339,7 @@ public class ItemRegistryPopulator {
                         .bedrockIdentifier(bedrockIdentifier.intern())
                         .bedrockDefinition(definition)
                         .bedrockData(mappingItem.getBedrockData())
-                        .bedrockBlockDefinition(blockMappings.getBedrockBlock(bedrockBlockId))
+                        .bedrockBlockDefinition(bedrockBlock)
                         .stackSize(stackSize)
                         .maxDamage(mappingItem.getMaxDamage())
                         .hasSuspiciousStewEffect(mappingItem.isHasSuspiciousStewEffect());
@@ -364,7 +360,7 @@ public class ItemRegistryPopulator {
 
                 if (javaOnlyItems.contains(javaIdentifier)) {
                     // These items don't exist on Bedrock, so set up a variable that indicates they should have custom names
-                    mappingBuilder = mappingBuilder.translationString((bedrockBlockId != -1 ? "block." : "item.") + entry.getKey().replace(":", "."));
+                    mappingBuilder = mappingBuilder.translationString((bedrockBlock != null ? "block." : "item.") + entry.getKey().replace(":", "."));
                     GeyserImpl.getInstance().getLogger().debug("Adding " + entry.getKey() + " as an item that needs to be translated.");
                 }
 

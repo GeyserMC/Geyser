@@ -50,7 +50,7 @@ public class CommandBlockMinecartEntity extends DefaultBlockMinecartEntity {
         dirtyMetadata.put(EntityDataTypes.CONTAINER_TYPE, (byte) 16);
         dirtyMetadata.put(EntityDataTypes.CONTAINER_SIZE, 1);
         // Required, or else the client does not bother to send a packet back with the new information
-        dirtyMetadata.put(EntityDataTypes.COMMAND_BLOCK_ENABLED, (byte) 1);
+        dirtyMetadata.put(EntityDataTypes.COMMAND_BLOCK_ENABLED, true);
     }
 
     /**

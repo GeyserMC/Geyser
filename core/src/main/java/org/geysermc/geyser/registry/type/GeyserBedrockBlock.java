@@ -25,57 +25,29 @@
 
 package org.geysermc.geyser.registry.type;
 
-import lombok.Builder;
-import lombok.Value;
-import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
-import org.cloudburstmc.protocol.common.DefinitionRegistry;
 
-import java.util.Map;
-import java.util.Set;
+public class GeyserBedrockBlock implements BlockDefinition {
+    private final int runtimeId;
+    private final NbtMap state;
 
-@Builder
-@Value
-public class BlockMappings {
-    GeyserBedrockBlock bedrockAir;
-    BlockDefinition bedrockWater;
-    BlockDefinition bedrockMovingBlock;
-
-    int blockStateVersion;
-
-    GeyserBedrockBlock[] javaToBedrockBlocks;
-    DefinitionRegistry<BlockDefinition> definitionRegistry;
-
-    NbtList<NbtMap> bedrockBlockPalette;
-
-    BlockDefinition commandBlock;
-
-    Map<NbtMap, BlockDefinition> itemFrames;
-    Map<String, NbtMap> flowerPotBlocks;
-
-    Set<BlockDefinition> jigsawStates;
-
-    public int getBedrockBlockId(int javaState) {
-        return getBedrockBlock(javaState).getRuntimeId();
+    public GeyserBedrockBlock(int runtimeId, NbtMap state) {
+        this.runtimeId = runtimeId;
+        this.state = state;
     }
 
-    public GeyserBedrockBlock getBedrockBlock(int javaState) {
-        if (javaState < 0 || javaState >= this.javaToBedrockBlocks.length) {
-            return bedrockAir;
-        }
-        return this.javaToBedrockBlocks[javaState];
+    @Override
+    public int getRuntimeId() {
+        return runtimeId;
     }
 
-    public BlockDefinition getItemFrame(NbtMap tag) {
-        return this.itemFrames.get(tag);
+    public NbtMap getState() {
+        return state;
     }
 
-    public boolean isItemFrame(BlockDefinition definition) {
-        if (definition instanceof GeyserBedrockBlock def) {
-            return this.itemFrames.containsKey(def.getState());
-        }
-
-        return false;
+    @Override
+    public String toString() {
+        return "GeyserBedrockBlock{" + state.getString("name") + "}";
     }
 }

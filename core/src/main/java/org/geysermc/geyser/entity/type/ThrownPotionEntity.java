@@ -62,7 +62,7 @@ public class ThrownPotionEntity extends ThrowableItemEntity {
                 if (potionTag instanceof StringTag) {
                     Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
                     if (potion != null) {
-                        dirtyMetadata.put(EntityDataTypes.EFFECT_COLOR, potion.getBedrockId());
+                        dirtyMetadata.put(EntityDataTypes.EFFECT_COLOR, (int) potion.getBedrockId());
                         setFlag(EntityFlag.ENCHANTED, !NON_ENCHANTED_POTIONS.contains(potion));
                     } else {
                         dirtyMetadata.put(EntityDataTypes.EFFECT_COLOR, 0);

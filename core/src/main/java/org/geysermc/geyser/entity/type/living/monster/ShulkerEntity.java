@@ -47,7 +47,7 @@ public class ShulkerEntity extends GolemEntity {
 
     public void setAttachedFace(EntityMetadata<Direction, ?> entityMetadata) {
         Direction direction = entityMetadata.getValue();
-        dirtyMetadata.put(EntityDataTypes.SHULKER_ATTACH_FACE, (byte) direction.ordinal());
+        dirtyMetadata.put(EntityDataTypes.SHULKER_ATTACH_FACE, direction.ordinal());
     }
 
     public void setShulkerHeight(ByteEntityMetadata entityMetadata) {
@@ -56,7 +56,7 @@ public class ShulkerEntity extends GolemEntity {
     }
 
     public void setShulkerColor(ByteEntityMetadata entityMetadata) {
-        byte color = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+        byte color = entityMetadata.getPrimitiveValue();
         if (color == 16) {
             // 16 is default on both editions
             dirtyMetadata.put(EntityDataTypes.VARIANT, 16);

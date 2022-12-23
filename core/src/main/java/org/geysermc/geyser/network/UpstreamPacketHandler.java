@@ -73,7 +73,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     private PacketSignal translateAndDefault(BedrockPacket packet) {
-        return Registries.BEDROCK_PACKET_TRANSLATORS.translate(packet.getClass(), packet, session) ? PacketSignal.HANDLED : PacketSignal.UNHANDLED;
+        Registries.BEDROCK_PACKET_TRANSLATORS.translate(packet.getClass(), packet, session);
+        return PacketSignal.HANDLED; // PacketSignal.UNHANDLED will log a WARN publicly
     }
 
     @Override
@@ -109,6 +110,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         } else if (BedrockDisconnectReasons.TIMEOUT.equals(reason)) {
             this.session.getUpstream().getSession().setDisconnectReason(GeyserLocale.getLocaleStringLog("geyser.network.disconnect.timed_out"));
         }
+        this.session.disconnect(this.session.getUpstream().getSession().getDisconnectReason());
     }
 
     @Override
@@ -128,6 +130,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         session.sendUpstreamPacketImmediately(responsePacket);
 
         session.getUpstream().getSession().setCompression(algorithm);
+        session.getUpstream().getSession().setCompressionLevel(this.geyser.getConfig().getBedrock().getCompressionLevel());
         return PacketSignal.HANDLED;
     }
 
@@ -138,6 +141,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             session.disconnect(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.message"));
             return PacketSignal.HANDLED;
         }
+
+//        session.getUpstream().getSession().getCodec() == null
 
         if (!newProtocol) {
             if (!setCorrectCodec(loginPacket.getProtocolVersion())) { // REMOVE WHEN ONLY 1.19.30 IS SUPPORTED OR 1.20

@@ -37,7 +37,7 @@ import java.util.Map;
 public final class GeyserDirtyMetadata {
     private final Map<EntityDataType<?>, Object> metadata = new Object2ObjectLinkedOpenHashMap<>();
 
-    public void put(EntityDataType<?> entityData, Object value) {
+    public <T> void put(EntityDataType<T> entityData, T value) {
         metadata.put(entityData, value);
     }
 

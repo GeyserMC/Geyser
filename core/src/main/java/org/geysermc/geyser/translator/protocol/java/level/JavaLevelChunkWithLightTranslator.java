@@ -301,6 +301,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
             // Allocate output buffer
             byteBuf = ByteBufAllocator.DEFAULT.buffer(size);
+            byteBuf.retain();
             for (int i = 0; i < sectionCount; i++) {
                 GeyserChunkSection section = sections[i];
                 if (section != null) {
@@ -349,7 +350,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         levelChunkPacket.setCachingEnabled(false);
         levelChunkPacket.setChunkX(packet.getX());
         levelChunkPacket.setChunkZ(packet.getZ());
-        levelChunkPacket.setData(byteBuf);
+        levelChunkPacket.setData(byteBuf.retain());
         session.sendUpstreamPacket(levelChunkPacket);
 
         for (Map.Entry<Vector3i, ItemFrameEntity> entry : session.getItemFrameCache().entrySet()) {

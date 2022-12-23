@@ -109,7 +109,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
     @Override
     public void translate(GeyserSession session, ClientboundCommandsPacket packet) {
         // Don't send command suggestions if they are disabled
-        if (!session.getGeyser().getConfig().isCommandSuggestions()) {
+        if (!session.getGeyser().getConfig().isCommandSuggestions() || true) {
             session.getGeyser().getLogger().debug("Not sending translated command suggestions as they are disabled.");
 
             // Send an empty packet so Bedrock doesn't override /help with its own, built-in help command.

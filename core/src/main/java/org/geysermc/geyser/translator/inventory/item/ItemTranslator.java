@@ -148,44 +148,59 @@ public abstract class ItemTranslator {
     }
 
     @Nonnull
+    public static ItemData.Builder translateToBedrock(GeyserSession session, int javaId, int count, CompoundTag tag) {
+        ItemMapping bedrockItem = session.getItemMappings().getMapping(javaId);
+        if (bedrockItem == ItemMapping.AIR) {
+            session.getGeyser().getLogger().debug("ItemMapping returned air: " + javaId);
+            return ItemData.builder();
+        }
+        return translateToBedrock(session, bedrockItem, count, tag);
+    }
+
+    @Nonnull
     public static ItemData translateToBedrock(GeyserSession session, ItemStack stack) {
         if (stack == null) {
             return ItemData.AIR;
         }
 
         ItemMapping bedrockItem = session.getItemMappings().getMapping(stack);
-        if (bedrockItem == null) {
-            session.getGeyser().getLogger().debug("No matching ItemMapping for " + stack);
+        if (bedrockItem == ItemMapping.AIR) {
+            session.getGeyser().getLogger().debug("ItemMapping returned air: " + stack);
             return ItemData.AIR;
         }
+        return translateToBedrock(session, bedrockItem, stack.getAmount(), stack.getNbt())
+                .build();
+    }
 
-        CompoundTag nbt = stack.getNbt() != null ? stack.getNbt().clone() : null;
+    @Nonnull
+    private static ItemData.Builder translateToBedrock(GeyserSession session, ItemMapping mapping, int count, CompoundTag tag) {
+        CompoundTag nbt = tag != null ? tag.clone() : null;
 
         // This is a fallback for maps with no nbt
-        if (nbt == null && bedrockItem.getJavaIdentifier().equals("minecraft:filled_map")) {
+        if (nbt == null && mapping.getJavaIdentifier().equals("minecraft:filled_map")) {
             nbt = new CompoundTag("");
             nbt.put(new IntTag("map", 0));
         }
 
         if (nbt != null) {
             for (NbtItemStackTranslator translator : NBT_TRANSLATORS) {
-                if (translator.acceptItem(bedrockItem)) {
-                    translator.translateToBedrock(session, nbt, bedrockItem);
+                if (translator.acceptItem(mapping)) {
+                    translator.translateToBedrock(session, nbt, mapping);
                 }
             }
         }
 
-        nbt = translateDisplayProperties(session, nbt, bedrockItem);
+        nbt = translateDisplayProperties(session, nbt, mapping);
         if (session.isAdvancedTooltips()) {
-            nbt = addAdvancedTooltips(nbt, bedrockItem, session.locale());
+            nbt = addAdvancedTooltips(nbt, mapping, session.locale());
         }
 
-        ItemStack itemStack = new ItemStack(stack.getId(), stack.getAmount(), nbt);
+        ItemStack itemStack = new ItemStack(mapping.getJavaId(), count, nbt);
 
-        ItemTranslator itemStackTranslator = ITEM_STACK_TRANSLATORS.getOrDefault(bedrockItem.getJavaId(), DEFAULT_TRANSLATOR);
-        ItemData.Builder builder = itemStackTranslator.translateToBedrock(itemStack, bedrockItem, session.getItemMappings());
-        if (bedrockItem.isBlock()) {
-            builder.blockDefinition(bedrockItem.getBedrockBlockDefinition());
+        ItemTranslator itemStackTranslator = ITEM_STACK_TRANSLATORS.getOrDefault(mapping.getJavaId(), DEFAULT_TRANSLATOR);
+        ItemData.Builder builder = itemStackTranslator.translateToBedrock(itemStack, mapping, session.getItemMappings());
+        if (mapping.isBlock()) {
+            builder.blockDefinition(mapping.getBedrockBlockDefinition());
         }
 
         if (nbt != null) {
@@ -202,7 +217,7 @@ public abstract class ItemTranslator {
             }
         }
 
-        return builder.build();
+        return builder;
     }
 
     private static CompoundTag addAdvancedTooltips(CompoundTag nbt, ItemMapping mapping, String language) {

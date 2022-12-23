@@ -244,9 +244,9 @@ public class SessionPlayerEntity extends PlayerEntity {
         if (pos != null) {
             dirtyMetadata.put(EntityDataTypes.PLAYER_LAST_DEATH_POS, pos.getPosition());
             dirtyMetadata.put(EntityDataTypes.PLAYER_LAST_DEATH_DIMENSION, DimensionUtils.javaToBedrock(pos.getDimension()));
-            dirtyMetadata.put(EntityDataTypes.PLAYER_HAS_DIED, (byte) 1);
+            dirtyMetadata.put(EntityDataTypes.PLAYER_HAS_DIED, true);
         } else {
-            dirtyMetadata.put(EntityDataTypes.PLAYER_HAS_DIED, (byte) 0);
+            dirtyMetadata.put(EntityDataTypes.PLAYER_HAS_DIED, false);
         }
     }
 }

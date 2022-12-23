@@ -54,7 +54,6 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import javax.crypto.SecretKey;
-import java.io.IOException;
 import java.net.URI;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -192,12 +191,13 @@ public class LoginEncryptionUtils {
         KeyPair serverKeyPair = generator.generateKeyPair();
 
         byte[] token = EncryptionUtils.generateRandomToken();
-        SecretKey encryptionKey = EncryptionUtils.getSecretKey(serverKeyPair.getPrivate(), key, token);
-        session.getUpstream().getSession().enableEncryption(encryptionKey);
 
         ServerToClientHandshakePacket packet = new ServerToClientHandshakePacket();
         packet.setJwt(EncryptionUtils.createHandshakeJwt(serverKeyPair, token).serialize());
         session.sendUpstreamPacketImmediately(packet);
+
+        SecretKey encryptionKey = EncryptionUtils.getSecretKey(serverKeyPair.getPrivate(), key, token);
+        session.getUpstream().getSession().enableEncryption(encryptionKey);
     }
 
     private static void sendEncryptionFailedMessage(GeyserImpl geyser) {
