@@ -33,6 +33,7 @@ public interface CustomBlockComponents {
     BoxComponent selectionBox();
 
     BoxComponent collisionBox();
+    String displayName();
 
     String geometry();
 
@@ -48,10 +49,14 @@ public interface CustomBlockComponents {
 
     RotationComponent rotation();
 
+    boolean placeAir();
+
     interface Builder {
         Builder selectionBox(BoxComponent selectionBox);
 
         Builder collisionBox(BoxComponent collisionBox);
+
+        Builder displayName(String displayName);
 
         Builder geometry(String geometry);
 
@@ -66,6 +71,8 @@ public interface CustomBlockComponents {
         Builder lightDampening(Integer lightDampening);
 
         Builder rotation(RotationComponent rotation);
+
+        Builder placeAir(boolean placeAir);
 
         CustomBlockComponents build();
     }

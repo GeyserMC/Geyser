@@ -68,6 +68,7 @@ public class CustomSkull {
                 .destroyTime(1.5f)
                 .materialInstance("*", new MaterialInstance("geyser." + skinHash + "_player_skin", "alpha_test", true, true))
                 .lightDampening(0)
+                .placeAir(true)
                 .build();
 
         List<CustomBlockPermutation> permutations = new ArrayList<>();

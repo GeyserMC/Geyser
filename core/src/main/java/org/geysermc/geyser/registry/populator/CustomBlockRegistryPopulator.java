@@ -204,6 +204,11 @@ public class CustomBlockRegistryPopulator {
                     .putFloat("z", components.rotation().z())
                     .build());
         }
+        if (components.placeAir()) {
+            builder.putCompound("minecraft:on_player_placing", NbtMap.builder()
+                    .putString("triggerType", "geyser:place_event")
+                    .build());
+        }
         return builder.build();
     }
 

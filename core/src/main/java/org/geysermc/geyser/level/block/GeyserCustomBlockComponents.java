@@ -45,6 +45,7 @@ import java.util.Set;
 public class GeyserCustomBlockComponents implements CustomBlockComponents {
     BoxComponent selectionBox;
     BoxComponent collisionBox;
+    String displayName;
     String geometry;
     Map<String, MaterialInstance> materialInstances;
     Float destroyTime;
@@ -52,10 +53,12 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     Integer lightEmission;
     Integer lightDampening;
     RotationComponent rotation;
+    boolean placeAir;
 
     private GeyserCustomBlockComponents(CustomBlockComponentsBuilder builder) {
         this.selectionBox = builder.selectionBox;
         this.collisionBox = builder.collisionBox;
+        this.displayName = builder.displayName;
         this.geometry = builder.geometry;
         if (builder.materialInstances.isEmpty()) {
             this.materialInstances = Object2ObjectMaps.emptyMap();
@@ -67,6 +70,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         this.lightEmission = builder.lightEmission;
         this.lightDampening = builder.lightDampening;
         this.rotation = builder.rotation;
+        this.placeAir = builder.placeAir;
     }
 
     @Override
@@ -77,6 +81,11 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     @Override
     public BoxComponent collisionBox() {
         return collisionBox;
+    }
+
+    @Override
+    public String displayName() {
+        return displayName;
     }
 
     @Override
@@ -114,6 +123,11 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         return rotation;
     }
 
+    @Override
+    public boolean placeAir() {
+        return placeAir;
+    }
+
     public static class CustomBlockComponentsBuilder implements Builder {
         protected BoxComponent selectionBox;
         protected BoxComponent collisionBox;
@@ -125,6 +139,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         protected Integer lightEmission;
         protected Integer lightDampening;
         protected RotationComponent rotation;
+        protected boolean placeAir = false;
 
         private static final Set<String> VALID_MATERIAL_INSTANCE_NAMES = ImmutableSet.of("*", "up", "down", "north", "south", "west", "east");
 
@@ -157,6 +172,12 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         public Builder collisionBox(BoxComponent collisionBox) {
             validateBox(collisionBox);
             this.collisionBox = collisionBox;
+            return this;
+        }
+
+        @Override
+        public Builder displayName(String displayName) {
+            this.displayName = displayName;
             return this;
         }
 
@@ -223,6 +244,12 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
                 throw new IllegalArgumentException("Rotation must be a multiple of 90 degrees.");
             }
             this.rotation = rotation;
+            return this;
+        }
+
+        @Override
+        public Builder placeAir(boolean placeAir) {
+            this.placeAir = placeAir;
             return this;
         }
 
