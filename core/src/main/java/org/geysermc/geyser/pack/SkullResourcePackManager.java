@@ -54,7 +54,7 @@ import java.util.zip.ZipOutputStream;
 
 public class SkullResourcePackManager {
 
-    private static final long RESOURCE_PACK_VERSION = 6;
+    private static final long RESOURCE_PACK_VERSION = 8;
 
     private static final Path SKULL_SKIN_CACHE_PATH = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("player_skulls");
 
@@ -113,21 +113,24 @@ public class SkullResourcePackManager {
         }
 
         BufferedImage image = SkinProvider.requestImage(skinUrl, null);
-        if (image.getHeight() != 64) {
-            // We have to resize legacy skins to 64x64 for them to be displayed properly
-            BufferedImage modernSkin = new BufferedImage(64, 64, image.getType());
+        // Resize skins to 48x16 to save on space and memory
+        BufferedImage skullTexture = new BufferedImage(48, 16, image.getType());
+        // Reorder skin parts to fit into the space
+        // Right, Front, Left, Back, Top, Bottom - head
+        // Right, Front, Left, Back, Top, Bottom - hat
+        Graphics g = skullTexture.createGraphics();
+        // Right, Front, Left, Back of the head
+        g.drawImage(image, 0, 0, 32, 8, 0, 8, 32, 16, null);
+        // Right, Front, Left, Back of the hat
+        g.drawImage(image, 0, 8, 32, 16, 32, 8, 64, 16, null);
+        // Top and bottom of the head
+        g.drawImage(image, 32, 0, 48, 8, 8, 0, 24, 8, null);
+        // Top and bottom of the hat
+        g.drawImage(image, 32, 8, 48, 16, 40, 0, 56, 8, null);
+        g.dispose();
+        image.flush();
 
-            Graphics g = modernSkin.createGraphics();
-            g.drawImage(image, 0, 0, null);
-            g.setColor(new Color(0, 0, 0, 0));
-            g.fillRect(0, 32, 64, 32);
-            g.dispose();
-
-            image.flush();
-            image = modernSkin;
-        }
-
-        ImageIO.write(image, "png", skinPath.toFile());
+        ImageIO.write(skullTexture, "png", skinPath.toFile());
         SKULL_SKINS.put(skinHash, skinPath);
         GeyserImpl.getInstance().getLogger().debug("Cached player skull to " + skinPath + " for " + skinHash);
     }
