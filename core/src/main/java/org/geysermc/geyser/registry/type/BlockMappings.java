@@ -27,7 +27,6 @@ package org.geysermc.geyser.registry.type;
 
 import lombok.Builder;
 import lombok.Value;
-import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
@@ -37,7 +36,7 @@ import java.util.Set;
 
 @Builder
 @Value
-public class BlockMappings {
+public class BlockMappings implements DefinitionRegistry<GeyserBedrockBlock> {
     GeyserBedrockBlock bedrockAir;
     BlockDefinition bedrockWater;
     BlockDefinition bedrockMovingBlock;
@@ -45,9 +44,8 @@ public class BlockMappings {
     int blockStateVersion;
 
     GeyserBedrockBlock[] javaToBedrockBlocks;
-    DefinitionRegistry<BlockDefinition> definitionRegistry;
 
-    NbtList<NbtMap> bedrockBlockPalette;
+    GeyserBedrockBlock[] bedrockRuntimeMap;
 
     BlockDefinition commandBlock;
 
@@ -77,5 +75,18 @@ public class BlockMappings {
         }
 
         return false;
+    }
+
+    @Override
+    public GeyserBedrockBlock getDefinition(int bedrockId) {
+        if (bedrockId < 0 || bedrockId >= this.bedrockRuntimeMap.length) {
+            return bedrockAir;
+        }
+        return bedrockRuntimeMap[bedrockId];
+    }
+
+    @Override
+    public boolean isRegistered(GeyserBedrockBlock bedrockBlock) {
+        return getDefinition(bedrockBlock.getRuntimeId()) == bedrockBlock;
     }
 }

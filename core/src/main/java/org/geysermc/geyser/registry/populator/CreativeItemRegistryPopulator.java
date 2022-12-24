@@ -125,6 +125,6 @@ public class CreativeItemRegistryPopulator {
                 .damage(damage)
                 .count(count)
                 .tag(tag)
-                .blockDefinition(blockMappings.getDefinitionRegistry().getDefinition(bedrockBlockRuntimeId));
+                .blockDefinition(blockMappings.getDefinition(bedrockBlockRuntimeId));
     }
 }

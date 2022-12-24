@@ -780,7 +780,7 @@ public class PistonBlockEntity {
      */
     private NbtMap buildMovingBlockTag(Vector3i position, int javaId, Vector3i pistonPosition) {
         // Get Bedrock block state data
-        NbtMap movingBlock = session.getBlockMappings().getBedrockBlockPalette().get(session.getBlockMappings().getBedrockBlockId(javaId));
+        NbtMap movingBlock = session.getBlockMappings().getBedrockBlock(javaId).getState();
         NbtMapBuilder builder = NbtMap.builder()
                 .putString("id", "MovingBlock")
                 .putCompound("movingBlock", movingBlock)

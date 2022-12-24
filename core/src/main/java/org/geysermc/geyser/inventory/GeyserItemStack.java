@@ -92,6 +92,9 @@ public class GeyserItemStack {
     }
 
     public ItemData getItemData(GeyserSession session) {
+        if (isEmpty()) {
+            return ItemData.AIR;
+        }
         ItemData.Builder itemData = ItemTranslator.translateToBedrock(session, javaId, amount, nbt);
         itemData.netId(getNetId());
         itemData.usingNetId(true);

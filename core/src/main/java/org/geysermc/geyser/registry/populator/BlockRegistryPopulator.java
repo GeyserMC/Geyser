@@ -35,7 +35,6 @@ import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.protocol.bedrock.codec.v544.Bedrock_v544;
 import org.cloudburstmc.protocol.bedrock.codec.v560.Bedrock_v560;
 import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
-import org.cloudburstmc.protocol.common.SimpleDefinitionRegistry;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.physics.PistonBehavior;
@@ -86,6 +85,7 @@ public final class BlockRegistryPopulator {
             // New since 1.16.100 - find the block runtime ID by the order given to us in the block palette,
             // as we no longer send a block palette
             Object2ObjectMap<NbtMap, GeyserBedrockBlock> blockStateOrderedMap = new Object2ObjectOpenHashMap<>(blocksTag.size());
+            GeyserBedrockBlock[] bedrockRuntimeMap = new GeyserBedrockBlock[blocksTag.size()];
 
             int stateVersion = -1;
             for (int i = 0; i < blocksTag.size(); i++) {
@@ -97,6 +97,7 @@ public final class BlockRegistryPopulator {
                 }
                 GeyserBedrockBlock block = new GeyserBedrockBlock(i, tag);
                 blockStateOrderedMap.put(tag, block);
+                //bedrockRuntimeMap[i] = block; //TODO UNCOMMENT IF SOMETHING IS WRONG IN THE CREATIVE PALETTE
                 if (stateVersion == -1) {
                     stateVersion = tag.getInt("version");
                 }
@@ -112,7 +113,6 @@ public final class BlockRegistryPopulator {
             BiFunction<String, NbtMapBuilder, String> stateMapper = blockMappers.getOrDefault(palette.getKey(), emptyMapper);
 
             GeyserBedrockBlock[] javaToBedrockBlocks = new GeyserBedrockBlock[BLOCKS_JSON.size()];
-            SimpleDefinitionRegistry.Builder<BlockDefinition> registry = SimpleDefinitionRegistry.builder();
 
             Map<String, NbtMap> flowerPotBlocks = new Object2ObjectOpenHashMap<>();
             Map<NbtMap, BlockDefinition> itemFrames = new Object2ObjectOpenHashMap<>();
@@ -160,7 +160,7 @@ public final class BlockRegistryPopulator {
                 javaToBedrockBlocks[javaRuntimeId] = bedrockDefinition;
             }
 
-            Arrays.stream(javaToBedrockBlocks).distinct().forEach(registry::add);
+            Arrays.stream(javaToBedrockBlocks).distinct().forEach(block -> bedrockRuntimeMap[block.getRuntimeId()] = block);
 
             if (commandBlockDefinition == null) {
                 throw new AssertionError("Unable to find command block in palette");
@@ -191,10 +191,8 @@ public final class BlockRegistryPopulator {
                 }
             });
 
-            builder.bedrockBlockPalette(blocksTag);
-
             BlockRegistries.BLOCKS.register(palette.getKey().valueInt(), builder.blockStateVersion(stateVersion)
-                    .definitionRegistry(registry.build())
+                    .bedrockRuntimeMap(bedrockRuntimeMap)
                     .javaToBedrockBlocks(javaToBedrockBlocks)
                     .itemFrames(itemFrames)
                     .flowerPotBlocks(flowerPotBlocks)

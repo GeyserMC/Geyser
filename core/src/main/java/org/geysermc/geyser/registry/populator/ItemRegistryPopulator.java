@@ -237,7 +237,7 @@ public class ItemRegistryPopulator {
                             // as indexed by Bedrock's block palette
                             // There are exceptions! But, ideally, the block ID override should take care of those.
                             NbtMapBuilder requiredBlockStatesBuilder = NbtMap.builder();
-                            String correctBedrockIdentifier = blockMappings.getBedrockBlockPalette().get(aValidBedrockBlockId).getString("name");
+                            String correctBedrockIdentifier = blockMappings.getDefinition(aValidBedrockBlockId).getState().getString("name");
                             boolean firstPass = true;
                             // Block states are all grouped together. In the mappings, we store the first block runtime ID in order,
                             // and the last, if relevant. We then iterate over all those values and get their Bedrock equivalents
@@ -279,11 +279,13 @@ public class ItemRegistryPopulator {
 
                             NbtMap requiredBlockStates = requiredBlockStatesBuilder.build();
                             if (bedrockBlock == null) {
-                                int i = -1;
                                 // We need to loop around again (we can't cache the block tags above) because Bedrock can include states that we don't have a pairing for
                                 // in it's "preferred" block state - I.E. the first matching block state in the list
-                                for (NbtMap blockTag : blockMappings.getBedrockBlockPalette()) {
-                                    i++;
+                                for (GeyserBedrockBlock block : blockMappings.getBedrockRuntimeMap()) {
+                                    if (block == null) {
+                                        continue;
+                                    }
+                                    NbtMap blockTag = block.getState();
                                     if (blockTag.getString("name").equals(correctBedrockIdentifier)) {
                                         NbtMap states = blockTag.getCompound("states");
                                         boolean valid = true;
@@ -295,7 +297,7 @@ public class ItemRegistryPopulator {
                                             }
                                         }
                                         if (valid) {
-                                            bedrockBlock = blockMappings.getDefinitionRegistry().getDefinition(i);
+                                            bedrockBlock = block;
                                             break;
                                         }
                                     }
@@ -314,7 +316,7 @@ public class ItemRegistryPopulator {
                                         break;
                                     }
 
-                                    NbtMap states = blockMappings.getBedrockBlockPalette().get(itemData.getBlockDefinition().getRuntimeId()).getCompound("states");
+                                    NbtMap states = ((GeyserBedrockBlock) itemData.getBlockDefinition()).getState().getCompound("states");
                                     boolean valid = true;
                                     for (Map.Entry<String, Object> nbtEntry : requiredBlockStates.entrySet()) {
                                         if (!states.get(nbtEntry.getKey()).equals(nbtEntry.getValue())) {
