@@ -80,7 +80,7 @@ public class BlockMappings implements DefinitionRegistry<GeyserBedrockBlock> {
     @Override
     public GeyserBedrockBlock getDefinition(int bedrockId) {
         if (bedrockId < 0 || bedrockId >= this.bedrockRuntimeMap.length) {
-            return bedrockAir;
+            return null;
         }
         return bedrockRuntimeMap[bedrockId];
     }
