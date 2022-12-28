@@ -122,7 +122,8 @@ public class MappingsConfigReader {
         JsonNode mappingsRoot = getMappingsRoot(file);
 
         int formatVersion = getFormatVersion(mappingsRoot, file);
-        if (formatVersion < 0) {
+
+        if (formatVersion < 0 || mappingsRoot == null) {
             return;
         }
 
@@ -133,7 +134,8 @@ public class MappingsConfigReader {
         JsonNode mappingsRoot = getMappingsRoot(file);
 
         int formatVersion = getFormatVersion(mappingsRoot, file);
-        if (formatVersion < 0) {
+
+        if (formatVersion < 0 || mappingsRoot == null) {
             return;
         }
 
