@@ -23,10 +23,11 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.mappings.versions;
+package org.geysermc.geyser.registry.mappings.versions;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
@@ -36,11 +37,16 @@ import java.util.function.BiConsumer;
 
 public class MappingsReader_v1 extends MappingsReader {
     @Override
-    public void readMappings(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomItemData> consumer) {
-        this.readItemMappings(file, mappingsRoot, consumer);
+    public void readItemMappings(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomItemData> consumer) {
+        this.readItemMappingsV1(file, mappingsRoot, consumer);
     }
 
-    public void readItemMappings(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomItemData> consumer) {
+    @Override
+    public void readBlockMappings(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomBlockData> consumer) {
+        this.readBlockMappingsV1(file, mappingsRoot, consumer);
+    }
+
+    public void readItemMappingsV1(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomItemData> consumer) {
         JsonNode itemsNode = mappingsRoot.get("items");
 
         if (itemsNode != null && itemsNode.isObject()) {
@@ -51,7 +57,26 @@ public class MappingsReader_v1 extends MappingsReader {
                             CustomItemData customItemData = this.readItemMappingEntry(data);
                             consumer.accept(entry.getKey(), customItemData);
                         } catch (InvalidCustomMappingsFileException e) {
-                            GeyserImpl.getInstance().getLogger().error("Error in custom mapping file: " + file.toString(), e);
+                            GeyserImpl.getInstance().getLogger().error("Error in registering items for custom mapping file: " + file.toString(), e);
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    public void readBlockMappingsV1(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomBlockData> consumer) {
+        JsonNode blocksNode = mappingsRoot.get("blocks");
+
+        if (blocksNode != null && blocksNode.isObject()) {
+            blocksNode.fields().forEachRemaining(entry -> {
+                if (entry.getValue().isObject()) {
+                    entry.getValue().forEach(data -> {
+                        try {
+                            CustomBlockData customBlockData = this.readBlockMappingEntry(data);
+                            consumer.accept(entry.getKey(), customBlockData);
+                        } catch (InvalidCustomMappingsFileException e) {
+                            GeyserImpl.getInstance().getLogger().error("Error in registering blocks for custom mapping file: " + file.toString(), e);
                         }
                     });
                 }
@@ -119,5 +144,19 @@ public class MappingsReader_v1 extends MappingsReader {
         }
 
         return customItemData.build();
+    }
+
+    @Override
+    public CustomBlockData readBlockMappingEntry(JsonNode node) throws InvalidCustomMappingsFileException {
+        if (node == null || !node.isObject()) {
+            throw new InvalidCustomMappingsFileException("Invalid block mappings entry");
+        }
+
+        String name = node.get("name").asText();
+        if (name == null || name.isEmpty()) {
+            throw new InvalidCustomMappingsFileException("A block entry has no name");
+        }
+
+        return null;
     }
 }

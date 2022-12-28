@@ -25,6 +25,40 @@
 
 package org.geysermc.geyser.registry.populator;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.GeyserBootstrap;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.block.custom.CustomBlockData;
+import org.geysermc.geyser.api.item.custom.CustomItemData;
+import org.geysermc.geyser.api.item.custom.CustomItemOptions;
+import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
+import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
+import org.geysermc.geyser.inventory.item.StoredItemMappings;
+import org.geysermc.geyser.item.GeyserCustomMappingData;
+import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
+import org.geysermc.geyser.registry.type.BlockMappings;
+import org.geysermc.geyser.registry.type.GeyserMappingItem;
+import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.registry.type.ItemMappings;
+import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
+import org.geysermc.geyser.registry.type.PaletteItem;
+import org.geysermc.geyser.util.ItemUtils;
+import org.geysermc.geyser.util.collection.FixedInt2IntMap;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Multimap;
@@ -37,37 +71,23 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import com.nukkitx.protocol.bedrock.v560.Bedrock_v560;
-import it.unimi.dsi.fastutil.ints.*;
-import com.nukkitx.protocol.bedrock.v527.Bedrock_v527;
-import com.nukkitx.protocol.bedrock.v534.Bedrock_v534;
 import com.nukkitx.protocol.bedrock.v544.Bedrock_v544;
+import com.nukkitx.protocol.bedrock.v560.Bedrock_v560;
+
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.objects.*;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.GeyserBootstrap;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.block.custom.CustomBlockData;
-import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomItemsEvent;
-import org.geysermc.geyser.api.item.custom.CustomItemData;
-import org.geysermc.geyser.api.item.custom.CustomItemOptions;
-import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
-import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
-import org.geysermc.geyser.inventory.item.StoredItemMappings;
-import org.geysermc.geyser.item.GeyserCustomMappingData;
-import org.geysermc.geyser.item.mappings.MappingsConfigReader;
-import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.type.*;
-import org.geysermc.geyser.util.ItemUtils;
-import org.geysermc.geyser.util.collection.FixedInt2IntMap;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMaps;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectIntPair;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
 /**
  * Populates the item registries.
@@ -105,7 +125,7 @@ public class ItemRegistryPopulator {
         MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
         if (customItemsAllowed) {
             // Load custom items from mappings files
-            mappingsConfigReader.loadMappingsFromJson((key, item) -> {
+            mappingsConfigReader.loadItemMappingsFromJson((key, item) -> {
                 if (CustomItemRegistryPopulator.initialCheck(key, item, items)) {
                     customItems.get(key).add(item);
                 }

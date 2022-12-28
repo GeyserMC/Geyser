@@ -23,15 +23,16 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.mappings;
+package org.geysermc.geyser.registry.mappings;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
-import org.geysermc.geyser.item.mappings.versions.MappingsReader;
-import org.geysermc.geyser.item.mappings.versions.MappingsReader_v1;
+import org.geysermc.geyser.registry.mappings.versions.MappingsReader;
+import org.geysermc.geyser.registry.mappings.versions.MappingsReader_v1;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -56,43 +57,86 @@ public class MappingsConfigReader {
         }
     }
 
-    public void loadMappingsFromJson(BiConsumer<String, CustomItemData> consumer) {
-        Path customMappingsDirectory = this.customMappingsDirectory;
-        if (!Files.exists(customMappingsDirectory)) {
+    public boolean ensureMappingsDirectory(Path mappingsDirectory) {
+        if (!Files.exists(mappingsDirectory)) {
             try {
-                Files.createDirectories(customMappingsDirectory);
+                Files.createDirectories(mappingsDirectory);
+                return true;
             } catch (IOException e) {
-                GeyserImpl.getInstance().getLogger().error("Failed to create custom mappings directory", e);
-                return;
+                GeyserImpl.getInstance().getLogger().error("Failed to create mappings directory", e);
+                return false;
             }
+        }
+        return true;
+    }
+
+    public void loadItemMappingsFromJson(BiConsumer<String, CustomItemData> consumer) {
+        if (!ensureMappingsDirectory(this.customMappingsDirectory)) {
+            return;
         }
 
         Path[] mappingsFiles = this.getCustomMappingsFiles();
         for (Path mappingsFile : mappingsFiles) {
-            this.readMappingsFromJson(mappingsFile, consumer);
+            this.readItemMappingsFromJson(mappingsFile, consumer);
         }
     }
 
-    public void readMappingsFromJson(Path file, BiConsumer<String, CustomItemData> consumer) {
+    public void loadBlockMappingsFromJson(BiConsumer<String, CustomBlockData> consumer) {
+        if (!ensureMappingsDirectory(this.customMappingsDirectory)) {
+            return;
+        }
+
+        Path[] mappingsFiles = this.getCustomMappingsFiles();
+        for (Path mappingsFile : mappingsFiles) {
+            this.readBlockMappingsFromJson(mappingsFile, consumer);
+        }
+    }
+
+    public JsonNode getMappingsRoot(Path file) {
         JsonNode mappingsRoot;
         try {
             mappingsRoot = GeyserImpl.JSON_MAPPER.readTree(file.toFile());
         } catch (IOException e) {
             GeyserImpl.getInstance().getLogger().error("Failed to read custom mapping file: " + file, e);
-            return;
+            return null;
         }
 
         if (!mappingsRoot.has("format_version")) {
             GeyserImpl.getInstance().getLogger().error("Mappings file " + file + " is missing the format version field!");
-            return;
+            return null;
         }
 
-        int formatVersion = mappingsRoot.get("format_version").asInt();
+        return mappingsRoot;
+    }
+
+    public int getFormatVersion(JsonNode mappingsRoot, Path file) {
+        int formatVersion =  mappingsRoot.get("format_version").asInt();
         if (!this.mappingReaders.containsKey(formatVersion)) {
             GeyserImpl.getInstance().getLogger().error("Mappings file " + file + " has an unknown format version: " + formatVersion);
+            return -1;
+        }
+        return formatVersion;
+    }
+
+    public void readItemMappingsFromJson(Path file, BiConsumer<String, CustomItemData> consumer) {
+        JsonNode mappingsRoot = getMappingsRoot(file);
+
+        int formatVersion = getFormatVersion(mappingsRoot, file);
+        if (formatVersion < 0) {
             return;
         }
 
-        this.mappingReaders.get(formatVersion).readMappings(file, mappingsRoot, consumer);
+        this.mappingReaders.get(formatVersion).readItemMappings(file, mappingsRoot, consumer);
+    }
+
+    public void readBlockMappingsFromJson(Path file, BiConsumer<String, CustomBlockData> consumer) {
+        JsonNode mappingsRoot = getMappingsRoot(file);
+
+        int formatVersion = getFormatVersion(mappingsRoot, file);
+        if (formatVersion < 0) {
+            return;
+        }
+
+        this.mappingReaders.get(formatVersion).readBlockMappings(file, mappingsRoot, consumer);
     }
 }

@@ -23,9 +23,11 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.mappings.versions;
+package org.geysermc.geyser.registry.mappings.versions;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
+import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
@@ -34,9 +36,11 @@ import java.nio.file.Path;
 import java.util.function.BiConsumer;
 
 public abstract class MappingsReader {
-    public abstract void readMappings(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomItemData> consumer);
+    public abstract void readItemMappings(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomItemData> consumer);
+    public abstract void readBlockMappings(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomBlockData> consumer);
 
     public abstract CustomItemData readItemMappingEntry(JsonNode node) throws InvalidCustomMappingsFileException;
+    public abstract CustomBlockData readBlockMappingEntry(JsonNode node) throws InvalidCustomMappingsFileException;
 
     protected CustomRenderOffsets fromJsonNode(JsonNode node) {
         if (node == null || !node.isObject()) {
