@@ -54,7 +54,7 @@ public class CreativeItemRegistryPopulator {
             (identifier, data) -> identifier.equals("minecraft:bordure_indented_banner_pattern") || identifier.equals("minecraft:field_masoned_banner_pattern")
     );
 
-    public static void populate(Map.Entry<String, ItemRegistryPopulator.PaletteVersion> version, Map<String, ItemDefinition> definitions, Consumer<ItemData.Builder> itemConsumer) {
+    static void populate(Map.Entry<String, ItemRegistryPopulator.PaletteVersion> version, Map<String, ItemDefinition> definitions, Consumer<ItemData.Builder> itemConsumer) {
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
         // Load creative items
@@ -79,7 +79,7 @@ public class CreativeItemRegistryPopulator {
     private static ItemData.Builder createItemData(JsonNode itemNode, BlockMappings blockMappings, Map<String, ItemDefinition> definitions) {
         int count = 1;
         int damage = 0;
-        int bedrockBlockRuntimeId = 0;
+        int bedrockBlockRuntimeId = -1;
         NbtMap tag = null;
         JsonNode damageNode = itemNode.get("damage");
         if (damageNode != null) {
@@ -125,6 +125,6 @@ public class CreativeItemRegistryPopulator {
                 .damage(damage)
                 .count(count)
                 .tag(tag)
-                .blockDefinition(blockMappings.getDefinition(bedrockBlockRuntimeId));
+                .blockDefinition(bedrockBlockRuntimeId == -1 ? null : blockMappings.getDefinition(bedrockBlockRuntimeId));
     }
 }

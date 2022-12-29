@@ -116,13 +116,13 @@ import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
-import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
@@ -1278,12 +1278,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * blocking and sends a packet to the Java server.
      */
     private boolean attemptToBlock() {
-        ItemMapping shield = itemMappings.getStoredItems().shield();
-
         ServerboundUseItemPacket useItemPacket;
-        if (playerInventory.getItemInHand().getJavaId() == shield.getJavaId()) {
+        if (playerInventory.getItemInHand().asItem() == Items.SHIELD) {
             useItemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, worldCache.nextPredictionSequence());
-        } else if (playerInventory.getOffhand().getJavaId() == shield.getJavaId()) {
+        } else if (playerInventory.getOffhand().asItem() == Items.SHIELD) {
             useItemPacket = new ServerboundUseItemPacket(Hand.OFF_HAND, worldCache.nextPredictionSequence());
         } else {
             // No blocking
@@ -1410,7 +1408,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     private void startGame() {
-        this.upstream.getCodecHelper().setItemDefinitions(this.itemMappings.getDefinitionRegistry());
+        this.upstream.getCodecHelper().setItemDefinitions(this.itemMappings);
         this.upstream.getCodecHelper().setBlockDefinitions((DefinitionRegistry) this.blockMappings); //FIXME
 
         StartGamePacket startGamePacket = new StartGamePacket();
@@ -1467,7 +1465,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setEnchantmentSeed(0);
         startGamePacket.setMultiplayerCorrelationId("");
 
-        startGamePacket.setItemDefinitions(this.itemMappings.getItemDefinitions());
+        startGamePacket.setItemDefinitions(this.itemMappings.getItemDefinitions().values().stream().toList()); // TODO
         // startGamePacket.setBlockPalette(this.blockMappings.getBedrockBlockPalette());
 
         startGamePacket.setVanillaVersion("*");

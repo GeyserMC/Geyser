@@ -35,7 +35,8 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.item.Potion;
-import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.EnumSet;
@@ -56,8 +57,8 @@ public class ThrownPotionEntity extends ThrowableItemEntity {
             setFlag(EntityFlag.ENCHANTED, false);
             setFlag(EntityFlag.LINGERING, false);
         } else {
-            ItemMapping mapping = session.getItemMappings().getMapping(itemStack);
-            if (mapping.getJavaIdentifier().endsWith("potion") && itemStack.getNbt() != null) {
+            // As of Java 1.19.3, the server/client doesn't seem to care of the item is actually a potion?
+            if (itemStack.getNbt() != null) {
                 Tag potionTag = itemStack.getNbt().get("Potion");
                 if (potionTag instanceof StringTag) {
                     Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
@@ -70,7 +71,7 @@ public class ThrownPotionEntity extends ThrowableItemEntity {
                     }
                 }
 
-                boolean isLingering = mapping.getJavaIdentifier().equals("minecraft:lingering_potion");
+                boolean isLingering = Registries.JAVA_ITEMS.get().get(itemStack.getId()) == Items.LINGERING_POTION;
                 setFlag(EntityFlag.LINGERING, isLingering);
             }
         }

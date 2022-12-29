@@ -241,7 +241,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             case BOOL -> ENUM_BOOLEAN;
             case OPERATION -> CommandParam.OPERATOR; // ">=", "==", etc
             case BLOCK_STATE -> context.getBlockStates();
-            case ITEM_STACK -> context.session.getItemMappings().getItemNames();
+            case ITEM_STACK -> context.getItemNames();
             case COLOR -> VALID_COLORS;
             case SCOREBOARD_SLOT -> VALID_SCOREBOARD_SLOTS;
             case RESOURCE -> handleResource(context, ((ResourceProperties) node.getProperties()).getRegistryKey(), false);
@@ -278,6 +278,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         private Object biomesNoTags;
         private String[] blockStates;
         private String[] entityTypes;
+        private String[] itemNames;
 
         CommandBuilderContext(GeyserSession session) {
             this.session = session;
@@ -313,6 +314,13 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                 return entityTypes;
             }
             return (entityTypes = Registries.JAVA_ENTITY_IDENTIFIERS.get().keySet().toArray(new String[0]));
+        }
+
+        public String[] getItemNames() {
+            if (itemNames != null) {
+                return itemNames;
+            }
+            return (itemNames = Registries.JAVA_ITEM_IDENTIFIERS.get().keySet().toArray(new String[0]));
         }
     }
 

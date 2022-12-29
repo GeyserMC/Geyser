@@ -28,6 +28,8 @@ package org.geysermc.geyser.translator.inventory.item.nbt;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
@@ -63,7 +65,7 @@ public class EnchantedBookTranslator extends NbtItemStackTranslator {
     }
 
     @Override
-    public boolean acceptItem(ItemMapping mapping) {
-        return "minecraft:enchanted_book".equals(mapping.getJavaIdentifier());
+    public boolean acceptItem(Item item) {
+        return item == Items.ENCHANTED_BOOK;
     }
 }

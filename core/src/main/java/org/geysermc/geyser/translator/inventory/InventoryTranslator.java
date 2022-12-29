@@ -854,7 +854,7 @@ public abstract class InventoryTranslator {
             int slot = it.nextInt();
             BedrockContainerSlot bedrockSlot = javaSlotToBedrockContainer(slot);
             List<ItemStackResponseSlot> list = containerMap.computeIfAbsent(bedrockSlot.container(), k -> new ArrayList<>());
-            list.add(makeItemEntry(session, bedrockSlot.slot(), inventory.getItem(slot)));
+            list.add(makeItemEntry(bedrockSlot.slot(), inventory.getItem(slot)));
         }
 
         List<ItemStackResponseContainer> containerEntries = new ArrayList<>();
@@ -862,13 +862,13 @@ public abstract class InventoryTranslator {
             containerEntries.add(new ItemStackResponseContainer(entry.getKey(), entry.getValue()));
         }
 
-        ItemStackResponseSlot cursorEntry = makeItemEntry(session, 0, session.getPlayerInventory().getCursor());
+        ItemStackResponseSlot cursorEntry = makeItemEntry(0, session.getPlayerInventory().getCursor());
         containerEntries.add(new ItemStackResponseContainer(ContainerSlotType.CURSOR, Collections.singletonList(cursorEntry)));
 
         return containerEntries;
     }
 
-    private static ItemStackResponseSlot makeItemEntry(GeyserSession session, int bedrockSlot, GeyserItemStack itemStack) {
+    private static ItemStackResponseSlot makeItemEntry(int bedrockSlot, GeyserItemStack itemStack) {
         ItemStackResponseSlot itemEntry;
         if (!itemStack.isEmpty()) {
             // As of 1.16.210: Bedrock needs confirmation on what the current item durability is.
@@ -877,7 +877,7 @@ public abstract class InventoryTranslator {
             if (itemStack.getNbt() != null) {
                 Tag damage = itemStack.getNbt().get("Damage");
                 if (damage instanceof IntTag) {
-                    durability = ItemUtils.getCorrectBedrockDurability(session, itemStack.getJavaId(), ((IntTag) damage).getValue());
+                    durability = ItemUtils.getCorrectBedrockDurability(itemStack.asItem(), ((IntTag) damage).getValue());
                 }
             }
 

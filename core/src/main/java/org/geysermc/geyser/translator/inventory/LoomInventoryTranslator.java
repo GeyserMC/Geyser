@@ -46,6 +46,7 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.SlotType;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
+import org.geysermc.geyser.item.type.DyeItem;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.item.nbt.BannerTranslator;
 
@@ -113,7 +114,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
         }
 
         // Reject the item if Bedrock is attempting to put in a dye that is not a dye in Java Edition
-        return !itemStack.getMapping(session).getJavaIdentifier().endsWith("_dye");
+        return !(itemStack.asItem() instanceof DyeItem);
     }
 
     @Override

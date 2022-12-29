@@ -26,6 +26,8 @@
 package org.geysermc.geyser.translator.inventory.item.nbt;
 
 import com.github.steveice10.opennbt.tag.builtin.*;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
@@ -65,7 +67,7 @@ public class MapItemTranslator extends NbtItemStackTranslator {
     }
 
     @Override
-    public boolean acceptItem(ItemMapping mapping) {
-        return mapping.getJavaIdentifier().equals("minecraft:filled_map");
+    public boolean acceptItem(Item item) {
+        return item == Items.FILLED_MAP;
     }
 }

@@ -30,8 +30,8 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.BlockMapping;
-import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -129,24 +129,24 @@ public class TagCache {
         this.smallFlowers = IntLists.emptyList();
     }
 
-    public boolean isAxolotlTemptItem(ItemMapping itemMapping) {
-        return axolotlTemptItems.contains(itemMapping.getJavaId());
+    public boolean isAxolotlTemptItem(Item item) {
+        return axolotlTemptItems.contains(item.javaId());
     }
 
     public boolean isFish(GeyserItemStack itemStack) {
         return fishes.contains(itemStack.getJavaId());
     }
 
-    public boolean isFlower(ItemMapping mapping) {
-        return flowers.contains(mapping.getJavaId());
+    public boolean isFlower(Item item) {
+        return flowers.contains(item.javaId());
     }
 
-    public boolean isFoxFood(ItemMapping mapping) {
-        return foxFood.contains(mapping.getJavaId());
+    public boolean isFoxFood(Item item) {
+        return foxFood.contains(item.javaId());
     }
 
-    public boolean shouldPiglinAdmire(ItemMapping mapping) {
-        return piglinLoved.contains(mapping.getJavaId());
+    public boolean shouldPiglinAdmire(Item item) {
+        return piglinLoved.contains(item.javaId());
     }
 
     public boolean isSmallFlower(GeyserItemStack itemStack) {

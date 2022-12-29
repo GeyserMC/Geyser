@@ -34,6 +34,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 
@@ -67,10 +68,12 @@ public class GoatEntity extends AnimalEntity {
         }
     }
 
+    // TODO testMobInteraction?
+
     @Nonnull
     @Override
-    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        if (!getFlag(EntityFlag.BABY) && itemInHand.getMapping(session).getJavaIdentifier().equals("minecraft:bucket")) {
+    protected InteractionResult mobInteract(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
+        if (!getFlag(EntityFlag.BABY) && itemInHand.asItem() == Items.BUCKET) {
             session.playSoundEvent(isScreamer ? SoundEvent.MILK_SCREAMER : SoundEvent.MILK, position);
             return InteractionResult.SUCCESS;
         } else {

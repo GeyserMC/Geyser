@@ -49,6 +49,7 @@ import org.geysermc.geyser.inventory.click.Click;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -178,7 +179,7 @@ public class InventoryUtils {
      * Checks to see if an item stack represents air or has no count.
      */
     public static boolean isEmpty(@Nullable ItemStack itemStack) {
-        return itemStack == null || itemStack.getId() == ItemMapping.AIR.getJavaId() || itemStack.getAmount() <= 0;
+        return itemStack == null || itemStack.getId() == Items.AIR.javaId() || itemStack.getAmount() <= 0;
     }
 
     /**
@@ -294,7 +295,7 @@ public class InventoryUtils {
                 continue;
             }
             // If this isn't the item we're looking for
-            if (!geyserItem.getMapping(session).getJavaIdentifier().equals(itemName)) {
+            if (!geyserItem.asItem().javaIdentifier().equals(itemName)) {
                 continue;
             }
 
@@ -310,7 +311,7 @@ public class InventoryUtils {
                 continue;
             }
             // If this isn't the item we're looking for
-            if (!geyserItem.getMapping(session).getJavaIdentifier().equals(itemName)) {
+            if (!geyserItem.asItem().javaIdentifier().equals(itemName)) {
                 continue;
             }
 
@@ -323,10 +324,10 @@ public class InventoryUtils {
         if (session.getGameMode() == GameMode.CREATIVE) {
             int slot = findEmptyHotbarSlot(inventory);
 
-            ItemMapping mapping = session.getItemMappings().getMapping(itemName);
+            ItemMapping mapping = session.getItemMappings().getMapping(itemName); // TODO
             if (mapping != null) {
                 ServerboundSetCreativeModeSlotPacket actionPacket = new ServerboundSetCreativeModeSlotPacket(slot,
-                        new ItemStack(mapping.getJavaId()));
+                        new ItemStack(mapping.getJavaItem().javaId()));
                 if ((slot - 36) != inventory.getHeldItemSlot()) {
                     setHotbarItem(session, slot);
                 }

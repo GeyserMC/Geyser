@@ -35,6 +35,9 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntit
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
@@ -46,12 +49,10 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.MobArmorEquipmentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.AttributeUtils;
@@ -98,8 +99,7 @@ public class LivingEntity extends Entity {
         boolean isUsingItem = (xd & 0x01) == 0x01;
         boolean isUsingOffhand = (xd & 0x02) == 0x02;
 
-        ItemMapping shield = session.getItemMappings().getStoredItems().shield();
-        boolean isUsingShield = hasShield(isUsingOffhand, shield);
+        boolean isUsingShield = hasShield(isUsingOffhand);
 
         setFlag(EntityFlag.USING_ITEM, isUsingItem && !isUsingShield);
         // Override the blocking
@@ -142,7 +142,8 @@ public class LivingEntity extends Entity {
         }
     }
 
-    protected boolean hasShield(boolean offhand, ItemMapping shieldMapping) {
+    protected boolean hasShield(boolean offhand) {
+        ItemMapping shieldMapping = session.getItemMappings().getStoredItems().shield();
         if (offhand) {
             return offHand.getDefinition().equals(shieldMapping.getBedrockDefinition());
         } else {
@@ -190,7 +191,7 @@ public class LivingEntity extends Entity {
     @Override
     public InteractionResult interact(Hand hand) {
         GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand(hand);
-        if (itemStack.getJavaId() == session.getItemMappings().getStoredItems().nameTag().getJavaId()) {
+        if (itemStack.asItem() == Items.NAME_TAG) {
             InteractionResult result = checkInteractWithNameTag(itemStack);
             if (result.consumesAction()) {
                 return result;
@@ -220,10 +221,10 @@ public class LivingEntity extends Entity {
         // If an entity has a banner on them, it will be in the helmet slot in Java but the chestplate spot in Bedrock
         // But don't overwrite the chestplate if it isn't empty
         ItemMapping banner = session.getItemMappings().getStoredItems().banner();
-        if (ItemDefinition.AIR.equals(chestplate.getDefinition()) && helmet.getDefinition().equals(banner.getBedrockDefinition())) {
+        if (ItemDefinition.AIR.equals(chestplate.getDefinition()) && helmet.getDefinition().equals(banner)) {
             chestplate = this.helmet;
             helmet = ItemData.AIR;
-        } else if (chestplate.getDefinition().equals(banner.getBedrockDefinition())) {
+        } else if (chestplate.getDefinition().equals(banner)) {
             // Prevent chestplate banners from showing erroneously
             chestplate = ItemData.AIR;
         }

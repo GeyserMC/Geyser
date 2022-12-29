@@ -31,6 +31,8 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.geysermc.geyser.entity.type.living.animal.TropicalFishEntity;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.MinecraftLocale;
@@ -90,7 +92,7 @@ public class TropicalFishBucketTranslator extends NbtItemStackTranslator {
     }
 
     @Override
-    public boolean acceptItem(ItemMapping mapping) {
-        return mapping.getJavaIdentifier().equals("minecraft:tropical_fish_bucket");
+    public boolean acceptItem(Item item) {
+        return item == Items.TROPICAL_FISH_BUCKET;
     }
 }

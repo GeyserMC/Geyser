@@ -31,6 +31,7 @@ import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
@@ -45,8 +46,8 @@ public class CowEntity extends AnimalEntity {
 
     @Nonnull
     @Override
-    protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        if (getFlag(EntityFlag.BABY) || !itemInHand.getMapping(session).getJavaIdentifier().equals("minecraft:bucket")) {
+    protected InteractiveTag testMobInteraction(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
+        if (getFlag(EntityFlag.BABY) || itemInHand.asItem() != Items.BUCKET) {
             return super.testMobInteraction(hand, itemInHand);
         }
 
@@ -55,8 +56,8 @@ public class CowEntity extends AnimalEntity {
 
     @Nonnull
     @Override
-    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        if (getFlag(EntityFlag.BABY) || !itemInHand.getMapping(session).getJavaIdentifier().equals("minecraft:bucket")) {
+    protected InteractionResult mobInteract(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
+        if (getFlag(EntityFlag.BABY) || itemInHand.asItem() != Items.BUCKET) {
             return super.mobInteract(hand, itemInHand);
         }
 

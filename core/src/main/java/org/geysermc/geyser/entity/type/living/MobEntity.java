@@ -27,15 +27,15 @@ package org.geysermc.geyser.entity.type.living;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
+import lombok.Getter;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import lombok.Getter;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.inventory.item.StoredItemMappings;
-import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.SpawnEggItem;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
@@ -79,11 +79,10 @@ public class MobEntity extends LivingEntity {
             return InteractiveTag.REMOVE_LEASH;
         } else {
             GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand(hand);
-            StoredItemMappings storedItems = session.getItemMappings().getStoredItems();
-            if (itemStack.getJavaId() == storedItems.lead().getJavaId() && canBeLeashed()) {
+            if (itemStack.asItem() == Items.LEAD && canBeLeashed()) {
                 // We shall leash
                 return InteractiveTag.LEASH;
-            } else if (itemStack.getJavaId() == storedItems.nameTag().getJavaId()) {
+            } else if (itemStack.asItem() == Items.NAME_TAG) {
                 InteractionResult result = checkInteractWithNameTag(itemStack);
                 if (result.consumesAction()) {
                     return InteractiveTag.NAME;
@@ -116,18 +115,16 @@ public class MobEntity extends LivingEntity {
     }
 
     private InteractionResult checkPriorityInteractions(GeyserItemStack itemInHand) {
-        StoredItemMappings storedItems = session.getItemMappings().getStoredItems();
-        if (itemInHand.getJavaId() == storedItems.lead().getJavaId() && canBeLeashed()) {
+        if (itemInHand.asItem() == Items.LEAD && canBeLeashed()) {
             // We shall leash
             return InteractionResult.SUCCESS;
-        } else if (itemInHand.getJavaId() == storedItems.nameTag().getJavaId()) {
+        } else if (itemInHand.asItem() == Items.NAME_TAG) {
             InteractionResult result = checkInteractWithNameTag(itemInHand);
             if (result.consumesAction()) {
                 return result;
             }
         } else {
-            ItemMapping mapping = itemInHand.getMapping(session);
-            if (mapping.getJavaIdentifier().endsWith("_spawn_egg")) {
+            if (itemInHand.asItem() instanceof SpawnEggItem) {
                 // Using the spawn egg on this entity to create a child
                 return InteractionResult.CONSUME;
             }

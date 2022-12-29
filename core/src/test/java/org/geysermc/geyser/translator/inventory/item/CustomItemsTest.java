@@ -29,10 +29,12 @@ import com.github.steveice10.opennbt.tag.builtin.ByteTag;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.item.GeyserCustomItemOptions;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.junit.Assert;
 import org.junit.Before;
@@ -59,7 +61,7 @@ public class CustomItemsTest {
         CustomItemOptions f = new GeyserCustomItemOptions(TriState.FALSE, OptionalInt.of(8), OptionalInt.of(6));
         CustomItemOptions g = new GeyserCustomItemOptions(TriState.NOT_SET, OptionalInt.of(20), OptionalInt.empty());
 
-        Map<CustomItemOptions, ItemDefinition> optionsToId = new HashMap<>();
+        Map<CustomItemOptions, ItemDefinition> optionsToId = new Object2ObjectArrayMap<>();
         // Order here is important, hence why we're using an array map
         optionsToId.put(g, new ItemDefinition("geyser:test_item_7", 7, true));
         optionsToId.put(f, new ItemDefinition("geyser:test_item_6", 6, true));
@@ -113,7 +115,7 @@ public class CustomItemsTest {
 
         testMappingWithDamage = ItemMapping.builder()
                 .customItemOptions(customItemOptions)
-                .maxDamage(100)
+                .javaItem(Items.WOODEN_PICKAXE)
                 .build();
 
         // Test differences with items with no max damage
@@ -127,7 +129,7 @@ public class CustomItemsTest {
 
         testMappingWithNoDamage = ItemMapping.builder()
                 .customItemOptions(customItemOptions)
-                .maxDamage(0)
+                .javaItem(Items.BEDROCK)
                 .build();
     }
 

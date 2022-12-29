@@ -27,6 +27,8 @@ package org.geysermc.geyser.inventory.item;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.ItemMapping;
 
 import javax.annotation.Nonnull;
@@ -38,79 +40,45 @@ import java.util.Map;
 @Getter
 @Accessors(fluent = true)
 public class StoredItemMappings {
-    private final ItemMapping amethystShard;
     private final ItemMapping bamboo;
     private final ItemMapping banner;
     private final ItemMapping barrier;
-    private final ItemMapping bowl;
     private final ItemMapping bucket;
-    private final ItemMapping chest;
     private final ItemMapping compass;
     private final ItemMapping crossbow;
-    private final ItemMapping enchantedBook;
-    private final ItemMapping fishingRod;
-    private final ItemMapping flintAndSteel;
     private final ItemMapping frogspawn;
-    private final ItemMapping goatHorn;
     private final ItemMapping glassBottle;
-    private final ItemMapping goldenApple;
-    private final ItemMapping goldIngot;
-    private final ItemMapping ironIngot;
-    private final ItemMapping lead;
     private final ItemMapping lilyPad;
     private final ItemMapping milkBucket;
-    private final ItemMapping nameTag;
     private final ItemMapping powderSnowBucket;
-    private final ItemMapping playerHead;
     private final ItemMapping egg;
-    private final ItemMapping saddle;
-    private final ItemMapping shears;
     private final ItemMapping shield;
-    private final ItemMapping slimeBall;
     private final ItemMapping waterBucket;
     private final ItemMapping wheat;
-    private final ItemMapping writableBook;
 
-    public StoredItemMappings(Map<String, ItemMapping> itemMappings) {
-        this.amethystShard = load(itemMappings, "amethyst_shard");
-        this.bamboo = load(itemMappings, "bamboo");
-        this.banner = load(itemMappings, "white_banner"); // As of 1.17.10, all banners have the same Bedrock ID
-        this.barrier = load(itemMappings, "barrier");
-        this.bowl = load(itemMappings, "bowl");
-        this.bucket = load(itemMappings, "bucket");
-        this.chest = load(itemMappings, "chest");
-        this.compass = load(itemMappings, "compass");
-        this.crossbow = load(itemMappings, "crossbow");
-        this.enchantedBook = load(itemMappings, "enchanted_book");
-        this.fishingRod = load(itemMappings, "fishing_rod");
-        this.flintAndSteel = load(itemMappings, "flint_and_steel");
-        this.frogspawn = load(itemMappings, "frogspawn");
-        this.goatHorn = load(itemMappings, "goat_horn");
-        this.glassBottle = load(itemMappings, "glass_bottle");
-        this.goldenApple = load(itemMappings, "golden_apple");
-        this.goldIngot = load(itemMappings, "gold_ingot");
-        this.ironIngot = load(itemMappings, "iron_ingot");
-        this.lead = load(itemMappings, "lead");
-        this.lilyPad = load(itemMappings, "lily_pad");
-        this.milkBucket = load(itemMappings, "milk_bucket");
-        this.nameTag = load(itemMappings, "name_tag");
-        this.powderSnowBucket = load(itemMappings, "powder_snow_bucket");
-        this.playerHead = load(itemMappings, "player_head");
-        this.egg = load(itemMappings, "egg");
-        this.saddle = load(itemMappings, "saddle");
-        this.shears = load(itemMappings, "shears");
-        this.shield = load(itemMappings, "shield");
-        this.slimeBall = load(itemMappings, "slime_ball");
-        this.waterBucket = load(itemMappings, "water_bucket");
-        this.wheat = load(itemMappings, "wheat");
-        this.writableBook = load(itemMappings, "writable_book");
+    public StoredItemMappings(Map<Item, ItemMapping> itemMappings) {
+        this.bamboo = load(itemMappings, Items.BAMBOO);
+        this.banner = load(itemMappings, Items.WHITE_BANNER); // As of 1.17.10, all banners have the same Bedrock ID
+        this.barrier = load(itemMappings, Items.BARRIER);
+        this.bucket = load(itemMappings, Items.BUCKET);
+        this.compass = load(itemMappings, Items.COMPASS);
+        this.crossbow = load(itemMappings, Items.CROSSBOW);
+        this.frogspawn = load(itemMappings, Items.FROGSPAWN);
+        this.glassBottle = load(itemMappings, Items.GLASS_BOTTLE);
+        this.lilyPad = load(itemMappings, Items.LILY_PAD);
+        this.milkBucket = load(itemMappings, Items.MILK_BUCKET);
+        this.powderSnowBucket = load(itemMappings, Items.POWDER_SNOW_BUCKET);
+        this.egg = load(itemMappings, Items.EGG);
+        this.shield = load(itemMappings, Items.SHIELD);
+        this.waterBucket = load(itemMappings, Items.WATER_BUCKET);
+        this.wheat = load(itemMappings, Items.WHEAT);
     }
 
     @Nonnull
-    private ItemMapping load(Map<String, ItemMapping> itemMappings, String cleanIdentifier) {
-        ItemMapping mapping = itemMappings.get("minecraft:" + cleanIdentifier);
+    private ItemMapping load(Map<Item, ItemMapping> itemMappings, Item item) {
+        ItemMapping mapping = itemMappings.get(item);
         if (mapping == null) {
-            throw new RuntimeException("Could not find item " + cleanIdentifier);
+            throw new RuntimeException("Could not find item " + item.javaIdentifier());
         }
 
         return mapping;

@@ -39,6 +39,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.LivingEntity;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.MathUtils;
@@ -247,7 +248,7 @@ public class ArmorStandEntity extends LivingEntity {
 
     @Override
     public InteractionResult interactAt(Hand hand) {
-        if (!isMarker && session.getPlayerInventory().getItemInHand(hand).getJavaId() != session.getItemMappings().getStoredItems().nameTag().getJavaId()) {
+        if (!isMarker && session.getPlayerInventory().getItemInHand(hand).asItem() != Items.NAME_TAG) {
             // Java Edition returns SUCCESS if in spectator mode, but this is overrided with an earlier check on the client
             return InteractionResult.CONSUME;
         } else {

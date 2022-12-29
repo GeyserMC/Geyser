@@ -26,13 +26,13 @@
 package org.geysermc.geyser.registry.type;
 
 import it.unimi.dsi.fastutil.Pair;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
+import lombok.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
 
 import java.util.Collections;
 import java.util.List;
@@ -44,24 +44,19 @@ import java.util.Set;
 public class ItemMapping {
     public static final ItemMapping AIR = new ItemMapping(
             "minecraft:air",
-            "minecraft:air",
-            0,
             ItemDefinition.AIR,
             0,
             null, // Air is never sent in full over the network for this to serialize.
-            64,
             null,
             null,
-            null
-            , Collections.emptyList(),
-            0,
             null,
-            false
+            Collections.emptyList(),
+            null,
+            false,
+            Items.AIR
     );
 
-    String javaIdentifier;
     String bedrockIdentifier;
-    int javaId;
     ItemDefinition bedrockDefinition;
     int bedrockData;
 
@@ -70,7 +65,6 @@ public class ItemMapping {
      * Required since 1.16.220.
      */
     BlockDefinition bedrockBlockDefinition;
-    int stackSize;
 
     String toolType;
     String toolTier;
@@ -80,11 +74,12 @@ public class ItemMapping {
     @NonNull
     List<Pair<CustomItemOptions, ItemDefinition>> customItemOptions;
 
-    int maxDamage;
-
     Set<String> repairMaterials;
 
     boolean hasSuspiciousStewEffect;
+
+    @NonNull
+    Item javaItem;
 
     /**
      * Gets if this item is a block.

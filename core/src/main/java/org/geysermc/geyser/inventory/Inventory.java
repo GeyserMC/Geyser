@@ -35,6 +35,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.jetbrains.annotations.Range;
@@ -131,7 +132,7 @@ public abstract class Inventory {
         items[slot] = newItem;
 
         // Lodestone caching
-        if (newItem.getJavaId() == session.getItemMappings().getStoredItems().compass().getJavaId()) {
+        if (newItem.asItem() == Items.COMPASS) {
             CompoundTag nbt = newItem.getNbt();
             if (nbt != null) {
                 Tag lodestoneTag = nbt.get("LodestoneTracked");

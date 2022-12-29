@@ -33,7 +33,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
@@ -60,8 +60,8 @@ public class AxolotlEntity extends AnimalEntity {
     }
 
     @Override
-    public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
-        return session.getTagCache().isAxolotlTemptItem(mapping);
+    public boolean canEat(Item item) {
+        return session.getTagCache().isAxolotlTemptItem(item);
     }
 
     @Override
@@ -76,7 +76,7 @@ public class AxolotlEntity extends AnimalEntity {
 
     @Nonnull
     @Override
-    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractionResult mobInteract(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
         if (EntityUtils.attemptToBucket(session, itemInHand)) {
             return InteractionResult.SUCCESS;
         } else {

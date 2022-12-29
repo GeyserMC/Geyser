@@ -44,6 +44,7 @@ import org.geysermc.geyser.inventory.AnvilContainer;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.item.Enchantment.JavaEnchantment;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.EnchantmentData;
 import org.geysermc.geyser.session.GeyserSession;
@@ -222,9 +223,9 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         int cost = 0;
         if (!material.isEmpty()) {
             totalRepairCost += getRepairCost(material);
-            if (isCombining(session, input, material)) {
-                if (hasDurability(session, input) && input.getJavaId() == material.getJavaId()) {
-                    cost += calcMergeRepairCost(session, input, material);
+            if (isCombining(input, material)) {
+                if (hasDurability(input) && input.getJavaId() == material.getJavaId()) {
+                    cost += calcMergeRepairCost(input, material);
                 }
 
                 int enchantmentLevelCost = calcMergeEnchantmentCost(session, input, material, bedrock);
@@ -234,8 +235,8 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
                     // Can't repair or merge enchantments
                     return -1;
                 }
-            } else if (hasDurability(session, input) && isRepairing(session, input, material)) {
-                cost = calcRepairLevelCost(session, input, material);
+            } else if (hasDurability(input) && isRepairing(session, input, material)) {
+                cost = calcRepairLevelCost(input, material);
                 if (cost == -1) {
                     // No damage to repair
                     return -1;
@@ -260,21 +261,20 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
      * Calculate the levels needed to repair an item with its repair material
      * E.g. iron_sword + iron_ingot
      *
-     * @param session  Geyser session
      * @param input    an item with durability
      * @param material the item's respective repair material
      * @return the number of levels needed or 0 if it is not possible to repair any further
      */
-    private int calcRepairLevelCost(GeyserSession session, GeyserItemStack input, GeyserItemStack material) {
+    private int calcRepairLevelCost(GeyserItemStack input, GeyserItemStack material) {
         int newDamage = getDamage(input);
-        int unitRepair = Math.min(newDamage, input.getMapping(session).getMaxDamage() / 4);
+        int unitRepair = Math.min(newDamage, input.asItem().maxDamage() / 4);
         if (unitRepair <= 0) {
             // No damage to repair
             return -1;
         }
         for (int i = 0; i < material.getAmount(); i++) {
             newDamage -= unitRepair;
-            unitRepair = Math.min(newDamage, input.getMapping(session).getMaxDamage() / 4);
+            unitRepair = Math.min(newDamage, input.asItem().maxDamage() / 4);
             if (unitRepair <= 0) {
                 return i + 1;
             }
@@ -285,14 +285,13 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     /**
      * Calculate the levels cost for repairing items by combining two of the same item
      *
-     * @param session  Geyser session
      * @param input    an item with durability
      * @param material a matching item
      * @return the number of levels needed or 0 if it is not possible to repair any further
      */
-    private int calcMergeRepairCost(GeyserSession session, GeyserItemStack input, GeyserItemStack material) {
+    private int calcMergeRepairCost(GeyserItemStack input, GeyserItemStack material) {
         // If the material item is damaged 112% or more, then the input item will not be repaired
-        if (getDamage(input) > 0 && getDamage(material) < (material.getMapping(session).getMaxDamage() * 112 / 100)) {
+        if (getDamage(input) > 0 && getDamage(material) < (material.asItem().maxDamage() * 112 / 100)) {
             return 2;
         }
         return 0;
@@ -319,7 +318,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
                 continue;
             }
 
-            boolean canApply = isEnchantedBook(session, input) || data.validItems().contains(input.getJavaId());
+            boolean canApply = isEnchantedBook(input) || data.validItems().contains(input.getJavaId());
             for (JavaEnchantment incompatible : data.incompatibleEnchantments()) {
                 if (combinedEnchantments.containsKey(incompatible)) {
                     canApply = false;
@@ -342,7 +341,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
                 combinedEnchantments.put(enchantment, newLevel);
 
                 int rarityMultiplier = data.rarityMultiplier();
-                if (isEnchantedBook(session, material) && rarityMultiplier > 1) {
+                if (isEnchantedBook(material) && rarityMultiplier > 1) {
                     rarityMultiplier /= 2;
                 }
                 if (bedrock) {
@@ -376,7 +375,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         }
         Object2IntMap<JavaEnchantment> enchantments = new Object2IntOpenHashMap<>();
         Tag enchantmentTag;
-        if (isEnchantedBook(session, itemStack)) {
+        if (isEnchantedBook(itemStack)) {
             enchantmentTag = itemStack.getNbt().get("StoredEnchantments");
         } else {
             enchantmentTag = itemStack.getNbt().get("Enchantments");
@@ -408,17 +407,17 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         return enchantments;
     }
 
-    private boolean isEnchantedBook(GeyserSession session, GeyserItemStack itemStack) {
-        return itemStack.getJavaId() == session.getItemMappings().getStoredItems().enchantedBook().getJavaId();
+    private boolean isEnchantedBook(GeyserItemStack itemStack) {
+        return itemStack.asItem() == Items.ENCHANTED_BOOK;
     }
 
-    private boolean isCombining(GeyserSession session, GeyserItemStack input, GeyserItemStack material) {
-        return isEnchantedBook(session, material) || (input.getJavaId() == material.getJavaId() && hasDurability(session, input));
+    private boolean isCombining(GeyserItemStack input, GeyserItemStack material) {
+        return isEnchantedBook(material) || (input.getJavaId() == material.getJavaId() && hasDurability(input));
     }
 
     private boolean isRepairing(GeyserSession session, GeyserItemStack input, GeyserItemStack material) {
         Set<String> repairMaterials = input.getMapping(session).getRepairMaterials();
-        return repairMaterials != null && repairMaterials.contains(material.getMapping(session).getJavaIdentifier());
+        return repairMaterials != null && repairMaterials.contains(material.asItem().javaIdentifier());
     }
 
     private boolean isRenaming(GeyserSession session, AnvilContainer anvilContainer, boolean bedrock) {
@@ -450,8 +449,8 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         return getTagIntValueOr(itemStack, "RepairCost", 0);
     }
 
-    private boolean hasDurability(GeyserSession session, GeyserItemStack itemStack) {
-        if (itemStack.getMapping(session).getMaxDamage() > 0) {
+    private boolean hasDurability(GeyserItemStack itemStack) {
+        if (itemStack.asItem().maxDamage() > 0) {
             return getTagIntValueOr(itemStack, "Unbreakable", 0) == 0;
         }
         return false;

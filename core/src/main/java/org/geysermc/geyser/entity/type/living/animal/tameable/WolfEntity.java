@@ -28,17 +28,17 @@ package org.geysermc.geyser.entity.type.living.animal.tameable;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.google.common.collect.ImmutableSet;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.DyeItem;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
-import org.geysermc.geyser.util.ItemUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Set;
@@ -48,10 +48,11 @@ public class WolfEntity extends TameableEntity {
     /**
      * A list of all foods a wolf can eat on Java Edition.
      * Used to display interactive tag or particles if needed.
+     * TODO generate
      */
-    private static final Set<String> WOLF_FOODS = ImmutableSet.of("pufferfish", "tropical_fish", "chicken", "cooked_chicken",
-            "porkchop", "beef", "rabbit", "cooked_porkchop", "cooked_beef", "rotten_flesh", "mutton", "cooked_mutton",
-            "cooked_rabbit");
+    private static final Set<Item> WOLF_FOODS = Set.of(Items.PUFFERFISH, Items.TROPICAL_FISH, Items.CHICKEN, Items.COOKED_CHICKEN,
+            Items.PORKCHOP, Items.BEEF, Items.RABBIT, Items.COOKED_PORKCHOP, Items.COOKED_BEEF, Items.ROTTEN_FLESH, Items.MUTTON, Items.COOKED_MUTTON,
+            Items.COOKED_RABBIT);
 
     private byte collarColor;
 
@@ -92,9 +93,9 @@ public class WolfEntity extends TameableEntity {
     }
 
     @Override
-    public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
+    public boolean canEat(Item item) {
         // Cannot be a baby to eat these foods
-        return WOLF_FOODS.contains(javaIdentifierStripped) && !isBaby();
+        return WOLF_FOODS.contains(item) && !isBaby();
     }
 
     @Override
@@ -104,18 +105,17 @@ public class WolfEntity extends TameableEntity {
 
     @Nonnull
     @Override
-    protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractiveTag testMobInteraction(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
         if (getFlag(EntityFlag.ANGRY)) {
             return InteractiveTag.NONE;
         }
-        if (itemInHand.getMapping(session).getJavaIdentifier().equals("minecraft:bone") && !getFlag(EntityFlag.TAMED)) {
+        if (itemInHand.asItem() == Items.BONE && !getFlag(EntityFlag.TAMED)) {
             // Bone and untamed - can tame
             return InteractiveTag.TAME;
         } else {
-            int color = ItemUtils.dyeColorFor(itemInHand.getJavaId());
-            if (color != -1) {
+            if (itemInHand.asItem() instanceof DyeItem item) {
                 // If this fails, as of Java Edition 1.18.1, you cannot toggle sit/stand
-                if (color != this.collarColor) {
+                if (item.dyeColor() != this.collarColor) {
                     return InteractiveTag.DYE;
                 }
             } else if (getFlag(EntityFlag.TAMED) && ownerBedrockId == session.getPlayerEntity().getGeyserId()) {
@@ -128,9 +128,9 @@ public class WolfEntity extends TameableEntity {
 
     @Nonnull
     @Override
-    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractionResult mobInteract(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
         if (ownerBedrockId == session.getPlayerEntity().getGeyserId() || getFlag(EntityFlag.TAMED)
-                || itemInHand.getMapping(session).getJavaIdentifier().equals("minecraft:bone") && !getFlag(EntityFlag.ANGRY)) {
+                || itemInHand.asItem() == Items.BONE && !getFlag(EntityFlag.ANGRY)) {
             // Sitting toggle or feeding; not angry
             return InteractionResult.CONSUME;
         } else {

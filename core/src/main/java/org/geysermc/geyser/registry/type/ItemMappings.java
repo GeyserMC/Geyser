@@ -35,6 +35,9 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.item.type.PotionItem;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -44,7 +47,7 @@ import java.util.WeakHashMap;
 
 @Builder
 @Value
-public class ItemMappings {
+public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
 
     Map<String, ItemMapping> cachedJavaMappings = new WeakHashMap<>();
 
@@ -56,16 +59,13 @@ public class ItemMappings {
     ItemMapping lodestoneCompass;
 
     ItemData[] creativeItems;
-    List<ItemDefinition> itemDefinitions;
-    DefinitionRegistry<ItemDefinition> definitionRegistry;
+    Int2ObjectMap<ItemDefinition> itemDefinitions;
 
     StoredItemMappings storedItems;
-    String[] itemNames;
-    Set<String> javaOnlyItems;
+    Set<Item> javaOnlyItems;
 
     List<ItemDefinition> buckets;
     List<ItemDefinition> boats;
-    List<ItemDefinition> spawnEggs;
     List<ItemData> carpets;
 
     List<ComponentItemData> componentItemData;
@@ -94,6 +94,10 @@ public class ItemMappings {
         return javaId >= 0 && javaId < this.items.length ? this.items[javaId] : ItemMapping.AIR;
     }
 
+    public ItemMapping getMapping(Item javaItem) {
+        return getMapping(javaItem.javaIdentifier());
+    }
+
     /**
      * Gets an {@link ItemMapping} from the given Minecraft: Java Edition
      * block state identifier.
@@ -104,7 +108,7 @@ public class ItemMappings {
     public ItemMapping getMapping(String javaIdentifier) {
         return this.cachedJavaMappings.computeIfAbsent(javaIdentifier, key -> {
             for (ItemMapping mapping : this.items) {
-                if (mapping.getJavaIdentifier().equals(key)) {
+                if (mapping.getJavaItem().javaIdentifier().equals(key)) {
                     return mapping;
                 }
             }
@@ -120,10 +124,9 @@ public class ItemMappings {
      */
     public ItemMapping getMapping(ItemData data) {
         ItemDefinition definition = data.getDefinition();
-        int id = data.getDefinition().getRuntimeId();
         if (ItemDefinition.AIR.equals(definition)) {
             return ItemMapping.AIR;
-        } else if (definition.equals(lodestoneCompass.getBedrockDefinition())) {
+        } else if (definition.getRuntimeId() == lodestoneCompass.getBedrockDefinition().getRuntimeId()) {
             return lodestoneCompass;
         }
 
@@ -131,7 +134,7 @@ public class ItemMappings {
         boolean hasDamage = data.getDamage() != 0;
 
         for (ItemMapping mapping : this.items) {
-            if (mapping.getBedrockDefinition().equals(definition)) {
+            if (mapping.getBedrockDefinition().getRuntimeId() == definition.getRuntimeId()) {
                 if (isBlock && !hasDamage) { // Pre-1.16.220 will not use block runtime IDs at all, so we shouldn't check either
                     if (data.getBlockDefinition() != mapping.getBedrockBlockDefinition()) {
                         continue;
@@ -139,22 +142,29 @@ public class ItemMappings {
                 } else {
                     if (!(mapping.getBedrockData() == data.getDamage() ||
                             // Make exceptions for potions, tipped arrows, firework stars, and goat horns, whose damage values can vary
-                            (mapping.getJavaIdentifier().endsWith("potion") || mapping.getJavaIdentifier().equals("minecraft:arrow")
-                                    || mapping.getJavaIdentifier().equals("minecraft:firework_star") || mapping.getJavaIdentifier().equals("minecraft:goat_horn")))) {
+                            (mapping.getJavaItem() instanceof PotionItem || mapping.getJavaItem() == Items.ARROW
+                                    || mapping.getJavaItem() == Items.FIREWORK_STAR || mapping.getJavaItem() == Items.GOAT_HORN))) {
                         continue;
                     }
                 }
-                if (!this.javaOnlyItems.contains(mapping.getJavaIdentifier())) {
+                if (!this.javaOnlyItems.contains(mapping.getJavaItem())) {
                     // From a Bedrock item data, we aren't getting one of these items
                     return mapping;
                 }
             }
         }
 
-        // This will hide the message when the player clicks with an empty hand
-        if (id != 0 && data.getDamage() != 0) {
-            GeyserImpl.getInstance().getLogger().debug("Missing mapping for bedrock item " + data.getDefinition() + ":" + data.getDamage());
-        }
+        GeyserImpl.getInstance().getLogger().debug("Missing mapping for bedrock item " + data);
         return ItemMapping.AIR;
+    }
+
+    @Override
+    public ItemDefinition getDefinition(int bedrockId) {
+        return this.itemDefinitions.get(bedrockId);
+    }
+
+    @Override
+    public boolean isRegistered(ItemDefinition definition) {
+        return getDefinition(definition.getRuntimeId()) == definition;
     }
 }

@@ -23,26 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.type.living.animal;
+package org.geysermc.geyser.item.type;
 
-import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.entity.EntityDefinition;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.opennbt.tag.builtin.StringTag;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.geysermc.geyser.inventory.item.TippedArrowPotion;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.registry.type.ItemMappings;
 
-import java.util.Set;
-import java.util.UUID;
-
-public class ChickenEntity extends AnimalEntity {
-    private static final Set<Item> VALID_FOOD = Set.of(Items.WHEAT_SEEDS, Items.MELON_SEEDS, Items.PUMPKIN_SEEDS, Items.BEETROOT_SEEDS);
-
-    public ChickenEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+public class ArrowItem extends Item {
+    public ArrowItem(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
     }
 
-    @Override
-    public boolean canEat(Item item) {
-        return VALID_FOOD.contains(item);
+    public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, ItemMappings mappings) {
+        TippedArrowPotion tippedArrowPotion = TippedArrowPotion.getByBedrockId(itemData.getDamage());
+        ItemStack itemStack = super.translateToJava(itemData, mapping, mappings);
+        if (tippedArrowPotion != null) {
+            itemStack = Items.TIPPED_ARROW.newItemStack(itemStack.getAmount(), itemStack.getNbt());
+            StringTag potionTag = new StringTag("Potion", tippedArrowPotion.getJavaIdentifier());
+            itemStack.getNbt().put(potionTag);
+        }
+        return itemStack;
     }
 }

@@ -28,6 +28,8 @@ package org.geysermc.geyser.translator.inventory.item.nbt;
 import com.github.steveice10.opennbt.tag.builtin.ByteTag;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.MinecraftLocale;
@@ -49,7 +51,7 @@ public class AxolotlBucketTranslator extends NbtItemStackTranslator {
     }
 
     @Override
-    public boolean acceptItem(ItemMapping mapping) {
-        return mapping.getJavaIdentifier().equals("minecraft:axolotl_bucket");
+    public boolean acceptItem(Item item) {
+        return item == Items.AXOLOTL_BUCKET;
     }
 }

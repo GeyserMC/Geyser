@@ -29,7 +29,6 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import it.unimi.dsi.fastutil.Pair;
-import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
@@ -55,7 +54,7 @@ final class CustomItemTranslator {
         }
 
         int customModelData = nbt.get("CustomModelData") instanceof IntTag customModelDataTag ? customModelDataTag.getValue() : 0;
-        boolean checkDamage = mapping.getMaxDamage() > 0;
+        boolean checkDamage = mapping.getJavaItem().maxDamage() > 0;
         int damage = !checkDamage ? 0 : nbt.get("Damage") instanceof IntTag damageTag ? damageTag.getValue() : 0;
         boolean unbreakable = checkDamage && !isDamaged(nbt, damage);
 

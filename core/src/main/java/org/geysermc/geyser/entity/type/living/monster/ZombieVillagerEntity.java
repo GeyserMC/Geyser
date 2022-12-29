@@ -35,6 +35,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.living.merchant.VillagerEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
@@ -68,8 +69,8 @@ public class ZombieVillagerEntity extends ZombieEntity {
 
     @Nonnull
     @Override
-    protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().goldenApple().getJavaId()) {
+    protected InteractiveTag testMobInteraction(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
+        if (itemInHand.asItem() == Items.GOLDEN_APPLE) {
             return InteractiveTag.CURE;
         } else {
             return super.testMobInteraction(hand, itemInHand);
@@ -78,8 +79,8 @@ public class ZombieVillagerEntity extends ZombieEntity {
 
     @Nonnull
     @Override
-    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().goldenApple().getJavaId()) {
+    protected InteractionResult mobInteract(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
+        if (itemInHand.asItem() == Items.GOLDEN_APPLE) {
             // The client doesn't know if the entity has weakness as that's not usually sent over the network
             return InteractionResult.CONSUME;
         } else {

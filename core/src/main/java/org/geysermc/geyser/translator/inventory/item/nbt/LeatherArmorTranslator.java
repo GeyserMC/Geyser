@@ -27,6 +27,8 @@ package org.geysermc.geyser.translator.inventory.item.nbt;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
@@ -37,8 +39,8 @@ import java.util.List;
 @ItemRemapper
 public class LeatherArmorTranslator extends NbtItemStackTranslator {
 
-    private static final List<String> ITEMS = List.of("minecraft:leather_helmet", "minecraft:leather_chestplate",
-            "minecraft:leather_leggings", "minecraft:leather_boots", "minecraft:leather_horse_armor");
+    private static final List<Item> ITEMS = List.of(Items.LEATHER_HELMET, Items.LEATHER_CHESTPLATE,
+            Items.LEATHER_LEGGINGS, Items.LEATHER_BOOTS, Items.LEATHER_HORSE_ARMOR);
 
     @Override
     public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
@@ -67,7 +69,7 @@ public class LeatherArmorTranslator extends NbtItemStackTranslator {
     }
 
     @Override
-    public boolean acceptItem(ItemMapping mapping) {
-        return ITEMS.contains(mapping.getJavaIdentifier());
+    public boolean acceptItem(Item item) {
+        return ITEMS.contains(item);
     }
 }

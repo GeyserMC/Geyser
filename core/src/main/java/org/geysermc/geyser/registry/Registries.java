@@ -44,6 +44,7 @@ import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.item.Enchantment.JavaEnchantment;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.loader.*;
 import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.populator.PacketRegistryPopulator;
@@ -119,6 +120,10 @@ public final class Registries {
      * A registry containing all the Java packet translators.
      */
     public static final PacketTranslatorRegistry<Packet> JAVA_PACKET_TRANSLATORS = PacketTranslatorRegistry.create();
+
+    public static final SimpleRegistry<List<Item>> JAVA_ITEMS = SimpleRegistry.create(RegistryLoaders.empty(ArrayList::new));
+
+    public static final SimpleMappedRegistry<String, Item> JAVA_ITEM_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     /**
      * A versioned registry which holds {@link ItemMappings} for each version. These item mappings contain

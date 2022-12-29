@@ -23,67 +23,49 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.inventory.item;
+package org.geysermc.geyser.item.type;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.inventory.item.TippedArrowPotion;
-import org.geysermc.geyser.network.GameProtocol;
-import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
+import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
-@ItemRemapper
-public class TippedArrowTranslator extends ItemTranslator {
-    private static final int TIPPED_ARROW_JAVA_ID = Registries.ITEMS.forVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
-            .getMapping("minecraft:tipped_arrow")
-            .getJavaId();
+public class PotionItem extends Item {
+    public PotionItem(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
+    }
 
     @Override
-    protected ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
-        if (!mapping.getJavaIdentifier().equals("minecraft:tipped_arrow") || itemStack.getNbt() == null) {
-            // We're only concerned about minecraft:arrow when translating Bedrock -> Java
-            return super.translateToBedrock(itemStack, mapping, mappings);
-        }
+    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
+        if (itemStack.getNbt() == null) return super.translateToBedrock(itemStack, mapping, mappings);
         Tag potionTag = itemStack.getNbt().get("Potion");
         if (potionTag instanceof StringTag) {
-            TippedArrowPotion tippedArrowPotion = TippedArrowPotion.getByJavaIdentifier(((StringTag) potionTag).getValue());
-            if (tippedArrowPotion != null) {
+            Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
+            if (potion != null) {
                 return ItemData.builder()
                         .definition(mapping.getBedrockDefinition())
-                        .damage(tippedArrowPotion.getBedrockId())
+                        .damage(potion.getBedrockId())
                         .count(itemStack.getAmount())
-                        .tag(translateNbtToBedrock(itemStack.getNbt()));
+                        .tag(ItemTranslator.translateNbtToBedrock(itemStack.getNbt()));
             }
-            GeyserImpl.getInstance().getLogger().debug("Unknown Java potion (tipped arrow): " + potionTag.getValue());
+            GeyserImpl.getInstance().getLogger().debug("Unknown Java potion: " + potionTag.getValue());
         }
         return super.translateToBedrock(itemStack, mapping, mappings);
     }
 
     @Override
     public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, ItemMappings mappings) {
-        TippedArrowPotion tippedArrowPotion = TippedArrowPotion.getByBedrockId(itemData.getDamage());
+        Potion potion = Potion.getByBedrockId(itemData.getDamage());
         ItemStack itemStack = super.translateToJava(itemData, mapping, mappings);
-        if (tippedArrowPotion != null) {
-            itemStack = new ItemStack(TIPPED_ARROW_JAVA_ID, itemStack.getAmount(), itemStack.getNbt());
-            StringTag potionTag = new StringTag("Potion", tippedArrowPotion.getJavaIdentifier());
+        if (potion != null) {
+            StringTag potionTag = new StringTag("Potion", potion.getJavaIdentifier());
             itemStack.getNbt().put(potionTag);
         }
         return itemStack;
-    }
-
-    @Override
-    public List<ItemMapping> getAppliedItems() {
-        return Arrays.stream(Registries.ITEMS.forVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getItems())
-                .filter(entry -> entry.getJavaIdentifier().contains("arrow")
-                        && !entry.getJavaIdentifier().contains("spectral"))
-                .collect(Collectors.toList());
     }
 }

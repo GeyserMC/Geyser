@@ -42,7 +42,7 @@ public class BucketSoundInteractionTranslator implements BlockSoundInteractionTr
             return; // No bucket was really interacted with
         }
         GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand();
-        String handItemIdentifier = itemStack.getMapping(session).getJavaIdentifier();
+        String handItemIdentifier = itemStack.asItem().javaIdentifier();
         if (!BlockSoundInteractionTranslator.canInteract(session, itemStack, identifier)) {
             return;
         }

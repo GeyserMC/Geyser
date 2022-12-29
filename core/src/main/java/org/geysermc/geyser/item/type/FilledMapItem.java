@@ -23,25 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.inventory.item;
+package org.geysermc.geyser.item.type;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.geysermc.geyser.network.GameProtocol;
-import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 
-import java.util.Collections;
-import java.util.List;
-
-@ItemRemapper
-public class FilledMapTranslator extends ItemTranslator {
+public class FilledMapItem extends MapItem {
+    public FilledMapItem(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
+    }
 
     @Override
-    protected ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
+    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
         ItemData.Builder builder = super.translateToBedrock(itemStack, mapping, mappings);
         CompoundTag nbt = itemStack.getNbt();
         if (nbt != null && nbt.get("display") instanceof CompoundTag display) {
@@ -56,13 +53,5 @@ public class FilledMapTranslator extends ItemTranslator {
             }
         }
         return builder;
-    }
-
-    @Override
-    public List<ItemMapping> getAppliedItems() {
-        return Collections.singletonList(
-                Registries.ITEMS.forVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
-                        .getMapping("minecraft:filled_map")
-        );
     }
 }

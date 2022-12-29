@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
@@ -64,7 +65,7 @@ public class PiglinEntity extends BasePiglinEntity {
     @Override
     public void updateOffHand(GeyserSession session) {
         // Check if the Piglin is holding Gold and set the ADMIRING flag accordingly so its pose updates
-        setFlag(EntityFlag.ADMIRING, session.getTagCache().shouldPiglinAdmire(session.getItemMappings().getMapping(this.offHand)));
+        setFlag(EntityFlag.ADMIRING, session.getTagCache().shouldPiglinAdmire(session.getItemMappings().getMapping(this.offHand).getJavaItem()));
         super.updateBedrockMetadata();
 
         super.updateOffHand(session);
@@ -72,7 +73,7 @@ public class PiglinEntity extends BasePiglinEntity {
 
     @Nonnull
     @Override
-    protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractiveTag testMobInteraction(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
         InteractiveTag tag = super.testMobInteraction(hand, itemInHand);
         if (tag != InteractiveTag.NONE) {
             return tag;
@@ -83,7 +84,7 @@ public class PiglinEntity extends BasePiglinEntity {
 
     @Nonnull
     @Override
-    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractionResult mobInteract(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
         InteractionResult superResult = super.mobInteract(hand, itemInHand);
         if (superResult.consumesAction()) {
             return superResult;
@@ -93,6 +94,6 @@ public class PiglinEntity extends BasePiglinEntity {
     }
 
     private boolean canGiveGoldTo(@Nonnull GeyserItemStack itemInHand) {
-        return !getFlag(EntityFlag.BABY) && itemInHand.getJavaId() == session.getItemMappings().getStoredItems().goldIngot().getJavaId() && !getFlag(EntityFlag.ADMIRING);
+        return !getFlag(EntityFlag.BABY) && itemInHand.asItem() == Items.GOLD_INGOT && !getFlag(EntityFlag.ADMIRING);
     }
 }

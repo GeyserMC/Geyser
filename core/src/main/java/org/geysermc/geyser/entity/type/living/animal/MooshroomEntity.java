@@ -31,7 +31,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.inventory.item.StoredItemMappings;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
@@ -53,13 +53,12 @@ public class MooshroomEntity extends AnimalEntity {
 
     @Nonnull
     @Override
-    protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        StoredItemMappings storedItems = session.getItemMappings().getStoredItems();
+    protected InteractiveTag testMobInteraction(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
         if (!isBaby()) {
-            if (itemInHand.getJavaId() == storedItems.bowl().getJavaId()) {
+            if (itemInHand.asItem() == Items.BOWL) {
                 // Stew
                 return InteractiveTag.MOOSHROOM_MILK_STEW;
-            } else if (isAlive() && itemInHand.getJavaId() == storedItems.shears().getJavaId()) {
+            } else if (isAlive() && itemInHand.asItem() == Items.SHEARS) {
                 // Shear items
                 return InteractiveTag.MOOSHROOM_SHEAR;
             }
@@ -69,13 +68,12 @@ public class MooshroomEntity extends AnimalEntity {
 
     @Nonnull
     @Override
-    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        StoredItemMappings storedItems = session.getItemMappings().getStoredItems();
+    protected InteractionResult mobInteract(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
         boolean isBaby = isBaby();
-        if (!isBaby && itemInHand.getJavaId() == storedItems.bowl().getJavaId()) {
+        if (!isBaby && itemInHand.asItem() == Items.BOWL) {
             // Stew
             return InteractionResult.SUCCESS;
-        } else if (!isBaby && isAlive() && itemInHand.getJavaId() == storedItems.shears().getJavaId()) {
+        } else if (!isBaby && isAlive() && itemInHand.asItem() == Items.SHEARS) {
             // Shear items
             return InteractionResult.SUCCESS;
         } else if (isBrown && session.getTagCache().isSmallFlower(itemInHand) && itemInHand.getMapping(session).isHasSuspiciousStewEffect()) {

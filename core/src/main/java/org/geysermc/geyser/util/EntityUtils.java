@@ -37,6 +37,7 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Locale;
@@ -217,14 +218,14 @@ public final class EntityUtils {
      * Determine if an action would result in a successful bucketing of the given entity.
      */
     public static boolean attemptToBucket(GeyserSession session, GeyserItemStack itemInHand) {
-        return itemInHand.getJavaId() == session.getItemMappings().getStoredItems().waterBucket().getJavaId();
+        return itemInHand.asItem() == Items.WATER_BUCKET;
     }
 
     /**
      * Attempt to determine the result of saddling the given entity.
      */
-    public static InteractionResult attemptToSaddle(GeyserSession session, Entity entityToSaddle, GeyserItemStack itemInHand) {
-        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().saddle().getJavaId()) {
+    public static InteractionResult attemptToSaddle(Entity entityToSaddle, GeyserItemStack itemInHand) {
+        if (itemInHand.asItem() == Items.SADDLE) {
             if (!entityToSaddle.getFlag(EntityFlag.SADDLED) && !entityToSaddle.getFlag(EntityFlag.BABY)) {
                 // Saddle
                 return InteractionResult.SUCCESS;

@@ -44,7 +44,7 @@ public class BasicItemTranslator extends NbtItemStackTranslator {
         Tag damage = itemTag.get("Damage");
         if (damage instanceof IntTag) {
             int originalDurability = ((IntTag) damage).getValue();
-            int durability = ItemUtils.getCorrectBedrockDurability(session, mapping.getJavaId(), originalDurability);
+            int durability = ItemUtils.getCorrectBedrockDurability(mapping.getJavaItem(), originalDurability);
             if (durability != originalDurability) {
                 // Fix damage tag inconsistencies
                 itemTag.put(new IntTag("Damage", durability));

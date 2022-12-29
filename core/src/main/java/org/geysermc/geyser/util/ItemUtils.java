@@ -29,13 +29,12 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
 
 import javax.annotation.Nullable;
 
 public class ItemUtils {
-    private static Int2IntMap DYE_COLORS = null;
 
     public static int getEnchantmentLevel(@Nullable CompoundTag itemNBTData, String enchantmentId) {
         if (itemNBTData == null) {
@@ -60,8 +59,8 @@ public class ItemUtils {
     /**
      * @return the correct Bedrock durability for this item.
      */
-    public static int getCorrectBedrockDurability(GeyserSession session, int javaId, int original) {
-        if (javaId == session.getItemMappings().getStoredItems().fishingRod().getJavaId()) {
+    public static int getCorrectBedrockDurability(Item item, int original) {
+        if (item == Items.FISHING_ROD) {
             // Java durability: 64
             // Bedrock durability : 384
             // 384 / 64 = 6
@@ -83,20 +82,5 @@ public class ItemUtils {
             }
         }
         return null;
-    }
-
-    /**
-     * Return the dye color associated with this Java item ID, if any. Returns -1 if no dye color exists for this item.
-     */
-    public static int dyeColorFor(int javaId) {
-        return DYE_COLORS.get(javaId);
-    }
-
-    public static void setDyeColors(Int2IntMap dyeColors) {
-        if (DYE_COLORS != null) {
-            throw new RuntimeException();
-        }
-        dyeColors.defaultReturnValue(-1);
-        DYE_COLORS = dyeColors;
     }
 }

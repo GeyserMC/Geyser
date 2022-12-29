@@ -30,7 +30,8 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
@@ -46,13 +47,13 @@ public class PigEntity extends AnimalEntity {
     }
 
     @Override
-    public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
-        return javaIdentifierStripped.equals("carrot") || javaIdentifierStripped.equals("potato") || javaIdentifierStripped.equals("beetroot");
+    public boolean canEat(Item item) {
+        return item == Items.CARROT || item == Items.POTATO || item == Items.BEETROOT;
     }
 
     @Nonnull
     @Override
-    protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractiveTag testMobInteraction(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
         if (!canEat(itemInHand) && getFlag(EntityFlag.SADDLED) && passengers.isEmpty() && !session.isSneaking()) {
             // Mount
             return InteractiveTag.MOUNT;
@@ -61,7 +62,7 @@ public class PigEntity extends AnimalEntity {
             if (superTag != InteractiveTag.NONE) {
                 return superTag;
             } else {
-                return EntityUtils.attemptToSaddle(session, this, itemInHand).consumesAction()
+                return EntityUtils.attemptToSaddle(this, itemInHand).consumesAction()
                         ? InteractiveTag.SADDLE : InteractiveTag.NONE;
             }
         }
@@ -69,7 +70,7 @@ public class PigEntity extends AnimalEntity {
 
     @Nonnull
     @Override
-    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractionResult mobInteract(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
         if (!canEat(itemInHand) && getFlag(EntityFlag.SADDLED) && passengers.isEmpty() && !session.isSneaking()) {
             // Mount
             return InteractionResult.SUCCESS;
@@ -78,7 +79,7 @@ public class PigEntity extends AnimalEntity {
             if (superResult.consumesAction()) {
                 return superResult;
             } else {
-                return EntityUtils.attemptToSaddle(session, this, itemInHand);
+                return EntityUtils.attemptToSaddle(this, itemInHand);
             }
         }
     }

@@ -32,7 +32,8 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
@@ -93,13 +94,13 @@ public class StriderEntity extends AnimalEntity {
     }
 
     @Override
-    public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
-        return javaIdentifierStripped.equals("warped_fungus");
+    public boolean canEat(Item item) {
+        return item == Items.WARPED_FUNGUS;
     }
 
     @Nonnull
     @Override
-    protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractiveTag testMobInteraction(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
         if (!canEat(itemInHand) && getFlag(EntityFlag.SADDLED) && passengers.isEmpty() && !session.isSneaking()) {
             // Mount Strider
             return InteractiveTag.RIDE_STRIDER;
@@ -108,7 +109,7 @@ public class StriderEntity extends AnimalEntity {
             if (tag != InteractiveTag.NONE) {
                 return tag;
             } else {
-                return EntityUtils.attemptToSaddle(session, this, itemInHand).consumesAction()
+                return EntityUtils.attemptToSaddle(this, itemInHand).consumesAction()
                         ? InteractiveTag.SADDLE : InteractiveTag.NONE;
             }
         }
@@ -116,7 +117,7 @@ public class StriderEntity extends AnimalEntity {
 
     @Nonnull
     @Override
-    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractionResult mobInteract(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
         if (!canEat(itemInHand) && getFlag(EntityFlag.SADDLED) && passengers.isEmpty() && !session.isSneaking()) {
             // Mount Strider
             return InteractionResult.SUCCESS;
@@ -125,7 +126,7 @@ public class StriderEntity extends AnimalEntity {
             if (superResult.consumesAction()) {
                 return superResult;
             } else {
-                return EntityUtils.attemptToSaddle(session, this, itemInHand);
+                return EntityUtils.attemptToSaddle(this, itemInHand);
             }
         }
     }

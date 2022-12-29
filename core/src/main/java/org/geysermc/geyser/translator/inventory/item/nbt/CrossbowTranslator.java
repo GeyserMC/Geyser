@@ -28,6 +28,8 @@ package org.geysermc.geyser.translator.inventory.item.nbt;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
@@ -47,7 +49,7 @@ public class CrossbowTranslator extends NbtItemStackTranslator {
                 ItemMapping projectileMapping = session.getItemMappings().getMapping((String) projectile.get("id").getValue());
                 if (projectileMapping == null) return;
                 CompoundTag tag = projectile.get("tag");
-                ItemStack itemStack = new ItemStack(mapping.getJavaId(), (byte) projectile.get("Count").getValue(), tag);
+                ItemStack itemStack = new ItemStack(mapping.getJavaItem().javaId(), (byte) projectile.get("Count").getValue(), tag);
                 ItemData itemData = ItemTranslator.translateToBedrock(session, itemStack);
 
                 CompoundTag newProjectile = new CompoundTag("chargedItem");
@@ -78,7 +80,7 @@ public class CrossbowTranslator extends NbtItemStackTranslator {
     }
 
     @Override
-    public boolean acceptItem(ItemMapping mapping) {
-        return "minecraft:crossbow".equals(mapping.getJavaIdentifier());
+    public boolean acceptItem(Item item) {
+        return item == Items.CROSSBOW;
     }
 }

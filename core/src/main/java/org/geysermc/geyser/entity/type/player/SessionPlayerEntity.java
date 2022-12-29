@@ -38,7 +38,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
-import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.DimensionUtils;
@@ -189,12 +189,12 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
-    protected boolean hasShield(boolean offhand, ItemMapping shieldMapping) {
+    protected boolean hasShield(boolean offhand) {
         // Must be overridden to point to the player's inventory cache
         if (offhand) {
-            return session.getPlayerInventory().getOffhand().getJavaId() == shieldMapping.getJavaId();
+            return session.getPlayerInventory().getOffhand().asItem() == Items.SHIELD;
         } else {
-            return session.getPlayerInventory().getItemInHand().getJavaId() == shieldMapping.getJavaId();
+            return session.getPlayerInventory().getItemInHand().asItem() == Items.SHIELD;
         }
     }
 

@@ -63,6 +63,8 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.click.Click;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.SpawnEggItem;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -259,7 +261,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         Block place checks end - client is good to go
                          */
 
-                        if (packet.getItemInHand() != null && session.getItemMappings().getSpawnEggs().contains(packet.getItemInHand().getDefinition())) {
+                        if (packet.getItemInHand() != null && session.getItemMappings().getMapping(packet.getItemInHand()).getJavaItem() instanceof SpawnEggItem) {
                             int blockState = session.getGeyser().getWorldManager().getBlockAt(session, packet.getBlockPosition());
                             if (blockState == BlockStateValues.JAVA_WATER_ID) {
                                 // Otherwise causes multiple mobs to spawn - just send a use item packet
@@ -321,7 +323,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         ItemMapping handItem = session.getPlayerInventory().getItemInHand().getMapping(session);
                         if (handItem.isBlock()) {
                             session.setLastBlockPlacePosition(blockPos);
-                            session.setLastBlockPlacedId(handItem.getJavaIdentifier());
+                            session.setLastBlockPlacedId(handItem.getJavaItem().javaIdentifier());
                         }
                         session.setInteracting(true);
                     }
@@ -332,7 +334,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         // Handled when sneaking
-                        if (session.getPlayerInventory().getItemInHand().getJavaId() == mappings.getStoredItems().shield().getJavaId()) {
+                        if (session.getPlayerInventory().getItemInHand().asItem() == Items.SHIELD) {
                             break;
                         }
 
@@ -342,7 +344,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                     packet.getItemInHand().getDefinition() != session.getItemMappings().getStoredItems().milkBucket().getBedrockDefinition()) {
                                 // Handled in case 0 if the item is not milk
                                 break;
-                            } else if (session.getItemMappings().getSpawnEggs().contains(packet.getItemInHand().getDefinition())) {
+                            } else if (session.getItemMappings().getMapping(packet.getItemInHand()).getJavaItem() instanceof SpawnEggItem) {
                                 // Handled in case 0
                                 break;
                             } else if (packet.getItemInHand().getDefinition() == session.getItemMappings().getStoredItems().glassBottle().getBedrockDefinition()) {

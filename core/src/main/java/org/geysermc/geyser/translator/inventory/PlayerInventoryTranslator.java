@@ -48,6 +48,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemS
 import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.geyser.inventory.*;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.FakeHeadProvider;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -134,7 +135,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
 
         if (slot == 5) {
             // Check for custom skull
-            if (javaItem.getJavaId() == session.getItemMappings().getStoredItems().playerHead().getJavaId()
+            if (javaItem.asItem() == Items.PLAYER_HEAD
                     && javaItem.getNbt() != null
                     && javaItem.getNbt().get("SkullOwner") instanceof CompoundTag profile) {
                 FakeHeadProvider.setHead(session, session.getPlayerEntity(), profile);

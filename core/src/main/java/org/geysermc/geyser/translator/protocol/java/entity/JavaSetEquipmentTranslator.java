@@ -33,6 +33,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.FakeHeadProvider;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
@@ -64,7 +65,7 @@ public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetE
                     ItemStack javaItem = equipment.getItem();
                     if (livingEntity instanceof PlayerEntity
                             && javaItem != null
-                            && javaItem.getId() == session.getItemMappings().getStoredItems().playerHead().getJavaId()
+                            && javaItem.getId() == Items.PLAYER_HEAD.javaId()
                             && javaItem.getNbt() != null
                             && javaItem.getNbt().get("SkullOwner") instanceof CompoundTag profile) {
                         FakeHeadProvider.setHead(session, (PlayerEntity) livingEntity, profile);

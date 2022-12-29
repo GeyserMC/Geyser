@@ -23,23 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.inventory.item;
+package org.geysermc.geyser.item.type;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.GameProtocol;
-import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 
-import java.util.Collections;
 import java.util.List;
 
-@ItemRemapper
-public class GoatHornTranslator extends ItemTranslator {
-
+public class GoatHornItem extends Item {
     private static final List<String> INSTRUMENTS = List.of(
             "ponder_goat_horn",
             "sing_goat_horn",
@@ -51,8 +46,12 @@ public class GoatHornTranslator extends ItemTranslator {
             "dream_goat_horn" // Called "Resist" on Bedrock 1.19.0 due to https://bugs.mojang.com/browse/MCPE-155059
     );
 
+    public GoatHornItem(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
+    }
+
     @Override
-    protected ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
+    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
         ItemData.Builder builder = super.translateToBedrock(itemStack, mapping, mappings);
         if (itemStack.getNbt() != null && itemStack.getNbt().get("instrument") instanceof StringTag instrumentTag) {
             String instrument = instrumentTag.getValue();
@@ -86,13 +85,5 @@ public class GoatHornTranslator extends ItemTranslator {
         itemStack.getNbt().put(instrumentTag);
 
         return itemStack;
-    }
-
-    @Override
-    public List<ItemMapping> getAppliedItems() {
-        return Collections.singletonList(
-                Registries.ITEMS.forVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
-                        .getMapping("minecraft:goat_horn")
-        );
     }
 }

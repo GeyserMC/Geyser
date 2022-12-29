@@ -26,12 +26,12 @@
 package org.geysermc.geyser.registry.populator;
 
 import com.google.common.collect.Multimap;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.defintions.SimpleItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
@@ -40,9 +40,11 @@ import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.components.ToolBreakSpeedsUtils;
 import org.geysermc.geyser.item.components.WearableSlot;
 import org.geysermc.geyser.item.mappings.MappingsConfigReader;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
@@ -100,7 +102,7 @@ public class CustomItemRegistryPopulator {
     }
 
     public static GeyserCustomMappingData registerCustomItem(String customItemName, GeyserMappingItem javaItem, CustomItemData customItemData, int bedrockId) {
-        ItemDefinition itemDefinition = new ItemDefinition(customItemName, bedrockId, true);
+        ItemDefinition itemDefinition = new SimpleItemDefinition(customItemName, bedrockId, true);
 
         NbtMapBuilder builder = createComponentNbt(customItemData, javaItem, customItemName, bedrockId);
         ComponentItemData componentItemData = new ComponentItemData(customItemName, builder.build());
@@ -129,28 +131,30 @@ public class CustomItemRegistryPopulator {
     public static NonVanillaItemRegistration registerCustomItem(NonVanillaCustomItemData customItemData, int customItemId) {
         String customIdentifier = customItemData.identifier();
 
+        Item.Builder itemBuilder = Item.builder()
+                .stackSize(customItemData.stackSize())
+                .maxDamage(customItemData.maxDamage());
+        Item item = new Item(customIdentifier, itemBuilder);
+        Items.register(item, customItemData.javaId());
+
         ItemMapping customItemMapping = ItemMapping.builder()
-                .javaIdentifier(customIdentifier)
-                .bedrockIdentifier(customIdentifier)
-                .javaId(customItemData.javaId())
-                .bedrockDefinition(new ItemDefinition(customIdentifier, customItemId, true))
+                .bedrockDefinition(new SimpleItemDefinition(customIdentifier, customItemId, true))
                 .bedrockData(0)
                 .bedrockBlockDefinition(null)
-                .stackSize(customItemData.stackSize())
                 .toolType(customItemData.toolType())
                 .toolTier(customItemData.toolTier())
                 .translationString(customItemData.translationString())
-                .maxDamage(customItemData.maxDamage())
                 .repairMaterials(customItemData.repairMaterials())
                 .hasSuspiciousStewEffect(false)
                 .customItemOptions(Collections.emptyList())
+                .javaItem(item)
                 .build();
 
         NbtMapBuilder builder = createComponentNbt(customItemData, customItemData.identifier(), customItemId,
                 customItemData.creativeCategory(), customItemData.creativeGroup(), customItemData.isHat(), customItemData.isTool());
         ComponentItemData componentItemData = new ComponentItemData(customIdentifier, builder.build());
 
-        return new NonVanillaItemRegistration(componentItemData, customItemMapping);
+        return new NonVanillaItemRegistration(componentItemData, item, customItemMapping);
     }
 
     private static NbtMapBuilder createComponentNbt(CustomItemData customItemData, GeyserMappingItem mapping,

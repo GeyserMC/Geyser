@@ -28,8 +28,11 @@ package org.geysermc.geyser.translator.inventory.item.nbt;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
 import org.geysermc.geyser.translator.inventory.item.NbtItemStackTranslator;
@@ -56,7 +59,7 @@ public class PlayerHeadTranslator extends NbtItemStackTranslator {
                 }
                 // Add correct name of player skull
                 // TODO: It's always yellow, even with a custom name. Handle?
-                String displayName = "\u00a7r\u00a7e" + MinecraftLocale.getLocaleString("block.minecraft.player_head.named", session.locale()).replace("%s", name.getValue());
+                String displayName = ChatColor.RESET + ChatColor.YELLOW + MinecraftLocale.getLocaleString("block.minecraft.player_head.named", session.locale()).replace("%s", name.getValue());
                 if (!itemTag.contains("display")) {
                     itemTag.put(new CompoundTag("display"));
                 }
@@ -66,7 +69,7 @@ public class PlayerHeadTranslator extends NbtItemStackTranslator {
     }
 
     @Override
-    public boolean acceptItem(ItemMapping mapping) {
-        return mapping.getJavaIdentifier().equals("minecraft:player_head");
+    public boolean acceptItem(Item item) {
+        return item == Items.PLAYER_HEAD;
     }
 }
