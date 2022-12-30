@@ -223,7 +223,10 @@ public class GeyserImpl implements GeyserApi {
         logger.info(message);
 
         if (platformType == PlatformType.STANDALONE) {
-            logger.warning(GeyserLocale.getLocaleStringLog("geyser.core.movement_warn"));
+            if (config.getRemote().authType() != AuthType.FLOODGATE) {
+                // If the auth-type is Floodgate, then this Geyser instance is probably owned by the Java server
+                logger.warning(GeyserLocale.getLocaleStringLog("geyser.core.movement_warn"));
+            }
         } else if (config.getRemote().authType() == AuthType.FLOODGATE) {
             VersionCheckUtils.checkForOutdatedFloodgate(logger);
         }
@@ -329,7 +332,7 @@ public class GeyserImpl implements GeyserApi {
                 Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyPath());
                 cipher = new AesCipher(new Base64Topping());
                 cipher.init(key);
-                logger.debug(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.loaded_key"));
+                logger.debug("Loaded Floodgate key!");
                 // Note: this is positioned after the bind so the skin uploader doesn't try to run if Geyser fails
                 // to load successfully. Spigot complains about class loader if the plugin is disabled.
                 skinUploader = new FloodgateSkinUploader(this).start();
