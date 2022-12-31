@@ -28,18 +28,25 @@ package org.geysermc.geyser.registry.mappings.versions;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
+import org.geysermc.geyser.api.block.custom.CustomBlockMapping;
 import org.geysermc.geyser.api.block.custom.CustomBlockPermutation;
+import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
 import org.geysermc.geyser.level.block.GeyserCustomBlockData;
+import org.geysermc.geyser.registry.BlockRegistries;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 public class MappingsReader_v1 extends MappingsReader {
     @Override
@@ -48,7 +55,7 @@ public class MappingsReader_v1 extends MappingsReader {
     }
 
     @Override
-    public void readBlockMappings(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomBlockData> consumer) {
+    public void readBlockMappings(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomBlockMapping> consumer) {
         this.readBlockMappingsV1(file, mappingsRoot, consumer);
     }
 
@@ -71,7 +78,7 @@ public class MappingsReader_v1 extends MappingsReader {
         }
     }
 
-    public void readBlockMappingsV1(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomBlockData> consumer) {
+    public void readBlockMappingsV1(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomBlockMapping> consumer) {
         JsonNode blocksNode = mappingsRoot.get("blocks");
 
         if (blocksNode != null && blocksNode.isObject()) {
@@ -79,8 +86,9 @@ public class MappingsReader_v1 extends MappingsReader {
                 if (entry.getValue().isObject()) {
                     entry.getValue().forEach(data -> {
                         try {
-                            CustomBlockData customBlockData = this.readBlockMappingEntry(data);
-                            consumer.accept(entry.getKey(), customBlockData);
+                            String identifier = entry.getKey();
+                            CustomBlockMapping customBlockMapping = this.readBlockMappingEntry(identifier, data);
+                            consumer.accept(identifier, customBlockMapping);
                         } catch (InvalidCustomMappingsFileException e) {
                             GeyserImpl.getInstance().getLogger().error("Error in registering blocks for custom mapping file: " + file.toString(), e);
                         }
@@ -153,7 +161,7 @@ public class MappingsReader_v1 extends MappingsReader {
     }
 
     @Override
-    public CustomBlockData readBlockMappingEntry(JsonNode node) throws InvalidCustomMappingsFileException {
+    public CustomBlockMapping readBlockMappingEntry(String identifier, JsonNode node) throws InvalidCustomMappingsFileException {
         if (node == null || !node.isObject()) {
             throw new InvalidCustomMappingsFileException("Invalid block mappings entry");
         }
@@ -168,7 +176,7 @@ public class MappingsReader_v1 extends MappingsReader {
         CustomBlockData customBlockData = new GeyserCustomBlockData.CustomBlockDataBuilder()
                 .name(name)
                 .components(createCustomBlockComponents(node))
-                // TODO: need to parse state data to find these, e.g. [east=none,north=none,power=1,south=none,west=none]
+                // TODO: need to parse state data to find these, e.g. [east=none,north=none,power=1,south=none,west=none] and note these are range, not value
                 // TODO: add possible values for all blockstates to mappings generator
                 // .booleanProperty()
                 // .intProperty()
@@ -176,7 +184,9 @@ public class MappingsReader_v1 extends MappingsReader {
                 .permutations(createCustomBlockPermutations(stateOverrides))
                 .build();
 
-        return customBlockData;
+        Map<String, CustomBlockState> states = new HashMap<>();
+
+        return new CustomBlockMapping(customBlockData, states);
     }
 
     private List<CustomBlockPermutation> createCustomBlockPermutations(JsonNode node) {
@@ -195,6 +205,31 @@ public class MappingsReader_v1 extends MappingsReader {
         }
 
         return permutations;
+    }
+
+    private Map<String, CustomBlockState> createCustomBlockStatesMap(String identifier, JsonNode node, CustomBlockData customBlockData) {
+        // TODO: The goal here is that we need to register state overrides with the same permutations 
+        // really we need to be able to figure out what properties correspond to what permutations as they need to match... this is probably going to require some fairly complex parsing of stateKeys and tbh we should probably do it up in readBlockMappingEntry
+        // basically going to need to infer what the property type is... which we already sort of do in createCustomBlockPropertyQuery
+        // alternatively, it might be easier to just use int properties for everything and just handle the types on the fly... so I think we can just parse stateKeys sort of how we already to in createCustomBlockPropertyQuery in terms of getting the conditions array
+        // we will want to make an array list from that of all the possible values for each property
+        // then we can just keep them all strings and map each one to a unique int Map<int, String>
+        List<String> stateKeys = new ArrayList<>();
+        Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
+        while (fields.hasNext()) {
+            stateKeys.add(identifier + fields.next().getKey());
+        }
+
+        List<String> defaultStates = List.copyOf(BlockRegistries.JAVA_IDENTIFIERS.get().keySet())
+            .stream()
+            .filter(s -> s.startsWith(identifier + "["))
+            .collect(Collectors.toList());
+
+        defaultStates.removeAll(stateKeys);
+
+        Map<String, CustomBlockState> states = new HashMap<>();
+
+        return states;
     }
 
     private CustomBlockComponents createCustomBlockComponents(JsonNode node) {
@@ -226,13 +261,13 @@ public class MappingsReader_v1 extends MappingsReader {
         for (int i = 0; i < conditions.length; i++) {
             String[] keyval = conditions[i].split("=", 2);
             if (keyval[1].equals("true")) {
-                queries[i] = String.format("query.block_property('%s') == %b", keyval[0], 1);
+                queries[i] = String.format("q.block_property('%s') == %b", keyval[0], 1);
             } else if (keyval[1].equals("false")) {
-                queries[i] = String.format("query.block_property('%s') == %b", keyval[0], 0);
+                queries[i] = String.format("q.block_property('%s') == %b", keyval[0], 0);
             } else if (keyval[1].matches("-?\\d+")) {
-                queries[i] = String.format("query.block_property('%s') == %b", keyval[0], Integer.parseInt(keyval[1]));
+                queries[i] = String.format("q.block_property('%s') == %b", keyval[0], Integer.parseInt(keyval[1]));
             } else {
-                queries[i] = String.format("query.block_property('%s') == '%b'", keyval[0], keyval[1]);
+                queries[i] = String.format("q.block_property('%s') == '%b'", keyval[0], keyval[1]);
             }
         }
 
