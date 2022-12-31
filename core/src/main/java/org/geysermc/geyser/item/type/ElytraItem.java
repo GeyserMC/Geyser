@@ -25,22 +25,15 @@
 
 package org.geysermc.geyser.item.type;
 
-import org.geysermc.geyser.item.components.ToolTier;
+import org.geysermc.geyser.item.Items;
 
-public class TieredItem extends Item {
-    private final ToolTier tier;
-
-    public TieredItem(String javaIdentifier, ToolTier tier, Builder builder) {
+public class ElytraItem extends Item {
+    public ElytraItem(String javaIdentifier, Builder builder) {
         super(javaIdentifier, builder);
-        this.tier = tier;
-    }
-
-    public ToolTier tier() {
-        return tier;
     }
 
     @Override
     public boolean isValidRepairItem(Item other) {
-        return tier.getRepairIngredients().contains(other);
+        return other == Items.PHANTOM_MEMBRANE;
     }
 }

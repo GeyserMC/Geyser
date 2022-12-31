@@ -25,22 +25,18 @@
 
 package org.geysermc.geyser.item.type;
 
-import org.geysermc.geyser.item.components.ToolTier;
+import org.geysermc.geyser.item.ArmorMaterial;
 
-public class TieredItem extends Item {
-    private final ToolTier tier;
+public class ArmorItem extends Item {
+    private final ArmorMaterial material;
 
-    public TieredItem(String javaIdentifier, ToolTier tier, Builder builder) {
+    public ArmorItem(String javaIdentifier, ArmorMaterial material, Builder builder) {
         super(javaIdentifier, builder);
-        this.tier = tier;
-    }
-
-    public ToolTier tier() {
-        return tier;
+        this.material = material;
     }
 
     @Override
     public boolean isValidRepairItem(Item other) {
-        return tier.getRepairIngredients().contains(other);
+        return material.getRepairIngredient() == other;
     }
 }

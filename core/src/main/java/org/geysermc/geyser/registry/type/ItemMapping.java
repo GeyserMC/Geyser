@@ -26,7 +26,9 @@
 package org.geysermc.geyser.registry.type;
 
 import it.unimi.dsi.fastutil.Pair;
-import lombok.*;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Value;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
@@ -36,7 +38,6 @@ import org.geysermc.geyser.item.type.Item;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 @Value
 @Builder
@@ -51,7 +52,6 @@ public class ItemMapping {
             null,
             null,
             Collections.emptyList(),
-            null,
             false,
             Items.AIR
     );
@@ -73,8 +73,6 @@ public class ItemMapping {
 
     @NonNull
     List<Pair<CustomItemOptions, ItemDefinition>> customItemOptions;
-
-    Set<String> repairMaterials;
 
     boolean hasSuspiciousStewEffect;
 

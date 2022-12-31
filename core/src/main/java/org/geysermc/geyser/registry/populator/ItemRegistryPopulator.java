@@ -331,10 +331,6 @@ public class ItemRegistryPopulator {
                         .hasSuspiciousStewEffect(mappingItem.isHasSuspiciousStewEffect())
                         .javaItem(javaItem);
 
-                if (mappingItem.getRepairMaterials() != null) {
-                    mappingBuilder = mappingBuilder.repairMaterials(new ObjectOpenHashSet<>(mappingItem.getRepairMaterials()));
-                }
-
                 if (mappingItem.getToolType() != null) {
                     if (mappingItem.getToolTier() != null) {
                         mappingBuilder = mappingBuilder.toolType(mappingItem.getToolType().intern())

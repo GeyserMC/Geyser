@@ -31,14 +31,14 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMaps;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMaps;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.AnvilContainer;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -53,7 +53,6 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ItemUtils;
 
 import java.util.Objects;
-import java.util.Set;
 
 public class AnvilInventoryUpdater extends InventoryUpdater {
     public static final AnvilInventoryUpdater INSTANCE = new AnvilInventoryUpdater();
@@ -142,7 +141,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         GeyserItemStack material = anvilContainer.getMaterial();
 
         if (!material.isEmpty()) {
-            if (!input.isEmpty() && isRepairing(session, input, material)) {
+            if (!input.isEmpty() && isRepairing(input, material)) {
                 // Changing the repair cost on the material item makes it non-stackable
                 return 0;
             }
@@ -235,7 +234,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
                     // Can't repair or merge enchantments
                     return -1;
                 }
-            } else if (hasDurability(input) && isRepairing(session, input, material)) {
+            } else if (hasDurability(input) && isRepairing(input, material)) {
                 cost = calcRepairLevelCost(input, material);
                 if (cost == -1) {
                     // No damage to repair
@@ -308,9 +307,9 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
      */
     private int calcMergeEnchantmentCost(GeyserSession session, GeyserItemStack input, GeyserItemStack material, boolean bedrock) {
         boolean hasCompatible = false;
-        Object2IntMap<JavaEnchantment> combinedEnchantments = getEnchantments(session, input, bedrock);
+        Object2IntMap<JavaEnchantment> combinedEnchantments = getEnchantments(input, bedrock);
         int cost = 0;
-        for (Object2IntMap.Entry<JavaEnchantment> entry : getEnchantments(session, material, bedrock).object2IntEntrySet()) {
+        for (Object2IntMap.Entry<JavaEnchantment> entry : getEnchantments(material, bedrock).object2IntEntrySet()) {
             JavaEnchantment enchantment = entry.getKey();
             EnchantmentData data = Registries.ENCHANTMENTS.get(enchantment);
             if (data == null) {
@@ -369,7 +368,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         return cost;
     }
 
-    private Object2IntMap<JavaEnchantment> getEnchantments(GeyserSession session, GeyserItemStack itemStack, boolean bedrock) {
+    private Object2IntMap<JavaEnchantment> getEnchantments(GeyserItemStack itemStack, boolean bedrock) {
         if (itemStack.getNbt() == null) {
             return Object2IntMaps.emptyMap();
         }
@@ -415,9 +414,8 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         return isEnchantedBook(material) || (input.getJavaId() == material.getJavaId() && hasDurability(input));
     }
 
-    private boolean isRepairing(GeyserSession session, GeyserItemStack input, GeyserItemStack material) {
-        Set<String> repairMaterials = input.getMapping(session).getRepairMaterials();
-        return repairMaterials != null && repairMaterials.contains(material.asItem().javaIdentifier());
+    private boolean isRepairing(GeyserItemStack input, GeyserItemStack material) {
+        return input.asItem().isValidRepairItem(material.asItem());
     }
 
     private boolean isRenaming(GeyserSession session, AnvilContainer anvilContainer, boolean bedrock) {

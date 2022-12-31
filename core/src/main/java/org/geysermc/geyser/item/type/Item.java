@@ -33,26 +33,19 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 
-import javax.annotation.Nullable;
-import java.util.Set;
-
 public class Item {
     private final String javaIdentifier;
     private int javaId = -1;
     private final int stackSize;
     private final String toolType;
-    private final String toolTier;
     private final int maxDamage;
-    private final Set<String> repairMaterials;
     private final boolean hasSuspiciousStewEffect;
 
     public Item(String javaIdentifier, Builder builder) {
         this.javaIdentifier = Identifier.formalize(javaIdentifier).intern();
         this.stackSize = builder.stackSize;
         this.toolType = builder.toolType;
-        this.toolTier = builder.toolTier;
         this.maxDamage = builder.maxDamage;
-        this.repairMaterials = builder.repairMaterials;
         this.hasSuspiciousStewEffect = builder.hasSuspiciousStewEffect;
     }
 
@@ -71,6 +64,12 @@ public class Item {
     public int maxStackSize() {
         return stackSize;
     }
+
+    public boolean isValidRepairItem(Item other) {
+        return false;
+    }
+
+    /* Translation methods to Bedrock and back */
 
     public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
         if (itemStack == null) {
@@ -91,7 +90,7 @@ public class Item {
         return builder;
     }
 
-    public ItemStack translateToJava(@Nullable ItemData itemData, ItemMapping mapping, ItemMappings mappings) {
+    public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, ItemMappings mappings) {
         if (itemData == null) return null;
         if (itemData.getTag() == null) {
             return new ItemStack(javaId, itemData.getCount(), new CompoundTag(""));
@@ -129,9 +128,7 @@ public class Item {
     public static final class Builder {
         private int stackSize = 64;
         private String toolType;
-        private String toolTier;
         private int maxDamage;
-        private Set<String> repairMaterials;
         private boolean hasSuspiciousStewEffect;
 
         public Builder stackSize(int stackSize) {
@@ -144,18 +141,8 @@ public class Item {
             return this;
         }
 
-        public Builder setToolTier(String toolTier) {
-            this.toolTier = toolTier;
-            return this;
-        }
-
         public Builder maxDamage(int maxDamage) {
             this.maxDamage = maxDamage;
-            return this;
-        }
-
-        public Builder setRepairMaterials(Set<String> repairMaterials) {
-            this.repairMaterials = repairMaterials;
             return this;
         }
 

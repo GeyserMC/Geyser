@@ -23,24 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.type;
+package org.geysermc.geyser.item;
 
-import org.geysermc.geyser.item.components.ToolTier;
+import org.geysermc.geyser.item.type.Item;
 
-public class TieredItem extends Item {
-    private final ToolTier tier;
+public enum ArmorMaterial {
+    LEATHER(Items.LEATHER),
+    CHAIN(Items.IRON_INGOT),
+    IRON(Items.IRON_INGOT),
+    GOLD(Items.GOLD_INGOT),
+    DIAMOND(Items.DIAMOND),
+    TURTLE(Items.SCUTE),
+    NETHERITE(Items.NETHERITE_INGOT);
 
-    public TieredItem(String javaIdentifier, ToolTier tier, Builder builder) {
-        super(javaIdentifier, builder);
-        this.tier = tier;
+    private final Item repairIngredient;
+
+    ArmorMaterial(Item repairIngredient) {
+        this.repairIngredient = repairIngredient;
     }
 
-    public ToolTier tier() {
-        return tier;
-    }
-
-    @Override
-    public boolean isValidRepairItem(Item other) {
-        return tier.getRepairIngredients().contains(other);
+    public Item getRepairIngredient() {
+        return repairIngredient;
     }
 }

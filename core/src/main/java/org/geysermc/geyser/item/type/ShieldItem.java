@@ -27,20 +27,14 @@ package org.geysermc.geyser.item.type;
 
 import org.geysermc.geyser.item.components.ToolTier;
 
-public class TieredItem extends Item {
-    private final ToolTier tier;
-
-    public TieredItem(String javaIdentifier, ToolTier tier, Builder builder) {
+public class ShieldItem extends Item {
+    public ShieldItem(String javaIdentifier, Builder builder) {
         super(javaIdentifier, builder);
-        this.tier = tier;
-    }
-
-    public ToolTier tier() {
-        return tier;
     }
 
     @Override
     public boolean isValidRepairItem(Item other) {
-        return tier.getRepairIngredients().contains(other);
+        // Java Edition 1.19.3 checks the tag, but TODO check to see if we want it or are simulating what Bedrock is doing
+        return ToolTier.WOODEN.getRepairIngredients().contains(other);
     }
 }

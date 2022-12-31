@@ -50,10 +50,7 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.OptionalInt;
+import java.util.*;
 
 public class CustomItemRegistryPopulator {
     public static void populate(Map<String, GeyserMappingItem> items, Multimap<String, CustomItemData> customItems, List<NonVanillaCustomItemData> nonVanillaCustomItems) {
@@ -131,10 +128,18 @@ public class CustomItemRegistryPopulator {
     public static NonVanillaItemRegistration registerCustomItem(NonVanillaCustomItemData customItemData, int customItemId) {
         String customIdentifier = customItemData.identifier();
 
+        Set<String> repairMaterials = customItemData.repairMaterials();
+
         Item.Builder itemBuilder = Item.builder()
                 .stackSize(customItemData.stackSize())
                 .maxDamage(customItemData.maxDamage());
-        Item item = new Item(customIdentifier, itemBuilder);
+        Item item = new Item(customIdentifier, itemBuilder) {
+            // TODO ?
+            @Override
+            public boolean isValidRepairItem(Item other) {
+                return repairMaterials != null && repairMaterials.contains(other.javaIdentifier());
+            }
+        };
         Items.register(item, customItemData.javaId());
 
         ItemMapping customItemMapping = ItemMapping.builder()
@@ -144,7 +149,6 @@ public class CustomItemRegistryPopulator {
                 .toolType(customItemData.toolType())
                 .toolTier(customItemData.toolTier())
                 .translationString(customItemData.translationString())
-                .repairMaterials(customItemData.repairMaterials())
                 .hasSuspiciousStewEffect(false)
                 .customItemOptions(Collections.emptyList())
                 .javaItem(item)
