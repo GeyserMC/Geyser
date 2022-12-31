@@ -58,6 +58,7 @@ public class TagCache {
 
     /* Items */
     private IntList axolotlTemptItems;
+    private IntList creeperIgniters;
     private IntList fishes;
     private IntList flowers;
     private IntList foxFood;
@@ -94,6 +95,7 @@ public class TagCache {
 
         Map<String, int[]> itemTags = packet.getTags().get("minecraft:item");
         this.axolotlTemptItems = IntList.of(itemTags.get("minecraft:axolotl_tempt_items"));
+        this.creeperIgniters = load(itemTags.get("minecraft:creeper_igniters"));
         this.fishes = IntList.of(itemTags.get("minecraft:fishes"));
         this.flowers = IntList.of(itemTags.get("minecraft:flowers"));
         this.foxFood = IntList.of(itemTags.get("minecraft:fox_food"));
@@ -106,6 +108,13 @@ public class TagCache {
         if (logger.isDebug()) {
             logger.debug("Emulating post 1.13 villager logic for " + session.bedrockUsername() + "? " + emulatePost1_13Logic);
         }
+    }
+
+    private IntList load(int[] tags) {
+        if (tags == null) {
+            return IntLists.EMPTY_LIST;
+        }
+        return IntList.of(tags);
     }
 
     public void clear() {
@@ -122,6 +131,7 @@ public class TagCache {
         this.requiresDiamondTool = IntLists.emptyList();
 
         this.axolotlTemptItems = IntLists.emptyList();
+        this.creeperIgniters = IntLists.emptyList();
         this.fishes = IntLists.emptyList();
         this.flowers = IntLists.emptyList();
         this.foxFood = IntLists.emptyList();
@@ -131,6 +141,10 @@ public class TagCache {
 
     public boolean isAxolotlTemptItem(Item item) {
         return axolotlTemptItems.contains(item.javaId());
+    }
+
+    public boolean isCreeperIgniter(Item item) {
+        return creeperIgniters.contains(item.javaId());
     }
 
     public boolean isFish(GeyserItemStack itemStack) {

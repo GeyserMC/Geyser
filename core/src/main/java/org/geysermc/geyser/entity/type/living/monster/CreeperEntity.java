@@ -33,7 +33,6 @@ import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
@@ -66,7 +65,7 @@ public class CreeperEntity extends MonsterEntity {
     @Nonnull
     @Override
     protected InteractiveTag testMobInteraction(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        if (itemInHand.asItem() == Items.FLINT_AND_STEEL) { // TODO now uses item tag
+        if (session.getTagCache().isCreeperIgniter(itemInHand.asItem())) {
             return InteractiveTag.IGNITE_CREEPER;
         } else {
             return super.testMobInteraction(hand, itemInHand);
@@ -76,8 +75,8 @@ public class CreeperEntity extends MonsterEntity {
     @Nonnull
     @Override
     protected InteractionResult mobInteract(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        if (itemInHand.asItem() == Items.FLINT_AND_STEEL) {
-            // Ignite creeper
+        if (session.getTagCache().isCreeperIgniter(itemInHand.asItem())) {
+            // Ignite creeper - as of 1.19.3
             session.playSoundEvent(SoundEvent.IGNITE, position);
             return InteractionResult.SUCCESS;
         } else {
