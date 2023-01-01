@@ -40,6 +40,12 @@ public class AgeableEntity extends CreatureEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
+    @Override
+    protected void initializeMetadata() {
+        // Required as of 1.19.3 Java
+        dirtyMetadata.put(EntityData.SCALE, getAdultSize());
+    }
+
     public void setBaby(BooleanEntityMetadata entityMetadata) {
         boolean isBaby = entityMetadata.getPrimitiveValue();
         dirtyMetadata.put(EntityData.SCALE, isBaby ? getBabySize() : getAdultSize());
