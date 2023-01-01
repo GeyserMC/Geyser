@@ -139,7 +139,7 @@ public class GeyserCustomBlockData implements CustomBlockData {
 
         @Override
         public Builder booleanProperty(@NonNull String propertyName) {
-            this.properties.put(propertyName, new GeyserCustomBlockProperty<>(propertyName, List.of(false, true), PropertyType.BOOLEAN));
+            this.properties.put(propertyName, new GeyserCustomBlockProperty<>(propertyName, List.of((byte) 0, (byte) 1), PropertyType.BOOLEAN));
             return this;
         }
 

@@ -70,7 +70,7 @@ public class GeyserCustomBlockState implements CustomBlockState {
 
         @Override
         public Builder booleanProperty(@NonNull String propertyName, boolean value) {
-            properties.put(propertyName, value);
+            properties.put(propertyName, value ? (byte) 1 : (byte) 0);
             return this;
         }
 

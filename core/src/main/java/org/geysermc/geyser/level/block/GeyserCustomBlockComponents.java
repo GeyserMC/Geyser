@@ -141,8 +141,6 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         protected RotationComponent rotation;
         protected boolean placeAir = false;
 
-        private static final Set<String> VALID_MATERIAL_INSTANCE_NAMES = ImmutableSet.of("*", "up", "down", "north", "south", "west", "east");
-
         private void validateBox(BoxComponent box) {
             if (box == null) {
                 return;
@@ -189,9 +187,6 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
 
         @Override
         public Builder materialInstance(@NotNull String name, @NotNull MaterialInstance materialInstance) {
-            if (!VALID_MATERIAL_INSTANCE_NAMES.contains(name)) {
-                throw new IllegalArgumentException("Material instance name must be one of " + VALID_MATERIAL_INSTANCE_NAMES);
-            }
             this.materialInstances.put(name, materialInstance);
             return this;
         }
