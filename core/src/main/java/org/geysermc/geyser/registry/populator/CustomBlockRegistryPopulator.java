@@ -19,6 +19,7 @@ import org.geysermc.geyser.api.block.custom.property.PropertyType;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBlocksEvent;
 import org.geysermc.geyser.level.block.GeyserCustomBlockState;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.CustomSkull;
 
 import com.nukkitx.nbt.NbtMap;
@@ -74,6 +75,16 @@ public class CustomBlockRegistryPopulator {
         for (CustomSkull customSkull : BlockRegistries.CUSTOM_SKULLS.get().values()) {
             customBlocks.add(customSkull.getCustomBlockData());
         }
+
+        MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
+        mappingsConfigReader.loadBlockMappingsFromJson((key, block) -> {
+            customBlocks.add(block.data());
+            block.states().forEach((javaIdentifier, customBlockState) -> {
+                int id = BlockRegistries.JAVA_IDENTIFIERS.getOrDefault(javaIdentifier, -1);
+                GeyserImpl.getInstance().getLogger().info("CUSTOM RUNTIME ID: " + id + " for " + javaIdentifier);
+                blockStateOverrides.put(id, customBlockState);
+            });
+        });
     
         BlockRegistries.CUSTOM_BLOCKS.set(customBlocks.toArray(new CustomBlockData[0]));
         GeyserImpl.getInstance().getLogger().debug("Registered " + customBlocks.size() + " custom blocks.");

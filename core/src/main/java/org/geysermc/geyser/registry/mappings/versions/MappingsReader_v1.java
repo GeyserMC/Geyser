@@ -26,6 +26,8 @@
 package org.geysermc.geyser.registry.mappings.versions;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.CharMatcher;
+
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockMapping;
@@ -36,15 +38,21 @@ import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
-import org.geysermc.geyser.level.block.GeyserCustomBlockData;
+import org.geysermc.geyser.level.block.GeyserCustomBlockComponents.CustomBlockComponentsBuilder;
+import org.geysermc.geyser.level.block.GeyserCustomBlockData.CustomBlockDataBuilder;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.mappings.util.BlockPropertyTypeMaps;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
@@ -84,15 +92,13 @@ public class MappingsReader_v1 extends MappingsReader {
         if (blocksNode != null && blocksNode.isObject()) {
             blocksNode.fields().forEachRemaining(entry -> {
                 if (entry.getValue().isObject()) {
-                    entry.getValue().forEach(data -> {
-                        try {
-                            String identifier = entry.getKey();
-                            CustomBlockMapping customBlockMapping = this.readBlockMappingEntry(identifier, data);
-                            consumer.accept(identifier, customBlockMapping);
-                        } catch (InvalidCustomMappingsFileException e) {
-                            GeyserImpl.getInstance().getLogger().error("Error in registering blocks for custom mapping file: " + file.toString(), e);
-                        }
-                    });
+                    try {
+                        String identifier = entry.getKey();
+                        CustomBlockMapping customBlockMapping = this.readBlockMappingEntry(identifier, entry.getValue());
+                        consumer.accept(identifier, customBlockMapping);
+                    } catch (InvalidCustomMappingsFileException e) {
+                        GeyserImpl.getInstance().getLogger().error("Error in registering blocks for custom mapping file: " + file.toString(), e);
+                    }
                 }
             });
         }
@@ -163,7 +169,7 @@ public class MappingsReader_v1 extends MappingsReader {
     @Override
     public CustomBlockMapping readBlockMappingEntry(String identifier, JsonNode node) throws InvalidCustomMappingsFileException {
         if (node == null || !node.isObject()) {
-            throw new InvalidCustomMappingsFileException("Invalid block mappings entry");
+            throw new InvalidCustomMappingsFileException("Invalid block mappings entry:" + node.toString());
         }
 
         String name = node.get("name").asText();
@@ -173,18 +179,34 @@ public class MappingsReader_v1 extends MappingsReader {
 
         JsonNode stateOverrides = node.get("state_overrides");
 
-        CustomBlockData customBlockData = new GeyserCustomBlockData.CustomBlockDataBuilder()
+        List<String> stateKeys = new ArrayList<>();
+        Iterator<Map.Entry<String, JsonNode>> fields = stateOverrides.fields();
+        while (fields.hasNext()) {
+            stateKeys.add(identifier + fields.next().getKey());
+        }
+
+        List<String> defaultStates = List.copyOf(BlockRegistries.JAVA_IDENTIFIERS.get().keySet())
+            .stream()
+            .filter(s -> s.startsWith(identifier + "["))
+            .collect(Collectors.toList());
+
+        CustomBlockDataBuilder customBlockDataBuilder = new CustomBlockDataBuilder();
+        
+        customBlockDataBuilder
                 .name(name)
                 .components(createCustomBlockComponents(node))
-                // TODO: need to parse state data to find these, e.g. [east=none,north=none,power=1,south=none,west=none] and note these are range, not value
-                // TODO: add possible values for all blockstates to mappings generator
-                // .booleanProperty()
-                // .intProperty()
-                // .stringProperty()
                 .permutations(createCustomBlockPermutations(stateOverrides))
-                .build();
+                .booleanProperty("geyser_custom:default");
 
-        Map<String, CustomBlockState> states = new HashMap<>();
+        BlockPropertyTypeMaps blockPropertyTypeMaps = createBlockPropertyTypeMaps(defaultStates);
+        blockPropertyTypeMaps.stringValuesMap().forEach((key, value) -> customBlockDataBuilder.stringProperty(key, new ArrayList<String>(value)));
+        blockPropertyTypeMaps.intValuesMap().forEach((key, value) -> customBlockDataBuilder.intProperty(key, new ArrayList<Integer>(value)));
+        blockPropertyTypeMaps.booleanValuesSet().forEach((value) -> customBlockDataBuilder.booleanProperty(value));
+
+        CustomBlockData customBlockData = customBlockDataBuilder.build();
+
+        Map<String, CustomBlockState> states = createCustomBlockStatesMap(identifier, stateKeys, defaultStates, customBlockData, 
+            blockPropertyTypeMaps.stateKeyStrings(), blockPropertyTypeMaps.stateKeyInts(), blockPropertyTypeMaps.stateKeyBools());
 
         return new CustomBlockMapping(customBlockData, states);
     }
@@ -203,37 +225,114 @@ public class MappingsReader_v1 extends MappingsReader {
                 }
             });
         }
+        
+        permutations.add(new CustomBlockPermutation(
+            new GeyserCustomBlockComponents.CustomBlockComponentsBuilder().build(), 
+            "q.block_property('geyser_custom:default') == 1"));
 
         return permutations;
     }
 
-    private Map<String, CustomBlockState> createCustomBlockStatesMap(String identifier, JsonNode node, CustomBlockData customBlockData) {
-        // TODO: The goal here is that we need to register state overrides with the same permutations 
-        // really we need to be able to figure out what properties correspond to what permutations as they need to match... this is probably going to require some fairly complex parsing of stateKeys and tbh we should probably do it up in readBlockMappingEntry
-        // basically going to need to infer what the property type is... which we already sort of do in createCustomBlockPropertyQuery
-        // alternatively, it might be easier to just use int properties for everything and just handle the types on the fly... so I think we can just parse stateKeys sort of how we already to in createCustomBlockPropertyQuery in terms of getting the conditions array
-        // we will want to make an array list from that of all the possible values for each property
-        // then we can just keep them all strings and map each one to a unique int Map<int, String>
-        List<String> stateKeys = new ArrayList<>();
-        Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
-        while (fields.hasNext()) {
-            stateKeys.add(identifier + fields.next().getKey());
-        }
+    private Map<String, CustomBlockState> createCustomBlockStatesMap(
+        String identifier, 
+        List<String> stateKeys,
+        List<String> defaultStates,
+        CustomBlockData customBlockData,
+        Map<String, Map<String, String>> stateKeyStrings,
+        Map<String, Map<String, Integer>> stateKeyInts,
+        Map<String, Map<String, Boolean>> stateKeyBools) {
 
-        List<String> defaultStates = List.copyOf(BlockRegistries.JAVA_IDENTIFIERS.get().keySet())
-            .stream()
-            .filter(s -> s.startsWith(identifier + "["))
-            .collect(Collectors.toList());
+        Map<String, CustomBlockState> states = new HashMap<>();
 
         defaultStates.removeAll(stateKeys);
 
-        Map<String, CustomBlockState> states = new HashMap<>();
+        defaultStates.forEach(key -> {
+            CustomBlockState.Builder builder = customBlockData.blockStateBuilder();
+            builder.booleanProperty("geyser_custom:default", true);
+
+            stateKeyStrings.getOrDefault(key, Collections.emptyMap()).forEach((property, stringValue) -> builder.stringProperty(property, stringValue));
+            stateKeyInts.getOrDefault(key, Collections.emptyMap()).forEach((property, intValue) -> builder.intProperty(property, intValue));
+            stateKeyBools.getOrDefault(key, Collections.emptyMap()).forEach((property, boolValue) -> builder.booleanProperty(property, boolValue));
+
+            CustomBlockState blockState = builder.build();
+
+            states.put(key, blockState);
+        });
+
+        stateKeys.forEach((key) -> {
+            CustomBlockState.Builder builder = customBlockData.blockStateBuilder();
+            builder.booleanProperty("geyser_custom:default", false);
+
+            stateKeyStrings.getOrDefault(key, Collections.emptyMap()).forEach((property, stringValue) -> builder.stringProperty(property, stringValue));
+            stateKeyInts.getOrDefault(key, Collections.emptyMap()).forEach((property, intValue) -> builder.intProperty(property, intValue));
+            stateKeyBools.getOrDefault(key, Collections.emptyMap()).forEach((property, boolValue) -> builder.booleanProperty(property, boolValue));
+
+            CustomBlockState blockState = builder.build();
+
+            states.put(key, blockState);
+        });
 
         return states;
     }
 
+    private BlockPropertyTypeMaps createBlockPropertyTypeMaps(List<String> stateKeys) {
+        Map<String, LinkedHashSet<String>> stringValuesMap = new HashMap<>();
+        Map<String, Map<String, String>> stateKeyStrings = new HashMap<>();
+
+        Map<String, LinkedHashSet<Integer>> intValuesMap = new HashMap<>();
+        Map<String, Map<String, Integer>> stateKeyInts = new HashMap<>();
+
+        Set<String> booleanValuesSet = new HashSet<>();
+        Map<String, Map<String, Boolean>> stateKeyBools = new HashMap<>();
+
+        for (String state : stateKeys) {
+            int openBracketIndex = state.indexOf("[");
+            int closeBracketIndex = state.indexOf("]");
+
+            String cleanStates = state.substring(openBracketIndex + 1, closeBracketIndex);
+
+            String[] pairs = cleanStates.split("\\s*,\\s*");
+
+            for (String pair : pairs) {
+                String[] parts = pair.split("=");
+                String property = parts[0];
+                String value = parts[1];
+                if (value.equals("true") || value.equals("false")) {
+                    booleanValuesSet.add(property);
+                    Map<String, Boolean> propertyMap = stateKeyBools.getOrDefault(state, new HashMap<>());
+                    propertyMap.put(property, Boolean.parseBoolean(value));
+                    stateKeyBools.put(state, propertyMap);
+                } else if (CharMatcher.inRange('0', '9').matchesAllOf(value)) {
+                    int intValue = Integer.parseInt(value);
+                    LinkedHashSet<Integer> values = intValuesMap.get(property);
+                    if (values == null) {
+                        values = new LinkedHashSet<>();
+                        intValuesMap.put(property, values);
+                    }
+                    values.add(intValue);
+                    Map<String, Integer> propertyMap = stateKeyInts.getOrDefault(state, new HashMap<>());
+                    propertyMap.put(property, intValue);
+                    stateKeyInts.put(state, propertyMap);
+                } else {
+                    LinkedHashSet<String> values = stringValuesMap.get(property);
+                    if (values == null) {
+                        values = new LinkedHashSet<>();
+                        stringValuesMap.put(property, values);
+                    }
+                    values.add(value);
+                    Map<String, String> propertyMap = stateKeyStrings.getOrDefault(state, new HashMap<>());
+                    propertyMap.put(property, value);
+                    stateKeyStrings.put(state, propertyMap);
+                }
+            }
+        }
+        return new BlockPropertyTypeMaps(stringValuesMap, stateKeyStrings, intValuesMap, stateKeyInts, booleanValuesSet, stateKeyBools);
+    }
+
     private CustomBlockComponents createCustomBlockComponents(JsonNode node) {
-        CustomBlockComponents components = new GeyserCustomBlockComponents.CustomBlockComponentsBuilder()
+        CustomBlockComponentsBuilder builder = new CustomBlockComponentsBuilder();
+                builder
+                .geometry("geometry.some.geometry");
                 // .selectionBox()
                 // .collisionBox()
                 // .displayName()
@@ -245,10 +344,11 @@ public class MappingsReader_v1 extends MappingsReader {
                 // .lightDampening()
                 // .rotation()
                 // .placeAir()
-                .build();
 
         JsonNode materialInstances = node.get("material_instances");
         // TODO: loop through material instances and add component for each to components
+
+        CustomBlockComponents components = builder.build();
 
         return components;
     }
@@ -271,7 +371,9 @@ public class MappingsReader_v1 extends MappingsReader {
             }
         }
 
-        return String.join(" && ", queries);
+        String query = String.join(" && ", queries);
+
+        return String.format("q.block_property('geyser_custom:default') == 0 && %s", query);
     }
 
 }
