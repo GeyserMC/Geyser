@@ -42,6 +42,7 @@ public class AgeableEntity extends CreatureEntity {
 
     @Override
     protected void initializeMetadata() {
+        super.initializeMetadata();
         // Required as of 1.19.3 Java
         dirtyMetadata.put(EntityData.SCALE, getAdultSize());
     }
