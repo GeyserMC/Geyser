@@ -33,13 +33,17 @@ import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockMapping;
 import org.geysermc.geyser.api.block.custom.CustomBlockPermutation;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
+import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
+import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
+import org.geysermc.geyser.api.block.custom.component.RotationComponent;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents.CustomBlockComponentsBuilder;
 import org.geysermc.geyser.level.block.GeyserCustomBlockData.CustomBlockDataBuilder;
+import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.mappings.util.BlockPropertyTypeMaps;
 import org.geysermc.geyser.util.BlockUtils;
@@ -203,8 +207,8 @@ public class MappingsReader_v1 extends MappingsReader {
 
         CustomBlockDataBuilder customBlockDataBuilder = new CustomBlockDataBuilder();
         customBlockDataBuilder.name(name)
-                .components(createCustomBlockComponents(node, defaultStates.get(0), identifier))
-                .permutations(createCustomBlockPermutations(stateOverrides, identifier))
+                .components(createCustomBlockComponents(node, defaultStates.get(0), identifier, name))
+                .permutations(createCustomBlockPermutations(stateOverrides, identifier, name))
                 .booleanProperty("geyser_custom:default");
 
         BlockPropertyTypeMaps blockPropertyTypeMaps = createBlockPropertyTypeMaps(onlyOverrideStates ? stateKeys : defaultStates);
@@ -220,7 +224,7 @@ public class MappingsReader_v1 extends MappingsReader {
         return new CustomBlockMapping(customBlockData, states);
     }
 
-    private List<CustomBlockPermutation> createCustomBlockPermutations(JsonNode node, String identifier) {
+    private List<CustomBlockPermutation> createCustomBlockPermutations(JsonNode node, String identifier, String name) {
         List<CustomBlockPermutation> permutations = new ArrayList<>();
 
         if (node != null && node.isObject()) {
@@ -229,7 +233,7 @@ public class MappingsReader_v1 extends MappingsReader {
                 JsonNode value = entry.getValue();
                 if (value.isObject()) {
                     value.forEach(data -> {
-                        permutations.add(new CustomBlockPermutation(createCustomBlockComponents(data, key, identifier), createCustomBlockPropertyQuery(key)));
+                        permutations.add(new CustomBlockPermutation(createCustomBlockComponents(data, key, identifier, name), createCustomBlockPropertyQuery(key)));
                     });
                 }
             });
@@ -320,28 +324,84 @@ public class MappingsReader_v1 extends MappingsReader {
         return new BlockPropertyTypeMaps(stringValuesMap, stateKeyStrings, intValuesMap, stateKeyInts, booleanValuesSet, stateKeyBools);
     }
 
-    private CustomBlockComponents createCustomBlockComponents(JsonNode node, String state, String identifier) {
+    private CustomBlockComponents createCustomBlockComponents(JsonNode node, String state, String identifier, String name) {
         String stateIdentifier = identifier + state;
-        int test = BlockRegistries.JAVA_IDENTIFIERS.getOrDefault(stateIdentifier, -1);
-        BlockUtils.getCollision(test);
+        int id = BlockRegistries.JAVA_IDENTIFIERS.getOrDefault(stateIdentifier, -1);
 
         CustomBlockComponentsBuilder builder = new CustomBlockComponentsBuilder();
-                builder
-                .geometry("geometry.some.geometry");
-                // .selectionBox()
-                // .collisionBox()
-                // .displayName()
-                // .geometry()
-                // .materialInstance()
                 // .destroyTime()
                 // .friction()
-                // .lightEmission()
-                // .lightDampening()
-                // .rotation()
                 // .placeAir()
+        BoundingBox boundingBox = BlockUtils.getCollision(id).getBoundingBoxes()[0];
+        BoxComponent boxComponent = new BoxComponent(
+                    (float) boundingBox.getMiddleX(), (float) boundingBox.getMiddleY(), (float) boundingBox.getMiddleZ(), 
+                    (float) boundingBox.getSizeX(), (float) boundingBox.getSizeY(), (float) boundingBox.getSizeZ());
+        builder.selectionBox(boxComponent).collisionBox(boxComponent);
 
-        JsonNode materialInstances = node.get("material_instances");
-        // TODO: loop through material instances and add component for each to components
+        if (node.has("geometry")) {
+            builder.geometry(node.get("geometry").asText());
+        }
+
+        if (node.has("display_name")) {
+            builder.displayName(node.get("display_name").asText());
+        }
+
+        if (node.has("light_emission")) {
+            builder.lightEmission(node.get("light_emission").asInt());
+        }
+
+        if (node.has("light_dampening")) {
+            builder.lightDampening(node.get("light_dampening").asInt());
+        }
+
+        boolean placeAir = true;
+        if (node.has("place_air")) {
+            placeAir = node.get("place_air").asBoolean();
+        }
+        builder.placeAir(placeAir);
+
+        if (node.has("rotation")) {
+            JsonNode rotation = node.get("rotation");
+            int rotationX = rotation.get(0).asInt();
+            int rotationY = rotation.get(1).asInt();
+            int rotationZ = rotation.get(2).asInt();
+            builder.rotation(new RotationComponent(rotationX, rotationY, rotationZ));
+        }
+
+        if (node.has("material_instances")) {
+            JsonNode materialInstances = node.get("material_instances");
+            if (materialInstances.isObject()) {
+                materialInstances.fields().forEachRemaining(entry -> {
+                    String key = entry.getKey();
+                    JsonNode value = entry.getValue();
+                    if (value.isObject()) {
+                        value.forEach(data -> {
+                            String texture = name;
+                            if (node.has("texture")) {
+                                texture = data.get("texture").asText();
+                            }
+
+                            String renderMethod = data.get("render_method").asText();
+                            if (node.has("render_method")) {
+                                renderMethod = data.get("render_method").asText();
+                            }
+
+                            boolean faceDimming = false;
+                            if (node.has("face_dimming")) {
+                                faceDimming = data.get("face_dimming").asBoolean();
+                            }
+
+                            boolean ambientOcclusion = false;
+                            if (node.has("ambient_occlusion")) {
+                                ambientOcclusion = data.get("ambient_occlusion").asBoolean();
+                            }
+
+                            builder.materialInstance(key, new MaterialInstance(texture, renderMethod, faceDimming, ambientOcclusion));
+                        });
+                    }
+                });
+            }
+        }
 
         CustomBlockComponents components = builder.build();
 
