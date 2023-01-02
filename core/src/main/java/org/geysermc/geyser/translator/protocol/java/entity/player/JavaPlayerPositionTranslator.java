@@ -40,7 +40,6 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.TeleportCache;
-import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.ChunkUtils;
@@ -97,7 +96,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             ChunkUtils.updateChunkPosition(session, pos.toInt());
 
             if (session.getGeyser().getConfig().isDebugMode()) {
-                session.getGeyser().getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.entity.player.spawn", packet.getX(), packet.getY(), packet.getZ()));
+                session.getGeyser().getLogger().debug("Spawned player at " + packet.getX() + " " + packet.getY() + " " + packet.getZ());
             }
             return;
         }
