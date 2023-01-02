@@ -25,28 +25,32 @@
 
 package org.geysermc.geyser.platform.velocity;
 
+import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
 import org.geysermc.geyser.GeyserImpl;
 
 import java.lang.reflect.Method;
 
-public class GeyserVelocityCompressionDisabler extends ChannelOutboundHandlerAdapter {
+public class GeyserVelocityCompressionDisabler extends ChannelDuplexHandler {
     static final boolean ENABLED;
     private static final Class<?> COMPRESSION_PACKET_CLASS;
     private static final Class<?> LOGIN_SUCCESS_PACKET_CLASS;
+    private static final Object COMPRESSION_ENABLED_EVENT;
     private static final Method SET_COMPRESSION_METHOD;
 
     static {
         boolean enabled = false;
         Class<?> compressionPacketClass = null;
         Class<?> loginSuccessPacketClass = null;
+        Object compressionEnabledEvent = null;
         Method setCompressionMethod = null;
 
         try {
             compressionPacketClass = Class.forName("com.velocitypowered.proxy.protocol.packet.SetCompression");
             loginSuccessPacketClass = Class.forName("com.velocitypowered.proxy.protocol.packet.ServerLoginSuccess");
+            compressionEnabledEvent = Class.forName("com.velocitypowered.proxy.protocol.VelocityConnectionEvent")
+                    .getDeclaredField("COMPRESSION_ENABLED").get(null);
             setCompressionMethod = Class.forName("com.velocitypowered.proxy.connection.MinecraftConnection")
                     .getMethod("setCompressionThreshold", int.class);
             enabled = true;
@@ -57,6 +61,7 @@ public class GeyserVelocityCompressionDisabler extends ChannelOutboundHandlerAda
         ENABLED = enabled;
         COMPRESSION_PACKET_CLASS = compressionPacketClass;
         LOGIN_SUCCESS_PACKET_CLASS = loginSuccessPacketClass;
+        COMPRESSION_ENABLED_EVENT = compressionEnabledEvent;
         SET_COMPRESSION_METHOD = setCompressionMethod;
     }
 
@@ -72,13 +77,23 @@ public class GeyserVelocityCompressionDisabler extends ChannelOutboundHandlerAda
         if (!COMPRESSION_PACKET_CLASS.isAssignableFrom(msgClass)) {
             if (LOGIN_SUCCESS_PACKET_CLASS.isAssignableFrom(msgClass)) {
                 // We're past the point that compression can be enabled
-                // Invoke the method as it calls a Netty event and handles removing cleaner than we could
-                Object minecraftConnection = ctx.pipeline().get("handler");
-                SET_COMPRESSION_METHOD.invoke(minecraftConnection, -1);
 
                 ctx.pipeline().remove(this);
             }
             super.write(ctx, msg, promise);
         }
+    }
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        if (evt != COMPRESSION_ENABLED_EVENT) {
+            super.userEventTriggered(ctx, evt);
+            return;
+        }
+
+        // Invoke the method as it calls a Netty event and handles removing cleaner than we could
+        Object minecraftConnection = ctx.pipeline().get("handler");
+        SET_COMPRESSION_METHOD.invoke(minecraftConnection, -1);
+        // Do not call super and let the new compression enabled event continue firing
     }
 }
