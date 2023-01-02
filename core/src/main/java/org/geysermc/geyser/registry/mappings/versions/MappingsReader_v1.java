@@ -46,6 +46,7 @@ import org.geysermc.geyser.level.block.GeyserCustomBlockData.CustomBlockDataBuil
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.mappings.util.BlockPropertyTypeMaps;
+import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.util.BlockUtils;
 
 import java.nio.file.Path;
@@ -203,11 +204,11 @@ public class MappingsReader_v1 extends MappingsReader {
             .stream()
             .filter(s -> s.startsWith(identifier + "["))
             .collect(Collectors.toList());
-        if (defaultStates.isEmpty()) defaultStates.add("");
+        if (defaultStates.isEmpty()) defaultStates.add(identifier);
 
         CustomBlockDataBuilder customBlockDataBuilder = new CustomBlockDataBuilder();
         customBlockDataBuilder.name(name)
-                .components(createCustomBlockComponents(node, defaultStates.get(0), identifier, name))
+                .components(createCustomBlockComponents(node, defaultStates.get(0), name))
                 .permutations(createCustomBlockPermutations(stateOverrides, identifier, name))
                 .booleanProperty("geyser_custom:default");
 
@@ -232,9 +233,7 @@ public class MappingsReader_v1 extends MappingsReader {
                 String key = entry.getKey();
                 JsonNode value = entry.getValue();
                 if (value.isObject()) {
-                    value.forEach(data -> {
-                        permutations.add(new CustomBlockPermutation(createCustomBlockComponents(data, key, identifier, name), createCustomBlockPropertyQuery(key)));
-                    });
+                    permutations.add(new CustomBlockPermutation(createCustomBlockComponents(value, (identifier + key), name), createCustomBlockPropertyQuery(key)));
                 }
             });
         }
@@ -324,19 +323,21 @@ public class MappingsReader_v1 extends MappingsReader {
         return new BlockPropertyTypeMaps(stringValuesMap, stateKeyStrings, intValuesMap, stateKeyInts, booleanValuesSet, stateKeyBools);
     }
 
-    private CustomBlockComponents createCustomBlockComponents(JsonNode node, String state, String identifier, String name) {
-        String stateIdentifier = identifier + state;
-        int id = BlockRegistries.JAVA_IDENTIFIERS.getOrDefault(stateIdentifier, -1);
+    private CustomBlockComponents createCustomBlockComponents(JsonNode node, String stateKey, String name) {
+        int id = BlockRegistries.JAVA_IDENTIFIERS.getOrDefault(stateKey, -1);
 
         CustomBlockComponentsBuilder builder = new CustomBlockComponentsBuilder();
-                // .destroyTime()
                 // .friction()
-                // .placeAir()
-        BoundingBox boundingBox = BlockUtils.getCollision(id).getBoundingBoxes()[0];
-        BoxComponent boxComponent = new BoxComponent(
-                    (float) boundingBox.getMiddleX(), (float) boundingBox.getMiddleY(), (float) boundingBox.getMiddleZ(), 
-                    (float) boundingBox.getSizeX(), (float) boundingBox.getSizeY(), (float) boundingBox.getSizeZ());
+        BoxComponent boxComponent = createBoxComponent(id);
         builder.selectionBox(boxComponent).collisionBox(boxComponent);
+
+        // Ideally we would just be able to calculate the right value for this, but it seems that hardness value on bedrock does not follow Java
+        // As such this might as well just be configured for now if people so choose
+        float destructibleByMining = BlockRegistries.JAVA_BLOCKS.getOrDefault(id, BlockMapping.AIR).getHardness() * 3.25F;
+        if (node.has("destructible_by_mining")) {
+            destructibleByMining = node.get("destructible_by_mining").floatValue();
+        }
+        builder.destructibleByMining(destructibleByMining);
 
         if (node.has("geometry")) {
             builder.geometry(node.get("geometry").asText());
@@ -375,29 +376,8 @@ public class MappingsReader_v1 extends MappingsReader {
                     String key = entry.getKey();
                     JsonNode value = entry.getValue();
                     if (value.isObject()) {
-                        value.forEach(data -> {
-                            String texture = name;
-                            if (node.has("texture")) {
-                                texture = data.get("texture").asText();
-                            }
-
-                            String renderMethod = data.get("render_method").asText();
-                            if (node.has("render_method")) {
-                                renderMethod = data.get("render_method").asText();
-                            }
-
-                            boolean faceDimming = false;
-                            if (node.has("face_dimming")) {
-                                faceDimming = data.get("face_dimming").asBoolean();
-                            }
-
-                            boolean ambientOcclusion = false;
-                            if (node.has("ambient_occlusion")) {
-                                ambientOcclusion = data.get("ambient_occlusion").asBoolean();
-                            }
-
-                            builder.materialInstance(key, new MaterialInstance(texture, renderMethod, faceDimming, ambientOcclusion));
-                        });
+                        MaterialInstance materialInstance = createMaterialInstanceComponent(value, name);
+                        builder.materialInstance(key, materialInstance);
                     }
                 });
             }
@@ -408,20 +388,65 @@ public class MappingsReader_v1 extends MappingsReader {
         return components;
     }
 
+    private BoxComponent createBoxComponent(int id) {
+        BoundingBox boundingBox = BlockUtils.getCollision(id).getBoundingBoxes()[0];
+
+        float offsetX = (float) boundingBox.getSizeX() * 8;
+        float offsetY = (float) boundingBox.getSizeY() * 8;
+        float offsetZ = (float) boundingBox.getSizeZ() * 8;
+
+        float cornerX = clamp((float) boundingBox.getMiddleX() * 16 - 8 - offsetX, -8, 8);
+        float cornerY = clamp((float) boundingBox.getMiddleY() * 16 - offsetY, 0, 16);
+        float cornerZ = clamp((float) boundingBox.getMiddleZ() * 16 - 8 - offsetZ, -8, 8);
+
+        float sizeX = clamp((float) boundingBox.getSizeX() * 16, -8, 8);
+        float sizeY = clamp((float) boundingBox.getSizeY() * 16, 0, 16);
+        float sizeZ = clamp((float) boundingBox.getSizeZ() * 16, -8, 8);
+
+        BoxComponent boxComponent = new BoxComponent(cornerX, cornerY, cornerZ, sizeX, sizeY, sizeZ);
+
+        return boxComponent;
+    }
+
+    private MaterialInstance createMaterialInstanceComponent(JsonNode node, String name) {
+        String texture = name;
+        if (node.has("texture")) {
+            texture = node.get("texture").asText();
+        }
+
+        String renderMethod = "alpha_test";
+        if (node.has("render_method")) {
+            renderMethod = node.get("render_method").asText();
+        }
+
+        boolean faceDimming = false;
+        if (node.has("face_dimming")) {
+            faceDimming = node.get("face_dimming").asBoolean();
+        }
+
+        boolean ambientOcclusion = false;
+        if (node.has("ambient_occlusion")) {
+            ambientOcclusion = node.get("ambient_occlusion").asBoolean();
+        }
+
+        return new MaterialInstance(texture, renderMethod, faceDimming, ambientOcclusion);
+    }
+
     private String createCustomBlockPropertyQuery(String state) {
         String[] conditions = splitStateString(state);
         String[] queries = new String[conditions.length];
 
         for (int i = 0; i < conditions.length; i++) {
             String[] keyval = conditions[i].split("=", 2);
+
             if (keyval[1].equals("true")) {
-                queries[i] = String.format("q.block_property('%s') == %b", keyval[0], 1);
+                queries[i] = String.format("q.block_property('%1$s') == %2$s", keyval[0], 1);
             } else if (keyval[1].equals("false")) {
-                queries[i] = String.format("q.block_property('%s') == %b", keyval[0], 0);
-            } else if (keyval[1].matches("-?\\d+")) {
-                queries[i] = String.format("q.block_property('%s') == %b", keyval[0], Integer.parseInt(keyval[1]));
+                queries[i] = String.format("q.block_property('%1$s') == %2$s", keyval[0], 0);
+            } else if (CharMatcher.inRange('0', '9').matchesAllOf(keyval[1])) {
+                queries[i] = String.format("q.block_property('%1$s') == %2$s", keyval[0], Integer.parseInt(keyval[1]));
             } else {
-                queries[i] = String.format("q.block_property('%s') == '%b'", keyval[0], keyval[1]);
+                queries[i] = String.format("q.block_property('%1$s') == '%2$s'", keyval[0], keyval[1]);
             }
         }
 
@@ -439,6 +464,10 @@ public class MappingsReader_v1 extends MappingsReader {
         String[] pairs = cleanStates.split("\\s*,\\s*");
         
         return pairs;
+    }
+
+    public float clamp(float value, float min, float max) {
+        return Math.max(min, Math.min(value, max));
     }
 
 }

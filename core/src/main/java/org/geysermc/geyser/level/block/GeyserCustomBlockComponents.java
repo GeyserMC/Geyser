@@ -25,12 +25,8 @@
 
 package org.geysermc.geyser.level.block;
 
-import com.google.common.collect.ImmutableSet;
-import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import lombok.Value;
+import java.util.Map;
+
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
@@ -38,8 +34,11 @@ import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.component.RotationComponent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
-import java.util.Set;
+import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import lombok.Value;
 
 @Value
 public class GeyserCustomBlockComponents implements CustomBlockComponents {
@@ -48,7 +47,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     String displayName;
     String geometry;
     Map<String, MaterialInstance> materialInstances;
-    Float destroyTime;
+    Float destructibleByMining;
     Float friction;
     Integer lightEmission;
     Integer lightDampening;
@@ -65,7 +64,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         } else {
             this.materialInstances = Object2ObjectMaps.unmodifiable(new Object2ObjectArrayMap<>(builder.materialInstances));
         }
-        this.destroyTime = builder.destroyTime;
+        this.destructibleByMining = builder.destructibleByMining;
         this.friction = builder.friction;
         this.lightEmission = builder.lightEmission;
         this.lightDampening = builder.lightDampening;
@@ -99,8 +98,8 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     }
 
     @Override
-    public Float destroyTime() {
-        return destroyTime;
+    public Float destructibleByMining() {
+        return destructibleByMining;
     }
 
     @Override
@@ -134,7 +133,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         protected String displayName;
         protected String geometry;
         protected final Object2ObjectMap<String, MaterialInstance> materialInstances = new Object2ObjectOpenHashMap<>();
-        protected Float destroyTime;
+        protected Float destructibleByMining;
         protected Float friction;
         protected Integer lightEmission;
         protected Integer lightDampening;
@@ -192,11 +191,11 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         }
 
         @Override
-        public Builder destroyTime(Float destroyTime) {
-            if (destroyTime != null && destroyTime < 0) {
-                throw new IllegalArgumentException("Destroy time must be non-negative");
+        public Builder destructibleByMining(Float destructibleByMining) {
+            if (destructibleByMining != null && destructibleByMining < 0) {
+                throw new IllegalArgumentException("Destructible by mining must be non-negative");
             }
-            this.destroyTime = destroyTime;
+            this.destructibleByMining = destructibleByMining;
             return this;
         }
 

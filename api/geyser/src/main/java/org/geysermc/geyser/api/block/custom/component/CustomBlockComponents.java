@@ -33,13 +33,14 @@ public interface CustomBlockComponents {
     BoxComponent selectionBox();
 
     BoxComponent collisionBox();
+    
     String displayName();
 
     String geometry();
 
     @NonNull Map<String, MaterialInstance> materialInstances();
 
-    Float destroyTime();
+    Float destructibleByMining();
 
     Float friction();
 
@@ -62,7 +63,7 @@ public interface CustomBlockComponents {
 
         Builder materialInstance(@NonNull String name, @NonNull MaterialInstance materialInstance);
 
-        Builder destroyTime(Float destroyTime);
+        Builder destructibleByMining(Float destructibleByMining);
 
         Builder friction(Float friction);
 

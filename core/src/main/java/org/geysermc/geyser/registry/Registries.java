@@ -36,7 +36,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import com.nukkitx.protocol.bedrock.data.inventory.PotionMixData;
-import it.unimi.dsi.fastutil.Pair;
+
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -53,7 +53,6 @@ import org.geysermc.geyser.registry.type.EnchantmentData;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.registry.type.ParticleMapping;
 import org.geysermc.geyser.registry.type.SoundMapping;
-import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
 import org.geysermc.geyser.translator.sound.SoundInteractionTranslator;
@@ -95,11 +94,6 @@ public final class Registries {
      * A mapped registry which stores a block entity identifier to its {@link BlockEntityTranslator}.
      */
     public static final SimpleMappedRegistry<BlockEntityType, BlockEntityTranslator> BLOCK_ENTITIES = SimpleMappedRegistry.create("org.geysermc.geyser.translator.level.block.entity.BlockEntity", BlockEntityRegistryLoader::new);
-
-    /**
-     * A mapped registry containing which holds block IDs to its {@link BlockCollision}.
-     */
-    public static final IntMappedRegistry<BlockCollision> COLLISIONS = IntMappedRegistry.create(Pair.of("org.geysermc.geyser.translator.collision.CollisionRemapper", "mappings/collision.json"), CollisionRegistryLoader::new);
 
     /**
      * A versioned registry which holds a {@link RecipeType} to a corresponding list of {@link CraftingData}.

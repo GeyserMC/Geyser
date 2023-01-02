@@ -32,7 +32,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 public class CustomBlockRegistryPopulator {
 
-    static void registerCustomBedrockBlocks() {
+    public static void registerCustomBedrockBlocks() {
         if (!GeyserImpl.getInstance().getConfig().isAddCustomBlocks()) {
             return;
         }
@@ -81,7 +81,6 @@ public class CustomBlockRegistryPopulator {
             customBlocks.add(block.data());
             block.states().forEach((javaIdentifier, customBlockState) -> {
                 int id = BlockRegistries.JAVA_IDENTIFIERS.getOrDefault(javaIdentifier, -1);
-                GeyserImpl.getInstance().getLogger().info("CUSTOM RUNTIME ID: " + id + " for " + javaIdentifier);
                 blockStateOverrides.put(id, customBlockState);
             });
         });
@@ -188,9 +187,9 @@ public class CustomBlockRegistryPopulator {
                     .putCompound("materials", materialsBuilder.build())
                     .build());
         }
-        if (components.destroyTime() != null) {
+        if (components.destructibleByMining() != null) {
             builder.putCompound("minecraft:destructible_by_mining", NbtMap.builder()
-                    .putFloat("value", components.destroyTime())
+                    .putFloat("value", components.destructibleByMining())
                     .build());
         }
         if (components.friction() != null) {

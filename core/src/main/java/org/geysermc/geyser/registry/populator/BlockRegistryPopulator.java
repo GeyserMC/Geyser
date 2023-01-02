@@ -78,13 +78,13 @@ public final class BlockRegistryPopulator {
 
     public static void populate() {
         registerJavaBlocks();
-        CustomBlockRegistryPopulator.registerCustomBedrockBlocks();
-        registerBedrockBlocks();
+        // CustomBlockRegistryPopulator.registerCustomBedrockBlocks() and registerBedrockBlocks() moved to BlockRegistries to ensure correct load order
 
-        BLOCKS_JSON = null;
+        // Needs to be placed somewhere at some point 
+        //BLOCKS_JSON = null;
     }
 
-    private static void registerBedrockBlocks() {
+    public static void registerBedrockBlocks() {
         BiFunction<String, NbtMapBuilder, String> emptyMapper = (bedrockIdentifier, statesBuilder) -> null;
         ImmutableMap<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> blockMappers = ImmutableMap.<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>>builder()
                 .put(ObjectIntPair.of("1_19_20", Bedrock_v544.V544_CODEC.getProtocolVersion()), emptyMapper)

@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.registry;
 
+import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
@@ -32,12 +33,15 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
+import org.geysermc.geyser.registry.loader.CollisionRegistryLoader;
 import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.registry.populator.BlockRegistryPopulator;
+import org.geysermc.geyser.registry.populator.CustomBlockRegistryPopulator;
 import org.geysermc.geyser.registry.populator.CustomSkullRegistryPopulator;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.CustomSkull;
+import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.util.collection.Object2IntBiMap;
 
 /**
@@ -60,6 +64,11 @@ public class BlockRegistries {
      * blocks and their behavior in many cases.
      */
     public static final ArrayRegistry<BlockMapping> JAVA_BLOCKS = ArrayRegistry.create(RegistryLoaders.empty(() -> new BlockMapping[] {}));
+
+    /**
+     * A mapped registry containing which holds block IDs to its {@link BlockCollision}.
+     */
+    public static final IntMappedRegistry<BlockCollision> COLLISIONS;
 
     /**
      * A (bi)mapped registry containing the Java IDs to identifiers.
@@ -105,9 +114,13 @@ public class BlockRegistries {
     static {
         CustomSkullRegistryPopulator.populate();
         BlockRegistryPopulator.populate();
+        COLLISIONS = IntMappedRegistry.create(Pair.of("org.geysermc.geyser.translator.collision.CollisionRemapper", "mappings/collision.json"), CollisionRegistryLoader::new);
+        CustomBlockRegistryPopulator.registerCustomBedrockBlocks();
+        BlockRegistryPopulator.registerBedrockBlocks();
     }
 
     public static void init() {
         // no-op
     }
+
 }

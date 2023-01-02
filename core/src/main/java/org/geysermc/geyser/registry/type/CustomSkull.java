@@ -65,7 +65,7 @@ public class CustomSkull {
         this.skinHash = skinHash;
 
         CustomBlockComponents components = new GeyserCustomBlockComponents.CustomBlockComponentsBuilder()
-                .destroyTime(1.5f)
+                .destructibleByMining(1.5f)
                 .materialInstance("*", new MaterialInstance("geyser." + skinHash + "_player_skin", "alpha_test", true, true))
                 .lightDampening(0)
                 .placeAir(true)
