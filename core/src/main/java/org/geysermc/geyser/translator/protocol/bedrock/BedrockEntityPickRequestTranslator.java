@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.nukkitx.protocol.bedrock.packet.EntityPickRequestPacket;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
@@ -45,7 +44,10 @@ public class BedrockEntityPickRequestTranslator extends PacketTranslator<EntityP
 
     @Override
     public void translate(GeyserSession session, EntityPickRequestPacket packet) {
-        if (session.getGameMode() != GameMode.CREATIVE) return; // Apparently Java behavior
+        if (!session.isInstabuild()) {
+            // As of Java Edition 1.19.3
+            return;
+        }
         Entity entity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
         if (entity == null) return;
 

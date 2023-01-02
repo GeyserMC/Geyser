@@ -44,8 +44,6 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
-import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.EntityUtils;

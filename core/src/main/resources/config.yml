@@ -111,7 +111,7 @@ debug-mode: false
 
 # Allow third party capes to be visible. Currently allowing:
 # OptiFine capes, LabyMod capes, 5Zig capes and MinecraftCapes
-allow-third-party-capes: true
+allow-third-party-capes: false
 
 # Allow third party deadmau5 ears to be visible. Currently allowing:
 # MinecraftCapes
@@ -218,5 +218,10 @@ mtu: 1400
 # If enabled on plugin versions, the remote address and port sections are ignored
 # If disabled on plugin versions, expect performance decrease and latency increase
 use-direct-connection: true
+
+# Whether Geyser should attempt to disable compression for Bedrock players. This should be a benefit as there is no need to compress data
+# when Java packets aren't being handled over the network.
+# This requires use-direct-connection to be true.
+disable-compression: true
 
 config-version: 4

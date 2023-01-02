@@ -42,9 +42,9 @@ public class SkullSkinManager extends SkinManager {
         // Prevents https://cdn.discordapp.com/attachments/613194828359925800/779458146191147008/unknown.png
         skinId = skinId + "_skull";
         return SerializedSkin.of(
-                skinId, "", SkinProvider.SKULL_GEOMETRY.getGeometryName(), ImageData.of(skinData), Collections.emptyList(),
-                ImageData.of(SkinProvider.EMPTY_CAPE.getCapeData()), SkinProvider.SKULL_GEOMETRY.getGeometryData(),
-                "", true, false, false, SkinProvider.EMPTY_CAPE.getCapeId(), skinId
+                skinId, "", SkinProvider.SKULL_GEOMETRY.geometryName(), ImageData.of(skinData), Collections.emptyList(),
+                ImageData.of(SkinProvider.EMPTY_CAPE.capeData()), SkinProvider.SKULL_GEOMETRY.geometryData(),
+                "", true, false, false, SkinProvider.EMPTY_CAPE.capeId(), skinId
         );
     }
 

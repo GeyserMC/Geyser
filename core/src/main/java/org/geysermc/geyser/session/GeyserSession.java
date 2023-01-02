@@ -62,7 +62,6 @@ import com.github.steveice10.packetlib.event.session.*;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpClientSession;
 import com.github.steveice10.packetlib.tcp.TcpSession;
-import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.*;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
@@ -135,7 +134,6 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
-import org.geysermc.geyser.util.MathUtils;
 
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
@@ -538,6 +536,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private ScheduledFuture<?> lookBackScheduledFuture = null;
+
+    /**
+     * Used to return players back to their vehicles if the server doesn't want them unmounting.
+     */
+    @Setter
+    private ScheduledFuture<?> mountVehicleScheduledFuture = null;
 
     private MinecraftProtocol protocol;
 
@@ -1074,6 +1078,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     /**
+     * Moves task to the session event loop if already not in it. Otherwise, the task is automatically ran.
+     */
+    public void ensureInEventLoop(Runnable runnable) {
+        if (eventLoop.inEventLoop()) {
+            runnable.run();
+            return;
+        }
+        executeInEventLoop(runnable);
+    }
+
+    /**
      * Executes a task and prints a stack trace if an error occurs.
      */
     public void executeInEventLoop(Runnable runnable) {
@@ -1378,7 +1393,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     public void setServerRenderDistance(int renderDistance) {
-        renderDistance = GenericMath.ceil(++renderDistance * MathUtils.SQRT_OF_TWO); //square to circle
         this.serverRenderDistance = renderDistance;
 
         ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
