@@ -457,7 +457,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Counts how many ticks have occurred since an arm animation started.
      * -1 means there is no active arm swing.
      */
-    @Getter(AccessLevel.NONE)
     private int armAnimationTicks = -1;
 
     /**
