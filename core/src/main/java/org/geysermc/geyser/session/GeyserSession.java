@@ -455,7 +455,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     /**
      * Counts how many ticks have occurred since an arm animation started.
-     * -1 means there is no active arm swing.
+     * -1 means there is no active arm swing; -2 means an arm swing will start in a tick.
      */
     private int armAnimationTicks = -1;
 
@@ -1157,7 +1157,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 entity.tick();
             }
 
-            if (armAnimationTicks != -1) {
+            if (armAnimationTicks >= 0) {
                 // As of 1.18.2 Java Edition, it appears that the swing time is dynamically updated depending on the
                 // player's effect status, but the animation can cut short if the duration suddenly decreases
                 // (from suddenly no longer having mining fatigue, for example)
@@ -1196,7 +1196,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public void startSneaking() {
         // Toggle the shield, if there is no ongoing arm animation
         // This matches Bedrock Edition behavior as of 1.18.12
-        if (armAnimationTicks == -1) {
+        if (armAnimationTicks < 0) {
             attemptToBlock();
         }
 
@@ -1325,6 +1325,16 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         armAnimationTicks = 0;
         if (disableBlocking()) {
             playerEntity.updateBedrockMetadata();
+        }
+    }
+
+    /**
+     * For https://github.com/GeyserMC/Geyser/issues/2113 and combating arm ticking activating being delayed in
+     * BedrockAnimateTranslator.
+     */
+    public void armSwingPending() {
+        if (armAnimationTicks == -1) {
+            armAnimationTicks = -2;
         }
     }
 
