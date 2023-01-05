@@ -140,6 +140,11 @@ public class GeyserBungeeInjector extends GeyserInjector implements Listener {
                             channelInitializer = PipelineUtils.SERVER_CHILD;
                         }
                         initChannel.invoke(channelInitializer, ch);
+
+                        if (bootstrap.getGeyserConfig().isDisableCompression()) {
+                            ch.pipeline().addAfter(PipelineUtils.PACKET_ENCODER, "geyser-compression-disabler",
+                                    new GeyserBungeeCompressionDisabler());
+                        }
                     }
                 })
                 .childAttr(listener, listenerInfo)
@@ -163,7 +168,7 @@ public class GeyserBungeeInjector extends GeyserInjector implements Listener {
         // If native compression is enabled, then this line is tripped up if a heap buffer is sent over in such a situation
         // as a new direct buffer is not created with that patch (HeapByteBufs throw an UnsupportedOperationException here):
         // https://github.com/SpigotMC/BungeeCord/blob/a283aaf724d4c9a815540cd32f3aafaa72df9e05/native/src/main/java/net/md_5/bungee/jni/zlib/NativeZlib.java#L43
-        // This issue could be mitigated down the line by preventing Bungee from setting compression
+        // If disable compression is enabled, this can probably be disabled now, but BungeeCord (not Waterfall) complains
         LocalSession.createDirectByteBufAllocator();
     }
 

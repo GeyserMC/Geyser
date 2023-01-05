@@ -79,6 +79,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
 import org.geysermc.geyser.session.SessionManager;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
+import org.geysermc.geyser.skin.ProvidedSkins;
 import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
@@ -95,6 +96,7 @@ import java.net.UnknownHostException;
 import java.security.Key;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -195,7 +197,23 @@ public class GeyserImpl implements GeyserApi {
         EntityDefinitions.init();
         ItemTranslator.init();
         MessageTranslator.init();
-        MinecraftLocale.init();
+
+        // Download the latest asset list and cache it
+        AssetUtils.generateAssetCache().whenComplete((aVoid, ex) -> {
+            if (ex != null) {
+                return;
+            }
+            MinecraftLocale.ensureEN_US();
+            String locale = GeyserLocale.getDefaultLocale();
+            if (!"en_us".equals(locale)) {
+                // English will be loaded after assets are downloaded, if necessary
+                MinecraftLocale.downloadAndLoadLocale(locale);
+            }
+
+            ProvidedSkins.init();
+
+            CompletableFuture.runAsync(AssetUtils::downloadAndRunClientJarTasks);
+        });
 
         startInstance();
 

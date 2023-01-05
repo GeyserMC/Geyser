@@ -46,6 +46,7 @@ public class CommandBlockMinecartEntity extends DefaultBlockMinecartEntity {
 
     @Override
     protected void initializeMetadata() {
+        super.initializeMetadata();
         // Required, or else the GUI will not open
         dirtyMetadata.put(EntityData.CONTAINER_TYPE, (byte) 16);
         dirtyMetadata.put(EntityData.CONTAINER_BASE_SIZE, 1);

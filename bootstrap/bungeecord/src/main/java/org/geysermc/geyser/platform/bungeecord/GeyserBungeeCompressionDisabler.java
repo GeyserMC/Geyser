@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,33 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser;
+package org.geysermc.geyser.platform.bungeecord;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelOutboundHandlerAdapter;
+import io.netty.channel.ChannelPromise;
+import net.md_5.bungee.protocol.packet.LoginSuccess;
+import net.md_5.bungee.protocol.packet.SetCompression;
 
-public final class Constants {
-    public static final URI GLOBAL_API_WS_URI;
+public class GeyserBungeeCompressionDisabler extends ChannelOutboundHandlerAdapter {
 
-    public static final String NEWS_OVERVIEW_URL = "https://api.geysermc.org/v2/news/";
-    public static final String NEWS_PROJECT_NAME = "geyser";
-
-    public static final String FLOODGATE_DOWNLOAD_LOCATION = "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/";
-
-    public static final String GEYSER_DOWNLOAD_LOCATION = "https://ci.geysermc.org";
-    public static final String UPDATE_PERMISSION = "geyser.update";
-
-    static final String SAVED_REFRESH_TOKEN_FILE = "saved-refresh-tokens.json";
-
-    public static final String GEYSER_NAMESPACE = "geyser:";
-
-    static {
-        URI wsUri = null;
-        try {
-            wsUri = new URI("wss://api.geysermc.org/ws");
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
+    @Override
+    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+        if (!(msg instanceof SetCompression)) {
+            if (msg instanceof LoginSuccess) {
+                // We're past the point that compression can be enabled
+                if (ctx.pipeline().get("compress") != null) {
+                    ctx.pipeline().remove("compress");
+                }
+                if (ctx.pipeline().get("decompress") != null) {
+                    ctx.pipeline().remove("decompress");
+                }
+                ctx.pipeline().remove(this);
+            }
+            super.write(ctx, msg, promise);
         }
-        GLOBAL_API_WS_URI = wsUri;
     }
 }
