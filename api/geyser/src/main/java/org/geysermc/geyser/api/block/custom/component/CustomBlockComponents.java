@@ -29,27 +29,101 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.Map;
 
+/**
+ * This class is used to store components for a custom block or custom block permutation.
+ */
 public interface CustomBlockComponents {
+    /**
+     * Gets the name component
+     *
+     * @return The name.
+     */
+    @NonNull String name();
+
+    /**
+     * Gets the selection box component
+     * Equivalent to "minecraft:selection_box"
+     *
+     * @return The selection box.
+     */
     BoxComponent selectionBox();
 
+    /**
+     * Gets the collision box component
+     * Equivalent to "minecraft:collision_box"
+     * @return The collision box.
+     */
     BoxComponent collisionBox();
-    
+
+    /**
+     * Gets the display name component
+     * Equivalent to "minecraft:display_name"
+     *
+     * @return The display name.
+     */
     String displayName();
 
+    /**
+     * Gets the geometry component
+     * Equivalent to "minecraft:geometry"
+     *
+     * @return The geometry.
+     */
     String geometry();
 
+    /**
+     * Gets the material instances component
+     * Equivalent to "minecraft:material_instances"
+     *
+     * @return The material instances.
+     */
     @NonNull Map<String, MaterialInstance> materialInstances();
 
+    /**
+     * Gets the destructible by mining component
+     * Equivalent to "minecraft:destructible_by_mining"
+     *
+     * @return The destructible by mining value.
+     */
     Float destructibleByMining();
 
+    /**
+     * Gets the friction component
+     * Equivalent to "minecraft:friction"
+     *
+     * @return The friction value.
+     */
     Float friction();
 
+    /**
+     * Gets the light emission component
+     * Equivalent to "minecraft:light_emission"
+     *
+     * @return The light emission value.
+     */
     Integer lightEmission();
 
+    /**
+     * Gets the light dampening component
+     * Equivalent to "minecraft:light_dampening"
+     *
+     * @return The light dampening value.
+     */
     Integer lightDampening();
 
+    /**
+     * Gets the rotation component
+     * Equivalent to "minecraft:rotation"
+     *
+     * @return The rotation.
+     */
     RotationComponent rotation();
 
+    /**
+     * Gets if the block should place only air
+     * Equivalent to setting a dummy event to run on "minecraft:on_player_placing"
+     * @return If the block should place only air.
+     */
     boolean placeAir();
 
     interface Builder {

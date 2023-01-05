@@ -28,5 +28,9 @@ package org.geysermc.geyser.api.block.custom;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 
+/**
+ * This class is used to store a custom block permutations, which contain custom 
+ * block components mapped to a Molang query that should return true or false
+ */
 public record CustomBlockPermutation(@NonNull CustomBlockComponents components, @NonNull String condition) {
 }
