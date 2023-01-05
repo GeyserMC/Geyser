@@ -188,8 +188,14 @@ public abstract class ItemTranslator {
 
         ItemTranslator itemStackTranslator = ITEM_STACK_TRANSLATORS.getOrDefault(bedrockItem.getJavaId(), DEFAULT_TRANSLATOR);
         ItemData.Builder builder = itemStackTranslator.translateToBedrock(itemStack, bedrockItem, session.getItemMappings());
+
         if (bedrockItem.isBlock()) {
-            builder.blockRuntimeId(bedrockItem.getBedrockBlockId());
+            CustomBlockData customBlockData = BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.getOrDefault(bedrockItem.getJavaIdentifier(), null);
+            if (customBlockData != null) {
+                translateCustomBlock(customBlockData, session, builder);
+            } else {
+                builder.blockRuntimeId(bedrockItem.getBedrockBlockId());
+            }
         }
 
         if (bedrockItem == session.getItemMappings().getStoredItems().playerHead()) {
@@ -302,6 +308,12 @@ public abstract class ItemTranslator {
                 .getItemMapping(javaId, itemStack.getNbt(), session.getItemMappings());
 
         int itemId = mapping.getBedrockId();
+
+        CustomBlockData customBlockData = BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.getOrDefault(mapping.getJavaIdentifier(), null);
+        if (customBlockData != null) {
+            itemId = session.getItemMappings().getCustomBlockItemIds().getInt(customBlockData);
+        }
+
         if (mapping == session.getItemMappings().getStoredItems().playerHead()) {
             CustomSkull customSkull = getCustomSkull(session, itemStack.getNbt());
             if (customSkull != null) {
@@ -547,6 +559,16 @@ public abstract class ItemTranslator {
         }
     }
 
+    /**
+     * Translates a custom block override
+     */
+    private static void translateCustomBlock(CustomBlockData customBlockData, GeyserSession session, ItemData.Builder builder) {
+        int itemId = session.getItemMappings().getCustomBlockItemIds().getInt(customBlockData);
+        int blockRuntimeId = session.getBlockMappings().getCustomBlockStateIds().getInt(customBlockData.defaultBlockState());
+        builder.id(itemId);
+        builder.blockRuntimeId(blockRuntimeId);
+    }
+
     private static CustomSkull getCustomSkull(GeyserSession session, CompoundTag nbt) {
         if (nbt != null && nbt.contains("SkullOwner")) {
             if (!(nbt.get("SkullOwner") instanceof CompoundTag skullOwner)) {
@@ -576,7 +598,5 @@ public abstract class ItemTranslator {
             builder.blockRuntimeId(blockRuntimeId);
         }
     }
-
-    // TODO: Add translator for generic custom blocks
 
 }

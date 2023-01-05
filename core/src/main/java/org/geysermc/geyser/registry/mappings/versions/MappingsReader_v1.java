@@ -222,7 +222,7 @@ public class MappingsReader_v1 extends MappingsReader {
         Map<String, CustomBlockState> states = createCustomBlockStatesMap(identifier, stateKeys, defaultStates, onlyOverrideStates, customBlockData, 
             blockPropertyTypeMaps.stateKeyStrings(), blockPropertyTypeMaps.stateKeyInts(), blockPropertyTypeMaps.stateKeyBools());
 
-        return new CustomBlockMapping(customBlockData, states);
+        return new CustomBlockMapping(customBlockData, states, identifier, !onlyOverrideStates);
     }
 
     private List<CustomBlockPermutation> createCustomBlockPermutations(JsonNode node, String identifier, String name) {

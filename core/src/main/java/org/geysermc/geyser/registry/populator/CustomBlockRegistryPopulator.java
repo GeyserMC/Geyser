@@ -1,6 +1,7 @@
 package org.geysermc.geyser.registry.populator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,6 +40,7 @@ public class CustomBlockRegistryPopulator {
         Set<String> customBlockNames = new ObjectOpenHashSet<>();
         Set<CustomBlockData> customBlocks = new ObjectOpenHashSet<>();
         Int2ObjectMap<CustomBlockState> blockStateOverrides = new Int2ObjectOpenHashMap<>();
+        Map<String, CustomBlockData> customBlockItemOverrides = new HashMap<>();
         GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineCustomBlocksEvent() {
             @Override
             public void registerCustomBlock(@NonNull CustomBlockData customBlockData) {
@@ -79,6 +81,9 @@ public class CustomBlockRegistryPopulator {
         MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
         mappingsConfigReader.loadBlockMappingsFromJson((key, block) -> {
             customBlocks.add(block.data());
+            if (block.overrideItem()) {
+                customBlockItemOverrides.put(block.javaIdentifier(), block.data());
+            }
             block.states().forEach((javaIdentifier, customBlockState) -> {
                 int id = BlockRegistries.JAVA_IDENTIFIERS.getOrDefault(javaIdentifier, -1);
                 blockStateOverrides.put(id, customBlockState);
@@ -90,6 +95,9 @@ public class CustomBlockRegistryPopulator {
     
         BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.set(blockStateOverrides);
         GeyserImpl.getInstance().getLogger().debug("Registered " + blockStateOverrides.size() + " custom block overrides.");
+
+        BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.set(customBlockItemOverrides);
+        GeyserImpl.getInstance().getLogger().debug("Registered " + customBlockItemOverrides.size() + " custom block item overrides.");
     }
 
     static void generateCustomBlockStates(CustomBlockData customBlock, List<NbtMap> blockStates, List<CustomBlockState> customExtBlockStates, int stateVersion) {
