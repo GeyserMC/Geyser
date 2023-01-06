@@ -27,10 +27,10 @@ package org.geysermc.geyser.registry.mappings.versions;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import org.geysermc.geyser.api.block.custom.CustomBlockMapping;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
+import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
 
 import java.nio.file.Path;
 import java.util.function.BiConsumer;

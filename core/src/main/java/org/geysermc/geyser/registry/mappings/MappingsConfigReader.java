@@ -29,8 +29,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.block.custom.CustomBlockMapping;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
+import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
 import org.geysermc.geyser.registry.mappings.versions.MappingsReader;
 import org.geysermc.geyser.registry.mappings.versions.MappingsReader_v1;
 

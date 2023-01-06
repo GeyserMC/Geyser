@@ -23,11 +23,13 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.block.custom;
+package org.geysermc.geyser.registry.mappings.util;
 
 import java.util.Map;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.block.custom.CustomBlockData;
+import org.geysermc.geyser.api.block.custom.CustomBlockState;
 
 /**
  * This class is used to store a custom block mappings, which contain all of the 

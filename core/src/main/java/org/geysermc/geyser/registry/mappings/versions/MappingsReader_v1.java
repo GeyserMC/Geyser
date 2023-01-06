@@ -31,7 +31,6 @@ import com.google.common.base.CharMatcher;
 
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
-import org.geysermc.geyser.api.block.custom.CustomBlockMapping;
 import org.geysermc.geyser.api.block.custom.CustomBlockPermutation;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.component.BoxComponent;
@@ -47,6 +46,7 @@ import org.geysermc.geyser.level.block.GeyserCustomBlockData.CustomBlockDataBuil
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.mappings.util.BlockPropertyTypeMaps;
+import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.util.BlockUtils;
 
@@ -480,7 +480,7 @@ public class MappingsReader_v1 extends MappingsReader {
         return pairs;
     }
 
-    public float clamp(float value, float min, float max) {
+    private float clamp(float value, float min, float max) {
         return Math.max(min, Math.min(max, value));
     }
 

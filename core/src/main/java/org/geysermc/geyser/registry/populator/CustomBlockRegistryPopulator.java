@@ -72,6 +72,14 @@ public class CustomBlockRegistryPopulator {
                             javaIdentifier + " Old override: " + oldBlockState.name() + " New override: " + customBlockState.name());
                 }
             }
+
+            @Override
+            public void registerBlockItemOverride(@NonNull String javaIdentifier, @NonNull CustomBlockData customBlockData) {
+                if (!customBlocks.contains(customBlockData)) {
+                    throw new IllegalArgumentException("Custom block is unregistered. Name: " + customBlockData.name());
+                }
+                customBlockItemOverrides.put(javaIdentifier, customBlockData);
+            }
         });
     
         for (CustomSkull customSkull : BlockRegistries.CUSTOM_SKULLS.get().values()) {
