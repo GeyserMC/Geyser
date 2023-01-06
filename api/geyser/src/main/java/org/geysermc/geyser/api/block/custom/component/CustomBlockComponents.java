@@ -123,10 +123,17 @@ public interface CustomBlockComponents {
     /**
      * Gets if the block should place only air
      * Equivalent to setting a dummy event to run on "minecraft:on_player_placing"
+     * 
      * @return If the block should place only air.
      */
     boolean placeAir();
 
+    /**
+     * Gets the set of tags
+     * Equivalent to "tag:some_tag"
+     * 
+     * @return The set of tags.
+     */
     Set<String> tags();
 
     interface Builder {
