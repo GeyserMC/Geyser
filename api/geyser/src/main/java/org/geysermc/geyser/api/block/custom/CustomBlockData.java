@@ -33,19 +33,50 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This is used to store data for a custom block.
+ * This class is used to store data for a custom block.
  */
 public interface CustomBlockData {
+    /**
+     * Gets the name of the custom block
+     *
+     * @return The name of the custom block.
+     */
     @NonNull String name();
 
+    /**
+     * Gets the identifier of the custom block
+     *
+     * @return The identifier of the custom block.
+     */
     @NonNull String identifier();
 
+    /**
+     * Gets the components of the custom block
+     *
+     * @return The components of the custom block.
+     */
     CustomBlockComponents components();
 
+    /**
+     * Gets the custom block's map of block property names to CustomBlockProperty
+     * objects
+     *
+     * @return The custom block's map of block property names to CustomBlockProperty objects.
+     */
     @NonNull Map<String, CustomBlockProperty<?>> properties();
 
+    /**
+     * Gets the list of the custom block's permutations
+     *
+     * @return The permutations of the custom block.
+     */
     @NonNull List<CustomBlockPermutation> permutations();
 
+    /**
+     * Gets the custom block's default block state
+     *
+     * @return The default block state of the custom block.
+     */
     @NonNull CustomBlockState defaultBlockState();
 
     CustomBlockState.@NonNull Builder blockStateBuilder();

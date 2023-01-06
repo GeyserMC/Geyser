@@ -29,11 +29,31 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.Map;
 
+/**
+ * This class is used to store a custom block state, which contains CustomBlockData 
+ * tied to defined properties and values
+ */
 public interface CustomBlockState {
+    /**
+     * Gets the custom block data associated with the state
+     *
+     * @return The custom block data for the state.
+     */
     @NonNull CustomBlockData block();
 
+    /**
+     * Gets the name of the state
+     *
+     * @return The name of the state.
+     */
     @NonNull String name();
 
+    /**
+     * Gets the given property for the state
+     *
+     * @param propertyName the property name
+     * @return The java identifier for this item.
+     */
     @NonNull <T> T property(String propertyName);
 
     @NonNull Map<String, Object> properties();

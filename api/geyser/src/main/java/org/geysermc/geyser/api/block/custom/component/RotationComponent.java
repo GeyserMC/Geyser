@@ -25,5 +25,8 @@
 
 package org.geysermc.geyser.api.block.custom.component;
 
+/**
+ * This class is used to store a rotation component for a custom block.
+ */
 public record RotationComponent(int x, int y, int z) {
 }

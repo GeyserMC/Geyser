@@ -30,9 +30,28 @@ import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.event.Event;
 
+/**
+ * Called on Geyser's startup when looking for custom blocks. Custom blocks must be registered through this event.
+ *
+ * This event will not be called if the "add-custom-blocks" setting is disabled in the Geyser config.
+ */
 public abstract class GeyserDefineCustomBlocksEvent implements Event {
 
+    /**
+     * Registers the given {@link CustomBlockData} as a custom block
+     *
+     * @param customBlockData the custom block to register
+     */
     public abstract void registerCustomBlock(@NonNull CustomBlockData customBlockData);
 
+    /**
+     * Registers the given {@link CustomBlockState} as an override for the
+     * given java state identifier
+     * Java state identifiers are listed in
+     * https://raw.githubusercontent.com/GeyserMC/mappings/master/blocks.json
+     *
+     * @param javaIdentifier the java state identifier to override
+     * @param customBlockState the custom block state with which to override java state identifier
+     */
     public abstract void registerBlockStateOverride(@NonNull String javaIdentifier, @NonNull CustomBlockState customBlockState);
 }

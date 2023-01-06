@@ -29,6 +29,9 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.List;
 
+/**
+ * This class is used to store a property of a custom block of a generic type.
+ */
 public interface CustomBlockProperty<T> {
     @NonNull String name();
 
