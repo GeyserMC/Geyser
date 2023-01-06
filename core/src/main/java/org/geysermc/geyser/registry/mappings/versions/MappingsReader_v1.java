@@ -26,6 +26,8 @@
 package org.geysermc.geyser.registry.mappings.versions;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.CharMatcher;
 
 import org.geysermc.geyser.GeyserImpl;
@@ -380,6 +382,16 @@ public class MappingsReader_v1 extends MappingsReader {
                         builder.materialInstance(key, materialInstance);
                     }
                 });
+            }
+        }
+
+        if (node.has("tags")) {
+            JsonNode tags = node.get("tags");
+            if (tags.isArray()) {
+                ArrayNode tagsArray = (ArrayNode) tags;
+                Set<String> tagsSet = new HashSet<>();
+                tagsArray.forEach(tag -> tagsSet.add(tag.asText()));
+                builder.tags(tagsSet);
             }
         }
 

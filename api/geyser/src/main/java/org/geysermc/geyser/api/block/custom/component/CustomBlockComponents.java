@@ -28,6 +28,7 @@ package org.geysermc.geyser.api.block.custom.component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.Map;
+import java.util.Set;
 
 public interface CustomBlockComponents {
     BoxComponent selectionBox();
@@ -52,6 +53,8 @@ public interface CustomBlockComponents {
 
     boolean placeAir();
 
+    Set<String> tags();
+
     interface Builder {
         Builder selectionBox(BoxComponent selectionBox);
 
@@ -74,6 +77,8 @@ public interface CustomBlockComponents {
         Builder rotation(RotationComponent rotation);
 
         Builder placeAir(boolean placeAir);
+
+        Builder tags(Set<String> tags);
 
         CustomBlockComponents build();
     }

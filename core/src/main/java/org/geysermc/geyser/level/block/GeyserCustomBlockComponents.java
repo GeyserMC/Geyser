@@ -25,7 +25,9 @@
 
 package org.geysermc.geyser.level.block;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.block.custom.component.BoxComponent;
@@ -53,6 +55,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     Integer lightDampening;
     RotationComponent rotation;
     boolean placeAir;
+    Set<String> tags;
 
     private GeyserCustomBlockComponents(CustomBlockComponentsBuilder builder) {
         this.selectionBox = builder.selectionBox;
@@ -70,6 +73,11 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         this.lightDampening = builder.lightDampening;
         this.rotation = builder.rotation;
         this.placeAir = builder.placeAir;
+        if (builder.tags.isEmpty()) {
+            this.tags = Set.of();
+        } else {
+            this.tags = Set.copyOf(builder.tags);
+        }
     }
 
     @Override
@@ -127,6 +135,11 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         return placeAir;
     }
 
+    @Override
+    public Set<String> tags() {
+        return tags;
+    }
+
     public static class CustomBlockComponentsBuilder implements Builder {
         protected BoxComponent selectionBox;
         protected BoxComponent collisionBox;
@@ -139,6 +152,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         protected Integer lightDampening;
         protected RotationComponent rotation;
         protected boolean placeAir = false;
+        protected final Set<String> tags = new HashSet<>();
 
         private void validateBox(BoxComponent box) {
             if (box == null) {
@@ -244,6 +258,12 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         @Override
         public Builder placeAir(boolean placeAir) {
             this.placeAir = placeAir;
+            return this;
+        }
+
+        @Override
+        public Builder tags(Set<String> tags) {
+            this.tags.addAll(tags);
             return this;
         }
 

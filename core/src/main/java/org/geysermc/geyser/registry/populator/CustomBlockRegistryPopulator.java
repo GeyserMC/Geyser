@@ -227,6 +227,9 @@ public class CustomBlockRegistryPopulator {
                     .putString("triggerType", "geyser:place_event")
                     .build());
         }
+        if (!components.tags().isEmpty()) {
+            components.tags().forEach(tag -> builder.putCompound("tag:" + tag, NbtMap.EMPTY));
+        }
         return builder.build();
     }
 
