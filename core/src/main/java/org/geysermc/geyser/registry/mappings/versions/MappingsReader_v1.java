@@ -26,7 +26,6 @@
 package org.geysermc.geyser.registry.mappings.versions;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.CharMatcher;
 
@@ -286,7 +285,10 @@ public class MappingsReader_v1 extends MappingsReader {
         Set<String> booleanValuesSet = new HashSet<>();
         Map<String, Map<String, Boolean>> stateKeyBools = new HashMap<>();
 
+        
         for (String state : usedStateKeys) {
+            if (!state.contains("[")) continue;
+
             String[] pairs = splitStateString(state);
 
             for (String pair : pairs) {
@@ -411,9 +413,9 @@ public class MappingsReader_v1 extends MappingsReader {
         float cornerY = clamp((float) boundingBox.getMiddleY() * 16 - offsetY, 0, 16);
         float cornerZ = clamp((float) boundingBox.getMiddleZ() * 16 - 8 - offsetZ, -8, 8);
 
-        float sizeX = clamp((float) boundingBox.getSizeX() * 16, -8, 8);
+        float sizeX = clamp((float) boundingBox.getSizeX() * 16, 0, 16);
         float sizeY = clamp((float) boundingBox.getSizeY() * 16, 0, 16);
-        float sizeZ = clamp((float) boundingBox.getSizeZ() * 16, -8, 8);
+        float sizeZ = clamp((float) boundingBox.getSizeZ() * 16, 0, 16);
 
         BoxComponent boxComponent = new BoxComponent(cornerX, cornerY, cornerZ, sizeX, sizeY, sizeZ);
 
@@ -479,7 +481,7 @@ public class MappingsReader_v1 extends MappingsReader {
     }
 
     public float clamp(float value, float min, float max) {
-        return Math.max(min, Math.min(value, max));
+        return Math.max(min, Math.min(max, value));
     }
 
 }

@@ -26,10 +26,10 @@
 package org.geysermc.geyser.level.block;
 
 import it.unimi.dsi.fastutil.objects.*;
-import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.Constants;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockPermutation;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
@@ -63,11 +63,14 @@ public class GeyserCustomBlockData implements CustomBlockData {
             this.properties = Object2ObjectMaps.unmodifiable(new Object2ObjectArrayMap<>(builder.properties));
             Object2ObjectMap<String, Object> defaultProperties = new Object2ObjectOpenHashMap<>(this.properties.size());
             for (CustomBlockProperty<?> property : properties.values()) {
-                if (property.values().isEmpty() || property.values().size() > 16) {
-                    throw new IllegalStateException(property.name() + " must contain 1 to 16 values.");
+                if (property.values().size() > 16) {
+                    GeyserImpl.getInstance().getLogger().warning(property.name() + " contains more than 16 values, but BDS specifies it should not. This may break in future versions.");
                 }
                 if (property.values().stream().distinct().count() != property.values().size()) {
                     throw new IllegalStateException(property.name() + " has duplicate values.");
+                }
+                if (property.values().isEmpty()) {
+                    throw new IllegalStateException(property.name() + " contains no values.");
                 }
                 defaultProperties.put(property.name(), property.values().get(0));
             }
