@@ -34,12 +34,6 @@ import java.util.Set;
  * This class is used to store components for a custom block or custom block permutation.
  */
 public interface CustomBlockComponents {
-    /**
-     * Gets the name component
-     *
-     * @return The name.
-     */
-    @NonNull String name();
 
     /**
      * Gets the selection box component
