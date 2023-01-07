@@ -46,7 +46,7 @@ import lombok.ToString;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.event.downstream.ServerDefineCommandsEvent;
+import org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.inventory.item.Enchantment;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -150,9 +150,17 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                     index -> new HashSet<>()).add(node.getName().toLowerCase());
         }
 
-        ServerDefineCommandsEvent event = new ServerDefineCommandsEvent(session, commands.keySet());
-        session.getGeyser().eventBus().fire(event);
+        var eventBus = session.getGeyser().eventBus();
+
+        var event = new ServerDefineCommandsEvent(session, commands.keySet());
+        eventBus.fire(event);
         if (event.isCancelled()) {
+            return;
+        }
+
+        var oldEvent = new org.geysermc.geyser.api.event.downstream.ServerDefineCommandsEvent(session, commands.keySet());
+        eventBus.fire(oldEvent);
+        if (oldEvent.isCancelled()) {
             return;
         }
 
@@ -258,7 +266,10 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
     /**
      * Stores the command description and parameter data for best optimizing the Bedrock commands packet.
      */
-    private record BedrockCommandInfo(String name, String description, CommandParamData[][] paramData) implements ServerDefineCommandsEvent.CommandInfo {
+    private record BedrockCommandInfo(String name, String description, CommandParamData[][] paramData) implements
+            org.geysermc.geyser.api.event.downstream.ServerDefineCommandsEvent.CommandInfo,
+            ServerDefineCommandsEvent.CommandInfo
+    {
     }
 
     /**
