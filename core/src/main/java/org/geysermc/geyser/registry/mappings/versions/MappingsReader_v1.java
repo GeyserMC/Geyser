@@ -37,6 +37,10 @@ import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.component.RotationComponent;
+import org.geysermc.geyser.api.block.custom.component.placementfilter.Conditions;
+import org.geysermc.geyser.api.block.custom.component.placementfilter.PlacementFilter;
+import org.geysermc.geyser.api.block.custom.component.placementfilter.Conditions.BlockFilterType;
+import org.geysermc.geyser.api.block.custom.component.placementfilter.Conditions.Face;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
@@ -56,6 +60,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -347,9 +352,11 @@ public class MappingsReader_v1 extends MappingsReader {
             builder.geometry(node.get("geometry").asText());
         }
 
+        String displayName = name;
         if (node.has("display_name")) {
-            builder.displayName(node.get("display_name").asText());
+            displayName = node.get("display_name").asText();
         }
+        builder.displayName(displayName);
 
         if (node.has("light_emission")) {
             builder.lightEmission(node.get("light_emission").asInt());
@@ -373,6 +380,10 @@ public class MappingsReader_v1 extends MappingsReader {
             builder.rotation(new RotationComponent(rotationX, rotationY, rotationZ));
         }
 
+        if (node.has("unit_cube")) {
+            builder.unitCube(node.get("unit_cube").asBoolean());
+        }
+
         if (node.has("material_instances")) {
             JsonNode materialInstances = node.get("material_instances");
             if (materialInstances.isObject()) {
@@ -384,6 +395,19 @@ public class MappingsReader_v1 extends MappingsReader {
                         builder.materialInstance(key, materialInstance);
                     }
                 });
+            }
+        }
+
+        if (node.has("placement_filter")) {
+            JsonNode placementFilter = node.get("placement_filter");
+            if (placementFilter.isObject()) {
+                if (placementFilter.has("conditions")) {
+                    JsonNode conditions = placementFilter.get("conditions");
+                    if (conditions.isArray()) {
+                        PlacementFilter filter = createPlacementFilterComponent(conditions);
+                        builder.placementFilter(filter);
+                    }
+                }
             }
         }
 
@@ -444,6 +468,43 @@ public class MappingsReader_v1 extends MappingsReader {
         }
 
         return new MaterialInstance(texture, renderMethod, faceDimming, ambientOcclusion);
+    }
+
+    private PlacementFilter createPlacementFilterComponent(JsonNode node) {
+        List<Conditions> conditions = new ArrayList<>();
+
+        node.forEach(condition -> {
+            Set<Face> faces = new HashSet<>();
+            if (condition.has("allowed_faces")) {
+                JsonNode allowedFaces = condition.get("allowed_faces");
+                if (allowedFaces.isArray()) {
+                    allowedFaces.forEach(face -> {
+                        faces.add(Face.valueOf(face.asText().toUpperCase()));
+                    });
+                }
+            }
+
+            LinkedHashMap<String, BlockFilterType> blockFilters = new LinkedHashMap<>();
+            if (condition.has("block_filter")) {
+                JsonNode blockFilter = condition.get("block_filter");
+                if (blockFilter.isArray()) {
+                    blockFilter.forEach(filter -> {
+                        if (filter.isObject()) {
+                            if (filter.has("tags")) {
+                                JsonNode tags = filter.get("tags");
+                                blockFilters.put(tags.asText(), BlockFilterType.TAG);
+                            }
+                        } else if (filter.isTextual()) {
+                            blockFilters.put(filter.asText(), BlockFilterType.BLOCK);
+                        }
+                    });
+                }
+            }
+
+            conditions.add(new Conditions(faces, blockFilters));
+        });
+
+        return new PlacementFilter(conditions);
     }
 
     private String createCustomBlockPropertyQuery(String state) {

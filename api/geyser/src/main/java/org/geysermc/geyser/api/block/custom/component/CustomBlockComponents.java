@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.block.custom.component;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.block.custom.component.placementfilter.PlacementFilter;
 
 import java.util.Map;
 import java.util.Set;
@@ -74,6 +75,15 @@ public interface CustomBlockComponents {
      */
     @NonNull Map<String, MaterialInstance> materialInstances();
 
+
+    /**
+     * Gets the placement filter component
+     * Equivalent to "minecraft:material_instances"
+     *
+     * @return The placement filter.
+     */
+    PlacementFilter placementFilter();
+
     /**
      * Gets the destructible by mining component
      * Equivalent to "minecraft:destructible_by_mining"
@@ -115,6 +125,14 @@ public interface CustomBlockComponents {
     RotationComponent rotation();
 
     /**
+     * Gets the unit cube component
+     * Equivalent to "minecraft:unit_cube"
+     *
+     * @return The rotation.
+     */
+    boolean unitCube();
+
+    /**
      * Gets if the block should place only air
      * Equivalent to setting a dummy event to run on "minecraft:on_player_placing"
      * 
@@ -141,6 +159,8 @@ public interface CustomBlockComponents {
 
         Builder materialInstance(@NonNull String name, @NonNull MaterialInstance materialInstance);
 
+        Builder placementFilter(PlacementFilter placementFilter);
+
         Builder destructibleByMining(Float destructibleByMining);
 
         Builder friction(Float friction);
@@ -150,6 +170,8 @@ public interface CustomBlockComponents {
         Builder lightDampening(Integer lightDampening);
 
         Builder rotation(RotationComponent rotation);
+
+        Builder unitCube(boolean unitCube);
 
         Builder placeAir(boolean placeAir);
 

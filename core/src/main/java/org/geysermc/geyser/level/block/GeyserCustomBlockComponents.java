@@ -34,6 +34,7 @@ import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.component.RotationComponent;
+import org.geysermc.geyser.api.block.custom.component.placementfilter.PlacementFilter;
 import org.jetbrains.annotations.NotNull;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
@@ -49,11 +50,13 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     String displayName;
     String geometry;
     Map<String, MaterialInstance> materialInstances;
+    PlacementFilter placementFilter;
     Float destructibleByMining;
     Float friction;
     Integer lightEmission;
     Integer lightDampening;
     RotationComponent rotation;
+    boolean unitCube;
     boolean placeAir;
     Set<String> tags;
 
@@ -67,11 +70,13 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         } else {
             this.materialInstances = Object2ObjectMaps.unmodifiable(new Object2ObjectArrayMap<>(builder.materialInstances));
         }
+        this.placementFilter = builder.placementFilter;
         this.destructibleByMining = builder.destructibleByMining;
         this.friction = builder.friction;
         this.lightEmission = builder.lightEmission;
         this.lightDampening = builder.lightDampening;
         this.rotation = builder.rotation;
+        this.unitCube = builder.unitCube;
         this.placeAir = builder.placeAir;
         if (builder.tags.isEmpty()) {
             this.tags = Set.of();
@@ -106,6 +111,11 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     }
 
     @Override
+    public PlacementFilter placementFilter() {
+        return placementFilter;
+    }
+
+    @Override
     public Float destructibleByMining() {
         return destructibleByMining;
     }
@@ -131,6 +141,11 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     }
 
     @Override
+    public boolean unitCube() {
+        return unitCube;
+    }
+
+    @Override
     public boolean placeAir() {
         return placeAir;
     }
@@ -146,11 +161,13 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         protected String displayName;
         protected String geometry;
         protected final Object2ObjectMap<String, MaterialInstance> materialInstances = new Object2ObjectOpenHashMap<>();
+        protected PlacementFilter placementFilter;
         protected Float destructibleByMining;
         protected Float friction;
         protected Integer lightEmission;
         protected Integer lightDampening;
         protected RotationComponent rotation;
+        protected boolean unitCube = false;
         protected boolean placeAir = false;
         protected final Set<String> tags = new HashSet<>();
 
@@ -205,6 +222,12 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         }
 
         @Override
+        public Builder placementFilter(PlacementFilter placementFilter) {
+            this.placementFilter = placementFilter;
+            return this;
+        }
+
+        @Override
         public Builder destructibleByMining(Float destructibleByMining) {
             if (destructibleByMining != null && destructibleByMining < 0) {
                 throw new IllegalArgumentException("Destructible by mining must be non-negative");
@@ -252,6 +275,12 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
                 throw new IllegalArgumentException("Rotation must be a multiple of 90 degrees.");
             }
             this.rotation = rotation;
+            return this;
+        }
+
+        @Override
+        public Builder unitCube(boolean unitCube) {
+            this.unitCube = unitCube;
             return this;
         }
 

@@ -15,6 +15,8 @@ import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
+import org.geysermc.geyser.api.block.custom.component.placementfilter.PlacementFilter;
+import org.geysermc.geyser.api.block.custom.component.placementfilter.Conditions.Face;
 import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
 import org.geysermc.geyser.api.block.custom.property.PropertyType;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBlocksEvent;
@@ -176,6 +178,11 @@ public class CustomBlockRegistryPopulator {
             return NbtMap.EMPTY;
         }
         NbtMapBuilder builder = NbtMap.builder();
+        if (components.displayName() != null) {
+            builder.putCompound("minecraft:display_name", NbtMap.builder()
+                    .putString("value", components.displayName())
+                    .build());
+        }
         if (components.selectionBox() != null) {
             builder.putCompound("minecraft:selection_box", convertBox(components.selectionBox()));
         }
@@ -201,6 +208,11 @@ public class CustomBlockRegistryPopulator {
             builder.putCompound("minecraft:material_instances", NbtMap.builder()
                     .putCompound("mappings", NbtMap.EMPTY)
                     .putCompound("materials", materialsBuilder.build())
+                    .build());
+        }
+        if (components.placementFilter() != null) {
+            builder.putCompound("minecraft:placement_filter", NbtMap.builder()
+                    .putList("conditions", NbtType.COMPOUND, convertPlacementFilter(components.placementFilter()))
                     .build());
         }
         if (components.destructibleByMining() != null) {
@@ -230,6 +242,9 @@ public class CustomBlockRegistryPopulator {
                     .putFloat("z", components.rotation().z())
                     .build());
         }
+        if (components.unitCube()) {
+            builder.putCompound("minecraft:unit_cube", NbtMap.EMPTY);
+        }
         if (components.placeAir()) {
             builder.putCompound("minecraft:on_player_placing", NbtMap.builder()
                     .putString("triggerType", "geyser:place_event")
@@ -247,5 +262,30 @@ public class CustomBlockRegistryPopulator {
                 .putList("origin", NbtType.FLOAT, boxComponent.originX(), boxComponent.originY(), boxComponent.originZ())
                 .putList("size", NbtType.FLOAT, boxComponent.sizeX(), boxComponent.sizeY(), boxComponent.sizeZ())
                 .build();
+    }
+
+    private static List<NbtMap> convertPlacementFilter(PlacementFilter placementFilter) {
+        List<NbtMap> conditions = new ArrayList<>();
+        placementFilter.conditions().forEach((condition) -> {
+            NbtMapBuilder conditionBuilder = NbtMap.builder();
+
+            byte allowedFaces = 0;
+            for (Face face : condition.allowedFaces()) { allowedFaces |= face.getValue(); }
+            conditionBuilder.putByte("allowed_faces", allowedFaces);
+
+            List <NbtMap> blockFilters = new ArrayList<>();
+            condition.blockFilters().forEach((value, type) -> {
+                NbtMapBuilder blockFilterBuilder = NbtMap.builder();
+                switch (type) {
+                    case BLOCK -> blockFilterBuilder.putString("name", value);
+                    case TAG -> blockFilterBuilder.putString("tags", value).putInt("tags_version", 6);
+                }
+                blockFilters.add(blockFilterBuilder.build());
+            });
+            conditionBuilder.putList("block_filters", NbtType.COMPOUND, blockFilters);
+            conditions.add(conditionBuilder.build());
+        });
+
+        return conditions;
     }
 }
