@@ -23,54 +23,48 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.type.living;
+package org.geysermc.geyser.entity.type.living.animal.horse;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.UUID;
 
-public class AgeableEntity extends CreatureEntity {
+public class CamelEntity extends AbstractHorseEntity {
 
-    public AgeableEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    private static final float SITTING_HEIGHT_DIFFERENCE = 1.43F;
+
+    public CamelEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
-        // Required as of 1.19.3 Java
-        dirtyMetadata.put(EntityData.SCALE, getAdultSize());
+        this.dirtyMetadata.put(EntityData.VARIANT, 2); // Closest llama colour to camel
     }
 
-    public void setBaby(BooleanEntityMetadata entityMetadata) {
-        boolean isBaby = entityMetadata.getPrimitiveValue();
-        dirtyMetadata.put(EntityData.SCALE, isBaby ? getBabySize() : getAdultSize());
-        setFlag(EntityFlag.BABY, isBaby);
-
-        setBoundingBoxHeight(definition.height() * (isBaby ? getBabySize() : getAdultSize()));
-        setBoundingBoxWidth(definition.width() * (isBaby ? getBabySize() : getAdultSize()));
+    @Override
+    public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
+        return "cactus".equals(javaIdentifierStripped);
     }
 
-    /**
-     * The scale that should be used when this entity is not a baby.
-     */
-    protected float getAdultSize() {
-        return 1f;
+    @Override
+    protected void setDimensions(Pose pose) {
+        if (pose == Pose.SITTING) {
+            setBoundingBoxWidth(definition.height() - SITTING_HEIGHT_DIFFERENCE);
+            setBoundingBoxWidth(definition.width());
+        } else {
+            super.setDimensions(pose);
+        }
     }
 
-    /**
-     * The scale that should be used when this entity is a baby.
-     */
-    protected float getBabySize() {
-        return 0.55f;
-    }
+    public void setDashing(BooleanEntityMetadata entityMetadata) {
 
-    public boolean isBaby() {
-        return getFlag(EntityFlag.BABY);
     }
 }

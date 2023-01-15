@@ -42,6 +42,7 @@ import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.level.physics.Direction;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.PistonCache;
@@ -621,8 +622,10 @@ public class PistonBlockEntity {
         Vector3i movement = getMovement();
         attachedBlocks.forEach((blockPos, javaId) -> {
             blockPos = blockPos.add(movement);
-            // Send a final block entity packet to detach blocks
-            BlockEntityUtils.updateBlockEntity(session, buildMovingBlockTag(blockPos, javaId, Direction.DOWN.getUnitVector()), blockPos);
+            if (!GameProtocol.supports1_19_50(session)) {
+                // Send a final block entity packet to detach blocks for clients older than 1.19.50
+                BlockEntityUtils.updateBlockEntity(session, buildMovingBlockTag(blockPos, javaId, Direction.DOWN.getUnitVector()), blockPos);
+            }
             // Don't place blocks that collide with the player
             if (!SOLID_BOUNDING_BOX.checkIntersection(blockPos.toDouble(), session.getCollisionManager().getPlayerBoundingBox())) {
                 ChunkUtils.updateBlock(session, javaId, blockPos);
@@ -739,8 +742,8 @@ public class PistonBlockEntity {
                 .putFloat("LastProgress", lastProgress)
                 .putByte("NewState", getState())
                 .putByte("State", getState())
-                .putByte("Sticky", (byte) (sticky ? 1 : 0))
-                .putByte("isMovable", (byte) 0)
+                .putBoolean("Sticky", sticky)
+                .putBoolean("isMovable", false)
                 .putInt("x", position.getX())
                 .putInt("y", position.getY())
                 .putInt("z", position.getZ());
@@ -762,8 +765,8 @@ public class PistonBlockEntity {
                 .putFloat("LastProgress", extended ? 1.0f : 0.0f)
                 .putByte("NewState", (byte) (extended ? 2 : 0))
                 .putByte("State", (byte) (extended ? 2 : 0))
-                .putByte("Sticky", (byte) (sticky ? 1 : 0))
-                .putByte("isMovable", (byte) 0)
+                .putBoolean("Sticky", sticky)
+                .putBoolean("isMovable", false)
                 .putInt("x", position.getX())
                 .putInt("y", position.getY())
                 .putInt("z", position.getZ());
@@ -783,8 +786,9 @@ public class PistonBlockEntity {
         NbtMap movingBlock = session.getBlockMappings().getBedrockBlockStates().get(session.getBlockMappings().getBedrockBlockId(javaId));
         NbtMapBuilder builder = NbtMap.builder()
                 .putString("id", "MovingBlock")
+                .putBoolean("expanding", action == PistonValueType.PUSHING)
                 .putCompound("movingBlock", movingBlock)
-                .putByte("isMovable", (byte) 1)
+                .putBoolean("isMovable", true)
                 .putInt("pistonPosX", pistonPosition.getX())
                 .putInt("pistonPosY", pistonPosition.getY())
                 .putInt("pistonPosZ", pistonPosition.getZ())

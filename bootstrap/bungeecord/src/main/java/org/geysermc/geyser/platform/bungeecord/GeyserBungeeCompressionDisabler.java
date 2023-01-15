@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,30 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.bedrock;
+package org.geysermc.geyser.platform.bungeecord;
 
-import com.nukkitx.protocol.bedrock.packet.CommandRequestPacket;
-import org.geysermc.common.PlatformType;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.ChatColor;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.translator.text.MessageTranslator;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelOutboundHandlerAdapter;
+import io.netty.channel.ChannelPromise;
+import net.md_5.bungee.protocol.packet.LoginSuccess;
+import net.md_5.bungee.protocol.packet.SetCompression;
 
-@Translator(packet = CommandRequestPacket.class)
-public class BedrockCommandRequestTranslator extends PacketTranslator<CommandRequestPacket> {
+public class GeyserBungeeCompressionDisabler extends ChannelOutboundHandlerAdapter {
 
     @Override
-    public void translate(GeyserSession session, CommandRequestPacket packet) {
-        String command = MessageTranslator.convertToPlainText(packet.getCommand());
-        if (!(session.getGeyser().getPlatformType() == PlatformType.STANDALONE
-                && GeyserImpl.getInstance().commandManager().runCommand(session, command.substring(1)))) {
-            if (MessageTranslator.isTooLong(command, session)) {
-                return;
+    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+        if (!(msg instanceof SetCompression)) {
+            if (msg instanceof LoginSuccess) {
+                // We're past the point that compression can be enabled
+                if (ctx.pipeline().get("compress") != null) {
+                    ctx.pipeline().remove("compress");
+                }
+                if (ctx.pipeline().get("decompress") != null) {
+                    ctx.pipeline().remove("decompress");
+                }
+                ctx.pipeline().remove(this);
             }
-
-            session.sendCommand(command.substring(1));
+            super.write(ctx, msg, promise);
         }
     }
 }

@@ -23,27 +23,39 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java.level;
+package org.geysermc.geyser.translator.protocol.java.entity.player;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundCustomSoundPacket;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.PlaySoundPacket;
+
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundPlayerInfoRemovePacket;
+import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.util.SoundUtils;
 
-@Translator(packet = ClientboundCustomSoundPacket.class)
-public class JavaCustomSoundTranslator extends PacketTranslator<ClientboundCustomSoundPacket> {
+import java.util.UUID;
 
+@Translator(packet = ClientboundPlayerInfoRemovePacket.class)
+public class JavaPlayerInfoRemoveTranslator extends PacketTranslator<ClientboundPlayerInfoRemovePacket> {
     @Override
-    public void translate(GeyserSession session, ClientboundCustomSoundPacket packet) {
-        PlaySoundPacket playSoundPacket = new PlaySoundPacket();
-        playSoundPacket.setSound(SoundUtils.translatePlaySound(packet.getSound()));
-        playSoundPacket.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
-        playSoundPacket.setVolume(packet.getVolume());
-        playSoundPacket.setPitch(packet.getPitch());
+    public void translate(GeyserSession session, ClientboundPlayerInfoRemovePacket packet) {
+        PlayerListPacket translate = new PlayerListPacket();
+        translate.setAction(PlayerListPacket.Action.REMOVE);
 
-        session.sendUpstreamPacket(playSoundPacket);
+        for (UUID id : packet.getProfileIds()) {
+            // As the player entity is no longer present, we can remove the entry
+            PlayerEntity entity = session.getEntityCache().removePlayerEntity(id);
+            UUID removeId;
+            if (entity != null) {
+                // Just remove the entity's player list status
+                // Don't despawn the entity - the Java server will also take care of that.
+                removeId = entity.getTabListUuid();
+            } else {
+                removeId = id;
+            }
+            translate.getEntries().add(new PlayerListPacket.Entry(removeId));
+        }
+
+        session.sendUpstreamPacket(translate);
     }
 }

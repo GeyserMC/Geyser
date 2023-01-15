@@ -31,6 +31,7 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
+import org.geysermc.geyser.translator.inventory.PlayerInventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
@@ -46,7 +47,7 @@ public class JavaContainerSetContentTranslator extends PacketTranslator<Clientbo
 
         int inventorySize = inventory.getSize();
         for (int i = 0; i < packet.getItems().length; i++) {
-            if (i > inventorySize) {
+            if (i >= inventorySize) {
                 GeyserImpl geyser = session.getGeyser();
                 geyser.getLogger().warning("ClientboundContainerSetContentPacket sent to " + session.bedrockUsername()
                         + " that exceeds inventory size!");
@@ -54,10 +55,7 @@ public class JavaContainerSetContentTranslator extends PacketTranslator<Clientbo
                     geyser.getLogger().debug(packet);
                     geyser.getLogger().debug(inventory);
                 }
-                InventoryTranslator translator = session.getInventoryTranslator();
-                if (translator != null) {
-                    translator.updateInventory(session, inventory);
-                }
+                updateInventory(session, inventory, packet.getContainerId());
                 // 1.18.1 behavior: the previous items will be correctly set, but the state ID and carried item will not
                 // as this produces a stack trace on the client.
                 // If Java processes this correctly in the future, we can revert this behavior
@@ -68,10 +66,7 @@ public class JavaContainerSetContentTranslator extends PacketTranslator<Clientbo
             inventory.setItem(i, newItem, session);
         }
 
-        InventoryTranslator translator = session.getInventoryTranslator();
-        if (translator != null) {
-            translator.updateInventory(session, inventory);
-        }
+        updateInventory(session, inventory, packet.getContainerId());
 
         int stateId = packet.getStateId();
         session.setEmulatePost1_16Logic(stateId > 0 || stateId != inventory.getStateId());
@@ -79,5 +74,15 @@ public class JavaContainerSetContentTranslator extends PacketTranslator<Clientbo
 
         session.getPlayerInventory().setCursor(GeyserItemStack.from(packet.getCarriedItem()), session);
         InventoryUtils.updateCursor(session);
+    }
+
+    private void updateInventory(GeyserSession session, Inventory inventory, int containerId) {
+        InventoryTranslator translator = session.getInventoryTranslator();
+        if (containerId == 0 && !(translator instanceof PlayerInventoryTranslator)) {
+            // In rare cases, the window ID can still be 0 but Java treats it as valid
+            InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateInventory(session, inventory);
+        } else if (translator != null) {
+            translator.updateInventory(session, inventory);
+        }
     }
 }

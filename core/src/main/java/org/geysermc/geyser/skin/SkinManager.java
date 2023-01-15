@@ -32,8 +32,8 @@ import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.nukkitx.protocol.bedrock.data.skin.ImageData;
 import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
+import com.nukkitx.protocol.bedrock.packet.PlayerSkinPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.BedrockClientData;
@@ -53,13 +53,30 @@ public class SkinManager {
      * Builds a Bedrock player list entry from our existing, cached Bedrock skin information
      */
     public static PlayerListPacket.Entry buildCachedEntry(GeyserSession session, PlayerEntity playerEntity) {
+        // First: see if we have the cached skin texture ID.
         GameProfileData data = GameProfileData.from(playerEntity);
-        SkinProvider.Cape cape = SkinProvider.getCachedCape(data.capeUrl());
-        SkinProvider.SkinGeometry geometry = SkinProvider.SkinGeometry.getLegacy(data.isAlex());
+        SkinProvider.Skin skin = null;
+        SkinProvider.Cape cape = null;
+        SkinProvider.SkinGeometry geometry = SkinProvider.SkinGeometry.WIDE;
+        if (data != null) {
+            // GameProfileData is not null = server provided us with textures data to work with.
+            skin = SkinProvider.getCachedSkin(data.skinUrl());
+            cape = SkinProvider.getCachedCape(data.capeUrl());
+            geometry = data.isAlex() ? SkinProvider.SkinGeometry.SLIM : SkinProvider.SkinGeometry.WIDE;
+        }
 
-        SkinProvider.Skin skin = SkinProvider.getCachedSkin(data.skinUrl());
-        if (skin == null) {
-            skin = SkinProvider.EMPTY_SKIN;
+        if (skin == null || cape == null) {
+            // The server either didn't have a texture to send, or we didn't have the texture ID cached.
+            // Let's see if this player is a Bedrock player, and if so, let's pull their skin.
+            // Otherwise, grab the default player skin
+            SkinProvider.SkinData fallbackSkinData = SkinProvider.determineFallbackSkinData(playerEntity);
+            if (skin == null) {
+                skin = fallbackSkinData.skin();
+                geometry = fallbackSkinData.geometry();
+            }
+            if (cape == null) {
+                cape = fallbackSkinData.cape();
+            }
         }
 
         return buildEntryManually(
@@ -67,10 +84,8 @@ public class SkinManager {
                 playerEntity.getUuid(),
                 playerEntity.getUsername(),
                 playerEntity.getGeyserId(),
-                skin.getTextureUrl(),
-                skin.getSkinData(),
-                cape.getCapeId(),
-                cape.getCapeData(),
+                skin,
+                cape,
                 geometry
         );
     }
@@ -79,14 +94,10 @@ public class SkinManager {
      * With all the information needed, build a Bedrock player entry with translated skin information.
      */
     public static PlayerListPacket.Entry buildEntryManually(GeyserSession session, UUID uuid, String username, long geyserId,
-                                                            String skinId, byte[] skinData,
-                                                            String capeId, byte[] capeData,
+                                                            SkinProvider.Skin skin,
+                                                            SkinProvider.Cape cape,
                                                             SkinProvider.SkinGeometry geometry) {
-        SerializedSkin serializedSkin = SerializedSkin.of(
-                skinId, "", geometry.getGeometryName(), ImageData.of(skinData), Collections.emptyList(),
-                ImageData.of(capeData), geometry.getGeometryData(), "", true, false,
-                !capeId.equals(SkinProvider.EMPTY_CAPE.getCapeId()), capeId, skinId
-        );
+        SerializedSkin serializedSkin = getSkin(skin.getTextureUrl(), skin, cape, geometry);
 
         // This attempts to find the XUID of the player so profile images show up for Xbox accounts
         String xuid = "";
@@ -116,6 +127,45 @@ public class SkinManager {
         return entry;
     }
 
+    public static void sendSkinPacket(GeyserSession session, PlayerEntity entity, SkinProvider.SkinData skinData) {
+        SkinProvider.Skin skin = skinData.skin();
+        SkinProvider.Cape cape = skinData.cape();
+        SkinProvider.SkinGeometry geometry = skinData.geometry();
+
+        if (entity.getUuid().equals(session.getPlayerEntity().getUuid())) {
+            // TODO is this special behavior needed?
+            PlayerListPacket.Entry updatedEntry = buildEntryManually(
+                    session,
+                    entity.getUuid(),
+                    entity.getUsername(),
+                    entity.getGeyserId(),
+                    skin,
+                    cape,
+                    geometry
+            );
+
+            PlayerListPacket playerAddPacket = new PlayerListPacket();
+            playerAddPacket.setAction(PlayerListPacket.Action.ADD);
+            playerAddPacket.getEntries().add(updatedEntry);
+            session.sendUpstreamPacket(playerAddPacket);
+        } else {
+            PlayerSkinPacket packet = new PlayerSkinPacket();
+            packet.setUuid(entity.getUuid());
+            packet.setOldSkinName("");
+            packet.setNewSkinName(skin.getTextureUrl());
+            packet.setSkin(getSkin(skin.getTextureUrl(), skin, cape, geometry));
+            packet.setTrustedSkin(true);
+            session.sendUpstreamPacket(packet);
+        }
+    }
+
+    private static SerializedSkin getSkin(String skinId, SkinProvider.Skin skin, SkinProvider.Cape cape, SkinProvider.SkinGeometry geometry) {
+        return SerializedSkin.of(skinId, "", geometry.geometryName(),
+                ImageData.of(skin.getSkinData()), Collections.emptyList(),
+                ImageData.of(cape.capeData()), geometry.geometryData(),
+                "", true, false, false, cape.capeId(), skinId);
+    }
+
     public static void requestAndHandleSkinAndCape(PlayerEntity entity, GeyserSession session,
                                                    Consumer<SkinProvider.SkinAndCape> skinAndCapeConsumer) {
         SkinProvider.requestSkinData(entity).whenCompleteAsync((skinData, throwable) -> {
@@ -128,34 +178,7 @@ public class SkinManager {
             }
 
             if (skinData.geometry() != null) {
-                SkinProvider.Skin skin = skinData.skin();
-                SkinProvider.Cape cape = skinData.cape();
-                SkinProvider.SkinGeometry geometry = skinData.geometry();
-
-                PlayerListPacket.Entry updatedEntry = buildEntryManually(
-                        session,
-                        entity.getUuid(),
-                        entity.getUsername(),
-                        entity.getGeyserId(),
-                        skin.getTextureUrl(),
-                        skin.getSkinData(),
-                        cape.getCapeId(),
-                        cape.getCapeData(),
-                        geometry
-                );
-
-
-                PlayerListPacket playerAddPacket = new PlayerListPacket();
-                playerAddPacket.setAction(PlayerListPacket.Action.ADD);
-                playerAddPacket.getEntries().add(updatedEntry);
-                session.sendUpstreamPacket(playerAddPacket);
-
-                if (!entity.isPlayerList()) {
-                    PlayerListPacket playerRemovePacket = new PlayerListPacket();
-                    playerRemovePacket.setAction(PlayerListPacket.Action.REMOVE);
-                    playerRemovePacket.getEntries().add(updatedEntry);
-                    session.sendUpstreamPacket(playerRemovePacket);
-                }
+                sendSkinPacket(session, entity, skinData);
             }
 
             if (skinAndCapeConsumer != null) {
@@ -186,7 +209,7 @@ public class SkinManager {
             }
 
             if (!clientData.getCapeId().equals("")) {
-                SkinProvider.storeBedrockCape(playerEntity.getUuid(), capeBytes);
+                SkinProvider.storeBedrockCape(clientData.getCapeId(), capeBytes);
             }
         } catch (Exception e) {
             throw new AssertionError("Failed to cache skin for bedrock user (" + playerEntity.getUsername() + "): ", e);
@@ -231,26 +254,21 @@ public class SkinManager {
          * @param entity entity to build the GameProfileData from
          * @return The built GameProfileData
          */
-        public static GameProfileData from(PlayerEntity entity) {
+        public static @Nullable GameProfileData from(PlayerEntity entity) {
             try {
                 String texturesProperty = entity.getTexturesProperty();
 
                 if (texturesProperty == null) {
                     // Likely offline mode
-                    return loadBedrockOrOfflineSkin(entity);
+                    return null;
                 }
-                GameProfileData data = loadFromJson(texturesProperty);
-                if (data != null) {
-                    return data;
-                } else {
-                    return loadBedrockOrOfflineSkin(entity);
-                }
+                return loadFromJson(texturesProperty);
             } catch (IOException exception) {
                 GeyserImpl.getInstance().getLogger().debug("Something went wrong while processing skin for " + entity.getUsername());
                 if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
                     exception.printStackTrace();
                 }
-                return loadBedrockOrOfflineSkin(entity);
+                return null;
             }
         }
 
@@ -277,28 +295,6 @@ public class SkinManager {
                 capeUrl = capeTexture.get("url").asText().replace("http://", "https://");
             }
 
-            return new GameProfileData(skinUrl, capeUrl, isAlex);
-        }
-
-        /**
-         * @return default skin with default cape when texture data is invalid, or the Bedrock player's skin if this
-         * is a Bedrock player.
-         */
-        private static GameProfileData loadBedrockOrOfflineSkin(PlayerEntity entity) {
-            // Fallback to the offline mode of working it out
-            UUID uuid = entity.getUuid();
-            boolean isAlex = (Math.abs(uuid.hashCode() % 2) == 1);
-
-            String skinUrl = isAlex ? SkinProvider.EMPTY_SKIN_ALEX.getTextureUrl() : SkinProvider.EMPTY_SKIN.getTextureUrl();
-            String capeUrl = SkinProvider.EMPTY_CAPE.getTextureUrl();
-            if (("steve".equals(skinUrl) || "alex".equals(skinUrl)) && GeyserImpl.getInstance().getConfig().getRemote().authType() != AuthType.ONLINE) {
-                GeyserSession session = GeyserImpl.getInstance().connectionByUuid(uuid);
-
-                if (session != null) {
-                    skinUrl = session.getClientData().getSkinId();
-                    capeUrl = session.getClientData().getCapeId();
-                }
-            }
             return new GameProfileData(skinUrl, capeUrl, isAlex);
         }
     }

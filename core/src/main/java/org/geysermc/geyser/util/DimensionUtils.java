@@ -27,12 +27,16 @@ package org.geysermc.geyser.util;
 
 import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.protocol.bedrock.data.PlayerActionType;
 import com.nukkitx.protocol.bedrock.packet.ChangeDimensionPacket;
 import com.nukkitx.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
 import com.nukkitx.protocol.bedrock.packet.MobEffectPacket;
+import com.nukkitx.protocol.bedrock.packet.PlayerActionPacket;
 import com.nukkitx.protocol.bedrock.packet.StopSoundPacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.level.BedrockDimension;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Set;
@@ -71,18 +75,17 @@ public class DimensionUtils {
         session.getPistonCache().clear();
         session.getSkullCache().clear();
 
-        if (session.getServerRenderDistance() > 47 && !session.isEmulatePost1_13Logic()) {
+        if (session.getServerRenderDistance() > 32 && !session.isEmulatePost1_13Logic()) {
             // The server-sided view distance wasn't a thing until Minecraft Java 1.14
             // So ViaVersion compensates by sending a "view distance" of 64
             // That's fine, except when the actual view distance sent from the server is five chunks
             // The client locks up when switching dimensions, expecting more chunks than it's getting
             // To solve this, we cap at 32 unless we know that the render distance actually exceeds 32
-            // 47 is the Bedrock equivalent of 32
             // Also, as of 1.19: PS4 crashes with a ChunkRadiusUpdatedPacket too large
             session.getGeyser().getLogger().debug("Applying dimension switching workaround for Bedrock render distance of "
                     + session.getServerRenderDistance());
             ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
-            chunkRadiusUpdatedPacket.setRadius(47);
+            chunkRadiusUpdatedPacket.setRadius(32);
             session.sendUpstreamPacket(chunkRadiusUpdatedPacket);
             // Will be re-adjusted on spawn
         }
@@ -94,8 +97,10 @@ public class DimensionUtils {
         changeDimensionPacket.setRespawn(true);
         changeDimensionPacket.setPosition(pos);
         session.sendUpstreamPacket(changeDimensionPacket);
+
         session.setDimension(javaDimension);
         setBedrockDimension(session, javaDimension);
+
         player.setPosition(pos);
         session.setSpawned(false);
         session.setLastChunkPosition(null);
@@ -116,6 +121,19 @@ public class DimensionUtils {
         stopSoundPacket.setStoppingAllSound(true);
         stopSoundPacket.setSoundName("");
         session.sendUpstreamPacket(stopSoundPacket);
+
+        // Kind of silly but Bedrock 1.19.50 requires an acknowledgement after the
+        // initial chunks are sent, prior to the client acknowledgement
+        if (GameProtocol.supports1_19_50(session)) {
+            // Note: send this before chunks are sent. Fixed https://github.com/GeyserMC/Geyser/issues/3421
+            PlayerActionPacket ackPacket = new PlayerActionPacket();
+            ackPacket.setRuntimeEntityId(player.getGeyserId());
+            ackPacket.setAction(PlayerActionType.DIMENSION_CHANGE_SUCCESS);
+            ackPacket.setBlockPosition(Vector3i.ZERO);
+            ackPacket.setResultPosition(Vector3i.ZERO);
+            ackPacket.setFace(0);
+            session.sendUpstreamPacket(ackPacket);
+        }
 
         // TODO - fix this hack of a fix by sending the final dimension switching logic after sections have been sent.
         // The client wants sections sent to it before it can successfully respawn.
@@ -189,7 +207,9 @@ public class DimensionUtils {
             // Prevents rare instances of Bedrock locking up
             return javaToBedrock(newDimension) == 2 ? OVERWORLD : NETHER;
         }
-        return currentDimension.equals(OVERWORLD) ? NETHER : OVERWORLD;
+        // Check current Bedrock dimension and not just the Java dimension.
+        // Fixes rare instances like https://github.com/GeyserMC/Geyser/issues/3161
+        return javaToBedrock(currentDimension) == 0 ? NETHER : OVERWORLD;
     }
 
     public static boolean isCustomBedrockNetherId() {

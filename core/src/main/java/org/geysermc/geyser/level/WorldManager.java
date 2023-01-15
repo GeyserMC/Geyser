@@ -27,9 +27,15 @@ package org.geysermc.geyser.level;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import org.geysermc.geyser.session.GeyserSession;
+import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.Nonnull;
+import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Class that manages or retrieves various information
@@ -105,7 +111,9 @@ public abstract class WorldManager {
      * @param name The gamerule to change
      * @param value The new value for the gamerule
      */
-    public abstract void setGameRule(GeyserSession session, String name, Object value);
+    public void setGameRule(GeyserSession session, String name, Object value) {
+        session.sendCommand("gamerule " + name + " " + value);
+    }
 
     /**
      * Gets a gamerule value as a boolean
@@ -114,7 +122,7 @@ public abstract class WorldManager {
      * @param gameRule The gamerule to fetch the value of
      * @return The boolean representation of the value
      */
-    public abstract Boolean getGameRuleBool(GeyserSession session, GameRule gameRule);
+    public abstract boolean getGameRuleBool(GeyserSession session, GameRule gameRule);
 
     /**
      * Get a gamerule value as an integer
@@ -131,7 +139,9 @@ public abstract class WorldManager {
      * @param session The session of the player to change the game mode of
      * @param gameMode The game mode to change the player to
      */
-    public abstract void setPlayerGameMode(GeyserSession session, GameMode gameMode);
+    public void setPlayerGameMode(GeyserSession session, GameMode gameMode) {
+        session.sendCommand("gamemode " + gameMode.name().toLowerCase(Locale.ROOT));
+    }
 
     /**
      * Change the difficulty of the Java server
@@ -139,7 +149,9 @@ public abstract class WorldManager {
      * @param session The session of the user that requested the change
      * @param difficulty The difficulty to change to
      */
-    public abstract void setDifficulty(GeyserSession session, Difficulty difficulty);
+    public void setDifficulty(GeyserSession session, Difficulty difficulty) {
+        session.sendCommand("difficulty " + difficulty.name().toLowerCase(Locale.ROOT));
+    }
 
     /**
      * Checks if the given session's player has a permission
@@ -149,4 +161,22 @@ public abstract class WorldManager {
      * @return True if the player has the requested permission, false if not
      */
     public abstract boolean hasPermission(GeyserSession session, String permission);
+
+    /**
+     * Returns a list of biome identifiers available on the server.
+     */
+    @Nullable
+    public String[] getBiomeIdentifiers(boolean withTags) {
+        return null;
+    }
+
+    /**
+     * Used for pick block, so we don't need to cache more data than necessary.
+     *
+     * @return expected NBT for this item.
+     */
+    @Nonnull
+    public CompletableFuture<@Nullable CompoundTag> getPickItemNbt(GeyserSession session, int x, int y, int z, boolean addNbtData) {
+        return CompletableFuture.completedFuture(null);
+    }
 }

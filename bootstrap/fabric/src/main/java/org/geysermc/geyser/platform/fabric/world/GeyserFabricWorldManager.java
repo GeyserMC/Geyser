@@ -31,12 +31,13 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.WritableBookItem;
 import net.minecraft.world.item.WrittenBookItem;
+import net.minecraft.world.level.block.entity.BannerBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import org.geysermc.geyser.level.GeyserWorldManager;
@@ -44,8 +45,10 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;
 import org.geysermc.geyser.util.BlockEntityUtils;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 public class GeyserFabricWorldManager extends GeyserWorldManager {
@@ -127,7 +130,127 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
         return Permissions.check(player, permission);
     }
 
+    @Nonnull
+    @Override
+    public CompletableFuture<com.github.steveice10.opennbt.tag.builtin.CompoundTag> getPickItemNbt(GeyserSession session, int x, int y, int z, boolean addNbtData) {
+        CompletableFuture<com.github.steveice10.opennbt.tag.builtin.CompoundTag> future = new CompletableFuture<>();
+        server.execute(() -> {
+            ServerPlayer player = getPlayer(session);
+            if (player == null) {
+                future.complete(null);
+                return;
+            }
+
+            BlockPos pos = new BlockPos(x, y, z);
+            // Don't create a new block entity if invalid
+            BlockEntity blockEntity = player.level.getChunkAt(pos).getBlockEntity(pos);
+            if (blockEntity instanceof BannerBlockEntity banner) {
+                // Potentially exposes other NBT data? But we need to get the NBT data for the banner patterns *and*
+                // the banner might have a custom name, both of which a Java client knows and caches
+                ItemStack itemStack = banner.getItem();
+                var tag = OpenNbtTagVisitor.convert("", itemStack.getOrCreateTag());
+
+                future.complete(tag);
+                return;
+            }
+            future.complete(null);
+        });
+        return future;
+    }
+
     private ServerPlayer getPlayer(GeyserSession session) {
         return server.getPlayerList().getPlayer(session.getPlayerEntity().getUuid());
+    }
+
+    // Future considerations: option to clone; would affect arrays
+    private static class OpenNbtTagVisitor implements TagVisitor {
+        private String currentKey;
+        private final com.github.steveice10.opennbt.tag.builtin.CompoundTag root;
+        private com.github.steveice10.opennbt.tag.builtin.Tag currentTag;
+
+        OpenNbtTagVisitor(String key) {
+            root = new com.github.steveice10.opennbt.tag.builtin.CompoundTag(key);
+        }
+
+        @Override
+        public void visitString(StringTag stringTag) {
+            currentTag = new com.github.steveice10.opennbt.tag.builtin.StringTag(currentKey, stringTag.getAsString());
+        }
+
+        @Override
+        public void visitByte(ByteTag byteTag) {
+            currentTag = new com.github.steveice10.opennbt.tag.builtin.ByteTag(currentKey, byteTag.getAsByte());
+        }
+
+        @Override
+        public void visitShort(ShortTag shortTag) {
+            currentTag = new com.github.steveice10.opennbt.tag.builtin.ShortTag(currentKey, shortTag.getAsShort());
+        }
+
+        @Override
+        public void visitInt(IntTag intTag) {
+            currentTag = new com.github.steveice10.opennbt.tag.builtin.IntTag(currentKey, intTag.getAsInt());
+        }
+
+        @Override
+        public void visitLong(LongTag longTag) {
+            currentTag = new com.github.steveice10.opennbt.tag.builtin.LongTag(currentKey, longTag.getAsLong());
+        }
+
+        @Override
+        public void visitFloat(FloatTag floatTag) {
+            currentTag = new com.github.steveice10.opennbt.tag.builtin.FloatTag(currentKey, floatTag.getAsFloat());
+        }
+
+        @Override
+        public void visitDouble(DoubleTag doubleTag) {
+            currentTag = new com.github.steveice10.opennbt.tag.builtin.DoubleTag(currentKey, doubleTag.getAsDouble());
+        }
+
+        @Override
+        public void visitByteArray(ByteArrayTag byteArrayTag) {
+            currentTag = new com.github.steveice10.opennbt.tag.builtin.ByteArrayTag(currentKey, byteArrayTag.getAsByteArray());
+        }
+
+        @Override
+        public void visitIntArray(IntArrayTag intArrayTag) {
+            currentTag = new com.github.steveice10.opennbt.tag.builtin.IntArrayTag(currentKey, intArrayTag.getAsIntArray());
+        }
+
+        @Override
+        public void visitLongArray(LongArrayTag longArrayTag) {
+            currentTag = new com.github.steveice10.opennbt.tag.builtin.LongArrayTag(currentKey, longArrayTag.getAsLongArray());
+        }
+
+        @Override
+        public void visitList(ListTag listTag) {
+            var newList = new com.github.steveice10.opennbt.tag.builtin.ListTag(currentKey);
+            for (Tag tag : listTag) {
+                currentKey = "";
+                tag.accept(this);
+                newList.add(currentTag);
+            }
+            currentTag = newList;
+        }
+
+        @Override
+        public void visitCompound(CompoundTag compoundTag) {
+            currentTag = convert(currentKey, compoundTag);
+        }
+
+        private static com.github.steveice10.opennbt.tag.builtin.CompoundTag convert(String name, CompoundTag compoundTag) {
+            OpenNbtTagVisitor visitor = new OpenNbtTagVisitor(name);
+            for (String key : compoundTag.getAllKeys()) {
+                visitor.currentKey = key;
+                Tag tag = compoundTag.get(key);
+                tag.accept(visitor);
+                visitor.root.put(visitor.currentTag);
+            }
+            return visitor.root;
+        }
+
+        @Override
+        public void visitEnd(EndTag endTag) {
+        }
     }
 }

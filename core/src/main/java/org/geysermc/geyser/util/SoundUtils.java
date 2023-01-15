@@ -26,7 +26,6 @@
 package org.geysermc.geyser.util;
 
 import com.github.steveice10.mc.protocol.data.game.level.sound.BuiltinSound;
-import com.github.steveice10.mc.protocol.data.game.level.sound.CustomSound;
 import com.github.steveice10.mc.protocol.data.game.level.sound.Sound;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
@@ -63,32 +62,36 @@ public final class SoundUtils {
     /**
      * Translates a Java Custom or Builtin Sound to its Bedrock equivalent
      *
-     * @param sound the sound to translate
+     * @param javaIdentifier the sound to translate
      * @return a Bedrock sound
      */
-    public static String translatePlaySound(Sound sound) {
-        String packetSound;
-        if (sound instanceof BuiltinSound builtinSound) {
-            packetSound = builtinSound.getName();
-        } else if (sound instanceof CustomSound customSound) {
-            packetSound = customSound.getName();
-        } else {
-            GeyserImpl.getInstance().getLogger().debug("Unknown sound, we were unable to map this. " + sound);
-            return "";
-        }
+    public static String translatePlaySound(String javaIdentifier) {
+        javaIdentifier = trim(javaIdentifier);
 
-        // Drop the Minecraft namespace if applicable
-        if (packetSound.startsWith("minecraft:")) {
-            packetSound = packetSound.substring("minecraft:".length());
-        }
-
-        SoundMapping soundMapping = Registries.SOUNDS.get(packetSound);
+        SoundMapping soundMapping = Registries.SOUNDS.get(javaIdentifier);
         if (soundMapping == null || soundMapping.getPlaysound() == null) {
             // no mapping
-            GeyserImpl.getInstance().getLogger().debug("[PlaySound] Defaulting to sound server gave us for " + sound);
-            return packetSound;
+            GeyserImpl.getInstance().getLogger().debug("[PlaySound] Defaulting to sound server gave us for " + javaIdentifier);
+            return javaIdentifier;
         }
         return soundMapping.getPlaysound();
+    }
+
+    private static String trim(String identifier) {
+        // Drop the Minecraft namespace if applicable
+        if (identifier.startsWith("minecraft:")) {
+            return identifier.substring("minecraft:".length());
+        }
+        return identifier;
+    }
+
+    private static void playSound(GeyserSession session, String bedrockName, Vector3f position, float volume, float pitch) {
+        PlaySoundPacket playSoundPacket = new PlaySoundPacket();
+        playSoundPacket.setSound(bedrockName);
+        playSoundPacket.setPosition(position);
+        playSoundPacket.setVolume(volume);
+        playSoundPacket.setPitch(pitch);
+        session.sendUpstreamPacket(playSoundPacket);
     }
 
     /**
@@ -99,23 +102,25 @@ public final class SoundUtils {
      * @param position the position
      * @param pitch the pitch
      */
-    public static void playBuiltinSound(GeyserSession session, BuiltinSound javaSound, Vector3f position, float volume, float pitch) {
-        String packetSound = javaSound.getName();
+    public static void playSound(GeyserSession session, Sound javaSound, Vector3f position, float volume, float pitch) {
+        String packetSound;
+        if (!(javaSound instanceof BuiltinSound)) {
+            // Identifier needs trimmed probably.
+            packetSound = trim(javaSound.getName());
+        } else {
+            packetSound = javaSound.getName();
+        }
 
         SoundMapping soundMapping = Registries.SOUNDS.get(packetSound);
         if (soundMapping == null) {
-            session.getGeyser().getLogger().debug("[Builtin] Sound mapping for " + packetSound + " not found");
+            session.getGeyser().getLogger().debug("[Builtin] Sound mapping for " + packetSound + " not found; assuming custom.");
+            playSound(session, packetSound, position, volume, pitch);
             return;
         }
 
         if (soundMapping.getPlaysound() != null) {
             // We always prefer the PlaySound mapping because we can control volume and pitch
-            PlaySoundPacket playSoundPacket = new PlaySoundPacket();
-            playSoundPacket.setSound(soundMapping.getPlaysound());
-            playSoundPacket.setPosition(position);
-            playSoundPacket.setVolume(volume);
-            playSoundPacket.setPitch(pitch);
-            session.sendUpstreamPacket(playSoundPacket);
+            playSound(session, soundMapping.getPlaysound(), position, volume, pitch);
             return;
         }
 

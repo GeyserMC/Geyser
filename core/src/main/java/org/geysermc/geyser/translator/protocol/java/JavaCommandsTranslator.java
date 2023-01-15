@@ -44,6 +44,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
 import lombok.Getter;
 import lombok.ToString;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.downstream.ServerDefineCommandsEvent;
 import org.geysermc.geyser.command.GeyserCommandManager;
@@ -198,7 +199,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         if (commandNode.getChildIndices().length >= 1) {
             // Create the root param node and build all the children
             ParamInfo rootParam = new ParamInfo(commandNode, null);
-            rootParam.buildChildren(session, allNodes);
+            rootParam.buildChildren(new CommandBuilderContext(session), allNodes);
 
             List<CommandParamData[]> treeData = rootParam.getTree();
 
@@ -211,11 +212,11 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
     /**
      * Convert Java edition command types to Bedrock edition
      *
-     * @param session the session
+     * @param context the session's command context
      * @param node Command type to convert
      * @return Bedrock parameter data type
      */
-    private static Object mapCommandType(GeyserSession session, CommandNode node) {
+    private static Object mapCommandType(CommandBuilderContext context, CommandNode node) {
         CommandParser parser = node.getParser();
         if (parser == null) {
             return CommandParam.STRING;
@@ -232,21 +233,24 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             case RESOURCE_LOCATION, FUNCTION -> CommandParam.FILE_PATH;
             case BOOL -> ENUM_BOOLEAN;
             case OPERATION -> CommandParam.OPERATOR; // ">=", "==", etc
-            case BLOCK_STATE -> BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.get().keySet().toArray(new String[0]);
-            case ITEM_STACK -> session.getItemMappings().getItemNames();
-            case ITEM_ENCHANTMENT -> Enchantment.JavaEnchantment.ALL_JAVA_IDENTIFIERS;
-            case ENTITY_SUMMON -> Registries.JAVA_ENTITY_IDENTIFIERS.get().keySet().toArray(new String[0]);
+            case BLOCK_STATE -> context.getBlockStates();
+            case ITEM_STACK -> context.session.getItemMappings().getItemNames();
             case COLOR -> VALID_COLORS;
             case SCOREBOARD_SLOT -> VALID_SCOREBOARD_SLOTS;
-            case MOB_EFFECT -> ALL_EFFECT_IDENTIFIERS;
-            case RESOURCE, RESOURCE_OR_TAG -> {
-                String resource = ((ResourceProperties) node.getProperties()).getRegistryKey();
-                if (resource.equals("minecraft:attribute")) {
-                    yield ATTRIBUTES;
-                } else {
-                    yield CommandParam.STRING;
-                }
-            }
+            case RESOURCE -> handleResource(context, ((ResourceProperties) node.getProperties()).getRegistryKey(), false);
+            case RESOURCE_OR_TAG -> handleResource(context, ((ResourceProperties) node.getProperties()).getRegistryKey(), true);
+            case DIMENSION -> context.session.getLevels();
+            default -> CommandParam.STRING;
+        };
+    }
+
+    private static Object handleResource(CommandBuilderContext context, String resource, boolean tags) {
+        return switch (resource) {
+            case "minecraft:attribute" -> ATTRIBUTES;
+            case "minecraft:enchantment" -> Enchantment.JavaEnchantment.ALL_JAVA_IDENTIFIERS;
+            case "minecraft:entity_type" -> context.getEntityTypes();
+            case "minecraft:mob_effect" -> ALL_EFFECT_IDENTIFIERS;
+            case "minecraft:worldgen/biome" -> tags ? context.getBiomesWithTags() : context.getBiomes();
             default -> CommandParam.STRING;
         };
     }
@@ -254,7 +258,55 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
     /**
      * Stores the command description and parameter data for best optimizing the Bedrock commands packet.
      */
-    private static record BedrockCommandInfo(String name, String description, CommandParamData[][] paramData) implements ServerDefineCommandsEvent.CommandInfo {
+    private record BedrockCommandInfo(String name, String description, CommandParamData[][] paramData) implements ServerDefineCommandsEvent.CommandInfo {
+    }
+
+    /**
+     * Stores command completions so we don't have to rebuild the same values multiple times.
+     */
+    @MonotonicNonNull
+    private static class CommandBuilderContext {
+        private final GeyserSession session;
+        private Object biomesWithTags;
+        private Object biomesNoTags;
+        private String[] blockStates;
+        private String[] entityTypes;
+
+        CommandBuilderContext(GeyserSession session) {
+            this.session = session;
+        }
+
+        private Object getBiomes() {
+            if (biomesNoTags != null) {
+                return biomesNoTags;
+            }
+
+            String[] identifiers = session.getGeyser().getWorldManager().getBiomeIdentifiers(false);
+            return (biomesNoTags = identifiers != null ? identifiers : CommandParam.STRING);
+        }
+
+        private Object getBiomesWithTags() {
+            if (biomesWithTags != null) {
+                return biomesWithTags;
+            }
+
+            String[] identifiers = session.getGeyser().getWorldManager().getBiomeIdentifiers(true);
+            return (biomesWithTags = identifiers != null ? identifiers : CommandParam.STRING);
+        }
+
+        private String[] getBlockStates() {
+            if (blockStates != null) {
+                return blockStates;
+            }
+            return (blockStates = BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.get().keySet().toArray(new String[0]));
+        }
+
+        private String[] getEntityTypes() {
+            if (entityTypes != null) {
+                return entityTypes;
+            }
+            return (entityTypes = Registries.JAVA_ENTITY_IDENTIFIERS.get().keySet().toArray(new String[0]));
+        }
     }
 
     @Getter
@@ -279,10 +331,10 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         /**
          * Build the array of all the child parameters (recursive)
          *
-         * @param session the session
+         * @param context the session's command builder context
          * @param allNodes Every command node
          */
-        public void buildChildren(GeyserSession session, CommandNode[] allNodes) {
+        public void buildChildren(CommandBuilderContext context, CommandNode[] allNodes) {
             for (int paramID : paramNode.getChildIndices()) {
                 CommandNode paramNode = allNodes[paramID];
 
@@ -320,12 +372,12 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                     }
                 } else {
                     // Put the non-enum param into the list
-                    Object mappedType = mapCommandType(session, paramNode);
+                    Object mappedType = mapCommandType(context, paramNode);
                     CommandEnumData enumData = null;
                     CommandParam type = null;
                     boolean optional = this.paramNode.isExecutable();
                     if (mappedType instanceof String[]) {
-                        enumData = new CommandEnumData(paramNode.getParser().name().toLowerCase(Locale.ROOT), (String[]) mappedType, false);
+                        enumData = new CommandEnumData(getEnumDataName(paramNode).toLowerCase(Locale.ROOT), (String[]) mappedType, false);
                     } else {
                         type = (CommandParam) mappedType;
                         // Bedrock throws a fit if an optional message comes after a string or target
@@ -343,8 +395,23 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
 
             // Recursively build all child options
             for (ParamInfo child : children) {
-                child.buildChildren(session, allNodes);
+                child.buildChildren(context, allNodes);
             }
+        }
+
+        /**
+         * Mitigates https://github.com/GeyserMC/Geyser/issues/3411. Not a perfect solution.
+         */
+        private static String getEnumDataName(CommandNode node) {
+            if (node.getProperties() instanceof ResourceProperties properties) {
+                String registryKey = properties.getRegistryKey();
+                int identifierSplit = registryKey.indexOf(':');
+                if (identifierSplit != -1) {
+                    return registryKey.substring(identifierSplit);
+                }
+                return registryKey;
+            }
+            return node.getParser().name();
         }
 
         /**

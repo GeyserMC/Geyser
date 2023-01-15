@@ -56,17 +56,17 @@ public class BannerTranslator extends NbtItemStackTranslator {
     static {
         OMINOUS_BANNER_PATTERN = new ListTag("Patterns");
         // Construct what an ominous banner is supposed to look like
-        OMINOUS_BANNER_PATTERN.add(getPatternTag("mr", 9));
-        OMINOUS_BANNER_PATTERN.add(getPatternTag("bs", 8));
-        OMINOUS_BANNER_PATTERN.add(getPatternTag("cs", 7));
-        OMINOUS_BANNER_PATTERN.add(getPatternTag("bo", 8));
-        OMINOUS_BANNER_PATTERN.add(getPatternTag("ms", 15));
-        OMINOUS_BANNER_PATTERN.add(getPatternTag("hh", 8));
-        OMINOUS_BANNER_PATTERN.add(getPatternTag("mc", 8));
-        OMINOUS_BANNER_PATTERN.add(getPatternTag("bo", 15));
+        OMINOUS_BANNER_PATTERN.add(getJavaPatternTag("mr", 9));
+        OMINOUS_BANNER_PATTERN.add(getJavaPatternTag("bs", 8));
+        OMINOUS_BANNER_PATTERN.add(getJavaPatternTag("cs", 7));
+        OMINOUS_BANNER_PATTERN.add(getJavaPatternTag("bo", 8));
+        OMINOUS_BANNER_PATTERN.add(getJavaPatternTag("ms", 15));
+        OMINOUS_BANNER_PATTERN.add(getJavaPatternTag("hh", 8));
+        OMINOUS_BANNER_PATTERN.add(getJavaPatternTag("mc", 8));
+        OMINOUS_BANNER_PATTERN.add(getJavaPatternTag("bo", 15));
     }
 
-    private static CompoundTag getPatternTag(String pattern, int color) {
+    public static CompoundTag getJavaPatternTag(String pattern, int color) {
         StringTag patternType = new StringTag("Pattern", pattern);
         IntTag colorTag = new IntTag("Color", color);
         CompoundTag tag = new CompoundTag("");
@@ -117,11 +117,7 @@ public class BannerTranslator extends NbtItemStackTranslator {
      * @return The Java edition format pattern nbt
      */
     public static CompoundTag getJavaBannerPattern(NbtMap pattern) {
-        Map<String, Tag> tags = new HashMap<>();
-        tags.put("Color", new IntTag("Color", 15 - pattern.getInt("Color")));
-        tags.put("Pattern", new StringTag("Pattern", pattern.getString("Pattern")));
-
-        return new CompoundTag("", tags);
+        return BannerTranslator.getJavaPatternTag(pattern.getString("Pattern"), 15 - pattern.getInt("Color"));
     }
 
     /**

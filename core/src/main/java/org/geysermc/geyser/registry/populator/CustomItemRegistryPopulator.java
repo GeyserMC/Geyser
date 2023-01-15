@@ -128,6 +128,29 @@ public class CustomItemRegistryPopulator {
             computeBlockItemProperties(mapping.getBedrockIdentifier(), componentBuilder);
         }
 
+        if (mapping.isEdible()) {
+            computeConsumableProperties(itemProperties, componentBuilder, 1, false);
+        }
+
+        if (mapping.isEntityPlacer()) {
+            computeEntityPlacerProperties(componentBuilder);
+        }
+
+        switch (mapping.getBedrockIdentifier()) {
+            case "minecraft:fire_charge", "minecraft:flint_and_steel" -> {
+                computeBlockItemProperties("minecraft:fire", componentBuilder);
+            }
+            case "minecraft:bow", "minecraft:crossbow", "minecraft:trident" -> {
+                computeChargeableProperties(itemProperties, componentBuilder);
+            }
+            case "minecraft:honey_bottle", "minecraft:milk_bucket", "minecraft:potion" -> {
+                computeConsumableProperties(itemProperties, componentBuilder, 2, true);
+            }
+            case "minecraft:experience_bottle", "minecraft:egg", "minecraft:ender_pearl", "minecraft:ender_eye", "minecraft:lingering_potion", "minecraft:snowball", "minecraft:splash_potion" -> {
+                computeThrowableProperties(componentBuilder);
+            }
+        }
+
         computeRenderOffsets(false, customItemData, componentBuilder);
 
         componentBuilder.putCompound("item_properties", itemProperties.build());
@@ -271,6 +294,39 @@ public class CustomItemRegistryPopulator {
 
         // all block items registered should be given this component to prevent double placement
         componentBuilder.putCompound("minecraft:block_placer", NbtMap.builder().putString("block", blockItem).build());
+    }
+
+    private static void computeChargeableProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
+        // setting high use_duration prevents the consume animation from playing
+        itemProperties.putInt("use_duration", Integer.MAX_VALUE);
+        // display item as tool (mainly for crossbow and bow)
+        itemProperties.putBoolean("hand_equipped", true);
+        // ensure client moves at slow speed while charging (note: this was calculated by hand as the movement modifer value does not seem to scale linearly)
+        componentBuilder.putCompound("minecraft:chargeable", NbtMap.builder().putFloat("movement_modifier", 0.35F).build());
+    }
+
+    private static void computeConsumableProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder, int useAnimation, boolean canAlwaysEat) {
+        // this is the duration of the use animation in ticks; note that in behavior packs this is set as a float in seconds, but over the network it is an int in ticks
+        itemProperties.putInt("use_duration", 32);
+        // this dictates that the item will use the eat or drink animation (in the first person) and play eat or drink sounds
+        // note that in behavior packs this is set as the string "eat" or "drink", but over the network it as an int, with these values being 1 and 2 respectively
+        itemProperties.putInt("use_animation", useAnimation);
+        // this component is required to allow the eat animation to play
+        componentBuilder.putCompound("minecraft:food", NbtMap.builder().putBoolean("can_always_eat", canAlwaysEat).build());
+    }
+
+    private static void computeEntityPlacerProperties(NbtMapBuilder componentBuilder) {
+        // all items registered that place entities should be given this component to prevent double placement
+        // it is okay that the entity here does not match the actual one since we control what entity actually spawns 
+        componentBuilder.putCompound("minecraft:entity_placer", NbtMap.builder().putString("entity", "minecraft:minecart").build());
+    }
+
+    private static void computeThrowableProperties(NbtMapBuilder componentBuilder) {
+        // allows item to be thrown when holding down right click (individual presses are required w/o this component)
+        componentBuilder.putCompound("minecraft:throwable", NbtMap.builder().putBoolean("do_swing_animation", true).build());
+        // this must be set to something for the swing animation to play
+        // it is okay that the projectile here does not match the actual one since we control what entity actually spawns
+        componentBuilder.putCompound("minecraft:projectile", NbtMap.builder().putString("projectile_entity", "minecraft:snowball").build());
     }
 
     private static void computeRenderOffsets(boolean isHat, CustomItemData customItemData, NbtMapBuilder componentBuilder) {

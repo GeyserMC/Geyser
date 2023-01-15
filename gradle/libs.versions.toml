@@ -5,11 +5,11 @@ netty = "4.1.80.Final"
 guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8
 websocket = "1.5.1"
-protocol = "2.9.14-20221025.193624-1"
+protocol = "2.9.15-20221129.204554-2"
 raknet = "1.6.28-20220125.214016-6"
 mcauthlib = "d9d773e"
-mcprotocollib = "9f78bd5"
-packetlib = "3.0"
+mcprotocollib = "1.19.3-20230107.194116-10"
+packetlib = "3.0.1"
 adventure = "4.12.0-20220629.025215-9"
 adventure-platform = "4.1.2"
 junit = "4.13.1"
@@ -21,7 +21,7 @@ jline = "3.21.0"
 terminalconsoleappender = "1.2.0"
 paper = "1.19-R0.1-SNAPSHOT"
 viaversion = "4.0.0"
-adapters = "1.5-SNAPSHOT"
+adapters = "1.6-SNAPSHOT"
 commodore = "2.2"
 bungeecord = "a7c6ede"
 velocity = "3.0.0"
@@ -80,9 +80,9 @@ guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 mcauthlib = { group = "com.github.GeyserMC", name = "MCAuthLib", version.ref = "mcauthlib" }
-mcprotocollib = { group = "com.github.GeyserMC", name = "MCProtocolLib", version.ref = "mcprotocollib" }
+mcprotocollib = { group = "com.github.steveice10", name = "mcprotocollib", version.ref = "mcprotocollib" }
 packetlib = { group = "com.github.steveice10", name = "packetlib", version.ref = "packetlib" }
-protocol = { group = "com.nukkitx.protocol", name = "bedrock-v557", version.ref = "protocol" }
+protocol = { group = "com.nukkitx.protocol", name = "bedrock-v560", version.ref = "protocol" }
 raknet = { group = "com.nukkitx.network", name = "raknet", version.ref = "raknet" }
 sponge-api = { group = "org.spongepowered", name = "spongeapi", version.ref = "sponge" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }

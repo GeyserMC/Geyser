@@ -115,10 +115,14 @@ public class GeyserSpigotInjector extends GeyserInjector {
 
         ChannelFuture channelFuture = (new ServerBootstrap()
                 .channel(LocalServerChannelWrapper.class)
-                .childHandler(new ChannelInitializer<Channel>() {
+                .childHandler(new ChannelInitializer<>() {
                     @Override
                     protected void initChannel(Channel ch) throws Exception {
                         initChannel.invoke(childHandler, ch);
+
+                        if (bootstrap.getGeyserConfig().isDisableCompression() && GeyserSpigotCompressionDisabler.ENABLED) {
+                            ch.pipeline().addAfter("encoder", "geyser-compression-disabler", new GeyserSpigotCompressionDisabler());
+                        }
                     }
                 })
                 // Set to MAX_PRIORITY as MultithreadEventLoopGroup#newDefaultThreadFactory which DefaultEventLoopGroup implements does by default

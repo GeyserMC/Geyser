@@ -77,7 +77,6 @@ public class PlayerEntity extends LivingEntity {
     }
 
     private String username;
-    private boolean playerList = true; // Player is in the player list
 
     /**
      * The textures property from the GameProfile.
@@ -416,5 +415,12 @@ public class PlayerEntity extends LivingEntity {
             packet.getMetadata().put(EntityData.SCORE_TAG, "");
             session.sendUpstreamPacket(packet);
         }
+    }
+
+    /**
+     * @return the UUID that should be used when dealing with Bedrock's tab list.
+     */
+    public UUID getTabListUuid() {
+        return getUuid();
     }
 }
