@@ -375,7 +375,7 @@ public class ItemRegistryPopulator {
                             // and the last, if relevant. We then iterate over all those values and get their Bedrock equivalents
                             Integer lastBlockRuntimeId = entry.getValue().getLastBlockRuntimeId() == null ? firstBlockRuntimeId : entry.getValue().getLastBlockRuntimeId();
                             for (int i = firstBlockRuntimeId; i <= lastBlockRuntimeId; i++) {
-                                int bedrockBlockRuntimeId = blockMappings.getBedrockBlockId(i);
+                                int bedrockBlockRuntimeId = blockMappings.getVanillaBedrockBlockId(i);
                                 NbtMap blockTag = blockMappings.getBedrockBlockStates().get(bedrockBlockRuntimeId);
                                 String bedrockName = blockTag.getString("name");
                                 if (!bedrockName.equals(correctBedrockIdentifier)) {

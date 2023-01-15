@@ -47,6 +47,7 @@ public class BlockMappings {
     int blockStateVersion;
 
     int[] javaToBedrockBlocks;
+    int[] javaToVanillaBedrockBlocks;
 
     NbtList<NbtMap> bedrockBlockStates;
     int[] remappedVanillaIds;
@@ -66,6 +67,13 @@ public class BlockMappings {
             return bedrockAirId;
         }
         return this.javaToBedrockBlocks[state];
+    }
+
+    public int getVanillaBedrockBlockId(int state) {
+        if (state >= this.javaToVanillaBedrockBlocks.length) {
+            return bedrockAirId;
+        }
+        return this.javaToVanillaBedrockBlocks[state];
     }
 
     public int getItemFrame(NbtMap tag) {

@@ -164,6 +164,7 @@ public final class BlockRegistryPopulator {
             BiFunction<String, NbtMapBuilder, String> stateMapper = blockMappers.getOrDefault(palette.getKey(), emptyMapper);
 
             int[] javaToBedrockBlocks = new int[BLOCKS_JSON.size()];
+            int[] javaToVanillaBedrockBlocks = new int[BLOCKS_JSON.size()];
 
             Map<String, NbtMap> flowerPotBlocks = new Object2ObjectOpenHashMap<>();
             Object2IntMap<NbtMap> itemFrames = new Object2IntOpenHashMap<>();
@@ -175,11 +176,12 @@ public final class BlockRegistryPopulator {
                 javaRuntimeId++;
                 Map.Entry<String, JsonNode> entry = blocksIterator.next();
                 String javaId = entry.getKey();
+                int vanillaBedrockRuntimeId = blockStateOrderedMap.getOrDefault(buildBedrockState(entry.getValue(), stateVersion, stateMapper), -1);
 
                 int bedrockRuntimeId;
                 CustomBlockState blockStateOverride = BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get(javaRuntimeId);
                 if (blockStateOverride == null) {
-                    bedrockRuntimeId = blockStateOrderedMap.getOrDefault(buildBedrockState(entry.getValue(), stateVersion, stateMapper), -1);
+                    bedrockRuntimeId = vanillaBedrockRuntimeId;
                     if (bedrockRuntimeId == -1) {
                         throw new RuntimeException("Unable to find " + javaId + " Bedrock runtime ID! Built NBT tag: \n" +
                                 buildBedrockState(entry.getValue(), stateVersion, stateMapper));
@@ -218,6 +220,7 @@ public final class BlockRegistryPopulator {
                     flowerPotBlocks.put(cleanJavaIdentifier.intern(), blockStates.get(bedrockRuntimeId));
                 }
 
+                javaToVanillaBedrockBlocks[javaRuntimeId] = vanillaBedrockRuntimeId;
                 javaToBedrockBlocks[javaRuntimeId] = bedrockRuntimeId;
             }
 
@@ -252,6 +255,7 @@ public final class BlockRegistryPopulator {
 
             BlockRegistries.BLOCKS.register(palette.getKey().valueInt(), builder.blockStateVersion(stateVersion)
                     .javaToBedrockBlocks(javaToBedrockBlocks)
+                    .javaToVanillaBedrockBlocks(javaToVanillaBedrockBlocks)
                     .itemFrames(itemFrames)
                     .flowerPotBlocks(flowerPotBlocks)
                     .jigsawStateIds(jigsawStateIds)
