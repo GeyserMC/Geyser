@@ -41,7 +41,7 @@ public final class Constants {
 
     static final String SAVED_REFRESH_TOKEN_FILE = "saved-refresh-tokens.json";
 
-    public static final String GEYSER_NAMESPACE = "geyser:";
+    public static final String GEYSER_NAMESPACE = "geyser_custom";
 
     static {
         URI wsUri = null;

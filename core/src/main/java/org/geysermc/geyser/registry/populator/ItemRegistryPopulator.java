@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
@@ -375,6 +376,9 @@ public class ItemRegistryPopulator {
                             // and the last, if relevant. We then iterate over all those values and get their Bedrock equivalents
                             Integer lastBlockRuntimeId = entry.getValue().getLastBlockRuntimeId() == null ? firstBlockRuntimeId : entry.getValue().getLastBlockRuntimeId();
                             for (int i = firstBlockRuntimeId; i <= lastBlockRuntimeId; i++) {
+                                // For now we opt to preserve the pre custom block phase and just use the vanilla blocks in the creative inventory
+                                // In the future if we get the mappings for categories it we could put the custom blocks in the creative inventory
+                                // This would likely also require changes to recipe handling
                                 int bedrockBlockRuntimeId = blockMappings.getVanillaBedrockBlockId(i);
                                 NbtMap blockTag = blockMappings.getBedrockBlockStates().get(bedrockBlockRuntimeId);
                                 String bedrockName = blockTag.getString("name");
@@ -504,7 +508,7 @@ public class ItemRegistryPopulator {
                     for (CustomItemData customItem : customItemsToLoad) {
                         int customProtocolId = nextFreeBedrockId++;
 
-                        String customItemName = "geyser_custom:" + customItem.name();
+                        String customItemName = Constants.GEYSER_NAMESPACE + ":" + customItem.name();
                         if (!registeredItemNames.add(customItemName)) {
                             if (firstMappingsPass) {
                                 GeyserImpl.getInstance().getLogger().error("Custom item name '" + customItem.name() + "' already exists and was registered again! Skipping...");
