@@ -76,15 +76,18 @@ public class BlockInventoryHolder extends InventoryHolder {
         // (This could be a virtual inventory that the player is opening)
         if (checkInteractionPosition(session)) {
             // Then, check to see if the interacted block is valid for this inventory by ensuring the block state identifier is valid
+            // and the bedrock block is vanilla
             int javaBlockId = session.getGeyser().getWorldManager().getBlockAt(session, session.getLastInteractionBlockPosition());
-            String[] javaBlockString = BlockRegistries.JAVA_IDENTIFIERS.get().getOrDefault(javaBlockId, "minecraft:air").split("\\[");
-            if (isValidBlock(javaBlockString)) {
-                // We can safely use this block
-                inventory.setHolderPosition(session.getLastInteractionBlockPosition());
-                ((Container) inventory).setUsingRealBlock(true, javaBlockString[0]);
-                setCustomName(session, session.getLastInteractionBlockPosition(), inventory, javaBlockId);
+            if (!BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get().containsKey(javaBlockId)) {
+                String[] javaBlockString = BlockRegistries.JAVA_IDENTIFIERS.get().getOrDefault(javaBlockId, "minecraft:air").split("\\[");
+                if (isValidBlock(javaBlockString)) {
+                    // We can safely use this block
+                    inventory.setHolderPosition(session.getLastInteractionBlockPosition());
+                    ((Container) inventory).setUsingRealBlock(true, javaBlockString[0]);
+                    setCustomName(session, session.getLastInteractionBlockPosition(), inventory, javaBlockId);
 
-                return true;
+                    return true;
+                }
             }
         }
 
@@ -96,7 +99,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(position);
-        blockPacket.setRuntimeId(session.getBlockMappings().getBedrockBlockId(defaultJavaBlockState));
+        blockPacket.setRuntimeId(session.getBlockMappings().getVanillaBedrockBlockId(defaultJavaBlockState));
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
         inventory.setHolderPosition(position);
