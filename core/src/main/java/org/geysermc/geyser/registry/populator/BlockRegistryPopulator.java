@@ -74,14 +74,6 @@ public final class BlockRegistryPopulator {
      */
     private static JsonNode BLOCKS_JSON;
 
-    public static void populate() {
-        registerJavaBlocks();
-        // CustomBlockRegistryPopulator.registerCustomBedrockBlocks() and registerBedrockBlocks() moved to BlockRegistries to ensure correct load order
-
-        // Needs to be placed somewhere at some point 
-        //BLOCKS_JSON = null;
-    }
-
     public static void registerBedrockBlocks() {
         BiFunction<String, NbtMapBuilder, String> emptyMapper = (bedrockIdentifier, statesBuilder) -> null;
         ImmutableMap<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> blockMappers = ImmutableMap.<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>>builder()
@@ -262,9 +254,11 @@ public final class BlockRegistryPopulator {
                     .customBlockStateIds(customBlockStateIds)
                     .build());
         }
+
+        BLOCKS_JSON = null;
     }
 
-    private static void registerJavaBlocks() {
+    public static void registerJavaBlocks() {
         JsonNode blocksJson;
         try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource("mappings/blocks.json")) {
             blocksJson = GeyserImpl.JSON_MAPPER.readTree(stream);

@@ -118,7 +118,7 @@ public class BlockRegistries {
 
     static {
         CustomSkullRegistryPopulator.populate();
-        BlockRegistryPopulator.populate();
+        BlockRegistryPopulator.registerJavaBlocks();
         COLLISIONS = IntMappedRegistry.create(Pair.of("org.geysermc.geyser.translator.collision.CollisionRemapper", "mappings/collision.json"), CollisionRegistryLoader::new);
         CustomBlockRegistryPopulator.registerCustomBedrockBlocks();
         BlockRegistryPopulator.registerBedrockBlocks();
