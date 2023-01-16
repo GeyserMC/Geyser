@@ -254,15 +254,12 @@ public class CustomBlockRegistryPopulator {
         }
         if (components.lightEmission() != null) {
             builder.putCompound("minecraft:light_emission", NbtMap.builder()
-                    .putInt("value", components.lightEmission())
+                    .putByte("emission", components.lightEmission().byteValue())
                     .build());
         }
-        // This is supposed to be sent as "light_dampening" since "block_light_filter" is the old value
-        // However, it seems they forgot to actually update it on the network despite all the documentation changing
-        // So we'll send this for now
         if (components.lightDampening() != null) {
-            builder.putCompound("minecraft:block_light_filter", NbtMap.builder()
-                    .putByte("value", components.lightDampening().byteValue())
+            builder.putCompound("minecraft:light_dampening", NbtMap.builder()
+                    .putByte("lightLevel", components.lightDampening().byteValue())
                     .build());
         }
         if (components.rotation() != null) {
