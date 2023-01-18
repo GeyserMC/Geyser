@@ -25,10 +25,11 @@
 
 package org.geysermc.geyser.level.block;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
+import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import lombok.Value;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
@@ -37,11 +38,9 @@ import org.geysermc.geyser.api.block.custom.component.RotationComponent;
 import org.geysermc.geyser.api.block.custom.component.placementfilter.PlacementFilter;
 import org.jetbrains.annotations.NotNull;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import lombok.Value;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 @Value
 public class GeyserCustomBlockComponents implements CustomBlockComponents {

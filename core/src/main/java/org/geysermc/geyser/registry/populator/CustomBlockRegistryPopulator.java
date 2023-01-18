@@ -1,11 +1,11 @@
 package org.geysermc.geyser.registry.populator;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
+import com.nukkitx.protocol.bedrock.data.BlockPropertyData;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
@@ -15,8 +15,8 @@ import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
-import org.geysermc.geyser.api.block.custom.component.placementfilter.PlacementFilter;
 import org.geysermc.geyser.api.block.custom.component.placementfilter.Conditions.Face;
+import org.geysermc.geyser.api.block.custom.component.placementfilter.PlacementFilter;
 import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
 import org.geysermc.geyser.api.block.custom.property.PropertyType;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBlocksEvent;
@@ -25,13 +25,11 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.CustomSkull;
 
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
-import com.nukkitx.protocol.bedrock.data.BlockPropertyData;
-
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class CustomBlockRegistryPopulator {
 
@@ -39,7 +37,7 @@ public class CustomBlockRegistryPopulator {
      * Registers all custom blocks defined by extensions and user supplied mappings
      */
     public static void registerCustomBedrockBlocks() {
-        if (!GeyserImpl.getInstance().getConfig().isAddCustomBlocks()) {
+        if (!GeyserImpl.getInstance().getConfig().isAddNonBedrockItems()) {
             return;
         }
         Set<String> customBlockNames = new ObjectOpenHashSet<>();

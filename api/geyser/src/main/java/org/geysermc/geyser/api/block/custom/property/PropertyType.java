@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.api.block.custom.property;
 
-import lombok.Getter;
-
 /**
  * This class is used to define a custom block property's type.
  */
@@ -35,8 +33,11 @@ public class PropertyType {
     public static final PropertyType INTEGER = new PropertyType(Integer.class);
     public static final PropertyType STRING = new PropertyType(String.class);
 
-    @Getter
     private final Class<?> typeClass;
+
+    public Class<?> getTypeClass() {
+        return typeClass;
+    }
 
     private PropertyType(Class<?> typeClass) {
         this.typeClass = typeClass;

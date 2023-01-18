@@ -31,5 +31,4 @@ import org.checkerframework.checker.nullness.qual.NonNull;
  * This class is used to store a material instance for a custom block.
  */
 public record MaterialInstance(@NonNull String texture, @NonNull String renderMethod, boolean faceDimming, boolean ambientOcclusion) {
-
 }

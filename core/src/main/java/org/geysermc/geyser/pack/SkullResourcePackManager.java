@@ -73,7 +73,7 @@ public class SkullResourcePackManager {
 
         Path packPath = cachePath.resolve("player_skulls.mcpack");
         File packFile = packPath.toFile();
-        if (BlockRegistries.CUSTOM_SKULLS.get().isEmpty() || !GeyserImpl.getInstance().getConfig().isAddCustomSkullBlocks()) {
+        if (BlockRegistries.CUSTOM_SKULLS.get().isEmpty() || !GeyserImpl.getInstance().getConfig().isAddNonBedrockItems()) {
             packFile.delete(); // No need to keep resource pack
             return null;
         }

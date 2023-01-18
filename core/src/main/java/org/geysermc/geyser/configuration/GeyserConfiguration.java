@@ -93,10 +93,6 @@ public interface GeyserConfiguration {
 
     boolean isAddNonBedrockItems();
 
-    boolean isAddCustomBlocks();
-
-    boolean isAddCustomSkullBlocks();
-
     boolean isAboveBedrockNetherBuilding();
 
     boolean isForceResourcePacks();

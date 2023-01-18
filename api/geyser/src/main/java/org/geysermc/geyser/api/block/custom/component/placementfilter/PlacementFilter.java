@@ -33,5 +33,4 @@ import org.checkerframework.checker.nullness.qual.NonNull;
  * This class is used to store a placement filter for a custom block.
  */
 public record PlacementFilter(@NonNull List<Conditions> conditions) {
-
 }

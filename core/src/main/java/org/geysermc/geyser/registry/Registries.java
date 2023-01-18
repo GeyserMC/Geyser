@@ -36,7 +36,6 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import com.nukkitx.protocol.bedrock.data.inventory.PotionMixData;
-
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -44,7 +43,16 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.item.Enchantment.JavaEnchantment;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
-import org.geysermc.geyser.registry.loader.*;
+import org.geysermc.geyser.registry.loader.BiomeIdentifierRegistryLoader;
+import org.geysermc.geyser.registry.loader.BlockEntityRegistryLoader;
+import org.geysermc.geyser.registry.loader.EnchantmentRegistryLoader;
+import org.geysermc.geyser.registry.loader.ParticleTypesRegistryLoader;
+import org.geysermc.geyser.registry.loader.PotionMixRegistryLoader;
+import org.geysermc.geyser.registry.loader.ProviderRegistryLoader;
+import org.geysermc.geyser.registry.loader.RegistryLoaders;
+import org.geysermc.geyser.registry.loader.SoundEventsRegistryLoader;
+import org.geysermc.geyser.registry.loader.SoundRegistryLoader;
+import org.geysermc.geyser.registry.loader.SoundTranslatorRegistryLoader;
 import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.populator.PacketRegistryPopulator;
 import org.geysermc.geyser.registry.populator.RecipeRegistryPopulator;
@@ -58,7 +66,11 @@ import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
 import org.geysermc.geyser.translator.sound.SoundInteractionTranslator;
 import org.geysermc.geyser.translator.sound.SoundTranslator;
 
-import java.util.*;
+import java.util.EnumMap;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Holds all the common registries in Geyser.
