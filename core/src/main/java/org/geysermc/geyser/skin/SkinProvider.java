@@ -26,9 +26,6 @@
 package org.geysermc.geyser.skin;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntArrayTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import it.unimi.dsi.fastutil.bytes.ByteArrays;
@@ -172,14 +169,13 @@ public class SkinProvider {
     /**
      * If skin data fails to apply, or there is no skin data to apply, determine what skin we should give as a fallback.
      */
-    static SkinData determineFallbackSkinData(PlayerEntity entity) {
+    static SkinData determineFallbackSkinData(UUID uuid) {
         Skin skin = null;
         Cape cape = null;
         SkinGeometry geometry = SkinGeometry.WIDE;
 
         if (GeyserImpl.getInstance().getConfig().getRemote().authType() != AuthType.ONLINE) {
             // Let's see if this player is a Bedrock player, and if so, let's pull their skin.
-            UUID uuid = entity.getUuid();
             GeyserSession session = GeyserImpl.getInstance().connectionByUuid(uuid);
             if (session != null) {
                 String skinId = session.getClientData().getSkinId();
@@ -192,7 +188,7 @@ public class SkinProvider {
 
         if (skin == null) {
             // We don't have a skin for the player right now. Fall back to a default.
-            ProvidedSkins.ProvidedSkin providedSkin = ProvidedSkins.getDefaultPlayerSkin(entity.getUuid());
+            ProvidedSkins.ProvidedSkin providedSkin = ProvidedSkins.getDefaultPlayerSkin(uuid);
             skin = providedSkin.getData();
             geometry = providedSkin.isSlim() ? SkinProvider.SkinGeometry.SLIM : SkinProvider.SkinGeometry.WIDE;
         }
@@ -232,7 +228,7 @@ public class SkinProvider {
         SkinManager.GameProfileData data = SkinManager.GameProfileData.from(entity);
         if (data == null) {
             // This player likely does not have a textures property
-            return CompletableFuture.completedFuture(determineFallbackSkinData(entity));
+            return CompletableFuture.completedFuture(determineFallbackSkinData(entity.getUuid()));
         }
 
         return requestSkinAndCape(entity.getUuid(), data.skinUrl(), data.capeUrl())
@@ -597,54 +593,60 @@ public class SkinProvider {
     }
 
     /**
-     * If a skull has a username but no textures, request them.
+     * Request textures from a player's UUID
      *
-     * @param skullOwner the CompoundTag of the skull with no textures
+     * @param uuid the player's UUID without any hyphens
      * @return a completable GameProfile with textures included
      */
-    public static CompletableFuture<String> requestTexturesFromUsername(CompoundTag skullOwner) {
+    public static CompletableFuture<String> requestTexturesFromUUID(String uuid) {
         return CompletableFuture.supplyAsync(() -> {
-            Tag uuidTag = skullOwner.get("Id");
-            String uuidToString = "";
-            JsonNode node;
-            boolean retrieveUuidFromInternet = !(uuidTag instanceof IntArrayTag); // also covers null check
-
-            if (!retrieveUuidFromInternet) {
-                int[] uuidAsArray = ((IntArrayTag) uuidTag).getValue();
-                // thank u viaversion
-                UUID uuid = new UUID((long) uuidAsArray[0] << 32 | ((long) uuidAsArray[1] & 0xFFFFFFFFL),
-                        (long) uuidAsArray[2] << 32 | ((long) uuidAsArray[3] & 0xFFFFFFFFL));
-                retrieveUuidFromInternet = uuid.version() != 4;
-                uuidToString = uuid.toString().replace("-", "");
-            }
-
             try {
-                if (retrieveUuidFromInternet) {
-                    // Offline skin, or no present UUID
-                    node = WebUtils.getJson("https://api.mojang.com/users/profiles/minecraft/" + skullOwner.get("Name").getValue());
-                    JsonNode id = node.get("id");
-                    if (id == null) {
-                        GeyserImpl.getInstance().getLogger().debug("No UUID found in Mojang response for " + skullOwner.get("Name").getValue());
-                        return null;
-                    }
-                    uuidToString = id.asText();
-                }
-
-                // Get textures from UUID
-                node = WebUtils.getJson("https://sessionserver.mojang.com/session/minecraft/profile/" + uuidToString);
+                JsonNode node = WebUtils.getJson("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
                 JsonNode properties = node.get("properties");
                 if (properties == null) {
-                    GeyserImpl.getInstance().getLogger().debug("No properties found in Mojang response for " + uuidToString);
+                    GeyserImpl.getInstance().getLogger().debug("No properties found in Mojang response for " + uuid);
                     return null;
                 }
                 return node.get("properties").get(0).get("value").asText();
             } catch (Exception e) {
+                GeyserImpl.getInstance().getLogger().debug("Unable to request textures for " + uuid);
                 if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
                     e.printStackTrace();
                 }
                 return null;
             }
         }, EXECUTOR_SERVICE);
+    }
+
+    /**
+     * Request textures from a player's username
+     *
+     * @param username the player's username
+     * @return a completable GameProfile with textures included
+     */
+    public static CompletableFuture<String> requestTexturesFromUsername(String username) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                // Offline skin, or no present UUID
+                JsonNode node = WebUtils.getJson("https://api.mojang.com/users/profiles/minecraft/" + username);
+                JsonNode id = node.get("id");
+                if (id == null) {
+                    GeyserImpl.getInstance().getLogger().debug("No UUID found in Mojang response for " + username);
+                    return null;
+                }
+                return id.asText();
+            } catch (Exception e) {
+                if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        }, EXECUTOR_SERVICE).thenCompose(uuid -> {
+            if (uuid == null) {
+                return CompletableFuture.completedFuture(null);
+            }
+            return requestTexturesFromUUID(uuid);
+        });
     }
 
     private static BufferedImage downloadImage(String imageUrl, CapeProvider provider) throws IOException {

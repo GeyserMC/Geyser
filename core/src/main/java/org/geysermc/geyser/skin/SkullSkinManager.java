@@ -73,7 +73,7 @@ public class SkullSkinManager extends SkinManager {
         if (data == null) {
             GeyserImpl.getInstance().getLogger().debug("Using fallback skin for skull.");
             // No texture available, fallback using the UUID
-            SkinProvider.SkinData fallback = SkinProvider.determineFallbackSkinData(entity);
+            SkinProvider.SkinData fallback = SkinProvider.determineFallbackSkinData(entity.getSkullUUID());
             applySkin.accept(fallback.skin(), null);
         } else {
             SkinProvider.requestSkin(entity.getUuid(), data.skinUrl(), true)

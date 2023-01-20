@@ -32,11 +32,13 @@ import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
+import lombok.Getter;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.skin.SkullSkinManager;
 
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -45,6 +47,9 @@ import java.util.concurrent.TimeUnit;
  * custom player skulls in Bedrock.
  */
 public class SkullPlayerEntity extends PlayerEntity {
+
+    @Getter
+    private UUID skullUUID;
 
     public SkullPlayerEntity(GeyserSession session, long geyserId) {
         super(session, 0, geyserId, UUID.randomUUID(), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, "", null);
@@ -102,11 +107,13 @@ public class SkullPlayerEntity extends PlayerEntity {
     }
 
     public void updateSkull(SkullCache.Skull skull) {
-        if (!skull.getTexturesProperty().equals(getTexturesProperty())) {
+        if (!Objects.equals(skull.getTexturesProperty(), getTexturesProperty()) ||
+            (skull.getTexturesProperty() == null && !Objects.equals(skullUUID, skull.getUuid()))) {
             // Make skull invisible as we change skins
             setFlag(EntityFlag.INVISIBLE, true);
             updateBedrockMetadata();
 
+            skullUUID = skull.getUuid();
             setTexturesProperty(skull.getTexturesProperty());
 
             SkullSkinManager.requestAndHandleSkin(this, session, (skin -> session.scheduleInEventLoop(() -> {

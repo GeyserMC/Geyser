@@ -69,7 +69,7 @@ public class SkinManager {
             // The server either didn't have a texture to send, or we didn't have the texture ID cached.
             // Let's see if this player is a Bedrock player, and if so, let's pull their skin.
             // Otherwise, grab the default player skin
-            SkinProvider.SkinData fallbackSkinData = SkinProvider.determineFallbackSkinData(playerEntity);
+            SkinProvider.SkinData fallbackSkinData = SkinProvider.determineFallbackSkinData(playerEntity.getUuid());
             if (skin == null) {
                 skin = fallbackSkinData.skin();
                 geometry = fallbackSkinData.geometry();
