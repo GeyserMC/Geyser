@@ -255,24 +255,29 @@ public class SkinManager {
          * @return The built GameProfileData
          */
         public static @Nullable GameProfileData from(PlayerEntity entity) {
-            try {
-                String texturesProperty = entity.getTexturesProperty();
+            String texturesProperty = entity.getTexturesProperty();
+            if (texturesProperty == null) {
+                // Likely offline mode
+                return null;
+            }
 
-                if (texturesProperty == null) {
-                    // Likely offline mode
-                    return null;
-                }
+            try {
                 return loadFromJson(texturesProperty);
             } catch (IOException exception) {
                 GeyserImpl.getInstance().getLogger().debug("Something went wrong while processing skin for " + entity.getUsername());
                 if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
                     exception.printStackTrace();
                 }
-                return null;
+            } catch (IllegalArgumentException exception) {
+                GeyserImpl.getInstance().getLogger().debug("Texture property is invalid for " + entity.getUsername() + " Value: " + texturesProperty);
+                if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
+                    exception.printStackTrace();
+                }
             }
+            return null;
         }
 
-        private static GameProfileData loadFromJson(String encodedJson) throws IOException {
+        private static GameProfileData loadFromJson(String encodedJson) throws IOException, IllegalArgumentException {
             JsonNode skinObject = GeyserImpl.JSON_MAPPER.readTree(new String(Base64.getDecoder().decode(encodedJson), StandardCharsets.UTF_8));
             JsonNode textures = skinObject.get("textures");
 
