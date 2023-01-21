@@ -57,52 +57,54 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         builder.put("SkullType", skullVariant);
     }
 
-    private static UUID getUUID(CompoundTag tag) {
-        CompoundTag owner = tag.get("SkullOwner");
-        if (owner != null) {
-            if (owner.get("Id") instanceof IntArrayTag uuidTag && uuidTag.length() == 4) {
-                int[] uuidAsArray = uuidTag.getValue();
-                // thank u viaversion
-                return new UUID((long) uuidAsArray[0] << 32 | ((long) uuidAsArray[1] & 0xFFFFFFFFL),
-                        (long) uuidAsArray[2] << 32 | ((long) uuidAsArray[3] & 0xFFFFFFFFL));
-            }
-            // Convert username to an offline uuid
-            String username = null;
-            if (owner.get("Name") instanceof StringTag nameTag) {
-                username = nameTag.getValue().toLowerCase(Locale.ROOT);
-            }
-            return UUID.nameUUIDFromBytes(("OfflinePlayer:" + username).getBytes(StandardCharsets.UTF_8));
+    private static UUID getUUID(CompoundTag owner) {
+        if (owner.get("Id") instanceof IntArrayTag uuidTag && uuidTag.length() == 4) {
+            int[] uuidAsArray = uuidTag.getValue();
+            // thank u viaversion
+            return new UUID((long) uuidAsArray[0] << 32 | ((long) uuidAsArray[1] & 0xFFFFFFFFL),
+                    (long) uuidAsArray[2] << 32 | ((long) uuidAsArray[3] & 0xFFFFFFFFL));
         }
-        return null;
+        // Convert username to an offline UUID
+        String username = null;
+        if (owner.get("Name") instanceof StringTag nameTag) {
+            username = nameTag.getValue().toLowerCase(Locale.ROOT);
+        }
+        return UUID.nameUUIDFromBytes(("OfflinePlayer:" + username).getBytes(StandardCharsets.UTF_8));
     }
 
-    private static CompletableFuture<String> getTextures(CompoundTag tag, UUID uuid) {
-        CompoundTag owner = tag.get("SkullOwner");
-        if (owner != null) {
-            CompoundTag properties = owner.get("Properties");
-            if (properties == null) {
-                if (uuid != null && uuid.version() == 4) {
-                    String uuidString = uuid.toString().replace("-", "");
-                    return SkinProvider.requestTexturesFromUUID(uuidString);
-                } else if (owner.get("Name") instanceof StringTag nameTag) {
-                    // Fall back to username if UUID was missing or was an offline mode UUID
-                    return SkinProvider.requestTexturesFromUsername(nameTag.getValue());
-                }
-                return CompletableFuture.completedFuture(null);
+    private static CompletableFuture<String> getTextures(CompoundTag owner, UUID uuid) {
+        CompoundTag properties = owner.get("Properties");
+        if (properties == null) {
+            if (uuid != null && uuid.version() == 4) {
+                String uuidString = uuid.toString().replace("-", "");
+                return SkinProvider.requestTexturesFromUUID(uuidString);
+            } else if (owner.get("Name") instanceof StringTag nameTag) {
+                // Fall back to username if UUID was missing or was an offline mode UUID
+                return SkinProvider.requestTexturesFromUsername(nameTag.getValue());
             }
-
-            ListTag textures = properties.get("textures");
-            LinkedHashMap<?,?> tag1 = (LinkedHashMap<?,?>) textures.get(0).getValue();
-            StringTag texture = (StringTag) tag1.get("Value");
-            return CompletableFuture.completedFuture(texture.getValue());
+            return CompletableFuture.completedFuture(null);
         }
-        return CompletableFuture.completedFuture(null);
+
+        ListTag textures = properties.get("textures");
+        LinkedHashMap<?,?> tag1 = (LinkedHashMap<?,?>) textures.get(0).getValue();
+        StringTag texture = (StringTag) tag1.get("Value");
+        return CompletableFuture.completedFuture(texture.getValue());
     }
 
     public static void translateSkull(GeyserSession session, CompoundTag tag, int posX, int posY, int posZ, int blockState) {
         Vector3i blockPosition = Vector3i.from(posX, posY, posZ);
-        UUID uuid = getUUID(tag);
-        getTextures(tag, uuid).whenComplete((texturesProperty, throwable) -> {
+        CompoundTag owner = tag.get("SkullOwner");
+        if (owner == null) {
+            if (session.getEventLoop().inEventLoop()) {
+                session.getSkullCache().removeSkull(blockPosition);
+            } else {
+                session.executeInEventLoop(() -> session.getSkullCache().removeSkull(blockPosition));
+            }
+            return;
+        }
+
+        UUID uuid = getUUID(owner);
+        getTextures(owner, uuid).whenComplete((texturesProperty, throwable) -> {
             if (session.getEventLoop().inEventLoop()) {
                 session.getSkullCache().putSkull(blockPosition, uuid, texturesProperty, blockState);
             } else {
