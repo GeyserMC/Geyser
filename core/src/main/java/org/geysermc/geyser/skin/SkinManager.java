@@ -290,14 +290,23 @@ public class SkinManager {
                 return null;
             }
 
-            String skinUrl = skinTexture.get("url").asText().replace("http://", "https://");
+            String skinUrl;
+            JsonNode skinUrlNode = skinTexture.get("url");
+            if (skinUrlNode != null && skinUrlNode.isTextual()) {
+                skinUrl = skinUrlNode.asText().replace("http://", "https://");
+            } else {
+                return null;
+            }
 
             boolean isAlex = skinTexture.has("metadata");
 
             String capeUrl = null;
             JsonNode capeTexture = textures.get("CAPE");
             if (capeTexture != null) {
-                capeUrl = capeTexture.get("url").asText().replace("http://", "https://");
+                JsonNode capeUrlNode = capeTexture.get("url");
+                if (capeUrlNode != null && capeUrlNode.isTextual()) {
+                    capeUrl = capeUrlNode.asText().replace("http://", "https://");
+                }
             }
 
             return new GameProfileData(skinUrl, capeUrl, isAlex);
