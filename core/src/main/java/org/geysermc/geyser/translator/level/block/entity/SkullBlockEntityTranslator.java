@@ -95,11 +95,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         Vector3i blockPosition = Vector3i.from(posX, posY, posZ);
         CompoundTag owner = tag.get("SkullOwner");
         if (owner == null) {
-            if (session.getEventLoop().inEventLoop()) {
-                session.getSkullCache().removeSkull(blockPosition);
-            } else {
-                session.executeInEventLoop(() -> session.getSkullCache().removeSkull(blockPosition));
-            }
+            session.getSkullCache().removeSkull(blockPosition);
             return;
         }
 

@@ -35,6 +35,7 @@ import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerSkinPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -263,13 +264,12 @@ public class SkinManager {
 
             try {
                 return loadFromJson(texturesProperty);
-            } catch (IOException exception) {
-                GeyserImpl.getInstance().getLogger().debug("Something went wrong while processing skin for " + entity.getUsername());
-                if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
-                    exception.printStackTrace();
+            } catch (Exception exception) {
+                if (entity instanceof SkullPlayerEntity skullEntity) {
+                    GeyserImpl.getInstance().getLogger().debug("Something went wrong while processing skin for skull at " + skullEntity.getSkullPosition() + " with Value: " + texturesProperty);
+                } else {
+                    GeyserImpl.getInstance().getLogger().debug("Something went wrong while processing skin for " + entity.getUsername() + " with Value: " + texturesProperty);
                 }
-            } catch (IllegalArgumentException exception) {
-                GeyserImpl.getInstance().getLogger().debug("Texture property is invalid for " + entity.getUsername() + " Value: " + texturesProperty);
                 if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
                     exception.printStackTrace();
                 }

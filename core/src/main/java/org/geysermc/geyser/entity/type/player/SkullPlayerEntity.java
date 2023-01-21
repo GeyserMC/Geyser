@@ -26,6 +26,7 @@
 package org.geysermc.geyser.entity.type.player;
 
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.GameType;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
@@ -50,6 +51,9 @@ public class SkullPlayerEntity extends PlayerEntity {
 
     @Getter
     private UUID skullUUID;
+
+    @Getter
+    private Vector3i skullPosition;
 
     public SkullPlayerEntity(GeyserSession session, long geyserId) {
         super(session, 0, geyserId, UUID.randomUUID(), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, "", null);
@@ -107,6 +111,8 @@ public class SkullPlayerEntity extends PlayerEntity {
     }
 
     public void updateSkull(SkullCache.Skull skull) {
+        skullPosition = skull.getPosition();
+
         if (!Objects.equals(skull.getTexturesProperty(), getTexturesProperty()) ||
             (skull.getTexturesProperty() == null && !Objects.equals(skullUUID, skull.getUuid()))) {
             // Make skull invisible as we change skins
