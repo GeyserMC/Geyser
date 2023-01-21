@@ -113,8 +113,7 @@ public class SkullPlayerEntity extends PlayerEntity {
     public void updateSkull(SkullCache.Skull skull) {
         skullPosition = skull.getPosition();
 
-        if (!Objects.equals(skull.getTexturesProperty(), getTexturesProperty()) ||
-            (skull.getTexturesProperty() == null && !Objects.equals(skullUUID, skull.getUuid()))) {
+        if (!Objects.equals(skull.getTexturesProperty(), getTexturesProperty()) || !Objects.equals(skullUUID, skull.getUuid())) {
             // Make skull invisible as we change skins
             setFlag(EntityFlag.INVISIBLE, true);
             updateBedrockMetadata();
