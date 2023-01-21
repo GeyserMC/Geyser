@@ -58,6 +58,29 @@ pipeline {
                 )
             }
         }
+        
+        stage ('Publish') {
+            when {
+                anyOf {
+                    branch "master"
+                }
+            }
+
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'DOWNLOADS_PRIVATE_KEY', keyFileVariable: 'id_ecdsa')]) {
+                    sh '''
+                    # Get the version from gradle.properties
+                    version=$(cat gradle.properties | grep -o "version=[0-9\\.]*" | cut -d"=" -f2)
+
+                    # Copy over artifacts
+                    scp -B -o StrictHostKeyChecking=no -i ${id_ecdsa} bootstrap/**/build/libs/Geyser-*.jar build-upload@188.165.222.136:~/files/
+
+                    # Run the build script
+                    ssh -o StrictHostKeyChecking=no -i ${id_ecdsa} build-upload@188.165.222.136 ./handleBuild.sh geyser $version $BUILD_NUMBER $GIT_COMMIT
+                    '''
+                }
+            }
+        }
     }
 
     post {
