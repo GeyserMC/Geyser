@@ -1402,6 +1402,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     public void setServerRenderDistance(int renderDistance) {
+        // +1 is for Fabric and Spigot
+        // Without the client misses loading some chunks per https://github.com/GeyserMC/Geyser/issues/3490
+        // Fog still appears essentially normally
+        renderDistance = renderDistance + 1;
         this.serverRenderDistance = renderDistance;
 
         ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
