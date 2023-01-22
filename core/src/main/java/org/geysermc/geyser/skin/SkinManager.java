@@ -35,6 +35,7 @@ import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerSkinPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -69,7 +70,7 @@ public class SkinManager {
             // The server either didn't have a texture to send, or we didn't have the texture ID cached.
             // Let's see if this player is a Bedrock player, and if so, let's pull their skin.
             // Otherwise, grab the default player skin
-            SkinProvider.SkinData fallbackSkinData = SkinProvider.determineFallbackSkinData(playerEntity);
+            SkinProvider.SkinData fallbackSkinData = SkinProvider.determineFallbackSkinData(playerEntity.getUuid());
             if (skin == null) {
                 skin = fallbackSkinData.skin();
                 geometry = fallbackSkinData.geometry();
@@ -255,24 +256,28 @@ public class SkinManager {
          * @return The built GameProfileData
          */
         public static @Nullable GameProfileData from(PlayerEntity entity) {
-            try {
-                String texturesProperty = entity.getTexturesProperty();
+            String texturesProperty = entity.getTexturesProperty();
+            if (texturesProperty == null) {
+                // Likely offline mode
+                return null;
+            }
 
-                if (texturesProperty == null) {
-                    // Likely offline mode
-                    return null;
-                }
+            try {
                 return loadFromJson(texturesProperty);
-            } catch (IOException exception) {
-                GeyserImpl.getInstance().getLogger().debug("Something went wrong while processing skin for " + entity.getUsername());
+            } catch (Exception exception) {
+                if (entity instanceof SkullPlayerEntity skullEntity) {
+                    GeyserImpl.getInstance().getLogger().debug("Something went wrong while processing skin for skull at " + skullEntity.getSkullPosition() + " with Value: " + texturesProperty);
+                } else {
+                    GeyserImpl.getInstance().getLogger().debug("Something went wrong while processing skin for " + entity.getUsername() + " with Value: " + texturesProperty);
+                }
                 if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
                     exception.printStackTrace();
                 }
-                return null;
             }
+            return null;
         }
 
-        private static GameProfileData loadFromJson(String encodedJson) throws IOException {
+        private static GameProfileData loadFromJson(String encodedJson) throws IOException, IllegalArgumentException {
             JsonNode skinObject = GeyserImpl.JSON_MAPPER.readTree(new String(Base64.getDecoder().decode(encodedJson), StandardCharsets.UTF_8));
             JsonNode textures = skinObject.get("textures");
 
@@ -285,14 +290,23 @@ public class SkinManager {
                 return null;
             }
 
-            String skinUrl = skinTexture.get("url").asText().replace("http://", "https://");
+            String skinUrl;
+            JsonNode skinUrlNode = skinTexture.get("url");
+            if (skinUrlNode != null && skinUrlNode.isTextual()) {
+                skinUrl = skinUrlNode.asText().replace("http://", "https://");
+            } else {
+                return null;
+            }
 
             boolean isAlex = skinTexture.has("metadata");
 
             String capeUrl = null;
             JsonNode capeTexture = textures.get("CAPE");
             if (capeTexture != null) {
-                capeUrl = capeTexture.get("url").asText().replace("http://", "https://");
+                JsonNode capeUrlNode = capeTexture.get("url");
+                if (capeUrlNode != null && capeUrlNode.isTextual()) {
+                    capeUrl = capeUrlNode.asText().replace("http://", "https://");
+                }
             }
 
             return new GameProfileData(skinUrl, capeUrl, isAlex);
