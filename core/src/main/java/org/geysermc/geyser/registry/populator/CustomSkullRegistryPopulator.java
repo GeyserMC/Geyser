@@ -27,8 +27,10 @@ package org.geysermc.geyser.registry.populator;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import lombok.NonNull;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomSkullsEvent;
 import org.geysermc.geyser.configuration.GeyserCustomSkullConfiguration;
 import org.geysermc.geyser.pack.SkullResourcePackManager;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -69,58 +71,114 @@ public class CustomSkullRegistryPopulator {
 
         BlockRegistries.CUSTOM_SKULLS.set(new Object2ObjectOpenHashMap<>());
 
-        List<String> textures = new ArrayList<>(skullConfig.getTextures());
-        // TODO see if this can be cleaned up any better
-        for (String username : skullConfig.getPlayerUsernames()) {
-            try {
-                String texture = SkinProvider.requestTexturesFromUsername(username).get();
-                if (texture == null) {
-                    GeyserImpl.getInstance().getLogger().error("Unable to request skull textures for " + username + " This skull will not be added as a custom block.");
-                    continue;
+        List<String> profiles = new ArrayList<>(skullConfig.getPlayerProfiles());
+
+        List<String> usernames = new ArrayList<>(skullConfig.getPlayerUsernames());
+
+        List<String> uuids = new ArrayList<>(skullConfig.getPlayerUUIDs());
+
+        List<String> skinUrls = new ArrayList<>(skullConfig.getPlayerSkinUrls());
+
+        GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineCustomSkullsEvent() {
+            @Override
+            public void registerCustomSkull(@NonNull String texture, @NonNull SkullTextureType type) {
+                switch (type) {
+                    case USERNAME -> usernames.add(texture);
+                    case UUID -> uuids.add(texture);
+                    case PROFILE -> profiles.add(texture);
+                    case SKIN_URL -> skinUrls.add(texture);
                 }
-                textures.add(texture);
-            } catch (InterruptedException | ExecutionException e) {
-                GeyserImpl.getInstance().getLogger().error("Unable to request skull textures for " + username + " This skull will not be added as a custom block.", e);
+            }
+        });
+
+        for (String username : usernames) {
+            String profile = getProfileFromUsername(username);
+            if (profile != null) {
+                String skinUrl = getSkinUrl(profile);
+                if (skinUrl != null) {
+                    skinUrls.add(skinUrl);
+                }
             }
         }
-        for (String uuid : skullConfig.getPlayerUUIDs()) {
-            try {
-                String uuidDigits = uuid.replace("-", "");
-                if (uuidDigits.length() != 32) {
-                    GeyserImpl.getInstance().getLogger().error("Invalid skull uuid " + uuid + " This skull will not be added as a custom block.");
-                    continue;
+        for (String uuid : uuids) {
+            String profile = getProfileFromUuid(uuid);
+            if (profile != null) {
+                String skinUrl = getSkinUrl(profile);
+                if (skinUrl != null) {
+                    skinUrls.add(skinUrl);
                 }
-                String texture = SkinProvider.requestTexturesFromUUID(uuid).get();
-                if (texture == null) {
-                    GeyserImpl.getInstance().getLogger().error("Unable to request skull textures for " + uuid + " This skull will not be added as a custom block.");
-                    continue;
-                }
-                textures.add(texture);
-            } catch (InterruptedException | ExecutionException e) {
-                GeyserImpl.getInstance().getLogger().error("Unable to request skull textures for " + uuid + " This skull will not be added as a custom block.", e);
             }
         }
 
-        for (String texture : textures) {
+        for (String profile : profiles) {
+            String skinUrl = getSkinUrl(profile);
+            if (skinUrl != null) {
+                skinUrls.add(skinUrl);
+            }
+        }
+
+        for (String skinUrl : skinUrls) {
             try {
-                SkinManager.GameProfileData profileData = SkinManager.GameProfileData.loadFromJson(texture);
-                if (profileData == null) {
-                    GeyserImpl.getInstance().getLogger().warning("Skull texture " + texture + " contained no skins and will not be added as a custom block.");
-                    continue;
-                }
-                try {
-                    String skinUrl = profileData.skinUrl();
-                    String skinHash = skinUrl.substring(skinUrl.lastIndexOf("/") + 1);
-                    SkullResourcePackManager.cacheSkullSkin(skinUrl, skinHash);
-                    BlockRegistries.CUSTOM_SKULLS.register(skinHash, new CustomSkull(skinHash));
-                } catch (IOException e) {
-                    GeyserImpl.getInstance().getLogger().error("Failed to cache skin for skull texture " + texture + " This skull will not be added as a custom block.", e);
-                }
+                String skinHash = skinUrl.substring(skinUrl.lastIndexOf("/") + 1);
+                SkullResourcePackManager.cacheSkullSkin(skinUrl, skinHash);
+                BlockRegistries.CUSTOM_SKULLS.register(skinHash, new CustomSkull(skinHash));
             } catch (IOException e) {
-                GeyserImpl.getInstance().getLogger().error("Skull texture " + texture + " is invalid and will not be added as a custom block.", e);
+                GeyserImpl.getInstance().getLogger().error("Failed to cache skin for skull texture " + skinUrl + " This skull will not be added as a custom block.", e);
             }
         }
 
-        GeyserImpl.getInstance().getLogger().debug("Registered " + BlockRegistries.CUSTOM_SKULLS.get().size() + " custom skulls as custom blocks.");
+        GeyserImpl.getInstance().getLogger().info("Registered " + BlockRegistries.CUSTOM_SKULLS.get().size() + " custom skulls as custom blocks.");
+    }
+
+    /**
+     * Gets the skin URL from a base64 encoded profile
+     * @param profile the base64 encoded profile
+     * @return the skin URL or null if the profile is invalid
+     */
+    private static String getSkinUrl(String profile) {
+        try {
+            SkinManager.GameProfileData profileData = SkinManager.GameProfileData.loadFromJson(profile);
+            if (profileData == null) {
+                GeyserImpl.getInstance().getLogger().warning("Skull texture " + profile + " contained no skins and will not be added as a custom block.");
+                return null;
+            }
+            return profileData.skinUrl();
+        } catch (IOException e) {
+            GeyserImpl.getInstance().getLogger().error("Skull texture " + profile + " is invalid and will not be added as a custom block.", e);
+            return null;
+        }
+    }
+
+    /**
+     * Gets the base64 encoded profile from a player's username
+     * @param username the player username
+     * @return the base64 encoded profile or null if the request failed
+     */
+    private static String getProfileFromUsername(String username) {
+        try {
+            return SkinProvider.requestTexturesFromUsername(username).get();
+        } catch (InterruptedException | ExecutionException e) {
+            GeyserImpl.getInstance().getLogger().error("Unable to request skull textures for " + username + " This skull will not be added as a custom block.", e);
+            return null;
+        }
+    }
+
+    /**
+     * Gets the base64 encoded profile from a player's UUID
+     * @param uuid the player UUID
+     * @return the base64 encoded profile or null if the request failed
+     */
+    private static String getProfileFromUuid(String uuid) {
+        try {
+            String uuidDigits = uuid.replace("-", "");
+            if (uuidDigits.length() != 32) {
+                GeyserImpl.getInstance().getLogger().error("Invalid skull uuid " + uuid + " This skull will not be added as a custom block.");
+                return null;
+            }
+            return SkinProvider.requestTexturesFromUUID(uuid).get();
+        } catch (InterruptedException | ExecutionException e) {
+            GeyserImpl.getInstance().getLogger().error("Unable to request skull textures for " + uuid + " This skull will not be added as a custom block.", e);
+            return null;
+        }
     }
 }

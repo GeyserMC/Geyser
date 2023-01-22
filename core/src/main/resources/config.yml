@@ -165,16 +165,6 @@ custom-skull-render-distance: 32
 # This option requires a restart of Geyser in order to change its setting.
 add-non-bedrock-items: true
 
-# Whether to allow custom blocks to be added.
-# This should only need to be disabled if using a proxy that does not use the "transfer packet" style of server switching.
-add-custom-blocks: true
-
-# Whether to allow some custom skulls to be translated as custom blocks and displayed in the inventory and on entities.
-# This requires `add-custom-blocks` and `allow-custom-skulls` to be enabled.
-# This will generate a resource pack for Bedrock players and enables `force-resource-packs`.
-# Custom skulls can be added in `custom-skulls.yml`
-add-custom-skull-blocks: false
-
 # Bedrock prevents building and displaying blocks above Y127 in the Nether.
 # This config option works around that by changing the Nether dimension ID to the End ID. 
 # The main downside to this is that the entire Nether will have the same red fog rather than having different fog for each biome.

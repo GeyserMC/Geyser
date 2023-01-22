@@ -33,7 +33,7 @@ import org.geysermc.event.Event;
 /**
  * Called on Geyser's startup when looking for custom blocks. Custom blocks must be registered through this event.
  *
- * This event will not be called if the "add-custom-blocks" setting is disabled in the Geyser config.
+ * This event will not be called if the "add-non-bedrock-items" setting is disabled in the Geyser config.
  */
 public abstract class GeyserDefineCustomBlocksEvent implements Event {
 
