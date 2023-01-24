@@ -78,8 +78,9 @@ public class SkullCache {
         this.skullRenderDistanceSquared = distance * distance;
     }
 
-    public Skull putSkull(Vector3i position, String texturesProperty, int blockState) {
+    public Skull putSkull(Vector3i position, UUID uuid, String texturesProperty, int blockState) {
         Skull skull = skulls.computeIfAbsent(position, Skull::new);
+        skull.uuid = uuid;
         if (!texturesProperty.equals(skull.texturesProperty)) {
             skull.texturesProperty = texturesProperty;
             skull.skinHash = null;
@@ -147,7 +148,7 @@ public class SkullCache {
     public Skull updateSkull(Vector3i position, int blockState) {
         Skull skull = skulls.get(position);
         if (skull != null) {
-            putSkull(position, skull.texturesProperty, blockState);
+            putSkull(position, skull.uuid, skull.texturesProperty, blockState);
         }
         return skull;
     }
@@ -266,6 +267,7 @@ public class SkullCache {
     @RequiredArgsConstructor
     @Data
     public static class Skull {
+        private UUID uuid;
         private String texturesProperty;
         private String skinHash;
 

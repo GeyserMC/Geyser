@@ -29,11 +29,12 @@ import com.nukkitx.protocol.bedrock.data.skin.ImageData;
 import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.PlayerSkinPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Collections;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class SkullSkinManager extends SkinManager {
@@ -48,28 +49,37 @@ public class SkullSkinManager extends SkinManager {
         );
     }
 
-    public static void requestAndHandleSkin(PlayerEntity entity, GeyserSession session,
+    public static void requestAndHandleSkin(SkullPlayerEntity entity, GeyserSession session,
                                             Consumer<SkinProvider.Skin> skinConsumer) {
+        BiConsumer<SkinProvider.Skin, Throwable> applySkin = (skin, throwable) -> {
+            try {
+                PlayerSkinPacket packet = new PlayerSkinPacket();
+                packet.setUuid(entity.getUuid());
+                packet.setOldSkinName("");
+                packet.setNewSkinName(skin.getTextureUrl());
+                packet.setSkin(buildSkullEntryManually(skin.getTextureUrl(), skin.getSkinData()));
+                packet.setTrustedSkin(true);
+                session.sendUpstreamPacket(packet);
+            } catch (Exception e) {
+                GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), e);
+            }
+
+            if (skinConsumer != null) {
+                skinConsumer.accept(skin);
+            }
+        };
+
         GameProfileData data = GameProfileData.from(entity);
-
-        SkinProvider.requestSkin(entity.getUuid(), data.skinUrl(), true)
-                .whenCompleteAsync((skin, throwable) -> {
-                    try {
-                        PlayerSkinPacket packet = new PlayerSkinPacket();
-                        packet.setUuid(entity.getUuid());
-                        packet.setOldSkinName("");
-                        packet.setNewSkinName(skin.getTextureUrl());
-                        packet.setSkin(buildSkullEntryManually(skin.getTextureUrl(), skin.getSkinData()));
-                        packet.setTrustedSkin(true);
-                        session.sendUpstreamPacket(packet);
-                    } catch (Exception e) {
-                        GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), e);
-                    }
-
-                    if (skinConsumer != null) {
-                        skinConsumer.accept(skin);
-                    }
-                });
+        if (data == null) {
+            GeyserImpl.getInstance().getLogger().debug("Using fallback skin for skull at " + entity.getSkullPosition() +
+                    " with texture value: " + entity.getTexturesProperty() + " and UUID: " + entity.getSkullUUID());
+            // No texture available, fallback using the UUID
+            SkinProvider.SkinData fallback = SkinProvider.determineFallbackSkinData(entity.getSkullUUID());
+            applySkin.accept(fallback.skin(), null);
+        } else {
+            SkinProvider.requestSkin(entity.getUuid(), data.skinUrl(), true)
+                    .whenCompleteAsync(applySkin);
+        }
     }
 
 }

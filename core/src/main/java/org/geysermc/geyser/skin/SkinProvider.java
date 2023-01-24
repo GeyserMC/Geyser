@@ -26,9 +26,6 @@
 package org.geysermc.geyser.skin;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntArrayTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import it.unimi.dsi.fastutil.bytes.ByteArrays;
@@ -172,14 +169,13 @@ public class SkinProvider {
     /**
      * If skin data fails to apply, or there is no skin data to apply, determine what skin we should give as a fallback.
      */
-    static SkinData determineFallbackSkinData(PlayerEntity entity) {
+    static SkinData determineFallbackSkinData(UUID uuid) {
         Skin skin = null;
         Cape cape = null;
         SkinGeometry geometry = SkinGeometry.WIDE;
 
         if (GeyserImpl.getInstance().getConfig().getRemote().authType() != AuthType.ONLINE) {
             // Let's see if this player is a Bedrock player, and if so, let's pull their skin.
-            UUID uuid = entity.getUuid();
             GeyserSession session = GeyserImpl.getInstance().connectionByUuid(uuid);
             if (session != null) {
                 String skinId = session.getClientData().getSkinId();
@@ -192,7 +188,7 @@ public class SkinProvider {
 
         if (skin == null) {
             // We don't have a skin for the player right now. Fall back to a default.
-            ProvidedSkins.ProvidedSkin providedSkin = ProvidedSkins.getDefaultPlayerSkin(entity.getUuid());
+            ProvidedSkins.ProvidedSkin providedSkin = ProvidedSkins.getDefaultPlayerSkin(uuid);
             skin = providedSkin.getData();
             geometry = providedSkin.isSlim() ? SkinProvider.SkinGeometry.SLIM : SkinProvider.SkinGeometry.WIDE;
         }
@@ -232,7 +228,7 @@ public class SkinProvider {
         SkinManager.GameProfileData data = SkinManager.GameProfileData.from(entity);
         if (data == null) {
             // This player likely does not have a textures property
-            return CompletableFuture.completedFuture(determineFallbackSkinData(entity));
+            return CompletableFuture.completedFuture(determineFallbackSkinData(entity.getUuid()));
         }
 
         return requestSkinAndCape(entity.getUuid(), data.skinUrl(), data.capeUrl())
