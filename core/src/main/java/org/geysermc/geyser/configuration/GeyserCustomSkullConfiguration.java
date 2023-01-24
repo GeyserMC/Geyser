@@ -44,8 +44,8 @@ public class GeyserCustomSkullConfiguration {
     @JsonProperty("player-profiles")
     private List<String> playerProfiles;
 
-    @JsonProperty("skin-urls")
-    private List<String> skinUrls;
+    @JsonProperty("skin-hashes")
+    private List<String> skinHashes;
 
     public List<String> getPlayerUsernames() {
         return Objects.requireNonNullElse(playerUsernames, Collections.emptyList());
@@ -59,7 +59,7 @@ public class GeyserCustomSkullConfiguration {
         return Objects.requireNonNullElse(playerProfiles, Collections.emptyList());
     }
 
-    public List<String> getPlayerSkinUrls() {
-        return Objects.requireNonNullElse(skinUrls, Collections.emptyList());
+    public List<String> getPlayerSkinHashes() {
+        return Objects.requireNonNullElse(skinHashes, Collections.emptyList());
     }
 }

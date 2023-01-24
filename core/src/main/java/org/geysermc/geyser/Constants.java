@@ -43,6 +43,8 @@ public final class Constants {
 
     public static final String GEYSER_NAMESPACE = "geyser_custom";
 
+    public static final String MINECRAFT_SKIN_SERVER_URL = "http://textures.minecraft.net/texture/";
+
     static {
         URI wsUri = null;
         try {

@@ -16,12 +16,12 @@ public abstract class GeyserDefineCustomSkullsEvent implements Event {
         USERNAME,
         UUID,
         PROFILE,
-        SKIN_URL
+        SKIN_HASH
     }
 
     /**
-     * Registers the given username, UUID, or base64 encoded profile as a custom skull blocks
-     * @param texture the username, UUID, or base64 encoded profile
+     * Registers the given username, UUID, base64 encoded profile, or skin hash as a custom skull blocks
+     * @param texture the username, UUID, base64 encoded profile, or skin hash
      * @param type the type of texture provided
      */
     public abstract void registerCustomSkull(@NonNull String texture, @NonNull SkullTextureType type);

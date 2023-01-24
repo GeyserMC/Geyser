@@ -72,12 +72,9 @@ public class CustomSkullRegistryPopulator {
         BlockRegistries.CUSTOM_SKULLS.set(new Object2ObjectOpenHashMap<>());
 
         List<String> profiles = new ArrayList<>(skullConfig.getPlayerProfiles());
-
         List<String> usernames = new ArrayList<>(skullConfig.getPlayerUsernames());
-
         List<String> uuids = new ArrayList<>(skullConfig.getPlayerUUIDs());
-
-        List<String> skinUrls = new ArrayList<>(skullConfig.getPlayerSkinUrls());
+        List<String> skinHashes = new ArrayList<>(skullConfig.getPlayerSkinHashes());
 
         GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineCustomSkullsEvent() {
             @Override
@@ -86,63 +83,69 @@ public class CustomSkullRegistryPopulator {
                     case USERNAME -> usernames.add(texture);
                     case UUID -> uuids.add(texture);
                     case PROFILE -> profiles.add(texture);
-                    case SKIN_URL -> skinUrls.add(texture);
+                    case SKIN_HASH -> skinHashes.add(texture);
                 }
             }
         });
 
-        for (String username : usernames) {
+        usernames.forEach((username) -> {
             String profile = getProfileFromUsername(username);
             if (profile != null) {
-                String skinUrl = getSkinUrl(profile);
-                if (skinUrl != null) {
-                    skinUrls.add(skinUrl);
+                String skinHash = getSkinHash(profile);
+                if (skinHash != null) {
+                    skinHashes.add(skinHash);
                 }
             }
-        }
-        for (String uuid : uuids) {
+        });
+
+        uuids.forEach((uuid) -> {
             String profile = getProfileFromUuid(uuid);
             if (profile != null) {
-                String skinUrl = getSkinUrl(profile);
-                if (skinUrl != null) {
-                    skinUrls.add(skinUrl);
+                String skinHash = getSkinHash(profile);
+                if (skinHash != null) {
+                    skinHashes.add(skinHash);
                 }
             }
-        }
+        });
 
-        for (String profile : profiles) {
-            String skinUrl = getSkinUrl(profile);
-            if (skinUrl != null) {
-                skinUrls.add(skinUrl);
+        profiles.forEach((profile) -> {
+            String skinHash = getSkinHash(profile);
+            if (skinHash != null) {
+                skinHashes.add(skinHash);
             }
-        }
+        });
 
-        for (String skinUrl : skinUrls) {
+        skinHashes.forEach((skinHash) -> {
+            if (!skinHash.matches("^[a-fA-F0-9]{64}$")) {
+                GeyserImpl.getInstance().getLogger().error("Skin hash " + skinHash + " does not match required format ^[a-fA-F0-9]{64}$ and will not be added as a custom block.");
+                return;
+            }
+
             try {
-                String skinHash = skinUrl.substring(skinUrl.lastIndexOf("/") + 1);
-                SkullResourcePackManager.cacheSkullSkin(skinUrl, skinHash);
+                SkullResourcePackManager.cacheSkullSkin(skinHash);
                 BlockRegistries.CUSTOM_SKULLS.register(skinHash, new CustomSkull(skinHash));
             } catch (IOException e) {
-                GeyserImpl.getInstance().getLogger().error("Failed to cache skin for skull texture " + skinUrl + " This skull will not be added as a custom block.", e);
+                GeyserImpl.getInstance().getLogger().error("Failed to cache skin for skull texture " + skinHash + " This skull will not be added as a custom block.", e);
             }
-        }
+        });
 
         GeyserImpl.getInstance().getLogger().info("Registered " + BlockRegistries.CUSTOM_SKULLS.get().size() + " custom skulls as custom blocks.");
     }
 
     /**
-     * Gets the skin URL from a base64 encoded profile
+     * Gets the skin hash from a base64 encoded profile
      * @param profile the base64 encoded profile
-     * @return the skin URL or null if the profile is invalid
+     * @return the skin hash or null if the profile is invalid
      */
-    private static String getSkinUrl(String profile) {
+    private static String getSkinHash(String profile) {
         try {
             SkinManager.GameProfileData profileData = SkinManager.GameProfileData.loadFromJson(profile);
             if (profileData == null) {
                 GeyserImpl.getInstance().getLogger().warning("Skull texture " + profile + " contained no skins and will not be added as a custom block.");
                 return null;
             }
-            return profileData.skinUrl();
+            String skinUrl = profileData.skinUrl();
+            return skinUrl.substring(skinUrl.lastIndexOf("/") + 1);
         } catch (IOException e) {
             GeyserImpl.getInstance().getLogger().error("Skull texture " + profile + " is invalid and will not be added as a custom block.", e);
             return null;

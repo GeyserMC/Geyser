@@ -27,6 +27,7 @@ package org.geysermc.geyser.pack;
 
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.CustomSkull;
@@ -99,7 +100,8 @@ public class SkullResourcePackManager {
         return null;
     }
 
-    public static void cacheSkullSkin(String skinUrl, String skinHash) throws IOException {
+    public static void cacheSkullSkin(String skinHash) throws IOException {
+        String skinUrl = Constants.MINECRAFT_SKIN_SERVER_URL + skinHash;
         Path skinPath = SKULL_SKINS.get(skinHash);
         if (skinPath != null) {
             return;
