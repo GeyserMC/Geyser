@@ -67,7 +67,9 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.*;
+import com.nukkitx.protocol.bedrock.data.command.CommandEnumData;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
+import com.nukkitx.protocol.bedrock.data.command.SoftEnumUpdateType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.*;
 import io.netty.channel.Channel;
@@ -1894,5 +1896,20 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         transferPacket.setPort(port);
         sendUpstreamPacket(transferPacket);
         return true;
+    }
+
+    public void addCommandEnum(String name, String... enums) {
+        softEnumPacket(name, SoftEnumUpdateType.ADD, enums);
+    }
+
+    public void removeCommandEnum(String name, String... enums) {
+        softEnumPacket(name, SoftEnumUpdateType.REMOVE, enums);
+    }
+
+    private void softEnumPacket(String name, SoftEnumUpdateType type, String... enums) {
+        UpdateSoftEnumPacket packet = new UpdateSoftEnumPacket();
+        packet.setType(type);
+        packet.setSoftEnum(new CommandEnumData(name, enums, true));
+        sendUpstreamPacket(packet);
     }
 }

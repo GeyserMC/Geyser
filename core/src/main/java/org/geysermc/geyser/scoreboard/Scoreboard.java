@@ -37,6 +37,7 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.jetbrains.annotations.Contract;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -132,6 +133,10 @@ public final class Scoreboard {
         team = new Team(this, teamName);
         team.addEntities(players);
         teams.put(teamName, team);
+
+        // Update command parameters - is safe to send even if the command enum doesn't exist on the client (as of 1.19.51)
+        session.addCommandEnum("Geyser_Teams", team.getId());
+
         return team;
     }
 
@@ -343,7 +348,14 @@ public final class Scoreboard {
             // We need to use the direct entities list here, so #refreshSessionPlayerDisplays also updates accordingly
             // With the player's lack of a team in visibility checks
             updateEntityNames(remove, remove.getEntities(), true);
+
+            session.removeCommandEnum("Geyser_Teams", remove.getId());
         }
+    }
+
+    @Contract("-> new")
+    public String[] getTeamNames() {
+        return teams.keySet().toArray(new String[0]);
     }
 
     /**
