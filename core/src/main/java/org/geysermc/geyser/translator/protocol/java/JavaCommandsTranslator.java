@@ -240,6 +240,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             case RESOURCE -> handleResource(context, ((ResourceProperties) node.getProperties()).getRegistryKey(), false);
             case RESOURCE_OR_TAG -> handleResource(context, ((ResourceProperties) node.getProperties()).getRegistryKey(), true);
             case DIMENSION -> context.session.getLevels();
+            case TEAM -> context.getTeams(); // Note: as of Java 1.19.3, objectives are currently parsed from the server
             default -> CommandParam.STRING;
         };
     }
@@ -271,6 +272,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         private Object biomesNoTags;
         private String[] blockStates;
         private String[] entityTypes;
+        private CommandEnumData teams;
 
         CommandBuilderContext(GeyserSession session) {
             this.session = session;
@@ -306,6 +308,14 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                 return entityTypes;
             }
             return (entityTypes = Registries.JAVA_ENTITY_IDENTIFIERS.get().keySet().toArray(new String[0]));
+        }
+
+        private CommandEnumData getTeams() {
+            if (teams != null) {
+                return teams;
+            }
+            return (teams = new CommandEnumData("Geyser_Teams",
+                    session.getWorldCache().getScoreboard().getTeamNames(), true));
         }
     }
 
@@ -376,7 +386,10 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                     CommandEnumData enumData = null;
                     CommandParam type = null;
                     boolean optional = this.paramNode.isExecutable();
-                    if (mappedType instanceof String[]) {
+                    if (mappedType instanceof CommandEnumData) {
+                        // Likely to specify isSoft, to be possibly updated later.
+                        enumData = (CommandEnumData) mappedType;
+                    } else if (mappedType instanceof String[]) {
                         enumData = new CommandEnumData(getEnumDataName(paramNode).toLowerCase(Locale.ROOT), (String[]) mappedType, false);
                     } else {
                         type = (CommandParam) mappedType;
