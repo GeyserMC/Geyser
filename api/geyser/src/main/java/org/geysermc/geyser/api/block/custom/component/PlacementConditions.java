@@ -21,16 +21,33 @@
  *
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
- */
+*/
 
-package org.geysermc.geyser.api.block.custom.component.placementfilter;
+package org.geysermc.geyser.api.block.custom.component;
 
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Set;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 /*
- * This class is used to store a placement filter for a custom block.
+ * This class is used to store conditions for a placement filter for a custom block.
  */
-public record PlacementFilter(@NonNull List<Conditions> conditions) {
+public record PlacementConditions(@NonNull Set<Face> allowedFaces, @NonNull LinkedHashMap<String, BlockFilterType> blockFilters) {
+    public enum Face {
+        DOWN(1),
+        UP(2),
+        NORTH(4),
+        SOUTH(8),
+        WEST(16),
+        EAST(32);
+
+        Face(int value) {
+            value = (byte) value;
+        }
+    }
+    public enum BlockFilterType {
+        BLOCK,
+        TAG
+    }
 }

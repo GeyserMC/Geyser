@@ -26,8 +26,8 @@
 package org.geysermc.geyser.api.block.custom.component;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.block.custom.component.placementfilter.PlacementFilter;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -78,11 +78,11 @@ public interface CustomBlockComponents {
 
     /**
      * Gets the placement filter component
-     * Equivalent to "minecraft:material_instances"
+     * Equivalent to "minecraft:placement_filter"
      *
      * @return The placement filter.
      */
-    PlacementFilter placementFilter();
+    List<PlacementConditions> placementFilter();
 
     /**
      * Gets the destructible by mining component
@@ -159,7 +159,7 @@ public interface CustomBlockComponents {
 
         Builder materialInstance(@NonNull String name, @NonNull MaterialInstance materialInstance);
 
-        Builder placementFilter(PlacementFilter placementFilter);
+        Builder placementFilter(List<PlacementConditions> placementConditions);
 
         Builder destructibleByMining(Float destructibleByMining);
 

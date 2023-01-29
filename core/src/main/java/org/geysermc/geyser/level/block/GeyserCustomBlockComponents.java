@@ -34,11 +34,12 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
+import org.geysermc.geyser.api.block.custom.component.PlacementConditions;
 import org.geysermc.geyser.api.block.custom.component.RotationComponent;
-import org.geysermc.geyser.api.block.custom.component.placementfilter.PlacementFilter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -49,7 +50,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     String displayName;
     String geometry;
     Map<String, MaterialInstance> materialInstances;
-    PlacementFilter placementFilter;
+    List<PlacementConditions> placementFilter;
     Float destructibleByMining;
     Float friction;
     Integer lightEmission;
@@ -110,7 +111,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     }
 
     @Override
-    public PlacementFilter placementFilter() {
+    public List<PlacementConditions> placementFilter() {
         return placementFilter;
     }
 
@@ -160,7 +161,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         protected String displayName;
         protected String geometry;
         protected final Object2ObjectMap<String, MaterialInstance> materialInstances = new Object2ObjectOpenHashMap<>();
-        protected PlacementFilter placementFilter;
+        protected List<PlacementConditions> placementFilter;
         protected Float destructibleByMining;
         protected Float friction;
         protected Integer lightEmission;
@@ -221,7 +222,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         }
 
         @Override
-        public Builder placementFilter(PlacementFilter placementFilter) {
+        public Builder placementFilter(List<PlacementConditions> placementFilter) {
             this.placementFilter = placementFilter;
             return this;
         }

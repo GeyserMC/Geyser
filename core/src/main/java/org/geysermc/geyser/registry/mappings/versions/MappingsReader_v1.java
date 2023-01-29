@@ -35,13 +35,12 @@ import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockPermutation;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.component.BoxComponent;
+import org.geysermc.geyser.api.block.custom.component.PlacementConditions;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.component.RotationComponent;
-import org.geysermc.geyser.api.block.custom.component.placementfilter.Conditions;
-import org.geysermc.geyser.api.block.custom.component.placementfilter.PlacementFilter;
-import org.geysermc.geyser.api.block.custom.component.placementfilter.Conditions.BlockFilterType;
-import org.geysermc.geyser.api.block.custom.component.placementfilter.Conditions.Face;
+import org.geysermc.geyser.api.block.custom.component.PlacementConditions.BlockFilterType;
+import org.geysermc.geyser.api.block.custom.component.PlacementConditions.Face;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
@@ -53,7 +52,9 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.mappings.util.BlockPropertyTypeMaps;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
 import org.geysermc.geyser.registry.type.BlockMapping;
+import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.util.BlockUtils;
+import org.geysermc.geyser.util.MathUtils;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -419,10 +420,50 @@ public class MappingsReader_v1 extends MappingsReader {
     private CustomBlockComponents createCustomBlockComponents(JsonNode node, String stateKey, String name) {
         // This is needed to find the correct selection box for the given block
         int id = BlockRegistries.JAVA_IDENTIFIERS.getOrDefault(stateKey, -1);
-
         CustomBlockComponentsBuilder builder = new CustomBlockComponentsBuilder();
         BoxComponent boxComponent = createBoxComponent(id);
-        builder.selectionBox(boxComponent).collisionBox(boxComponent);
+
+        BoxComponent selectionBox = boxComponent;
+        if (node.has("selection_box")) {
+            JsonNode selectionBoxNode = node.get("selection_box");
+            if (selectionBoxNode.isObject()) {
+                if (selectionBoxNode.has("origin") && selectionBoxNode.has("size")) {
+                    JsonNode origin = selectionBoxNode.get("origin");
+                    int originX = origin.get(0).intValue();
+                    int originY = origin.get(1).intValue();
+                    int originZ = origin.get(2).intValue();
+
+                    JsonNode size = selectionBoxNode.get("size");
+                    int sizeX = size.get(0).intValue();
+                    int sizeY = size.get(1).intValue();
+                    int sizeZ = size.get(2).intValue();
+
+                    selectionBox = new BoxComponent(originX, originY, originZ, sizeX, sizeY, sizeZ);
+                }
+            }
+        }
+        builder.selectionBox(selectionBox);
+
+        BoxComponent collisionBox = boxComponent;
+        if (node.has("collision_box")) {
+            JsonNode collisionBoxNode = node.get("collision_box");
+            if (collisionBoxNode.isObject()) {
+                if (collisionBoxNode.has("origin") && collisionBoxNode.has("size")) {
+                    JsonNode origin = collisionBoxNode.get("origin");
+                    int originX = origin.get(0).intValue();
+                    int originY = origin.get(1).intValue();
+                    int originZ = origin.get(2).intValue();
+
+                    JsonNode size = collisionBoxNode.get("size");
+                    int sizeX = size.get(0).intValue();
+                    int sizeY = size.get(1).intValue();
+                    int sizeZ = size.get(2).intValue();
+
+                    collisionBox = new BoxComponent(originX, originY, originZ, sizeX, sizeY, sizeZ);
+                }
+            }
+        }
+        builder.collisionBox(collisionBox);
 
         // Ideally we would just be able to calculate the right value for this, but it seems that hardness value on bedrock does not follow Java
         // As such this might as well just be configured for now if people so choose
@@ -492,7 +533,7 @@ public class MappingsReader_v1 extends MappingsReader {
                 if (placementFilter.has("conditions")) {
                     JsonNode conditions = placementFilter.get("conditions");
                     if (conditions.isArray()) {
-                        PlacementFilter filter = createPlacementFilterComponent(conditions);
+                        List<PlacementConditions> filter = createPlacementFilterComponent(conditions);
                         builder.placementFilter(filter);
                     }
                 }
@@ -525,7 +566,13 @@ public class MappingsReader_v1 extends MappingsReader {
      * @return the {@link BoxComponent}
      */
     private BoxComponent createBoxComponent(int id) {
-        BoundingBox boundingBox = BlockUtils.getCollision(id).getBoundingBoxes()[0];
+        // Some blocks (e.g. plants) have no collision box
+        BlockCollision blockCollision = BlockUtils.getCollision(id);
+        if (blockCollision == null) {
+            return new BoxComponent(0, 0, 0, 0, 0, 0);
+        }
+
+        BoundingBox boundingBox = blockCollision.getBoundingBoxes()[0];
 
         float offsetX = (float) boundingBox.getSizeX() * 8;
         float offsetY = (float) boundingBox.getSizeY() * 8;
@@ -536,13 +583,13 @@ public class MappingsReader_v1 extends MappingsReader {
         // One possible solution would be to create invisible blocks that we use only for collision box
         // These could be placed above the block when a custom block exceeds this limit
         // I am hopeful this will be extended slightly since the geometry of blocks can be 1.875^3
-        float cornerX = clamp((float) boundingBox.getMiddleX() * 16 - 8 - offsetX, -8, 8);
-        float cornerY = clamp((float) boundingBox.getMiddleY() * 16 - offsetY, 0, 16);
-        float cornerZ = clamp((float) boundingBox.getMiddleZ() * 16 - 8 - offsetZ, -8, 8);
+        float cornerX = MathUtils.clamp((float) boundingBox.getMiddleX() * 16 - 8 - offsetX, -8, 8);
+        float cornerY = MathUtils.clamp((float) boundingBox.getMiddleY() * 16 - offsetY, 0, 16);
+        float cornerZ = MathUtils.clamp((float) boundingBox.getMiddleZ() * 16 - 8 - offsetZ, -8, 8);
 
-        float sizeX = clamp((float) boundingBox.getSizeX() * 16, 0, 16);
-        float sizeY = clamp((float) boundingBox.getSizeY() * 16, 0, 16);
-        float sizeZ = clamp((float) boundingBox.getSizeZ() * 16, 0, 16);
+        float sizeX = MathUtils.clamp((float) boundingBox.getSizeX() * 16, 0, 16);
+        float sizeY = MathUtils.clamp((float) boundingBox.getSizeY() * 16, 0, 16);
+        float sizeZ = MathUtils.clamp((float) boundingBox.getSizeZ() * 16, 0, 16);
 
         BoxComponent boxComponent = new BoxComponent(cornerX, cornerY, cornerZ, sizeX, sizeY, sizeZ);
 
@@ -563,17 +610,17 @@ public class MappingsReader_v1 extends MappingsReader {
             texture = node.get("texture").asText();
         }
 
-        String renderMethod = "alpha_test";
+        String renderMethod = "opaque";
         if (node.has("render_method")) {
             renderMethod = node.get("render_method").asText();
         }
 
-        boolean faceDimming = false;
+        boolean faceDimming = true;
         if (node.has("face_dimming")) {
             faceDimming = node.get("face_dimming").asBoolean();
         }
 
-        boolean ambientOcclusion = false;
+        boolean ambientOcclusion = true;
         if (node.has("ambient_occlusion")) {
             ambientOcclusion = node.get("ambient_occlusion").asBoolean();
         }
@@ -582,12 +629,12 @@ public class MappingsReader_v1 extends MappingsReader {
     }
 
     /**
-     * Creates the {@link PlacementFilter} for the passed conditions node
+     * Creates the list of {@link PlacementConditions} for the passed conditions node
      * @param node the conditions node
-     * @return the {@link PlacementFilter}
+     * @return the list of {@link PlacementConditions}
      */
-    private PlacementFilter createPlacementFilterComponent(JsonNode node) {
-        List<Conditions> conditions = new ArrayList<>();
+    private List<PlacementConditions> createPlacementFilterComponent(JsonNode node) {
+        List<PlacementConditions> conditions = new ArrayList<>();
 
         // The structure of the placement filter component is the most complex of the current components
         // Each condition effectively seperated into an two arrays: one of allowed faces, and one of blocks/block molang queries
@@ -619,10 +666,10 @@ public class MappingsReader_v1 extends MappingsReader {
                 }
             }
 
-            conditions.add(new Conditions(faces, blockFilters));
+            conditions.add(new PlacementConditions(faces, blockFilters));
         });
 
-        return new PlacementFilter(conditions);
+        return conditions;
     }
 
     /**
@@ -670,17 +717,6 @@ public class MappingsReader_v1 extends MappingsReader {
         String[] pairs = cleanStates.split("\\s*,\\s*");
         
         return pairs;
-    }
-
-    /**
-     * Clamps the given value between the given min and max
-     * @param value the value to clamp
-     * @param min the minimum value
-     * @param max the maximum value
-     * @return the clamped value
-     */
-    private float clamp(float value, float min, float max) {
-        return Math.max(min, Math.min(max, value));
     }
 
 }

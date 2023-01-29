@@ -15,8 +15,8 @@ import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
-import org.geysermc.geyser.api.block.custom.component.placementfilter.Conditions.Face;
-import org.geysermc.geyser.api.block.custom.component.placementfilter.PlacementFilter;
+import org.geysermc.geyser.api.block.custom.component.PlacementConditions;
+import org.geysermc.geyser.api.block.custom.component.PlacementConditions.Face;
 import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
 import org.geysermc.geyser.api.block.custom.property.PropertyType;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBlocksEvent;
@@ -304,15 +304,15 @@ public class CustomBlockRegistryPopulator {
      * @param placementFilter the placement filter to convert
      * @return the NBT representation of the provided placement filter
      */
-    private static List<NbtMap> convertPlacementFilter(PlacementFilter placementFilter) {
+    private static List<NbtMap> convertPlacementFilter(List<PlacementConditions> placementFilter) {
         List<NbtMap> conditions = new ArrayList<>();
-        placementFilter.conditions().forEach((condition) -> {
+        placementFilter.forEach((condition) -> {
             NbtMapBuilder conditionBuilder = NbtMap.builder();
 
             // allowed_faces on the network is represented by 6 bits for the 6 possible faces
             // the enum has the proper values for that face only, so we just bitwise OR them together
             byte allowedFaces = 0;
-            for (Face face : condition.allowedFaces()) { allowedFaces |= face.getValue(); }
+            for (Face face : condition.allowedFaces()) { allowedFaces |= (1 << face.ordinal()); }
             conditionBuilder.putByte("allowed_faces", allowedFaces);
 
             // block_filters is a list of either blocks or queries for block tags

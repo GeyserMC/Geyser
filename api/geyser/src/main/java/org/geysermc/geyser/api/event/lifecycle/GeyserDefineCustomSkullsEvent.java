@@ -1,6 +1,6 @@
 package org.geysermc.geyser.api.event.lifecycle;
 
-import lombok.NonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Event;
 
 /**

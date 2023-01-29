@@ -35,7 +35,7 @@ public class PropertyType {
 
     private final Class<?> typeClass;
 
-    public Class<?> getTypeClass() {
+    public Class<?> typeClass() {
         return typeClass;
     }
 
