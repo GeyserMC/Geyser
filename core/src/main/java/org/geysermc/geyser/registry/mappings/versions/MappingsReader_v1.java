@@ -28,7 +28,6 @@ package org.geysermc.geyser.registry.mappings.versions;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.github.steveice10.mc.protocol.data.game.Identifier;
-import com.google.common.base.CharMatcher;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.geysermc.geyser.GeyserImpl;
@@ -236,8 +235,7 @@ public class MappingsReader_v1 extends MappingsReader {
     }
 
     private CustomBlockMapping createCustomBlockMapping(CustomBlockData.Builder customBlockDataBuilder, Map<String, CustomBlockComponents> componentsMap, String identifier, boolean overrideItem) {
-        Map<String, LinkedHashSet<String>> stringValuesMap = new Object2ObjectOpenHashMap<>();
-        Map<String, LinkedHashSet<Integer>> intValuesMap = new Object2ObjectOpenHashMap<>();
+        Map<String, LinkedHashSet<String>> valuesMap = new Object2ObjectOpenHashMap<>();
 
         List<CustomBlockPermutation> permutations = new ArrayList<>();
         Map<String, Function<CustomBlockState.Builder, CustomBlockState>> blockStateBuilders = new Object2ObjectOpenHashMap<>();
@@ -256,33 +254,18 @@ public class MappingsReader_v1 extends MappingsReader {
                 String property = parts[0];
                 String value = parts[1];
 
-                // Figure out what property type we are dealing with
-                if (value.equals("true") || value.equals("false")) {
-                    customBlockDataBuilder.booleanProperty(property);
+                valuesMap.computeIfAbsent(property, k -> new LinkedHashSet<>())
+                        .add(value);
 
-                    conditions[i] = String.format("q.block_property('%s') == %s", property, value);
-                    blockStateBuilder = blockStateBuilder.andThen(builder -> builder.booleanProperty(property, value.equals("true")));
-                } else if (CharMatcher.inRange('0', '9').matchesAllOf(value)) {
-                    int intValue = Integer.parseInt(value);
-                    intValuesMap.computeIfAbsent(property, k -> new LinkedHashSet<>())
-                            .add(intValue);
-
-                    conditions[i] = String.format("q.block_property('%s') == %s", property, value);
-                    blockStateBuilder = blockStateBuilder.andThen(builder -> builder.intProperty(property, intValue));
-                } else {
-                    stringValuesMap.computeIfAbsent(property, k -> new LinkedHashSet<>())
-                            .add(value);
-
-                    conditions[i] = String.format("q.block_property('%s') == '%s'", property, value);
-                    blockStateBuilder = blockStateBuilder.andThen(builder -> builder.stringProperty(property, value));
-                }
+                conditions[i] = String.format("q.block_property('%s') == '%s'", property, value);
+                blockStateBuilder = blockStateBuilder.andThen(builder -> builder.stringProperty(property, value));
             }
+
             permutations.add(new CustomBlockPermutation(entry.getValue(), String.join(" && ", conditions)));
             blockStateBuilders.put(state, blockStateBuilder.andThen(CustomBlockState.Builder::build));
         }
-        // Define properties for the custom block
-        stringValuesMap.forEach((key, value) -> customBlockDataBuilder.stringProperty(key, new ArrayList<>(value)));
-        intValuesMap.forEach((key, value) -> customBlockDataBuilder.intProperty(key, new ArrayList<>(value)));
+
+        valuesMap.forEach((key, value) -> customBlockDataBuilder.stringProperty(key, new ArrayList<>(value)));
 
         CustomBlockData customBlockData = customBlockDataBuilder
                 .permutations(permutations)
