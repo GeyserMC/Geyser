@@ -38,12 +38,7 @@ public class GeyserBungeeCompressionDisabler extends ChannelOutboundHandlerAdapt
         if (!(msg instanceof SetCompression)) {
             if (msg instanceof LoginSuccess) {
                 // We're past the point that compression can be enabled
-                if (ctx.pipeline().get("compress") != null) {
-                    ctx.pipeline().remove("compress");
-                }
-                if (ctx.pipeline().get("decompress") != null) {
-                    ctx.pipeline().remove("decompress");
-                }
+                ctx.setCompressionThreshold (-1); 
                 ctx.pipeline().remove(this);
             }
             super.write(ctx, msg, promise);
