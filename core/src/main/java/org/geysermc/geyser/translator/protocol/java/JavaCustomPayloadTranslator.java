@@ -28,6 +28,8 @@ package org.geysermc.geyser.translator.protocol.java;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundCustomPayloadPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundCustomPayloadPacket;
 import com.google.common.base.Charsets;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.protocol.bedrock.packet.LevelEventGenericPacket;
 import com.nukkitx.protocol.bedrock.packet.TransferPacket;
 import com.nukkitx.protocol.bedrock.packet.UnknownPacket;
 import io.netty.buffer.ByteBuf;
@@ -43,7 +45,9 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 @Translator(packet = ClientboundCustomPayloadPacket.class)
 public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCustomPayloadPacket> {
@@ -58,75 +62,165 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
 
         String channel = packet.getChannel();
 
-        if (channel.equals(PluginMessageChannels.FORM)) {
-            byte[] data = packet.getData();
+        switch(channel) {
+            case PluginMessageChannels.FORM -> {
+                byte[] data = packet.getData();
 
-            // receive: first byte is form type, second and third are the id, remaining is the form data
-            // respond: first and second byte id, remaining is form response data
-
-            FormType type = FormType.fromOrdinal(data[0]);
-            if (type == null) {
-                throw new NullPointerException("Got type " + data[0] + " which isn't a valid form type!");
+                // receive: first byte is form type, second and third are the id, remaining is the form data
+                // respond: first and second byte id, remaining is form response data
+    
+                FormType type = FormType.fromOrdinal(data[0]);
+                if (type == null) {
+                    throw new NullPointerException("Got type " + data[0] + " which isn't a valid form type!");
+                }
+    
+                String dataString = new String(data, 3, data.length - 3, Charsets.UTF_8);
+    
+                Form form = Forms.fromJson(dataString, type, (ignored, response) -> {
+                    byte[] finalData;
+                    if (response == null) {
+                        // Response data can be null as of 1.19.20 (same behaviour as empty response data)
+                        // Only need to send the form id
+                        finalData = new byte[]{data[1], data[2]};
+                    } else {
+                        byte[] raw = response.getBytes(StandardCharsets.UTF_8);
+                        finalData = new byte[raw.length + 2];
+    
+                        finalData[0] = data[1];
+                        finalData[1] = data[2];
+                        System.arraycopy(raw, 0, finalData, 2, raw.length);
+                    }
+    
+                    session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(channel, finalData));
+                });
+                session.sendForm(form);
             }
+            case PluginMessageChannels.TRANSFER -> {
+                byte[] data = packet.getData();
 
-            String dataString = new String(data, 3, data.length - 3, Charsets.UTF_8);
+                // port (4 bytes), address (remaining data)
+                if (data.length < 5) {
+                    throw new NullPointerException("Transfer data should be at least 5 bytes long");
+                }
+    
+                int port = data[0] << 24 | (data[1] & 0xFF) << 16 | (data[2] & 0xFF) << 8 | data[3] & 0xFF;
+                String address = new String(data, 4, data.length - 4);
+    
+                if (logger.isDebug()) {
+                    logger.info("Transferring client to: " + address + ":" + port);
+                }
+    
+                TransferPacket transferPacket = new TransferPacket();
+                transferPacket.setAddress(address);
+                transferPacket.setPort(port);
+                session.sendUpstreamPacket(transferPacket);
+            }
+            case PluginMessageChannels.MUSIC_QUEUE -> {
+                byte[] data = packet.getData();
 
-            Form form = Forms.fromJson(dataString, type, (ignored, response) -> {
-                byte[] finalData;
-                if (response == null) {
-                    // Response data can be null as of 1.19.20 (same behaviour as empty response data)
-                    // Only need to send the form id
-                    finalData = new byte[]{data[1], data[2]};
-                } else {
-                    byte[] raw = response.getBytes(StandardCharsets.UTF_8);
-                    finalData = new byte[raw.length + 2];
-
-                    finalData[0] = data[1];
-                    finalData[1] = data[2];
-                    System.arraycopy(raw, 0, finalData, 2, raw.length);
+                float fadeSeconds = ByteBuffer.wrap(Arrays.copyOfRange(data, 0, 4)).getFloat();
+                byte repeatMode = data[4];
+                float volume = ByteBuffer.wrap(Arrays.copyOfRange(data, 5, 9)).getFloat();
+                String trackName = new String(data, 9, data.length - 9);
+    
+                if (logger.isDebug()) {
+                    logger.info("Queuing music track: " + trackName + " with fade time: " + fadeSeconds + " and volume: " + volume + " on repeat mode: " + repeatMode);
                 }
 
-                session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(channel, finalData));
-            });
-            session.sendForm(form);
-
-        } else if (channel.equals(PluginMessageChannels.TRANSFER)) {
-            byte[] data = packet.getData();
-
-            // port (4 bytes), address (remaining data)
-            if (data.length < 5) {
-                throw new NullPointerException("Transfer data should be at least 5 bytes long");
+                LevelEventGenericPacket levelEventGenericPacket = new LevelEventGenericPacket();
+                levelEventGenericPacket.setEventId(1900);
+                levelEventGenericPacket.setTag(
+                    NbtMap.builder()
+                            .putFloat("fadeSeconds", fadeSeconds)
+                            .putByte("repeatMode", repeatMode)
+                            .putString("trackName", trackName)
+                            .putFloat("volume", volume)
+                            .build()
+                );
+    
+                session.sendUpstreamPacket(levelEventGenericPacket);
             }
+            case PluginMessageChannels.MUSIC_PLAY -> {
+                byte[] data = packet.getData();
 
-            int port = data[0] << 24 | (data[1] & 0xFF) << 16 | (data[2] & 0xFF) << 8 | data[3] & 0xFF;
-            String address = new String(data, 4, data.length - 4);
+                float fadeSeconds = ByteBuffer.wrap(Arrays.copyOfRange(data, 0, 4)).getFloat();
+                byte repeatMode = data[4];
+                float volume = ByteBuffer.wrap(Arrays.copyOfRange(data, 5, 9)).getFloat();
+                String trackName = new String(data, 9, data.length - 9);
+    
+                if (logger.isDebug()) {
+                    logger.info("Playing music track: " + trackName + " with fade time: " + fadeSeconds + " and volume: " + volume + " on repeat mode: " + repeatMode);
+                }
 
-            if (logger.isDebug()) {
-                logger.info("Transferring client to: " + address + ":" + port);
+                LevelEventGenericPacket levelEventGenericPacket = new LevelEventGenericPacket();
+                levelEventGenericPacket.setEventId(1901);
+                levelEventGenericPacket.setTag(
+                    NbtMap.builder()
+                            .putFloat("fadeSeconds", fadeSeconds)
+                            .putByte("repeatMode", repeatMode)
+                            .putString("trackName", trackName)
+                            .putFloat("volume", volume)
+                            .build()
+                );
+    
+                session.sendUpstreamPacket(levelEventGenericPacket);
             }
+            case PluginMessageChannels.MUSIC_STOP -> {
+                byte[] data = packet.getData();
 
-            TransferPacket transferPacket = new TransferPacket();
-            transferPacket.setAddress(address);
-            transferPacket.setPort(port);
-            session.sendUpstreamPacket(transferPacket);
+                float fadeSeconds = ByteBuffer.wrap(data).getFloat();
+    
+                if (logger.isDebug()) {
+                    logger.info("Stopping music track with fade time: " + fadeSeconds);
+                }
 
-        } else if (channel.equals(PluginMessageChannels.PACKET)) {
-            logger.debug("A packet has been sent using the Floodgate api");
-            byte[] data = packet.getData();
-
-            // packet id, packet data
-            if (data.length < 2) {
-                throw new IllegalStateException("Packet data should be at least 2 bytes long");
+                LevelEventGenericPacket levelEventGenericPacket = new LevelEventGenericPacket();
+                levelEventGenericPacket.setEventId(1902);
+                levelEventGenericPacket.setTag(
+                    NbtMap.builder()
+                            .putFloat("fadeSeconds", fadeSeconds)
+                            .build()
+                );
+    
+                session.sendUpstreamPacket(levelEventGenericPacket);
             }
+            case PluginMessageChannels.MUSIC_VOLUME -> {
+                byte[] data = packet.getData();
 
-            int packetId = data[0] & 0xFF;
-            ByteBuf packetData = Unpooled.wrappedBuffer(data, 1, data.length - 1);
+                float volume = ByteBuffer.wrap(data).getFloat();
+    
+                if (logger.isDebug()) {
+                    logger.info("Setting music volume to: " + volume);
+                }
 
-            var toSend = new UnknownPacket();
-            toSend.setPacketId(packetId);
-            toSend.setPayload(packetData);
-
-            session.sendUpstreamPacket(toSend);
+                LevelEventGenericPacket levelEventGenericPacket = new LevelEventGenericPacket();
+                levelEventGenericPacket.setEventId(1903);
+                levelEventGenericPacket.setTag(
+                    NbtMap.builder()
+                            .putFloat("volume", volume)
+                            .build()
+                );
+    
+                session.sendUpstreamPacket(levelEventGenericPacket);
+            }
+            case PluginMessageChannels.PACKET -> {
+                logger.debug("A packet has been sent using the Floodgate api");
+                byte[] data = packet.getData();
+    
+                // packet id, packet data
+                if (data.length < 2) {
+                    throw new IllegalStateException("Packet data should be at least 2 bytes long");
+                }
+    
+                int packetId = data[0] & 0xFF;
+                ByteBuf packetData = Unpooled.wrappedBuffer(data, 1, data.length - 1);
+    
+                var toSend = new UnknownPacket();
+                toSend.setPacketId(packetId);
+                toSend.setPayload(packetData);
+    
+                session.sendUpstreamPacket(toSend);
+            }
         }
     }
 }

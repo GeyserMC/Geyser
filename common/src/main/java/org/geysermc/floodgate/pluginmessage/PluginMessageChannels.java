@@ -31,6 +31,10 @@ public final class PluginMessageChannels {
     public static final String SKIN = "floodgate:skin";
     public static final String FORM = "floodgate:form";
     public static final String TRANSFER = "floodgate:transfer";
+    public static final String MUSIC_QUEUE = "floodgate:music:queue";
+    public static final String MUSIC_PLAY = "floodgate:music:play";
+    public static final String MUSIC_STOP = "floodgate:music:stop";
+    public static final String MUSIC_VOLUME = "floodgate:music:volume";
     public static final String PACKET = "floodgate:packet";
 
     private static final byte[] FLOODGATE_REGISTER_DATA =
