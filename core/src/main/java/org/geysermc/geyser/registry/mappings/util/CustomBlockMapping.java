@@ -36,5 +36,5 @@ import org.geysermc.geyser.api.block.custom.CustomBlockState;
  * data required to register a custom block that overrides a group of java block
  * states.
  */
-public record CustomBlockMapping(@NonNull CustomBlockData data, @NonNull Map<String, CustomBlockState> states, @NonNull String javaIdentifier, @NonNull boolean overrideItem) {
+public record CustomBlockMapping(@NonNull CustomBlockData data, @NonNull Map<String, CustomBlockState> states, @NonNull String javaIdentifier, boolean overrideItem) {
 }
