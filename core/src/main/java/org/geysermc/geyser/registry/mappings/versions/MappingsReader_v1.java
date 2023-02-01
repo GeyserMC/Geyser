@@ -187,13 +187,22 @@ public class MappingsReader_v1 extends MappingsReader {
 
         // If this is true, we will only register the states the user has specified rather than all the possible block states
         boolean onlyOverrideStates = node.has("only_override_states") && node.get("only_override_states").asBoolean();
-        JsonNode stateOverrides = node.get("state_overrides");
 
-        if (onlyOverrideStates && (stateOverrides == null || !stateOverrides.isObject())) {
-            throw new InvalidCustomMappingsFileException("Block entry for " + identifier + " has only_override_states set to true, but has no state_overrides.");
+        // Create the data for the overall block
+        CustomBlockData.Builder customBlockDataBuilder = new CustomBlockDataBuilder()
+                .name(name);
+
+        if (BlockRegistries.JAVA_IDENTIFIERS.get().containsKey(identifier)) {
+            // There is only one Java block state to override
+            CustomBlockData blockData = customBlockDataBuilder
+                    .components(createCustomBlockComponents(node, identifier, name))
+                    .build();
+            return new CustomBlockMapping(blockData, Map.of(identifier, blockData.defaultBlockState()), identifier, !onlyOverrideStates);
         }
 
         Map<String, CustomBlockComponents> componentsMap = new LinkedHashMap<>();
+
+        JsonNode stateOverrides = node.get("state_overrides");
         if (stateOverrides != null && stateOverrides.isObject()) {
             // Load components for specific Java block states
             Iterator<Map.Entry<String, JsonNode>> fields = stateOverrides.fields();
@@ -206,11 +215,15 @@ public class MappingsReader_v1 extends MappingsReader {
                 componentsMap.put(state, createCustomBlockComponents(overrideEntry.getValue(), state, name));
             }
         }
+        if (componentsMap.isEmpty() && onlyOverrideStates) {
+            throw new InvalidCustomMappingsFileException("Block entry for " + identifier + " has only_override_states set to true, but has no state_overrides.");
+        }
+
         if (!onlyOverrideStates) {
             // Create components for any remaining Java block states
             BlockRegistries.JAVA_IDENTIFIERS.get().keySet()
                     .stream()
-                    .filter(s -> s.startsWith(identifier))
+                    .filter(s -> s.startsWith(identifier + "["))
                     .filter(Predicate.not(componentsMap::containsKey))
                     .forEach(state -> componentsMap.put(state, createCustomBlockComponents(null, state, name)));
         }
@@ -219,18 +232,11 @@ public class MappingsReader_v1 extends MappingsReader {
             throw new InvalidCustomMappingsFileException("Unknown Java block: " + identifier);
         }
 
-        // Create the data for the overall block
-        CustomBlockData.Builder customBlockDataBuilder = new CustomBlockDataBuilder()
-                .name(name)
-                // We pass in the first state and just use the hitbox from that as the default
-                // Each state will have its own so this is fine
-                .components(createCustomBlockComponents(node, componentsMap.keySet().iterator().next(), name));
+        // We pass in the first state and just use the hitbox from that as the default
+        // Each state will have its own so this is fine
+        String firstState = componentsMap.keySet().iterator().next();
+        customBlockDataBuilder.components(createCustomBlockComponents(node, firstState, name));
 
-        if (componentsMap.size() == 1) {
-            // There are no other block states, so skip creating properties and permutations
-            CustomBlockData blockData = customBlockDataBuilder.build();
-            return new CustomBlockMapping(blockData, Map.of(identifier, blockData.defaultBlockState()), identifier, !onlyOverrideStates);
-        }
         return createCustomBlockMapping(customBlockDataBuilder, componentsMap, identifier, !onlyOverrideStates);
     }
 
