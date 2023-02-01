@@ -97,8 +97,9 @@ public class MappingsReader_v1 extends MappingsReader {
                         String identifier = Identifier.formalize(entry.getKey());
                         CustomBlockMapping customBlockMapping = this.readBlockMappingEntry(identifier, entry.getValue());
                         consumer.accept(identifier, customBlockMapping);
-                    } catch (InvalidCustomMappingsFileException e) {
-                        GeyserImpl.getInstance().getLogger().error("Error in registering blocks for custom mapping file: " + file.toString(), e);
+                    } catch (Exception e) {
+                        GeyserImpl.getInstance().getLogger().error("Error in registering blocks for custom mapping file: " + file.toString());
+                        GeyserImpl.getInstance().getLogger().error("due to entry: " + entry, e);
                     }
                 }
             });
