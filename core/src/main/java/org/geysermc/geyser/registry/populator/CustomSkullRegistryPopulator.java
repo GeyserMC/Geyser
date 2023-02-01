@@ -116,7 +116,7 @@ public class CustomSkullRegistryPopulator {
         });
 
         skinHashes.forEach((skinHash) -> {
-            if (!skinHash.matches("^[a-fA-F0-9]{64}$")) {
+            if (!skinHash.matches("^[a-fA-F0-9]+$")) {
                 GeyserImpl.getInstance().getLogger().error("Skin hash " + skinHash + " does not match required format ^[a-fA-F0-9]{64}$ and will not be added as a custom block.");
                 return;
             }
