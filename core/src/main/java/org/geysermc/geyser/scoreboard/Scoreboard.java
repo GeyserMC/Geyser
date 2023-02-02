@@ -351,6 +351,9 @@ public final class Scoreboard {
             // We need to use the direct entities list here, so #refreshSessionPlayerDisplays also updates accordingly
             // With the player's lack of a team in visibility checks
             updateEntityNames(remove, remove.getEntities(), true);
+            for (String name : remove.getEntities()) {
+                playerToTeam.remove(name, remove);
+            }
 
             session.removeCommandEnum("Geyser_Teams", remove.getId());
         }
