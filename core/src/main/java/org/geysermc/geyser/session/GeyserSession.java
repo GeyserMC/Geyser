@@ -1898,6 +1898,84 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return true;
     }
 
+    @Override
+    public boolean queueMusic(float fadeSeconds, boolean repeatMode, @NonNull String trackName, float volume) {
+        if (trackName == null || trackName.isBlank()) {
+            throw new IllegalArgumentException("Track name cannot be null or blank");
+        } else if (volume < 0f || volume > 1f) {
+            throw new IllegalArgumentException("Volume must be between 0f and 1f, was " + volume);
+        } else if (fadeSeconds < 0f || fadeSeconds > 10f) {
+            throw new IllegalArgumentException("Fade seconds must be between 0f and 10f, was " + fadeSeconds);
+        }
+        LevelEventGenericPacket levelEventGenericPacket = new LevelEventGenericPacket();
+        levelEventGenericPacket.setEventId(1900);
+        levelEventGenericPacket.setTag(
+            NbtMap.builder()
+                    .putFloat("fadeSeconds", fadeSeconds)
+                    .putByte("repeatMode", (byte) (repeatMode ? 1 : 0))
+                    .putString("trackName", trackName)
+                    .putFloat("volume", volume)
+                    .build()
+        );
+        sendUpstreamPacket(levelEventGenericPacket);
+        return true;
+    }
+
+    @Override
+    public boolean playMusic(float fadeSeconds, boolean repeatMode, @NonNull String trackName, float volume) {
+        if (trackName == null || trackName.isBlank()) {
+            throw new IllegalArgumentException("Track name cannot be null or blank");
+        } else if (volume < 0f || volume > 1f) {
+            throw new IllegalArgumentException("Volume must be between 0f and 1f, was " + volume);
+        } else if (fadeSeconds < 0f || fadeSeconds > 10f) {
+            throw new IllegalArgumentException("Fade seconds must be between 0f and 10f, was " + fadeSeconds);
+        }
+        LevelEventGenericPacket levelEventGenericPacket = new LevelEventGenericPacket();
+        levelEventGenericPacket.setEventId(1901);
+        levelEventGenericPacket.setTag(
+            NbtMap.builder()
+                    .putFloat("fadeSeconds", fadeSeconds)
+                    .putByte("repeatMode", (byte) (repeatMode ? 1 : 0))
+                    .putString("trackName", trackName)
+                    .putFloat("volume", volume)
+                    .build()
+        );
+        sendUpstreamPacket(levelEventGenericPacket);
+        return true;
+    }
+
+    @Override
+    public boolean stopMusic(float fadeSeconds) {
+        if (fadeSeconds < 0f || fadeSeconds > 10f) {
+            throw new IllegalArgumentException("Fade seconds must be between 0f and 10f, was " + fadeSeconds);
+        }
+        LevelEventGenericPacket levelEventGenericPacket = new LevelEventGenericPacket();
+        levelEventGenericPacket.setEventId(1902);
+        levelEventGenericPacket.setTag(
+            NbtMap.builder()
+                    .putFloat("fadeSeconds", fadeSeconds)
+                    .build()
+        );
+        sendUpstreamPacket(levelEventGenericPacket);
+        return true;
+    }
+
+    @Override
+    public boolean setMusicVolume(float volume) {
+        if (volume < 0f || volume > 1f) {
+            throw new IllegalArgumentException("Volume must be between 0f and 1f, was " + volume);
+        }
+        LevelEventGenericPacket levelEventGenericPacket = new LevelEventGenericPacket();
+        levelEventGenericPacket.setEventId(1903);
+        levelEventGenericPacket.setTag(
+            NbtMap.builder()
+                    .putFloat("volume", volume)
+                    .build()
+        );
+        sendUpstreamPacket(levelEventGenericPacket);
+        return true;
+    }
+
     public void addCommandEnum(String name, String... enums) {
         softEnumPacket(name, SoftEnumUpdateType.ADD, enums);
     }

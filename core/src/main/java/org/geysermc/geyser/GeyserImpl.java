@@ -552,6 +552,46 @@ public class GeyserImpl implements GeyserApi {
         return session.transfer(address, port);
     }
 
+    @Override
+    public boolean queueMusic(@NonNull UUID uuid, float fadeSeconds, boolean repeatMode, @NonNull String trackName, float volume) {
+        Objects.requireNonNull(uuid);
+        GeyserSession session = connectionByUuid(uuid);
+        if (session == null) {
+            return false;
+        }
+        return session.queueMusic(fadeSeconds, repeatMode, trackName, volume);
+    }
+
+    @Override
+    public boolean playMusic(@NonNull UUID uuid, float fadeSeconds, boolean repeatMode, @NonNull String trackName, float volume) {
+        Objects.requireNonNull(uuid);
+        GeyserSession session = connectionByUuid(uuid);
+        if (session == null) {
+            return false;
+        }
+        return session.playMusic(fadeSeconds, repeatMode, trackName, volume);
+    }
+
+    @Override
+    public boolean stopMusic(@NonNull UUID uuid, float fadeSeconds) {
+        Objects.requireNonNull(uuid);
+        GeyserSession session = connectionByUuid(uuid);
+        if (session == null) {
+            return false;
+        }
+        return session.stopMusic(fadeSeconds);
+    }
+
+    @Override
+    public boolean setMusicVolume(@NonNull UUID uuid, float volume) {
+        Objects.requireNonNull(uuid);
+        GeyserSession session = connectionByUuid(uuid);
+        if (session == null) {
+            return false;
+        }
+        return session.setMusicVolume(volume);
+    }
+
     public void shutdown() {
         bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown"));
         shuttingDown = true;

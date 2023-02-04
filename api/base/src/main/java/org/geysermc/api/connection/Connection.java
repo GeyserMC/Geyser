@@ -118,4 +118,39 @@ public interface Connection {
      * @return true if the transfer was a success
      */
     boolean transfer(@NonNull String address, @IntRange(from = 0, to = 65535) int port);
+
+    /**
+     * Queue a music track to be played for the connection later.
+     * @param fadeSeconds The amount of time in seconds to fade the music in and out from 0 to 10 seconds
+     * @param repeatMode Whether the music should repeat
+     * @param trackName The name of the music track to queue
+     * @param volume The volume of the music track from 0 to 1
+     * @return true if the music was successfully queued
+     */
+    boolean queueMusic(float fadeSeconds, boolean repeatMode, @NonNull String trackName, float volume);
+
+
+    /**
+     * Play a music track for the connection immediately.
+     * @param fadeSeconds The amount of time in seconds to fade the music in and out from 0 to 10 seconds
+     * @param repeatMode Whether the music should repeat
+     * @param trackName The name of the music track to play
+     * @param volume The volume of the music track from 0 to 1
+     * @return true if the music was successfully played
+     */
+    boolean playMusic(float fadeSeconds, boolean repeatMode, @NonNull String trackName, float volume);
+
+    /**
+     * Stop the current music track for the connection.
+     * @param fadeSeconds The amount of time in seconds to fade the music in and out from 0 to 10 seconds
+     * @return true if the music was successfully stopped
+     */
+    boolean stopMusic(float fadeSeconds);
+
+    /**
+     * Set the volume of the current music track for the connection.
+     * @param volume The volume of the music track from 0 to 1
+     * @return true if the music volume was successfully set
+     */
+    boolean setMusicVolume(float volume);
 }

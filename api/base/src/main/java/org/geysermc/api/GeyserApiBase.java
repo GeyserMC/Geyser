@@ -96,6 +96,44 @@ public interface GeyserApiBase {
      */
     boolean transfer(@NonNull UUID uuid, @NonNull String address, @IntRange(from = 0, to = 65535) int port);
 
+    /**
+     * Queue a music track to be played for the connection later.
+     * @param uuid The UUID of the connection to queue the music for
+     * @param fadeSeconds The amount of time in seconds to fade the music in and out from 0 to 10 seconds
+     * @param repeatMode Whether the music should repeat
+     * @param trackName The name of the music track to queue
+     * @param volume The volume of the music track from 0 to 1
+     * @return true if the music was successfully queued
+     */
+    boolean queueMusic(@NonNull UUID uuid, float fadeSeconds, boolean repeatMode, @NonNull String trackName, float volume);
+
+    /**
+     * Play a music track for the connection.
+     * @param uuid The UUID of the connection to play the music for
+     * @param fadeSeconds The amount of time in seconds to fade the music in and out from 0 to 10 seconds
+     * @param repeatMode Whether the music should repeat
+     * @param trackName The name of the music track to play
+     * @param volume The volume of the music track from 0 to 1
+     * @return true if the music was successfully played
+     */
+    boolean playMusic(@NonNull UUID uuid, float fadeSeconds, boolean repeatMode, @NonNull String trackName, float volume);
+
+    /**
+     * Stop the current music track for the connection.
+     * @param uuid The UUID of the connection to stop the music for
+     * @param fadeSeconds The amount of time in seconds to fade the music in and out from 0 to 10 seconds
+     * @return true if the music was successfully stopped
+     */
+    boolean stopMusic(@NonNull UUID uuid, float fadeSeconds);
+
+    /**
+     * Set the volume of the current music track for the connection.
+     * @param uuid The UUID of the connection to set the music volume for
+     * @param volume The volume of the music track from 0 to 1
+     * @return true if the music volume was successfully set
+     */
+    boolean setMusicVolume(@NonNull UUID uuid, float volume);
+
 
     /**
      * Returns all the online connections.
