@@ -30,6 +30,7 @@ import com.nukkitx.protocol.bedrock.data.ScoreInfo;
 import com.nukkitx.protocol.bedrock.packet.RemoveObjectivePacket;
 import com.nukkitx.protocol.bedrock.packet.SetDisplayObjectivePacket;
 import com.nukkitx.protocol.bedrock.packet.SetScorePacket;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
@@ -56,6 +57,13 @@ public final class Scoreboard {
     @Getter
     private final Map<ScoreboardPosition, Objective> objectiveSlots = new EnumMap<>(ScoreboardPosition.class);
     private final Map<String, Team> teams = new ConcurrentHashMap<>(); // updated on multiple threads
+    /**
+     * Required to preserve vanilla behavior, which also uses a map.
+     * Otherwise, for example, if TAB has a team for a player and vanilla has a team, "race conditions" that do not
+     * match vanilla could occur.
+     */
+    @Getter
+    private final Map<String, Team> playerToTeam = new Object2ObjectOpenHashMap<>();
 
     private int lastAddScoreCount = 0;
     private int lastRemoveScoreCount = 0;
@@ -333,12 +341,7 @@ public final class Scoreboard {
     }
 
     public Team getTeamFor(String entity) {
-        for (Team team : teams.values()) {
-            if (team.hasEntity(entity)) {
-                return team;
-            }
-        }
-        return null;
+        return playerToTeam.get(entity);
     }
 
     public void removeTeam(String teamName) {
@@ -348,6 +351,9 @@ public final class Scoreboard {
             // We need to use the direct entities list here, so #refreshSessionPlayerDisplays also updates accordingly
             // With the player's lack of a team in visibility checks
             updateEntityNames(remove, remove.getEntities(), true);
+            for (String name : remove.getEntities()) {
+                playerToTeam.remove(name, remove);
+            }
 
             session.removeCommandEnum("Geyser_Teams", remove.getId());
         }
@@ -380,7 +386,8 @@ public final class Scoreboard {
             for (Entity entity : session.getEntityCache().getEntities().values()) {
                 // This more complex logic is for the future to iterate over all entities, not just players
                 if (entity instanceof PlayerEntity player && names.remove(player.getUsername())) {
-                    player.updateDisplayName(team, true);
+                    player.updateDisplayName(team);
+                    player.updateBedrockMetadata();
                     if (names.isEmpty()) {
                         break;
                     }
@@ -396,7 +403,8 @@ public final class Scoreboard {
         for (Entity entity : session.getEntityCache().getEntities().values()) {
             if (entity instanceof PlayerEntity player) {
                 Team playerTeam = session.getWorldCache().getScoreboard().getTeamFor(player.getUsername());
-                player.updateDisplayName(playerTeam, true);
+                player.updateDisplayName(playerTeam);
+                player.updateBedrockMetadata();
             }
         }
     }

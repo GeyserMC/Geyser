@@ -195,6 +195,9 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
         geyserConfig.loadFloodgate(this);
 
+        this.geyserCommandManager = new GeyserSpigotCommandManager(geyser);
+        this.geyserCommandManager.init();
+
         if (!INITIALIZED) {
             // Needs to be an anonymous inner class otherwise Bukkit complains about missing classes
             Bukkit.getPluginManager().registerEvents(new Listener() {
@@ -205,9 +208,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                     postStartup();
                 }
             }, this);
-
-            this.geyserCommandManager = new GeyserSpigotCommandManager(geyser);
-            this.geyserCommandManager.init();
 
             // Because Bukkit locks its command map upon startup, we need to
             // add our plugin commands in onEnable, but populating the executor
