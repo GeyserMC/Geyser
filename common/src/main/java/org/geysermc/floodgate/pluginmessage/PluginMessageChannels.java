@@ -31,14 +31,14 @@ public final class PluginMessageChannels {
     public static final String SKIN = "floodgate:skin";
     public static final String FORM = "floodgate:form";
     public static final String TRANSFER = "floodgate:transfer";
-    public static final String MUSIC_QUEUE = "floodgate:music:queue";
-    public static final String MUSIC_PLAY = "floodgate:music:play";
-    public static final String MUSIC_STOP = "floodgate:music:stop";
-    public static final String MUSIC_VOLUME = "floodgate:music:volume";
+    public static final String MUSIC_QUEUE = "floodgate:music_queue";
+    public static final String MUSIC_PLAY = "floodgate:music_play";
+    public static final String MUSIC_STOP = "floodgate:music_stop";
+    public static final String MUSIC_VOLUME = "floodgate:music_volume";
     public static final String PACKET = "floodgate:packet";
 
     private static final byte[] FLOODGATE_REGISTER_DATA =
-            String.join("\0", SKIN, FORM, TRANSFER, PACKET)
+            String.join("\0", SKIN, FORM, TRANSFER, MUSIC_QUEUE, MUSIC_PLAY, MUSIC_STOP, MUSIC_VOLUME, PACKET)
                     .getBytes(StandardCharsets.UTF_8);
 
     /**
