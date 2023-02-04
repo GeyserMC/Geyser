@@ -65,6 +65,7 @@ public final class Team {
             if (entities.add(name)) {
                 added.add(name);
             }
+            scoreboard.getPlayerToTeam().put(name, this);
         }
 
         if (added.isEmpty()) {
@@ -93,6 +94,7 @@ public final class Team {
             if (entities.remove(name)) {
                 removed.add(name);
             }
+            scoreboard.getPlayerToTeam().remove(name, this);
         }
         return removed;
     }
