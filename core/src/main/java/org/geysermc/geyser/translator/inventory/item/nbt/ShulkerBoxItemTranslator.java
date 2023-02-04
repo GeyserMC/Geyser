@@ -52,6 +52,11 @@ public class ShulkerBoxItemTranslator extends NbtItemStackTranslator {
 
             ItemMapping boxMapping = session.getItemMappings().getMapping(Identifier.formalize(((StringTag) itemData.get("id")).getValue()));
 
+            if (boxMapping == null) {
+                // If invalid ID
+                continue;
+            }
+
             boxItemTag.put(new StringTag("Name", boxMapping.getBedrockIdentifier()));
             boxItemTag.put(new ShortTag("Damage", (short) boxMapping.getBedrockData()));
             boxItemTag.put(new ByteTag("Count", MathUtils.getNbtByte(itemData.get("Count").getValue())));
