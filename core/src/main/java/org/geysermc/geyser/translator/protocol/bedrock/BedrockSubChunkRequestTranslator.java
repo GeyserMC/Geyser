@@ -85,6 +85,7 @@ public class BedrockSubChunkRequestTranslator extends PacketTranslator<SubChunkR
                 subChunkData.setPosition(positionOffset);
                 subChunkPacket.getSubChunks().add(subChunkData);
 
+                // Should never happen, but if no caching is enabled, send undefined result
                 if (!session.getChunkCache().isCache()) {
                     subChunkData.setResult(SubChunkRequestResult.UNDEFINED);
                     subChunkData.setData(new byte[0]);
@@ -92,6 +93,7 @@ public class BedrockSubChunkRequestTranslator extends PacketTranslator<SubChunkR
                     continue;
                 }
 
+                // Check dimension
                 if (packet.getDimension() != DimensionUtils.javaToBedrock(session.getDimension())) {
                     subChunkData.setResult(SubChunkRequestResult.INVALID_DIMENSION);
                     subChunkData.setData(new byte[0]);
@@ -99,6 +101,7 @@ public class BedrockSubChunkRequestTranslator extends PacketTranslator<SubChunkR
                     continue;
                 }
 
+                // Check if chunk is cached
                 Vector3i position = centerPosition.add(positionOffset);
                 GeyserChunk chunk = session.getChunkCache().getChunk(position.getX(), position.getZ());
                 if (chunk == null) {
@@ -108,6 +111,7 @@ public class BedrockSubChunkRequestTranslator extends PacketTranslator<SubChunkR
                     continue;
                 }
 
+                // Check if chunk y index is in range, adjust for Java vs. Bedrock y offset
                 int sectionY = position.getY() - javaSubChunkOffset;
                 if (position.getY() < bedrockSubChunkMinY || position.getY() >= bedrockSubChunkMaxY) {
                     subChunkData.setResult(SubChunkRequestResult.INDEX_OUT_OF_BOUNDS);
@@ -116,16 +120,21 @@ public class BedrockSubChunkRequestTranslator extends PacketTranslator<SubChunkR
                     continue;
                 }
 
+                // Ignore if its belows Java Edition min height
                 if (sectionY < 0) {
                     subChunkData.setHeightMapType(HeightMapDataType.NO_DATA);
                 } else {
-                    LightUpdateData lightData = chunk.lightData();
-                    BitSet emptyLightMask = lightData.getEmptySkyYMask();
-                    BitSet lightMask = lightData.getSkyYMask();
-                    List<byte[]> lightData_ = lightData.getSkyUpdates();
+                    // This will calculate a light-blocking height map, based on Java Editions
+                    // sky-light
+                    LightUpdateData lightUpdateData = chunk.lightData();
+                    BitSet emptyLightMask = lightUpdateData.getEmptySkyYMask();
+                    BitSet lightMask = lightUpdateData.getSkyYMask();
+                    List<byte[]> lightData = lightUpdateData.getSkyUpdates();
+                    // Check if its empty (aka. the height map is too high/section is underground)
                     if (emptyLightMask.get(sectionY + 1)) {
                         subChunkData.setHeightMapType(HeightMapDataType.TOO_HIGH);
                     } else if (lightMask.get(sectionY + 1)) {
+                        // If there is light data, get the light data for below the current section or null
                         byte[] belowLight;
                         if (lightMask.get(sectionY)) {
                             int belowSection = 0;
@@ -134,17 +143,21 @@ public class BedrockSubChunkRequestTranslator extends PacketTranslator<SubChunkR
                                     belowSection++;
                                 }
                             }
-                            belowLight = lightData_.get(belowSection);
+                            belowLight = lightData.get(belowSection);
                         } else {
                             belowLight = null;
                         }
+
+                        // Get the light data for the current section
                         int lightIndex = 0;
                         for (int i = 0; i < sectionY + 1; i++) {
                             if (lightMask.get(i)) {
                                 lightIndex++;
                             }
                         }
-                        byte[] light = lightData_.get(lightIndex);
+                        byte[] light = lightData.get(lightIndex);
+
+                        // Get the light data for above the current section or null
                         byte[] aboveLight;
                         if (lightMask.get(sectionY + 2)) {
                             int aboveSection = 0;
@@ -153,11 +166,12 @@ public class BedrockSubChunkRequestTranslator extends PacketTranslator<SubChunkR
                                     aboveSection++;
                                 }
                             }
-                            aboveLight = lightData_.get(aboveSection);
+                            aboveLight = lightData.get(aboveSection);
                         } else {
                             aboveLight = null;
                         }
 
+                        // Iterate through all columns, and get the row where sky-light is blocked
                         byte[] heightMapData = new byte[16 * 16];
                         boolean lower = true, higher = true;
 xyLoop:                 for (int i = 0; i < heightMapData.length; i++) {
@@ -195,6 +209,8 @@ xyLoop:                 for (int i = 0; i < heightMapData.length; i++) {
                                 }
                             }
                         }
+
+                        // Check if everything is lower, or higher, as there is no need to send the height map data
                         if (lower) {
                             subChunkData.setHeightMapType(HeightMapDataType.TOO_LOW);
                         } else if (higher) {
