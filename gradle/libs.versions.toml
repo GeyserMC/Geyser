@@ -8,7 +8,7 @@ netty = "4.1.80.Final"
 guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8
 websocket = "1.5.1"
-protocol = "2.9.15-20230106.005737-3"
+protocol = "2.9.16-20230205.181702-1"
 raknet = "1.6.28-20220125.214016-6"
 mcauthlib = "d9d773e"
 mcprotocollib = "1.19.3-20230107.194116-10"
@@ -85,7 +85,7 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 mcauthlib = { group = "com.github.GeyserMC", name = "MCAuthLib", version.ref = "mcauthlib" }
 mcprotocollib = { group = "com.github.steveice10", name = "mcprotocollib", version.ref = "mcprotocollib" }
 packetlib = { group = "com.github.steveice10", name = "packetlib", version.ref = "packetlib" }
-protocol = { group = "com.nukkitx.protocol", name = "bedrock-v560", version.ref = "protocol" }
+protocol = { group = "com.nukkitx.protocol", name = "bedrock-v567", version.ref = "protocol" }
 raknet = { group = "com.nukkitx.network", name = "raknet", version.ref = "raknet" }
 sponge-api = { group = "org.spongepowered", name = "spongeapi", version.ref = "sponge" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }
