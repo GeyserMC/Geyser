@@ -15,6 +15,22 @@ jobs:
           distribution: 'temurin'
           java-version: 17
           cache: 'gradle'
+      - name: Check if PR user has API repo
+        uses: Kas-tle/ForkFinder@v1.0.1
+        id: find_forks
+        with:
+          owner: 'GeyserMC'
+          repo: 'api'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Cache PR user API repo
+        if: steps.find_forks.outputs.target_branch_found == 'true'
+        env:
+          API_FORK_URL: ${{ steps.find_forks.outputs.user_fork_url }}
+          API_FORK_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          git clone "${API_FORK_URL}" --single-branch --branch "${API_FORK_BRANCH}" api
+          cd api
+          ./gradlew publishToMavenLocal
       - name: submodules-init
         uses: snickerbockers/submodules-init@v4
       - name: Build with Gradle
