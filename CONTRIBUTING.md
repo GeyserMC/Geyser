@@ -48,4 +48,6 @@ Make sure to comment your code where possible.
 
 The nature of our software requires a lot of arrays and maps to be stored - where possible, use Fastutil's specialized maps. For example, if you're storing block state translations, use an `Int2IntMap`.
 
-We have a rundown of all the tools you need to develop over on our [wiki](https://github.com/GeyserMC/Geyser/wiki/Developer-Guide). If you have any questions, please feel free to reach out to our [Discord](https://discord.gg/geysermc)!
+We have a rundown of all the tools you need to develop over on our [wiki](https://wiki.geysermc.org/other/developer-guide/). If you have any questions, please feel free to reach out to our [Discord](https://discord.gg/geysermc)!
+
+If making a pull request that also depends on changes to [Geyser's API](https://github.com/GeyserMC/api), simply fork the API repo and create a branch with the same name as your PR to Geyser. The pull request [action](https://github.com/GeyserMC/Geyser/blob/master/.github/workflows/pullrequest.yml) will automatically cache your Geyser API changes before building your changes to Geyser.
