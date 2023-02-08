@@ -352,7 +352,8 @@ public final class Scoreboard {
             // With the player's lack of a team in visibility checks
             updateEntityNames(remove, remove.getEntities(), true);
             for (String name : remove.getEntities()) {
-                playerToTeam.remove(name, remove);
+                // 1.19.3 Mojmap Scoreboard#removePlayerTeam(PlayerTeam)
+                playerToTeam.remove(name);
             }
 
             session.removeCommandEnum("Geyser_Teams", remove.getId());

@@ -119,6 +119,8 @@ public class PlayerEntity extends LivingEntity {
             setBelowNameText(objective);
         }
 
+        // Update in case this entity has been despawned, then respawned
+        this.nametag = this.username;
         // The name can't be updated later (the entity metadata for it is ignored), so we need to check for this now
         updateDisplayName(session.getWorldCache().getScoreboard().getTeamFor(username));
 
