@@ -134,7 +134,9 @@ public final class Scoreboard {
     public Team registerNewTeam(String teamName, String[] players) {
         Team team = teams.get(teamName);
         if (team != null) {
-            logger.info(GeyserLocale.getLocaleStringLog("geyser.network.translator.team.failed_overrides", teamName));
+            if (Boolean.parseBoolean(System.getProperty("Geyser.ShowScoreboardLogs", "true"))) {
+                logger.info(GeyserLocale.getLocaleStringLog("geyser.network.translator.team.failed_overrides", teamName));
+            }
             return team;
         }
 

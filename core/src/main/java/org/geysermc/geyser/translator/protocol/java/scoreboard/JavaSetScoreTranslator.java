@@ -58,7 +58,9 @@ public class JavaSetScoreTranslator extends PacketTranslator<ClientboundSetScore
 
         Objective objective = scoreboard.getObjective(packet.getObjective());
         if (objective == null && packet.getAction() != ScoreboardAction.REMOVE) {
-            logger.info(GeyserLocale.getLocaleStringLog("geyser.network.translator.score.failed_objective", packet.getObjective()));
+            if (Boolean.parseBoolean(System.getProperty("Geyser.ShowScoreboardLogs", "true"))) {
+                logger.info(GeyserLocale.getLocaleStringLog("geyser.network.translator.score.failed_objective", packet.getObjective()));
+            }
             return;
         }
 
