@@ -113,6 +113,8 @@ public interface GeyserConfiguration {
 
     boolean isNotifyOnNewBedrockUpdate();
 
+    String getUnusableSpaceBlock();
+
     IMetricsInfo getMetrics();
 
     int getPendingAuthenticationTimeout();
@@ -188,6 +190,8 @@ public interface GeyserConfiguration {
     int getMtu();
 
     boolean isUseDirectConnection();
+
+    boolean isDisableCompression();
 
     int getConfigVersion();
 

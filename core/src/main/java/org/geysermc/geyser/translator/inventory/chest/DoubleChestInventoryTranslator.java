@@ -40,6 +40,7 @@ import org.geysermc.geyser.level.block.DoubleChestValue;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.block.entity.DoubleChestBlockEntityTranslator;
+import org.geysermc.geyser.util.InventoryUtils;
 
 public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
     private final int defaultJavaBlockState;
@@ -50,7 +51,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
     }
 
     @Override
-    public void prepareInventory(GeyserSession session, Inventory inventory) {
+    public boolean prepareInventory(GeyserSession session, Inventory inventory) {
         // See BlockInventoryHolder - same concept there except we're also dealing with a specific block state
         if (session.getLastInteractionPlayerPosition().equals(session.getPlayerEntity().getPosition())) {
             int javaBlockId = session.getGeyser().getWorldManager().getBlockAt(session, session.getLastInteractionBlockPosition());
@@ -76,11 +77,16 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
                 dataPacket.setData(tag.build());
                 dataPacket.setBlockPosition(session.getLastInteractionBlockPosition());
                 session.sendUpstreamPacket(dataPacket);
-                return;
+
+                return true;
             }
         }
 
-        Vector3i position = session.getPlayerEntity().getPosition().toInt().add(Vector3i.UP);
+        Vector3i position = InventoryUtils.findAvailableWorldSpace(session);
+        if (position == null) {
+            return false;
+        }
+
         Vector3i pairPosition = position.add(Vector3i.UNIT_X);
         int bedrockBlockId = session.getBlockMappings().getBedrockBlockId(defaultJavaBlockState);
 
@@ -125,6 +131,8 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         session.sendUpstreamPacket(dataPacket);
 
         inventory.setHolderPosition(position);
+
+        return true;
     }
 
     @Override

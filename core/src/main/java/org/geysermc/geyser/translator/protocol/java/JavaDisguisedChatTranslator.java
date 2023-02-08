@@ -23,23 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.command;
+package org.geysermc.geyser.translator.protocol.java;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundDisguisedChatPacket;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 
-/**
- * Handles executing a command.
- *
- * @param <T> the command source
- */
-public interface CommandExecutor<T extends CommandSource> {
-    /**
-     * Executes the given {@link Command} with the given
-     * {@link CommandSource}.
-     *
-     * @param source the command source
-     * @param command the command
-     * @param args the arguments
-     */
-    void execute(@NonNull T source, @NonNull Command command, @NonNull String[] args);
+@Translator(packet = ClientboundDisguisedChatPacket.class)
+public class JavaDisguisedChatTranslator extends PacketTranslator<ClientboundDisguisedChatPacket> {
+
+    @Override
+    public void translate(GeyserSession session, ClientboundDisguisedChatPacket packet) {
+        MessageTranslator.handleChatPacket(session, packet.getMessage(), packet.getChatType(), packet.getTargetName(), packet.getName());
+    }
 }

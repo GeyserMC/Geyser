@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,25 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event;
+package org.geysermc.geyser.platform.bungeecord;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.GeyserApi;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelOutboundHandlerAdapter;
+import io.netty.channel.ChannelPromise;
+import net.md_5.bungee.protocol.packet.LoginSuccess;
+import net.md_5.bungee.protocol.packet.SetCompression;
 
-/**
- * Represents an owner for an event that allows it
- * to be registered through an {@link EventBus}.
- */
-public interface EventRegistrar {
+public class GeyserBungeeCompressionDisabler extends ChannelOutboundHandlerAdapter {
 
-    /**
-     * Creates an {@link EventRegistrar} instance.
-     *
-     * @param object the object to wrap around
-     * @return an event registrar instance
-     */
-    @NonNull
-    static EventRegistrar of(@NonNull Object object) {
-        return GeyserApi.api().provider(EventRegistrar.class, object);
+    @Override
+    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+        if (!(msg instanceof SetCompression)) {
+            if (msg instanceof LoginSuccess) {
+                // We're past the point that compression can be enabled
+                if (ctx.pipeline().get("compress") != null) {
+                    ctx.pipeline().remove("compress");
+                }
+                if (ctx.pipeline().get("decompress") != null) {
+                    ctx.pipeline().remove("decompress");
+                }
+                ctx.pipeline().remove(this);
+            }
+            super.write(ctx, msg, promise);
+        }
     }
 }

@@ -355,6 +355,7 @@ public class Entity {
         setFlag(EntityFlag.ON_FIRE, ((xd & 0x01) == 0x01) && !getFlag(EntityFlag.FIRE_IMMUNE)); // Otherwise immune entities sometimes flicker onfire
         setFlag(EntityFlag.SNEAKING, (xd & 0x02) == 0x02);
         setFlag(EntityFlag.SPRINTING, (xd & 0x08) == 0x08);
+
         // Swimming is ignored here and instead we rely on the pose
         setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
 

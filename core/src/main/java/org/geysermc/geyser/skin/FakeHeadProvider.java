@@ -29,10 +29,6 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.nukkitx.protocol.bedrock.data.skin.ImageData;
-import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
-import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
-import com.nukkitx.protocol.bedrock.packet.PlayerSkinPacket;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,7 +41,6 @@ import org.geysermc.geyser.text.GeyserLocale;
 import javax.annotation.Nonnull;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -68,7 +63,7 @@ public class FakeHeadProvider {
 
                     SkinProvider.Skin skin = skinData.skin();
                     SkinProvider.Cape cape = skinData.cape();
-                    SkinProvider.SkinGeometry geometry = skinData.geometry().getGeometryName().equals("{\"geometry\" :{\"default\" :\"geometry.humanoid.customSlim\"}}")
+                    SkinProvider.SkinGeometry geometry = skinData.geometry().geometryName().equals("{\"geometry\" :{\"default\" :\"geometry.humanoid.customSlim\"}}")
                             ? SkinProvider.WEARING_CUSTOM_SKULL_SLIM : SkinProvider.WEARING_CUSTOM_SKULL;
 
                     SkinProvider.Skin headSkin = SkinProvider.getOrDefault(
@@ -111,7 +106,7 @@ public class FakeHeadProvider {
             try {
                 SkinProvider.SkinData mergedSkinData = MERGED_SKINS_LOADING_CACHE.get(new FakeHeadEntry(texturesProperty, fakeHeadSkinUrl, entity));
 
-                sendSkinPacket(session, entity, mergedSkinData);
+                SkinManager.sendSkinPacket(session, entity, mergedSkinData);
             } catch (ExecutionException e) {
                 GeyserImpl.getInstance().getLogger().error("Couldn't merge skin of " + entity.getUsername() + " with head skin url " + fakeHeadSkinUrl, e);
             }
@@ -133,48 +128,8 @@ public class FakeHeadProvider {
                 return;
             }
 
-            sendSkinPacket(session, entity, skinData);
+            SkinManager.sendSkinPacket(session, entity, skinData);
         });
-    }
-
-    private static void sendSkinPacket(GeyserSession session, PlayerEntity entity, SkinProvider.SkinData skinData) {
-        SkinProvider.Skin skin = skinData.skin();
-        SkinProvider.Cape cape = skinData.cape();
-        SkinProvider.SkinGeometry geometry = skinData.geometry();
-
-        if (entity.getUuid().equals(session.getPlayerEntity().getUuid())) {
-            PlayerListPacket.Entry updatedEntry = SkinManager.buildEntryManually(
-                    session,
-                    entity.getUuid(),
-                    entity.getUsername(),
-                    entity.getGeyserId(),
-                    skin.getTextureUrl(),
-                    skin.getSkinData(),
-                    cape.getCapeId(),
-                    cape.getCapeData(),
-                    geometry
-            );
-
-            PlayerListPacket playerAddPacket = new PlayerListPacket();
-            playerAddPacket.setAction(PlayerListPacket.Action.ADD);
-            playerAddPacket.getEntries().add(updatedEntry);
-            session.sendUpstreamPacket(playerAddPacket);
-        } else {
-            PlayerSkinPacket packet = new PlayerSkinPacket();
-            packet.setUuid(entity.getUuid());
-            packet.setOldSkinName("");
-            packet.setNewSkinName(skin.getTextureUrl());
-            packet.setSkin(getSkin(skin.getTextureUrl(), skin, cape, geometry));
-            packet.setTrustedSkin(true);
-            session.sendUpstreamPacket(packet);
-        }
-    }
-
-    private static SerializedSkin getSkin(String skinId, SkinProvider.Skin skin, SkinProvider.Cape cape, SkinProvider.SkinGeometry geometry) {
-        return SerializedSkin.of(skinId, "", geometry.getGeometryName(),
-                ImageData.of(skin.getSkinData()), Collections.emptyList(),
-                ImageData.of(cape.getCapeData()), geometry.getGeometryData(),
-                "", true, false, false, cape.getCapeId(), skinId);
     }
 
     @AllArgsConstructor

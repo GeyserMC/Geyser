@@ -86,6 +86,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             session.getWorldCache().removeScoreboard();
         }
         session.setWorldName(packet.getWorldName());
+        session.setLevels(packet.getWorldNames());
 
         BiomeTranslator.loadServerBiomes(session, packet.getRegistry());
         session.getTagCache().clear();
@@ -98,16 +99,11 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         if (needsSpawnPacket) {
             // The player has yet to spawn so let's do that using some of the information in this Java packet
             session.setDimension(newDimension);
-            session.setDimensionType(dimensions.get(newDimension));
-            ChunkUtils.loadDimension(session);
+            DimensionUtils.setBedrockDimension(session, newDimension);
             session.connect();
 
             // It is now safe to send these packets
             session.getUpstream().sendPostStartGamePackets();
-        } else if (!session.isSpawned()) {
-            // Called for online mode, being presented with a GUI before logging ing
-            session.setDimensionType(dimensions.get(newDimension));
-            ChunkUtils.loadDimension(session);
         }
 
         AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();
@@ -151,5 +147,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             // If the player is spawning into the "fake" nether, send them some fog
             session.sendFog("minecraft:fog_hell");
         }
+
+        ChunkUtils.loadDimension(session);
     }
 }

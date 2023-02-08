@@ -23,13 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.connection;
+package org.geysermc.geyser.translator.protocol.java;
 
-import org.geysermc.api.connection.Connection;
-import org.geysermc.geyser.api.command.CommandSource;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundServerDataPacket;
+import org.geysermc.geyser.api.util.TriState;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
 
-/**
- * Represents a player connection used in Geyser.
- */
-public interface GeyserConnection extends Connection, CommandSource {
+@Translator(packet = ClientboundServerDataPacket.class)
+public class JavaServerDataTranslator extends PacketTranslator<ClientboundServerDataPacket> {
+
+    @Override
+    public void translate(GeyserSession session, ClientboundServerDataPacket packet) {
+        // We only want to warn about chat maybe not working once
+        if (packet.isEnforcesSecureChat() && session.getWorldCache().getChatWarningSent() == TriState.NOT_SET) {
+            session.getWorldCache().setChatWarningSent(TriState.FALSE);
+        }
+    }
 }

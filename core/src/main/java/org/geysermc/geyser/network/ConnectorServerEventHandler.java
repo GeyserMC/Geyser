@@ -125,13 +125,9 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
             pong.setSubMotd(config.getBedrock().secondaryMotd());
         }
 
-        if (config.isPassthroughPlayerCounts() && pingInfo != null) {
-            pong.setPlayerCount(pingInfo.getPlayers().getOnline());
-            pong.setMaximumPlayerCount(pingInfo.getPlayers().getMax());
-        } else {
-            pong.setPlayerCount(geyser.getSessionManager().getSessions().size());
-            pong.setMaximumPlayerCount(config.getMaxPlayers());
-        }
+        // https://github.com/GeyserMC/Geyser/issues/3388
+        pong.setMotd(pong.getMotd().replace(';', ':'));
+        pong.setSubMotd(pong.getSubMotd().replace(';', ':'));
 
         // Fallbacks to prevent errors and allow Bedrock to see the server
         if (pong.getMotd() == null || pong.getMotd().isBlank()) {
@@ -158,6 +154,14 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
                 System.arraycopy(motdArray, 0, newMotdArray, 0, newMotdArray.length);
                 pong.setMotd(new String(newMotdArray, StandardCharsets.UTF_8));
             }
+        }
+
+        if (config.isPassthroughPlayerCounts() && pingInfo != null) {
+            pong.setPlayerCount(pingInfo.getPlayers().getOnline());
+            pong.setMaximumPlayerCount(pingInfo.getPlayers().getMax());
+        } else {
+            pong.setPlayerCount(geyser.getSessionManager().getSessions().size());
+            pong.setMaximumPlayerCount(config.getMaxPlayers());
         }
 
         //Bedrock will not even attempt a connection if the client thinks the server is full

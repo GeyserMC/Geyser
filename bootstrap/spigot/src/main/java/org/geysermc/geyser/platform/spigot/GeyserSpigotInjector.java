@@ -117,10 +117,14 @@ public class GeyserSpigotInjector extends GeyserInjector {
 
         ChannelFuture channelFuture = (new ServerBootstrap()
                 .channel(LocalServerChannelWrapper.class)
-                .childHandler(new ChannelInitializer<Channel>() {
+                .childHandler(new ChannelInitializer<>() {
                     @Override
                     protected void initChannel(Channel ch) throws Exception {
                         initChannel.invoke(childHandler, ch);
+                        if (bootstrap.getGeyserConfig().isDisableCompression() && GeyserSpigotCompressionDisabler.ENABLED) {
+                            ch.pipeline().addAfter("encoder", "geyser-compression-disabler", new GeyserSpigotCompressionDisabler());
+                        }
+
                         if (GeyserImpl.getInstance().getConfig().getRemote().authType() == AuthType.FLOODGATE) {
                             // we have to add the packet blocker in the data handler, otherwise ProtocolSupport breaks
                             ch.pipeline().addBefore(

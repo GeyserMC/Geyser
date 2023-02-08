@@ -61,7 +61,6 @@ pluginManagement {
 rootProject.name = "geyser-parent"
 
 include(":ap")
-include(":geyser-api")
 include(":bungeecord")
 include(":fabric")
 include(":spigot")
@@ -72,7 +71,6 @@ include(":common")
 include(":core")
 
 // Specify project dirs
-project(":geyser-api").projectDir = file("api/geyser")
 project(":bungeecord").projectDir = file("bootstrap/bungeecord")
 project(":fabric").projectDir = file("bootstrap/fabric")
 project(":spigot").projectDir = file("bootstrap/spigot")

@@ -25,33 +25,40 @@
 
 package org.geysermc.geyser.platform.spigot.world.manager;
 
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.ListTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.block.Block;
-import org.bukkit.block.Lectern;
+import org.bukkit.block.*;
+import org.bukkit.block.banner.Pattern;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.plugin.Plugin;
 import org.geysermc.geyser.level.GameRule;
-import org.geysermc.geyser.level.GeyserWorldManager;
+import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;
+import org.geysermc.geyser.translator.inventory.item.nbt.BannerTranslator;
 import org.geysermc.geyser.util.BlockEntityUtils;
+import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * The base world manager to use when there is no supported NMS revision
  */
-public class GeyserSpigotWorldManager extends GeyserWorldManager {
+public class GeyserSpigotWorldManager extends WorldManager {
     private final Plugin plugin;
 
     public GeyserSpigotWorldManager(Plugin plugin) {
@@ -151,12 +158,12 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
         return true;
     }
 
-    public Boolean getGameRuleBool(GeyserSession session, GameRule gameRule) {
+    public boolean getGameRuleBool(GeyserSession session, GameRule gameRule) {
         String value = Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getGameRuleValue(gameRule.getJavaID());
         if (!value.isEmpty()) {
             return Boolean.parseBoolean(value);
         }
-        return (Boolean) gameRule.getDefaultValue();
+        return gameRule.getDefaultBooleanValue();
     }
 
     @Override
@@ -165,12 +172,52 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
         if (!value.isEmpty()) {
             return Integer.parseInt(value);
         }
-        return (int) gameRule.getDefaultValue();
+        return gameRule.getDefaultIntValue();
     }
 
     @Override
     public boolean hasPermission(GeyserSession session, String permission) {
         return Bukkit.getPlayer(session.getPlayerEntity().getUsername()).hasPermission(permission);
+    }
+
+    @Nonnull
+    @Override
+    public CompletableFuture<@Nullable CompoundTag> getPickItemNbt(GeyserSession session, int x, int y, int z, boolean addNbtData) {
+        CompletableFuture<@Nullable CompoundTag> future = new CompletableFuture<>();
+        // Paper 1.19.3 complains about async access otherwise.
+        // java.lang.IllegalStateException: Tile is null, asynchronous access?
+        Bukkit.getScheduler().runTask(this.plugin, () -> {
+            Player bukkitPlayer;
+            if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUuid())) == null) {
+                future.complete(null);
+                return;
+            }
+
+            Block block = bukkitPlayer.getWorld().getBlockAt(x, y, z);
+            BlockState state = block.getState();
+            if (state instanceof Banner banner) {
+                ListTag list = new ListTag("Patterns");
+                for (int i = 0; i < banner.numberOfPatterns(); i++) {
+                    Pattern pattern = banner.getPattern(i);
+                    list.add(BannerTranslator.getJavaPatternTag(pattern.getPattern().getIdentifier(), pattern.getColor().ordinal()));
+                }
+
+                CompoundTag root = addToBlockEntityTag(list);
+
+                future.complete(root);
+                return;
+            }
+            future.complete(null);
+        });
+        return future;
+    }
+
+    private CompoundTag addToBlockEntityTag(Tag tag) {
+        CompoundTag compoundTag = new CompoundTag("");
+        CompoundTag blockEntityTag = new CompoundTag("BlockEntityTag");
+        blockEntityTag.put(tag);
+        compoundTag.put(blockEntityTag);
+        return compoundTag;
     }
 
     /**

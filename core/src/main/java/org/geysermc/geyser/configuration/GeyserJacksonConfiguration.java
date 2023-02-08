@@ -166,6 +166,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("notify-on-new-bedrock-update")
     private boolean notifyOnNewBedrockUpdate = true;
 
+    @JsonProperty("unusable-space-block")
+    private String unusableSpaceBlock = "minecraft:barrier";
+
     private MetricsInfo metrics = new MetricsInfo();
 
     @JsonProperty("pending-authentication-timeout")
@@ -343,6 +346,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     @JsonProperty("use-direct-connection")
     private boolean useDirectConnection = true;
+
+    @JsonProperty("disable-compression")
+    private boolean isDisableCompression = true;
 
     @JsonProperty("config-version")
     private int configVersion = 0;

@@ -62,18 +62,18 @@ import com.github.steveice10.packetlib.event.session.*;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpClientSession;
 import com.github.steveice10.packetlib.tcp.TcpSession;
-import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.*;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.*;
+import com.nukkitx.protocol.bedrock.data.command.CommandEnumData;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
+import com.nukkitx.protocol.bedrock.data.command.SoftEnumUpdateType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.*;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
-import it.unimi.dsi.fastutil.bytes.ByteArrays;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -120,7 +120,6 @@ import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.physics.CollisionManager;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -296,6 +295,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private String worldName = null;
+    /**
+     * As of Java 1.19.3, the client only uses these for commands.
+     */
+    @Setter
+    private String[] levels;
 
     private boolean sneaking;
 
@@ -452,9 +456,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     /**
      * Counts how many ticks have occurred since an arm animation started.
-     * -1 means there is no active arm swing.
+     * -1 means there is no active arm swing; -2 means an arm swing will start in a tick.
      */
-    @Getter(AccessLevel.NONE)
     private int armAnimationTicks = -1;
 
     /**
@@ -533,6 +536,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private ScheduledFuture<?> lookBackScheduledFuture = null;
+
+    /**
+     * Used to return players back to their vehicles if the server doesn't want them unmounting.
+     */
+    @Setter
+    private ScheduledFuture<?> mountVehicleScheduledFuture = null;
 
     private MinecraftProtocol protocol;
 
@@ -626,6 +635,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         CreativeContentPacket creativePacket = new CreativeContentPacket();
         creativePacket.setContents(this.itemMappings.getCreativeItems());
         upstream.sendPacket(creativePacket);
+
+        // Potion mixes are registered by default, as they are needed to be able to put ingredients into the brewing stand.
+        CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
+        craftingDataPacket.setCleanRecipes(true);
+        craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.get());
+        upstream.sendPacket(craftingDataPacket);
 
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
         playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
@@ -1064,6 +1079,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     /**
+     * Moves task to the session event loop if already not in it. Otherwise, the task is automatically ran.
+     */
+    public void ensureInEventLoop(Runnable runnable) {
+        if (eventLoop.inEventLoop()) {
+            runnable.run();
+            return;
+        }
+        executeInEventLoop(runnable);
+    }
+
+    /**
      * Executes a task and prints a stack trace if an error occurs.
      */
     public void executeInEventLoop(Runnable runnable) {
@@ -1133,7 +1159,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 entity.tick();
             }
 
-            if (armAnimationTicks != -1) {
+            if (armAnimationTicks >= 0) {
                 // As of 1.18.2 Java Edition, it appears that the swing time is dynamically updated depending on the
                 // player's effect status, but the animation can cut short if the duration suddenly decreases
                 // (from suddenly no longer having mining fatigue, for example)
@@ -1172,7 +1198,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public void startSneaking() {
         // Toggle the shield, if there is no ongoing arm animation
         // This matches Bedrock Edition behavior as of 1.18.12
-        if (armAnimationTicks == -1) {
+        if (armAnimationTicks < 0) {
             attemptToBlock();
         }
 
@@ -1305,6 +1331,16 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     /**
+     * For https://github.com/GeyserMC/Geyser/issues/2113 and combating arm ticking activating being delayed in
+     * BedrockAnimateTranslator.
+     */
+    public void armSwingPending() {
+        if (armAnimationTicks == -1) {
+            armAnimationTicks = -2;
+        }
+    }
+
+    /**
      * Indicates to the client to stop blocking and tells the Java server the same.
      */
     private boolean disableBlocking() {
@@ -1357,18 +1393,21 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Sends a chat message to the Java server.
      */
     public void sendChat(String message) {
-        sendDownstreamPacket(new ServerboundChatPacket(message, Instant.now().toEpochMilli(), 0L, ByteArrays.EMPTY_ARRAY, false, Collections.emptyList(), null));
+        sendDownstreamPacket(new ServerboundChatPacket(message, Instant.now().toEpochMilli(), 0L, null, 0, new BitSet()));
     }
 
     /**
      * Sends a command to the Java server.
      */
     public void sendCommand(String command) {
-        sendDownstreamPacket(new ServerboundChatCommandPacket(command, Instant.now().toEpochMilli(), 0L, Collections.emptyList(), false, Collections.emptyList(), null));
+        sendDownstreamPacket(new ServerboundChatCommandPacket(command, Instant.now().toEpochMilli(), 0L, Collections.emptyList(), 0, new BitSet()));
     }
 
     public void setServerRenderDistance(int renderDistance) {
-        renderDistance = GenericMath.ceil(++renderDistance * MathUtils.SQRT_OF_TWO); //square to circle
+        // +1 is for Fabric and Spigot
+        // Without the client misses loading some chunks per https://github.com/GeyserMC/Geyser/issues/3490
+        // Fog still appears essentially normally
+        renderDistance = renderDistance + 1;
         this.serverRenderDistance = renderDistance;
 
         ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
@@ -1420,7 +1459,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setRotation(Vector2f.from(1, 1));
 
         startGamePacket.setSeed(-1L);
-        startGamePacket.setDimensionId(DimensionUtils.javaToBedrock(dimension));
+        startGamePacket.setDimensionId(DimensionUtils.javaToBedrock(chunkCache.getBedrockDimension()));
         startGamePacket.setGeneratorId(1);
         startGamePacket.setLevelGameType(GameType.SURVIVAL);
         startGamePacket.setDifficulty(1);
@@ -1622,76 +1661,40 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         boolean spectator = gameMode == GameMode.SPECTATOR;
         boolean worldImmutable = gameMode == GameMode.ADVENTURE || spectator;
 
-        if (GameProtocol.supports1_19_10(this)) {
-            UpdateAdventureSettingsPacket adventureSettingsPacket = new UpdateAdventureSettingsPacket();
-            adventureSettingsPacket.setNoMvP(false);
-            adventureSettingsPacket.setNoPvM(false);
-            adventureSettingsPacket.setImmutableWorld(worldImmutable);
-            adventureSettingsPacket.setShowNameTags(false);
-            adventureSettingsPacket.setAutoJump(true);
-            sendUpstreamPacket(adventureSettingsPacket);
+        UpdateAdventureSettingsPacket adventureSettingsPacket = new UpdateAdventureSettingsPacket();
+        adventureSettingsPacket.setNoMvP(false);
+        adventureSettingsPacket.setNoPvM(false);
+        adventureSettingsPacket.setImmutableWorld(worldImmutable);
+        adventureSettingsPacket.setShowNameTags(false);
+        adventureSettingsPacket.setAutoJump(true);
+        sendUpstreamPacket(adventureSettingsPacket);
 
-            UpdateAbilitiesPacket updateAbilitiesPacket = new UpdateAbilitiesPacket();
-            updateAbilitiesPacket.setUniqueEntityId(bedrockId);
-            updateAbilitiesPacket.setCommandPermission(commandPermission);
-            updateAbilitiesPacket.setPlayerPermission(playerPermission);
+        UpdateAbilitiesPacket updateAbilitiesPacket = new UpdateAbilitiesPacket();
+        updateAbilitiesPacket.setUniqueEntityId(bedrockId);
+        updateAbilitiesPacket.setCommandPermission(commandPermission);
+        updateAbilitiesPacket.setPlayerPermission(playerPermission);
 
-            AbilityLayer abilityLayer = new AbilityLayer();
-            Set<Ability> abilities = abilityLayer.getAbilityValues();
-            if (canFly || spectator) {
-                abilities.add(Ability.MAY_FLY);
-            }
-
-            // Default stuff we have to fill in
-            abilities.add(Ability.BUILD);
-            abilities.add(Ability.MINE);
-            // Needed so you can drop items
-            abilities.add(Ability.DOORS_AND_SWITCHES);
-            if (gameMode == GameMode.CREATIVE) {
-                // Needed so the client doesn't attempt to take away items
-                abilities.add(Ability.INSTABUILD);
-            }
-
-            if (commandPermission == CommandPermission.OPERATOR) {
-                // Fixes a bug? since 1.19.11 where the player can change their gamemode in Bedrock settings and
-                // a packet is not sent to the server.
-                // https://github.com/GeyserMC/Geyser/issues/3191
-                abilities.add(Ability.OPERATOR_COMMANDS);
-            }
-
-            if (flying || spectator) {
-                if (spectator && !flying) {
-                    // We're "flying locked" in this gamemode
-                    flying = true;
-                    ServerboundPlayerAbilitiesPacket abilitiesPacket = new ServerboundPlayerAbilitiesPacket(true);
-                    sendDownstreamPacket(abilitiesPacket);
-                }
-                abilities.add(Ability.FLYING);
-            }
-
-            if (spectator) {
-                abilities.add(Ability.NO_CLIP);
-            }
-
-            abilityLayer.setLayerType(AbilityLayer.Type.BASE);
-            abilityLayer.setFlySpeed(flySpeed);
-            // https://github.com/GeyserMC/Geyser/issues/3139 as of 1.19.10
-            abilityLayer.setWalkSpeed(walkSpeed == 0f ? 0.01f : walkSpeed);
-            Collections.addAll(abilityLayer.getAbilitiesSet(), USED_ABILITIES);
-
-            updateAbilitiesPacket.getAbilityLayers().add(abilityLayer);
-            sendUpstreamPacket(updateAbilitiesPacket);
-            return;
+        AbilityLayer abilityLayer = new AbilityLayer();
+        Set<Ability> abilities = abilityLayer.getAbilityValues();
+        if (canFly || spectator) {
+            abilities.add(Ability.MAY_FLY);
         }
 
-        AdventureSettingsPacket adventureSettingsPacket = new AdventureSettingsPacket();
-        adventureSettingsPacket.setUniqueEntityId(bedrockId);
-        adventureSettingsPacket.setCommandPermission(commandPermission);
-        adventureSettingsPacket.setPlayerPermission(playerPermission);
+        // Default stuff we have to fill in
+        abilities.add(Ability.BUILD);
+        abilities.add(Ability.MINE);
+        // Needed so you can drop items
+        abilities.add(Ability.DOORS_AND_SWITCHES);
+        if (gameMode == GameMode.CREATIVE) {
+            // Needed so the client doesn't attempt to take away items
+            abilities.add(Ability.INSTABUILD);
+        }
 
-        Set<AdventureSetting> flags = adventureSettingsPacket.getSettings();
-        if (canFly || spectator) {
-            flags.add(AdventureSetting.MAY_FLY);
+        if (commandPermission == CommandPermission.OPERATOR) {
+            // Fixes a bug? since 1.19.11 where the player can change their gamemode in Bedrock settings and
+            // a packet is not sent to the server.
+            // https://github.com/GeyserMC/Geyser/issues/3191
+            abilities.add(Ability.OPERATOR_COMMANDS);
         }
 
         if (flying || spectator) {
@@ -1701,20 +1704,21 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 ServerboundPlayerAbilitiesPacket abilitiesPacket = new ServerboundPlayerAbilitiesPacket(true);
                 sendDownstreamPacket(abilitiesPacket);
             }
-            flags.add(AdventureSetting.FLYING);
-        }
-
-        if (worldImmutable) {
-            flags.add(AdventureSetting.WORLD_IMMUTABLE);
+            abilities.add(Ability.FLYING);
         }
 
         if (spectator) {
-            flags.add(AdventureSetting.NO_CLIP);
+            abilities.add(Ability.NO_CLIP);
         }
 
-        flags.add(AdventureSetting.AUTO_JUMP);
+        abilityLayer.setLayerType(AbilityLayer.Type.BASE);
+        abilityLayer.setFlySpeed(flySpeed);
+        // https://github.com/GeyserMC/Geyser/issues/3139 as of 1.19.10
+        abilityLayer.setWalkSpeed(walkSpeed == 0f ? 0.01f : walkSpeed);
+        Collections.addAll(abilityLayer.getAbilitiesSet(), USED_ABILITIES);
 
-        sendUpstreamPacket(adventureSettingsPacket);
+        updateAbilitiesPacket.getAbilityLayers().add(abilityLayer);
+        sendUpstreamPacket(updateAbilitiesPacket);
     }
 
     private int getRenderDistance() {
@@ -1893,5 +1897,20 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         transferPacket.setPort(port);
         sendUpstreamPacket(transferPacket);
         return true;
+    }
+
+    public void addCommandEnum(String name, String... enums) {
+        softEnumPacket(name, SoftEnumUpdateType.ADD, enums);
+    }
+
+    public void removeCommandEnum(String name, String... enums) {
+        softEnumPacket(name, SoftEnumUpdateType.REMOVE, enums);
+    }
+
+    private void softEnumPacket(String name, SoftEnumUpdateType type, String... enums) {
+        UpdateSoftEnumPacket packet = new UpdateSoftEnumPacket();
+        packet.setType(type);
+        packet.setSoftEnum(new CommandEnumData(name, enums, true));
+        sendUpstreamPacket(packet);
     }
 }

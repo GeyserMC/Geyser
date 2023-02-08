@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.text;
 
-import com.github.steveice10.mc.protocol.data.game.BuiltinChatType;
+import com.github.steveice10.mc.protocol.data.game.chat.BuiltinChatType;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 

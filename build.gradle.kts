@@ -5,7 +5,7 @@ plugins {
 }
 
 allprojects {
-    group = "org.geysermc"
+    group = "org.geysermc.geyser"
     version = "3.0.0-SNAPSHOT"
     description = "Allows for players from Minecraft: Bedrock Edition to join Minecraft: Java Edition servers."
 
@@ -30,16 +30,8 @@ subprojects {
         plugin("geyser.build-logic")
     }
 
-    val relativePath = projectDir.relativeTo(rootProject.projectDir).path
-
-    if (relativePath.contains("api")) {
-        plugins.apply("geyser.api-conventions")
-    } else {
-        group = rootProject.group as String + ".geyser"
-        when (this) {
-            in platforms -> plugins.apply("geyser.platform-conventions")
-            //api -> plugins.apply("geyser.publish-conventions") FIXME
-            else -> plugins.apply("geyser.base-conventions")
-        }
+    when (this) {
+        in platforms -> plugins.apply("geyser.platform-conventions")
+        else -> plugins.apply("geyser.base-conventions")
     }
 }
