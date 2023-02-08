@@ -48,6 +48,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import static org.geysermc.geyser.scoreboard.UpdateType.*;
 
 public final class Scoreboard {
+    private static final boolean SHOW_SCOREBOARD_LOGS = Boolean.parseBoolean(System.getProperty("Geyser.ShowScoreboardLogs", "true"));
+
     private final GeyserSession session;
     private final GeyserLogger logger;
     @Getter
@@ -134,7 +136,7 @@ public final class Scoreboard {
     public Team registerNewTeam(String teamName, String[] players) {
         Team team = teams.get(teamName);
         if (team != null) {
-            if (Boolean.parseBoolean(System.getProperty("Geyser.ShowScoreboardLogs", "true"))) {
+            if (SHOW_SCOREBOARD_LOGS) {
                 logger.info(GeyserLocale.getLocaleStringLog("geyser.network.translator.team.failed_overrides", teamName));
             }
             return team;
