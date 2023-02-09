@@ -1,4 +1,7 @@
 [versions]
+base-api = "1.0.0-SNAPSHOT"
+cumulus  = "1.1.1"
+events = "1.0-SNAPSHOT"
 jackson = "2.14.0"
 fastutil = "8.5.2"
 netty = "4.1.80.Final"
@@ -14,8 +17,6 @@ adventure = "4.12.0-20220629.025215-9"
 adventure-platform = "4.1.2"
 junit = "4.13.1"
 checkerframework = "3.19.0"
-cumulus  = "1.1.1"
-events = "1.0-SNAPSHOT"
 log4j  = "2.17.1"
 jline = "3.21.0"
 terminalconsoleappender = "1.2.0"
@@ -31,6 +32,10 @@ fabric-loader = "0.14.8"
 fabric-api = "0.58.5+1.19.1"
 
 [libraries]
+base-api = { group = "org.geysermc.api", name = "base-api", version.ref = "base-api" }
+cumulus = { group = "org.geysermc.cumulus", name = "cumulus", version.ref = "cumulus" }
+events = { group = "org.geysermc.event", name = "events", version.ref = "events" }
+
 jackson-annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson" }
 jackson-core = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
 jackson-dataformat-yaml = { group = "com.fasterxml.jackson.dataformat", name = "jackson-dataformat-yaml", version.ref = "jackson" }
@@ -74,8 +79,6 @@ adapters-spigot = { group = "org.geysermc.geyser.adapters", name = "spigot-all",
 bungeecord-proxy = { group = "com.github.SpigotMC.BungeeCord", name = "bungeecord-proxy", version.ref = "bungeecord" }
 checker-qual = { group = "org.checkerframework", name = "checker-qual", version.ref = "checkerframework" }
 commodore = { group = "me.lucko", name = "commodore", version.ref = "commodore" }
-cumulus = { group = "org.geysermc.cumulus", name = "cumulus", version.ref = "cumulus" }
-events = { group = "org.geysermc.event", name = "events", version.ref = "events" }
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
