@@ -23,64 +23,44 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event.downstream;
+package org.geysermc.geyser.api.event.bedrock;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Cancellable;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 
-import java.util.Set;
-
-
 /**
- * @deprecated please use {@link org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent}.
+ * Called whenever a Bedrock player performs an emote on their end, before it is broadcasted to the rest of the server.
  */
-@Deprecated(forRemoval = true)
-public class ServerDefineCommandsEvent extends ConnectionEvent implements Cancellable {
-    private final Set<? extends CommandInfo> commands;
+public final class BedrockEmoteEvent extends ConnectionEvent implements Cancellable {
+    private final String emoteId;
     private boolean cancelled;
 
-    public ServerDefineCommandsEvent(@NonNull GeyserConnection connection, @NonNull Set<? extends CommandInfo> commands) {
+    public BedrockEmoteEvent(@NonNull GeyserConnection connection, @NonNull String emoteId) {
         super(connection);
-        this.commands = commands;
+        this.emoteId = emoteId;
     }
 
     /**
-     * A collection of commands sent from the server. Any element in this collection can be removed, but no element can
-     * be added.
-     *
-     * @return a collection of the commands sent over
+     * @return the emote ID that the Bedrock player is attempting to perform.
      */
     @NonNull
-    public Set<? extends CommandInfo> commands() {
-        return this.commands;
+    public String emoteId() {
+        return emoteId;
     }
 
+    /**
+     * @return the cancel status of this event. A Bedrock player will still play this emote on its end even if this
+     * event is cancelled, but other Bedrock players will not see.
+     */
     @Override
     public boolean isCancelled() {
-        return this.cancelled;
+        return cancelled;
     }
 
     @Override
     public void setCancelled(boolean cancelled) {
         this.cancelled = cancelled;
-    }
-
-    @Deprecated(forRemoval = true)
-    public interface CommandInfo {
-        /**
-         * Gets the name of the command.
-         *
-         * @return the name of the command
-         */
-        String name();
-
-        /**
-         * Gets the description of the command.
-         *
-         * @return the description of the command
-         */
-        String description();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event.downstream;
+package org.geysermc.geyser.api.event.java;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Cancellable;
@@ -32,11 +32,11 @@ import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 
 import java.util.Set;
 
-
 /**
- * @deprecated please use {@link org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent}.
+ * Called when the Java server defines the commands available on the server.
+ * <br>
+ * This event is mapped to the existence of Brigadier on the server.
  */
-@Deprecated(forRemoval = true)
 public class ServerDefineCommandsEvent extends ConnectionEvent implements Cancellable {
     private final Set<? extends CommandInfo> commands;
     private boolean cancelled;
@@ -67,7 +67,6 @@ public class ServerDefineCommandsEvent extends ConnectionEvent implements Cancel
         this.cancelled = cancelled;
     }
 
-    @Deprecated(forRemoval = true)
     public interface CommandInfo {
         /**
          * Gets the name of the command.
