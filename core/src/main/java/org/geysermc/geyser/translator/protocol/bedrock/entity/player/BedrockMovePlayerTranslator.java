@@ -92,11 +92,29 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             if (isValidMove(session, entity.getPosition(), packet.getPosition())) {
                 Vector3d position = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), packet.isOnGround(), packet.getMode() == MovePlayerPacket.Mode.TELEPORT);
                 if (position != null) { // A null return value cancels the packet
+                    boolean onGround = packet.isOnGround();
+
+                    boolean teleportThroughVoidFloor;
+                    // Compare positions here for void floor fix below before the player's position variable is set to the packet position
+                    if (entity.getPosition().getY() >= packet.getPosition().getY()) {
+                        int floorY = position.getFloorY();
+                        // The void floor is offset about 40 blocks below the bottom of the world
+                        BedrockDimension bedrockDimension = session.getChunkCache().getBedrockDimension();
+                        int voidFloorLocation = bedrockDimension.minY() - 40;
+                        teleportThroughVoidFloor = floorY <= (voidFloorLocation + 2) && floorY >= voidFloorLocation;
+                        if (teleportThroughVoidFloor) {
+                            // https://github.com/GeyserMC/Geyser/issues/3521 - no void floor in Java so we cannot be on the ground.
+                            onGround = false;
+                        }
+                    } else {
+                        teleportThroughVoidFloor = false;
+                    }
+
                     Packet movePacket;
                     if (rotationChanged) {
                         // Send rotation updates as well
                         movePacket = new ServerboundMovePlayerPosRotPacket(
-                                packet.isOnGround(),
+                                onGround,
                                 position.getX(), position.getY(), position.getZ(),
                                 yaw, pitch
                         );
@@ -105,35 +123,26 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                         entity.setHeadYaw(headYaw);
                     } else {
                         // Rotation did not change; don't send an update with rotation
-                        movePacket = new ServerboundMovePlayerPosPacket(packet.isOnGround(), position.getX(), position.getY(), position.getZ());
+                        movePacket = new ServerboundMovePlayerPosPacket(onGround, position.getX(), position.getY(), position.getZ());
                     }
 
-                    // Compare positions here for void floor fix below before the player's position variable is set to the packet position
-                    boolean notMovingUp = entity.getPosition().getY() >= packet.getPosition().getY();
-
                     entity.setPositionManual(packet.getPosition());
-                    entity.setOnGround(packet.isOnGround());
+                    entity.setOnGround(onGround);
 
                     // Send final movement changes
                     session.sendDownstreamPacket(movePacket);
 
-                    if (notMovingUp) {
-                        int floorY = position.getFloorY();
-                        // The void floor is offset about 40 blocks below the bottom of the world
-                        BedrockDimension bedrockDimension = session.getChunkCache().getBedrockDimension();
-                        int voidFloorLocation = bedrockDimension.minY() - 40;
-                        if (floorY <= (voidFloorLocation + 2) && floorY >= voidFloorLocation) {
-                            // Work around there being a floor at the bottom of the world and teleport the player below it
-                            // Moving from below to above the void floor works fine
-                            entity.setPosition(entity.getPosition().sub(0, 4f, 0));
-                            MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
-                            movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
-                            movePlayerPacket.setPosition(entity.getPosition());
-                            movePlayerPacket.setRotation(entity.getBedrockRotation());
-                            movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
-                            movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
-                            session.sendUpstreamPacket(movePlayerPacket);
-                        }
+                    if (teleportThroughVoidFloor) {
+                        // Work around there being a floor at the bottom of the world and teleport the player below it
+                        // Moving from below to above the void floor works fine
+                        entity.setPosition(entity.getPosition().sub(0, 4f, 0));
+                        MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
+                        movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
+                        movePlayerPacket.setPosition(entity.getPosition());
+                        movePlayerPacket.setRotation(entity.getBedrockRotation());
+                        movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
+                        movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
+                        session.sendUpstreamPacket(movePlayerPacket);
                     }
 
                     session.getSkullCache().updateVisibleSkulls();

@@ -100,6 +100,7 @@ public class PlayerEntity extends LivingEntity {
         super(session, entityId, geyserId, uuid, EntityDefinitions.PLAYER, position, motion, yaw, pitch, headYaw);
 
         this.username = username;
+        this.nametag = username;
         this.texturesProperty = texturesProperty;
     }
 
@@ -118,8 +119,10 @@ public class PlayerEntity extends LivingEntity {
             setBelowNameText(objective);
         }
 
+        // Update in case this entity has been despawned, then respawned
+        this.nametag = this.username;
         // The name can't be updated later (the entity metadata for it is ignored), so we need to check for this now
-        updateDisplayName(null, false);
+        updateDisplayName(session.getWorldCache().getScoreboard().getTeamFor(username));
 
         AddPlayerPacket addPlayerPacket = new AddPlayerPacket();
         addPlayerPacket.setUuid(uuid);
@@ -315,19 +318,10 @@ public class PlayerEntity extends LivingEntity {
     }
 
     //todo this will become common entity logic once UUID support is implemented for them
-    /**
-     * @param useGivenTeam even if there is no team, update the username in the entity metadata anyway, and don't look for a team
-     */
-    public void updateDisplayName(@Nullable Team team, boolean useGivenTeam) {
-        if (team == null && !useGivenTeam) {
-            // Only search for the team if we are not supposed to use the given team
-            // If the given team is null, this is intentional that we are being removed from the team
-            team = session.getWorldCache().getScoreboard().getTeamFor(username);
-        }
-
+    public void updateDisplayName(@Nullable Team team) {
         boolean needsUpdate;
-        String newDisplayName = this.username;
         if (team != null) {
+            String newDisplayName;
             if (team.isVisibleFor(session.getPlayerEntity().getUsername())) {
                 TeamColor color = team.getColor();
                 String chatColor = MessageTranslator.toChatColor(color);
@@ -339,23 +333,16 @@ public class PlayerEntity extends LivingEntity {
                 // The name is not visible to the session player; clear name
                 newDisplayName = "";
             }
-            needsUpdate = useGivenTeam && !newDisplayName.equals(nametag);
-            nametag = newDisplayName;
-            dirtyMetadata.put(EntityData.NAMETAG, newDisplayName);
-        } else if (useGivenTeam) {
-            // The name has reset, if it was previously something else
-            needsUpdate = !newDisplayName.equals(nametag);
-            dirtyMetadata.put(EntityData.NAMETAG, this.username);
+            needsUpdate = !newDisplayName.equals(this.nametag);
+            this.nametag = newDisplayName;
         } else {
-            needsUpdate = false;
+            // The name has reset, if it was previously something else
+            needsUpdate = !this.nametag.equals(this.username);
+            this.nametag = this.username;
         }
 
         if (needsUpdate) {
-            // Update the metadata as it won't be updated later
-            SetEntityDataPacket packet = new SetEntityDataPacket();
-            packet.getMetadata().put(EntityData.NAMETAG, newDisplayName);
-            packet.setRuntimeEntityId(geyserId);
-            session.sendUpstreamPacket(packet);
+            dirtyMetadata.put(EntityData.NAMETAG, this.nametag);
         }
     }
 

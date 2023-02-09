@@ -65,6 +65,14 @@ public final class Team {
             if (entities.add(name)) {
                 added.add(name);
             }
+            scoreboard.getPlayerToTeam().compute(name, (player, oldTeam) -> {
+                if (oldTeam != null) {
+                    // Remove old team from this map, and from the set of players of the old team.
+                    // Java 1.19.3 Mojmap: Scoreboard#addPlayerToTeam calls #removePlayerFromTeam
+                    oldTeam.entities.remove(player);
+                }
+                return this;
+            });
         }
 
         if (added.isEmpty()) {
@@ -93,6 +101,7 @@ public final class Team {
             if (entities.remove(name)) {
                 removed.add(name);
             }
+            scoreboard.getPlayerToTeam().remove(name, this);
         }
         return removed;
     }
