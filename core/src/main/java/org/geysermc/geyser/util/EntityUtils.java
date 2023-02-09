@@ -93,6 +93,7 @@ public final class EntityUtils {
                 mountedHeightOffset = height - (isBaby ? 0.2f : 0.15f);
             }
             case PIGLIN -> mountedHeightOffset = height * 0.92f;
+            case PLAYER -> mountedHeightOffset = -.4f;
             case RAVAGER -> mountedHeightOffset = 2.1f;
             case SKELETON_HORSE -> mountedHeightOffset -= 0.1875f;
             case STRIDER -> mountedHeightOffset = height - 0.19f;
