@@ -15,14 +15,14 @@ jobs:
           distribution: 'temurin'
           java-version: 17
           cache: 'gradle'
-      - name: Check if PR user has API repo
+      - name: Check if the author has forked the API repo
         uses: Kas-tle/ForkFinder@v1.0.1
         id: find_forks
         with:
           owner: 'GeyserMC'
           repo: 'api'
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Cache PR user API repo
+      - name: Use author's API repo if it exists
         if: steps.find_forks.outputs.target_branch_found == 'true'
         env:
           API_FORK_URL: ${{ steps.find_forks.outputs.user_fork_url }}

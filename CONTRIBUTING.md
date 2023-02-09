@@ -50,4 +50,4 @@ The nature of our software requires a lot of arrays and maps to be stored - wher
 
 We have a rundown of all the tools you need to develop over on our [wiki](https://wiki.geysermc.org/other/developer-guide/). If you have any questions, please feel free to reach out to our [Discord](https://discord.gg/geysermc)!
 
-If making a pull request that also depends on changes to [Geyser's API](https://github.com/GeyserMC/api), simply fork the API repo and create a branch with the same name as your PR to Geyser. The pull request [action](https://github.com/GeyserMC/Geyser/blob/master/.github/workflows/pullrequest.yml) will automatically cache your Geyser API changes before building your changes to Geyser.
+If you're making a pull request that also depends on changes to [the base API](https://github.com/GeyserMC/api), simply fork the API repo and create a branch with the same name as your Geyser PR. The pull request [action](https://github.com/GeyserMC/Geyser/blob/master/.github/workflows/pullrequest.yml) will automatically use your API changes while building your changes to Geyser.
