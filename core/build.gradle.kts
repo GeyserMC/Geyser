@@ -7,8 +7,8 @@ plugins {
 }
 
 dependencies {
-    api(projects.api)
     api(projects.common)
+    api(projects.api)
 
     // Jackson JSON and YAML serialization
     api(libs.bundles.jackson)
