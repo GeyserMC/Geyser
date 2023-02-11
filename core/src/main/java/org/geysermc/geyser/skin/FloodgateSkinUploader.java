@@ -179,7 +179,7 @@ public final class FloodgateSkinUploader {
                     }
                     return;
                 }
-                logger.error("Got an error", ex);
+                logger.error("Unable to resolve api.geysermc.org! Check your internet connection.", ex);
             }
         };
     }
