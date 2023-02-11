@@ -23,32 +23,21 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser;
+package org.geysermc.geyser.api.extension.exception;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+/**
+ * Thrown when an extension's description is invalid.
+ */
+public class InvalidDescriptionException extends Exception {
+    public InvalidDescriptionException(Throwable cause) {
+        super(cause);
+    }
 
-public final class Constants {
-    public static final URI GLOBAL_API_WS_URI;
+    public InvalidDescriptionException(String message) {
+        super(message);
+    }
 
-    public static final String NEWS_OVERVIEW_URL = "https://api.geysermc.org/v2/news/";
-    public static final String NEWS_PROJECT_NAME = "geyser";
-
-    public static final String FLOODGATE_DOWNLOAD_LOCATION = "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/";
-
-    public static final String GEYSER_DOWNLOAD_LOCATION = "https://ci.geysermc.org";
-    public static final String UPDATE_PERMISSION = "geyser.update";
-
-    static final String SAVED_REFRESH_TOKEN_FILE = "saved-refresh-tokens.json";
-
-    static {
-        URI wsUri = null;
-        try {
-            wsUri = new URI("wss://api.geysermc.org/ws");
-        } catch (URISyntaxException e) {
-            GeyserImpl.getInstance().getLogger().error("Unable to resolve api.geysermc.org! Check your internet connection.");
-            e.printStackTrace();
-        }
-        GLOBAL_API_WS_URI = wsUri;
+    public InvalidDescriptionException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

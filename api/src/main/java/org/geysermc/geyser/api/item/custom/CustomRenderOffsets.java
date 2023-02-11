@@ -23,32 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser;
+package org.geysermc.geyser.api.item.custom;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
-public final class Constants {
-    public static final URI GLOBAL_API_WS_URI;
+/**
+ * This class is used to store the render offsets of custom items.
+ */
+public record CustomRenderOffsets(@Nullable Hand mainHand, @Nullable Hand offhand) {
+    /**
+     * The hand that is used for the offset.
+     */
+    public record Hand(@Nullable Offset firstPerson, @Nullable Offset thirdPerson) {
+    }
 
-    public static final String NEWS_OVERVIEW_URL = "https://api.geysermc.org/v2/news/";
-    public static final String NEWS_PROJECT_NAME = "geyser";
+    /**
+     * The offset of the item.
+     */
+    public record Offset(@Nullable OffsetXYZ position, @Nullable OffsetXYZ rotation, @Nullable OffsetXYZ scale) {
+    }
 
-    public static final String FLOODGATE_DOWNLOAD_LOCATION = "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/";
-
-    public static final String GEYSER_DOWNLOAD_LOCATION = "https://ci.geysermc.org";
-    public static final String UPDATE_PERMISSION = "geyser.update";
-
-    static final String SAVED_REFRESH_TOKEN_FILE = "saved-refresh-tokens.json";
-
-    static {
-        URI wsUri = null;
-        try {
-            wsUri = new URI("wss://api.geysermc.org/ws");
-        } catch (URISyntaxException e) {
-            GeyserImpl.getInstance().getLogger().error("Unable to resolve api.geysermc.org! Check your internet connection.");
-            e.printStackTrace();
-        }
-        GLOBAL_API_WS_URI = wsUri;
+    /**
+     * X, Y and Z positions for the offset.
+     */
+    public record OffsetXYZ(float x, float y, float z) {
     }
 }

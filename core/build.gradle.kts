@@ -8,7 +8,7 @@ plugins {
 
 dependencies {
     api(projects.common)
-    api(libs.geyser.api)
+    api(projects.api)
 
     // Jackson JSON and YAML serialization
     api(libs.bundles.jackson)

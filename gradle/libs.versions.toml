@@ -1,5 +1,5 @@
 [versions]
-geyser-api = "1.0.1-SNAPSHOT"
+base-api = "1.0.0-SNAPSHOT"
 cumulus = "1.1.1"
 events = "1.0-SNAPSHOT"
 jackson = "2.14.0"
@@ -32,7 +32,7 @@ fabric-loader = "0.14.8"
 fabric-api = "0.58.5+1.19.1"
 
 [libraries]
-geyser-api = { group = "org.geysermc.api", name = "geyser-api", version.ref = "geyser-api" }
+base-api = { group = "org.geysermc.api", name = "base-api", version.ref = "base-api" }
 cumulus = { group = "org.geysermc.cumulus", name = "cumulus", version.ref = "cumulus" }
 events = { group = "org.geysermc.event", name = "events", version.ref = "events" }
 

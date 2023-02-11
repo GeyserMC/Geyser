@@ -23,32 +23,48 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser;
+package org.geysermc.geyser.api.network;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
-public final class Constants {
-    public static final URI GLOBAL_API_WS_URI;
+/**
+ * Represents the Java server that Geyser is connecting to.
+ */
+public interface RemoteServer {
 
-    public static final String NEWS_OVERVIEW_URL = "https://api.geysermc.org/v2/news/";
-    public static final String NEWS_PROJECT_NAME = "geyser";
+    /**
+     * Gets the IP address of the remote server.
+     *
+     * @return the IP address of the remote server
+     */
+    String address();
 
-    public static final String FLOODGATE_DOWNLOAD_LOCATION = "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/";
+    /**
+     * Gets the port of the remote server.
+     *
+     * @return the port of the remote server
+     */
+    int port();
 
-    public static final String GEYSER_DOWNLOAD_LOCATION = "https://ci.geysermc.org";
-    public static final String UPDATE_PERMISSION = "geyser.update";
+    /**
+     * Gets the protocol version of the remote server.
+     *
+     * @return the protocol version of the remote server
+     */
+    int protocolVersion();
 
-    static final String SAVED_REFRESH_TOKEN_FILE = "saved-refresh-tokens.json";
+    /**
+     * Gets the Minecraft version of the remote server.
+     *
+     * @return the Minecraft version of the remote server
+     */
+    String minecraftVersion();
 
-    static {
-        URI wsUri = null;
-        try {
-            wsUri = new URI("wss://api.geysermc.org/ws");
-        } catch (URISyntaxException e) {
-            GeyserImpl.getInstance().getLogger().error("Unable to resolve api.geysermc.org! Check your internet connection.");
-            e.printStackTrace();
-        }
-        GLOBAL_API_WS_URI = wsUri;
-    }
+    /**
+     * Gets the {@link AuthType} required by the remote server.
+     *
+     * @return the auth type required by the remote server
+     */
+    @NonNull
+    AuthType authType();
 }

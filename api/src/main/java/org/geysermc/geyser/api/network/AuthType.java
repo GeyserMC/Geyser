@@ -23,32 +23,39 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser;
+package org.geysermc.geyser.api.network;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.util.Locale;
 
-public final class Constants {
-    public static final URI GLOBAL_API_WS_URI;
+/**
+ * The authentication types that a Java server can be on connection.
+ */
+public enum AuthType {
+    OFFLINE,
+    ONLINE,
+    /**
+     * The internal name for connecting to an online mode server without needing a Java account. The presence of this
+     * authentication type does not necessarily mean the Floodgate plugin is installed; it only means that this
+     * authentication type will be attempted.
+     */
+    FLOODGATE;
 
-    public static final String NEWS_OVERVIEW_URL = "https://api.geysermc.org/v2/news/";
-    public static final String NEWS_PROJECT_NAME = "geyser";
+    private static final AuthType[] VALUES = values();
 
-    public static final String FLOODGATE_DOWNLOAD_LOCATION = "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/";
-
-    public static final String GEYSER_DOWNLOAD_LOCATION = "https://ci.geysermc.org";
-    public static final String UPDATE_PERMISSION = "geyser.update";
-
-    static final String SAVED_REFRESH_TOKEN_FILE = "saved-refresh-tokens.json";
-
-    static {
-        URI wsUri = null;
-        try {
-            wsUri = new URI("wss://api.geysermc.org/ws");
-        } catch (URISyntaxException e) {
-            GeyserImpl.getInstance().getLogger().error("Unable to resolve api.geysermc.org! Check your internet connection.");
-            e.printStackTrace();
+    /**
+     * Convert the AuthType string (from config) to the enum, ONLINE on fail
+     *
+     * @param name AuthType string
+     *
+     * @return The converted AuthType
+     */
+    public static AuthType getByName(String name) {
+        String upperCase = name.toUpperCase(Locale.ROOT);
+        for (AuthType type : VALUES) {
+            if (type.name().equals(upperCase)) {
+                return type;
+            }
         }
-        GLOBAL_API_WS_URI = wsUri;
+        return ONLINE;
     }
 }

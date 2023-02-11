@@ -61,6 +61,7 @@ pluginManagement {
 rootProject.name = "geyser-parent"
 
 include(":ap")
+include(":api")
 include(":bungeecord")
 include(":fabric")
 include(":spigot")

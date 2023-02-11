@@ -23,32 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser;
+package org.geysermc.geyser.api.event.lifecycle;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.event.Event;
+import org.geysermc.geyser.api.event.EventBus;
+import org.geysermc.geyser.api.event.EventRegistrar;
+import org.geysermc.geyser.api.extension.ExtensionManager;
 
-public final class Constants {
-    public static final URI GLOBAL_API_WS_URI;
-
-    public static final String NEWS_OVERVIEW_URL = "https://api.geysermc.org/v2/news/";
-    public static final String NEWS_PROJECT_NAME = "geyser";
-
-    public static final String FLOODGATE_DOWNLOAD_LOCATION = "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/";
-
-    public static final String GEYSER_DOWNLOAD_LOCATION = "https://ci.geysermc.org";
-    public static final String UPDATE_PERMISSION = "geyser.update";
-
-    static final String SAVED_REFRESH_TOKEN_FILE = "saved-refresh-tokens.json";
-
-    static {
-        URI wsUri = null;
-        try {
-            wsUri = new URI("wss://api.geysermc.org/ws");
-        } catch (URISyntaxException e) {
-            GeyserImpl.getInstance().getLogger().error("Unable to resolve api.geysermc.org! Check your internet connection.");
-            e.printStackTrace();
-        }
-        GLOBAL_API_WS_URI = wsUri;
-    }
+/**
+ * Called when Geyser is starting to initialize.
+ *
+ * @param extensionManager the extension manager
+ * @param eventBus the event bus
+ */
+public record GeyserPreInitializeEvent(@NonNull ExtensionManager extensionManager, @NonNull EventBus<EventRegistrar> eventBus) implements Event {
 }
