@@ -23,51 +23,44 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.util;
+package org.geysermc.geyser.api.event.bedrock;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.event.Cancellable;
+import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 
-public enum BedrockPlatform {
-    UNKNOWN("Unknown"),
-    GOOGLE("Android"),
-    IOS("iOS"),
-    OSX("macOS"),
-    AMAZON("Amazon"),
-    GEARVR("Gear VR"),
-    HOLOLENS("Hololens"),
-    UWP("Windows"),
-    WIN32("Windows x86"),
-    DEDICATED("Dedicated"),
-    TVOS("Apple TV"),
-    PS4("PS4"),
-    NX("Switch"),
-    XBOX("Xbox One"),
-    WINDOWS_PHONE("Windows Phone");
+/**
+ * Called whenever a Bedrock player performs an emote on their end, before it is broadcasted to the rest of the server.
+ */
+public final class BedrockEmoteEvent extends ConnectionEvent implements Cancellable {
+    private final String emoteId;
+    private boolean cancelled;
 
-    private static final BedrockPlatform[] VALUES = values();
-
-    private final String displayName;
-
-    BedrockPlatform(String displayName) {
-        this.displayName = displayName;
+    public BedrockEmoteEvent(@NonNull GeyserConnection connection, @NonNull String emoteId) {
+        super(connection);
+        this.emoteId = emoteId;
     }
 
     /**
-     * Get the BedrockPlatform from the identifier.
-     *
-     * @param id the BedrockPlatform identifier
-     * @return The BedrockPlatform or {@link #UNKNOWN} if the platform wasn't found
+     * @return the emote ID that the Bedrock player is attempting to perform.
      */
     @NonNull
-    public static BedrockPlatform fromId(int id) {
-        return id < VALUES.length ? VALUES[id] : VALUES[0];
+    public String emoteId() {
+        return emoteId;
     }
 
     /**
-     * @return friendly display name of platform.
+     * @return the cancel status of this event. A Bedrock player will still play this emote on its end even if this
+     * event is cancelled, but other Bedrock players will not see.
      */
     @Override
-    public String toString() {
-        return displayName;
+    public boolean isCancelled() {
+        return cancelled;
+    }
+
+    @Override
+    public void setCancelled(boolean cancelled) {
+        this.cancelled = cancelled;
     }
 }

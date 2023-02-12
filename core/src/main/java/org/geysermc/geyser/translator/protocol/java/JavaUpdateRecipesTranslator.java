@@ -46,6 +46,7 @@ import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -144,10 +145,16 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                         for (ItemStack addition : recipeData.getAddition().getOptions()) {
                             ItemDescriptorWithCount bedrockAddition = ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, addition));
 
-                            UUID uuid = UUID.randomUUID();
-                            craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
-                                    List.of(bedrockBase, bedrockAddition),
-                                    Collections.singletonList(output), uuid, "smithing_table", 2, netId++));
+                            if (GameProtocol.supports1_19_60(session)) {
+                                // Note: vanilla inputs use aux value of Short.MAX_VALUE
+                                craftingDataPacket.getCraftingData().add(CraftingData.fromSmithingTransform(recipe.getIdentifier(),
+                                        bedrockBase, bedrockAddition, output, "smithing_table", netId++));
+                            } else {
+                                UUID uuid = UUID.randomUUID();
+                                craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
+                                        List.of(bedrockBase, bedrockAddition),
+                                        Collections.singletonList(output), uuid, "smithing_table", 2, netId++));
+                            }
                         }
                     }
                 }

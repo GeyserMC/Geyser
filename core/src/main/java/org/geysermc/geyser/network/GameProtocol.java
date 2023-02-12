@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.codec.PacketCodec;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.v557.Bedrock_v557;
 import com.nukkitx.protocol.bedrock.v560.Bedrock_v560;
+import com.nukkitx.protocol.bedrock.v567.Bedrock_v567;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.ArrayList;
@@ -63,6 +64,7 @@ public final class GameProtocol {
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC.toBuilder()
                 .minecraftVersion("1.19.50/1.19.51")
                 .build());
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v567.V567_CODEC);
     }
 
     /**
@@ -83,6 +85,10 @@ public final class GameProtocol {
 
     public static boolean supports1_19_50(GeyserSession session) {
         return session.getUpstream().getProtocolVersion() >= Bedrock_v560.V560_CODEC.getProtocolVersion();
+    }
+
+    public static boolean supports1_19_60(GeyserSession session) {
+        return session.getUpstream().getProtocolVersion() >= Bedrock_v567.V567_CODEC.getProtocolVersion();
     }
 
     /**

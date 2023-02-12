@@ -28,14 +28,11 @@ package org.geysermc.geyser.registry.populator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableMap;
-import com.nukkitx.nbt.NBTInputStream;
-import com.nukkitx.nbt.NbtList;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
+import com.nukkitx.nbt.*;
 import com.nukkitx.protocol.bedrock.data.BlockPropertyData;
 import com.nukkitx.protocol.bedrock.v544.Bedrock_v544;
 import com.nukkitx.protocol.bedrock.v560.Bedrock_v560;
+import com.nukkitx.protocol.bedrock.v567.Bedrock_v567;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -79,6 +76,7 @@ public final class BlockRegistryPopulator {
         ImmutableMap<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> blockMappers = ImmutableMap.<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>>builder()
                 .put(ObjectIntPair.of("1_19_20", Bedrock_v544.V544_CODEC.getProtocolVersion()), emptyMapper)
                 .put(ObjectIntPair.of("1_19_50", Bedrock_v560.V560_CODEC.getProtocolVersion()), emptyMapper)
+                .put(ObjectIntPair.of("1_19_60", Bedrock_v567.V567_CODEC.getProtocolVersion()), emptyMapper)
                 .build();
 
         for (Map.Entry<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> palette : blockMappers.entrySet()) {
