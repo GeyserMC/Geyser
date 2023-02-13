@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.EmotePacket;
+import org.geysermc.geyser.api.event.bedrock.BedrockEmoteEvent;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -50,6 +51,15 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
             if (session.getGeyser().getConfig().getEmoteOffhandWorkaround() == EmoteOffhandWorkaroundOption.NO_EMOTES) {
                 return;
             }
+        }
+
+        // Fire emote event.
+        var eventBus = session.getGeyser().eventBus();
+        var emoteEvent = new BedrockEmoteEvent(session, packet.getEmoteId());
+
+        eventBus.fire(emoteEvent);
+        if(emoteEvent.isCancelled()) {
+            return;
         }
 
         int javaId = session.getPlayerEntity().getEntityId();
