@@ -26,17 +26,20 @@
 package org.geysermc.geyser.entity.type.player;
 
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
 import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
+import lombok.Getter;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.skin.SkullSkinManager;
 
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -46,9 +49,14 @@ import java.util.concurrent.TimeUnit;
  */
 public class SkullPlayerEntity extends PlayerEntity {
 
+    @Getter
+    private UUID skullUUID;
+
+    @Getter
+    private Vector3i skullPosition;
+
     public SkullPlayerEntity(GeyserSession session, long geyserId) {
         super(session, 0, geyserId, UUID.randomUUID(), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, "", null);
-        setPlayerList(false);
     }
 
     @Override
@@ -103,11 +111,14 @@ public class SkullPlayerEntity extends PlayerEntity {
     }
 
     public void updateSkull(SkullCache.Skull skull) {
-        if (!skull.getTexturesProperty().equals(getTexturesProperty())) {
+        skullPosition = skull.getPosition();
+
+        if (!Objects.equals(skull.getTexturesProperty(), getTexturesProperty()) || !Objects.equals(skullUUID, skull.getUuid())) {
             // Make skull invisible as we change skins
             setFlag(EntityFlag.INVISIBLE, true);
             updateBedrockMetadata();
 
+            skullUUID = skull.getUuid();
             setTexturesProperty(skull.getTexturesProperty());
 
             SkullSkinManager.requestAndHandleSkin(this, session, (skin -> session.scheduleInEventLoop(() -> {

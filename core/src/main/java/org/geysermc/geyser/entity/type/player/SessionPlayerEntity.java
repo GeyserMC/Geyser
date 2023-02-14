@@ -47,6 +47,7 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * The entity class specifically for a {@link GeyserSession}'s player.
@@ -248,5 +249,10 @@ public class SessionPlayerEntity extends PlayerEntity {
         } else {
             dirtyMetadata.put(EntityDataTypes.PLAYER_HAS_DIED, false);
         }
+    }
+
+    @Override
+    public UUID getTabListUuid() {
+        return session.getAuthData().uuid();
     }
 }

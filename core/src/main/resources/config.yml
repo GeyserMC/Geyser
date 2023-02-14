@@ -4,13 +4,13 @@
 # A bridge between Minecraft: Bedrock Edition and Minecraft: Java Edition.
 #
 # GitHub: https://github.com/GeyserMC/Geyser
-# Discord: https://discord.geysermc.org/
+# Discord: https://discord.gg/geysermc
 # --------------------------------
 
 bedrock:
   # The IP address that will listen for connections.
-  # There is no reason to change this unless you want to limit what IPs can connect to your server.
-  address: 0.0.0.0
+  # Generally, you should only uncomment and change this if you want to limit what IPs can connect to your server.
+  #address: 0.0.0.0
   # The port that will listen for connections
   port: 19132
   # Some hosting services change your Java port everytime you start the server and require the same port to be used for Bedrock.
@@ -111,14 +111,17 @@ debug-mode: false
 
 # Allow third party capes to be visible. Currently allowing:
 # OptiFine capes, LabyMod capes, 5Zig capes and MinecraftCapes
-allow-third-party-capes: true
+allow-third-party-capes: false
 
 # Allow third party deadmau5 ears to be visible. Currently allowing:
 # MinecraftCapes
 allow-third-party-ears: false
 
-# Allow a fake cooldown indicator to be sent. Bedrock players do not see a cooldown as they still use 1.8 combat
-# Can be title, actionbar or false
+# Allow a fake cooldown indicator to be sent. Bedrock players otherwise do not see a cooldown as they still use 1.8 combat.
+# Please note: if the cooldown is enabled, some users may see a black box during the cooldown sequence, like below:
+# https://cdn.discordapp.com/attachments/613170125696270357/957075682230419466/Screenshot_from_2022-03-25_20-35-08.png
+# This can be disabled by going into Bedrock settings under the accessibility tab and setting "Text Background Opacity" to 0
+# This setting can be set to "title", "actionbar" or "false"
 show-cooldown: title
 
 # Controls if coordinates are shown to players.
@@ -218,5 +221,10 @@ mtu: 1400
 # If enabled on plugin versions, the remote address and port sections are ignored
 # If disabled on plugin versions, expect performance decrease and latency increase
 use-direct-connection: true
+
+# Whether Geyser should attempt to disable compression for Bedrock players. This should be a benefit as there is no need to compress data
+# when Java packets aren't being handled over the network.
+# This requires use-direct-connection to be true.
+disable-compression: true
 
 config-version: 4

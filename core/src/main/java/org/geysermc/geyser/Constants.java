@@ -30,7 +30,6 @@ import java.net.URISyntaxException;
 
 public final class Constants {
     public static final URI GLOBAL_API_WS_URI;
-    public static final String NTP_SERVER = "time.cloudflare.com";
 
     public static final String NEWS_OVERVIEW_URL = "https://api.geysermc.org/v2/news/";
     public static final String NEWS_PROJECT_NAME = "geyser";
@@ -47,6 +46,7 @@ public final class Constants {
         try {
             wsUri = new URI("wss://api.geysermc.org/ws");
         } catch (URISyntaxException e) {
+            GeyserImpl.getInstance().getLogger().error("Unable to resolve api.geysermc.org! Check your internet connection.");
             e.printStackTrace();
         }
         GLOBAL_API_WS_URI = wsUri;

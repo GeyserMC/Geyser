@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,51 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.util;
+package org.geysermc.geyser.platform.bungeecord;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelOutboundHandlerAdapter;
+import io.netty.channel.ChannelPromise;
+import net.md_5.bungee.protocol.packet.LoginSuccess;
+import net.md_5.bungee.protocol.packet.SetCompression;
 
-public enum BedrockPlatform {
-    UNKNOWN("Unknown"),
-    GOOGLE("Android"),
-    IOS("iOS"),
-    OSX("macOS"),
-    AMAZON("Amazon"),
-    GEARVR("Gear VR"),
-    HOLOLENS("Hololens"),
-    UWP("Windows"),
-    WIN32("Windows x86"),
-    DEDICATED("Dedicated"),
-    TVOS("Apple TV"),
-    PS4("PS4"),
-    NX("Switch"),
-    XBOX("Xbox One"),
-    WINDOWS_PHONE("Windows Phone");
+public class GeyserBungeeCompressionDisabler extends ChannelOutboundHandlerAdapter {
 
-    private static final BedrockPlatform[] VALUES = values();
-
-    private final String displayName;
-
-    BedrockPlatform(String displayName) {
-        this.displayName = displayName;
-    }
-
-    /**
-     * Get the BedrockPlatform from the identifier.
-     *
-     * @param id the BedrockPlatform identifier
-     * @return The BedrockPlatform or {@link #UNKNOWN} if the platform wasn't found
-     */
-    @NonNull
-    public static BedrockPlatform fromId(int id) {
-        return id < VALUES.length ? VALUES[id] : VALUES[0];
-    }
-
-    /**
-     * @return friendly display name of platform.
-     */
     @Override
-    public String toString() {
-        return displayName;
+    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+        if (!(msg instanceof SetCompression)) {
+            if (msg instanceof LoginSuccess) {
+                // We're past the point that compression can be enabled
+                if (ctx.pipeline().get("compress") != null) {
+                    ctx.pipeline().remove("compress");
+                }
+                if (ctx.pipeline().get("decompress") != null) {
+                    ctx.pipeline().remove("decompress");
+                }
+                ctx.pipeline().remove(this);
+            }
+            super.write(ctx, msg, promise);
+        }
     }
 }

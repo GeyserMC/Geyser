@@ -32,15 +32,19 @@ import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InteractPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+
+import java.util.concurrent.TimeUnit;
 
 @Translator(packet = InteractPacket.class)
 public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> {
@@ -74,6 +78,23 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
             case LEAVE_VEHICLE:
                 ServerboundPlayerCommandPacket sneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SNEAKING);
                 session.sendDownstreamPacket(sneakPacket);
+
+                Entity currentVehicle = session.getPlayerEntity().getVehicle();
+                session.setMountVehicleScheduledFuture(session.scheduleInEventLoop(() -> {
+                    if (session.getPlayerEntity().getVehicle() == null) {
+                        return;
+                    }
+
+                    long vehicleBedrockId = currentVehicle.getGeyserId();
+                    if (session.getPlayerEntity().getVehicle().getGeyserId() == vehicleBedrockId) {
+                        // The Bedrock client, as of 1.19.51, dismounts on its end. The server may not agree with this.
+                        // If the server doesn't agree with our dismount (sends a packet saying we dismounted),
+                        // then remount the player.
+                        SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
+                        linkPacket.setEntityLink(new EntityLinkData(vehicleBedrockId, session.getPlayerEntity().getGeyserId(), EntityLinkData.Type.PASSENGER, true, false));
+                        session.sendUpstreamPacket(linkPacket);
+                    }
+                }, 1, TimeUnit.SECONDS));
                 break;
             case MOUSEOVER:
                 // Handle the buttons for mobile - "Mount", etc; and the suggestions for console - "ZL: Mount", etc

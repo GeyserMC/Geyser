@@ -33,6 +33,8 @@ import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.scoreboard.Scoreboard;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater.ScoreboardSession;
 import org.geysermc.geyser.session.GeyserSession;
@@ -60,6 +62,17 @@ public final class WorldCache {
 
     private int currentSequence;
     private final Object2IntMap<Vector3i> unverifiedPredictions = new Object2IntOpenHashMap<>(1);
+
+    /**
+     * <ul>
+     *     <li>NOT_SET = not yet triggered</li>
+     *     <li>FALSE = enforce-secure-profile is true but player hasn't chatted yet</li>
+     *     <li>TRUE = enforce-secure-profile is enabled, and player has chatted and they have seen our message.</li>
+     * </ul>
+     */
+    @Getter
+    @Setter
+    private @NonNull TriState chatWarningSent = TriState.NOT_SET;
 
     public WorldCache(GeyserSession session) {
         this.session = session;

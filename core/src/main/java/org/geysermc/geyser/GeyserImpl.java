@@ -76,17 +76,13 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
 import org.geysermc.geyser.session.SessionManager;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
+import org.geysermc.geyser.skin.ProvidedSkins;
 import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.util.CooldownUtils;
-import org.geysermc.geyser.util.DimensionUtils;
-import org.geysermc.geyser.util.Metrics;
-import org.geysermc.geyser.util.NewsHandler;
-import org.geysermc.geyser.util.VersionCheckUtils;
-import org.geysermc.geyser.util.WebUtils;
+import org.geysermc.geyser.util.*;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -96,12 +92,8 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.security.Key;
 import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -202,7 +194,23 @@ public class GeyserImpl implements GeyserApi {
         EntityDefinitions.init();
         ItemTranslator.init();
         MessageTranslator.init();
-        MinecraftLocale.init();
+
+        // Download the latest asset list and cache it
+        AssetUtils.generateAssetCache().whenComplete((aVoid, ex) -> {
+            if (ex != null) {
+                return;
+            }
+            MinecraftLocale.ensureEN_US();
+            String locale = GeyserLocale.getDefaultLocale();
+            if (!"en_us".equals(locale)) {
+                // English will be loaded after assets are downloaded, if necessary
+                MinecraftLocale.downloadAndLoadLocale(locale);
+            }
+
+            ProvidedSkins.init();
+
+            CompletableFuture.runAsync(AssetUtils::downloadAndRunClientJarTasks);
+        });
 
         startInstance();
 
@@ -230,7 +238,10 @@ public class GeyserImpl implements GeyserApi {
         logger.info(message);
 
         if (platformType == PlatformType.STANDALONE) {
-            logger.warning(GeyserLocale.getLocaleStringLog("geyser.core.movement_warn"));
+            if (config.getRemote().authType() != AuthType.FLOODGATE) {
+                // If the auth-type is Floodgate, then this Geyser instance is probably owned by the Java server
+                logger.warning(GeyserLocale.getLocaleStringLog("geyser.core.movement_warn"));
+            }
         } else if (config.getRemote().authType() == AuthType.FLOODGATE) {
             VersionCheckUtils.checkForOutdatedFloodgate(logger);
         }
@@ -311,7 +322,7 @@ public class GeyserImpl implements GeyserApi {
                 Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyPath());
                 cipher = new AesCipher(new Base64Topping());
                 cipher.init(key);
-                logger.debug(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.loaded_key"));
+                logger.debug("Loaded Floodgate key!");
                 // Note: this is positioned after the bind so the skin uploader doesn't try to run if Geyser fails
                 // to load successfully. Spigot complains about class loader if the plugin is disabled.
                 skinUploader = new FloodgateSkinUploader(this).start();

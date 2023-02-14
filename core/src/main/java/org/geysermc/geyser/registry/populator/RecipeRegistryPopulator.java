@@ -35,7 +35,10 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.CraftingData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.MultiRecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
@@ -71,17 +74,17 @@ public class RecipeRegistryPopulator {
         for (Int2ObjectMap.Entry<ItemMappings> version : Registries.ITEMS.get().int2ObjectEntrySet()) {
             // Make a bit of an assumption here that the last recipe net ID will be equivalent between all versions
             LAST_RECIPE_NET_ID = currentRecipeId;
-            Map<RecipeType, List<CraftingData>> craftingData = new EnumMap<>(RecipeType.class);
+            Map<RecipeType, List<RecipeData>> craftingData = new EnumMap<>(RecipeType.class);
             Int2ObjectMap<GeyserRecipe> recipes = new Int2ObjectOpenHashMap<>();
 
             craftingData.put(RecipeType.CRAFTING_SPECIAL_BOOKCLONING,
-                    Collections.singletonList(CraftingData.fromMulti(UUID.fromString("d1ca6b84-338e-4f2f-9c6b-76cc8b4bd98d"), ++LAST_RECIPE_NET_ID)));
+                    Collections.singletonList(MultiRecipeData.of(UUID.fromString("d1ca6b84-338e-4f2f-9c6b-76cc8b4bd98d"), ++LAST_RECIPE_NET_ID)));
             craftingData.put(RecipeType.CRAFTING_SPECIAL_REPAIRITEM,
-                    Collections.singletonList(CraftingData.fromMulti(UUID.fromString("00000000-0000-0000-0000-000000000001"), ++LAST_RECIPE_NET_ID)));
+                    Collections.singletonList(MultiRecipeData.of(UUID.fromString("00000000-0000-0000-0000-000000000001"), ++LAST_RECIPE_NET_ID)));
             craftingData.put(RecipeType.CRAFTING_SPECIAL_MAPEXTENDING,
-                    Collections.singletonList(CraftingData.fromMulti(UUID.fromString("d392b075-4ba1-40ae-8789-af868d56f6ce"), ++LAST_RECIPE_NET_ID)));
+                    Collections.singletonList(MultiRecipeData.of(UUID.fromString("d392b075-4ba1-40ae-8789-af868d56f6ce"), ++LAST_RECIPE_NET_ID)));
             craftingData.put(RecipeType.CRAFTING_SPECIAL_MAPCLONING,
-                    Collections.singletonList(CraftingData.fromMulti(UUID.fromString("85939755-ba10-4d9d-a4cc-efb7a8e943c4"), ++LAST_RECIPE_NET_ID)));
+                    Collections.singletonList(MultiRecipeData.of(UUID.fromString("85939755-ba10-4d9d-a4cc-efb7a8e943c4"), ++LAST_RECIPE_NET_ID)));
 
             // https://github.com/pmmp/PocketMine-MP/blob/stable/src/pocketmine/inventory/MultiRecipe.php
 
@@ -121,9 +124,9 @@ public class RecipeRegistryPopulator {
      * Computes a Bedrock crafting recipe from the given JSON data.
      * @param node the JSON data to compute
      * @param recipes a list of all the recipes
-     * @return the {@link CraftingData} to send to the Bedrock client.
+     * @return the {@link RecipeData} to send to the Bedrock client.
      */
-    private static CraftingData getCraftingDataFromJsonNode(JsonNode node, Int2ObjectMap<GeyserRecipe> recipes, ItemMappings mappings) {
+    private static RecipeData getCraftingDataFromJsonNode(JsonNode node, Int2ObjectMap<GeyserRecipe> recipes, ItemMappings mappings) {
         int netId = ++LAST_RECIPE_NET_ID;
         int type = node.get("bedrockRecipeType").asInt();
         JsonNode outputNode = node.get("output");
@@ -169,7 +172,7 @@ public class RecipeRegistryPopulator {
             recipes.put(netId, recipe);
             /* Convert end */
 
-            return CraftingData.fromShaped(uuid.toString(), shape.get(0).length(), shape.size(),
+            return ShapedRecipeData.shaped(uuid.toString(), shape.get(0).length(), shape.size(),
                     inputs.stream().map(ItemDescriptorWithCount::fromItem).toList(), Collections.singletonList(output), uuid, "crafting_table", 0, netId);
         }
         List<ItemData> inputs = new ObjectArrayList<>();
@@ -189,10 +192,10 @@ public class RecipeRegistryPopulator {
 
         if (type == 5) {
             // Shulker box
-            return CraftingData.fromShulkerBox(uuid.toString(),
+            return ShapelessRecipeData.shulkerBox(uuid.toString(),
                     inputs.stream().map(ItemDescriptorWithCount::fromItem).toList(), Collections.singletonList(output), uuid, "crafting_table", 0, netId);
         }
-        return CraftingData.fromShapeless(uuid.toString(),
+        return ShapelessRecipeData.shapeless(uuid.toString(),
                 inputs.stream().map(ItemDescriptorWithCount::fromItem).toList(), Collections.singletonList(output), uuid, "crafting_table", 0, netId);
     }
 

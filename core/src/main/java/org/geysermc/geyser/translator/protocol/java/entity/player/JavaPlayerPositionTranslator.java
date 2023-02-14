@@ -40,7 +40,6 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.TeleportCache;
-import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.ChunkUtils;
@@ -85,7 +84,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
 
             acceptTeleport(session, packet.getX(), packet.getY(), packet.getZ(), packet.getYaw(), packet.getPitch(), packet.getTeleportId());
 
-            if (session.getServerRenderDistance() > 47 && !session.isEmulatePost1_13Logic()) {
+            if (session.getServerRenderDistance() > 32 && !session.isEmulatePost1_13Logic()) {
                 // See DimensionUtils for an explanation
                 ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
                 chunkRadiusUpdatedPacket.setRadius(session.getServerRenderDistance());
@@ -97,7 +96,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             ChunkUtils.updateChunkPosition(session, pos.toInt());
 
             if (session.getGeyser().getConfig().isDebugMode()) {
-                session.getGeyser().getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.entity.player.spawn", packet.getX(), packet.getY(), packet.getZ()));
+                session.getGeyser().getLogger().debug("Spawned player at " + packet.getX() + " " + packet.getY() + " " + packet.getZ());
             }
             return;
         }
@@ -114,6 +113,13 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             EntityUtils.updateRiderRotationLock(entity, null, false);
             EntityUtils.updateMountOffset(entity, null, false, false, entity.getPassengers().size() > 1);
             entity.updateBedrockMetadata();
+
+            if (session.getMountVehicleScheduledFuture() != null) {
+                // Cancel this task as it is now unnecessary.
+                // Note that this isn't present in JavaSetPassengersTranslator as that code is not called for players
+                // as of Java 1.19.3, but the scheduled future checks for the vehicle being null anyway.
+                session.getMountVehicleScheduledFuture().cancel(false);
+            }
         }
 
         // If coordinates are relative, then add to the existing coordinate

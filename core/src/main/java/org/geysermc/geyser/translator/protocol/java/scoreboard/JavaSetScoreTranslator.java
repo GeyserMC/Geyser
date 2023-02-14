@@ -44,6 +44,8 @@ import org.geysermc.geyser.translator.protocol.Translator;
 
 @Translator(packet = ClientboundSetScorePacket.class)
 public class JavaSetScoreTranslator extends PacketTranslator<ClientboundSetScorePacket> {
+    private static final boolean SHOW_SCOREBOARD_LOGS = Boolean.parseBoolean(System.getProperty("Geyser.ShowScoreboardLogs", "true"));
+
     private final GeyserLogger logger;
 
     public JavaSetScoreTranslator() {
@@ -58,7 +60,9 @@ public class JavaSetScoreTranslator extends PacketTranslator<ClientboundSetScore
 
         Objective objective = scoreboard.getObjective(packet.getObjective());
         if (objective == null && packet.getAction() != ScoreboardAction.REMOVE) {
-            logger.info(GeyserLocale.getLocaleStringLog("geyser.network.translator.score.failed_objective", packet.getObjective()));
+            if (SHOW_SCOREBOARD_LOGS) {
+                logger.info(GeyserLocale.getLocaleStringLog("geyser.network.translator.score.failed_objective", packet.getObjective()));
+            }
             return;
         }
 

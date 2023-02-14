@@ -52,6 +52,13 @@ public class CatEntity extends TameableEntity {
     }
 
     @Override
+    protected void initializeMetadata() {
+        super.initializeMetadata();
+        // Default value (minecraft:black).
+        dirtyMetadata.put(EntityDataTypes.VARIANT, 1);
+    }
+
+    @Override
     public void updateRotation(float yaw, float pitch, boolean isOnGround) {
         moveRelative(0, 0, 0, yaw, pitch, yaw, isOnGround);
     }

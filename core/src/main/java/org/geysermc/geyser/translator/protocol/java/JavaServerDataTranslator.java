@@ -23,27 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.util;
+package org.geysermc.geyser.translator.protocol.java;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundServerDataPacket;
+import org.geysermc.geyser.api.util.TriState;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
 
-public enum InputMode {
-    UNKNOWN,
-    KEYBOARD_MOUSE,
-    TOUCH,
-    CONTROLLER,
-    VR;
+@Translator(packet = ClientboundServerDataPacket.class)
+public class JavaServerDataTranslator extends PacketTranslator<ClientboundServerDataPacket> {
 
-    private static final InputMode[] VALUES = values();
-
-    /**
-     * Get the InputMode from the identifier.
-     *
-     * @param id the InputMode identifier
-     * @return The InputMode or {@link #UNKNOWN} if the mode wasn't found
-     */
-    @NonNull
-    public static InputMode fromId(int id) {
-        return VALUES.length > id ? VALUES[id] : VALUES[0];
+    @Override
+    public void translate(GeyserSession session, ClientboundServerDataPacket packet) {
+        // We only want to warn about chat maybe not working once
+        if (packet.isEnforcesSecureChat() && session.getWorldCache().getChatWarningSent() == TriState.NOT_SET) {
+            session.getWorldCache().setChatWarningSent(TriState.FALSE);
+        }
     }
 }

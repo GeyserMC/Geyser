@@ -44,17 +44,15 @@ public class JavaPlayerInfoRemoveTranslator extends PacketTranslator<Clientbound
         for (UUID id : packet.getProfileIds()) {
             // As the player entity is no longer present, we can remove the entry
             PlayerEntity entity = session.getEntityCache().removePlayerEntity(id);
+            UUID removeId;
             if (entity != null) {
                 // Just remove the entity's player list status
                 // Don't despawn the entity - the Java server will also take care of that.
-                entity.setPlayerList(false);
-            }
-            if (entity == session.getPlayerEntity()) {
-                // If removing ourself we use our AuthData UUID
-                translate.getEntries().add(new PlayerListPacket.Entry(session.getAuthData().uuid()));
+                removeId = entity.getTabListUuid();
             } else {
-                translate.getEntries().add(new PlayerListPacket.Entry(id));
+                removeId = id;
             }
+            translate.getEntries().add(new PlayerListPacket.Entry(removeId));
         }
 
         session.sendUpstreamPacket(translate);

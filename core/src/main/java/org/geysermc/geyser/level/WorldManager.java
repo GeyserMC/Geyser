@@ -27,12 +27,15 @@ package org.geysermc.geyser.level;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.GeyserSession;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Class that manages or retrieves various information
@@ -165,5 +168,15 @@ public abstract class WorldManager {
     @Nullable
     public String[] getBiomeIdentifiers(boolean withTags) {
         return null;
+    }
+
+    /**
+     * Used for pick block, so we don't need to cache more data than necessary.
+     *
+     * @return expected NBT for this item.
+     */
+    @Nonnull
+    public CompletableFuture<@Nullable CompoundTag> getPickItemNbt(GeyserSession session, int x, int y, int z, boolean addNbtData) {
+        return CompletableFuture.completedFuture(null);
     }
 }

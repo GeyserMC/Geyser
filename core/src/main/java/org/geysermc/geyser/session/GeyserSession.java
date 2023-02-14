@@ -86,7 +86,9 @@ import org.cloudburstmc.math.vector.*;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.data.*;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
+import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
@@ -136,7 +138,6 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
-import org.geysermc.geyser.util.MathUtils;
 
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
@@ -458,9 +459,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     /**
      * Counts how many ticks have occurred since an arm animation started.
-     * -1 means there is no active arm swing.
+     * -1 means there is no active arm swing; -2 means an arm swing will start in a tick.
      */
-    @Getter(AccessLevel.NONE)
     private int armAnimationTicks = -1;
 
     /**
@@ -539,6 +539,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private ScheduledFuture<?> lookBackScheduledFuture = null;
+
+    /**
+     * Used to return players back to their vehicles if the server doesn't want them unmounting.
+     */
+    @Setter
+    private ScheduledFuture<?> mountVehicleScheduledFuture = null;
 
     private MinecraftProtocol protocol;
 
@@ -1067,6 +1073,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     /**
+     * Moves task to the session event loop if already not in it. Otherwise, the task is automatically ran.
+     */
+    public void ensureInEventLoop(Runnable runnable) {
+        if (eventLoop.inEventLoop()) {
+            runnable.run();
+            return;
+        }
+        executeInEventLoop(runnable);
+    }
+
+    /**
      * Executes a task and prints a stack trace if an error occurs.
      */
     public void executeInEventLoop(Runnable runnable) {
@@ -1136,7 +1153,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 entity.tick();
             }
 
-            if (armAnimationTicks != -1) {
+            if (armAnimationTicks >= 0) {
                 // As of 1.18.2 Java Edition, it appears that the swing time is dynamically updated depending on the
                 // player's effect status, but the animation can cut short if the duration suddenly decreases
                 // (from suddenly no longer having mining fatigue, for example)
@@ -1175,7 +1192,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public void startSneaking() {
         // Toggle the shield, if there is no ongoing arm animation
         // This matches Bedrock Edition behavior as of 1.18.12
-        if (armAnimationTicks == -1) {
+        if (armAnimationTicks < 0) {
             attemptToBlock();
         }
 
@@ -1306,6 +1323,16 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     /**
+     * For https://github.com/GeyserMC/Geyser/issues/2113 and combating arm ticking activating being delayed in
+     * BedrockAnimateTranslator.
+     */
+    public void armSwingPending() {
+        if (armAnimationTicks == -1) {
+            armAnimationTicks = -2;
+        }
+    }
+
+    /**
      * Indicates to the client to stop blocking and tells the Java server the same.
      */
     private boolean disableBlocking() {
@@ -1369,7 +1396,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     public void setServerRenderDistance(int renderDistance) {
-        renderDistance = GenericMath.ceil(++renderDistance * MathUtils.SQRT_OF_TWO); //square to circle
+        // +1 is for Fabric and Spigot
+        // Without the client misses loading some chunks per https://github.com/GeyserMC/Geyser/issues/3490
+        // Fog still appears essentially normally
+        renderDistance = renderDistance + 1;
         this.serverRenderDistance = renderDistance;
 
         ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
@@ -1864,5 +1894,20 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         transferPacket.setPort(port);
         sendUpstreamPacket(transferPacket);
         return true;
+    }
+
+    public void addCommandEnum(String name, String... enums) {
+        softEnumPacket(name, SoftEnumUpdateType.ADD, enums);
+    }
+
+    public void removeCommandEnum(String name, String... enums) {
+        softEnumPacket(name, SoftEnumUpdateType.REMOVE, enums);
+    }
+
+    private void softEnumPacket(String name, SoftEnumUpdateType type, String... enums) {
+        UpdateSoftEnumPacket packet = new UpdateSoftEnumPacket();
+        packet.setType(type);
+        packet.setSoftEnum(new CommandEnumData(name, enums, true));
+        sendUpstreamPacket(packet);
     }
 }

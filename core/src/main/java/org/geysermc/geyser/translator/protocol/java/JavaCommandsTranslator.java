@@ -47,7 +47,7 @@ import lombok.ToString;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.event.downstream.ServerDefineCommandsEvent;
+import org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.inventory.item.Enchantment;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -58,6 +58,7 @@ import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.EntityUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Translator(packet = ClientboundCommandsPacket.class)
 public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommandsPacket> {
@@ -151,9 +152,17 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                     index -> new HashSet<>()).add(node.getName().toLowerCase());
         }
 
-        ServerDefineCommandsEvent event = new ServerDefineCommandsEvent(session, commands.keySet());
-        session.getGeyser().eventBus().fire(event);
+        var eventBus = session.getGeyser().eventBus();
+
+        var event = new ServerDefineCommandsEvent(session, commands.keySet());
+        eventBus.fire(event);
         if (event.isCancelled()) {
+            return;
+        }
+
+        var oldEvent = new org.geysermc.geyser.api.event.downstream.ServerDefineCommandsEvent(session, commands.keySet());
+        eventBus.fire(oldEvent);
+        if (oldEvent.isCancelled()) {
             return;
         }
 
@@ -247,6 +256,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             case RESOURCE -> handleResource(context, ((ResourceProperties) node.getProperties()).getRegistryKey(), false);
             case RESOURCE_OR_TAG -> handleResource(context, ((ResourceProperties) node.getProperties()).getRegistryKey(), true);
             case DIMENSION -> context.session.getLevels();
+            case TEAM -> context.getTeams(); // Note: as of Java 1.19.3, objectives are currently parsed from the server
             default -> CommandParam.STRING;
         };
     }
@@ -265,7 +275,10 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
     /**
      * Stores the command description and parameter data for best optimizing the Bedrock commands packet.
      */
-    private record BedrockCommandInfo(String name, String description, CommandParamData[][] paramData) implements ServerDefineCommandsEvent.CommandInfo {
+    private record BedrockCommandInfo(String name, String description, CommandParamData[][] paramData) implements
+            org.geysermc.geyser.api.event.downstream.ServerDefineCommandsEvent.CommandInfo,
+            ServerDefineCommandsEvent.CommandInfo
+    {
     }
 
     /**
@@ -279,6 +292,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         private String[] blockStates;
         private String[] entityTypes;
         private String[] itemNames;
+        private CommandEnumData teams;
 
         CommandBuilderContext(GeyserSession session) {
             this.session = session;
@@ -321,6 +335,17 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                 return itemNames;
             }
             return (itemNames = Registries.JAVA_ITEM_IDENTIFIERS.get().keySet().toArray(new String[0]));
+        }
+
+        private CommandEnumData getTeams() {
+            if (teams != null) {
+                return teams;
+            }
+            return (teams = new CommandEnumData("Geyser_Teams",
+                    Arrays.stream(session.getWorldCache().getScoreboard().getTeamNames())
+                            .collect(Collectors.toMap(o -> o, o -> EnumSet.noneOf(CommandEnumConstraint.class), (o1, o2) -> o1, LinkedHashMap::new)),
+                    true
+            ));
         }
     }
 
@@ -407,7 +432,10 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                     CommandEnumData enumData = null;
                     CommandParam type = null;
                     boolean optional = this.paramNode.isExecutable();
-                    if (mappedType instanceof String[]) {
+                    if (mappedType instanceof CommandEnumData) {
+                        // Likely to specify isSoft, to be possibly updated later.
+                        enumData = (CommandEnumData) mappedType;
+                    } else if (mappedType instanceof String[]) {
                         LinkedHashMap<String, Set<CommandEnumConstraint>> map = new LinkedHashMap<>();
                         for (String s : (String[]) mappedType) {
                             map.put(s, Set.of());
