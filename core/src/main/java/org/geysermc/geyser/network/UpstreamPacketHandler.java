@@ -31,6 +31,7 @@ import com.nukkitx.protocol.bedrock.data.ExperimentData;
 import com.nukkitx.protocol.bedrock.data.PacketCompressionAlgorithm;
 import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.packet.*;
+import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -43,11 +44,13 @@ import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.geysermc.geyser.util.MathUtils;
+import org.geysermc.geyser.util.VersionCheckUtils;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.OptionalInt;
 
 public class UpstreamPacketHandler extends LoggingPacketHandler {
 
@@ -74,7 +77,14 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             String supportedVersions = GameProtocol.getAllSupportedBedrockVersions();
             if (protocolVersion > GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
                 // Too early to determine session locale
-                session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.server", supportedVersions));
+                String disconnectMessage = GeyserLocale.getLocaleStringLog("geyser.network.outdated.server", supportedVersions);
+                // If the latest release matches this version, then let the user know.
+                OptionalInt latestRelease = VersionCheckUtils.getLatestBedrockRelease();
+                if (latestRelease.isPresent() && latestRelease.getAsInt() == protocolVersion) {
+                    // Random note: don't make the disconnect message too long or Bedrock will cut it off on smaller screens
+                    disconnectMessage += "\n" + GeyserLocale.getLocaleStringLog("geyser.version.new.on_disconnect", Constants.GEYSER_DOWNLOAD_LOCATION);
+                }
+                session.disconnect(disconnectMessage);
                 return false;
             } else if (protocolVersion < GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.client", supportedVersions));
