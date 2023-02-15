@@ -31,6 +31,8 @@ import com.nukkitx.protocol.bedrock.data.ExperimentData;
 import com.nukkitx.protocol.bedrock.data.PacketCompressionAlgorithm;
 import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.packet.*;
+import com.nukkitx.protocol.bedrock.v567.Bedrock_v567;
+import com.nukkitx.protocol.bedrock.v567.Bedrock_v567patch;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.network.AuthType;
@@ -139,6 +141,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         if (session.isClosed()) {
             // Can happen if Xbox validation fails
             return true;
+        }
+
+        // Hack for... whatever this is
+        if (loginPacket.getProtocolVersion() == Bedrock_v567.V567_CODEC.getProtocolVersion() && !session.getClientData().getGameVersion().equals("1.19.60")) {
+            session.getUpstream().getSession().setPacketCodec(Bedrock_v567patch.BEDROCK_V567PATCH);
         }
 
         PlayStatusPacket playStatus = new PlayStatusPacket();

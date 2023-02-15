@@ -75,6 +75,10 @@ public final class GameProtocol {
                 .minecraftVersion("1.19.50/1.19.51")
                 .build());
         SUPPORTED_BEDROCK_CODECS.add(Bedrock_v567.V567_CODEC);
+        // So the version checker will work
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v567.V567_CODEC.toBuilder()
+                .protocolVersion(568)
+                .build());
     }
 
     /**
