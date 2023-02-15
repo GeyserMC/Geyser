@@ -33,11 +33,11 @@ import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 /**
  * Called whenever a Bedrock player performs an emote on their end, before it is broadcasted to the rest of the server.
  */
-public final class BedrockEmoteEvent extends ConnectionEvent implements Cancellable {
+public final class ClientEmoteEvent extends ConnectionEvent implements Cancellable {
     private final String emoteId;
     private boolean cancelled;
 
-    public BedrockEmoteEvent(@NonNull GeyserConnection connection, @NonNull String emoteId) {
+    public ClientEmoteEvent(@NonNull GeyserConnection connection, @NonNull String emoteId) {
         super(connection);
         this.emoteId = emoteId;
     }

@@ -37,7 +37,7 @@ public enum ToolTier {
     DIAMOND(8),
     NETHERITE(9);
 
-    public static final ToolTier[] VALUES = values();
+    private static final ToolTier[] VALUES = values();
 
     private final int speed;
 
