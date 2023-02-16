@@ -28,8 +28,8 @@ jobs:
           API_FORK_URL: ${{ steps.find_forks.outputs.user_fork_url }}
           API_FORK_BRANCH: ${{ github.event.pull_request.head.ref }}
         run: |
-          git clone "${API_FORK_URL}" --single-branch --branch "${API_FORK_BRANCH}" api
-          cd api
+          git clone "${API_FORK_URL}" --single-branch --branch "${API_FORK_BRANCH}" geyser_base_api
+          cd geyser_base_api
           ./gradlew publishToMavenLocal
       - name: submodules-init
         uses: snickerbockers/submodules-init@v4
