@@ -4,21 +4,44 @@ on: [pull_request]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v2
       - name: Set up JDK 17
         uses: actions/setup-java@v1
         with:
-          distribution: 'temurin'
           java-version: 17
-          cache: 'gradle'
-      - name: submodules-init
-        uses: snickerbockers/submodules-init@v4
-      - name: Build with Gradle
-        run: ./gradlew build
+          distribution: temurin
+          cache: gradle
+
+      - name: Check if the author has forked the API repo
+        uses: Kas-tle/ForkFinder@v1.0.1
+        id: find_forks
+        with:
+          owner: GeyserMC
+          repo: api
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Use author's API repo if it exists
+        if: steps.find_forks.outputs.target_branch_found == 'true'
+        env:
+          API_FORK_URL: ${{ steps.find_forks.outputs.user_fork_url }}
+          API_FORK_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          git clone "${API_FORK_URL}" --single-branch --branch "${API_FORK_BRANCH}" api
+          cd api
+          ./gradlew publishToMavenLocal
+
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          path: geyser
+
+      - name: Build Geyser
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: build
+          build-root-directory: geyser
 
       - name: Archive artifacts (Geyser Fabric)
         uses: actions/upload-artifact@v2
