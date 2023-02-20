@@ -29,9 +29,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.ChunkCache;
 import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;
 
 public class GeyserWorldManager extends WorldManager {
@@ -39,11 +37,7 @@ public class GeyserWorldManager extends WorldManager {
 
     @Override
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
-        ChunkCache chunkCache = session.getChunkCache();
-        if (chunkCache != null) { // Chunk cache can be null if the session is closed asynchronously
-            return chunkCache.getBlockAt(x, y, z);
-        }
-        return BlockStateValues.JAVA_AIR_ID;
+        return session.getChunkCache().getBlockAt(x, y, z);
     }
 
     @Override

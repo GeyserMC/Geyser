@@ -180,7 +180,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private final AdvancementsCache advancementsCache;
     private final BookEditCache bookEditCache;
-    private final ChunkCache chunkCache;
+    private @org.checkerframework.checker.nullness.qual.NonNull final ChunkCache chunkCache;
     private final EntityCache entityCache;
     private final EntityEffectCache effectCache;
     private final FormCache formCache;
@@ -1352,6 +1352,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             return true;
         }
         return false;
+    }
+
+    public void requestOffhandSwap() {
+        ServerboundPlayerActionPacket swapHandsPacket = new ServerboundPlayerActionPacket(PlayerAction.SWAP_HANDS, Vector3i.ZERO,
+                Direction.DOWN, 0);
+        sendDownstreamPacket(swapHandsPacket);
     }
 
     /**
