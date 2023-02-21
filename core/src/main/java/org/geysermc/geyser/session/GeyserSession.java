@@ -438,6 +438,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private long lastInteractionTime;
 
     /**
+     * Stores when the player started to break a block. Used to allow correct break time for custom blocks.
+     */
+    @Setter
+    private long blockBreakStartTime;
+
+    /**
      * Stores whether the player intended to place a bucket.
      */
     @Setter

@@ -38,6 +38,7 @@ import com.nukkitx.protocol.bedrock.data.PlayerActionType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.*;
+import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
@@ -147,6 +148,11 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                     startBreak.setType(LevelEventType.BLOCK_START_BREAK);
                     startBreak.setPosition(vector.toFloat());
                     double breakTime = BlockUtils.getSessionBreakTime(session, BlockRegistries.JAVA_BLOCKS.get(blockState)) * 20;
+                    CustomBlockState blockStateOverride = BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get(blockState);
+                    // If the block is custom, we must keep track of when it should break ourselves
+                    if (blockStateOverride != null) {
+                        session.setBlockBreakStartTime(System.currentTimeMillis());
+                    }
                     startBreak.setData((int) (65535 / breakTime));
                     session.setBreakingBlock(blockState);
                     session.sendUpstreamPacket(startBreak);
@@ -190,6 +196,31 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 updateBreak.setType(LevelEventType.BLOCK_UPDATE_BREAK);
                 updateBreak.setPosition(vectorFloat);
                 double breakTime = BlockUtils.getSessionBreakTime(session, BlockRegistries.JAVA_BLOCKS.get(breakingBlock)) * 20;
+
+                CustomBlockState blockStateOverride = BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get(breakingBlock);
+                if (blockStateOverride != null) {
+                    // If the block is custom, we must keep track of when it should break ourselves
+                    long blockBreakStartTime = session.getBlockBreakStartTime();
+                    if (blockBreakStartTime != 0) {
+                        long timeSinceStart = System.currentTimeMillis() - blockBreakStartTime;
+                        if (timeSinceStart >= breakTime * 50) {
+                            // Play break sound and particle
+                            LevelEventPacket effectPacket = new LevelEventPacket();
+                            effectPacket.setPosition(vectorFloat);
+                            effectPacket.setType(LevelEventType.PARTICLE_DESTROY_BLOCK);
+                            effectPacket.setData(session.getBlockMappings().getBedrockBlockId(breakingBlock));
+                            session.sendUpstreamPacket(effectPacket);
+                            
+                            // Break the block
+                            ServerboundPlayerActionPacket finishBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.FINISH_DIGGING,
+                                    vector, Direction.VALUES[packet.getFace()], session.getWorldCache().nextPredictionSequence());
+                            session.sendDownstreamPacket(finishBreakingPacket);
+                            session.setBlockBreakStartTime(0);
+                            break;
+                        }
+                    }
+                }
+
                 updateBreak.setData((int) (65535 / breakTime));
                 session.sendUpstreamPacket(updateBreak);
                 break;

@@ -313,9 +313,8 @@ public class MappingsReader_v1 extends MappingsReader {
             builder.collisionBox(collisionBox);
         }
 
-        // Ideally we would just be able to calculate the right value for this, but it seems that hardness value on bedrock does not follow Java
-        // As such this might as well just be configured for now if people so choose
-        float destructibleByMining = BlockRegistries.JAVA_BLOCKS.getOrDefault(id, BlockMapping.AIR).getHardness() * 3.25F;
+        // We set this to max value by default so that we may dictate the correct destroy time ourselves
+        float destructibleByMining = Float.MAX_VALUE;
         if (node.has("destructible_by_mining")) {
             destructibleByMining = node.get("destructible_by_mining").floatValue();
         }
