@@ -48,34 +48,34 @@ jobs:
         if: success()
         with:
           name: Geyser Fabric
-          path: bootstrap/fabric/build/libs/Geyser-Fabric.jar
+          path: geyser/bootstrap/fabric/build/libs/Geyser-Fabric.jar
       - name: Archive artifacts (Geyser Standalone)
         uses: actions/upload-artifact@v2
         if: success()
         with:
           name: Geyser Standalone
-          path: bootstrap/standalone/build/libs/Geyser-Standalone.jar
+          path: geyser/bootstrap/standalone/build/libs/Geyser-Standalone.jar
       - name: Archive artifacts (Geyser Spigot)
         uses: actions/upload-artifact@v2
         if: success()
         with:
           name: Geyser Spigot
-          path: bootstrap/spigot/build/libs/Geyser-Spigot.jar
+          path: geyser/bootstrap/spigot/build/libs/Geyser-Spigot.jar
       - name: Archive artifacts (Geyser BungeeCord)
         uses: actions/upload-artifact@v2
         if: success()
         with:
           name: Geyser BungeeCord
-          path: bootstrap/bungeecord/build/libs/Geyser-BungeeCord.jar
+          path: geyser/bootstrap/bungeecord/build/libs/Geyser-BungeeCord.jar
       - name: Archive artifacts (Geyser Sponge)
         uses: actions/upload-artifact@v2
         if: success()
         with:
           name: Geyser Sponge
-          path: bootstrap/sponge/build/libs/Geyser-Sponge.jar
+          path: geyser/bootstrap/sponge/build/libs/Geyser-Sponge.jar
       - name: Archive artifacts (Geyser Velocity)
         uses: actions/upload-artifact@v2
         if: success()
         with:
           name: Geyser Velocity
-          path: bootstrap/velocity/build/libs/Geyser-Velocity.jar
+          path: geyser/bootstrap/velocity/build/libs/Geyser-Velocity.jar
