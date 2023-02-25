@@ -47,7 +47,7 @@ jobs:
           # Copy over artifacts
           scp -B -o StrictHostKeyChecking=no -i id_ecdsa bootstrap/**/build/libs/Geyser-*.jar $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP:~/files/
           # Run the build script
-          ssh -o StrictHostKeyChecking=no -i id_ecdsa $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP ./handleBuild.sh geyser $version $GITHUB_RUN_ID $GITHUB_SHA
+          ssh -o StrictHostKeyChecking=no -i id_ecdsa $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP ./handleBuild.sh geyser $version $GITHUB_RUN_NUMBER $GITHUB_SHA
 
       - name: Notify Discord
         if: ${{ (success() || failure()) && github.repository == 'GeyserMC/Geyser' }}
