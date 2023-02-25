@@ -35,6 +35,7 @@ jobs:
         if: ${{ github.ref_name == 'master' && job.status == 'success' && github.repository == 'GeyserMC/Geyser' }}
         shell: bash
         env:
+          DOWNLOADS_USERNAME: ${{ vars.DOWNLOADS_USERNAME }}
           DOWNLOADS_PRIVATE_KEY: ${{ secrets.DOWNLOADS_PRIVATE_KEY }}
           DOWNLOADS_SERVER_IP: ${{ secrets.DOWNLOADS_SERVER_IP }}
         run: |
