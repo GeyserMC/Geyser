@@ -46,7 +46,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i id_ecdsa $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP ./handleBuild.sh geyser $version $GITHUB_RUN_ID $GITHUB_SHA
 
       - name: Notify Discord
-        if: ${{ github.repository == 'GeyserMC/Geyser' }}
+        if: ${{ (success() || failure()) && github.repository == 'GeyserMC/Geyser' }}
         uses: Tim203/actions-git-discord-webhook@main
         with:
           webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
