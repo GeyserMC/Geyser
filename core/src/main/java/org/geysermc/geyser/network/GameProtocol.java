@@ -31,6 +31,7 @@ import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.v557.Bedrock_v557;
 import com.nukkitx.protocol.bedrock.v560.Bedrock_v560;
 import com.nukkitx.protocol.bedrock.v567.Bedrock_v567;
+import com.nukkitx.protocol.bedrock.v567.Bedrock_v567patch;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.ArrayList;
@@ -65,8 +66,7 @@ public final class GameProtocol {
                 .minecraftVersion("1.19.50/1.19.51")
                 .build());
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
-        // So the version checker will work
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v567.V567_CODEC.toBuilder()
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v567patch.BEDROCK_V567PATCH.toBuilder()
                 .protocolVersion(568)
                 .minecraftVersion("1.19.62")
                 .build());

@@ -1,0 +1,57 @@
+name: Build
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: temurin
+          cache: gradle
+
+      - name: Build
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: build
+
+      - name: Publish to Maven Repository
+        if: ${{ job.status == 'success' && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
+        uses: gradle/gradle-build-action@v2
+        env:
+          ORG_GRADLE_PROJECT_geysermcUsername: ${{ vars.DEPLOY_USER }}
+          ORG_GRADLE_PROJECT_geysermcPassword: ${{ secrets.DEPLOY_PASS }}
+        with:
+          arguments: publish
+
+      - name: Publish to Downloads API
+        if: ${{ github.ref_name == 'master' && job.status == 'success' && github.repository == 'GeyserMC/Geyser' }}
+        shell: bash
+        env:
+          DOWNLOADS_USERNAME: ${{ vars.DOWNLOADS_USERNAME }}
+          DOWNLOADS_PRIVATE_KEY: ${{ secrets.DOWNLOADS_PRIVATE_KEY }}
+          DOWNLOADS_SERVER_IP: ${{ secrets.DOWNLOADS_SERVER_IP }}
+        run: |
+          # Save the private key to a file
+          echo "$DOWNLOADS_PRIVATE_KEY" > id_ecdsa
+          chmod 600 id_ecdsa
+          # Get the version from gradle.properties
+          version=$(cat gradle.properties | grep -o "version=[0-9\\.]*" | cut -d"=" -f2)
+          # Copy over artifacts
+          scp -B -o StrictHostKeyChecking=no -i id_ecdsa bootstrap/**/build/libs/Geyser-*.jar $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP:~/files/
+          # Run the build script
+          ssh -o StrictHostKeyChecking=no -i id_ecdsa $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP ./handleBuild.sh geyser $version $GITHUB_RUN_NUMBER $GITHUB_SHA
+
+      - name: Notify Discord
+        if: ${{ (success() || failure()) && github.repository == 'GeyserMC/Geyser' }}
+        uses: Tim203/actions-git-discord-webhook@main
+        with:
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
+          status: ${{ job.status }}
