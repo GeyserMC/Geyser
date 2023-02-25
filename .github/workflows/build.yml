@@ -34,6 +34,9 @@ jobs:
       - name: Publish to Downloads API
         if: ${{ github.ref_name == 'master' && job.status == 'success' && github.repository == 'GeyserMC/Geyser' }}
         shell: bash
+        env:
+          DOWNLOADS_PRIVATE_KEY: ${{ secrets.DOWNLOADS_PRIVATE_KEY }}
+          DOWNLOADS_SERVER_IP: ${{ secrets.DOWNLOADS_SERVER_IP }}
         run: |
           # Save the private key to a file
           echo "$DOWNLOADS_PRIVATE_KEY" > id_ecdsa
