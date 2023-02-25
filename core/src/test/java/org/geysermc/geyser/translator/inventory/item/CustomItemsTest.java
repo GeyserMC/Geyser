@@ -36,20 +36,22 @@ import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.item.GeyserCustomItemOptions;
 import org.geysermc.geyser.registry.type.ItemMapping;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
 import java.util.List;
 import java.util.OptionalInt;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class CustomItemsTest {
     private ItemMapping testMappingWithDamage;
     private Object2IntMap<CompoundTag> tagToCustomItemWithDamage;
     private ItemMapping testMappingWithNoDamage;
     private Object2IntMap<CompoundTag> tagToCustomItemWithNoDamage;
 
-    @Before
+    @BeforeAll
     public void setup() {
         CustomItemOptions a = new GeyserCustomItemOptions(TriState.TRUE, OptionalInt.of(2), OptionalInt.empty());
         CustomItemOptions b = new GeyserCustomItemOptions(TriState.FALSE, OptionalInt.of(5), OptionalInt.empty());
@@ -147,12 +149,12 @@ public class CustomItemsTest {
     public void testCustomItems() {
         for (Object2IntMap.Entry<CompoundTag> entry : this.tagToCustomItemWithDamage.object2IntEntrySet()) {
             int id = CustomItemTranslator.getCustomItem(entry.getKey(), this.testMappingWithDamage);
-            Assert.assertEquals(entry.getKey() + " did not produce the correct custom item", entry.getIntValue(), id);
+            Assertions.assertEquals(entry.getIntValue(), id, entry.getKey() + " did not produce the correct custom item");
         }
 
         for (Object2IntMap.Entry<CompoundTag> entry : this.tagToCustomItemWithNoDamage.object2IntEntrySet()) {
             int id = CustomItemTranslator.getCustomItem(entry.getKey(), this.testMappingWithNoDamage);
-            Assert.assertEquals(entry.getKey() + " did not produce the correct custom item", entry.getIntValue(), id);
+            Assertions.assertEquals(entry.getIntValue(), id, entry.getKey() + " did not produce the correct custom item");
         }
     }
 }
