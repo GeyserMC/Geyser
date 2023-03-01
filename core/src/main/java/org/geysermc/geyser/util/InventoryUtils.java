@@ -104,6 +104,7 @@ public class InventoryUtils {
             } else {
                 translator.openInventory(session, inventory);
                 translator.updateInventory(session, inventory);
+                inventory.setDisplayed(true);
             }
         } else {
             session.setOpenInventory(null);
