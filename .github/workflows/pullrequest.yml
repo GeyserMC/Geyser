@@ -21,7 +21,6 @@ jobs:
         with:
           java-version: 17
           distribution: temurin
-          cache: gradle
 
       - name: Check if the author has forked the API repo
         uses: Kas-tle/ForkFinder@v1.0.1
