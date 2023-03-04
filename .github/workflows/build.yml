@@ -30,6 +30,49 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: build --no-daemon
+          
+      - name: Archive artifacts (Geyser Fabric)
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: Geyser Fabric
+          path: bootstrap/fabric/build/libs/Geyser-Fabric.jar
+          if-no-files-found: error
+      - name: Archive artifacts (Geyser Standalone)
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: Geyser Standalone
+          path: bootstrap/standalone/build/libs/Geyser-Standalone.jar
+          if-no-files-found: error
+      - name: Archive artifacts (Geyser Spigot)
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: Geyser Spigot
+          path: bootstrap/spigot/build/libs/Geyser-Spigot.jar
+          if-no-files-found: error
+      - name: Archive artifacts (Geyser BungeeCord)
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: Geyser BungeeCord
+          path: bootstrap/bungeecord/build/libs/Geyser-BungeeCord.jar
+          if-no-files-found: error
+      - name: Archive artifacts (Geyser Sponge)
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: Geyser Sponge
+          path: bootstrap/sponge/build/libs/Geyser-Sponge.jar
+          if-no-files-found: error
+      - name: Archive artifacts (Geyser Velocity)
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: Geyser Velocity
+          path: bootstrap/velocity/build/libs/Geyser-Velocity.jar
+          if-no-files-found: error
 
       - name: Publish to Maven Repository
         if: ${{ job.status == 'success' && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
