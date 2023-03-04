@@ -1,6 +1,17 @@
 name: Build
 
-on: [push]
+on:
+  push:
+    paths-ignore:
+      - './github/ISSUE_TEMPLATE/*.yml'
+      - './github/actions/pullrequest.yml'
+      - '.idea/copyright/*.xml' 
+      - '.gitignore'
+      - 'CONTRIBUTING.md'
+      - 'LICENSE'
+      - 'Jenkinsfile '
+      - 'README.md'
+      - 'licenseheader.txt'
 
 jobs:
   build:
