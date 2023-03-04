@@ -15,12 +15,21 @@ jobs:
         with:
           java-version: 17
           distribution: temurin
-          cache: gradle
+          
+      - name: Cache Gradle Packages
+        uses: actions/cache@v3
+        with:
+          path: | 
+            ~/.m2
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ github.ref_name }}-gradle-${{ hashFiles('*.gradle.kts', 'gradle.properties', 'gradlew', 'gradle/*', 'gradle/**/*', 'build-logic/*', 'build-logic/**/**/**/*', '**/*.gradle.kts', '**/**/*.gradle.kts') }}
+          restore-keys: ${{ github.ref_name }}-gradle-
 
       - name: Build
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: build
+          arguments: build --no-daemon
 
       - name: Publish to Maven Repository
         if: ${{ job.status == 'success' && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
