@@ -39,9 +39,9 @@ import java.util.OptionalInt;
 /**
  * This is only a separate class for testing purposes so we don't have to load in GeyserImpl in ItemTranslator.
  */
-final class CustomItemTranslator {
+public final class CustomItemTranslator {
 
-    static int getCustomItem(CompoundTag nbt, ItemMapping mapping) {
+    public static int getCustomItem(CompoundTag nbt, ItemMapping mapping) {
         if (nbt == null) {
             return -1;
         }
