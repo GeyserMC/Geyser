@@ -28,10 +28,8 @@ package org.geysermc.geyser.pack;
 import lombok.Getter;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserLoadResourcePacksEvent;
-import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -80,9 +78,7 @@ public class ResourcePack {
             } catch (IOException e) {
                 GeyserImpl.getInstance().getLogger().error("Could not create packs directory", e);
             }
-
-            // As we just created the directory it will be empty
-            return;
+            // Still keep going since the user may have defined custom skulls
         }
 
         List<Path> resourcePacks;
