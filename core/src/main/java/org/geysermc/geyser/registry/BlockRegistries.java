@@ -33,6 +33,7 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
+import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.registry.loader.CollisionRegistryLoader;
 import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.registry.populator.BlockRegistryPopulator;
@@ -110,6 +111,11 @@ public class BlockRegistries {
      * A registry which stores clean Java Ids and the custom block it should be replaced with in the context of items.
      */
     public static final SimpleMappedRegistry<String, CustomBlockData> CUSTOM_BLOCK_ITEM_OVERRIDES = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
+
+    /**
+     * A registry which stores Java Ids and the extended collision box that should be placed above.
+     */
+    public static final SimpleMappedRegistry<Integer, BoxComponent> CUSTOM_BLOCK_EXTENDED_COLLISION_BOXES = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     /**
      * A registry which stores skin texture hashes to custom skull blocks.

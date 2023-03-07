@@ -47,6 +47,7 @@ import java.util.Set;
 public class GeyserCustomBlockComponents implements CustomBlockComponents {
     BoxComponent selectionBox;
     BoxComponent collisionBox;
+    BoxComponent extendedCollisionBox;
     String displayName;
     String geometry;
     Map<String, MaterialInstance> materialInstances;
@@ -63,6 +64,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     private GeyserCustomBlockComponents(CustomBlockComponentsBuilder builder) {
         this.selectionBox = builder.selectionBox;
         this.collisionBox = builder.collisionBox;
+        this.extendedCollisionBox = builder.extendedCollisionBox;
         this.displayName = builder.displayName;
         this.geometry = builder.geometry;
         if (builder.materialInstances.isEmpty()) {
@@ -93,6 +95,11 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     @Override
     public BoxComponent collisionBox() {
         return collisionBox;
+    }
+
+    @Override
+    public BoxComponent extendedCollisionBox() {
+        return extendedCollisionBox;
     }
 
     @Override
@@ -158,6 +165,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     public static class CustomBlockComponentsBuilder implements Builder {
         protected BoxComponent selectionBox;
         protected BoxComponent collisionBox;
+        protected BoxComponent extendedCollisionBox;
         protected String displayName;
         protected String geometry;
         protected final Object2ObjectMap<String, MaterialInstance> materialInstances = new Object2ObjectOpenHashMap<>();
@@ -200,6 +208,13 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         public Builder collisionBox(BoxComponent collisionBox) {
             validateBox(collisionBox);
             this.collisionBox = collisionBox;
+            return this;
+        }
+
+        @Override
+        public Builder extendedCollisionBox(BoxComponent extendedCollisionBox) {
+            validateBox(extendedCollisionBox);
+            this.extendedCollisionBox = extendedCollisionBox;
             return this;
         }
 

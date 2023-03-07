@@ -44,6 +44,8 @@ public class CustomBlockRegistryPopulator {
         Set<CustomBlockData> customBlocks = new ObjectOpenHashSet<>();
         Int2ObjectMap<CustomBlockState> blockStateOverrides = new Int2ObjectOpenHashMap<>();
         Map<String, CustomBlockData> customBlockItemOverrides = new HashMap<>();
+        Map<Integer, BoxComponent> extendedCollisionBoxes = new HashMap<>();
+
         GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineCustomBlocksEvent() {
             @Override
             public void registerCustomBlock(@NonNull CustomBlockData customBlockData) {
@@ -69,6 +71,10 @@ public class CustomBlockRegistryPopulator {
                     throw new IllegalArgumentException("Custom block is unregistered. Name: " + customBlockState.name());
                 }
                 CustomBlockState oldBlockState = blockStateOverrides.put(id, customBlockState);
+                BoxComponent extendedCollisionBox = customBlockState.block().components().extendedCollisionBox();
+                if (extendedCollisionBox != null) {
+                    extendedCollisionBoxes.put(id, extendedCollisionBox);
+                }
                 if (oldBlockState != null) {
                     GeyserImpl.getInstance().getLogger().debug("Duplicate block state override for Java Identifier: " +
                             javaIdentifier + " Old override: " + oldBlockState.name() + " New override: " + customBlockState.name());
@@ -97,6 +103,10 @@ public class CustomBlockRegistryPopulator {
             block.states().forEach((javaIdentifier, customBlockState) -> {
                 int id = BlockRegistries.JAVA_IDENTIFIERS.getOrDefault(javaIdentifier, -1);
                 blockStateOverrides.put(id, customBlockState);
+                BoxComponent extendedCollisionBox = customBlockState.block().components().extendedCollisionBox();
+                if (extendedCollisionBox != null) {
+                    extendedCollisionBoxes.put(id, extendedCollisionBox);
+                }
             });
         });
     
@@ -108,6 +118,9 @@ public class CustomBlockRegistryPopulator {
 
         BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.set(customBlockItemOverrides);
         GeyserImpl.getInstance().getLogger().info("Registered " + customBlockItemOverrides.size() + " custom block item overrides.");
+
+        BlockRegistries.CUSTOM_BLOCK_EXTENDED_COLLISION_BOXES.set(extendedCollisionBoxes);
+        GeyserImpl.getInstance().getLogger().info("Registered " + extendedCollisionBoxes.size() + " custom block extended collision boxes.");
     }
 
     /**

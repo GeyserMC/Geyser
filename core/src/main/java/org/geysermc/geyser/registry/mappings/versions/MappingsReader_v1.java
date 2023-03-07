@@ -294,10 +294,12 @@ public class MappingsReader_v1 extends MappingsReader {
     private CustomBlockComponents createCustomBlockComponents(JsonNode node, String stateKey, String name) {
         // This is needed to find the correct selection box for the given block
         int id = BlockRegistries.JAVA_IDENTIFIERS.getOrDefault(stateKey, -1);
-        BoxComponent boxComponent = createBoxComponent(id);
+        BoxComponent boxComponent = createBoxComponent(id, 0, 16, 0);
+        BoxComponent extendedboxComponent = createBoxComponent(id, 16, 32, -16);
         CustomBlockComponents.Builder builder = new CustomBlockComponentsBuilder()
                 .collisionBox(boxComponent)
-                .selectionBox(boxComponent);
+                .selectionBox(boxComponent)
+                .extendedCollisionBox(extendedboxComponent);
 
         if (node == null) {
             // No other components were defined
@@ -312,6 +314,11 @@ public class MappingsReader_v1 extends MappingsReader {
         if (collisionBox != null) {
             builder.collisionBox(collisionBox);
         }
+        BoxComponent extendedCollisionBox = createBoxComponent(node.get("extended_collision_box"));
+        if (extendedCollisionBox != null) {
+            builder.extendedCollisionBox(extendedCollisionBox);
+        }
+
 
         // We set this to max value by default so that we may dictate the correct destroy time ourselves
         float destructibleByMining = Float.MAX_VALUE;
@@ -404,9 +411,12 @@ public class MappingsReader_v1 extends MappingsReader {
     /**
      * Creates a {@link BoxComponent} based on a Java block's collision
      * @param javaId the block's Java ID
+     * @param minHeight the minimum height of the box
+     * @param maxHeight the maximum height of the box
+     * @param heightTranslation the height translation of the box
      * @return the {@link BoxComponent}
      */
-    private BoxComponent createBoxComponent(int javaId) {
+    private BoxComponent createBoxComponent(int javaId, float minHeight, float maxHeight, float heightTranslation) {
         // Some blocks (e.g. plants) have no collision box
         BlockCollision blockCollision = BlockUtils.getCollision(javaId);
         if (blockCollision == null) {
@@ -425,11 +435,11 @@ public class MappingsReader_v1 extends MappingsReader {
         // These could be placed above the block when a custom block exceeds this limit
         // I am hopeful this will be extended slightly since the geometry of blocks can be 1.875^3
         float cornerX = MathUtils.clamp((float) boundingBox.getMiddleX() * 16 - 8 - offsetX, -8, 8);
-        float cornerY = MathUtils.clamp((float) boundingBox.getMiddleY() * 16 - offsetY, 0, 16);
+        float cornerY = MathUtils.clamp((float) boundingBox.getMiddleY() * 16 - offsetY + heightTranslation, minHeight, maxHeight);
         float cornerZ = MathUtils.clamp((float) boundingBox.getMiddleZ() * 16 - 8 - offsetZ, -8, 8);
 
         float sizeX = MathUtils.clamp((float) boundingBox.getSizeX() * 16, 0, 16);
-        float sizeY = MathUtils.clamp((float) boundingBox.getSizeY() * 16, 0, 16);
+        float sizeY = MathUtils.clamp((float) boundingBox.getSizeY() * 16 + heightTranslation, minHeight, maxHeight);
         float sizeZ = MathUtils.clamp((float) boundingBox.getSizeZ() * 16, 0, 16);
 
         return new BoxComponent(cornerX, cornerY, cornerZ, sizeX, sizeY, sizeZ);

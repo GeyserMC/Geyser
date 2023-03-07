@@ -52,6 +52,13 @@ public interface CustomBlockComponents {
     BoxComponent collisionBox();
 
     /**
+     * Gets the extended collision box
+     * Places an invisible collision block above the block to prevent players from jumping on top of it, if defined
+     * @return The extended collision box.
+     */
+    BoxComponent extendedCollisionBox();
+
+    /**
      * Gets the display name component
      * Equivalent to "minecraft:display_name"
      *
@@ -152,6 +159,8 @@ public interface CustomBlockComponents {
         Builder selectionBox(BoxComponent selectionBox);
 
         Builder collisionBox(BoxComponent collisionBox);
+
+        Builder extendedCollisionBox(BoxComponent extendedCollisionBox);
 
         Builder displayName(String displayName);
 
