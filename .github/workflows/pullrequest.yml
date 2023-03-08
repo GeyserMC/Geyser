@@ -1,6 +1,16 @@
 name: Build Pull Request
 
-on: [pull_request]
+on: 
+  pull_request:
+    paths-ignore:
+      - '.github/ISSUE_TEMPLATE/*.yml'
+      - '.idea/copyright/*.xml' 
+      - '.gitignore'
+      - 'CONTRIBUTING.md'
+      - 'LICENSE'
+      - 'Jenkinsfile '
+      - 'README.md'
+      - 'licenseheader.txt'
 
 jobs:
   build:
@@ -11,7 +21,6 @@ jobs:
         with:
           java-version: 17
           distribution: temurin
-          cache: gradle
 
       - name: Check if the author has forked the API repo
         uses: Kas-tle/ForkFinder@v1.0.1
@@ -44,38 +53,44 @@ jobs:
           build-root-directory: geyser
 
       - name: Archive artifacts (Geyser Fabric)
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: success()
         with:
           name: Geyser Fabric
           path: geyser/bootstrap/fabric/build/libs/Geyser-Fabric.jar
+          if-no-files-found: error
       - name: Archive artifacts (Geyser Standalone)
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: success()
         with:
           name: Geyser Standalone
           path: geyser/bootstrap/standalone/build/libs/Geyser-Standalone.jar
+          if-no-files-found: error
       - name: Archive artifacts (Geyser Spigot)
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: success()
         with:
           name: Geyser Spigot
           path: geyser/bootstrap/spigot/build/libs/Geyser-Spigot.jar
+          if-no-files-found: error
       - name: Archive artifacts (Geyser BungeeCord)
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: success()
         with:
           name: Geyser BungeeCord
           path: geyser/bootstrap/bungeecord/build/libs/Geyser-BungeeCord.jar
+          if-no-files-found: error
       - name: Archive artifacts (Geyser Sponge)
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: success()
         with:
           name: Geyser Sponge
           path: geyser/bootstrap/sponge/build/libs/Geyser-Sponge.jar
+          if-no-files-found: error
       - name: Archive artifacts (Geyser Velocity)
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: success()
         with:
           name: Geyser Velocity
           path: geyser/bootstrap/velocity/build/libs/Geyser-Velocity.jar
+          if-no-files-found: error
