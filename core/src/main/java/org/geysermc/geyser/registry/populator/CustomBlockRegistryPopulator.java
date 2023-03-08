@@ -106,6 +106,7 @@ public class CustomBlockRegistryPopulator {
                 BoxComponent extendedCollisionBox = customBlockState.block().components().extendedCollisionBox();
                 if (extendedCollisionBox != null) {
                     extendedCollisionBoxes.put(id, extendedCollisionBox);
+                    // Here and in the API, we will also need to add a method to build proper custom block data based on the extended collision box and add to customBlocks
                 }
             });
         });

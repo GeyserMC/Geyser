@@ -134,6 +134,11 @@ public final class BlockRegistryPopulator {
                     NbtMap tag = customBlockStates.get(i);
                     CustomBlockState blockState = customExtBlockStates.get(i);
                     customBlockStateIds.put(blockState, blockStateOrderedMap.getOrDefault(tag, -1));
+                    // At this point, we have the bedrock runtime ID for our extended collision block, as well as its custom block state
+                    // So then I think what we would prefer for the registry of the collision boxes is having the collision box be the key
+                    // That registry will be used here to check if the given CustomBlockState is an extended collision block
+                    // Then right here we can populate our final registry which maps the java runtime ID to the bedrock runtime ID of our collision block
+                    // So therefore our initial extended collision registry should map to a set of java runtime IDs
                 }
 
                 remappedVanillaIds = new int[vanillaBlockStates.size()];
