@@ -127,8 +127,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             // Check for custom skull
             if (javaItem.getJavaId() == session.getItemMappings().getStoredItems().playerHead().getJavaId()
                     && javaItem.getNbt() != null
-                    && javaItem.getNbt().get("SkullOwner") instanceof CompoundTag profile) {
-                FakeHeadProvider.setHead(session, session.getPlayerEntity(), profile);
+                    && javaItem.getNbt().get("SkullOwner") != null) {
+                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getNbt());
             } else {
                 FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
             }

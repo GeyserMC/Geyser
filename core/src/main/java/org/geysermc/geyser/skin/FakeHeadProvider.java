@@ -26,6 +26,7 @@
 package org.geysermc.geyser.skin;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -41,7 +42,9 @@ import org.geysermc.geyser.text.GeyserLocale;
 import javax.annotation.Nonnull;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -91,11 +94,38 @@ public class FakeHeadProvider {
                 }
             });
 
-    public static void setHead(GeyserSession session, PlayerEntity entity, CompoundTag profileTag) {
-        SkinManager.GameProfileData gameProfileData = SkinManager.GameProfileData.from(profileTag);
-        if (gameProfileData == null) {
-            return;
+    public static void setHead(GeyserSession session, PlayerEntity entity, CompoundTag NBTData) {
+        if (NBTData.get("SkullOwner") instanceof CompoundTag profileTag) {
+            SkinManager.GameProfileData gameProfileData = SkinManager.GameProfileData.from(profileTag);
+            if (gameProfileData == null) {
+                return;
+            }
+            loadHead(session, entity, gameProfileData);
+        } else if (NBTData.get("SkullOwner") instanceof StringTag ownerTag) {
+            String owner = ownerTag.getValue();
+            if (owner == null) {
+                return;
+            }
+            CompletableFuture<String> CompletableFutureGameProfileData = SkinProvider.requestTexturesFromUsername(owner);
+            CompletableFutureGameProfileData.whenCompleteAsync((encodedJson, throwable) -> {
+                if (throwable != null) {
+                    GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), throwable);
+                    return;
+                }
+                try {
+                    SkinManager.GameProfileData gameProfileData = SkinManager.GameProfileData.loadFromJson(encodedJson);
+                    if (gameProfileData == null) {
+                        return;
+                    }
+                    loadHead(session, entity, gameProfileData);
+                } catch (IOException e) {
+                    GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid(), e.getMessage()));
+                }
+            });
         }
+    }
+
+    public static void loadHead(GeyserSession session, PlayerEntity entity, SkinManager.GameProfileData gameProfileData) {
         String fakeHeadSkinUrl = gameProfileData.skinUrl();
 
         session.getPlayerWithCustomHeads().add(entity.getUuid());

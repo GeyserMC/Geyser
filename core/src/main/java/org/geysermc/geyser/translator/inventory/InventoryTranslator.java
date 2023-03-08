@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
+import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
@@ -222,11 +223,11 @@ public abstract class InventoryTranslator {
                             ItemData itemData = javaItem.getItemData(session);
                             if (javaItem.getJavaId() == session.getItemMappings().getStoredItems().playerHead().getJavaId()
                                     && javaItem.getNbt() != null
-                                    && javaItem.getNbt().get("SkullOwner") instanceof CompoundTag profile) {
-                                FakeHeadProvider.setHead(session, session.getPlayerEntity(), profile);
+                                    && javaItem.getNbt().get("SkullOwner") != null) {
+                                    FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getNbt());
                             }
                         } else {
-                            //we are removing the head, so restore the original skin
+                            //we are probably removing the head, so restore the original skin
                             FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
                         }
                     }
