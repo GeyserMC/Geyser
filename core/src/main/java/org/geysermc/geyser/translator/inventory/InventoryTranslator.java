@@ -217,14 +217,13 @@ public abstract class InventoryTranslator {
                     boolean isDestCursor = isCursor(transferAction.getDestination());
 
                     if (destSlot == 5 || sourceSlot == 5) {
-                        if (destSlot == 5){
+                        if (destSlot == 5) {
                             //only set the head if the destination is the head slot
                             GeyserItemStack javaItem = inventory.getItem(sourceSlot);
                             ItemData itemData = javaItem.getItemData(session);
                             if (javaItem.getJavaId() == session.getItemMappings().getStoredItems().playerHead().getJavaId()
-                                    && javaItem.getNbt() != null
-                                    && javaItem.getNbt().get("SkullOwner") != null) {
-                                    FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getNbt());
+                                    && javaItem.getNbt() != null) {
+                                    FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getNbt().get("SkullOwner"));
                             }
                         } else {
                             //we are probably removing the head, so restore the original skin

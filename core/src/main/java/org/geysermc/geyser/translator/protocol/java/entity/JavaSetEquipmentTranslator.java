@@ -65,9 +65,8 @@ public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetE
                     if (livingEntity instanceof PlayerEntity
                             && javaItem != null
                             && javaItem.getId() == session.getItemMappings().getStoredItems().playerHead().getJavaId()
-                            && javaItem.getNbt() != null
-                            && javaItem.getNbt().get("SkullOwner") != null) {
-                        FakeHeadProvider.setHead(session, (PlayerEntity) livingEntity, javaItem.getNbt());
+                            && javaItem.getNbt() != null) {
+                        FakeHeadProvider.setHead(session, (PlayerEntity) livingEntity, javaItem.getNbt().get("SkullOwner"));
                     } else {
                         FakeHeadProvider.restoreOriginalSkin(session, livingEntity);
                     }

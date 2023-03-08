@@ -27,6 +27,7 @@ package org.geysermc.geyser.skin;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -94,20 +95,23 @@ public class FakeHeadProvider {
                 }
             });
 
-    public static void setHead(GeyserSession session, PlayerEntity entity, CompoundTag NBTData) {
-        if (NBTData.get("SkullOwner") instanceof CompoundTag profileTag) {
+    public static void setHead(GeyserSession session, PlayerEntity entity, Tag skullOwner) {
+        if (skullOwner == null) {
+            return;
+        }
+        if (skullOwner instanceof CompoundTag profileTag) {
             SkinManager.GameProfileData gameProfileData = SkinManager.GameProfileData.from(profileTag);
             if (gameProfileData == null) {
                 return;
             }
             loadHead(session, entity, gameProfileData);
-        } else if (NBTData.get("SkullOwner") instanceof StringTag ownerTag) {
+        } else if (skullOwner instanceof StringTag ownerTag) {
             String owner = ownerTag.getValue();
-            if (owner == null) {
+            if (owner.isEmpty()) {
                 return;
             }
-            CompletableFuture<String> CompletableFutureGameProfileData = SkinProvider.requestTexturesFromUsername(owner);
-            CompletableFutureGameProfileData.whenCompleteAsync((encodedJson, throwable) -> {
+            CompletableFuture<String> completableFuture = SkinProvider.requestTexturesFromUsername(owner);
+            completableFuture.whenCompleteAsync((encodedJson, throwable) -> {
                 if (throwable != null) {
                     GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), throwable);
                     return;
