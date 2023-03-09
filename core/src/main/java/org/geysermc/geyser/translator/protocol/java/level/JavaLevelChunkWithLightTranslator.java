@@ -141,6 +141,16 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                             section.getBlockStorageArray()[1].setFullBlock(xzy, session.getBlockMappings().getBedrockWaterId());
                         }
 
+                        int bedrockExtendedCollisionId = BlockRegistries.EXTENDED_COLLISION_BOXES.getOrDefault(javaId, -1);
+                        if (bedrockExtendedCollisionId != -1) {
+                            int y = xzy & 0xF;
+                            if (y < 15) {
+                                // We will set within this chunk section
+                            } else {
+                                // We will set within the next chunk section
+                            }
+                        }
+
                         // Check if block is piston or flower to see if we'll need to create additional block entities, as they're only block entities in Bedrock
                         if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId) || BlockStateValues.isNonWaterCauldron(javaId)) {
                             bedrockBlockEntities.add(BedrockOnlyBlockEntity.getTag(session,
