@@ -193,7 +193,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
             float maxY = minY + box.sizeY();
             float maxZ = minZ + box.sizeZ();
             if (minX < 0 || minY < 0 || minZ < 0 || maxX > 16 || maxY > 16 || maxZ > 16) {
-                throw new IllegalArgumentException("Box bounds must be within (0, 0, 0) and (16, 16, 16)");
+                throw new IllegalArgumentException("Box bounds must be within (0, 0, 0) and (16, 16, 16). Recieved: (" + minX + ", " + minY + ", " + minZ + ") to (" + maxX + ", " + maxY + ", " + maxZ + ")");
             }
         }
 

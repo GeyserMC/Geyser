@@ -45,7 +45,6 @@ import org.geysermc.geyser.level.block.GeyserCustomBlockData.CustomBlockDataBuil
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
-import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.MathUtils;
@@ -435,14 +434,14 @@ public class MappingsReader_v1 extends MappingsReader {
         // These could be placed above the block when a custom block exceeds this limit
         // I am hopeful this will be extended slightly since the geometry of blocks can be 1.875^3
         float cornerX = MathUtils.clamp((float) boundingBox.getMiddleX() * 16 - 8 - offsetX, -8, 8);
-        float cornerY = MathUtils.clamp((float) boundingBox.getMiddleY() * 16 - offsetY + heightTranslation, minHeight, maxHeight);
+        float cornerY = MathUtils.clamp((float) boundingBox.getMiddleY() * 16 - offsetY, minHeight, maxHeight);
         float cornerZ = MathUtils.clamp((float) boundingBox.getMiddleZ() * 16 - 8 - offsetZ, -8, 8);
 
         float sizeX = MathUtils.clamp((float) boundingBox.getSizeX() * 16, 0, 16);
-        float sizeY = MathUtils.clamp((float) boundingBox.getSizeY() * 16 + heightTranslation, minHeight, maxHeight);
+        float sizeY = MathUtils.clamp((float) boundingBox.getSizeY() * 16, minHeight, maxHeight);
         float sizeZ = MathUtils.clamp((float) boundingBox.getSizeZ() * 16, 0, 16);
 
-        return new BoxComponent(cornerX, cornerY, cornerZ, sizeX, sizeY, sizeZ);
+        return new BoxComponent(cornerX, cornerY + heightTranslation, cornerZ, sizeX, sizeY + heightTranslation, sizeZ);
     }
 
     /**

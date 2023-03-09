@@ -94,7 +94,7 @@ public class GeyserCustomBlockData implements CustomBlockData {
 
     @Override
     public @NonNull String identifier() {
-        return Constants.GEYSER_NAMESPACE + ":" + name;
+        return Constants.GEYSER_CUSTOM_NAMESPACE + ":" + name;
     }
 
     @Override

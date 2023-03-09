@@ -56,9 +56,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.zip.GZIPInputStream;
 
@@ -130,16 +132,22 @@ public final class BlockRegistryPopulator {
             Object2IntMap<CustomBlockState> customBlockStateIds = Object2IntMaps.emptyMap();
             if (BlockRegistries.CUSTOM_BLOCKS.get().length != 0) {
                 customBlockStateIds = new Object2IntOpenHashMap<>(customExtBlockStates.size());
+                Map<Integer, Integer> extendedCollisionBoxes = new HashMap<>();
                 for (int i = 0; i < customExtBlockStates.size(); i++) {
                     NbtMap tag = customBlockStates.get(i);
                     CustomBlockState blockState = customExtBlockStates.get(i);
-                    customBlockStateIds.put(blockState, blockStateOrderedMap.getOrDefault(tag, -1));
-                    // At this point, we have the bedrock runtime ID for our extended collision block, as well as its custom block state
-                    // So then I think what we would prefer for the registry of the collision boxes is having the collision box be the key
-                    // That registry will be used here to check if the given CustomBlockState is an extended collision block
-                    // Then right here we can populate our final registry which maps the java runtime ID to the bedrock runtime ID of our collision block
-                    // So therefore our initial extended collision registry should map to a set of java runtime IDs
+                    int bedrockRuntimeId = blockStateOrderedMap.getOrDefault(tag, -1);
+                    customBlockStateIds.put(blockState, bedrockRuntimeId);
+
+                    Set<Integer> extendedCollisionjavaIds = BlockRegistries.EXTENDED_COLLISION_BOXES_DATA.getOrDefault(blockState.block(), null);
+                    if (extendedCollisionjavaIds != null) {
+                        for (int javaId : extendedCollisionjavaIds) {
+                            extendedCollisionBoxes.put(javaId, bedrockRuntimeId);
+                        }
+                    }
                 }
+
+                BlockRegistries.EXTENDED_COLLISION_BOXES.set(extendedCollisionBoxes);
 
                 remappedVanillaIds = new int[vanillaBlockStates.size()];
                 for (int i = 0; i < vanillaBlockStates.size(); i++) {

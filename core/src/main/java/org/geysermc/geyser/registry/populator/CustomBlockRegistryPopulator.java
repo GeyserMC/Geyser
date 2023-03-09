@@ -8,6 +8,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockPermutation;
@@ -21,12 +22,15 @@ import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
 import org.geysermc.geyser.api.block.custom.property.PropertyType;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBlocksEvent;
 import org.geysermc.geyser.level.block.GeyserCustomBlockState;
+import org.geysermc.geyser.level.block.GeyserCustomBlockComponents.CustomBlockComponentsBuilder;
+import org.geysermc.geyser.level.block.GeyserCustomBlockData.CustomBlockDataBuilder;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.CustomSkull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,7 +48,9 @@ public class CustomBlockRegistryPopulator {
         Set<CustomBlockData> customBlocks = new ObjectOpenHashSet<>();
         Int2ObjectMap<CustomBlockState> blockStateOverrides = new Int2ObjectOpenHashMap<>();
         Map<String, CustomBlockData> customBlockItemOverrides = new HashMap<>();
-        Map<Integer, BoxComponent> extendedCollisionBoxes = new HashMap<>();
+        Map<CustomBlockData, Set<Integer>> extendedCollisionBoxes = new HashMap<>();
+        Map<BoxComponent, CustomBlockData> extendedCollisionBoxSet = new HashMap<>();
+        int[] extendedCollisionIndex = {0};
 
         GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineCustomBlocksEvent() {
             @Override
@@ -73,7 +79,17 @@ public class CustomBlockRegistryPopulator {
                 CustomBlockState oldBlockState = blockStateOverrides.put(id, customBlockState);
                 BoxComponent extendedCollisionBox = customBlockState.block().components().extendedCollisionBox();
                 if (extendedCollisionBox != null) {
-                    extendedCollisionBoxes.put(id, extendedCollisionBox);
+                    CustomBlockData extendedCollisionBlock = extendedCollisionBoxSet.getOrDefault(extendedCollisionBox, null);
+                    if (extendedCollisionBlock == null) {
+                        extendedCollisionBlock = createExtendedCollisionBlock(extendedCollisionBox, extendedCollisionIndex[0]++);
+                        extendedCollisionBoxes.put(extendedCollisionBlock, new HashSet<>(id));
+                        customBlocks.add(extendedCollisionBlock);
+                        extendedCollisionBoxSet.put(extendedCollisionBox, extendedCollisionBlock);
+                    } else {
+                        Set<Integer> existingJavaIds = extendedCollisionBoxes.getOrDefault(extendedCollisionBlock, new HashSet<>());
+                        existingJavaIds.add(id);
+                        extendedCollisionBoxes.put(extendedCollisionBlock, existingJavaIds);
+                    }
                 }
                 if (oldBlockState != null) {
                     GeyserImpl.getInstance().getLogger().debug("Duplicate block state override for Java Identifier: " +
@@ -105,8 +121,17 @@ public class CustomBlockRegistryPopulator {
                 blockStateOverrides.put(id, customBlockState);
                 BoxComponent extendedCollisionBox = customBlockState.block().components().extendedCollisionBox();
                 if (extendedCollisionBox != null) {
-                    extendedCollisionBoxes.put(id, extendedCollisionBox);
-                    // Here and in the API, we will also need to add a method to build proper custom block data based on the extended collision box and add to customBlocks
+                    CustomBlockData extendedCollisionBlock = extendedCollisionBoxSet.getOrDefault(extendedCollisionBox, null);
+                    if (extendedCollisionBlock == null) {
+                        extendedCollisionBlock = createExtendedCollisionBlock(extendedCollisionBox, extendedCollisionIndex[0]++);
+                        extendedCollisionBoxes.put(extendedCollisionBlock, new HashSet<>(id));
+                        customBlocks.add(extendedCollisionBlock);
+                        extendedCollisionBoxSet.put(extendedCollisionBox, extendedCollisionBlock);
+                    } else {
+                        Set<Integer> existingJavaIds = extendedCollisionBoxes.getOrDefault(extendedCollisionBlock, new HashSet<>());
+                        existingJavaIds.add(id);
+                        extendedCollisionBoxes.put(extendedCollisionBlock, existingJavaIds);
+                    }
                 }
             });
         });
@@ -120,7 +145,7 @@ public class CustomBlockRegistryPopulator {
         BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.set(customBlockItemOverrides);
         GeyserImpl.getInstance().getLogger().info("Registered " + customBlockItemOverrides.size() + " custom block item overrides.");
 
-        BlockRegistries.CUSTOM_BLOCK_EXTENDED_COLLISION_BOXES.set(extendedCollisionBoxes);
+        BlockRegistries.EXTENDED_COLLISION_BOXES_DATA.set(extendedCollisionBoxes);
         GeyserImpl.getInstance().getLogger().info("Registered " + extendedCollisionBoxes.size() + " custom block extended collision boxes.");
     }
 
@@ -346,5 +371,17 @@ public class CustomBlockRegistryPopulator {
         });
 
         return conditions;
+    }
+
+    private static CustomBlockData createExtendedCollisionBlock(BoxComponent boxComponent, int extendedCollisionBlock) {
+        CustomBlockData customBlockData = new CustomBlockDataBuilder()
+                .name(Constants.GEYSER_NAMESPACE + ":extended_collision_" + extendedCollisionBlock)
+                .components(
+                    new CustomBlockComponentsBuilder()
+                        .collisionBox(boxComponent)
+                        .selectionBox(new BoxComponent(0, 0, 0, 0, 0, 0))
+                        .build())
+                .build();
+        return customBlockData;
     }
 }
