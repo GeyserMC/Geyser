@@ -129,7 +129,7 @@ public class ChunkUtils {
             // Otherwise, let's still store our reference to the item frame, but let the new block take precedence for now
         }
 
-        int blockId = session.getBlockMappings().getBedrockBlockId(blockState);
+        int bedrockId = session.getBlockMappings().getBedrockBlockId(blockState);
         int skullVariant = BlockStateValues.getSkullVariant(blockState);
         if (skullVariant == -1) {
             // Skull is gone
@@ -138,8 +138,27 @@ public class ChunkUtils {
             // The changed block was a player skull so check if a custom block was defined for this skull
             SkullCache.Skull skull = session.getSkullCache().updateSkull(position, blockState);
             if (skull != null && skull.getCustomRuntimeId() != -1) {
-                blockId = skull.getCustomRuntimeId();
+                bedrockId = skull.getCustomRuntimeId();
             }
+        }
+
+        // Extended collision boxes for custom blocks
+        int aboveBedrockExtendedCollisionId = BlockRegistries.EXTENDED_COLLISION_BOXES.getOrDefault(blockState, -1);
+        int aboveBlock = session.getChunkCache().getBlockAt(position.getX(), position.getY() + 1, position.getZ());
+        if (aboveBedrockExtendedCollisionId != -1) {
+            UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+            updateBlockPacket.setDataLayer(0);
+            updateBlockPacket.setBlockPosition(position.add(0, 1, 0));
+            updateBlockPacket.setRuntimeId(aboveBedrockExtendedCollisionId);
+            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+            session.sendUpstreamPacket(updateBlockPacket);
+        } else if (aboveBlock == BlockStateValues.JAVA_AIR_ID) {
+            UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+            updateBlockPacket.setDataLayer(0);
+            updateBlockPacket.setBlockPosition(position.add(0, 1, 0));
+            updateBlockPacket.setRuntimeId(session.getBlockMappings().getBedrockAirId());
+            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+            session.sendUpstreamPacket(updateBlockPacket);
         }
 
         // Prevent moving_piston from being placed
@@ -148,7 +167,7 @@ public class ChunkUtils {
             UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
             updateBlockPacket.setDataLayer(0);
             updateBlockPacket.setBlockPosition(position);
-            updateBlockPacket.setRuntimeId(blockId);
+            updateBlockPacket.setRuntimeId(bedrockId);
             updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
             updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
             session.sendUpstreamPacket(updateBlockPacket);

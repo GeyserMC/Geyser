@@ -294,11 +294,11 @@ public class MappingsReader_v1 extends MappingsReader {
         // This is needed to find the correct selection box for the given block
         int id = BlockRegistries.JAVA_IDENTIFIERS.getOrDefault(stateKey, -1);
         BoxComponent boxComponent = createBoxComponent(id, 0, 16, 0);
-        BoxComponent extendedboxComponent = createBoxComponent(id, 16, 32, -16);
+        BoxComponent extendedBoxComponent = createBoxComponent(id, 16, 32, -16);
         CustomBlockComponents.Builder builder = new CustomBlockComponentsBuilder()
                 .collisionBox(boxComponent)
                 .selectionBox(boxComponent)
-                .extendedCollisionBox(extendedboxComponent);
+                .extendedCollisionBox(extendedBoxComponent);
 
         if (node == null) {
             // No other components were defined

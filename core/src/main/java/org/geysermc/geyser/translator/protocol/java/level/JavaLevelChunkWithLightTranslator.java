@@ -69,6 +69,7 @@ import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.geyser.util.ChunkUtils;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
@@ -109,6 +110,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
         try {
             ByteBuf in = Unpooled.wrappedBuffer(packet.getChunkData());
+            int runningSectionExtendedCollisions[] = new int[BlockStorage.SIZE];
             for (int sectionY = 0; sectionY < chunkSize; sectionY++) {
                 ChunkSection javaSection = session.getCodecHelper().readChunkSection(in, biomeGlobalPalette);
                 javaChunks[sectionY] = javaSection.getChunkData();
@@ -141,14 +143,18 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                             section.getBlockStorageArray()[1].setFullBlock(xzy, session.getBlockMappings().getBedrockWaterId());
                         }
 
-                        int bedrockExtendedCollisionId = BlockRegistries.EXTENDED_COLLISION_BOXES.getOrDefault(javaId, -1);
-                        if (bedrockExtendedCollisionId != -1) {
-                            int y = xzy & 0xF;
-                            if (y < 15) {
-                                // We will set within this chunk section
-                            } else {
-                                // We will set within the next chunk section
-                            }
+                        // Extended collision blocks
+                        switch (yzx) {
+                            case 0 -> Arrays.fill(runningSectionExtendedCollisions, 256, 4095, 0);
+                            case 256 -> Arrays.fill(runningSectionExtendedCollisions, 0, 256, 0);
+                        }
+                        if (javaId == BlockStateValues.JAVA_AIR_ID && runningSectionExtendedCollisions[yzx] != 0) {
+                            section.getBlockStorageArray()[0].setFullBlock(xzy, runningSectionExtendedCollisions[yzx]);
+                            continue;
+                        }
+                        int aboveBedrockExtendedCollisionId = BlockRegistries.EXTENDED_COLLISION_BOXES.getOrDefault(javaId, -1);
+                        if (aboveBedrockExtendedCollisionId != -1) {
+                            runningSectionExtendedCollisions[((yzx & 0x0ff) | (((yzx >> 8) + ((xzy & 0xF) < 15 ? 1 : -15)) << 8))] = aboveBedrockExtendedCollisionId;
                         }
 
                         // Check if block is piston or flower to see if we'll need to create additional block entities, as they're only block entities in Bedrock
@@ -222,7 +228,23 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     // No blocks are waterlogged, simply convert coordinate order
                     // This could probably be optimized further...
                     for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
-                        bedrockData.set(indexYZXtoXZY(yzx), javaData.get(yzx));
+                        int paletteId = javaData.get(yzx);
+                        int xzy = indexYZXtoXZY(yzx);
+                        bedrockData.set(xzy, paletteId);
+
+                        switch (yzx) {
+                            case 0 -> Arrays.fill(runningSectionExtendedCollisions, 256, 4095, 0);
+                            case 256 -> Arrays.fill(runningSectionExtendedCollisions, 0, 256, 0);
+                        }
+                        int javaId = javaPalette.idToState(paletteId);
+                        if (javaId == BlockStateValues.JAVA_AIR_ID && runningSectionExtendedCollisions[yzx] != 0) {
+                            bedrockData.set(xzy, layer0.idFor(runningSectionExtendedCollisions[yzx]));
+                            continue;
+                        }
+                        int aboveBedrockExtendedCollisionId = BlockRegistries.EXTENDED_COLLISION_BOXES.getOrDefault(javaId, -1);
+                        if (aboveBedrockExtendedCollisionId != -1) {
+                            runningSectionExtendedCollisions[((yzx & 0x0ff) | (((yzx >> 8) + ((xzy & 0xF) < 15 ? 1 : -15)) << 8))] = aboveBedrockExtendedCollisionId;
+                        }
                     }
 
                     layers = new BlockStorage[]{ layer0 };
@@ -237,6 +259,20 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
                         if (waterloggedPaletteIds.get(paletteId)) {
                             layer1Data[xzy >> 5] |= 1 << (xzy & 0x1F);
+                        }
+
+                        switch (yzx) {
+                            case 0 -> Arrays.fill(runningSectionExtendedCollisions, 256, 4095, 0);
+                            case 256 -> Arrays.fill(runningSectionExtendedCollisions, 0, 256, 0);
+                        }
+                        int javaId = javaPalette.idToState(paletteId);
+                        if (javaId == BlockStateValues.JAVA_AIR_ID && runningSectionExtendedCollisions[yzx] != 0) {
+                            bedrockData.set(xzy, layer0.idFor(runningSectionExtendedCollisions[yzx]));
+                            continue;
+                        }
+                        int aboveBedrockExtendedCollisionId = BlockRegistries.EXTENDED_COLLISION_BOXES.getOrDefault(javaId, -1);
+                        if (aboveBedrockExtendedCollisionId != -1) {
+                            runningSectionExtendedCollisions[((yzx & 0x0ff) | (((yzx >> 8) + ((xzy & 0xF) < 15 ? 1 : -15)) << 8))] = aboveBedrockExtendedCollisionId;
                         }
                     }
 
