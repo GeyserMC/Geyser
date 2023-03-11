@@ -28,6 +28,7 @@ package org.geysermc.geyser.entity.type.living.monster;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.OptionalIntMetadataType;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -45,13 +46,8 @@ public class EndermanEntity extends MonsterEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setCarriedBlock(EntityMetadata<OptionalInt, OptionalIntMetadataType> entityMetadata) {
-        int bedrockBlockId;
-        if (entityMetadata.getValue().isPresent()) {
-            bedrockBlockId = session.getBlockMappings().getBedrockBlockId(entityMetadata.getValue().getAsInt());
-        } else {
-            bedrockBlockId = session.getBlockMappings().getBedrockAirId();
-        }
+    public void setCarriedBlock(IntEntityMetadata entityMetadata) {
+        int bedrockBlockId = session.getBlockMappings().getBedrockBlockId(entityMetadata.getPrimitiveValue());;
 
         dirtyMetadata.put(EntityData.CARRIED_BLOCK, bedrockBlockId);
     }

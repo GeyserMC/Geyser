@@ -29,9 +29,9 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
+import com.github.steveice10.mc.protocol.data.game.recipe.data.LegacyUpgradeRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
-import com.github.steveice10.mc.protocol.data.game.recipe.data.SmithingRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.StoneCuttingRecipeData;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateRecipesPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
@@ -137,7 +137,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 }
                 case SMITHING -> {
                     // Required to translate these as of 1.18.10, or else they cannot be crafted
-                    SmithingRecipeData recipeData = (SmithingRecipeData) recipe.getData();
+                    LegacyUpgradeRecipeData recipeData = (LegacyUpgradeRecipeData) recipe.getData();
                     ItemData output = ItemTranslator.translateToBedrock(session, recipeData.getResult());
                     for (ItemStack base : recipeData.getBase().getOptions()) {
                         ItemDescriptorWithCount bedrockBase = ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, base));
