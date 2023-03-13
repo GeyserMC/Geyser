@@ -57,10 +57,10 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
         } else if (packet.getValue() instanceof EndGatewayValue) {
             blockEventPacket.setEventType(1);
             session.sendUpstreamPacket(blockEventPacket);
-//        } else if (packet.getValue() instanceof NoteBlockValue) {
-//            int blockState = session.getGeyser().getWorldManager().getBlockAt(session, position);
-//            blockEventPacket.setEventData(BlockStateValues.getNoteblockPitch(blockState));
-//            session.sendUpstreamPacket(blockEventPacket);
+        } else if (packet.getValue() instanceof NoteBlockValue) {
+            int blockState = session.getGeyser().getWorldManager().getBlockAt(session, position);
+            blockEventPacket.setEventData(BlockStateValues.getNoteblockPitch(blockState));
+            session.sendUpstreamPacket(blockEventPacket);
         } else if (packet.getValue() instanceof PistonValue pistonValue) {
             PistonValueType action = (PistonValueType) packet.getType();
             Direction direction = Direction.fromPistonValue(pistonValue.getDirection());
