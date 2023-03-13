@@ -48,9 +48,6 @@ public class CustomBlockRegistryPopulator {
         Set<CustomBlockData> customBlocks = new ObjectOpenHashSet<>();
         Int2ObjectMap<CustomBlockState> blockStateOverrides = new Int2ObjectOpenHashMap<>();
         Map<String, CustomBlockData> customBlockItemOverrides = new HashMap<>();
-        Map<CustomBlockData, Set<Integer>> extendedCollisionBoxes = new HashMap<>();
-        Map<BoxComponent, CustomBlockData> extendedCollisionBoxSet = new HashMap<>();
-        int[] extendedCollisionIndex = {0};
 
         GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineCustomBlocksEvent() {
             @Override
@@ -77,20 +74,6 @@ public class CustomBlockRegistryPopulator {
                     throw new IllegalArgumentException("Custom block is unregistered. Name: " + customBlockState.name());
                 }
                 CustomBlockState oldBlockState = blockStateOverrides.put(id, customBlockState);
-                BoxComponent extendedCollisionBox = customBlockState.block().components().extendedCollisionBox();
-                if (extendedCollisionBox != null) {
-                    CustomBlockData extendedCollisionBlock = extendedCollisionBoxSet.getOrDefault(extendedCollisionBox, null);
-                    if (extendedCollisionBlock == null) {
-                        extendedCollisionBlock = createExtendedCollisionBlock(extendedCollisionBox, extendedCollisionIndex[0]++);
-                        extendedCollisionBoxes.put(extendedCollisionBlock, new HashSet<>(id));
-                        customBlocks.add(extendedCollisionBlock);
-                        extendedCollisionBoxSet.put(extendedCollisionBox, extendedCollisionBlock);
-                    } else {
-                        Set<Integer> existingJavaIds = extendedCollisionBoxes.getOrDefault(extendedCollisionBlock, new HashSet<>());
-                        existingJavaIds.add(id);
-                        extendedCollisionBoxes.put(extendedCollisionBlock, existingJavaIds);
-                    }
-                }
                 if (oldBlockState != null) {
                     GeyserImpl.getInstance().getLogger().debug("Duplicate block state override for Java Identifier: " +
                             javaIdentifier + " Old override: " + oldBlockState.name() + " New override: " + customBlockState.name());
@@ -110,6 +93,9 @@ public class CustomBlockRegistryPopulator {
             customBlocks.add(customSkull.getCustomBlockData());
         }
 
+        Map<CustomBlockData, Set<Integer>> extendedCollisionBoxes = new HashMap<>();
+        Map<BoxComponent, CustomBlockData> extendedCollisionBoxSet = new HashMap<>();
+        int[] extendedCollisionIndex = {0};
         MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
         mappingsConfigReader.loadBlockMappingsFromJson((key, block) -> {
             customBlocks.add(block.data());
@@ -118,13 +104,13 @@ public class CustomBlockRegistryPopulator {
             }
             block.states().forEach((javaIdentifier, customBlockState) -> {
                 int id = BlockRegistries.JAVA_IDENTIFIERS.getOrDefault(javaIdentifier, -1);
-                blockStateOverrides.put(id, customBlockState);
-                BoxComponent extendedCollisionBox = customBlockState.block().components().extendedCollisionBox();
+                blockStateOverrides.put(id, customBlockState.state());
+                BoxComponent extendedCollisionBox = customBlockState.extendedCollisionBox();
                 if (extendedCollisionBox != null) {
                     CustomBlockData extendedCollisionBlock = extendedCollisionBoxSet.getOrDefault(extendedCollisionBox, null);
                     if (extendedCollisionBlock == null) {
                         extendedCollisionBlock = createExtendedCollisionBlock(extendedCollisionBox, extendedCollisionIndex[0]++);
-                        extendedCollisionBoxes.put(extendedCollisionBlock, new HashSet<>(id));
+                        extendedCollisionBoxes.computeIfAbsent(extendedCollisionBlock, k -> new HashSet<>()).add(id);
                         customBlocks.add(extendedCollisionBlock);
                         extendedCollisionBoxSet.put(extendedCollisionBox, extendedCollisionBlock);
                     } else {
@@ -375,11 +361,14 @@ public class CustomBlockRegistryPopulator {
 
     private static CustomBlockData createExtendedCollisionBlock(BoxComponent boxComponent, int extendedCollisionBlock) {
         CustomBlockData customBlockData = new CustomBlockDataBuilder()
-                .name(Constants.GEYSER_NAMESPACE + ":extended_collision_" + extendedCollisionBlock)
+                .name("extended_collision_" + extendedCollisionBlock)
                 .components(
                     new CustomBlockComponentsBuilder()
                         .collisionBox(boxComponent)
-                        .selectionBox(new BoxComponent(0, 0, 0, 0, 0, 0))
+                        .selectionBox(BoxComponent.EMPTY_BOX)
+                        .materialInstance("*", new MaterialInstance("glass", "alpha_test", false, false))
+                        .lightDampening(0)
+                        .geometry("geometry.invisible")
                         .build())
                 .build();
         return customBlockData;

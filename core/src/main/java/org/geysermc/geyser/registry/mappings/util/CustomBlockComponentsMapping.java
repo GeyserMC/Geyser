@@ -25,15 +25,9 @@
 
 package org.geysermc.geyser.registry.mappings.util;
 
-import java.util.Map;
-
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.block.custom.CustomBlockData;
+import org.geysermc.geyser.api.block.custom.component.BoxComponent;
+import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 
-/**
- * This class is used to store a custom block mappings, which contain all of the 
- * data required to register a custom block that overrides a group of java block
- * states.
- */
-public record CustomBlockMapping(@NonNull CustomBlockData data, @NonNull Map<String, CustomBlockStateMapping> states, @NonNull String javaIdentifier, boolean overrideItem) {
+public record CustomBlockComponentsMapping(@NonNull CustomBlockComponents components, BoxComponent extendedCollisionBox) {
 }
