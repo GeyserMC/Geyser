@@ -414,33 +414,49 @@ public class MappingsReader_v1 extends MappingsReader {
     /**
      * Creates a {@link BoxComponent} based on a Java block's collision with provided bounds and offsets
      * @param javaId the block's Java ID
-     * @param minHeight the minimum height of the box
-     * @param maxHeight the maximum height of the box
      * @param heightTranslation the height translation of the box
      * @return the {@link BoxComponent}
      */
-    private BoxComponent createBoxComponent(int javaId, float minHeight, float maxHeight, float heightTranslation) {
+    private BoxComponent createBoxComponent(int javaId, float heightTranslation) {
         // Some blocks (e.g. plants) have no collision box
         BlockCollision blockCollision = BlockUtils.getCollision(javaId);
         if (blockCollision == null) {
             return BoxComponent.EMPTY_BOX;
         }
 
-        BoundingBox boundingBox = blockCollision.getBoundingBoxes()[0];
+        Set<Float> bottomCornerXs = new ObjectOpenHashSet<>();
+        Set<Float> bottomCornerYs = new ObjectOpenHashSet<>();
+        Set<Float> bottomCornerZs = new ObjectOpenHashSet<>();
+        Set<Float> topCornerXs = new ObjectOpenHashSet<>();
+        Set<Float> topCornerYs = new ObjectOpenHashSet<>();
+        Set<Float> topCornerZs = new ObjectOpenHashSet<>();
+        for (BoundingBox boundingBox : blockCollision.getBoundingBoxes()) {
+            float offsetX = (float) boundingBox.getSizeX() * 8;
+            float offsetY = (float) boundingBox.getSizeY() * 8;
+            float offsetZ = (float) boundingBox.getSizeZ() * 8;
 
-        float offsetX = (float) boundingBox.getSizeX() * 8;
-        float offsetY = (float) boundingBox.getSizeY() * 8;
-        float offsetZ = (float) boundingBox.getSizeZ() * 8;
+            float bottomCornerX = (float) boundingBox.getMiddleX() * 16 - 8 - offsetX;
+            float bottomCornerY = (float) boundingBox.getMiddleY() * 16 - offsetY;
+            float bottomCornerZ = (float) boundingBox.getMiddleZ() * 16 - 8 - offsetZ;
+    
+            bottomCornerXs.add(bottomCornerX);
+            bottomCornerYs.add(bottomCornerY);
+            bottomCornerZs.add(bottomCornerZ);
+    
+            topCornerXs.add((float) boundingBox.getSizeX() * 16 + bottomCornerX);
+            topCornerYs.add((float) boundingBox.getSizeY() * 16 + bottomCornerY);
+            topCornerZs.add((float) boundingBox.getSizeZ() * 16 + bottomCornerZ);
+        }
 
-        float cornerX = MathUtils.clamp((float) boundingBox.getMiddleX() * 16 - 8 - offsetX, -8, 8);
-        float cornerY = MathUtils.clamp((float) boundingBox.getMiddleY() * 16 - offsetY, minHeight, maxHeight);
-        float cornerZ = MathUtils.clamp((float) boundingBox.getMiddleZ() * 16 - 8 - offsetZ, -8, 8);
+        float cornerX = MathUtils.clamp(Collections.min(bottomCornerXs), -8, 8);
+        float cornerY = MathUtils.clamp(Collections.min(bottomCornerYs) + heightTranslation, 0, 16);
+        float cornerZ = MathUtils.clamp(Collections.min(bottomCornerZs), -8, 8);
 
-        float sizeX = MathUtils.clamp((float) boundingBox.getSizeX() * 16, 0, 16);
-        float sizeY = MathUtils.clamp((float) boundingBox.getSizeY() * 16, minHeight, maxHeight);
-        float sizeZ = MathUtils.clamp((float) boundingBox.getSizeZ() * 16, 0, 16);
+        float sizeX = MathUtils.clamp(Collections.max(topCornerXs) - cornerX, 0, 16);
+        float sizeY = MathUtils.clamp(Collections.max(topCornerYs) - cornerY + heightTranslation, 0, 16);
+        float sizeZ = MathUtils.clamp(Collections.max(topCornerZs) - cornerZ, 0 ,16);
 
-        return new BoxComponent(cornerX, cornerY + heightTranslation, cornerZ, sizeX, sizeY + heightTranslation, sizeZ);
+        return new BoxComponent(cornerX, cornerY, cornerZ, sizeX, sizeY, sizeZ);
     }
 
     /**
@@ -449,7 +465,7 @@ public class MappingsReader_v1 extends MappingsReader {
      * @return the {@link BoxComponent}
      */
     private BoxComponent createBoxComponent(int javaId) {
-        return createBoxComponent(javaId, 0, 16, 0);
+        return createBoxComponent(javaId, 0);
     }
 
     /**
@@ -467,7 +483,7 @@ public class MappingsReader_v1 extends MappingsReader {
         float cornerY = (float) boundingBox.getMiddleY() * 16 - offsetY;
         float sizeY = (float) boundingBox.getSizeY() * 16;
         if (cornerY > 16 || sizeY > 16) {
-            return createBoxComponent(javaId, 16, 32, -16);
+            return createBoxComponent(javaId, -16);
         }
         return null;
     }
