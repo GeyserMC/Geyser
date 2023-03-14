@@ -485,7 +485,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
      * @param blockPos the block position to restore
      */
     private void restoreCorrectBlock(GeyserSession session, Vector3i blockPos, InventoryTransactionPacket packet) {
-        Thread.dumpStack();
         int javaBlockState = session.getGeyser().getWorldManager().getBlockAt(session, blockPos);
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
