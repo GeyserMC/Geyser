@@ -435,7 +435,7 @@ public class MappingsReader_v1 extends MappingsReader {
             float offsetY = (float) boundingBox.getSizeY() * 8;
             float offsetZ = (float) boundingBox.getSizeZ() * 8;
 
-            float bottomCornerX = (float) boundingBox.getMiddleX() * 16 - 8 - offsetX;
+            float bottomCornerX = (float) Math.abs(boundingBox.getMiddleX() - 1) * 16 - 8 - offsetX;
             float bottomCornerY = (float) boundingBox.getMiddleY() * 16 - offsetY;
             float bottomCornerZ = (float) boundingBox.getMiddleZ() * 16 - 8 - offsetZ;
     
