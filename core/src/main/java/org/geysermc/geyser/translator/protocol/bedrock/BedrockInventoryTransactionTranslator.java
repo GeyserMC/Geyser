@@ -509,7 +509,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         int javaSlot = session.getPlayerInventory().getOffsetForHotbar(packet.getHotbarSlot());
         int expectedItemId = ItemTranslator.getBedrockItemId(session, session.getPlayerInventory().getItem(javaSlot));
         int heldItemId = packet.getItemInHand() == null ? ItemData.AIR.getId() : packet.getItemInHand().getId();
-        System.out.println(expectedItemId + " " + heldItemId);
 
         if (expectedItemId != heldItemId) {
             session.getGeyser().getLogger().debug(session.bedrockUsername() + "'s held item has desynced! Expected: " + expectedItemId + " Received: " + heldItemId);
