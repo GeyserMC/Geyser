@@ -27,7 +27,6 @@ package org.geysermc.geyser.translator.protocol.java;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundLoginPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundCustomPayloadPacket;
-import com.github.steveice10.opennbt.SNBTIO;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.nukkitx.protocol.bedrock.data.GameRuleData;
@@ -39,7 +38,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
-import org.geysermc.geyser.level.DamageType;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.TextDecoration;
@@ -51,7 +49,6 @@ import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.JavaCodecUtil;
 import org.geysermc.geyser.util.PluginMessageUtils;
 
-import java.io.IOException;
 import java.util.Map;
 
 @Translator(packet = ClientboundLoginPacket.class)
@@ -67,12 +64,6 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
 
         JavaDimension.load(packet.getRegistry(), dimensions);
 
-        try {
-            SNBTIO.writeTag(System.out, packet.getRegistry().get("minecraft:damage_type"), true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
         Int2ObjectMap<TextDecoration> chatTypes = session.getChatTypes();
         chatTypes.clear();
         for (CompoundTag tag : JavaCodecUtil.iterateAsTag(packet.getRegistry().get("minecraft:chat_type"))) {
@@ -85,13 +76,6 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
                 textDecoration = new TextDecoration(chat);
             }
             chatTypes.put(id, textDecoration);
-        }
-
-        Int2ObjectMap<DamageType> damageTypes = session.getDamageTypes();
-        damageTypes.clear();
-        for (CompoundTag tag : JavaCodecUtil.iterateAsTag(packet.getRegistry().get("minecraft:damage_type"))) {
-            int id = ((IntTag) tag.get("id")).getValue();
-            CompoundTag element = tag.get("element");
         }
 
         // If the player is already initialized and a join game packet is sent, they

@@ -76,6 +76,7 @@ public class ItemRegistryPopulator {
         paletteVersions.put("1_19_20", new PaletteVersion(Bedrock_v544.V544_CODEC.getProtocolVersion(), Collections.emptyMap()));
         paletteVersions.put("1_19_50", new PaletteVersion(Bedrock_v560.V560_CODEC.getProtocolVersion(), Collections.emptyMap()));
         paletteVersions.put("1_19_60", new PaletteVersion(Bedrock_v567.V567_CODEC.getProtocolVersion(), Collections.emptyMap()));
+        paletteVersions.put("1_19_70", new PaletteVersion(575, Collections.emptyMap()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
@@ -303,6 +304,11 @@ public class ItemRegistryPopulator {
                 } else {
                     // This items has a mapping specifically for this version of the game
                     mappingItem = entry.getValue();
+                }
+
+                // 1.19.70+
+                if (palette.getValue().protocolVersion() >= 575 && mappingItem.getBedrockIdentifier().equals("minecraft:wool")) {
+                    mappingItem.setBedrockIdentifier(javaIdentifier);
                 }
 
                 if (customItemsAllowed && javaIdentifier.equals("minecraft:furnace_minecart")) {

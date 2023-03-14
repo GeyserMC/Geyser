@@ -23,13 +23,12 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java.entity.spawn;
+package org.geysermc.geyser.translator.protocol.java.entity;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundDamageEventPacket;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.level.DamageType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -44,11 +43,10 @@ public class JavaDamageEventTranslator extends PacketTranslator<ClientboundDamag
             return;
         }
 
+        // We can probably actually map damage types.
         EntityEventPacket entityEventPacket = new EntityEventPacket();
         entityEventPacket.setRuntimeEntityId(entity.getGeyserId());
         entityEventPacket.setType(EntityEventType.HURT);
-        DamageType damageType = session.getDamageTypes().get(packet.getSourceTypeId());
-
         session.sendUpstreamPacket(entityEventPacket);
     }
 }

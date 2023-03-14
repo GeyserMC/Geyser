@@ -116,7 +116,6 @@ import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
-import org.geysermc.geyser.level.DamageType;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.physics.CollisionManager;
@@ -345,8 +344,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final Map<String, JavaDimension> dimensions = new Object2ObjectOpenHashMap<>(3);
 
     private final Int2ObjectMap<TextDecoration> chatTypes = new Int2ObjectOpenHashMap<>(7);
-
-    private final Int2ObjectMap<DamageType> damageTypes = new Int2ObjectOpenHashMap<>();
 
     @Setter
     private int breakingBlock;
