@@ -858,7 +858,6 @@ public final class EntityDefinitions {
         {
             EntityDefinition<AbstractHorseEntity> abstractHorseEntityBase = EntityDefinition.inherited(AbstractHorseEntity::new, ageableEntityBase)
                     .addTranslator(MetadataType.BYTE, AbstractHorseEntity::setHorseFlags)
-                    .addTranslator(null) // UUID of owner
                     .build();
             CAMEL = EntityDefinition.inherited(CamelEntity::new, abstractHorseEntityBase)
                     .type(EntityType.CAMEL)
