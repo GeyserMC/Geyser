@@ -79,6 +79,16 @@ public final class BlockRegistryPopulator {
                 .put(ObjectIntPair.of("1_19_20", Bedrock_v544.V544_CODEC.getProtocolVersion()), emptyMapper)
                 .put(ObjectIntPair.of("1_19_50", Bedrock_v560.V560_CODEC.getProtocolVersion()), emptyMapper)
                 .put(ObjectIntPair.of("1_19_60", Bedrock_v567.V567_CODEC.getProtocolVersion()), emptyMapper)
+                .put(ObjectIntPair.of("1_19_70", 575), (bedrockIdentifier, statesBuilder) -> {
+                    if (bedrockIdentifier.equals("minecraft:wool")) {
+                        String color = (String) statesBuilder.remove("color");
+                        if ("silver".equals(color)) {
+                            color = "light_gray";
+                        }
+                        return "minecraft:" + color + "_wool";
+                    }
+                    return null;
+                })
                 .build();
 
         for (Map.Entry<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> palette : blockMappers.entrySet()) {

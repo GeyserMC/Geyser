@@ -486,7 +486,7 @@ public final class EntityDefinitions {
             ENDERMAN = EntityDefinition.inherited(EndermanEntity::new, mobEntityBase)
                     .type(EntityType.ENDERMAN)
                     .height(2.9f).width(0.6f)
-                    .addTranslator(MetadataType.BLOCK_STATE, EndermanEntity::setCarriedBlock)
+                    .addTranslator(MetadataType.OPTIONAL_BLOCK_STATE, EndermanEntity::setCarriedBlock)
                     .addTranslator(MetadataType.BOOLEAN, EndermanEntity::setScreaming)
                     .addTranslator(MetadataType.BOOLEAN, EndermanEntity::setAngry)
                     .build();
@@ -858,7 +858,6 @@ public final class EntityDefinitions {
         {
             EntityDefinition<AbstractHorseEntity> abstractHorseEntityBase = EntityDefinition.inherited(AbstractHorseEntity::new, ageableEntityBase)
                     .addTranslator(MetadataType.BYTE, AbstractHorseEntity::setHorseFlags)
-                    .addTranslator(null) // UUID of owner
                     .build();
             CAMEL = EntityDefinition.inherited(CamelEntity::new, abstractHorseEntityBase)
                     .type(EntityType.CAMEL)

@@ -25,19 +25,18 @@
 
 package org.geysermc.geyser.level.physics;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.value.PistonValue;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
 
 public enum Direction {
-    DOWN(1, Vector3i.from(0, -1, 0), Axis.Y, PistonValue.DOWN),
-    UP(0, Vector3i.UNIT_Y, Axis.Y, PistonValue.UP),
-    NORTH(3, Vector3i.from(0, 0, -1), Axis.Z, PistonValue.NORTH),
-    SOUTH(2, Vector3i.UNIT_Z, Axis.Z, PistonValue.SOUTH),
-    WEST(5, Vector3i.from(-1, 0, 0), Axis.X, PistonValue.WEST),
-    EAST(4, Vector3i.UNIT_X, Axis.X, PistonValue.EAST);
+    DOWN(1, Vector3i.from(0, -1, 0), Axis.Y, com.github.steveice10.mc.protocol.data.game.entity.object.Direction.DOWN),
+    UP(0, Vector3i.UNIT_Y, Axis.Y, com.github.steveice10.mc.protocol.data.game.entity.object.Direction.UP),
+    NORTH(3, Vector3i.from(0, 0, -1), Axis.Z, com.github.steveice10.mc.protocol.data.game.entity.object.Direction.NORTH),
+    SOUTH(2, Vector3i.UNIT_Z, Axis.Z, com.github.steveice10.mc.protocol.data.game.entity.object.Direction.SOUTH),
+    WEST(5, Vector3i.from(-1, 0, 0), Axis.X, com.github.steveice10.mc.protocol.data.game.entity.object.Direction.WEST),
+    EAST(4, Vector3i.UNIT_X, Axis.X, com.github.steveice10.mc.protocol.data.game.entity.object.Direction.EAST);
 
     public static final Direction[] VALUES = values();
 
@@ -46,10 +45,9 @@ public enum Direction {
     private final Vector3i unitVector;
     @Getter
     private final Axis axis;
-    @Getter
-    private final PistonValue pistonValue;
+    private final com.github.steveice10.mc.protocol.data.game.entity.object.Direction pistonValue;
 
-    Direction(int reversedId, Vector3i unitVector, Axis axis, PistonValue pistonValue) {
+    Direction(int reversedId, Vector3i unitVector, Axis axis, com.github.steveice10.mc.protocol.data.game.entity.object.Direction pistonValue) {
         this.reversedId = reversedId;
         this.unitVector = unitVector;
         this.axis = axis;
@@ -69,7 +67,7 @@ public enum Direction {
     }
 
     @Nonnull
-    public static Direction fromPistonValue(PistonValue pistonValue) {
+    public static Direction fromPistonValue(com.github.steveice10.mc.protocol.data.game.entity.object.Direction pistonValue) {
         for (Direction direction : VALUES) {
             if (direction.pistonValue == pistonValue) {
                 return direction;

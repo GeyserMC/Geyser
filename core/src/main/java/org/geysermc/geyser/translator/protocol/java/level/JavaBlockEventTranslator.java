@@ -63,7 +63,7 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
             session.sendUpstreamPacket(blockEventPacket);
         } else if (packet.getValue() instanceof PistonValue pistonValue) {
             PistonValueType action = (PistonValueType) packet.getType();
-            Direction direction = Direction.fromPistonValue(pistonValue);
+            Direction direction = Direction.fromPistonValue(pistonValue.getDirection());
             PistonCache pistonCache = session.getPistonCache();
 
             if (session.getGeyser().getPlatformType() == PlatformType.SPIGOT) {

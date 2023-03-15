@@ -28,6 +28,7 @@ package org.geysermc.geyser.network;
 import com.github.steveice10.mc.protocol.codec.MinecraftCodec;
 import com.github.steveice10.mc.protocol.codec.PacketCodec;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
+import com.nukkitx.protocol.bedrock.v554.Bedrock_v554;
 import com.nukkitx.protocol.bedrock.v557.Bedrock_v557;
 import com.nukkitx.protocol.bedrock.v560.Bedrock_v560;
 import com.nukkitx.protocol.bedrock.v567.Bedrock_v567;
@@ -46,7 +47,10 @@ public final class GameProtocol {
      * Default Bedrock codec that should act as a fallback. Should represent the latest available
      * release of the game that Geyser supports.
      */
-    public static final BedrockPacketCodec DEFAULT_BEDROCK_CODEC = Bedrock_v567.V567_CODEC;
+    public static final BedrockPacketCodec DEFAULT_BEDROCK_CODEC = Bedrock_v567patch.BEDROCK_V567PATCH.toBuilder()
+            .protocolVersion(575)
+            .minecraftVersion("1.19.70")
+            .build();
     /**
      * A list of all supported Bedrock versions that can join Geyser
      */
@@ -59,17 +63,21 @@ public final class GameProtocol {
     private static final PacketCodec DEFAULT_JAVA_CODEC = MinecraftCodec.CODEC;
 
     static {
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v554.V554_CODEC.toBuilder()
+                .minecraftVersion("1.19.30/1.19.31")
+                .build());
         SUPPORTED_BEDROCK_CODECS.add(Bedrock_v557.V557_CODEC.toBuilder()
                 .minecraftVersion("1.19.40/1.19.41")
                 .build());
         SUPPORTED_BEDROCK_CODECS.add(Bedrock_v560.V560_CODEC.toBuilder()
                 .minecraftVersion("1.19.50/1.19.51")
                 .build());
-        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v567.V567_CODEC);
         SUPPORTED_BEDROCK_CODECS.add(Bedrock_v567patch.BEDROCK_V567PATCH.toBuilder()
                 .protocolVersion(568)
                 .minecraftVersion("1.19.62")
                 .build());
+        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
     }
 
     /**

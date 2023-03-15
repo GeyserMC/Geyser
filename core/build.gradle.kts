@@ -31,10 +31,6 @@ dependencies {
         exclude("com.github.GeyserMC", "mcauthlib")
     }
 
-    api(libs.packetlib) {
-        exclude("io.netty", "netty-all")
-    }
-
     implementation(libs.raknet) {
         exclude("io.netty", "*");
     }

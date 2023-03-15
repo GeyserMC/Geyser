@@ -32,12 +32,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.InteractAction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClickPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundUseItemPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.*;
 import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
@@ -46,14 +41,12 @@ import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
 import com.nukkitx.protocol.bedrock.data.inventory.InventorySource;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
-import com.nukkitx.protocol.bedrock.data.inventory.LegacySetItemSlotData;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.InventoryTransactionPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
@@ -76,9 +69,7 @@ import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.CooldownUtils;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
-import org.geysermc.geyser.util.InventoryUtils;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -357,43 +348,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         ServerboundUseItemPacket useItemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getWorldCache().nextPredictionSequence());
                         session.sendDownstreamPacket(useItemPacket);
-
-                        List<LegacySetItemSlotData> legacySlots = packet.getLegacySlots();
-                        if (packet.getActions().size() == 1 && legacySlots.size() > 0) {
-                            InventoryActionData actionData = packet.getActions().get(0);
-                            LegacySetItemSlotData slotData = legacySlots.get(0);
-                            if (slotData.getContainerId() == 6 && actionData.getToItem().getId() != 0) {
-                                // The player is trying to swap out an armor piece that already has an item in it
-                                if (session.getGeyser().getConfig().isAlwaysQuickChangeArmor()) {
-                                    // Java doesn't know when a player is in its own inventory and not, so we
-                                    // can abuse this feature to send a swap inventory packet
-                                    int bedrockHotbarSlot = packet.getHotbarSlot();
-                                    Click click = InventoryUtils.getClickForHotbarSwap(bedrockHotbarSlot);
-                                    if (click != null && slotData.getSlots().length != 0) {
-                                        Inventory playerInventory = session.getPlayerInventory();
-                                        // Bedrock sends us the index of the slot in the armor container; armor in Java
-                                        // Edition is offset by 5 in the player inventory
-                                        int armorSlot = slotData.getSlots()[0] + 5;
-                                        GeyserItemStack armorSlotItem = playerInventory.getItem(armorSlot);
-                                        GeyserItemStack hotbarItem = playerInventory.getItem(playerInventory.getOffsetForHotbar(bedrockHotbarSlot));
-                                        playerInventory.setItem(armorSlot, hotbarItem, session);
-                                        playerInventory.setItem(bedrockHotbarSlot, armorSlotItem, session);
-
-                                        Int2ObjectMap<ItemStack> changedSlots = new Int2ObjectOpenHashMap<>(2);
-                                        changedSlots.put(armorSlot, hotbarItem.getItemStack());
-                                        changedSlots.put(bedrockHotbarSlot, armorSlotItem.getItemStack());
-
-                                        ServerboundContainerClickPacket clickPacket = new ServerboundContainerClickPacket(
-                                                playerInventory.getJavaId(), playerInventory.getStateId(), armorSlot,
-                                                click.actionType, click.action, null, changedSlots);
-                                        session.sendDownstreamPacket(clickPacket);
-                                    }
-                                } else {
-                                    // Disallowed; let's revert
-                                    session.getInventoryTranslator().updateInventory(session, session.getPlayerInventory());
-                                }
-                            }
-                        }
                     }
                     case 2 -> {
                         int blockState = session.getGameMode() == GameMode.CREATIVE ?
