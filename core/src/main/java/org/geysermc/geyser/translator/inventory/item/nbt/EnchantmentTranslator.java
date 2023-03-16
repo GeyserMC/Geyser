@@ -82,7 +82,7 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
                 displayTag.put(new ListTag("Lore"));
                 loreTag = displayTag.get("Lore");
             }
-            loreTag.add(new StringTag("", "§7§oSweeping Edge " + levelToRomanNumeral(sweepingEdge)));
+            loreTag.add(new StringTag("", "§7Sweeping Edge " + levelToRomanNumeral(sweepingEdge)));
         }
     }
 
