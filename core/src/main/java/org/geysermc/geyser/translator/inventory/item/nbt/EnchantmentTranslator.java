@@ -48,17 +48,16 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
         if (enchantmentTag instanceof ListTag listTag) {
             for (Tag tag : listTag.getValue()) {
                 if (!(tag instanceof CompoundTag)) continue;
-
                 CompoundTag bedrockTag = remapEnchantment((CompoundTag) tag);
                 newTags.add(bedrockTag);
             }
             itemTag.remove("Enchantments");
         }
+
         enchantmentTag = itemTag.get("StoredEnchantments");
         if (enchantmentTag instanceof ListTag listTag) {
             for (Tag tag : listTag.getValue()) {
                 if (!(tag instanceof CompoundTag)) continue;
-
                 CompoundTag bedrockTag = remapEnchantment((CompoundTag) tag);
                 if (bedrockTag != null) {
                     bedrockTag.put(new ShortTag("GeyserStoredEnchantment", (short) 0));
@@ -72,22 +71,18 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
             itemTag.put(new ListTag("ench", newTags));
         }
 
-        if (sweepingEdge > 0){
-
+        if (sweepingEdge > 0) {
             CompoundTag displayTag = itemTag.get("display");
             if (displayTag == null){
                 itemTag.put(new CompoundTag("display"));
                 displayTag = itemTag.get("display");
             }
-
             ListTag loreTag = displayTag.get("Lore");
             if (loreTag == null){
                 displayTag.put(new ListTag("Lore"));
                 loreTag = displayTag.get("Lore");
             }
-
             loreTag.add(new StringTag("", "§7§oSweeping Edge " + levelToRomanNumeral(sweepingEdge)));
-
         }
     }
 
@@ -164,7 +159,7 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
         return bedrockTag;
     }
 
-    private String levelToRomanNumeral(int level){
+    private String levelToRomanNumeral(int level) {
         return switch (level) {
             case 0 -> "I";
             case 1 -> "II";
