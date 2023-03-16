@@ -39,6 +39,7 @@ import java.util.Map;
 
 @ItemRemapper
 public class EnchantmentTranslator extends NbtItemStackTranslator {
+    private int sweepingEdge = -1;
 
     @Override
     public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
@@ -69,6 +70,24 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
 
         if (!newTags.isEmpty()) {
             itemTag.put(new ListTag("ench", newTags));
+        }
+
+        if (sweepingEdge > 0){
+
+            CompoundTag displayTag = itemTag.get("display");
+            if (displayTag == null){
+                itemTag.put(new CompoundTag("display"));
+                displayTag = itemTag.get("display");
+            }
+
+            ListTag loreTag = displayTag.get("Lore");
+            if (loreTag == null){
+                displayTag.put(new ListTag("Lore"));
+                loreTag = displayTag.get("Lore");
+            }
+
+            loreTag.add(new StringTag("", "§7§oSweeping Edge " + levelToRomanNumeral(sweepingEdge)));
+
         }
     }
 
@@ -127,6 +146,11 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
 
         Enchantment enchantment = Enchantment.getByJavaIdentifier(((StringTag) javaEnchId).getValue());
         if (enchantment == null) {
+            if (javaEnchId.getValue().equals("minecraft:sweeping")){
+                Tag javaEnchLvl = tag.get("lvl");
+                sweepingEdge = javaEnchLvl != null && javaEnchLvl.getValue() instanceof Number lvl ? lvl.intValue() : 0;
+            }
+
             GeyserImpl.getInstance().getLogger().debug("Unknown Java enchantment while NBT item translating: " + javaEnchId.getValue());
             return null;
         }
@@ -138,6 +162,16 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
         // If the tag cannot parse, Java Edition 1.18.2 sets to 0
         bedrockTag.put(new ShortTag("lvl", javaEnchLvl != null && javaEnchLvl.getValue() instanceof Number lvl ? lvl.shortValue() : (short) 0));
         return bedrockTag;
+    }
+
+    private String levelToRomanNumeral(int level){
+        return switch (level) {
+            case 0 -> "I";
+            case 1 -> "II";
+            case 2 -> "III";
+            //no idea when this might happen, but eh
+            default -> "";
+        };
     }
 
 }
