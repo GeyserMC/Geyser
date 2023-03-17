@@ -30,6 +30,8 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.Enchantment;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.ChatColor;
+import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
 import org.geysermc.geyser.translator.inventory.item.NbtItemStackTranslator;
 
@@ -39,7 +41,6 @@ import java.util.Map;
 
 @ItemRemapper
 public class EnchantmentTranslator extends NbtItemStackTranslator {
-    private int sweepingEdge = -1;
 
     @Override
     public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
@@ -49,7 +50,13 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
             for (Tag tag : listTag.getValue()) {
                 if (!(tag instanceof CompoundTag)) continue;
                 CompoundTag bedrockTag = remapEnchantment((CompoundTag) tag);
-                newTags.add(bedrockTag);
+                if (bedrockTag != null) {
+                    if (bedrockTag.get("sweepingLvl") instanceof ShortTag sweepingLvl) {
+                        addSweeping(itemTag, session, sweepingLvl.getValue());
+                    } else {
+                        newTags.add(bedrockTag);
+                    }
+                }
             }
             itemTag.remove("Enchantments");
         }
@@ -60,8 +67,12 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
                 if (!(tag instanceof CompoundTag)) continue;
                 CompoundTag bedrockTag = remapEnchantment((CompoundTag) tag);
                 if (bedrockTag != null) {
-                    bedrockTag.put(new ShortTag("GeyserStoredEnchantment", (short) 0));
-                    newTags.add(bedrockTag);
+                    if (bedrockTag.get("sweepingLvl") instanceof ShortTag sweepingLvl) {
+                        addSweeping(itemTag, session, sweepingLvl.getValue());
+                    } else {
+                        bedrockTag.put(new ShortTag("GeyserStoredEnchantment", (short) 0));
+                        newTags.add(bedrockTag);
+                    }
                 }
             }
             itemTag.remove("StoredEnchantments");
@@ -69,20 +80,6 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
 
         if (!newTags.isEmpty()) {
             itemTag.put(new ListTag("ench", newTags));
-        }
-
-        if (sweepingEdge > 0) {
-            CompoundTag displayTag = itemTag.get("display");
-            if (displayTag == null){
-                itemTag.put(new CompoundTag("display"));
-                displayTag = itemTag.get("display");
-            }
-            ListTag loreTag = displayTag.get("Lore");
-            if (loreTag == null){
-                displayTag.put(new ListTag("Lore"));
-                loreTag = displayTag.get("Lore");
-            }
-            loreTag.add(new StringTag("", "§7Sweeping Edge " + levelToRomanNumeral(sweepingEdge)));
         }
     }
 
@@ -113,7 +110,6 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
                 javaValue.put("lvl", new IntTag("lvl", levelTag != null ? levelTag.getValue() : 1));
                 javaTag.setValue(javaValue);
 
-
                 if (geyserStoredEnchantmentTag != null) {
                     tagValue.remove("GeyserStoredEnchantment");
                     storedEnchantments.add(javaTag);
@@ -143,9 +139,12 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
         if (enchantment == null) {
             if (javaEnchId.getValue().equals("minecraft:sweeping")){
                 Tag javaEnchLvl = tag.get("lvl");
-                sweepingEdge = javaEnchLvl != null && javaEnchLvl.getValue() instanceof Number lvl ? lvl.intValue() : 0;
-            }
+                int sweepingLvl = javaEnchLvl != null && javaEnchLvl.getValue() instanceof Number lvl ? lvl.intValue() : 0;
 
+                CompoundTag sweepingTag = new CompoundTag("");
+                sweepingTag.put(new ShortTag("sweepingLvl", (short) sweepingLvl));
+                return sweepingTag;
+            }
             GeyserImpl.getInstance().getLogger().debug("Unknown Java enchantment while NBT item translating: " + javaEnchId.getValue());
             return null;
         }
@@ -158,15 +157,21 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
         bedrockTag.put(new ShortTag("lvl", javaEnchLvl != null && javaEnchLvl.getValue() instanceof Number lvl ? lvl.shortValue() : (short) 0));
         return bedrockTag;
     }
+    private void addSweeping(CompoundTag itemTag, GeyserSession session, short level) {
+        CompoundTag displayTag = itemTag.get("display");
+        if (displayTag == null){
+            itemTag.put(new CompoundTag("display"));
+            displayTag = itemTag.get("display");
+        }
+        ListTag loreTag = displayTag.get("Lore");
+        if (loreTag == null){
+            displayTag.put(new ListTag("Lore"));
+            loreTag = displayTag.get("Lore");
+        }
 
-    private String levelToRomanNumeral(int level) {
-        return switch (level) {
-            case 0 -> "I";
-            case 1 -> "II";
-            case 2 -> "III";
-            //no idea when this might happen, but eh
-            default -> "";
-        };
+        String sweepingTranslation = MinecraftLocale.getLocaleString("enchantment.minecraft.sweeping", session.getClientData().getLanguageCode());
+        String lvlTranslation = MinecraftLocale.getLocaleString("enchantment.level." + level, session.getClientData().getLanguageCode());
+
+        loreTag.add(new StringTag("", ChatColor.GRAY + sweepingTranslation + " " + lvlTranslation));
     }
-
 }
