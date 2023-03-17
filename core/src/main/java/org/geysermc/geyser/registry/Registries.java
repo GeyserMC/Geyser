@@ -135,7 +135,7 @@ public final class Registries {
     /**
      * A registry holding all the potion mixes.
      */
-    public static final SimpleRegistry<Set<PotionMixData>> POTION_MIXES;
+    public static final VersionedRegistry<Set<PotionMixData>> POTION_MIXES;
 
     /**
      * A registry holding all the
@@ -178,7 +178,7 @@ public final class Registries {
         RecipeRegistryPopulator.populate();
 
         // Create registries that require other registries to load first
-        POTION_MIXES = SimpleRegistry.create(PotionMixRegistryLoader::new);
+        POTION_MIXES = VersionedRegistry.create(PotionMixRegistryLoader::new);
         ENCHANTMENTS = SimpleMappedRegistry.create("mappings/enchantments.json", EnchantmentRegistryLoader::new);
 
         // Remove unneeded client generation data from NbtMapBuilder

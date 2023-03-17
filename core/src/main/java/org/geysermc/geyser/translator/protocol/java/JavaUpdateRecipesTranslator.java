@@ -167,7 +167,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             }
         }
         craftingDataPacket.getCraftingData().addAll(CARTOGRAPHY_RECIPES);
-        craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.get());
+        craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.forVersion(session.getUpstream().getProtocolVersion()));
 
         Int2ObjectMap<GeyserStonecutterData> stonecutterRecipeMap = new Int2ObjectOpenHashMap<>();
         for (Int2ObjectMap.Entry<List<StoneCuttingRecipeData>> data : unsortedStonecutterData.int2ObjectEntrySet()) {
