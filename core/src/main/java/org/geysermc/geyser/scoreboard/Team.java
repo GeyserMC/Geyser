@@ -33,9 +33,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
 @Getter
@@ -46,7 +46,7 @@ public final class Team {
 
     @Getter(AccessLevel.PACKAGE)
     private final Set<String> entities;
-    @Setter @Nullable private NameTagVisibility nameTagVisibility;
+    @Nonnull private NameTagVisibility nameTagVisibility = NameTagVisibility.ALWAYS;
     @Setter private TeamColor color;
 
     private final TeamData currentData;
@@ -189,11 +189,6 @@ public final class Team {
     }
 
     public boolean isVisibleFor(String entity) {
-        if (nameTagVisibility == null) {
-            // Null - normal behavior
-            return true;
-        }
-
         return switch (nameTagVisibility) {
             case HIDE_FOR_OTHER_TEAMS -> {
                 // Player must be in a team in order for HIDE_FOR_OTHER_TEAMS to be triggered
@@ -206,8 +201,12 @@ public final class Team {
         };
     }
 
-    public NameTagVisibility getNameTagVisibility() {
-        return Objects.requireNonNullElse(this.nameTagVisibility, NameTagVisibility.ALWAYS);
+    public Team setNameTagVisibility(@Nullable NameTagVisibility nameTagVisibility) {
+        if (nameTagVisibility != null) {
+            // Null check like this (and this.nameTagVisibility defaults to ALWAYS) as of Java 1.19.4
+            this.nameTagVisibility = nameTagVisibility;
+        }
+        return this;
     }
 
     @Override
