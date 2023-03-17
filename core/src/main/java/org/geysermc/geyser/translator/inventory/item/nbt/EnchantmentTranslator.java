@@ -137,7 +137,7 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
 
         Enchantment enchantment = Enchantment.getByJavaIdentifier(((StringTag) javaEnchId).getValue());
         if (enchantment == null) {
-            if (javaEnchId.getValue().equals("minecraft:sweeping")){
+            if (javaEnchId.getValue().equals("minecraft:sweeping")) {
                 Tag javaEnchLvl = tag.get("lvl");
                 int sweepingLvl = javaEnchLvl != null && javaEnchLvl.getValue() instanceof Number lvl ? lvl.intValue() : 0;
 
@@ -157,20 +157,21 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
         bedrockTag.put(new ShortTag("lvl", javaEnchLvl != null && javaEnchLvl.getValue() instanceof Number lvl ? lvl.shortValue() : (short) 0));
         return bedrockTag;
     }
+
     private void addSweeping(CompoundTag itemTag, GeyserSession session, short level) {
         CompoundTag displayTag = itemTag.get("display");
-        if (displayTag == null){
-            itemTag.put(new CompoundTag("display"));
-            displayTag = itemTag.get("display");
+        if (displayTag == null) {
+            displayTag = new CompoundTag("display");
+            itemTag.put(displayTag);
         }
         ListTag loreTag = displayTag.get("Lore");
-        if (loreTag == null){
-            displayTag.put(new ListTag("Lore"));
-            loreTag = displayTag.get("Lore");
+        if (loreTag == null) {
+            loreTag = new ListTag("Lore");
+            displayTag.put(loreTag);
         }
 
-        String sweepingTranslation = MinecraftLocale.getLocaleString("enchantment.minecraft.sweeping", session.getClientData().getLanguageCode());
-        String lvlTranslation = MinecraftLocale.getLocaleString("enchantment.level." + level, session.getClientData().getLanguageCode());
+        String sweepingTranslation = MinecraftLocale.getLocaleString("enchantment.minecraft.sweeping", session.locale());
+        String lvlTranslation = MinecraftLocale.getLocaleString("enchantment.level." + level, session.locale());
 
         loreTag.add(new StringTag("", ChatColor.GRAY + sweepingTranslation + " " + lvlTranslation));
     }
