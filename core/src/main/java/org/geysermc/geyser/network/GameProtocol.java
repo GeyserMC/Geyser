@@ -96,10 +96,6 @@ public final class GameProtocol {
 
     /* Bedrock convenience methods to gatekeep features and easily remove the check on version removal */
 
-    public static boolean supports1_19_30(GeyserSession session) {
-        return session.getUpstream().getProtocolVersion() >= Bedrock_v554.V554_CODEC.getProtocolVersion();
-    }
-
     public static boolean supports1_19_50(GeyserSession session) {
         return session.getUpstream().getProtocolVersion() >= Bedrock_v560.V560_CODEC.getProtocolVersion();
     }
