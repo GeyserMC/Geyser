@@ -143,22 +143,24 @@ public class ChunkUtils {
         }
 
         // Extended collision boxes for custom blocks
-        int aboveBedrockExtendedCollisionId = BlockRegistries.EXTENDED_COLLISION_BOXES.getOrDefault(blockState, -1);
-        int aboveBlock = session.getChunkCache().getBlockAt(position.getX(), position.getY() + 1, position.getZ());
-        if (aboveBedrockExtendedCollisionId != -1) {
-            UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-            updateBlockPacket.setDataLayer(0);
-            updateBlockPacket.setBlockPosition(position.add(0, 1, 0));
-            updateBlockPacket.setRuntimeId(aboveBedrockExtendedCollisionId);
-            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-            session.sendUpstreamPacket(updateBlockPacket);
-        } else if (aboveBlock == BlockStateValues.JAVA_AIR_ID) {
-            UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-            updateBlockPacket.setDataLayer(0);
-            updateBlockPacket.setBlockPosition(position.add(0, 1, 0));
-            updateBlockPacket.setRuntimeId(session.getBlockMappings().getBedrockAirId());
-            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-            session.sendUpstreamPacket(updateBlockPacket);
+        if (!session.getBlockMappings().getExtendedCollisionBoxes().isEmpty()) {
+            int aboveBedrockExtendedCollisionId = session.getBlockMappings().getExtendedCollisionBoxes().getOrDefault(blockState, -1);
+            int aboveBlock = session.getGeyser().getWorldManager().getBlockAt(session, position.getX(), position.getY() + 1, position.getZ());
+            if (aboveBedrockExtendedCollisionId != -1) {
+                UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+                updateBlockPacket.setDataLayer(0);
+                updateBlockPacket.setBlockPosition(position.add(0, 1, 0));
+                updateBlockPacket.setRuntimeId(aboveBedrockExtendedCollisionId);
+                updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+                session.sendUpstreamPacket(updateBlockPacket);
+            } else if (aboveBlock == BlockStateValues.JAVA_AIR_ID) {
+                UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+                updateBlockPacket.setDataLayer(0);
+                updateBlockPacket.setBlockPosition(position.add(0, 1, 0));
+                updateBlockPacket.setRuntimeId(session.getBlockMappings().getBedrockAirId());
+                updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+                session.sendUpstreamPacket(updateBlockPacket);
+            }
         }
 
         // Prevent moving_piston from being placed

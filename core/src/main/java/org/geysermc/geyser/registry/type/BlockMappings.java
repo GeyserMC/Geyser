@@ -28,6 +28,7 @@ package org.geysermc.geyser.registry.type;
 import com.nukkitx.nbt.NbtList;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.BlockPropertyData;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.Builder;
@@ -61,6 +62,7 @@ public class BlockMappings {
 
     List<BlockPropertyData> blockProperties;
     Object2IntMap<CustomBlockState> customBlockStateIds;
+    Int2IntMap extendedCollisionBoxes;
 
     public int getBedrockBlockId(int state) {
         if (state >= this.javaToBedrockBlocks.length) {

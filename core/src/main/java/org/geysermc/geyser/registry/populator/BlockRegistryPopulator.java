@@ -33,6 +33,8 @@ import com.nukkitx.protocol.bedrock.data.BlockPropertyData;
 import com.nukkitx.protocol.bedrock.v544.Bedrock_v544;
 import com.nukkitx.protocol.bedrock.v560.Bedrock_v560;
 import com.nukkitx.protocol.bedrock.v567.Bedrock_v567;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -140,24 +142,23 @@ public final class BlockRegistryPopulator {
             }
 
             Object2IntMap<CustomBlockState> customBlockStateIds = Object2IntMaps.emptyMap();
+            Int2IntMap extendedCollisionBoxes = new Int2IntOpenHashMap();
             if (BlockRegistries.CUSTOM_BLOCKS.get().length != 0) {
                 customBlockStateIds = new Object2IntOpenHashMap<>(customExtBlockStates.size());
-                Map<Integer, Integer> extendedCollisionBoxes = new HashMap<>();
+                //Map<Integer, Integer> extendedCollisionBoxes = new HashMap<>();
                 for (int i = 0; i < customExtBlockStates.size(); i++) {
                     NbtMap tag = customBlockStates.get(i);
                     CustomBlockState blockState = customExtBlockStates.get(i);
                     int bedrockRuntimeId = blockStateOrderedMap.getOrDefault(tag, -1);
                     customBlockStateIds.put(blockState, bedrockRuntimeId);
 
-                    Set<Integer> extendedCollisionjavaIds = BlockRegistries.EXTENDED_COLLISION_BOXES_DATA.getOrDefault(blockState.block(), null);
+                    Set<Integer> extendedCollisionjavaIds = BlockRegistries.EXTENDED_COLLISION_BOXES.getOrDefault(blockState.block(), null);
                     if (extendedCollisionjavaIds != null) {
                         for (int javaId : extendedCollisionjavaIds) {
                             extendedCollisionBoxes.put(javaId, bedrockRuntimeId);
                         }
                     }
                 }
-
-                BlockRegistries.EXTENDED_COLLISION_BOXES.set(extendedCollisionBoxes);
 
                 remappedVanillaIds = new int[vanillaBlockStates.size()];
                 for (int i = 0; i < vanillaBlockStates.size(); i++) {
@@ -273,6 +274,7 @@ public final class BlockRegistryPopulator {
                     .remappedVanillaIds(remappedVanillaIds)
                     .blockProperties(customBlockProperties)
                     .customBlockStateIds(customBlockStateIds)
+                    .extendedCollisionBoxes(extendedCollisionBoxes)
                     .build());
         }
 
