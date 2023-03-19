@@ -68,7 +68,6 @@ public final class BlockStateValues {
 
     public static final int JAVA_AIR_ID = 0;
 
-    public static int JAVA_BELL_ID;
     public static int JAVA_COBWEB_ID;
     public static int JAVA_FURNACE_ID;
     public static int JAVA_FURNACE_LIT_ID;

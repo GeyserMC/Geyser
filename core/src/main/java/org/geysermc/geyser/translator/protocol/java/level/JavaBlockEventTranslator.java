@@ -103,7 +103,7 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
         } else if (packet.getValue() instanceof EndGatewayValue) {
             blockEventPacket.setEventType(1);
             session.sendUpstreamPacket(blockEventPacket);
-        } else if (packet.getValue() instanceof GenericBlockValue bellValue && packet.getBlockId() == BlockStateValues.JAVA_BELL_ID) {
+        } else if (packet.getValue() instanceof BellValue bellValue) {
             // Bells - needed to show ring from other players
             BlockEntityDataPacket blockEntityPacket = new BlockEntityDataPacket();
             blockEntityPacket.setBlockPosition(position);
@@ -113,11 +113,12 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
             builder.putInt("y", position.getY());
             builder.putInt("z", position.getZ());
             builder.putString("id", "Bell");
-            int bedrockRingDirection = switch (bellValue.getValue()) {
-                case 3 -> 0; // north
-                case 4 -> 1; // east
-                case 5 -> 3;// west
-                default -> bellValue.getValue(); // south (2) is identical
+            int bedrockRingDirection = switch (bellValue.getDirection()) {
+                case SOUTH -> 0;
+                case WEST -> 1;
+                case NORTH -> 2;
+                case EAST -> 3;
+                default -> throw new IllegalStateException("Unexpected BellValue Direction: " + bellValue.getDirection());
             };
             builder.putInt("Direction", bedrockRingDirection);
             builder.putByte("Ringing", (byte) 1);
