@@ -47,4 +47,9 @@ public class JavaKeepAliveTranslator extends PacketTranslator<ClientboundKeepAli
         latencyPacket.setTimestamp(packet.getPingId() * 1000);
         session.sendUpstreamPacket(latencyPacket);
     }
+
+    @Override
+    public boolean shouldExecuteInEventLoop() {
+        return false;
+    }
 }

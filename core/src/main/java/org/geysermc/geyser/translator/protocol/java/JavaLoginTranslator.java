@@ -30,8 +30,6 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundCu
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.nukkitx.protocol.bedrock.data.GameRuleData;
-import com.nukkitx.protocol.bedrock.data.PlayerPermission;
-import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
 import com.nukkitx.protocol.bedrock.packet.GameRulesChangedPacket;
 import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -106,11 +104,6 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             // It is now safe to send these packets
             session.getUpstream().sendPostStartGamePackets();
         }
-
-        AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();
-        bedrockPacket.setUniqueEntityId(session.getPlayerEntity().getGeyserId());
-        bedrockPacket.setPlayerPermission(PlayerPermission.MEMBER);
-        session.sendUpstreamPacket(bedrockPacket);
 
         if (!needsSpawnPacket) {
             SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();

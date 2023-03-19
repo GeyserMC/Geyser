@@ -43,25 +43,21 @@ public class BedrockRequestAbilityTranslator extends PacketTranslator<RequestAbi
     @Override
     public void translate(GeyserSession session, RequestAbilityPacket packet) {
         if (packet.getAbility() == Ability.FLYING) {
-            handle(session, packet.isBoolValue());
-        }
-    }
+            boolean isFlying = packet.isBoolValue();
+            if (!isFlying && session.getGameMode() == GameMode.SPECTATOR) {
+                // We should always be flying in spectator mode
+                session.sendAdventureSettings();
+                return;
+            } else if (isFlying && session.getPlayerEntity().getFlag(EntityFlag.SWIMMING) && session.getCollisionManager().isPlayerInWater()) {
+                // As of 1.18.1, Java Edition cannot fly while in water, but it can fly while crawling
+                // If this isn't present, swimming on a 1.13.2 server and then attempting to fly will put you into a flying/swimming state that is invalid on JE
+                session.sendAdventureSettings();
+                return;
+            }
 
-    //FIXME remove after pre-1.19.30 support is dropped and merge into main method
-    static void handle(GeyserSession session, boolean isFlying) {
-        if (!isFlying && session.getGameMode() == GameMode.SPECTATOR) {
-            // We should always be flying in spectator mode
-            session.sendAdventureSettings();
-            return;
-        } else if (isFlying && session.getPlayerEntity().getFlag(EntityFlag.SWIMMING) && session.getCollisionManager().isPlayerInWater()) {
-            // As of 1.18.1, Java Edition cannot fly while in water, but it can fly while crawling
-            // If this isn't present, swimming on a 1.13.2 server and then attempting to fly will put you into a flying/swimming state that is invalid on JE
-            session.sendAdventureSettings();
-            return;
+            session.setFlying(isFlying);
+            ServerboundPlayerAbilitiesPacket abilitiesPacket = new ServerboundPlayerAbilitiesPacket(isFlying);
+            session.sendDownstreamPacket(abilitiesPacket);
         }
-
-        session.setFlying(isFlying);
-        ServerboundPlayerAbilitiesPacket abilitiesPacket = new ServerboundPlayerAbilitiesPacket(isFlying);
-        session.sendDownstreamPacket(abilitiesPacket);
     }
 }
