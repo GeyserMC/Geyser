@@ -1,4 +1,17 @@
-name: publish
+name: Publish
+on:
+  workflow_dispatch:
+  push:
+    paths-ignore:
+      - '.github/ISSUE_TEMPLATE/*.yml'
+      - '.github/actions/pullrequest.yml'
+      - '.idea/copyright/*.xml'
+      - '.gitignore'
+      - 'CONTRIBUTING.md'
+      - 'LICENSE'
+      - 'Jenkinsfile '
+      - 'README.md'
+      - 'licenseheader.txt'
 
 jobs:
   build:
@@ -10,7 +23,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: 17
-      - name: build and publish
+      - name: Publish to Modrinth
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
         run: ./gradlew fabric:modrinth
