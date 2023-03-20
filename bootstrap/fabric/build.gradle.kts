@@ -1,5 +1,6 @@
 plugins {
     id("fabric-loom") version "1.0-SNAPSHOT"
+    id("com.modrinth.minotaur") version "2.+"
 }
 
 java {
@@ -73,5 +74,23 @@ tasks {
         archiveBaseName.set("Geyser-Fabric")
         archiveClassifier.set("")
         archiveVersion.set("")
+    }
+}
+
+modrinth {
+    projectId.set("wKkoqHrH")
+    versionNumber.set(project.version as String + "-" + System.getenv("GITHUB_RUN_NUMBER"))
+    versionType.set("beta")
+    changelog.set("A changelog can be found at https://github.com/GeyserMC/Geyser/commits")
+
+    syncBodyFrom.set(rootProject.file("README.md").readText())
+
+    uploadFile.set(tasks.getByPath("remapJar"))
+    gameVersions.addAll("1.19", "1.19.1", "1.19.2", "1.19.3", "1.19.4")
+
+    loaders.add("fabric")
+
+    dependencies {
+        required.project("fabric-api")
     }
 }
