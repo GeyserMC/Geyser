@@ -25,6 +25,9 @@
 
 package org.geysermc.geyser.command.defaults;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
@@ -36,9 +39,6 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.WebUtils;
 
-import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class VersionCommand extends GeyserCommand {
@@ -75,21 +75,20 @@ public class VersionCommand extends GeyserCommand {
         if (GeyserImpl.getInstance().isProductionEnvironment() && !(!sender.isConsole() && geyser.getPlatformType() == PlatformType.STANDALONE)) {
             sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.checking", sender.locale()));
             try {
-                String buildXML = WebUtils.getBody("https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/" +
-                        URLEncoder.encode(GeyserImpl.BRANCH, StandardCharsets.UTF_8.toString()) + "/lastSuccessfulBuild/api/xml?xpath=//buildNumber");
-                if (buildXML.startsWith("<buildNumber>")) {
-                    int latestBuildNum = Integer.parseInt(buildXML.replaceAll("<(\\\\)?(/)?buildNumber>", "").trim());
+                JsonObject response = new JsonParser().parse(WebUtils.getBody("https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest")).getAsJsonObject();
+                if (response.get("build") != null) {
+                    int latestBuildNum = Integer.parseInt(String.valueOf(response.get("build")));
                     int buildNum = this.geyser.buildNumber();
                     if (latestBuildNum == buildNum) {
                         sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.no_updates", sender.locale()));
                     } else {
                         sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.outdated",
-                                sender.locale(), (latestBuildNum - buildNum), "https://ci.geysermc.org/"));
+                                sender.locale(), (latestBuildNum - buildNum), "https://download.geysermc.org/"));
                     }
                 } else {
                     throw new AssertionError("buildNumber missing");
                 }
-            } catch (IOException e) {
+            } catch (JsonSyntaxException | NumberFormatException | AssertionError e) {
                 GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.commands.version.failed"), e);
                 sender.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.commands.version.failed", sender.locale()));
             }

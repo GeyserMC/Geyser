@@ -92,12 +92,6 @@ configure<BlossomExtension> {
     replaceToken("\${repository}", info.repository, mainFile)
 }
 
-fun buildNumber(): Int {
-    val value1 = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull()
-    val value2 = System.getenv("BUILD_NUMBER")?.toIntOrNull()
-    return value1 ?: value2 ?: -1
-}
-
 inner class GitInfo {
     val branch: String
     val commit: String
@@ -121,7 +115,7 @@ inner class GitInfo {
 
         gitVersion = "git-${branch}-${commitAbbrev}"
         version = "${project.version} ($gitVersion)"
-        buildNumber = buildNumber()
+        buildNumber = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: -1
 
         val git = indraGit.git()
         commitMessage = git?.commit()?.message ?: ""
