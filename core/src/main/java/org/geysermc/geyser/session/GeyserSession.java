@@ -732,7 +732,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 return;
             }
 
-            connectDownstream();
+            try {
+                connectDownstream();
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
         });
     }
 
@@ -776,7 +780,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 return;
             }
 
-            connectDownstream();
+            try {
+                connectDownstream();
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
         });
     }
 
@@ -850,7 +858,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                         selectedProfile,
                         service.getAccessToken()
                 );
-                connectDownstream();
+                try {
+                    connectDownstream();
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                    return false;
+                }
 
                 // Save our refresh token for later use
                 geyser.saveRefreshToken(bedrockUsername(), service.getRefreshToken());
