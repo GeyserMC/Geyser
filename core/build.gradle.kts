@@ -92,8 +92,11 @@ configure<BlossomExtension> {
     replaceToken("\${repository}", info.repository, mainFile)
 }
 
-fun Project.buildNumber(): Int =
-    System.getenv("BUILD_NUMBER")?.let { Integer.parseInt(it) } ?: -1
+fun buildNumber(): Int {
+    val value1 = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull()
+    val value2 = System.getenv("BUILD_NUMBER")?.toIntOrNull()
+    return value1 ?: value2 ?: -1
+}
 
 inner class GitInfo {
     val branch: String
