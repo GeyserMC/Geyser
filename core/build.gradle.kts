@@ -91,6 +91,10 @@ configure<BlossomExtension> {
     replaceToken("\${commit}", info.commit, mainFile)
     replaceToken("\${repository}", info.repository, mainFile)
 }
+fun jenkinsBuildNumber(): String? = System.getenv("BUILD_NUMBER")
+fun buildNumber(): Int =
+        System.getenv("BUILD_NUMBER")?.let { Integer.parseInt(it) } ?: -1
+(System.getenv("GITHUB_RUN_NUMBER") ?: jenkinsBuildNumber())?.let { Integer.parseInt(it) } ?: -1
 
 inner class GitInfo {
     val branch: String
@@ -115,10 +119,11 @@ inner class GitInfo {
 
         gitVersion = "git-${branch}-${commitAbbrev}"
         version = "${project.version} ($gitVersion)"
-        buildNumber = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: -1
+        buildNumber = buildNumber()
 
         val git = indraGit.git()
         commitMessage = git?.commit()?.message ?: ""
         repository = git?.repository?.config?.getString("remote", "origin", "url") ?: ""
     }
+    // todo remove these when we're not using Jenkins anymore
 }

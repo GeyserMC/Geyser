@@ -39,6 +39,9 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.WebUtils;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class VersionCommand extends GeyserCommand {
@@ -74,21 +77,32 @@ public class VersionCommand extends GeyserCommand {
         // Disable update checking in dev mode and for players in Geyser Standalone
         if (GeyserImpl.getInstance().isProductionEnvironment() && !(!sender.isConsole() && geyser.getPlatformType() == PlatformType.STANDALONE)) {
             sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.checking", sender.locale()));
+            int buildNum = this.geyser.buildNumber();
+            int latestBuildNum = -1;
             try {
-                JsonObject response = new JsonParser().parse(WebUtils.getBody("https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest")).getAsJsonObject();
-                if (response.get("build") != null) {
-                    int latestBuildNum = Integer.parseInt(String.valueOf(response.get("build")));
-                    int buildNum = this.geyser.buildNumber();
-                    if (latestBuildNum == buildNum) {
-                        sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.no_updates", sender.locale()));
-                    } else {
-                        sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.outdated",
-                                sender.locale(), (latestBuildNum - buildNum), "https://download.geysermc.org/"));
+                // If buildnumber is smaller than 1000 then it's probably a GitHub run number
+                if (buildNum < 1000) {
+                    JsonObject response = new JsonParser().parse(WebUtils.getBody("https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest")).getAsJsonObject();
+                    if (response.get("build") != null) {
+                        latestBuildNum = Integer.parseInt(String.valueOf(response.get("build")));
                     }
                 } else {
+                    String buildXML = WebUtils.getBody("https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/" +
+                            URLEncoder.encode(GeyserImpl.BRANCH, StandardCharsets.UTF_8.toString()) + "/lastSuccessfulBuild/api/xml?xpath=//buildNumber");
+                    if (buildXML.startsWith("<buildNumber>")) {
+                        latestBuildNum = Integer.parseInt(buildXML.replaceAll("<(\\\\)?(/)?buildNumber>", "").trim());
+                    }
+                }
+                if (latestBuildNum == buildNum) {
+                    sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.no_updates", sender.locale()));
+                } else {
+                    sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.outdated",
+                            sender.locale(), (latestBuildNum - buildNum), "https://download.geysermc.org/"));
+                }
+                if (buildNum == -1) {
                     throw new AssertionError("buildNumber missing");
                 }
-            } catch (JsonSyntaxException | NumberFormatException | AssertionError e) {
+            } catch (JsonSyntaxException | NumberFormatException | AssertionError | UnsupportedEncodingException e) {
                 GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.commands.version.failed"), e);
                 sender.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.commands.version.failed", sender.locale()));
             }
