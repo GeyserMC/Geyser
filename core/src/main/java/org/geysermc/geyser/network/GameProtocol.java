@@ -49,7 +49,7 @@ public final class GameProtocol {
      */
     public static final BedrockPacketCodec DEFAULT_BEDROCK_CODEC = Bedrock_v567patch.BEDROCK_V567PATCH.toBuilder()
             .protocolVersion(575)
-            .minecraftVersion("1.19.70")
+            .minecraftVersion("1.19.71")
             .build();
     /**
      * A list of all supported Bedrock versions that can join Geyser
@@ -77,7 +77,9 @@ public final class GameProtocol {
                 .protocolVersion(568)
                 .minecraftVersion("1.19.62")
                 .build());
-        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
+        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC.toBuilder()
+                .minecraftVersion("1.19.70/1.19.71")
+                .build());
     }
 
     /**

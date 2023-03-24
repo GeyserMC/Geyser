@@ -106,12 +106,18 @@ jobs:
           # Save the private key to a file
           echo "$DOWNLOADS_PRIVATE_KEY" > id_ecdsa
           chmod 600 id_ecdsa
+          # Set the project
+          project=geyser
           # Get the version from gradle.properties
           version=$(cat gradle.properties | grep -o "version=[0-9\\.]*" | cut -d"=" -f2)
+          # Create the build folder
+          ssh -o StrictHostKeyChecking=no -i id_ecdsa $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP mkdir -p "~/uploads/$project/$GITHUB_RUN_NUMBER/"
           # Copy over artifacts
-          scp -B -o StrictHostKeyChecking=no -i id_ecdsa bootstrap/**/build/libs/Geyser-*.jar $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP:~/files/
+          rsync -P -e "ssh -o StrictHostKeyChecking=no -i id_ecdsa" bootstrap/**/build/libs/Geyser-*.jar $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP:~/uploads/$project/$GITHUB_RUN_NUMBER/
           # Run the build script
-          ssh -o StrictHostKeyChecking=no -i id_ecdsa $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP ./handleBuild.sh geyser $version $GITHUB_RUN_NUMBER $GITHUB_SHA
+          # Push the metadata
+          echo "{\"project\": \"$project\", \"version\": \"$version\", \"id\": $GITHUB_RUN_NUMBER, \"commit\": \"$GITHUB_SHA\"}" > metadata.json
+          rsync -P -e "ssh -o StrictHostKeyChecking=no -i id_ecdsa" metadata.json $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP:~/uploads/$project/$GITHUB_RUN_NUMBER/
 
       - name: Notify Discord
         if: ${{ (success() || failure()) && github.repository == 'GeyserMC/Geyser' }}
