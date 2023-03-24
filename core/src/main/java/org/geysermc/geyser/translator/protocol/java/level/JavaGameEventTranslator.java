@@ -45,14 +45,15 @@ import org.geysermc.geyser.translator.inventory.PlayerInventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
+
 @Translator(packet = ClientboundGameEventPacket.class)
 public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEventPacket> {
+    // Strength of rainstorms and thunderstorms is a 0-1 float on Java, while on Bedrock it is a 0-65535 int
+    private static final int MAX_STORM_STRENGTH = 65535;
 
     @Override
     public void translate(GeyserSession session, ClientboundGameEventPacket packet) {
         PlayerEntity entity = session.getPlayerEntity();
-        // Strength of rainstorms and thunderstorms is a 0-1 float on Java, while on Bedrock it is a 0-65535 int 
-        final int MAX_STORM_STRENGTH = 65535;
 
         switch (packet.getNotification()) {
             // Yes, START_RAIN and STOP_RAIN are swapped in terms of what they cause the client to do.
