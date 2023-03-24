@@ -62,6 +62,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
             // This is indeed the behavior of the vanilla server
             // However, it seems most server software (at least Spigot and Paper) did not go along with this
             // As a result many developers use these packets for the opposite of what their names implies
+            // Behavior last verified with Java 1.19.4 and Bedrock 1.19.71
             case START_RAIN:
                 LevelEventPacket stopRainPacket = new LevelEventPacket();
                 stopRainPacket.setType(LevelEventType.STOP_RAINING);
