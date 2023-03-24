@@ -51,17 +51,18 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
     @Override
     public void translate(GeyserSession session, ClientboundGameEventPacket packet) {
         PlayerEntity entity = session.getPlayerEntity();
+        // Strength of rainstorms and thunderstorms is a 0-1 float on Java, while on Bedrock it is a 0-65535 int 
+        final int MAX_STORM_STRENGTH = 65535;
 
         switch (packet.getNotification()) {
+            // Yes, START_RAIN and STOP_RAIN are swapped in terms of what they cause the client to do.
+            // This is how the Mojang mappings name them, so we go with it
+            // It seems Mojang's intent was that START_RAIN would set the rain strength to 0 so that it can then be incremeneted on a gradient by the server
+            // The inverse is true for STOP_RAIN
+            // This is indeed the behavior of the vanilla server
+            // However, it seems most server software (at least Spigot and Paper) did not go along with this
+            // As a result many developers use these packets for the opposite of what their names implies
             case START_RAIN:
-                LevelEventPacket startRainPacket = new LevelEventPacket();
-                startRainPacket.setType(LevelEventType.START_RAINING);
-                startRainPacket.setData(Integer.MAX_VALUE);
-                startRainPacket.setPosition(Vector3f.ZERO);
-                session.sendUpstreamPacket(startRainPacket);
-                session.setRaining(true);
-                break;
-            case STOP_RAIN:
                 LevelEventPacket stopRainPacket = new LevelEventPacket();
                 stopRainPacket.setType(LevelEventType.STOP_RAINING);
                 stopRainPacket.setData(0);
@@ -69,34 +70,35 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 session.sendUpstreamPacket(stopRainPacket);
                 session.setRaining(false);
                 break;
+            case STOP_RAIN:
+                LevelEventPacket startRainPacket = new LevelEventPacket();
+                startRainPacket.setType(LevelEventType.START_RAINING);
+                startRainPacket.setData(MAX_STORM_STRENGTH);
+                startRainPacket.setPosition(Vector3f.ZERO);
+                session.sendUpstreamPacket(startRainPacket);
+                session.setRaining(true);
+                break;
             case RAIN_STRENGTH:
-                // While the above values are used, they CANNOT BE TRUSTED on a vanilla server as they are swapped around
-                // Spigot and forks implement it correctly
-                // Rain strength is your best way for determining if there is any rain
-                RainStrengthValue value = (RainStrengthValue) packet.getValue();
-                boolean isCurrentlyRaining = value.getStrength() > 0f;
-                // Java sends the rain level. Bedrock doesn't care, so we don't care if it's already raining.
-                if (isCurrentlyRaining != session.isRaining()) {
-                    LevelEventPacket changeRainPacket = new LevelEventPacket();
-                    changeRainPacket.setType(isCurrentlyRaining ? LevelEventType.START_RAINING : LevelEventType.STOP_RAINING);
-                    changeRainPacket.setData(Integer.MAX_VALUE); // Dunno what this does; used to be implemented with ThreadLocalRandom
-                    changeRainPacket.setPosition(Vector3f.ZERO);
-                    session.sendUpstreamPacket(changeRainPacket);
-                    session.setRaining(isCurrentlyRaining);
-                }
+                float rainStrength = ((RainStrengthValue) packet.getValue()).getStrength();
+                boolean isCurrentlyRaining = rainStrength > 0f;
+                LevelEventPacket changeRainPacket = new LevelEventPacket();
+                changeRainPacket.setType(isCurrentlyRaining ? LevelEventType.START_RAINING : LevelEventType.STOP_RAINING);
+                // This is the rain strength on LevelEventType.START_RAINING, but can be any value on LevelEventType.STOP_RAINING
+                changeRainPacket.setData((int) (rainStrength * MAX_STORM_STRENGTH));
+                changeRainPacket.setPosition(Vector3f.ZERO);
+                session.sendUpstreamPacket(changeRainPacket);
+                session.setRaining(isCurrentlyRaining);
                 break;
             case THUNDER_STRENGTH:
                 // See above, same process
-                ThunderStrengthValue thunderValue = (ThunderStrengthValue) packet.getValue();
-                boolean isCurrentlyThundering = thunderValue.getStrength() > 0f;
-                if (isCurrentlyThundering != session.isThunder()) {
-                    LevelEventPacket changeThunderPacket = new LevelEventPacket();
-                    changeThunderPacket.setType(isCurrentlyThundering ? LevelEventType.START_THUNDERSTORM : LevelEventType.STOP_THUNDERSTORM);
-                    changeThunderPacket.setData(Integer.MAX_VALUE);
-                    changeThunderPacket.setPosition(Vector3f.ZERO);
-                    session.sendUpstreamPacket(changeThunderPacket);
-                    session.setThunder(isCurrentlyThundering);
-                }
+                float thunderStrength = ((ThunderStrengthValue) packet.getValue()).getStrength();
+                boolean isCurrentlyThundering = thunderStrength > 0f;
+                LevelEventPacket changeThunderPacket = new LevelEventPacket();
+                changeThunderPacket.setType(isCurrentlyThundering ? LevelEventType.START_THUNDERSTORM : LevelEventType.STOP_THUNDERSTORM);
+                changeThunderPacket.setData((int) (thunderStrength * MAX_STORM_STRENGTH));
+                changeThunderPacket.setPosition(Vector3f.ZERO);
+                session.sendUpstreamPacket(changeThunderPacket);
+                session.setThunder(isCurrentlyThundering);
                 break;
             case CHANGE_GAMEMODE:
                 GameMode gameMode = (GameMode) packet.getValue();
