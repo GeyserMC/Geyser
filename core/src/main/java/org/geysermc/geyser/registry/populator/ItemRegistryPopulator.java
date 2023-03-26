@@ -304,6 +304,7 @@ public class ItemRegistryPopulator {
             Set<String> javaOnlyItems = new ObjectOpenHashSet<>();
             Collections.addAll(javaOnlyItems, "minecraft:spectral_arrow", "minecraft:debug_stick",
                     "minecraft:knowledge_book", "minecraft:tipped_arrow", "minecraft:bundle");
+            javaOnlyItems.add("minecraft:decorated_pot"); // TODO 1.19.80 resolve probs?
             if (!customItemsAllowed) {
                 javaOnlyItems.add("minecraft:furnace_minecart");
             }
