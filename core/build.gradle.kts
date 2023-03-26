@@ -91,10 +91,9 @@ configure<BlossomExtension> {
     replaceToken("\${commit}", info.commit, mainFile)
     replaceToken("\${repository}", info.repository, mainFile)
 }
-fun jenkinsBuildNumber(): String? = System.getenv("BUILD_NUMBER")
+
 fun buildNumber(): Int =
-        System.getenv("BUILD_NUMBER")?.let { Integer.parseInt(it) } ?: -1
-(System.getenv("GITHUB_RUN_NUMBER") ?: jenkinsBuildNumber())?.let { Integer.parseInt(it) } ?: -1
+    (System.getenv("GITHUB_RUN_NUMBER") ?: jenkinsBuildNumber())?.let { Integer.parseInt(it) } ?: -1
 
 inner class GitInfo {
     val branch: String
@@ -109,9 +108,9 @@ inner class GitInfo {
     val repository: String
 
     init {
-        // On Jenkins, a detached head is checked out, so indra cannot determine the branch.
-        // Fortunately, this environment variable is available.
-        branch = indraGit.branchName() ?: System.getenv("BRANCH_NAME") ?: "DEV"
+        //todo the DEV else can be removed as well when we remove Jenkins,
+        // as GH Actions does do a proper git checkout
+        branch = indraGit.branchName() ?: jenkinsBranchName() ?: "DEV"
 
         val commit = indraGit.commit()
         this.commit = commit?.name ?: "0".repeat(40)
@@ -125,5 +124,8 @@ inner class GitInfo {
         commitMessage = git?.commit()?.message ?: ""
         repository = git?.repository?.config?.getString("remote", "origin", "url") ?: ""
     }
-    // todo remove these when we're not using Jenkins anymore
 }
+
+// todo remove these when we're not using Jenkins anymore
+fun jenkinsBranchName(): String? = System.getenv("BRANCH_NAME")
+fun jenkinsBuildNumber(): String? = System.getenv("BUILD_NUMBER")
