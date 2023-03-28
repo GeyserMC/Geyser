@@ -81,7 +81,7 @@ jobs:
           if-no-files-found: error
 
       - name: Publish to Maven Repository
-        if: ${{ job.status == 'success' && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
+        if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
         uses: gradle/gradle-build-action@v2
         env:
           ORG_GRADLE_PROJECT_geysermcUsername: ${{ vars.DEPLOY_USER }}
@@ -90,7 +90,7 @@ jobs:
           arguments: publish
 
       - name: Publish to Downloads API
-        if: ${{ github.ref_name == 'master' && job.status == 'success' && github.repository == 'GeyserMC/Geyser' }}
+        if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
         shell: bash
         env:
           DOWNLOADS_USERNAME: ${{ vars.DOWNLOADS_USERNAME }}
@@ -115,7 +115,7 @@ jobs:
 
       - name: Publish to Modrinth
         uses: gradle/gradle-build-action@v2
-        if: ${{ github.ref_name == 'master' && job.status == 'success' && github.repository == 'GeyserMC/Geyser' }}
+        if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
         with:
