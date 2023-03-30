@@ -94,6 +94,7 @@ tasks {
 }
 
 modrinth {
+    token.set(System.getenv("MODRINTH_TOKEN")) // Even though this is the default value, apparently this prevents GitHub Actions caching the token?
     projectId.set("wKkoqHrH")
     versionNumber.set(project.version as String + "-" + System.getenv("GITHUB_RUN_NUMBER"))
     versionType.set("beta")
