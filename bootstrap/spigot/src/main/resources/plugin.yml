@@ -5,6 +5,7 @@ website: ${url}
 version: ${version}
 softdepend: ["ViaVersion", "floodgate"]
 api-version: 1.13
+folia-supported: true
 commands:
   geyser:
     description: The main command for Geyser.

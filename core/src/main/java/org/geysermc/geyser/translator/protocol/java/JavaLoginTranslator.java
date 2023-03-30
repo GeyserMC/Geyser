@@ -36,6 +36,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.geyser.erosion.GeyserboundHandshakePacketHandler;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.TextDecoration;
@@ -56,6 +57,11 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
     public void translate(GeyserSession session, ClientboundLoginPacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
         entity.setEntityId(packet.getEntityId());
+
+        if (session.getErosionHandler().isActive()) {
+            session.getErosionHandler().close();
+            session.setErosionHandler(new GeyserboundHandshakePacketHandler(session));
+        }
 
         Map<String, JavaDimension> dimensions = session.getDimensions();
         dimensions.clear();
@@ -129,6 +135,10 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
 
         session.sendDownstreamPacket(new ServerboundCustomPayloadPacket("minecraft:brand", PluginMessageUtils.getGeyserBrandData()));
 
+        // TODO don't send two packets
+//        if (true) {
+//            session.sendDownstreamPacket(new ServerboundCustomPayloadPacket("minecraft:register", Constants.PLUGIN_MESSAGE.getBytes(StandardCharsets.UTF_8)));
+//        }
         // register the plugin messaging channels used in Floodgate
         if (session.remoteServer().authType() == AuthType.FLOODGATE) {
             session.sendDownstreamPacket(new ServerboundCustomPayloadPacket("minecraft:register", PluginMessageChannels.getFloodgateRegisterData()));

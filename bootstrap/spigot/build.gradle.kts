@@ -1,5 +1,8 @@
 dependencies {
     api(projects.core)
+    api(libs.erosion.bukkit.common) {
+        isTransitive = false
+    }
 
     implementation(libs.adapters.spigot)
 
@@ -7,8 +10,8 @@ dependencies {
 
     implementation(libs.adventure.text.serializer.bungeecord)
     
-    // Both paper-api and paper-mojangapi only provide Java 17 versions for 1.19
-    compileOnly(libs.paper.api) {
+    // Both folia-api and paper-mojangapi only provide Java 17 versions for 1.19
+    compileOnly(libs.folia.api) {
         attributes {
             attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
         }

@@ -71,30 +71,28 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
         boolean addNbtData = packet.isAddUserData() && blockMapping.isBlockEntity(); // Holding down CTRL
         if (BlockStateValues.getBannerColor(blockToPick) != -1 || addNbtData) {
             session.getGeyser().getWorldManager().getPickItemNbt(session, vector.getX(), vector.getY(), vector.getZ(), addNbtData)
-                    .whenComplete((tag, ex) -> {
+                    .whenComplete((tag, ex) -> session.ensureInEventLoop(() -> {
                         if (tag == null) {
                             pickItem(session, blockMapping);
                             return;
                         }
 
-                        session.ensureInEventLoop(() -> {
-                            if (addNbtData) {
-                                ListTag lore = new ListTag("Lore");
-                                lore.add(new StringTag("", "\"(+NBT)\""));
-                                CompoundTag display = tag.get("display");
-                                if (display == null) {
-                                    display = new CompoundTag("display");
-                                    tag.put(display);
-                                }
-                                display.put(lore);
+                        if (addNbtData) {
+                            ListTag lore = new ListTag("Lore");
+                            lore.add(new StringTag("", "\"(+NBT)\""));
+                            CompoundTag display = tag.get("display");
+                            if (display == null) {
+                                display = new CompoundTag("display");
+                                tag.put(display);
                             }
-                            // I don't really like this... I'd rather get an ID from the block mapping I think
-                            ItemMapping mapping = session.getItemMappings().getMapping(blockMapping.getPickItem());
+                            display.put(lore);
+                        }
+                        // I don't really like this... I'd rather get an ID from the block mapping I think
+                        ItemMapping mapping = session.getItemMappings().getMapping(blockMapping.getPickItem());
 
-                            ItemStack itemStack = new ItemStack(mapping.getJavaId(), 1, tag);
-                            InventoryUtils.findOrCreateItem(session, itemStack);
-                        });
-                    });
+                        ItemStack itemStack = new ItemStack(mapping.getJavaId(), 1, tag);
+                        InventoryUtils.findOrCreateItem(session, itemStack);
+                    }));
             return;
         }
 

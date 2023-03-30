@@ -43,7 +43,7 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
     public void translate(GeyserSession session, ClientboundBlockUpdatePacket packet) {
         Vector3i pos = packet.getEntry().getPosition();
         boolean updatePlacement = session.getGeyser().getPlatformType() != PlatformType.SPIGOT && // Spigot simply listens for the block place event
-                session.getGeyser().getWorldManager().getBlockAt(session, pos) != packet.getEntry().getBlock();
+                !session.getErosionHandler().isActive() && session.getGeyser().getWorldManager().getBlockAt(session, pos) != packet.getEntry().getBlock();
         session.getWorldCache().updateServerCorrectBlockState(pos, packet.getEntry().getBlock());
         if (updatePlacement) {
             this.checkPlace(session, packet);
