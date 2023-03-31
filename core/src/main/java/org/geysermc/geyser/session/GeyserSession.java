@@ -112,6 +112,8 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.geyser.erosion.AbstractGeyserboundPacketHandler;
+import org.geysermc.geyser.erosion.GeyserboundHandshakePacketHandler;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
@@ -136,6 +138,7 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
@@ -167,6 +170,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private JsonNode certChainData;
+
+    @NotNull
+    @Setter
+    private AbstractGeyserboundPacketHandler erosionHandler;
 
     @Accessors(fluent = true)
     @Setter
@@ -255,7 +262,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     /**
      * Stores a list of all lectern locations and their block entity tags.
-     * See {@link WorldManager#getLecternDataAt(GeyserSession, int, int, int, boolean)}
+     * See {@link WorldManager#sendLecternData(GeyserSession, int, int, int)}
      * for more information.
      */
     private final Set<Vector3i> lecternCache;
@@ -557,6 +564,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.upstream = new UpstreamSession(bedrockServerSession);
         this.eventLoop = eventLoop;
 
+        this.erosionHandler = new GeyserboundHandshakePacketHandler(this);
+
         this.advancementsCache = new AdvancementsCache(this);
         this.bookEditCache = new BookEditCache(this);
         this.chunkCache = new ChunkCache(this);
@@ -585,7 +594,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.spawned = false;
         this.loggedIn = false;
 
-        if (geyser.getWorldManager().shouldExpectLecternHandled()) {
+        if (geyser.getWorldManager().shouldExpectLecternHandled(this)) {
             // Unneeded on these platforms
             this.lecternCache = null;
         } else {
@@ -1093,6 +1102,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         if (tickThread != null) {
             tickThread.cancel(false);
         }
+
+        erosionHandler.close();
 
         closed = true;
     }

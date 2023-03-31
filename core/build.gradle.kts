@@ -49,6 +49,10 @@ dependencies {
     // Adventure text serialization
     api(libs.bundles.adventure)
 
+    api(libs.erosion.common) {
+        isTransitive = false
+    }
+
     // Test
     testImplementation(libs.junit)
 
