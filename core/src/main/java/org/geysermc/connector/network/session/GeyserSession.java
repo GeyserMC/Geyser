@@ -158,4 +158,8 @@ public class GeyserSession {
     public void sendAdventureSettings() {
         this.handle.sendAdventureSettings();
     }
+    
+    public boolean isToaster() {
+        return this.handler.isToaster();
+    }
 }
