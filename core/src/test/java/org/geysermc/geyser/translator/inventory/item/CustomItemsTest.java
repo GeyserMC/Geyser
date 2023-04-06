@@ -36,6 +36,9 @@ import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.item.GeyserCustomItemOptions;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.components.ToolTier;
+import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.item.type.TieredItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -46,6 +49,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
+
+import static org.geysermc.geyser.item.type.Item.builder;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class CustomItemsTest {
@@ -118,7 +123,7 @@ public class CustomItemsTest {
 
         testMappingWithDamage = ItemMapping.builder()
                 .customItemOptions(customItemOptions)
-                .javaItem(Items.WOODEN_PICKAXE)
+                .javaItem(new TieredItem("wooden_pickaxe", ToolTier.WOODEN, builder().stackSize(1).maxDamage(59)))
                 .build();
 
         // Test differences with items with no max damage
@@ -132,7 +137,7 @@ public class CustomItemsTest {
 
         testMappingWithNoDamage = ItemMapping.builder()
                 .customItemOptions(customItemOptions)
-                .javaItem(Items.BEDROCK)
+                .javaItem(new Item("bedrock", builder())) // Must be defined manually since registries aren't initialized
                 .build();
     }
 
