@@ -159,7 +159,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
 
                 SmokeEventData smokeEventData = (SmokeEventData) packet.getData();
                 int data = 0;
-                switch (smokeEventData) {
+                switch (smokeEventData.getDirection()) {
                     case DOWN -> {
                         data = 4;
                         pos = pos.add(0, -0.9f, 0);

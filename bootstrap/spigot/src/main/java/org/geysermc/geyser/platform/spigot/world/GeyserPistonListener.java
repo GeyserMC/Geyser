@@ -27,8 +27,8 @@ package org.geysermc.geyser.platform.spigot.world;
 
 import com.github.steveice10.mc.protocol.data.game.level.block.value.PistonValueType;
 import org.cloudburstmc.math.vector.Vector3i;
+import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -85,7 +85,7 @@ public class GeyserPistonListener implements Listener {
         PistonValueType type = isExtend ? PistonValueType.PUSHING : PistonValueType.PULLING;
         boolean sticky = event.isSticky();
 
-        Object2IntMap<Vector3i> attachedBlocks = new Object2IntOpenHashMap<>();
+        Object2IntMap<Vector3i> attachedBlocks = new Object2IntArrayMap<>();
         boolean blocksFilled = false;
 
         for (Map.Entry<UUID, GeyserSession> entry : geyser.getSessionManager().getSessions().entrySet()) {

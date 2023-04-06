@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,20 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.bedrock;
+package org.geysermc.geyser.translator.protocol.java.entity;
 
-import org.cloudburstmc.protocol.bedrock.data.AdventureSetting;
-import org.cloudburstmc.protocol.bedrock.packet.AdventureSettingsPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundDamageEventPacket;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
+import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
-@Translator(packet = AdventureSettingsPacket.class)
-public class BedrockAdventureSettingsTranslator extends PacketTranslator<AdventureSettingsPacket> {
+@Translator(packet = ClientboundDamageEventPacket.class)
+public class JavaDamageEventTranslator extends PacketTranslator<ClientboundDamageEventPacket> {
 
     @Override
-    public void translate(GeyserSession session, AdventureSettingsPacket packet) {
-        boolean isFlying = packet.getSettings().contains(AdventureSetting.FLYING);
-        BedrockRequestAbilityTranslator.handle(session, isFlying);
+    public void translate(GeyserSession session, ClientboundDamageEventPacket packet) {
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+        if (entity == null) {
+            return;
+        }
+
+        // We can probably actually map damage types.
+        EntityEventPacket entityEventPacket = new EntityEventPacket();
+        entityEventPacket.setRuntimeEntityId(entity.getGeyserId());
+        entityEventPacket.setType(EntityEventType.HURT);
+        session.sendUpstreamPacket(entityEventPacket);
     }
 }

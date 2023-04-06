@@ -29,9 +29,9 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
+import com.github.steveice10.mc.protocol.data.game.recipe.data.LegacyUpgradeRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
-import com.github.steveice10.mc.protocol.data.game.recipe.data.SmithingRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.StoneCuttingRecipeData;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateRecipesPacket;
 import it.unimi.dsi.fastutil.ints.*;
@@ -73,7 +73,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
     /**
      * Required to use the specified cartography table recipes
      */
-    private static final List<RecipeData> CARTOGRAPHY_RECIPES = Arrays.asList(
+    private static final List<RecipeData> CARTOGRAPHY_RECIPES = List.of(
             MultiRecipeData.of(UUID.fromString("8b36268c-1829-483c-a0f1-993b7156a8f2"), ++LAST_RECIPE_NET_ID), // Map extending
             MultiRecipeData.of(UUID.fromString("442d85ed-8272-4543-a6f1-418f90ded05d"), ++LAST_RECIPE_NET_ID), // Map cloning
             MultiRecipeData.of(UUID.fromString("98c84b38-1085-46bd-b1ce-dd38c159e6cc"), ++LAST_RECIPE_NET_ID), // Map upgrading
@@ -102,6 +102,10 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     // Strip NBT - tools won't appear in the recipe book otherwise
                     output = output.toBuilder().tag(null).build();
                     ItemDescriptorWithCount[][] inputCombinations = combinations(session, shapelessRecipeData.getIngredients());
+                    if (inputCombinations == null) {
+                        continue;
+                    }
+
                     for (ItemDescriptorWithCount[] inputs : inputCombinations) {
                         UUID uuid = UUID.randomUUID();
                         craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData.shapeless(uuid.toString(),
@@ -119,6 +123,9 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     // See above
                     output = output.toBuilder().tag(null).build();
                     ItemDescriptorWithCount[][] inputCombinations = combinations(session, shapedRecipeData.getIngredients());
+                    if (inputCombinations == null) {
+                        continue;
+                    }
                     for (ItemDescriptorWithCount[] inputs : inputCombinations) {
                         UUID uuid = UUID.randomUUID();
                         craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData.shaped(uuid.toString(),
@@ -140,7 +147,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 }
                 case SMITHING -> {
                     // Required to translate these as of 1.18.10, or else they cannot be crafted
-                    SmithingRecipeData recipeData = (SmithingRecipeData) recipe.getData();
+                    LegacyUpgradeRecipeData recipeData = (LegacyUpgradeRecipeData) recipe.getData();
                     ItemData output = ItemTranslator.translateToBedrock(session, recipeData.getResult());
                     for (ItemStack base : recipeData.getBase().getOptions()) {
                         ItemDescriptorWithCount bedrockBase = ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, base));
@@ -170,7 +177,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             }
         }
         craftingDataPacket.getCraftingData().addAll(CARTOGRAPHY_RECIPES);
-        craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.get());
+        craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.forVersion(session.getUpstream().getProtocolVersion()));
 
         Int2ObjectMap<GeyserStonecutterData> stonecutterRecipeMap = new Int2ObjectOpenHashMap<>();
         for (Int2ObjectMap.Entry<List<StoneCuttingRecipeData>> data : unsortedStonecutterData.int2ObjectEntrySet()) {
@@ -219,12 +226,14 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
      * @return the Java ingredient list as an array that Bedrock can understand
      */
     private ItemDescriptorWithCount[][] combinations(GeyserSession session, Ingredient[] ingredients) {
+        boolean empty = true;
         Map<Set<ItemDescriptorWithCount>, IntSet> squashedOptions = new HashMap<>();
         for (int i = 0; i < ingredients.length; i++) {
             if (ingredients[i].getOptions().length == 0) {
                 squashedOptions.computeIfAbsent(Collections.singleton(ItemDescriptorWithCount.EMPTY), k -> new IntOpenHashSet()).add(i);
                 continue;
             }
+            empty = false;
             Ingredient ingredient = ingredients[i];
             Map<GroupedItem, List<ItemDescriptorWithCount>> groupedByIds = Arrays.stream(ingredient.getOptions())
                     .map(item -> ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, item)))
@@ -251,6 +260,11 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 }
             }
             squashedOptions.computeIfAbsent(optionSet, k -> new IntOpenHashSet()).add(i);
+        }
+        if (empty) {
+            // Crashes Bedrock 1.19.70 otherwise
+            // Fixes https://github.com/GeyserMC/Geyser/issues/3549
+            return null;
         }
         int totalCombinations = 1;
         for (Set<ItemDescriptorWithCount> optionSet : squashedOptions.keySet()) {

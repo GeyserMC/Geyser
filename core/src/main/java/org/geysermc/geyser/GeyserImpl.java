@@ -47,6 +47,7 @@ import org.geysermc.api.Geyser;
 import org.geysermc.common.PlatformType;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
+import org.geysermc.erosion.packet.Packets;
 import org.geysermc.floodgate.crypto.AesCipher;
 import org.geysermc.floodgate.crypto.AesKeyProducer;
 import org.geysermc.floodgate.crypto.Base64Topping;
@@ -64,6 +65,7 @@ import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.erosion.UnixSocketClientListener;
 import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.extension.GeyserExtensionManager;
 import org.geysermc.geyser.level.WorldManager;
@@ -136,6 +138,8 @@ public class GeyserImpl implements GeyserApi {
     private FloodgateCipher cipher;
     private FloodgateSkinUploader skinUploader;
     private NewsHandler newsHandler;
+
+    private UnixSocketClientListener erosionUnixListener;
 
     private volatile boolean shuttingDown = false;
 
@@ -289,6 +293,14 @@ public class GeyserImpl implements GeyserApi {
         pendingMicrosoftAuthentication = new PendingMicrosoftAuthentication(config.getPendingAuthenticationTimeout());
 
         this.newsHandler = new NewsHandler(BRANCH, this.buildNumber());
+
+        Packets.initGeyser();
+
+        if (Epoll.isAvailable()) {
+            this.erosionUnixListener = new UnixSocketClientListener();
+        } else {
+            logger.debug("Epoll is not available; Erosion's Unix socket handling will not work.");
+        }
 
         CooldownUtils.setDefaultShowCooldown(config.getShowCooldown());
         DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
@@ -541,6 +553,10 @@ public class GeyserImpl implements GeyserApi {
         }
         newsHandler.shutdown();
         this.commandManager().getCommands().clear();
+
+        if (this.erosionUnixListener != null) {
+            this.erosionUnixListener.close();
+        }
 
         ResourcePack.PACKS.clear();
 

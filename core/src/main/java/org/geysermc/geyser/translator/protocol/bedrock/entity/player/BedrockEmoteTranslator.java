@@ -25,11 +25,8 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
-import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
-import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.packet.EmotePacket;
+import org.geysermc.geyser.api.event.bedrock.ClientEmoteEvent;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -43,13 +40,18 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
     public void translate(GeyserSession session, EmotePacket packet) {
         if (session.getGeyser().getConfig().getEmoteOffhandWorkaround() != EmoteOffhandWorkaroundOption.DISABLED) {
             // Activate the workaround - we should trigger the offhand now
-            ServerboundPlayerActionPacket swapHandsPacket = new ServerboundPlayerActionPacket(PlayerAction.SWAP_HANDS, Vector3i.ZERO,
-                    Direction.DOWN, 0);
-            session.sendDownstreamPacket(swapHandsPacket);
+            session.requestOffhandSwap();
 
             if (session.getGeyser().getConfig().getEmoteOffhandWorkaround() == EmoteOffhandWorkaroundOption.NO_EMOTES) {
                 return;
             }
+        }
+
+        // For the future: could have a method that exposes which players will see the emote
+        ClientEmoteEvent event = new ClientEmoteEvent(session, packet.getEmoteId());
+        session.getGeyser().eventBus().fire(event);
+        if (event.isCancelled()) {
+            return;
         }
 
         int javaId = session.getPlayerEntity().getEntityId();

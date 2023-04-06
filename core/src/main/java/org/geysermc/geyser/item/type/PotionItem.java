@@ -28,11 +28,13 @@ package org.geysermc.geyser.item.type;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
+import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
+import org.geysermc.geyser.translator.inventory.item.CustomItemTranslator;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 
 public class PotionItem extends Item {
@@ -45,15 +47,23 @@ public class PotionItem extends Item {
         if (itemStack.getNbt() == null) return super.translateToBedrock(itemStack, mapping, mappings);
         Tag potionTag = itemStack.getNbt().get("Potion");
         if (potionTag instanceof StringTag) {
-            Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
-            if (potion != null) {
+            ItemDefinition customItemDefinition = CustomItemTranslator.getCustomItem(itemStack.getNbt(), mapping);
+            if (customItemDefinition == null) {
+                Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
+                if (potion != null) {
+                    return ItemData.builder()
+                            .definition(mapping.getBedrockDefinition())
+                            .damage(potion.getBedrockId())
+                            .count(itemStack.getAmount())
+                            .tag(ItemTranslator.translateNbtToBedrock(itemStack.getNbt()));
+                }
+                GeyserImpl.getInstance().getLogger().debug("Unknown Java potion: " + potionTag.getValue());
+            } else {
                 return ItemData.builder()
-                        .definition(mapping.getBedrockDefinition())
-                        .damage(potion.getBedrockId())
+                        .definition(customItemDefinition)
                         .count(itemStack.getAmount())
                         .tag(ItemTranslator.translateNbtToBedrock(itemStack.getNbt()));
             }
-            GeyserImpl.getInstance().getLogger().debug("Unknown Java potion: " + potionTag.getValue());
         }
         return super.translateToBedrock(itemStack, mapping, mappings);
     }

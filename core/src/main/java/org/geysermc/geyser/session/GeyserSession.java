@@ -81,11 +81,11 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.common.value.qual.IntRange;
-import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.*;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.data.*;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumConstraint;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
@@ -114,6 +114,8 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.geyser.erosion.AbstractGeyserboundPacketHandler;
+import org.geysermc.geyser.erosion.GeyserboundHandshakePacketHandler;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
@@ -138,6 +140,7 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
@@ -169,6 +172,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private List<SignedJWT> certChainData;
+
+    @NotNull
+    @Setter
+    private AbstractGeyserboundPacketHandler erosionHandler;
 
     @Accessors(fluent = true)
     @Setter
@@ -257,7 +264,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     /**
      * Stores a list of all lectern locations and their block entity tags.
-     * See {@link WorldManager#getLecternDataAt(GeyserSession, int, int, int, boolean)}
+     * See {@link WorldManager#sendLecternData(GeyserSession, int, int, int)}
      * for more information.
      */
     private final Set<Vector3i> lecternCache;
@@ -553,6 +560,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.upstream = new UpstreamSession(bedrockServerSession);
         this.eventLoop = eventLoop;
 
+        this.erosionHandler = new GeyserboundHandshakePacketHandler(this);
+
         this.advancementsCache = new AdvancementsCache(this);
         this.bookEditCache = new BookEditCache(this);
         this.chunkCache = new ChunkCache(this);
@@ -581,7 +590,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.spawned = false;
         this.loggedIn = false;
 
-        if (geyser.getWorldManager().shouldExpectLecternHandled()) {
+        if (geyser.getWorldManager().shouldExpectLecternHandled(this)) {
             // Unneeded on these platforms
             this.lecternCache = null;
         } else {
@@ -631,7 +640,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Potion mixes are registered by default, as they are needed to be able to put ingredients into the brewing stand.
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
         craftingDataPacket.setCleanRecipes(true);
-        craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.get());
+        craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.forVersion(this.upstream.getProtocolVersion()));
         upstream.sendPacket(craftingDataPacket);
 
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
@@ -723,7 +732,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 return;
             }
 
-            connectDownstream();
+            try {
+                connectDownstream();
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
         });
     }
 
@@ -767,7 +780,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 return;
             }
 
-            connectDownstream();
+            try {
+                connectDownstream();
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
         });
     }
 
@@ -841,7 +858,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                         selectedProfile,
                         service.getAccessToken()
                 );
-                connectDownstream();
+                try {
+                    connectDownstream();
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                    return false;
+                }
 
                 // Save our refresh token for later use
                 geyser.saveRefreshToken(bedrockUsername(), service.getRefreshToken());
@@ -1006,7 +1028,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                     // Server is offline, probably
                     disconnectMessage = GeyserLocale.getPlayerLocaleString("geyser.network.remote.server_offline", locale());
                 } else {
-                    disconnectMessage = MessageTranslator.convertMessageLenient(event.getReason());
+                    disconnectMessage = MessageTranslator.convertMessage(event.getReason());
                 }
 
                 if (downstream instanceof LocalSession) {
@@ -1068,6 +1090,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         if (tickThread != null) {
             tickThread.cancel(false);
         }
+
+        erosionHandler.close();
 
         closed = true;
     }
@@ -1346,6 +1370,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return false;
     }
 
+    public void requestOffhandSwap() {
+        ServerboundPlayerActionPacket swapHandsPacket = new ServerboundPlayerActionPacket(PlayerAction.SWAP_HANDS, Vector3i.ZERO,
+                Direction.DOWN, 0);
+        sendDownstreamPacket(swapHandsPacket);
+    }
+
     /**
      * Will be overwritten for GeyserConnect.
      */
@@ -1396,10 +1426,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     public void setServerRenderDistance(int renderDistance) {
-        // +1 is for Fabric and Spigot
-        // Without the client misses loading some chunks per https://github.com/GeyserMC/Geyser/issues/3490
-        // Fog still appears essentially normally
-        renderDistance = renderDistance + 1;
         this.serverRenderDistance = renderDistance;
 
         ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
@@ -1411,11 +1437,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return this.upstream.getAddress();
     }
 
+    @Override
     public boolean sendForm(@NonNull Form form) {
         formCache.showForm(form);
         return true;
     }
 
+    @Override
     public boolean sendForm(@NonNull FormBuilder<?, ?, ?> formBuilder) {
         formCache.showForm(formBuilder.build());
         return true;
@@ -1682,6 +1710,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         abilities.add(Ability.MINE);
         // Needed so you can drop items
         abilities.add(Ability.DOORS_AND_SWITCHES);
+        // Required for lecterns to work (likely started around 1.19.10; confirmed on 1.19.70)
+        abilities.add(Ability.OPEN_CONTAINERS);
         if (gameMode == GameMode.CREATIVE) {
             // Needed so the client doesn't attempt to take away items
             abilities.add(Ability.INSTABUILD);
@@ -1896,18 +1926,19 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return true;
     }
 
-    public void addCommandEnum(String name, String... enums) {
+    public void addCommandEnum(String name, String enums) {
         softEnumPacket(name, SoftEnumUpdateType.ADD, enums);
     }
 
-    public void removeCommandEnum(String name, String... enums) {
+    public void removeCommandEnum(String name, String enums) {
         softEnumPacket(name, SoftEnumUpdateType.REMOVE, enums);
     }
 
-    private void softEnumPacket(String name, SoftEnumUpdateType type, String... enums) {
+    private void softEnumPacket(String name, SoftEnumUpdateType type, String enums) {
         UpdateSoftEnumPacket packet = new UpdateSoftEnumPacket();
         packet.setType(type);
-        packet.setSoftEnum(new CommandEnumData(name, enums, true));
+        // TODO
+        packet.setSoftEnum(new CommandEnumData(name, new LinkedHashMap<>(Collections.singletonMap(enums, EnumSet.noneOf(CommandEnumConstraint.class))), true));
         sendUpstreamPacket(packet);
     }
 }

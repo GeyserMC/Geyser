@@ -35,6 +35,7 @@ import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.protocol.bedrock.codec.v544.Bedrock_v544;
 import org.cloudburstmc.protocol.bedrock.codec.v560.Bedrock_v560;
 import org.cloudburstmc.protocol.bedrock.codec.v567.Bedrock_v567;
+import org.cloudburstmc.protocol.bedrock.codec.v575.Bedrock_v575;
 import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.block.BlockStateValues;
@@ -73,6 +74,16 @@ public final class BlockRegistryPopulator {
                 .put(ObjectIntPair.of("1_19_20", Bedrock_v544.CODEC.getProtocolVersion()), emptyMapper)
                 .put(ObjectIntPair.of("1_19_50", Bedrock_v560.CODEC.getProtocolVersion()), emptyMapper)
                 .put(ObjectIntPair.of("1_19_60", Bedrock_v567.CODEC.getProtocolVersion()), emptyMapper)
+                .put(ObjectIntPair.of("1_19_70", Bedrock_v575.CODEC.getProtocolVersion()), (bedrockIdentifier, statesBuilder) -> {
+                    if (bedrockIdentifier.equals("minecraft:wool")) {
+                        String color = (String) statesBuilder.remove("color");
+                        if ("silver".equals(color)) {
+                            color = "light_gray";
+                        }
+                        return "minecraft:" + color + "_wool";
+                    }
+                    return null;
+                })
                 .build();
 
         for (Map.Entry<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> palette : blockMappers.entrySet()) {
@@ -216,7 +227,6 @@ public final class BlockRegistryPopulator {
         Deque<String> cleanIdentifiers = new ArrayDeque<>();
 
         int javaRuntimeId = -1;
-        int bellBlockId = -1;
         int cobwebBlockId = -1;
         int furnaceRuntimeId = -1;
         int furnaceLitRuntimeId = -1;
@@ -293,10 +303,7 @@ public final class BlockRegistryPopulator {
             // It's possible to only have this store differences in names, but the key set of all Java names is used in sending command suggestions
             BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.register(cleanJavaIdentifier.intern(), bedrockIdentifier.intern());
 
-            if (javaId.startsWith("minecraft:bell[")) {
-                bellBlockId = uniqueJavaId;
-
-            } else if (javaId.contains("cobweb")) {
+            if (javaId.contains("cobweb")) {
                 cobwebBlockId = uniqueJavaId;
 
             } else if (javaId.startsWith("minecraft:furnace[facing=north")) {
@@ -317,10 +324,6 @@ public final class BlockRegistryPopulator {
                 slimeBlockRuntimeId = javaRuntimeId;
             }
         }
-        if (bellBlockId == -1) {
-            throw new AssertionError("Unable to find bell in palette");
-        }
-        BlockStateValues.JAVA_BELL_ID = bellBlockId;
 
         if (cobwebBlockId == -1) {
             throw new AssertionError("Unable to find cobwebs in palette");

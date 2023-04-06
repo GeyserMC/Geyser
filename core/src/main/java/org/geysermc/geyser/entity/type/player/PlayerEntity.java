@@ -247,7 +247,10 @@ public class PlayerEntity extends LivingEntity {
 
     @Override
     public Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
-        return bedPosition = super.setBedPosition(entityMetadata);
+        bedPosition = super.setBedPosition(entityMetadata);
+        // Fixes https://github.com/GeyserMC/Geyser/issues/3595 on vanilla 1.19.3 servers - did not happen on Paper
+        entityMetadata.getValue().ifPresent(pos -> this.setPosition(pos.toFloat()));
+        return bedPosition;
     }
 
     public void setAbsorptionHearts(FloatEntityMetadata entityMetadata) {

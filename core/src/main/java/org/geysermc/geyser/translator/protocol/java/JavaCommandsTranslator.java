@@ -30,12 +30,6 @@ import com.github.steveice10.mc.protocol.data.game.command.CommandParser;
 import com.github.steveice10.mc.protocol.data.game.command.properties.ResourceProperties;
 import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundCommandsPacket;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandData;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumConstraint;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandParam;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandParamData;
-import org.cloudburstmc.protocol.bedrock.packet.AvailableCommandsPacket;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -46,6 +40,8 @@ import lombok.Getter;
 import lombok.ToString;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
+import org.cloudburstmc.protocol.bedrock.data.command.*;
+import org.cloudburstmc.protocol.bedrock.packet.AvailableCommandsPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent;
 import org.geysermc.geyser.command.GeyserCommandManager;
@@ -58,8 +54,8 @@ import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.EntityUtils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
+@SuppressWarnings("removal") // We know. This is our doing.
 @Translator(packet = ClientboundCommandsPacket.class)
 public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommandsPacket> {
 
@@ -207,9 +203,10 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
      */
     private static CommandParamData[][] getParams(GeyserSession session, CommandNode commandNode, CommandNode[] allNodes) {
         // Check if the command is an alias and redirect it
-        if (commandNode.getRedirectIndex() != -1) {
-            GeyserImpl.getInstance().getLogger().debug("Redirecting command " + commandNode.getName() + " to " + allNodes[commandNode.getRedirectIndex()].getName());
-            commandNode = allNodes[commandNode.getRedirectIndex()];
+        if (commandNode.getRedirectIndex().isPresent()) {
+            int redirectIndex = commandNode.getRedirectIndex().getAsInt();
+            GeyserImpl.getInstance().getLogger().debug("Redirecting command " + commandNode.getName() + " to " + allNodes[redirectIndex].getName());
+            commandNode = allNodes[redirectIndex];
         }
 
         if (commandNode.getChildIndices().length >= 1) {
@@ -342,9 +339,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                 return teams;
             }
             return (teams = new CommandEnumData("Geyser_Teams",
-                    Arrays.stream(session.getWorldCache().getScoreboard().getTeamNames())
-                            .collect(Collectors.toMap(o -> o, o -> EnumSet.noneOf(CommandEnumConstraint.class), (o1, o2) -> o1, LinkedHashMap::new)),
-                    true
+                    session.getWorldCache().getScoreboard().getTeamNames(), true
             ));
         }
     }

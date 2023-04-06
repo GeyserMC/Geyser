@@ -88,15 +88,6 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 session.sendAdventureSettings();
                 return;
 
-            // EntityEventType.HURT sends extra data depending on the type of damage. However this appears to have no visual changes
-            case LIVING_BURN:
-            case LIVING_DROWN:
-            case LIVING_HURT:
-            case LIVING_HURT_SWEET_BERRY_BUSH:
-            case LIVING_HURT_THORNS:
-            case LIVING_FREEZE:
-                entityEventPacket.setType(EntityEventType.HURT);
-                break;
             case LIVING_DEATH:
                 entityEventPacket.setType(EntityEventType.DEATH);
                 if (entity.getDefinition() == EntityDefinitions.EGG) {

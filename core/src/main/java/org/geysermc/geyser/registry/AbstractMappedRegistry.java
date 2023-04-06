@@ -58,7 +58,7 @@ public abstract class AbstractMappedRegistry<K, V, M extends Map<K, V>> extends 
     }
 
     /**
-     * Returns & maps the value by the given key if present.
+     * Returns and maps the value by the given key if present.
      *
      * @param key the key
      * @param mapper the mapper

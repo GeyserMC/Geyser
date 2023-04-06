@@ -24,6 +24,11 @@ tasks {
                     exclude(dependency(string))
                 }
             }
+
+            sJar.dependencies {
+                exclude(dependency("org.checkerframework:checker-qual:.*"))
+                exclude(dependency("org.jetbrains:annotations:.*"))
+            }
         }
     }
     named("build") {

@@ -43,6 +43,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.geysermc.erosion.util.BannerUtils.getJavaPatternTag;
+
 @ItemRemapper
 public class BannerTranslator extends NbtItemStackTranslator {
     /**
@@ -67,15 +69,6 @@ public class BannerTranslator extends NbtItemStackTranslator {
         OMINOUS_BANNER_PATTERN.add(getJavaPatternTag("hh", 8));
         OMINOUS_BANNER_PATTERN.add(getJavaPatternTag("mc", 8));
         OMINOUS_BANNER_PATTERN.add(getJavaPatternTag("bo", 15));
-    }
-
-    public static CompoundTag getJavaPatternTag(String pattern, int color) {
-        StringTag patternType = new StringTag("Pattern", pattern);
-        IntTag colorTag = new IntTag("Color", color);
-        CompoundTag tag = new CompoundTag("");
-        tag.put(patternType);
-        tag.put(colorTag);
-        return tag;
     }
 
     public BannerTranslator() {
@@ -120,7 +113,7 @@ public class BannerTranslator extends NbtItemStackTranslator {
      * @return The Java edition format pattern nbt
      */
     public static CompoundTag getJavaBannerPattern(NbtMap pattern) {
-        return BannerTranslator.getJavaPatternTag(pattern.getString("Pattern"), 15 - pattern.getInt("Color"));
+        return getJavaPatternTag(pattern.getString("Pattern"), 15 - pattern.getInt("Color"));
     }
 
     /**

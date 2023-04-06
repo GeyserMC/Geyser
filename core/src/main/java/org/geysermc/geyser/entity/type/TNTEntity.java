@@ -43,7 +43,7 @@ public class TNTEntity extends Entity implements Tickable {
     }
 
     public void setFuseLength(IntEntityMetadata entityMetadata) {
-        currentTick = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+        currentTick = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.IGNITED, true);
         dirtyMetadata.put(EntityDataTypes.FUSE_TIME, currentTick);
     }

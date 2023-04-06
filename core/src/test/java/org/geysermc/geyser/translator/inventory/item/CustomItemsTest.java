@@ -31,27 +31,30 @@ import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.defintions.SimpleItemDefinition;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.item.GeyserCustomItemOptions;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.type.ItemMapping;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class CustomItemsTest {
     private ItemMapping testMappingWithDamage;
     private Map<CompoundTag, ItemDefinition> tagToCustomItemWithDamage;
     private ItemMapping testMappingWithNoDamage;
     private Map<CompoundTag, ItemDefinition> tagToCustomItemWithNoDamage;
 
-    @Before
+    @BeforeAll
     public void setup() {
         CustomItemOptions a = new GeyserCustomItemOptions(TriState.TRUE, OptionalInt.of(2), OptionalInt.empty());
         CustomItemOptions b = new GeyserCustomItemOptions(TriState.FALSE, OptionalInt.of(5), OptionalInt.empty());
@@ -63,13 +66,13 @@ public class CustomItemsTest {
 
         Map<CustomItemOptions, ItemDefinition> optionsToId = new Object2ObjectArrayMap<>();
         // Order here is important, hence why we're using an array map
-        optionsToId.put(g, new ItemDefinition("geyser:test_item_7", 7, true));
-        optionsToId.put(f, new ItemDefinition("geyser:test_item_6", 6, true));
-        optionsToId.put(e, new ItemDefinition("geyser:test_item_5", 5, true));
-        optionsToId.put(d, new ItemDefinition("geyser:test_item_4", 4, true));
-        optionsToId.put(c, new ItemDefinition("geyser:test_item_3", 3, true));
-        optionsToId.put(b, new ItemDefinition("geyser:test_item_2", 2, true));
-        optionsToId.put(a, new ItemDefinition("geyser:test_item_1", 1, true));
+        optionsToId.put(g, new SimpleItemDefinition("geyser:test_item_7", 7, true));
+        optionsToId.put(f, new SimpleItemDefinition("geyser:test_item_6", 6, true));
+        optionsToId.put(e, new SimpleItemDefinition("geyser:test_item_5", 5, true));
+        optionsToId.put(d, new SimpleItemDefinition("geyser:test_item_4", 4, true));
+        optionsToId.put(c, new SimpleItemDefinition("geyser:test_item_3", 3, true));
+        optionsToId.put(b, new SimpleItemDefinition("geyser:test_item_2", 2, true));
+        optionsToId.put(a, new SimpleItemDefinition("geyser:test_item_1", 1, true));
 
         tagToCustomItemWithDamage = new HashMap<>();
 
@@ -149,12 +152,12 @@ public class CustomItemsTest {
     public void testCustomItems() {
         for (Map.Entry<CompoundTag, ItemDefinition> entry : this.tagToCustomItemWithDamage.entrySet()) {
             ItemDefinition id = CustomItemTranslator.getCustomItem(entry.getKey(), this.testMappingWithDamage);
-            Assert.assertEquals(entry.getKey() + " did not produce the correct custom item", entry.getValue(), id);
+            Assertions.assertEquals(entry.getValue(), id, entry.getKey() + " did not produce the correct custom item");
         }
 
         for (Map.Entry<CompoundTag, ItemDefinition> entry : this.tagToCustomItemWithNoDamage.entrySet()) {
             ItemDefinition id = CustomItemTranslator.getCustomItem(entry.getKey(), this.testMappingWithNoDamage);
-            Assert.assertEquals(entry.getKey() + " did not produce the correct custom item", entry.getValue(), id);
+            Assertions.assertEquals(entry.getValue(), id, entry.getKey() + " did not produce the correct custom item");
         }
     }
 }

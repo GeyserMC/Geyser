@@ -26,14 +26,16 @@
 package org.geysermc.geyser.level;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
+import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.session.GeyserSession;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
@@ -68,6 +70,23 @@ public abstract class WorldManager {
      */
     public abstract int getBlockAt(GeyserSession session, int x, int y, int z);
 
+    public final CompletableFuture<Integer> getBlockAtAsync(GeyserSession session, Vector3i vector) {
+        return this.getBlockAtAsync(session, vector.getX(), vector.getY(), vector.getZ());
+    }
+
+    public CompletableFuture<Integer> getBlockAtAsync(GeyserSession session, int x, int y, int z) {
+        return CompletableFuture.completedFuture(this.getBlockAt(session, x, y, z));
+    }
+
+    public int[] getBlocksAt(GeyserSession session, BlockPositionIterator iter) {
+        int[] blocks = new int[iter.getMaxIterations()];
+        for (; iter.hasNext(); iter.next()) {
+            int networkId = this.getBlockAt(session, iter.getX(), iter.getY(), iter.getZ());
+            blocks[iter.getIteration()] = networkId;
+        }
+        return blocks;
+    }
+
     /**
      * Checks whether or not this world manager requires a separate chunk cache/has access to more block data than the chunk cache.
      * <p>
@@ -89,20 +108,28 @@ public abstract class WorldManager {
      * We solve this problem by querying all loaded lecterns, where possible, and sending their information in a block entity
      * tag.
      *
+     * Note that the lectern data may be sent asynchronously.
+     *
      * @param session the session of the player
      * @param x the x coordinate of the lectern
      * @param y the y coordinate of the lectern
      * @param z the z coordinate of the lectern
-     * @param isChunkLoad if this is called during a chunk load or not. Changes behavior in certain instances.
-     * @return the Bedrock lectern block entity tag. This may not be the exact block entity tag - for example, Spigot's
-     * block handled must be done on the server thread, so we send the tag manually there.
      */
-    public abstract NbtMap getLecternDataAt(GeyserSession session, int x, int y, int z, boolean isChunkLoad);
+    public abstract void sendLecternData(GeyserSession session, int x, int y, int z);
+
+    /**
+     * {@link #sendLecternData(GeyserSession, int, int, int)} but batched for chunks.
+     *
+     * @param x chunk x
+     * @param z chunk z
+     * @param blockEntityInfos a list of coordinates (chunk local) to grab lecterns from.
+     */
+    public abstract void sendLecternData(GeyserSession session, int x, int z, List<BlockEntityInfo> blockEntityInfos);
 
     /**
      * @return whether we should expect lectern data to update, or if we have to fall back on a workaround.
      */
-    public abstract boolean shouldExpectLecternHandled();
+    public abstract boolean shouldExpectLecternHandled(GeyserSession session);
 
     /**
      * Updates a gamerule value on the Java server

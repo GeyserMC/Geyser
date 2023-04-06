@@ -43,6 +43,7 @@ import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Arrays;
+import java.util.Locale;
 
 public class EnchantingInventoryTranslator extends AbstractBlockInventoryTranslator {
     public EnchantingInventoryTranslator() {
@@ -71,7 +72,7 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
                 // The Bedrock index might need changed, so let's look it up and see.
                 int bedrockIndex = value;
                 if (bedrockIndex != -1) {
-                    Enchantment enchantment = Enchantment.getByJavaIdentifier("minecraft:" + Enchantment.JavaEnchantment.of(bedrockIndex).name().toLowerCase());
+                    Enchantment enchantment = Enchantment.getByJavaIdentifier("minecraft:" + Enchantment.JavaEnchantment.of(bedrockIndex).name().toLowerCase(Locale.ROOT));
                     if (enchantment != null) {
                         // Convert the Java enchantment index to Bedrock's
                         bedrockIndex = enchantment.ordinal();

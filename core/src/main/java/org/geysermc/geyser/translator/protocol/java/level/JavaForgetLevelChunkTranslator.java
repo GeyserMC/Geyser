@@ -52,7 +52,7 @@ public class JavaForgetLevelChunkTranslator extends PacketTranslator<Clientbound
         }
         removedSkulls.forEach(session.getSkullCache()::removeSkull);
 
-        if (!session.getGeyser().getWorldManager().shouldExpectLecternHandled()) {
+        if (!session.getGeyser().getWorldManager().shouldExpectLecternHandled(session)) {
             // Do the same thing with lecterns
             Iterator<Vector3i> iterator = session.getLecternCache().iterator();
             while (iterator.hasNext()) {

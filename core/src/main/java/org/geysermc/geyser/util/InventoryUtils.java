@@ -97,6 +97,7 @@ public class InventoryUtils {
                     if (openInv != null && openInv.getJavaId() == inventory.getJavaId()) {
                         translator.openInventory(session, inventory);
                         translator.updateInventory(session, inventory);
+                        openInv.setDisplayed(true);
                     } else if (openInv != null && openInv.isPending()) {
                         // Presumably, this inventory is no longer relevant, and the client doesn't care about it
                         displayInventory(session, openInv);
@@ -105,6 +106,7 @@ public class InventoryUtils {
             } else {
                 translator.openInventory(session, inventory);
                 translator.updateInventory(session, inventory);
+                inventory.setDisplayed(true);
             }
         } else {
             session.setOpenInventory(null);
@@ -119,7 +121,7 @@ public class InventoryUtils {
         if (inventory != null) {
             InventoryTranslator translator = session.getInventoryTranslator();
             translator.closeInventory(session, inventory);
-            if (confirm && !inventory.isPending() && !(translator instanceof LecternInventoryTranslator)) {
+            if (confirm && inventory.isDisplayed() && !inventory.isPending() && !(translator instanceof LecternInventoryTranslator)) {
                 session.setClosingInventory(true);
             }
         }

@@ -91,6 +91,10 @@ public abstract class Inventory {
     @Setter
     private boolean pending = false;
 
+    @Getter
+    @Setter
+    private boolean displayed = false;
+
     protected Inventory(int id, int size, ContainerType containerType) {
         this("Inventory", id, size, containerType);
     }

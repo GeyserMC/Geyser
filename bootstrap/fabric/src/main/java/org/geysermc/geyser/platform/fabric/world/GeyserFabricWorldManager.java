@@ -25,13 +25,7 @@
 
 package org.geysermc.geyser.platform.fabric.world;
 
-import org.cloudburstmc.math.vector.Vector3i;
-<<<<<<< HEAD
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
-=======
->>>>>>> d1febe0b3904d52cdc6301711950f22d1caf09b5
+import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.*;
@@ -43,19 +37,20 @@ import net.minecraft.world.item.WrittenBookItem;
 import net.minecraft.world.level.block.entity.BannerBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
+import net.minecraft.world.level.chunk.LevelChunk;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.geysermc.erosion.util.LecternUtils;
 import org.geysermc.geyser.level.GeyserWorldManager;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;
 import org.geysermc.geyser.util.BlockEntityUtils;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 public class GeyserFabricWorldManager extends GeyserWorldManager {
     private final MinecraftServer server;
@@ -65,69 +60,91 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
     }
 
     @Override
-    public boolean shouldExpectLecternHandled() {
+    public boolean shouldExpectLecternHandled(GeyserSession session) {
         return true;
     }
 
     @Override
-    public NbtMap getLecternDataAt(GeyserSession session, int x, int y, int z, boolean isChunkLoad) {
-        Runnable lecternGet = () -> {
-            // Mostly a reimplementation of Spigot lectern support
+    public void sendLecternData(GeyserSession session, int x, int z, List<BlockEntityInfo> blockEntityInfos) {
+        server.execute(() -> {
             ServerPlayer player = getPlayer(session);
-            if (player != null) {
-                BlockEntity blockEntity = player.level.getBlockEntity(new BlockPos(x, y, z));
-                if (!(blockEntity instanceof LecternBlockEntity lectern)) {
-                    return;
-                }
-
-                if (!lectern.hasBook()) {
-                    if (!isChunkLoad) {
-                        BlockEntityUtils.updateBlockEntity(session, LecternInventoryTranslator.getBaseLecternTag(x, y, z, 0).build(), Vector3i.from(x, y, z));
-                    }
-                    return;
-                }
-
-                ItemStack book = lectern.getBook();
-                int pageCount = WrittenBookItem.getPageCount(book);
-                boolean hasBookPages = pageCount > 0;
-                NbtMapBuilder lecternTag = LecternInventoryTranslator.getBaseLecternTag(x, y, z, hasBookPages ? pageCount : 1);
-                lecternTag.putInt("page", lectern.getPage() / 2);
-                NbtMapBuilder bookTag = NbtMap.builder()
-                        .putByte("Count", (byte) book.getCount())
-                        .putShort("Damage", (short) 0)
-                        .putString("Name", "minecraft:writable_book");
-                List<NbtMap> pages = new ArrayList<>(hasBookPages ? pageCount : 1);
-                if (hasBookPages && WritableBookItem.makeSureTagIsValid(book.getTag())) {
-                    ListTag listTag = book.getTag().getList("pages", 8);
-
-                    for (int i = 0; i < listTag.size(); i++) {
-                        String page = listTag.getString(i);
-                        NbtMapBuilder pageBuilder = NbtMap.builder()
-                                .putString("photoname", "")
-                                .putString("text", page);
-                        pages.add(pageBuilder.build());
-                    }
-                } else {
-                    // Empty page
-                    NbtMapBuilder pageBuilder = NbtMap.builder()
-                            .putString("photoname", "")
-                            .putString("text", "");
-                    pages.add(pageBuilder.build());
-                }
-
-                bookTag.putCompound("tag", NbtMap.builder().putList("pages", NbtType.COMPOUND, pages).build());
-                lecternTag.putCompound("book", bookTag.build());
-                NbtMap blockEntityTag = lecternTag.build();
-                BlockEntityUtils.updateBlockEntity(session, blockEntityTag, Vector3i.from(x, y, z));
+            if (player == null) {
+                return;
             }
-        };
-        if (isChunkLoad) {
-            // Hacky hacks to allow lectern loading to be delayed
-            session.scheduleInEventLoop(() -> server.execute(lecternGet), 1, TimeUnit.SECONDS);
-        } else {
-            server.execute(lecternGet);
+
+            LevelChunk chunk = player.getLevel().getChunk(x, z);
+            final int chunkBlockX = x << 4;
+            final int chunkBlockZ = z << 4;
+            for (int i = 0; i < blockEntityInfos.size(); i++) {
+                BlockEntityInfo blockEntityInfo = blockEntityInfos.get(i);
+                BlockEntity blockEntity = chunk.getBlockEntity(new BlockPos(chunkBlockX + blockEntityInfo.getX(),
+                        blockEntityInfo.getY(), chunkBlockZ + blockEntityInfo.getZ()));
+                sendLecternData(session, blockEntity, true);
+            }
+        });
+    }
+
+    @Override
+    public void sendLecternData(GeyserSession session, int x, int y, int z) {
+        server.execute(() -> {
+            ServerPlayer player = getPlayer(session);
+            if (player == null) {
+                return;
+            }
+
+            BlockEntity blockEntity = player.level.getBlockEntity(new BlockPos(x, y, z));
+            sendLecternData(session, blockEntity, false);
+        });
+    }
+
+    private void sendLecternData(GeyserSession session, BlockEntity blockEntity, boolean isChunkLoad) {
+        if (!(blockEntity instanceof LecternBlockEntity lectern)) {
+            return;
         }
-        return LecternInventoryTranslator.getBaseLecternTag(x, y, z, 0).build();
+
+        int x = blockEntity.getBlockPos().getX();
+        int y = blockEntity.getBlockPos().getY();
+        int z = blockEntity.getBlockPos().getZ();
+
+        if (!lectern.hasBook()) {
+            if (!isChunkLoad) {
+                BlockEntityUtils.updateBlockEntity(session, LecternUtils.getBaseLecternTag(x, y, z, 0).build(), Vector3i.from(x, y, z));
+            }
+            return;
+        }
+
+        ItemStack book = lectern.getBook();
+        int pageCount = WrittenBookItem.getPageCount(book);
+        boolean hasBookPages = pageCount > 0;
+        NbtMapBuilder lecternTag = LecternUtils.getBaseLecternTag(x, y, z, hasBookPages ? pageCount : 1);
+        lecternTag.putInt("page", lectern.getPage() / 2);
+        NbtMapBuilder bookTag = NbtMap.builder()
+                .putByte("Count", (byte) book.getCount())
+                .putShort("Damage", (short) 0)
+                .putString("Name", "minecraft:writable_book");
+        List<NbtMap> pages = new ArrayList<>(hasBookPages ? pageCount : 1);
+        if (hasBookPages && WritableBookItem.makeSureTagIsValid(book.getTag())) {
+            ListTag listTag = book.getTag().getList("pages", 8);
+
+            for (int i = 0; i < listTag.size(); i++) {
+                String page = listTag.getString(i);
+                NbtMapBuilder pageBuilder = NbtMap.builder()
+                        .putString("photoname", "")
+                        .putString("text", page);
+                pages.add(pageBuilder.build());
+            }
+        } else {
+            // Empty page
+            NbtMapBuilder pageBuilder = NbtMap.builder()
+                    .putString("photoname", "")
+                    .putString("text", "");
+            pages.add(pageBuilder.build());
+        }
+
+        bookTag.putCompound("tag", NbtMap.builder().putList("pages", NbtType.COMPOUND, pages).build());
+        lecternTag.putCompound("book", bookTag.build());
+        NbtMap blockEntityTag = lecternTag.build();
+        BlockEntityUtils.updateBlockEntity(session, blockEntityTag, Vector3i.from(x, y, z));
     }
 
     @Override

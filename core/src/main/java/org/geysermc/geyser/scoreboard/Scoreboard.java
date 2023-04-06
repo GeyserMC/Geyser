@@ -27,6 +27,7 @@ package org.geysermc.geyser.scoreboard;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
 import org.cloudburstmc.protocol.bedrock.data.ScoreInfo;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumConstraint;
 import org.cloudburstmc.protocol.bedrock.packet.RemoveObjectivePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetDisplayObjectivePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetScorePacket;
@@ -44,6 +45,8 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.geysermc.geyser.scoreboard.UpdateType.*;
 
@@ -365,8 +368,10 @@ public final class Scoreboard {
     }
 
     @Contract("-> new")
-    public String[] getTeamNames() {
-        return teams.keySet().toArray(new String[0]);
+    public LinkedHashMap<String, Set<CommandEnumConstraint>> getTeamNames() {
+        return teams.keySet().stream()
+                .collect(Collectors.toMap(Function.identity(), o -> EnumSet.noneOf(CommandEnumConstraint.class),
+                        (o1, o2) -> o1, LinkedHashMap::new));
     }
 
     /**

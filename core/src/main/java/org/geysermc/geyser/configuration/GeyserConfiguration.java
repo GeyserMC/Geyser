@@ -83,8 +83,6 @@ public interface GeyserConfiguration {
 
     boolean isDisableBedrockScaffolding();
 
-    boolean isAlwaysQuickChangeArmor();
-
     EmoteOffhandWorkaroundOption getEmoteOffhandWorkaround();
 
     String getDefaultLocale();

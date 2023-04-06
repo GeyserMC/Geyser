@@ -1,5 +1,6 @@
 plugins {
     id("fabric-loom") version "1.0-SNAPSHOT"
+    id("com.modrinth.minotaur") version "2.+"
 }
 
 java {
@@ -65,6 +66,22 @@ tasks {
         relocate("org.yaml", "org.geysermc.relocate.yaml") // https://github.com/CardboardPowered/cardboard/issues/139
         relocate("com.fasterxml.jackson", "org.geysermc.relocate.jackson")
         relocate("net.kyori", "org.geysermc.relocate.kyori")
+
+        dependencies {
+            // Exclude everything EXCEPT KQueue and some DNS stuff required for HAProxyc
+            exclude(dependency("io.netty:netty-transport-classes-epoll:.*"))
+            exclude(dependency("io.netty:netty-transport-native-epoll:.*"))
+            exclude(dependency("io.netty:netty-transport-native-unix-common:.*"))
+            exclude(dependency("io.netty:netty-transport-native-kqueue:.*"))
+            exclude(dependency("io.netty:netty-handler:.*"))
+            exclude(dependency("io.netty:netty-common:.*"))
+            exclude(dependency("io.netty:netty-buffer:.*"))
+            exclude(dependency("io.netty:netty-resolver:.*"))
+            exclude(dependency("io.netty:netty-transport:.*"))
+            exclude(dependency("io.netty:netty-codec:.*"))
+            exclude(dependency("io.netty:netty-resolver-dns:.*"))
+            exclude(dependency("io.netty:netty-resolver-dns-native-macos:.*"))
+        }
     }
 
     remapJar {
@@ -73,5 +90,24 @@ tasks {
         archiveBaseName.set("Geyser-Fabric")
         archiveClassifier.set("")
         archiveVersion.set("")
+    }
+}
+
+modrinth {
+    token.set(System.getenv("MODRINTH_TOKEN")) // Even though this is the default value, apparently this prevents GitHub Actions caching the token?
+    projectId.set("wKkoqHrH")
+    versionNumber.set(project.version as String + "-" + System.getenv("GITHUB_RUN_NUMBER"))
+    versionType.set("beta")
+    changelog.set("A changelog can be found at https://github.com/GeyserMC/Geyser/commits")
+
+    syncBodyFrom.set(rootProject.file("README.md").readText())
+
+    uploadFile.set(tasks.getByPath("remapJar"))
+    gameVersions.addAll("1.19", "1.19.1", "1.19.2", "1.19.3", "1.19.4")
+
+    loaders.add("fabric")
+
+    dependencies {
+        required.project("fabric-api")
     }
 }

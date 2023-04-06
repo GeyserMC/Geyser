@@ -33,6 +33,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -44,7 +46,7 @@ public final class Team {
 
     @Getter(AccessLevel.PACKAGE)
     private final Set<String> entities;
-    @Setter private NameTagVisibility nameTagVisibility;
+    @Nonnull private NameTagVisibility nameTagVisibility = NameTagVisibility.ALWAYS;
     @Setter private TeamColor color;
 
     private final TeamData currentData;
@@ -197,6 +199,14 @@ public final class Team {
             case ALWAYS -> true;
             case NEVER -> false;
         };
+    }
+
+    public Team setNameTagVisibility(@Nullable NameTagVisibility nameTagVisibility) {
+        if (nameTagVisibility != null) {
+            // Null check like this (and this.nameTagVisibility defaults to ALWAYS) as of Java 1.19.4
+            this.nameTagVisibility = nameTagVisibility;
+        }
+        return this;
     }
 
     @Override

@@ -63,6 +63,7 @@ public final class Items {
     public static final Item BIRCH_PLANKS = register(new Item("birch_planks", builder()));
     public static final Item JUNGLE_PLANKS = register(new Item("jungle_planks", builder()));
     public static final Item ACACIA_PLANKS = register(new Item("acacia_planks", builder()));
+    public static final Item CHERRY_PLANKS = register(new Item("cherry_planks", builder()));
     public static final Item DARK_OAK_PLANKS = register(new Item("dark_oak_planks", builder()));
     public static final Item MANGROVE_PLANKS = register(new Item("mangrove_planks", builder()));
     public static final Item BAMBOO_PLANKS = register(new Item("bamboo_planks", builder()));
@@ -74,10 +75,12 @@ public final class Items {
     public static final Item BIRCH_SAPLING = register(new Item("birch_sapling", builder()));
     public static final Item JUNGLE_SAPLING = register(new Item("jungle_sapling", builder()));
     public static final Item ACACIA_SAPLING = register(new Item("acacia_sapling", builder()));
+    public static final Item CHERRY_SAPLING = register(new Item("cherry_sapling", builder()));
     public static final Item DARK_OAK_SAPLING = register(new Item("dark_oak_sapling", builder()));
     public static final Item MANGROVE_PROPAGULE = register(new Item("mangrove_propagule", builder()));
     public static final Item BEDROCK = register(new Item("bedrock", builder()));
     public static final Item SAND = register(new Item("sand", builder()));
+    public static final Item SUSPICIOUS_SAND = register(new Item("suspicious_sand", builder()));
     public static final Item RED_SAND = register(new Item("red_sand", builder()));
     public static final Item GRAVEL = register(new Item("gravel", builder()));
     public static final Item COAL_ORE = register(new Item("coal_ore", builder()));
@@ -146,6 +149,7 @@ public final class Items {
     public static final Item BIRCH_LOG = register(new Item("birch_log", builder()));
     public static final Item JUNGLE_LOG = register(new Item("jungle_log", builder()));
     public static final Item ACACIA_LOG = register(new Item("acacia_log", builder()));
+    public static final Item CHERRY_LOG = register(new Item("cherry_log", builder()));
     public static final Item DARK_OAK_LOG = register(new Item("dark_oak_log", builder()));
     public static final Item MANGROVE_LOG = register(new Item("mangrove_log", builder()));
     public static final Item MANGROVE_ROOTS = register(new Item("mangrove_roots", builder()));
@@ -158,6 +162,7 @@ public final class Items {
     public static final Item STRIPPED_BIRCH_LOG = register(new Item("stripped_birch_log", builder()));
     public static final Item STRIPPED_JUNGLE_LOG = register(new Item("stripped_jungle_log", builder()));
     public static final Item STRIPPED_ACACIA_LOG = register(new Item("stripped_acacia_log", builder()));
+    public static final Item STRIPPED_CHERRY_LOG = register(new Item("stripped_cherry_log", builder()));
     public static final Item STRIPPED_DARK_OAK_LOG = register(new Item("stripped_dark_oak_log", builder()));
     public static final Item STRIPPED_MANGROVE_LOG = register(new Item("stripped_mangrove_log", builder()));
     public static final Item STRIPPED_CRIMSON_STEM = register(new Item("stripped_crimson_stem", builder()));
@@ -167,6 +172,7 @@ public final class Items {
     public static final Item STRIPPED_BIRCH_WOOD = register(new Item("stripped_birch_wood", builder()));
     public static final Item STRIPPED_JUNGLE_WOOD = register(new Item("stripped_jungle_wood", builder()));
     public static final Item STRIPPED_ACACIA_WOOD = register(new Item("stripped_acacia_wood", builder()));
+    public static final Item STRIPPED_CHERRY_WOOD = register(new Item("stripped_cherry_wood", builder()));
     public static final Item STRIPPED_DARK_OAK_WOOD = register(new Item("stripped_dark_oak_wood", builder()));
     public static final Item STRIPPED_MANGROVE_WOOD = register(new Item("stripped_mangrove_wood", builder()));
     public static final Item STRIPPED_CRIMSON_HYPHAE = register(new Item("stripped_crimson_hyphae", builder()));
@@ -177,6 +183,7 @@ public final class Items {
     public static final Item BIRCH_WOOD = register(new Item("birch_wood", builder()));
     public static final Item JUNGLE_WOOD = register(new Item("jungle_wood", builder()));
     public static final Item ACACIA_WOOD = register(new Item("acacia_wood", builder()));
+    public static final Item CHERRY_WOOD = register(new Item("cherry_wood", builder()));
     public static final Item DARK_OAK_WOOD = register(new Item("dark_oak_wood", builder()));
     public static final Item MANGROVE_WOOD = register(new Item("mangrove_wood", builder()));
     public static final Item CRIMSON_HYPHAE = register(new Item("crimson_hyphae", builder()));
@@ -186,6 +193,7 @@ public final class Items {
     public static final Item BIRCH_LEAVES = register(new Item("birch_leaves", builder()));
     public static final Item JUNGLE_LEAVES = register(new Item("jungle_leaves", builder()));
     public static final Item ACACIA_LEAVES = register(new Item("acacia_leaves", builder()));
+    public static final Item CHERRY_LEAVES = register(new Item("cherry_leaves", builder()));
     public static final Item DARK_OAK_LEAVES = register(new Item("dark_oak_leaves", builder()));
     public static final Item MANGROVE_LEAVES = register(new Item("mangrove_leaves", builder()));
     public static final Item AZALEA_LEAVES = register(new Item("azalea_leaves", builder()));
@@ -235,6 +243,7 @@ public final class Items {
     public static final Item CORNFLOWER = register(new Item("cornflower", builder()));
     public static final Item LILY_OF_THE_VALLEY = register(new Item("lily_of_the_valley", builder()));
     public static final Item WITHER_ROSE = register(new Item("wither_rose", builder()));
+    public static final Item TORCHFLOWER = register(new Item("torchflower", builder()));
     public static final Item SPORE_BLOSSOM = register(new Item("spore_blossom", builder()));
     public static final Item BROWN_MUSHROOM = register(new Item("brown_mushroom", builder()));
     public static final Item RED_MUSHROOM = register(new Item("red_mushroom", builder()));
@@ -248,6 +257,7 @@ public final class Items {
     public static final Item SUGAR_CANE = register(new Item("sugar_cane", builder()));
     public static final Item KELP = register(new Item("kelp", builder()));
     public static final Item MOSS_CARPET = register(new Item("moss_carpet", builder()));
+    public static final Item PINK_PETALS = register(new Item("pink_petals", builder()));
     public static final Item MOSS_BLOCK = register(new Item("moss_block", builder()));
     public static final Item HANGING_ROOTS = register(new Item("hanging_roots", builder()));
     public static final Item BIG_DRIPLEAF = register(new Item("big_dripleaf", builder()));
@@ -258,6 +268,7 @@ public final class Items {
     public static final Item BIRCH_SLAB = register(new Item("birch_slab", builder()));
     public static final Item JUNGLE_SLAB = register(new Item("jungle_slab", builder()));
     public static final Item ACACIA_SLAB = register(new Item("acacia_slab", builder()));
+    public static final Item CHERRY_SLAB = register(new Item("cherry_slab", builder()));
     public static final Item DARK_OAK_SLAB = register(new Item("dark_oak_slab", builder()));
     public static final Item MANGROVE_SLAB = register(new Item("mangrove_slab", builder()));
     public static final Item BAMBOO_SLAB = register(new Item("bamboo_slab", builder()));
@@ -288,6 +299,7 @@ public final class Items {
     public static final Item BRICKS = register(new Item("bricks", builder()));
     public static final Item BOOKSHELF = register(new Item("bookshelf", builder()));
     public static final Item CHISELED_BOOKSHELF = register(new Item("chiseled_bookshelf", builder()));
+    public static final Item DECORATED_POT = register(new Item("decorated_pot", builder().stackSize(1)));
     public static final Item MOSSY_COBBLESTONE = register(new Item("mossy_cobblestone", builder()));
     public static final Item OBSIDIAN = register(new Item("obsidian", builder()));
     public static final Item TORCH = register(new Item("torch", builder()));
@@ -315,6 +327,7 @@ public final class Items {
     public static final Item BIRCH_FENCE = register(new Item("birch_fence", builder()));
     public static final Item JUNGLE_FENCE = register(new Item("jungle_fence", builder()));
     public static final Item ACACIA_FENCE = register(new Item("acacia_fence", builder()));
+    public static final Item CHERRY_FENCE = register(new Item("cherry_fence", builder()));
     public static final Item DARK_OAK_FENCE = register(new Item("dark_oak_fence", builder()));
     public static final Item MANGROVE_FENCE = register(new Item("mangrove_fence", builder()));
     public static final Item BAMBOO_FENCE = register(new Item("bamboo_fence", builder()));
@@ -386,6 +399,7 @@ public final class Items {
     public static final Item BIRCH_STAIRS = register(new Item("birch_stairs", builder()));
     public static final Item JUNGLE_STAIRS = register(new Item("jungle_stairs", builder()));
     public static final Item ACACIA_STAIRS = register(new Item("acacia_stairs", builder()));
+    public static final Item CHERRY_STAIRS = register(new Item("cherry_stairs", builder()));
     public static final Item DARK_OAK_STAIRS = register(new Item("dark_oak_stairs", builder()));
     public static final Item MANGROVE_STAIRS = register(new Item("mangrove_stairs", builder()));
     public static final Item BAMBOO_STAIRS = register(new Item("bamboo_stairs", builder()));
@@ -684,6 +698,7 @@ public final class Items {
     public static final Item BIRCH_BUTTON = register(new Item("birch_button", builder()));
     public static final Item JUNGLE_BUTTON = register(new Item("jungle_button", builder()));
     public static final Item ACACIA_BUTTON = register(new Item("acacia_button", builder()));
+    public static final Item CHERRY_BUTTON = register(new Item("cherry_button", builder()));
     public static final Item DARK_OAK_BUTTON = register(new Item("dark_oak_button", builder()));
     public static final Item MANGROVE_BUTTON = register(new Item("mangrove_button", builder()));
     public static final Item BAMBOO_BUTTON = register(new Item("bamboo_button", builder()));
@@ -698,6 +713,7 @@ public final class Items {
     public static final Item BIRCH_PRESSURE_PLATE = register(new Item("birch_pressure_plate", builder()));
     public static final Item JUNGLE_PRESSURE_PLATE = register(new Item("jungle_pressure_plate", builder()));
     public static final Item ACACIA_PRESSURE_PLATE = register(new Item("acacia_pressure_plate", builder()));
+    public static final Item CHERRY_PRESSURE_PLATE = register(new Item("cherry_pressure_plate", builder()));
     public static final Item DARK_OAK_PRESSURE_PLATE = register(new Item("dark_oak_pressure_plate", builder()));
     public static final Item MANGROVE_PRESSURE_PLATE = register(new Item("mangrove_pressure_plate", builder()));
     public static final Item BAMBOO_PRESSURE_PLATE = register(new Item("bamboo_pressure_plate", builder()));
@@ -709,6 +725,7 @@ public final class Items {
     public static final Item BIRCH_DOOR = register(new Item("birch_door", builder()));
     public static final Item JUNGLE_DOOR = register(new Item("jungle_door", builder()));
     public static final Item ACACIA_DOOR = register(new Item("acacia_door", builder()));
+    public static final Item CHERRY_DOOR = register(new Item("cherry_door", builder()));
     public static final Item DARK_OAK_DOOR = register(new Item("dark_oak_door", builder()));
     public static final Item MANGROVE_DOOR = register(new Item("mangrove_door", builder()));
     public static final Item BAMBOO_DOOR = register(new Item("bamboo_door", builder()));
@@ -720,6 +737,7 @@ public final class Items {
     public static final Item BIRCH_TRAPDOOR = register(new Item("birch_trapdoor", builder()));
     public static final Item JUNGLE_TRAPDOOR = register(new Item("jungle_trapdoor", builder()));
     public static final Item ACACIA_TRAPDOOR = register(new Item("acacia_trapdoor", builder()));
+    public static final Item CHERRY_TRAPDOOR = register(new Item("cherry_trapdoor", builder()));
     public static final Item DARK_OAK_TRAPDOOR = register(new Item("dark_oak_trapdoor", builder()));
     public static final Item MANGROVE_TRAPDOOR = register(new Item("mangrove_trapdoor", builder()));
     public static final Item BAMBOO_TRAPDOOR = register(new Item("bamboo_trapdoor", builder()));
@@ -730,6 +748,7 @@ public final class Items {
     public static final Item BIRCH_FENCE_GATE = register(new Item("birch_fence_gate", builder()));
     public static final Item JUNGLE_FENCE_GATE = register(new Item("jungle_fence_gate", builder()));
     public static final Item ACACIA_FENCE_GATE = register(new Item("acacia_fence_gate", builder()));
+    public static final Item CHERRY_FENCE_GATE = register(new Item("cherry_fence_gate", builder()));
     public static final Item DARK_OAK_FENCE_GATE = register(new Item("dark_oak_fence_gate", builder()));
     public static final Item MANGROVE_FENCE_GATE = register(new Item("mangrove_fence_gate", builder()));
     public static final Item BAMBOO_FENCE_GATE = register(new Item("bamboo_fence_gate", builder()));
@@ -758,6 +777,8 @@ public final class Items {
     public static final Item JUNGLE_CHEST_BOAT = register(new Item("jungle_chest_boat", builder().stackSize(1)));
     public static final Item ACACIA_BOAT = register(new Item("acacia_boat", builder().stackSize(1)));
     public static final Item ACACIA_CHEST_BOAT = register(new Item("acacia_chest_boat", builder().stackSize(1)));
+    public static final Item CHERRY_BOAT = register(new Item("cherry_boat", builder().stackSize(1)));
+    public static final Item CHERRY_CHEST_BOAT = register(new Item("cherry_chest_boat", builder().stackSize(1)));
     public static final Item DARK_OAK_BOAT = register(new Item("dark_oak_boat", builder().stackSize(1)));
     public static final Item DARK_OAK_CHEST_BOAT = register(new Item("dark_oak_chest_boat", builder().stackSize(1)));
     public static final Item MANGROVE_BOAT = register(new Item("mangrove_boat", builder().stackSize(1)));
@@ -861,6 +882,7 @@ public final class Items {
     public static final Item BIRCH_SIGN = register(new Item("birch_sign", builder().stackSize(16)));
     public static final Item JUNGLE_SIGN = register(new Item("jungle_sign", builder().stackSize(16)));
     public static final Item ACACIA_SIGN = register(new Item("acacia_sign", builder().stackSize(16)));
+    public static final Item CHERRY_SIGN = register(new Item("cherry_sign", builder().stackSize(16)));
     public static final Item DARK_OAK_SIGN = register(new Item("dark_oak_sign", builder().stackSize(16)));
     public static final Item MANGROVE_SIGN = register(new Item("mangrove_sign", builder().stackSize(16)));
     public static final Item BAMBOO_SIGN = register(new Item("bamboo_sign", builder().stackSize(16)));
@@ -871,6 +893,7 @@ public final class Items {
     public static final Item BIRCH_HANGING_SIGN = register(new Item("birch_hanging_sign", builder().stackSize(16)));
     public static final Item JUNGLE_HANGING_SIGN = register(new Item("jungle_hanging_sign", builder().stackSize(16)));
     public static final Item ACACIA_HANGING_SIGN = register(new Item("acacia_hanging_sign", builder().stackSize(16)));
+    public static final Item CHERRY_HANGING_SIGN = register(new Item("cherry_hanging_sign", builder().stackSize(16)));
     public static final Item DARK_OAK_HANGING_SIGN = register(new Item("dark_oak_hanging_sign", builder().stackSize(16)));
     public static final Item MANGROVE_HANGING_SIGN = register(new Item("mangrove_hanging_sign", builder().stackSize(16)));
     public static final Item BAMBOO_HANGING_SIGN = register(new Item("bamboo_hanging_sign", builder().stackSize(16)));
@@ -1028,6 +1051,7 @@ public final class Items {
     public static final SpawnEggItem SKELETON_SPAWN_EGG = register(new SpawnEggItem("skeleton_spawn_egg", builder()));
     public static final SpawnEggItem SKELETON_HORSE_SPAWN_EGG = register(new SpawnEggItem("skeleton_horse_spawn_egg", builder()));
     public static final SpawnEggItem SLIME_SPAWN_EGG = register(new SpawnEggItem("slime_spawn_egg", builder()));
+    public static final SpawnEggItem SNIFFER_SPAWN_EGG = register(new SpawnEggItem("sniffer_spawn_egg", builder()));
     public static final SpawnEggItem SNOW_GOLEM_SPAWN_EGG = register(new SpawnEggItem("snow_golem_spawn_egg", builder()));
     public static final SpawnEggItem SPIDER_SPAWN_EGG = register(new SpawnEggItem("spider_spawn_egg", builder()));
     public static final SpawnEggItem SQUID_SPAWN_EGG = register(new SpawnEggItem("squid_spawn_egg", builder()));
@@ -1113,6 +1137,7 @@ public final class Items {
     public static final Item END_CRYSTAL = register(new Item("end_crystal", builder()));
     public static final Item CHORUS_FRUIT = register(new Item("chorus_fruit", builder()));
     public static final Item POPPED_CHORUS_FRUIT = register(new Item("popped_chorus_fruit", builder()));
+    public static final Item TORCHFLOWER_SEEDS = register(new Item("torchflower_seeds", builder()));
     public static final Item BEETROOT = register(new Item("beetroot", builder()));
     public static final Item BEETROOT_SEEDS = register(new Item("beetroot_seeds", builder()));
     public static final Item BEETROOT_SOUP = register(new Item("beetroot_soup", builder().stackSize(1)));
@@ -1221,6 +1246,23 @@ public final class Items {
     public static final Item PEARLESCENT_FROGLIGHT = register(new Item("pearlescent_froglight", builder()));
     public static final Item FROGSPAWN = register(new Item("frogspawn", builder()));
     public static final Item ECHO_SHARD = register(new Item("echo_shard", builder()));
+    public static final Item BRUSH = register(new Item("brush", builder().stackSize(1).maxDamage(64)));
+    public static final Item NETHERITE_UPGRADE_SMITHING_TEMPLATE = register(new Item("netherite_upgrade_smithing_template", builder()));
+    public static final Item SENTRY_ARMOR_TRIM_SMITHING_TEMPLATE = register(new Item("sentry_armor_trim_smithing_template", builder()));
+    public static final Item DUNE_ARMOR_TRIM_SMITHING_TEMPLATE = register(new Item("dune_armor_trim_smithing_template", builder()));
+    public static final Item COAST_ARMOR_TRIM_SMITHING_TEMPLATE = register(new Item("coast_armor_trim_smithing_template", builder()));
+    public static final Item WILD_ARMOR_TRIM_SMITHING_TEMPLATE = register(new Item("wild_armor_trim_smithing_template", builder()));
+    public static final Item WARD_ARMOR_TRIM_SMITHING_TEMPLATE = register(new Item("ward_armor_trim_smithing_template", builder()));
+    public static final Item EYE_ARMOR_TRIM_SMITHING_TEMPLATE = register(new Item("eye_armor_trim_smithing_template", builder()));
+    public static final Item VEX_ARMOR_TRIM_SMITHING_TEMPLATE = register(new Item("vex_armor_trim_smithing_template", builder()));
+    public static final Item TIDE_ARMOR_TRIM_SMITHING_TEMPLATE = register(new Item("tide_armor_trim_smithing_template", builder()));
+    public static final Item SNOUT_ARMOR_TRIM_SMITHING_TEMPLATE = register(new Item("snout_armor_trim_smithing_template", builder()));
+    public static final Item RIB_ARMOR_TRIM_SMITHING_TEMPLATE = register(new Item("rib_armor_trim_smithing_template", builder()));
+    public static final Item SPIRE_ARMOR_TRIM_SMITHING_TEMPLATE = register(new Item("spire_armor_trim_smithing_template", builder()));
+    public static final Item POTTERY_SHARD_ARCHER = register(new Item("pottery_shard_archer", builder()));
+    public static final Item POTTERY_SHARD_PRIZE = register(new Item("pottery_shard_prize", builder()));
+    public static final Item POTTERY_SHARD_ARMS_UP = register(new Item("pottery_shard_arms_up", builder()));
+    public static final Item POTTERY_SHARD_SKULL = register(new Item("pottery_shard_skull", builder()));
 
     private static <T extends Item> T register(T item) {
         return register(item, Registries.JAVA_ITEMS.get().size());

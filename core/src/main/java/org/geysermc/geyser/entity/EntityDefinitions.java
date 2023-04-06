@@ -148,6 +148,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<AbstractSkeletonEntity> STRAY;
     public static final EntityDefinition<StriderEntity> STRIDER;
     public static final EntityDefinition<TadpoleEntity> TADPOLE;
+    public static final EntityDefinition<TextDisplayEntity> TEXT_DISPLAY;
     public static final EntityDefinition<TNTEntity> TNT;
     public static final EntityDefinition<MinecartEntity> TNT_MINECART;
     public static final EntityDefinition<TraderLlamaEntity> TRADER_LLAMA;
@@ -293,6 +294,28 @@ public final class EntityDefinitions {
                     .type(EntityType.TNT)
                     .heightAndWidth(0.98f)
                     .addTranslator(MetadataType.INT, TNTEntity::setFuseLength)
+                    .build();
+
+            EntityDefinition<Entity> displayBase = EntityDefinition.inherited(entityBase.factory(), entityBase)
+                    .addTranslator(null) // Interpolation start ticks
+                    .addTranslator(null) // Interpolation duration ID
+                    .addTranslator(null) // Translation
+                    .addTranslator(null) // Scale
+                    .addTranslator(null) // Left rotation
+                    .addTranslator(null) // Right rotation
+                    .addTranslator(null) // Billboard render constraints
+                    .addTranslator(null) // Brightness override
+                    .addTranslator(null) // View range
+                    .addTranslator(null) // Shadow radius
+                    .addTranslator(null) // Shadow strength
+                    .addTranslator(null) // Width
+                    .addTranslator(null) // Height
+                    .addTranslator(null) // Glow color override
+                    .build();
+            TEXT_DISPLAY = EntityDefinition.inherited(TextDisplayEntity::new, displayBase)
+                    .type(EntityType.TEXT_DISPLAY)
+                    .identifier("minecraft:armor_stand")
+                    .addTranslator(MetadataType.CHAT, TextDisplayEntity::setText)
                     .build();
 
             EntityDefinition<FireballEntity> fireballBase = EntityDefinition.inherited(FireballEntity::new, entityBase)
@@ -486,7 +509,7 @@ public final class EntityDefinitions {
             ENDERMAN = EntityDefinition.inherited(EndermanEntity::new, mobEntityBase)
                     .type(EntityType.ENDERMAN)
                     .height(2.9f).width(0.6f)
-                    .addTranslator(MetadataType.BLOCK_STATE, EndermanEntity::setCarriedBlock)
+                    .addTranslator(MetadataType.OPTIONAL_BLOCK_STATE, EndermanEntity::setCarriedBlock)
                     .addTranslator(MetadataType.BOOLEAN, EndermanEntity::setScreaming)
                     .addTranslator(MetadataType.BOOLEAN, EndermanEntity::setAngry)
                     .build();
@@ -858,7 +881,6 @@ public final class EntityDefinitions {
         {
             EntityDefinition<AbstractHorseEntity> abstractHorseEntityBase = EntityDefinition.inherited(AbstractHorseEntity::new, ageableEntityBase)
                     .addTranslator(MetadataType.BYTE, AbstractHorseEntity::setHorseFlags)
-                    .addTranslator(null) // UUID of owner
                     .build();
             CAMEL = EntityDefinition.inherited(CamelEntity::new, abstractHorseEntityBase)
                     .type(EntityType.CAMEL)

@@ -59,13 +59,13 @@ public final class GeyserPaperPingPassthrough implements IGeyserPingPassthrough 
             // runtime because we still have to shade in our own Adventure class. For now.
             PaperServerListPingEvent event;
             if (OLD_CONSTRUCTOR != null) {
-                // Approximately pre-1.19
+                // 1.19, removed in 1.19.4
                 event = OLD_CONSTRUCTOR.newInstance(new GeyserStatusClient(inetSocketAddress),
                         Bukkit.getMotd(), Bukkit.getOnlinePlayers().size(),
                         Bukkit.getMaxPlayers(), Bukkit.getVersion(), GameProtocol.getJavaProtocolVersion(), null);
             } else {
                 event = new PaperServerListPingEvent(new GeyserStatusClient(inetSocketAddress),
-                        Bukkit.getMotd(), Bukkit.shouldSendChatPreviews(), Bukkit.getOnlinePlayers().size(),
+                        Bukkit.getMotd(), Bukkit.getOnlinePlayers().size(),
                         Bukkit.getMaxPlayers(), Bukkit.getVersion(), GameProtocol.getJavaProtocolVersion(), null);
             }
             Bukkit.getPluginManager().callEvent(event);

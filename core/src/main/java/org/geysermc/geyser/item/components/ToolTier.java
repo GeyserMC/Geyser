@@ -43,7 +43,7 @@ public enum ToolTier {
     DIAMOND(8, () -> Collections.singleton(Items.DIAMOND)),
     NETHERITE(9, () -> Collections.singleton(Items.NETHERITE_INGOT));
 
-    public static final ToolTier[] VALUES = values();
+    private static final ToolTier[] VALUES = values();
 
     private final int speed;
     private final Supplier<Set<Item>> repairIngredients;

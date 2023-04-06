@@ -165,18 +165,14 @@ public class LoginEncryptionUtils {
             data.setOriginalString(clientData);
             session.setClientData(data);
 
-            if (EncryptionUtils.canUseEncryption()) {
-                try {
-                    LoginEncryptionUtils.startEncryptionHandshake(session, identityPublicKey);
-                } catch (Throwable e) {
-                    // An error can be thrown on older Java 8 versions about an invalid key
-                    if (geyser.getConfig().isDebugMode()) {
-                        e.printStackTrace();
-                    }
-
-                    sendEncryptionFailedMessage(geyser);
+            try {
+                LoginEncryptionUtils.startEncryptionHandshake(session, identityPublicKey);
+            } catch (Throwable e) {
+                // An error can be thrown on older Java 8 versions about an invalid key
+                if (geyser.getConfig().isDebugMode()) {
+                    e.printStackTrace();
                 }
-            } else {
+
                 sendEncryptionFailedMessage(geyser);
             }
         } catch (Exception ex) {

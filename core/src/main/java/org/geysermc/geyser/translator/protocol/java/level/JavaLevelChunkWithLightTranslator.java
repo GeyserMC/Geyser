@@ -35,11 +35,6 @@ import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelChunkWithLightPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NBTOutputStream;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtUtils;
-import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
@@ -48,6 +43,13 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NBTOutputStream;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtUtils;
+import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
+import org.geysermc.erosion.util.LecternUtils;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.block.BlockStateValues;
@@ -94,6 +96,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
         final BlockEntityInfo[] blockEntities = packet.getBlockEntities();
         final List<NbtMap> bedrockBlockEntities = new ObjectArrayList<>(blockEntities.length);
+        final List<BlockEntityInfo> lecterns = new ObjectArrayList<>();
 
         BitSet waterloggedPaletteIds = new BitSet();
         BitSet bedrockOnlyBlockEntityIds = new BitSet();
@@ -239,7 +242,9 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                 sections[bedrockSectionY] = new GeyserChunkSection(layers);
             }
 
-            session.getChunkCache().addToCache(packet.getX(), packet.getZ(), javaChunks);
+            if (!session.getErosionHandler().isActive()) {
+                session.getChunkCache().addToCache(packet.getX(), packet.getZ(), javaChunks);
+            }
 
             final int chunkBlockX = packet.getX() << 4;
             final int chunkBlockZ = packet.getZ() << 4;
@@ -261,8 +266,15 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
                 if (type == BlockEntityType.LECTERN && BlockStateValues.getLecternBookStates().get(blockState)) {
                     // If getLecternBookStates is false, let's just treat it like a normal block entity
-                    bedrockBlockEntities.add(session.getGeyser().getWorldManager().getLecternDataAt(
-                            session, x + chunkBlockX, y, z + chunkBlockZ, true));
+                    // Fill in tag with a default value
+                    NbtMapBuilder lecternTag = LecternUtils.getBaseLecternTag(x + chunkBlockX, y, z + chunkBlockZ, 1);
+                    lecternTag.putCompound("book", NbtMap.builder()
+                                    .putByte("Count", (byte) 1)
+                                    .putShort("Damage", (short) 0)
+                                    .putString("Name", "minecraft:written_book").build());
+                    lecternTag.putInt("page", -1);
+                    bedrockBlockEntities.add(lecternTag.build());
+                    lecterns.add(blockEntity);
                     continue;
                 }
 
@@ -352,6 +364,10 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         levelChunkPacket.setChunkZ(packet.getZ());
         levelChunkPacket.setData(byteBuf.retain());
         session.sendUpstreamPacket(levelChunkPacket);
+
+        if (!lecterns.isEmpty()) {
+            session.getGeyser().getWorldManager().sendLecternData(session, packet.getX(), packet.getZ(), lecterns);
+        }
 
         for (Map.Entry<Vector3i, ItemFrameEntity> entry : session.getItemFrameCache().entrySet()) {
             Vector3i position = entry.getKey();

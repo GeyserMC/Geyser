@@ -91,7 +91,7 @@ public class WebUtils {
             InputStream in = con.getInputStream();
             Files.copy(in, Paths.get(fileLocation), StandardCopyOption.REPLACE_EXISTING);
         } catch (Exception e) {
-            throw new AssertionError("Unable to download and save file: " + fileLocation + " (" + reqURL + ")", e);
+            throw new RuntimeException("Unable to download and save file: " + fileLocation + " (" + reqURL + ")", e);
         }
     }
 

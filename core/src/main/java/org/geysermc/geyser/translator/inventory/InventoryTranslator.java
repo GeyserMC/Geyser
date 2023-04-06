@@ -92,7 +92,7 @@ public abstract class InventoryTranslator {
             put(ContainerType.LOOM, new LoomInventoryTranslator());
             put(ContainerType.MERCHANT, new MerchantInventoryTranslator());
             put(ContainerType.SHULKER_BOX, new ShulkerInventoryTranslator());
-            put(ContainerType.SMITHING, new SmithingInventoryTranslator());
+            put(ContainerType.LEGACY_SMITHING, new SmithingInventoryTranslator());
             put(ContainerType.STONECUTTER, new StonecutterInventoryTranslator());
 
             /* Lectern */

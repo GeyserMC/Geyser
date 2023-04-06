@@ -62,8 +62,10 @@ public class BedrockEntityPickRequestTranslator extends PacketTranslator<EntityP
                     case 2 -> "birch";
                     case 3 -> "jungle";
                     case 4 -> "acacia";
-                    case 5 -> "dark_oak";
-                    case 6 -> "mangrove";
+                    //case 5 -> "cherry"; TODO
+                    case 6 -> "dark_oak";
+                    case 7 -> "mangrove";
+                    //case 8 -> "bamboo";
                     default -> "oak";
                 };
                 itemName = typeOfBoat + "_" + entity.getDefinition().entityType().name().toLowerCase(Locale.ROOT);

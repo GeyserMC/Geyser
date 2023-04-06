@@ -26,7 +26,6 @@
 package org.geysermc.geyser.registry.type;
 
 import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
-import org.cloudburstmc.protocol.bedrock.data.ParticleType;
 
 import javax.annotation.ParametersAreNullableByDefault;
 

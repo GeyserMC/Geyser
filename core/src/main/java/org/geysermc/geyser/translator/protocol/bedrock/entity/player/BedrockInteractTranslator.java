@@ -80,21 +80,23 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 session.sendDownstreamPacket(sneakPacket);
 
                 Entity currentVehicle = session.getPlayerEntity().getVehicle();
-                session.setMountVehicleScheduledFuture(session.scheduleInEventLoop(() -> {
-                    if (session.getPlayerEntity().getVehicle() == null) {
-                        return;
-                    }
+                if (currentVehicle != null) {
+                    session.setMountVehicleScheduledFuture(session.scheduleInEventLoop(() -> {
+                        if (session.getPlayerEntity().getVehicle() == null) {
+                            return;
+                        }
 
-                    long vehicleBedrockId = currentVehicle.getGeyserId();
-                    if (session.getPlayerEntity().getVehicle().getGeyserId() == vehicleBedrockId) {
-                        // The Bedrock client, as of 1.19.51, dismounts on its end. The server may not agree with this.
-                        // If the server doesn't agree with our dismount (sends a packet saying we dismounted),
-                        // then remount the player.
-                        SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
-                        linkPacket.setEntityLink(new EntityLinkData(vehicleBedrockId, session.getPlayerEntity().getGeyserId(), EntityLinkData.Type.PASSENGER, true, false));
-                        session.sendUpstreamPacket(linkPacket);
-                    }
-                }, 1, TimeUnit.SECONDS));
+                        long vehicleBedrockId = currentVehicle.getGeyserId();
+                        if (session.getPlayerEntity().getVehicle().getGeyserId() == vehicleBedrockId) {
+                            // The Bedrock client, as of 1.19.51, dismounts on its end. The server may not agree with this.
+                            // If the server doesn't agree with our dismount (sends a packet saying we dismounted),
+                            // then remount the player.
+                            SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
+                            linkPacket.setEntityLink(new EntityLinkData(vehicleBedrockId, session.getPlayerEntity().getGeyserId(), EntityLinkData.Type.PASSENGER, true, false));
+                            session.sendUpstreamPacket(linkPacket);
+                        }
+                    }, 1, TimeUnit.SECONDS));
+                }
                 break;
             case MOUSEOVER:
                 // Handle the buttons for mobile - "Mount", etc; and the suggestions for console - "ZL: Mount", etc

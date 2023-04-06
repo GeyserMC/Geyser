@@ -91,6 +91,16 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
                 EntityUtils.updateMountOffset(passenger, entity, false, false, (packet.getPassengerIds().length > 1));
                 // Force an update to the passenger metadata
                 passenger.updateBedrockMetadata();
+
+                if (passenger == session.getPlayerEntity()) {
+                    //TODO test
+                    if (session.getMountVehicleScheduledFuture() != null) {
+                        // Cancel this task as it is now unnecessary.
+                        // Note that this isn't present in JavaSetPassengersTranslator as that code is not called for players
+                        // as of Java 1.19.3, but the scheduled future checks for the vehicle being null anyway.
+                        session.getMountVehicleScheduledFuture().cancel(false);
+                    }
+                }
             }
         }
 

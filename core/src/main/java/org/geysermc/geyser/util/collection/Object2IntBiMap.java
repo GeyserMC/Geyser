@@ -40,7 +40,7 @@ import java.util.Objects;
 /**
  * A primitive int BiMap implementation built around fastutil to
  * reduce boxing and the memory footprint. Protocol has a
- * {@link com.nukkitx.protocol.util.Int2ObjectBiMap} class, but it
+ * {@link org.cloudburstmc.protocol.common.util.Int2ObjectBiMap} class, but it
  * does not extend the Map interface making it difficult to utilize
  * it in for loops and the registry system.
  *
