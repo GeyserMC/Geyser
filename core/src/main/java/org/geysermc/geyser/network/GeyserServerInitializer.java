@@ -43,6 +43,7 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
         this.geyser = geyser;
     }
 
+    //TODO
     /*
     @Override
     public boolean onConnectionRequest(InetSocketAddress inetSocketAddress) {
