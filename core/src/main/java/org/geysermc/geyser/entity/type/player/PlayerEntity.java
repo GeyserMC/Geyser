@@ -38,20 +38,12 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.protocol.bedrock.data.Ability;
-import org.cloudburstmc.protocol.bedrock.data.AbilityLayer;
-import org.cloudburstmc.protocol.bedrock.data.AttributeData;
-import org.cloudburstmc.protocol.bedrock.data.GameType;
-import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
+import org.cloudburstmc.protocol.bedrock.data.*;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
-import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
-import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
-import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
-import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
-import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
@@ -62,6 +54,7 @@ import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.scoreboard.UpdateType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.ChunkUtils;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -248,8 +241,25 @@ public class PlayerEntity extends LivingEntity {
     @Override
     public Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
         bedPosition = super.setBedPosition(entityMetadata);
-        // Fixes https://github.com/GeyserMC/Geyser/issues/3595 on vanilla 1.19.3 servers - did not happen on Paper
-        entityMetadata.getValue().ifPresent(pos -> this.setPosition(pos.toFloat()));
+        if (bedPosition != null) {
+            // Required to sync position of entity to bed
+            // Fixes https://github.com/GeyserMC/Geyser/issues/3595 on vanilla 1.19.3 servers - did not happen on Paper
+            this.setPosition(bedPosition.toFloat());
+
+            // TODO evaluate if needed
+            int bed = session.getGeyser().getWorldManager().getBlockAt(session, bedPosition);
+            // Bed has to be updated, or else player is floating in the air
+            ChunkUtils.updateBlock(session, bed, bedPosition);
+
+            // Indicate that the player should enter the sleep cycle
+            // Has to be a byte or it does not work
+            // (Bed position is what actually triggers sleep - "pose" is only optional)
+            dirtyMetadata.put(EntityDataTypes.PLAYER_FLAGS, (byte) 2);
+        } else {
+            // Player is no longer sleeping
+            dirtyMetadata.put(EntityDataTypes.PLAYER_FLAGS, (byte) 0);
+            return null;
+        }
         return bedPosition;
     }
 

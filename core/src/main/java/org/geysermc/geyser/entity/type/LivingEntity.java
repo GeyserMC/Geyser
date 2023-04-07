@@ -56,7 +56,6 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.AttributeUtils;
-import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.InteractionResult;
 
 import java.util.*;
@@ -127,17 +126,8 @@ public class LivingEntity extends Entity {
         if (optionalPos.isPresent()) {
             Vector3i bedPosition = optionalPos.get();
             dirtyMetadata.put(EntityDataTypes.BED_POSITION, bedPosition);
-            int bed = session.getGeyser().getWorldManager().getBlockAt(session, bedPosition);
-            // Bed has to be updated, or else player is floating in the air
-            ChunkUtils.updateBlock(session, bed, bedPosition);
-            // Indicate that the player should enter the sleep cycle
-            // Has to be a byte or it does not work
-            // (Bed position is what actually triggers sleep - "pose" is only optional)
-            dirtyMetadata.put(EntityDataTypes.PLAYER_FLAGS, (byte) 2);
             return bedPosition;
         } else {
-            // Player is no longer sleeping
-            dirtyMetadata.put(EntityDataTypes.PLAYER_FLAGS, (byte) 0);
             return null;
         }
     }

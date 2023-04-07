@@ -138,7 +138,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                         int xzy = indexYZXtoXZY(yzx);
                         section.getBlockStorageArray()[0].setFullBlock(xzy, bedrockId);
 
-                        if (BlockRegistries.WATERLOGGED.get().contains(javaId)) {
+                        if (BlockRegistries.WATERLOGGED.get().get(javaId)) {
                             section.getBlockStorageArray()[1].setFullBlock(xzy, session.getBlockMappings().getBedrockWater().getRuntimeId());
                         }
 
@@ -160,7 +160,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     int bedrockId = session.getBlockMappings().getBedrockBlockId(javaId);
                     BlockStorage blockStorage = new BlockStorage(SingletonBitArray.INSTANCE, IntLists.singleton(bedrockId));
 
-                    if (BlockRegistries.WATERLOGGED.get().contains(javaId)) {
+                    if (BlockRegistries.WATERLOGGED.get().get(javaId)) {
                         BlockStorage waterlogged = new BlockStorage(SingletonBitArray.INSTANCE, IntLists.singleton(session.getBlockMappings().getBedrockWater()));
                         sections[bedrockSectionY] = new GeyserChunkSection(new BlockStorage[] {blockStorage, waterlogged});
                     } else {
@@ -179,7 +179,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     int javaId = javaPalette.idToState(i);
                     bedrockPalette.add(session.getBlockMappings().getBedrockBlockId(javaId));
 
-                    if (BlockRegistries.WATERLOGGED.get().contains(javaId)) {
+                    if (BlockRegistries.WATERLOGGED.get().get(javaId)) {
                         waterloggedPaletteIds.set(i);
                     }
 

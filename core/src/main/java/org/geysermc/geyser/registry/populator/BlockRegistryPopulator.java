@@ -28,8 +28,6 @@ package org.geysermc.geyser.registry.populator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableMap;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.*;
 import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.protocol.bedrock.codec.v544.Bedrock_v544;
@@ -160,7 +158,7 @@ public final class BlockRegistryPopulator {
 
                 if (waterlogged) {
                     int finalJavaRuntimeId = javaRuntimeId;
-                    BlockRegistries.WATERLOGGED.register(set -> set.add(finalJavaRuntimeId));
+                    BlockRegistries.WATERLOGGED.register(set -> set.set(finalJavaRuntimeId));
                 }
 
                 String cleanJavaIdentifier = BlockUtils.getCleanIdentifier(entry.getKey());
@@ -296,7 +294,7 @@ public final class BlockRegistryPopulator {
             builder.javaIdentifier(javaId);
             builder.javaBlockId(uniqueJavaId);
 
-            BlockRegistries.JAVA_IDENTIFIERS.register(javaId, javaRuntimeId);
+            BlockRegistries.JAVA_IDENTIFIER_TO_ID.register(javaId, javaRuntimeId);
             BlockRegistries.JAVA_BLOCKS.register(javaRuntimeId, builder.build());
 
             // Keeping this here since this is currently unchanged between versions
@@ -375,10 +373,10 @@ public final class BlockRegistryPopulator {
         BlockRegistries.INTERACTIVE_MAY_BUILD.set(toBlockStateSet((ArrayNode) blockInteractionsJson.get("requires_may_build")));
     }
 
-    private static IntSet toBlockStateSet(ArrayNode node) {
-        IntSet blockStateSet = new IntOpenHashSet(node.size());
+    private static BitSet toBlockStateSet(ArrayNode node) {
+        BitSet blockStateSet = new BitSet(node.size());
         for (JsonNode javaIdentifier : node) {
-            blockStateSet.add(BlockRegistries.JAVA_IDENTIFIERS.get().getInt(javaIdentifier.textValue()));
+            blockStateSet.set(BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().getInt(javaIdentifier.textValue()));
         }
         return blockStateSet;
     }
@@ -392,8 +390,9 @@ public final class BlockRegistryPopulator {
         NbtMapBuilder statesBuilder = NbtMap.builder();
 
         // check for states
-        if (node.has("bedrock_states")) {
-            Iterator<Map.Entry<String, JsonNode>> statesIterator = node.get("bedrock_states").fields();
+        JsonNode states = node.get("bedrock_states");
+        if (states != null) {
+            Iterator<Map.Entry<String, JsonNode>> statesIterator = states.fields();
 
             while (statesIterator.hasNext()) {
                 Map.Entry<String, JsonNode> stateEntry = statesIterator.next();

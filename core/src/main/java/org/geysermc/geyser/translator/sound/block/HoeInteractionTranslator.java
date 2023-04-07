@@ -44,7 +44,7 @@ public class HoeInteractionTranslator implements BlockSoundInteractionTranslator
         levelSoundEventPacket.setRelativeVolumeDisabled(false);
         levelSoundEventPacket.setIdentifier(":");
         levelSoundEventPacket.setSound(SoundEvent.ITEM_USE_ON);
-        levelSoundEventPacket.setExtraData(session.getBlockMappings().getBedrockBlockId(BlockRegistries.JAVA_IDENTIFIERS.get(identifier)));
+        levelSoundEventPacket.setExtraData(session.getBlockMappings().getBedrockBlockId(BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().getInt(identifier)));
         session.sendUpstreamPacket(levelSoundEventPacket);
     }
 }

@@ -27,7 +27,6 @@ package org.geysermc.geyser.network.netty;
 
 import com.github.steveice10.packetlib.helper.TransportHelper;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
@@ -54,7 +53,8 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
-import java.util.function.Function;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.IntFunction;
 
 public final class GeyserServer {
     private static final boolean PRINT_DEBUG_PINGS = Boolean.parseBoolean(System.getProperty("Geyser.PrintPingsInDebugMode", "true"));
@@ -76,7 +76,6 @@ public final class GeyserServer {
     private final ServerBootstrap bootstrap;
 
     private ChannelFuture future;
-    private Channel channel;
 
     public GeyserServer(GeyserImpl geyser, int threadCount) {
         this.geyser = geyser;
@@ -85,12 +84,19 @@ public final class GeyserServer {
         this.bootstrap = this.createBootstrap(this.group);
     }
 
-    public void bind(InetSocketAddress address) {
-        this.future = this.bootstrap.bind(address).syncUninterruptibly();
-        this.channel = this.future.channel();
+    public CompletableFuture<Void> bind(InetSocketAddress address) {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        this.future = this.bootstrap.bind(address).addListener(bindResult -> {
+            if (bindResult.cause() != null) {
+                future.completeExceptionally(bindResult.cause());
+                return;
+            }
+            future.complete(null);
+        });
 
         // Add our ping handler
-        this.channel.pipeline().addAfter(RakServerOfflineHandler.NAME, RakPingHandler.NAME, new RakPingHandler(this));
+        this.future.channel().pipeline().addAfter(RakServerOfflineHandler.NAME, RakPingHandler.NAME, new RakPingHandler(this));
+        return future;
     }
 
     public void shutdown() {
@@ -219,6 +225,6 @@ public final class GeyserServer {
         return new Transport(NioDatagramChannel.class, NioEventLoopGroup::new);
     }
 
-    private record Transport(Class<? extends DatagramChannel> datagramChannel, Function<Integer, EventLoopGroup> eventLoopGroupFactory) {
+    private record Transport(Class<? extends DatagramChannel> datagramChannel, IntFunction<EventLoopGroup> eventLoopGroupFactory) {
     }
 }

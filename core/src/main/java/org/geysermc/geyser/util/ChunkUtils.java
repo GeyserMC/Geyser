@@ -150,7 +150,7 @@ public class ChunkUtils {
             UpdateBlockPacket waterPacket = new UpdateBlockPacket();
             waterPacket.setDataLayer(1);
             waterPacket.setBlockPosition(position);
-            if (BlockRegistries.WATERLOGGED.get().contains(blockState)) {
+            if (BlockRegistries.WATERLOGGED.get().get(blockState)) {
                 waterPacket.setDefinition(session.getBlockMappings().getBedrockWater());
             } else {
                 waterPacket.setDefinition(session.getBlockMappings().getBedrockAir());

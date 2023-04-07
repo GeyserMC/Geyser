@@ -39,6 +39,7 @@ import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.DoubleChestValue;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.block.entity.DoubleChestBlockEntityTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
@@ -48,7 +49,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
 
     public DoubleChestInventoryTranslator(int size) {
         super(size, 54);
-        this.defaultJavaBlockState = BlockRegistries.JAVA_IDENTIFIERS.get("minecraft:chest[facing=north,type=single,waterlogged=false]");
+        this.defaultJavaBlockState = BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().getInt("minecraft:chest[facing=north,type=single,waterlogged=false]");
     }
 
     @Override
@@ -56,7 +57,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         // See BlockInventoryHolder - same concept there except we're also dealing with a specific block state
         if (session.getLastInteractionPlayerPosition().equals(session.getPlayerEntity().getPosition())) {
             int javaBlockId = session.getGeyser().getWorldManager().getBlockAt(session, session.getLastInteractionBlockPosition());
-            String[] javaBlockString = BlockRegistries.JAVA_IDENTIFIERS.get().getOrDefault(javaBlockId, "minecraft:air").split("\\[");
+            String[] javaBlockString = BlockRegistries.JAVA_BLOCKS.getOrDefault(javaBlockId, BlockMapping.AIR).getJavaIdentifier().split("\\[");
             if (javaBlockString.length > 1 && (javaBlockString[0].equals("minecraft:chest") || javaBlockString[0].equals("minecraft:trapped_chest"))
                     && !javaBlockString[1].contains("type=single")) {
                 inventory.setHolderPosition(session.getLastInteractionBlockPosition());

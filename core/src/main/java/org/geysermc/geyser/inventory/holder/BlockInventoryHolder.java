@@ -35,6 +35,7 @@ import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.util.BlockUtils;
@@ -57,7 +58,7 @@ public class BlockInventoryHolder extends InventoryHolder {
     private final Set<String> validBlocks;
 
     public BlockInventoryHolder(String javaBlockIdentifier, ContainerType containerType, String... validBlocks) {
-        this.defaultJavaBlockState = BlockRegistries.JAVA_IDENTIFIERS.get(javaBlockIdentifier);
+        this.defaultJavaBlockState = BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().getInt(javaBlockIdentifier);
         this.containerType = containerType;
         if (validBlocks != null) {
             Set<String> validBlocksTemp = new HashSet<>(validBlocks.length + 1);
@@ -77,7 +78,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         if (checkInteractionPosition(session)) {
             // Then, check to see if the interacted block is valid for this inventory by ensuring the block state identifier is valid
             int javaBlockId = session.getGeyser().getWorldManager().getBlockAt(session, session.getLastInteractionBlockPosition());
-            String[] javaBlockString = BlockRegistries.JAVA_IDENTIFIERS.get().getOrDefault(javaBlockId, "minecraft:air").split("\\[");
+            String[] javaBlockString = BlockRegistries.JAVA_BLOCKS.getOrDefault(javaBlockId, BlockMapping.AIR).getJavaIdentifier().split("\\[");
             if (isValidBlock(javaBlockString)) {
                 // We can safely use this block
                 inventory.setHolderPosition(session.getLastInteractionBlockPosition());

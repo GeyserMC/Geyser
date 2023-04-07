@@ -27,14 +27,15 @@ package org.geysermc.geyser.entity.type.living.merchant;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.VillagerData;
+import lombok.Getter;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
-import lombok.Getter;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Optional;
@@ -117,7 +118,7 @@ public class VillagerEntity extends AbstractMerchantEntity {
         
         // The bed block
         int blockId = session.getGeyser().getWorldManager().getBlockAt(session, bedPosition);
-        String fullIdentifier = BlockRegistries.JAVA_IDENTIFIERS.get().get(blockId);
+        String fullIdentifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(blockId, BlockMapping.AIR).getJavaIdentifier();
 
         // Set the correct position offset and rotation when sleeping
         int bedRotation = 0;
