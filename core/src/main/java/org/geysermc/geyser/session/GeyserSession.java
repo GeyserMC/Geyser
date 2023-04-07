@@ -33,7 +33,6 @@ import com.github.steveice10.mc.auth.service.MojangAuthenticationService;
 import com.github.steveice10.mc.auth.service.MsaAuthenticationService;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
-import com.github.steveice10.mc.protocol.codec.MinecraftCodecHelper;
 import com.github.steveice10.mc.protocol.data.ProtocolState;
 import com.github.steveice10.mc.protocol.data.UnexpectedEncryptionException;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
@@ -1855,10 +1854,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             case SLEEPING -> 0.2f;
             default -> EntityDefinitions.PLAYER.offset();
         };
-    }
-
-    public MinecraftCodecHelper getCodecHelper() {
-        return (MinecraftCodecHelper) this.downstream.getCodecHelper();
     }
 
     @Override
