@@ -28,6 +28,8 @@ package org.geysermc.geyser.registry.populator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import it.unimi.dsi.fastutil.objects.*;
 import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.protocol.bedrock.codec.v544.Bedrock_v544;
@@ -84,10 +86,14 @@ public final class BlockRegistryPopulator {
                 })
                 .build();
 
+        // We can keep this strong as nothing should be garbage collected
+        // Safe to intern since Cloudburst NBT is immutable
+        Interner<NbtMap> statesInterner = Interners.newStrongInterner();
+
         for (Map.Entry<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> palette : blockMappers.entrySet()) {
             NbtList<NbtMap> blocksTag;
             try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource(String.format("bedrock/block_palette.%s.nbt", palette.getKey().key()));
-                 NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(new GZIPInputStream(stream)))) {
+                 NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(new GZIPInputStream(stream)), true, true)) {
                 NbtMap blockPalette = (NbtMap) nbtInputStream.readTag();
                 blocksTag = (NbtList<NbtMap>) blockPalette.getList("blocks", NbtType.COMPOUND);
             } catch (Exception e) {
@@ -102,6 +108,7 @@ public final class BlockRegistryPopulator {
             for (int i = 0; i < blocksTag.size(); i++) {
                 NbtMapBuilder builder = blocksTag.get(i).toBuilder();
                 builder.remove("name_hash"); // Quick workaround - was added in 1.19.20
+                builder.putCompound("states", statesInterner.intern((NbtMap) builder.remove("states")));
                 NbtMap tag = builder.build();
                 if (blockStateOrderedMap.containsKey(tag)) {
                     throw new AssertionError("Duplicate block states in Bedrock palette: " + tag);

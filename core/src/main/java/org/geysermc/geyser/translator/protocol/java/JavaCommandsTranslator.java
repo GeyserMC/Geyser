@@ -172,7 +172,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             LinkedHashMap<String, Set<CommandEnumConstraint>> values = new LinkedHashMap<>();
             // Is this right?
             for (String s : entry.getValue()) {
-                values.put(s, Set.of(CommandEnumConstraint.ALLOW_ALIASES));
+                values.put(s, EnumSet.of(CommandEnumConstraint.ALLOW_ALIASES));
             }
 
             // Create a basic alias
