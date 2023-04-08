@@ -31,6 +31,7 @@ import org.geysermc.geyser.util.AssetUtils;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.WebUtils;
 
+import javax.annotation.Nullable;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.HashMap;
@@ -206,6 +207,23 @@ public class MinecraftLocale {
         }
 
         return localeStrings.getOrDefault(messageText, messageText);
+    }
+
+    /**
+     * Translate the given language string into the given locale, or returns null.
+     *
+     * @param messageText Language string to translate
+     * @param locale Locale to translate to
+     * @return Translated string or null if it was not found in the given locale
+     */
+    @Nullable
+    public static String getLocaleStringIfPresent(String messageText, String locale) {
+        Map<String, String> localeStrings = LOCALE_MAPPINGS.get(locale.toLowerCase(Locale.ROOT));
+        if (localeStrings != null) {
+            return localeStrings.get(messageText);
+        }
+
+        return null;
     }
 
     /**

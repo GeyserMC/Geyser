@@ -45,7 +45,11 @@ public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<
     @Override
     public @Nullable MessageFormat translate(@Nonnull String key, @Nonnull String locale) {
         // Get the locale string
-        String localeString = MinecraftLocale.getLocaleString(key, locale);
+        String localeString = MinecraftLocale.getLocaleStringIfPresent(key, locale);
+        if (localeString == null) {
+            // Allow fallback components to take priority
+            return null;
+        }
 
         // Replace the `%s` with numbered inserts `{0}`
         Pattern p = stringReplacement;
