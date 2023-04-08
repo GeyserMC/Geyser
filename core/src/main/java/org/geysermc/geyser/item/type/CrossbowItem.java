@@ -39,8 +39,8 @@ public class CrossbowItem extends Item {
     }
 
     @Override
-    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
-        super.translateNbtToBedrock(session, tag, mapping);
+    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag) {
+        super.translateNbtToBedrock(session, tag);
 
         ListTag chargedProjectiles = tag.get("ChargedProjectiles");
         if (chargedProjectiles != null) {
@@ -50,7 +50,7 @@ public class CrossbowItem extends Item {
                 ItemMapping projectileMapping = session.getItemMappings().getMapping((String) projectile.get("id").getValue());
                 if (projectileMapping == null) return;
                 CompoundTag projectileTag = projectile.get("tag");
-                ItemStack itemStack = new ItemStack(mapping.getJavaItem().javaId(), (byte) projectile.get("Count").getValue(), projectileTag);
+                ItemStack itemStack = new ItemStack(projectileMapping.getJavaItem().javaId(), (byte) projectile.get("Count").getValue(), projectileTag);
                 ItemData itemData = ItemTranslator.translateToBedrock(session, itemStack);
 
                 CompoundTag newProjectile = new CompoundTag("chargedItem");

@@ -35,8 +35,8 @@ public class MapItem extends Item {
     }
 
     @Override
-    public void translateNbtToBedrock(GeyserSession session, CompoundTag tag, ItemMapping mapping) {
-        super.translateNbtToBedrock(session, tag, mapping);
+    public void translateNbtToBedrock(GeyserSession session, CompoundTag tag) {
+        super.translateNbtToBedrock(session, tag);
 
         Tag mapId = tag.remove("map");
         if (mapId == null || !(mapId.getValue() instanceof Number number)) return;

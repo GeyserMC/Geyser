@@ -112,7 +112,7 @@ public final class ItemTranslator {
         CompoundTag nbt = tag != null ? tag.clone() : null;
 
         if (nbt != null) {
-            javaItem.translateNbtToBedrock(session, nbt, bedrockItem);
+            javaItem.translateNbtToBedrock(session, nbt);
         }
 
         nbt = translateDisplayProperties(session, nbt, bedrockItem);

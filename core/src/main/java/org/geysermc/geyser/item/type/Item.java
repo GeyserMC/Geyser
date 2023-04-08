@@ -114,7 +114,7 @@ public class Item {
     /**
      * Takes NBT from Java Edition and converts any value that Bedrock parses differently.
      */
-    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
+    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag) {
         if (tag.get("display") instanceof CompoundTag displayTag) {
             if (displayTag.get("Lore") instanceof ListTag listTag) {
                 List<Tag> lore = new ArrayList<>();

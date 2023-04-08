@@ -121,8 +121,8 @@ public class BannerItem extends BlockItem {
     }
 
     @Override
-    public void translateNbtToBedrock(@NotNull GeyserSession session, @NotNull CompoundTag tag, @NotNull ItemMapping mapping) {
-        super.translateNbtToBedrock(session, tag, mapping);
+    public void translateNbtToBedrock(@NotNull GeyserSession session, @NotNull CompoundTag tag) {
+        super.translateNbtToBedrock(session, tag);
 
         CompoundTag blockEntityTag = tag.remove("BlockEntityTag");
         if (blockEntityTag != null && blockEntityTag.get("Patterns") instanceof ListTag patterns) {

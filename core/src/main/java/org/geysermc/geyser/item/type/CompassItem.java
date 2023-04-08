@@ -57,8 +57,8 @@ public class CompassItem extends Item {
     }
 
     @Override
-    public void translateNbtToBedrock(GeyserSession session, CompoundTag tag, ItemMapping mapping) {
-        super.translateNbtToBedrock(session, tag, mapping);
+    public void translateNbtToBedrock(GeyserSession session, CompoundTag tag) {
+        super.translateNbtToBedrock(session, tag);
 
         Tag lodestoneTag = tag.get("LodestoneTracked");
         if (lodestoneTag instanceof ByteTag) {

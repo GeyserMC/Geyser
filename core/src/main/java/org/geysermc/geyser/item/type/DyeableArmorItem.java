@@ -38,8 +38,8 @@ public class DyeableArmorItem extends ArmorItem implements DyeableLeatherItem {
     }
 
     @Override
-    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
-        super.translateNbtToBedrock(session, tag, mapping);
+    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag) {
+        super.translateNbtToBedrock(session, tag);
 
         DyeableLeatherItem.translateNbtToBedrock(tag);
     }

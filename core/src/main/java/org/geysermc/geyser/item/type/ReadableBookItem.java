@@ -46,8 +46,8 @@ public class ReadableBookItem extends Item {
     }
 
     @Override
-    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
-        super.translateNbtToBedrock(session, tag, mapping);
+    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag) {
+        super.translateNbtToBedrock(session, tag);
 
         ListTag pagesTag = tag.remove("pages");
         if (pagesTag == null) {

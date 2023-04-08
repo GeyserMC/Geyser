@@ -28,7 +28,6 @@ package org.geysermc.geyser.item.type;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
-import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 
 public class FishingRodItem extends Item {
@@ -37,8 +36,8 @@ public class FishingRodItem extends Item {
     }
 
     @Override
-    public void translateNbtToBedrock(GeyserSession session, CompoundTag tag, ItemMapping mapping) {
-        super.translateNbtToBedrock(session, tag, mapping);
+    public void translateNbtToBedrock(GeyserSession session, CompoundTag tag) {
+        super.translateNbtToBedrock(session, tag);
 
         // Fix damage inconsistency
         Tag damage = tag.get("Damage");
