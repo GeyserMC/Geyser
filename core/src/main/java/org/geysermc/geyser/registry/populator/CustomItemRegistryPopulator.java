@@ -134,7 +134,6 @@ public class CustomItemRegistryPopulator {
                 .stackSize(customItemData.stackSize())
                 .maxDamage(customItemData.maxDamage());
         Item item = new Item(customIdentifier, itemBuilder) {
-            // TODO ?
             @Override
             public boolean isValidRepairItem(Item other) {
                 return repairMaterials != null && repairMaterials.contains(other.javaIdentifier());

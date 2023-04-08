@@ -368,7 +368,7 @@ public final class Scoreboard {
     }
 
     @Contract("-> new")
-    public LinkedHashMap<String, Set<CommandEnumConstraint>> getTeamNames() {
+    public Map<String, Set<CommandEnumConstraint>> getTeamNames() {
         return teams.keySet().stream()
                 .collect(Collectors.toMap(Function.identity(), o -> EnumSet.noneOf(CommandEnumConstraint.class),
                         (o1, o2) -> o1, LinkedHashMap::new));

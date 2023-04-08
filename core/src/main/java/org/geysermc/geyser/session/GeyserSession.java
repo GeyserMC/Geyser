@@ -84,7 +84,6 @@ import org.cloudburstmc.math.vector.*;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.data.*;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumConstraint;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
@@ -1932,8 +1931,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private void softEnumPacket(String name, SoftEnumUpdateType type, String enums) {
         UpdateSoftEnumPacket packet = new UpdateSoftEnumPacket();
         packet.setType(type);
-        // TODO
-        packet.setSoftEnum(new CommandEnumData(name, new LinkedHashMap<>(Collections.singletonMap(enums, EnumSet.noneOf(CommandEnumConstraint.class))), true));
+        packet.setSoftEnum(new CommandEnumData(name, Collections.singletonMap(enums, Collections.emptySet()), true));
         sendUpstreamPacket(packet);
     }
 }

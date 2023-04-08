@@ -390,7 +390,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                             // String[] enumOptions = Arrays.copyOf(enumParamInfo.getParamData().getEnumData().getValues(), enumParamInfo.getParamData().getEnumData().getValues().size() + 1);
                             // enumOptions[enumOptions.length - 1] = paramNode.getName();
 
-                            LinkedHashMap<String, Set<CommandEnumConstraint>> values = (LinkedHashMap<String, Set<CommandEnumConstraint>>) enumParamInfo.getParamData().getEnumData().getValues().clone();
+                            Map<String, Set<CommandEnumConstraint>> values = new LinkedHashMap<>(enumParamInfo.getParamData().getEnumData().getValues());
                             values.put(paramNode.getName(), Set.of());
 
                             // Re-create the command using the updated values
