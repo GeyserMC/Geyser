@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,37 +25,29 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.opennbt.tag.builtin.*;
+import com.github.steveice10.opennbt.tag.builtin.ByteTag;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.MinecraftLocale;
+import org.jetbrains.annotations.NotNull;
 
-public class MapItem extends Item {
-    public MapItem(String javaIdentifier, Builder builder) {
+public class AxolotlBucketItem extends Item {
+    public AxolotlBucketItem(String javaIdentifier, Builder builder) {
         super(javaIdentifier, builder);
     }
 
     @Override
-    public void translateNbtToBedrock(GeyserSession session, CompoundTag tag, ItemMapping mapping) {
+    public void translateNbtToBedrock(@NotNull GeyserSession session, @NotNull CompoundTag tag, @NotNull ItemMapping mapping) {
         super.translateNbtToBedrock(session, tag, mapping);
 
-        Tag mapId = tag.remove("map");
-        if (mapId == null || !(mapId.getValue() instanceof Number number)) return;
-
-        int mapValue = number.intValue();
-
-        tag.put(new LongTag("map_uuid", mapValue));
-        tag.put(new IntTag("map_name_index", mapValue));
-        tag.put(new ByteTag("map_display_players", (byte) 1));
-    }
-
-    @Override
-    public void translateNbtToJava(CompoundTag tag, ItemMapping mapping) {
-        super.translateNbtToJava(tag, mapping);
-
-        IntTag mapNameIndex = tag.remove("map_name_index");
-        if (mapNameIndex != null) {
-            tag.put(new IntTag("map", mapNameIndex.getValue()));
-            tag.remove("map_uuid");
-        }
+        // Bedrock Edition displays the properties of the axolotl. Java does not.
+        // To work around this, set the custom name to the Axolotl translation and it's displayed correctly
+        tag.put(new ByteTag("AppendCustomName", (byte) 1));
+        tag.put(new StringTag("CustomName", MinecraftLocale.getLocaleString("entity.minecraft.axolotl", session.locale())));
+        // Boilerplate required so the nametag does not appear as "Bucket of "
+        tag.put(new StringTag("ColorID", ""));
+        tag.put(new StringTag("BodyID", ""));
     }
 }

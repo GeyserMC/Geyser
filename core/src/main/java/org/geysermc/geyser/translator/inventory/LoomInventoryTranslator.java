@@ -46,9 +46,9 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.SlotType;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
+import org.geysermc.geyser.item.type.BannerItem;
 import org.geysermc.geyser.item.type.DyeItem;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.item.nbt.BannerTranslator;
 
 import java.util.Collections;
 import java.util.List;
@@ -158,7 +158,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
             inputCopy.setNbt(new CompoundTag(""));
         }
         CompoundTag blockEntityTag = inputCopy.getNbt().get("BlockEntityTag");
-        CompoundTag javaBannerPattern = BannerTranslator.getJavaBannerPattern(pattern);
+        CompoundTag javaBannerPattern = BannerItem.getJavaBannerPattern(pattern);
 
         if (blockEntityTag != null) {
             ListTag patternsList = blockEntityTag.get("Patterns");

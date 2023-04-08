@@ -38,7 +38,6 @@ import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Locale;
 
@@ -217,7 +216,7 @@ public final class EntityUtils {
     /**
      * Determine if an action would result in a successful bucketing of the given entity.
      */
-    public static boolean attemptToBucket(GeyserSession session, GeyserItemStack itemInHand) {
+    public static boolean attemptToBucket(GeyserItemStack itemInHand) {
         return itemInHand.asItem() == Items.WATER_BUCKET;
     }
 

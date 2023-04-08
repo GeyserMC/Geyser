@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,35 +23,31 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.inventory.item.nbt;
+package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.opennbt.tag.builtin.ByteTag;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.type.Item;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.item.ArmorMaterial;
+import org.geysermc.geyser.item.DyeableLeatherItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.MinecraftLocale;
-import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
-import org.geysermc.geyser.translator.inventory.item.NbtItemStackTranslator;
 
-@ItemRemapper
-public class AxolotlBucketTranslator extends NbtItemStackTranslator {
-
-    @Override
-    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
-        // Bedrock Edition displays the properties of the axolotl. Java does not.
-        // To work around this, set the custom name to the Axolotl translation and it's displayed correctly
-        itemTag.put(new ByteTag("AppendCustomName", (byte) 1));
-        itemTag.put(new StringTag("CustomName", MinecraftLocale.getLocaleString("entity.minecraft.axolotl", session.locale())));
-        // Boilerplate required so the nametag does not appear as "Bucket of "
-        itemTag.put(new StringTag("ColorID", ""));
-        itemTag.put(new StringTag("BodyID", ""));
+public class DyeableArmorItem extends ArmorItem implements DyeableLeatherItem {
+    public DyeableArmorItem(String javaIdentifier, ArmorMaterial material, Builder builder) {
+        super(javaIdentifier, material, builder);
     }
 
     @Override
-    public boolean acceptItem(Item item) {
-        return item == Items.AXOLOTL_BUCKET;
+    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
+        super.translateNbtToBedrock(session, tag, mapping);
+
+        DyeableLeatherItem.translateNbtToBedrock(tag);
+    }
+
+    @Override
+    public void translateNbtToJava(@NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
+        super.translateNbtToJava(tag, mapping);
+
+        DyeableLeatherItem.translateNbtToJava(tag);
     }
 }

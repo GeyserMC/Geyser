@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,38 +23,40 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.inventory.item.nbt;
+package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.opennbt.tag.builtin.ByteTag;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
+import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
-import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
-import org.geysermc.geyser.translator.inventory.item.NbtItemStackTranslator;
 
-@ItemRemapper
-public class LodestoneCompassTranslator extends NbtItemStackTranslator {
+import java.util.ArrayList;
+import java.util.List;
 
-    @Override
-    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
-        Tag lodestoneTag = itemTag.get("LodestoneTracked");
-        if (lodestoneTag instanceof ByteTag) {
-            int trackId = session.getLodestoneCache().store(itemTag);
-            // Set the bedrock tracking id - will return 0 if invalid
-            itemTag.put(new IntTag("trackingHandle", trackId));
-        }
+public class EnchantedBookItem extends Item {
+    public EnchantedBookItem(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
     }
 
-    // NBT does not need to be translated from Bedrock Edition to Java Edition.
-    // translateToJava is called in three places: extra recipe loading, creative menu, and stonecutters
-    // Lodestone compasses cannot be touched in any of those places.
-
     @Override
-    public boolean acceptItem(Item item) {
-        return item == Items.COMPASS;
+    public void translateNbtToBedrock(GeyserSession session, CompoundTag tag, ItemMapping mapping) {
+        super.translateNbtToBedrock(session, tag, mapping);
+
+        List<Tag> newTags = new ArrayList<>();
+        Tag enchantmentTag = tag.remove("StoredEnchantments");
+        if (enchantmentTag instanceof ListTag listTag) {
+            for (Tag subTag : listTag.getValue()) {
+                if (!(subTag instanceof CompoundTag)) continue;
+                CompoundTag bedrockTag = remapEnchantment(session, (CompoundTag) subTag, tag);
+                if (bedrockTag != null) {
+                    newTags.add(bedrockTag);
+                }
+            }
+        }
+
+        if (!newTags.isEmpty()) {
+            tag.put(new ListTag("ench", newTags));
+        }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,29 +23,31 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.inventory.item.nbt;
+package org.geysermc.geyser.item.type;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
-import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.type.Item;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
-import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
-import org.geysermc.geyser.translator.inventory.item.NbtItemStackTranslator;
 
-@ItemRemapper
-public class PlayerHeadTranslator extends NbtItemStackTranslator {
+public class PlayerHeadItem extends Item {
+    public PlayerHeadItem(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
+    }
 
     @Override
-    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
-        if (!itemTag.contains("display") || !((CompoundTag) itemTag.get("display")).contains("Name")) {
-            if (itemTag.contains("SkullOwner")) {
+    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
+        super.translateNbtToBedrock(session, tag, mapping);
+
+        Tag display = tag.get("display");
+        if (!(display instanceof CompoundTag) || !((CompoundTag) display).contains("Name")) {
+            Tag skullOwner = tag.get("SkullOwner");
+            if (skullOwner != null) {
                 StringTag name;
-                Tag skullOwner = itemTag.get("SkullOwner");
                 if (skullOwner instanceof StringTag) {
                     name = (StringTag) skullOwner;
                 } else {
@@ -53,23 +55,18 @@ public class PlayerHeadTranslator extends NbtItemStackTranslator {
                     if (skullOwner instanceof CompoundTag && (skullName = ((CompoundTag) skullOwner).get("Name")) != null) {
                         name = skullName;
                     } else {
-                        session.getGeyser().getLogger().debug("Not sure how to handle skull head item display. " + itemTag);
+                        session.getGeyser().getLogger().debug("Not sure how to handle skull head item display. " + tag);
                         return;
                     }
                 }
                 // Add correct name of player skull
                 // TODO: It's always yellow, even with a custom name. Handle?
                 String displayName = ChatColor.RESET + ChatColor.YELLOW + MinecraftLocale.getLocaleString("block.minecraft.player_head.named", session.locale()).replace("%s", name.getValue());
-                if (!itemTag.contains("display")) {
-                    itemTag.put(new CompoundTag("display"));
+                if (!(display instanceof CompoundTag)) {
+                    tag.put(display = new CompoundTag("display"));
                 }
-                ((CompoundTag) itemTag.get("display")).put(new StringTag("Name", displayName));
+                ((CompoundTag) display).put(new StringTag("Name", displayName));
             }
         }
-    }
-
-    @Override
-    public boolean acceptItem(Item item) {
-        return item == Items.PLAYER_HEAD;
     }
 }

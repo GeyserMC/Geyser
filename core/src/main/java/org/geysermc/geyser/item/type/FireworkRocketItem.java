@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,22 +23,52 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.inventory.item.nbt;
+package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.opennbt.tag.builtin.ByteArrayTag;
-import com.github.steveice10.opennbt.tag.builtin.ByteTag;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntArrayTag;
+import com.github.steveice10.opennbt.tag.builtin.*;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.level.FireworkColor;
-import org.geysermc.geyser.translator.inventory.item.NbtItemStackTranslator;
+import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.MathUtils;
 
-/**
- * Stores common code for firework rockets and firework stars.
- */
-public abstract class FireworkBaseTranslator extends NbtItemStackTranslator {
+public class FireworkRocketItem extends Item {
+    public FireworkRocketItem(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
+    }
 
-    protected CompoundTag translateExplosionToBedrock(CompoundTag explosion, String newName) {
+    @Override
+    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
+        super.translateNbtToBedrock(session, tag, mapping);
+
+        CompoundTag fireworks = tag.get("Fireworks");
+        if (fireworks == null) {
+            return;
+        }
+
+        if (fireworks.get("Flight") != null) {
+            fireworks.put(new ByteTag("Flight", MathUtils.getNbtByte(fireworks.get("Flight").getValue())));
+        }
+
+        ListTag explosions = fireworks.get("Explosions");
+        if (explosions == null) {
+            return;
+        }
+        for (Tag effect : explosions.getValue()) {
+            CompoundTag effectData = (CompoundTag) effect;
+            CompoundTag newEffectData = translateExplosionToBedrock(effectData, "");
+
+            explosions.remove(effectData);
+            explosions.add(newEffectData);
+        }
+    }
+
+    @Override
+    public void translateNbtToJava(@NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
+        super.translateNbtToJava(tag, mapping);
+    }
+
+    static CompoundTag translateExplosionToBedrock(CompoundTag explosion, String newName) {
         CompoundTag newExplosionData = new CompoundTag(newName);
 
         if (explosion.get("Type") != null) {
@@ -80,7 +110,7 @@ public abstract class FireworkBaseTranslator extends NbtItemStackTranslator {
         return newExplosionData;
     }
 
-    protected CompoundTag translateExplosionToJava(CompoundTag explosion, String newName) {
+    static CompoundTag translateExplosionToJava(CompoundTag explosion, String newName) {
         CompoundTag newExplosionData = new CompoundTag(newName);
 
         if (explosion.get("FireworkType") != null) {

@@ -57,10 +57,12 @@ import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.click.Click;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.BlockItem;
+import org.geysermc.geyser.item.type.BoatItem;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.item.type.SpawnEggItem;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
@@ -274,15 +276,14 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 session.getWorldCache().nextPredictionSequence());
                         session.sendDownstreamPacket(blockPacket);
 
+                        Item item = session.getPlayerInventory().getItemInHand().asItem();
                         if (packet.getItemInHand() != null) {
                             ItemDefinition definition = packet.getItemInHand().getDefinition();
                             int blockState = session.getGeyser().getWorldManager().getBlockAt(session, packet.getBlockPosition());
                             // Otherwise boats will not be able to be placed in survival and buckets, lily pads, frogspawn, and glass bottles won't work on mobile
-                            if (session.getItemMappings().getBoats().contains(definition) ||
-                                    definition == session.getItemMappings().getStoredItems().lilyPad().getBedrockDefinition() ||
-                                    definition == session.getItemMappings().getStoredItems().frogspawn().getBedrockDefinition()) {
+                            if (item instanceof BoatItem || item == Items.LILY_PAD || item == Items.FROGSPAWN) {
                                 useItem(session, packet, blockState);
-                            } else if (definition == session.getItemMappings().getStoredItems().glassBottle().getBedrockDefinition()) {
+                            } else if (item == Items.GLASS_BOTTLE) {
                                 if (!session.isSneaking() && BlockStateValues.isCauldron(blockState) && !BlockStateValues.isNonWaterCauldron(blockState)) {
                                     // ServerboundUseItemPacket is not sent for water cauldrons and glass bottles
                                     return;
@@ -315,10 +316,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 }
                             }
                         }
-                        ItemMapping handItem = session.getPlayerInventory().getItemInHand().getMapping(session);
-                        if (handItem.isBlock()) {
+                        if (item instanceof BlockItem) {
                             session.setLastBlockPlacePosition(blockPos);
-                            session.setLastBlockPlacedId(handItem.getJavaItem().javaIdentifier());
+                            session.setLastBlockPlacedId(item.javaIdentifier());
                         }
                         session.setInteracting(true);
                     }
@@ -526,9 +526,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         Inventory playerInventory = session.getPlayerInventory();
         int heldItemSlot = playerInventory.getOffsetForHotbar(packet.getHotbarSlot());
         InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, playerInventory, heldItemSlot);
-        if (playerInventory.getItem(heldItemSlot).getAmount() > 1) {
-            if (packet.getItemInHand().getDefinition() == session.getItemMappings().getStoredItems().bucket().getBedrockDefinition() ||
-                packet.getItemInHand().getDefinition() == session.getItemMappings().getStoredItems().glassBottle().getBedrockDefinition()) {
+        GeyserItemStack itemStack = playerInventory.getItem(heldItemSlot);
+        if (itemStack.getAmount() > 1) {
+            if (itemStack.asItem() == Items.BUCKET || itemStack.asItem() == Items.GLASS_BOTTLE) {
                 // Using a stack of buckets or glass bottles will result in an item being added to the first empty slot.
                 // We need to revert the item in case the interaction fails. The order goes from left to right in the
                 // hotbar. Then left to right and top to bottom in the inventory.

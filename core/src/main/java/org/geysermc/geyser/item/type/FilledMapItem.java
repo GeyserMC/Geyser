@@ -28,6 +28,7 @@ package org.geysermc.geyser.item.type;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
@@ -41,7 +42,10 @@ public class FilledMapItem extends MapItem {
     public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
         ItemData.Builder builder = super.translateToBedrock(itemStack, mapping, mappings);
         CompoundTag nbt = itemStack.getNbt();
-        if (nbt != null && nbt.get("display") instanceof CompoundTag display) {
+        if (nbt == null) {
+            // This is a fallback for maps with no nbt (Change added back in June 2020; is it needed in 2023?)
+            return builder.tag(NbtMap.builder().putInt("map", 0).build());
+        } else if (nbt.get("display") instanceof CompoundTag display) {
             // Note: damage 5 treasure map, 6 ???
             Tag mapColor = display.get("MapColor");
             if (mapColor != null && mapColor.getValue() instanceof Number color) {

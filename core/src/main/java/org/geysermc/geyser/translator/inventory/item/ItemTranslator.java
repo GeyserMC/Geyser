@@ -37,9 +37,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -49,42 +47,14 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.util.FileUtils;
 
 import javax.annotation.Nonnull;
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public final class ItemTranslator {
-    private static final List<NbtItemStackTranslator> NBT_TRANSLATORS;
-
     private ItemTranslator() {
-    }
-
-    public static void init() {
-        // no-op
-    }
-
-    static {
-        /* Load item translators */
-        Map<NbtItemStackTranslator, Integer> loadedNbtItemTranslators = new HashMap<>();
-        for (Class<?> clazz : FileUtils.getGeneratedClassesForAnnotation(ItemRemapper.class)) {
-            int priority = clazz.getAnnotation(ItemRemapper.class).priority();
-
-            GeyserImpl.getInstance().getLogger().debug("Found annotated item translator: " + clazz.getCanonicalName());
-
-            try {
-                if (NbtItemStackTranslator.class.isAssignableFrom(clazz)) {
-                    NbtItemStackTranslator nbtItemTranslator = (NbtItemStackTranslator) clazz.getDeclaredConstructor().newInstance();
-                    loadedNbtItemTranslators.put(nbtItemTranslator, priority);
-                }
-            } catch (InstantiationException | InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
-                GeyserImpl.getInstance().getLogger().error("Could not instantiate annotated item translator " + clazz.getCanonicalName());
-            }
-        }
-
-        NBT_TRANSLATORS = loadedNbtItemTranslators.keySet().stream().sorted(Comparator.comparingInt(loadedNbtItemTranslators::get)).collect(Collectors.toList());
     }
 
     /**
@@ -102,11 +72,7 @@ public final class ItemTranslator {
         ItemStack itemStack = javaItem.translateToJava(data, bedrockItem, mappings);
 
         if (itemStack != null && itemStack.getNbt() != null) {
-            for (NbtItemStackTranslator translator : NBT_TRANSLATORS) {
-                if (translator.acceptItem(javaItem)) {
-                    translator.translateToJava(itemStack.getNbt(), bedrockItem);
-                }
-            }
+            javaItem.translateNbtToJava(itemStack.getNbt(), bedrockItem);
             if (itemStack.getNbt().isEmpty()) {
                 // Otherwise, seems to cause issues with villagers accepting books, and I don't see how this will break anything else. - Camotoy
                 itemStack = new ItemStack(itemStack.getId(), itemStack.getAmount(), null);
@@ -145,18 +111,8 @@ public final class ItemTranslator {
     private static ItemData.Builder translateToBedrock(GeyserSession session, Item javaItem, ItemMapping bedrockItem, int count, CompoundTag tag) {
         CompoundTag nbt = tag != null ? tag.clone() : null;
 
-        // This is a fallback for maps with no nbt
-        if (nbt == null && javaItem == Items.FILLED_MAP) {
-            nbt = new CompoundTag("");
-            nbt.put(new IntTag("map", 0));
-        }
-
         if (nbt != null) {
-            for (NbtItemStackTranslator translator : NBT_TRANSLATORS) {
-                if (translator.acceptItem(javaItem)) {
-                    translator.translateToBedrock(session, nbt, bedrockItem);
-                }
-            }
+            javaItem.translateNbtToBedrock(session, nbt, bedrockItem);
         }
 
         nbt = translateDisplayProperties(session, nbt, bedrockItem);

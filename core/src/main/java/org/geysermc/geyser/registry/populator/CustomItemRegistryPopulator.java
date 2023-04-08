@@ -149,7 +149,6 @@ public class CustomItemRegistryPopulator {
                 .toolType(customItemData.toolType())
                 .toolTier(customItemData.toolTier())
                 .translationString(customItemData.translationString())
-                .hasSuspiciousStewEffect(false)
                 .customItemOptions(Collections.emptyList())
                 .javaItem(item)
                 .build();

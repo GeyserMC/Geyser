@@ -138,7 +138,6 @@ public class ItemRegistryPopulator {
             Object2ObjectMap<String, BlockDefinition> bedrockBlockIdOverrides = new Object2ObjectOpenHashMap<>();
             Object2IntMap<String> blacklistedIdentifiers = new Object2IntOpenHashMap<>();
 
-            List<ItemDefinition> boats = new ObjectArrayList<>();
             List<ItemDefinition> buckets = new ObjectArrayList<>();
             List<ItemData> carpets = new ObjectArrayList<>();
 
@@ -339,7 +338,6 @@ public class ItemRegistryPopulator {
                         .bedrockDefinition(definition)
                         .bedrockData(mappingItem.getBedrockData())
                         .bedrockBlockDefinition(bedrockBlock)
-                        .hasSuspiciousStewEffect(mappingItem.isHasSuspiciousStewEffect())
                         .javaItem(javaItem);
 
                 if (mappingItem.getToolType() != null) {
@@ -394,12 +392,9 @@ public class ItemRegistryPopulator {
 
                 ItemMapping mapping = mappingBuilder.build();
 
-                /*
-                if (javaIdentifier.contains("boat")) {
-                    boats.add(definition);
-                } else if (javaIdentifier.contains("bucket") && !javaIdentifier.contains("milk")) {
+                if (javaItem.javaIdentifier().contains("bucket") && !javaItem.javaIdentifier().contains("milk")) {
                     buckets.add(definition);
-                } else if (javaIdentifier.contains("_carpet") && !javaIdentifier.contains("moss")) {
+                } else if (javaItem.javaIdentifier().contains("_carpet") && !javaItem.javaIdentifier().contains("moss")) {
                     // This should be the numerical order Java sends as an integer value for llamas
                     carpets.add(ItemData.builder()
                             .definition(definition)
@@ -407,12 +402,11 @@ public class ItemRegistryPopulator {
                             .count(1)
                             .blockDefinition(mapping.getBedrockBlockDefinition())
                             .build());
-                } else if (javaIdentifier.startsWith("minecraft:music_disc_")) {
+                } else if (javaItem.javaIdentifier().startsWith("minecraft:music_disc_")) {
                     // The Java record level event uses the item ID as the "key" to play the record
                     Registries.RECORDS.register(javaItem.javaId(), SoundEvent.valueOf("RECORD_" +
-                            javaIdentifier.replace("minecraft:music_disc_", "").toUpperCase(Locale.ENGLISH)));
+                            javaItem.javaIdentifier().replace("minecraft:music_disc_", "").toUpperCase(Locale.ENGLISH)));
                 }
-                */
 
                 mappings.add(mapping);
                 javaItemToMapping.put(javaItem, mapping);
@@ -495,7 +489,6 @@ public class ItemRegistryPopulator {
                     .storedItems(new StoredItemMappings(javaItemToMapping))
                     .javaOnlyItems(javaOnlyItems)
                     .buckets(buckets)
-                    .boats(boats)
                     .carpets(carpets)
                     .componentItemData(componentItemData)
                     .lodestoneCompass(lodestoneEntry)

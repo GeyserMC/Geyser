@@ -52,7 +52,6 @@ public class ItemMapping {
             null,
             null,
             Collections.emptyList(),
-            false,
             Items.AIR
     );
 
@@ -73,8 +72,6 @@ public class ItemMapping {
 
     @NonNull
     List<Pair<CustomItemOptions, ItemDefinition>> customItemOptions;
-
-    boolean hasSuspiciousStewEffect;
 
     @NonNull
     Item javaItem;

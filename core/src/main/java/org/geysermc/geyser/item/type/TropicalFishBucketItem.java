@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,43 +23,44 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.inventory.item.nbt;
+package org.geysermc.geyser.item.type;
 
 import com.github.steveice10.opennbt.tag.builtin.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.entity.type.living.animal.TropicalFishEntity;
-import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.MinecraftLocale;
-import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
-import org.geysermc.geyser.translator.inventory.item.NbtItemStackTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@ItemRemapper
-public class TropicalFishBucketTranslator extends NbtItemStackTranslator {
-
+public class TropicalFishBucketItem extends Item {
     private static final Style LORE_STYLE = Style.style(NamedTextColor.GRAY, TextDecoration.ITALIC);
 
+    public TropicalFishBucketItem(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
+    }
+
     @Override
-    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
+    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
+        super.translateNbtToBedrock(session, tag, mapping);
+
         // Prevent name from appearing as "Bucket of"
-        itemTag.put(new ByteTag("AppendCustomName", (byte) 1));
-        itemTag.put(new StringTag("CustomName", MinecraftLocale.getLocaleString("entity.minecraft.tropical_fish", session.locale())));
+        tag.put(new ByteTag("AppendCustomName", (byte) 1));
+        tag.put(new StringTag("CustomName", MinecraftLocale.getLocaleString("entity.minecraft.tropical_fish", session.locale())));
         // Add Java's client side lore tag
-        Tag bucketVariantTag = itemTag.get("BucketVariantTag");
+        Tag bucketVariantTag = tag.get("BucketVariantTag");
         if (bucketVariantTag instanceof IntTag) {
-            CompoundTag displayTag = itemTag.get("display");
+            CompoundTag displayTag = tag.get("display");
             if (displayTag == null) {
                 displayTag = new CompoundTag("display");
-                itemTag.put(displayTag);
+                tag.put(displayTag);
             }
 
             List<Tag> lore = new ArrayList<>();
@@ -89,10 +90,5 @@ public class TropicalFishBucketTranslator extends NbtItemStackTranslator {
             }
             displayTag.put(new ListTag("Lore", lore));
         }
-    }
-
-    @Override
-    public boolean acceptItem(Item item) {
-        return item == Items.TROPICAL_FISH_BUCKET;
     }
 }

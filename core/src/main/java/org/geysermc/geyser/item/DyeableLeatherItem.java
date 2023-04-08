@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,53 +23,34 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.inventory.item.nbt;
+package org.geysermc.geyser.item;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
-import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.registry.type.ItemMapping;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
-import org.geysermc.geyser.translator.inventory.item.NbtItemStackTranslator;
 
-import java.util.List;
+public interface DyeableLeatherItem {
 
-@ItemRemapper
-public class LeatherArmorTranslator extends NbtItemStackTranslator {
-
-    private static final List<Item> ITEMS = List.of(Items.LEATHER_HELMET, Items.LEATHER_CHESTPLATE,
-            Items.LEATHER_LEGGINGS, Items.LEATHER_BOOTS, Items.LEATHER_HORSE_ARMOR);
-
-    @Override
-    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
-        CompoundTag displayTag = itemTag.get("display");
+    static void translateNbtToBedrock(CompoundTag tag) {
+        CompoundTag displayTag = tag.get("display");
         if (displayTag == null) {
             return;
         }
         IntTag color = displayTag.remove("color");
         if (color != null) {
-            itemTag.put(new IntTag("customColor", color.getValue()));
+            tag.put(new IntTag("customColor", color.getValue()));
         }
     }
 
-    @Override
-    public void translateToJava(CompoundTag itemTag, ItemMapping mapping) {
-        IntTag color = itemTag.get("customColor");
+    static void translateNbtToJava(CompoundTag tag) {
+        IntTag color = tag.get("customColor");
         if (color == null) {
             return;
         }
-        CompoundTag displayTag = itemTag.get("display");
+        CompoundTag displayTag = tag.get("display");
         if (displayTag == null) {
             displayTag = new CompoundTag("display");
         }
         displayTag.put(color);
-        itemTag.remove("customColor");
-    }
-
-    @Override
-    public boolean acceptItem(Item item) {
-        return ITEMS.contains(item);
+        tag.remove("customColor");
     }
 }

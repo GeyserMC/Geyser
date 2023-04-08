@@ -30,6 +30,7 @@ import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.FishingRodItem;
 import org.geysermc.geyser.item.type.Item;
 
 import javax.annotation.Nullable;
@@ -64,7 +65,7 @@ public class ItemUtils {
             // Java durability: 64
             // Bedrock durability : 384
             // 384 / 64 = 6
-            return original * 6;
+            return FishingRodItem.getBedrockDamage(original);
         }
         return original;
     }

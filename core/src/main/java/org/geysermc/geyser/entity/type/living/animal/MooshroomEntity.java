@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.FlowerItem;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
@@ -76,7 +77,7 @@ public class MooshroomEntity extends AnimalEntity {
         } else if (!isBaby && isAlive() && itemInHand.asItem() == Items.SHEARS) {
             // Shear items
             return InteractionResult.SUCCESS;
-        } else if (isBrown && session.getTagCache().isSmallFlower(itemInHand) && itemInHand.getMapping(session).isHasSuspiciousStewEffect()) {
+        } else if (isBrown && session.getTagCache().isSmallFlower(itemInHand) && itemInHand.asItem() instanceof FlowerItem) {
             // ?
             return InteractionResult.SUCCESS;
         }

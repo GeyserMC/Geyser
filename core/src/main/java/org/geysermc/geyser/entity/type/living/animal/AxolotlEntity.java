@@ -77,7 +77,7 @@ public class AxolotlEntity extends AnimalEntity {
     @Nonnull
     @Override
     protected InteractionResult mobInteract(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        if (EntityUtils.attemptToBucket(session, itemInHand)) {
+        if (EntityUtils.attemptToBucket(itemInHand)) {
             return InteractionResult.SUCCESS;
         } else {
             return super.mobInteract(hand, itemInHand);

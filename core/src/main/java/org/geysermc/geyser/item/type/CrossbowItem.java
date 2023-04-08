@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,33 +23,34 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.inventory.item.nbt;
+package org.geysermc.geyser.item.type;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.*;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
-import org.geysermc.geyser.translator.inventory.item.NbtItemStackTranslator;
 
-@ItemRemapper
-public class CrossbowTranslator extends NbtItemStackTranslator {
+public class CrossbowItem extends Item {
+    public CrossbowItem(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
+    }
 
     @Override
-    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
-        ListTag chargedProjectiles = itemTag.get("ChargedProjectiles");
+    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
+        super.translateNbtToBedrock(session, tag, mapping);
+
+        ListTag chargedProjectiles = tag.get("ChargedProjectiles");
         if (chargedProjectiles != null) {
             if (!chargedProjectiles.getValue().isEmpty()) {
                 CompoundTag projectile = (CompoundTag) chargedProjectiles.getValue().get(0);
 
                 ItemMapping projectileMapping = session.getItemMappings().getMapping((String) projectile.get("id").getValue());
                 if (projectileMapping == null) return;
-                CompoundTag tag = projectile.get("tag");
-                ItemStack itemStack = new ItemStack(mapping.getJavaItem().javaId(), (byte) projectile.get("Count").getValue(), tag);
+                CompoundTag projectileTag = projectile.get("tag");
+                ItemStack itemStack = new ItemStack(mapping.getJavaItem().javaId(), (byte) projectile.get("Count").getValue(), projectileTag);
                 ItemData itemData = ItemTranslator.translateToBedrock(session, itemStack);
 
                 CompoundTag newProjectile = new CompoundTag("chargedItem");
@@ -58,15 +59,17 @@ public class CrossbowTranslator extends NbtItemStackTranslator {
 
                 newProjectile.put(new ShortTag("Damage", (short) itemData.getDamage()));
 
-                itemTag.put(newProjectile);
+                projectileTag.put(newProjectile);
             }
         }
     }
 
     @Override
-    public void translateToJava(CompoundTag itemTag, ItemMapping mapping) {
-        if (itemTag.get("chargedItem") != null) {
-            CompoundTag chargedItem = itemTag.get("chargedItem");
+    public void translateNbtToJava(@NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
+        super.translateNbtToJava(tag, mapping);
+
+        if (tag.get("chargedItem") != null) {
+            CompoundTag chargedItem = tag.get("chargedItem");
 
             CompoundTag newProjectile = new CompoundTag("");
             newProjectile.put(new ByteTag("Count", (byte) chargedItem.get("Count").getValue()));
@@ -75,12 +78,7 @@ public class CrossbowTranslator extends NbtItemStackTranslator {
             ListTag chargedProjectiles = new ListTag("ChargedProjectiles");
             chargedProjectiles.add(newProjectile);
 
-            itemTag.put(chargedProjectiles);
+            tag.put(chargedProjectiles);
         }
-    }
-
-    @Override
-    public boolean acceptItem(Item item) {
-        return item == Items.CROSSBOW;
     }
 }

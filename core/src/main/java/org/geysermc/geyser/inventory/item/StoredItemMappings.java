@@ -43,34 +43,26 @@ public class StoredItemMappings {
     private final ItemMapping bamboo;
     private final ItemMapping banner;
     private final ItemMapping barrier;
-    private final ItemMapping bucket;
     private final ItemMapping compass;
     private final ItemMapping crossbow;
-    private final ItemMapping frogspawn;
     private final ItemMapping glassBottle;
-    private final ItemMapping lilyPad;
     private final ItemMapping milkBucket;
     private final ItemMapping powderSnowBucket;
     private final ItemMapping egg;
     private final ItemMapping shield;
-    private final ItemMapping waterBucket;
     private final ItemMapping wheat;
 
     public StoredItemMappings(Map<Item, ItemMapping> itemMappings) {
         this.bamboo = load(itemMappings, Items.BAMBOO);
         this.banner = load(itemMappings, Items.WHITE_BANNER); // As of 1.17.10, all banners have the same Bedrock ID
         this.barrier = load(itemMappings, Items.BARRIER);
-        this.bucket = load(itemMappings, Items.BUCKET);
         this.compass = load(itemMappings, Items.COMPASS);
         this.crossbow = load(itemMappings, Items.CROSSBOW);
-        this.frogspawn = load(itemMappings, Items.FROGSPAWN);
         this.glassBottle = load(itemMappings, Items.GLASS_BOTTLE);
-        this.lilyPad = load(itemMappings, Items.LILY_PAD);
         this.milkBucket = load(itemMappings, Items.MILK_BUCKET);
         this.powderSnowBucket = load(itemMappings, Items.POWDER_SNOW_BUCKET);
         this.egg = load(itemMappings, Items.EGG);
         this.shield = load(itemMappings, Items.SHIELD);
-        this.waterBucket = load(itemMappings, Items.WATER_BUCKET);
         this.wheat = load(itemMappings, Items.WHEAT);
     }
 

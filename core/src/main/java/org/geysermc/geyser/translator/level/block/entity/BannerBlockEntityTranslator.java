@@ -30,8 +30,8 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.geysermc.geyser.item.type.BannerItem;
 import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.geyser.translator.inventory.item.nbt.BannerTranslator;
 
 @BlockEntity(type = BlockEntityType.BANNER)
 public class BannerBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
@@ -47,12 +47,12 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator implement
         }
 
         if (tag.get("Patterns") instanceof ListTag patterns) {
-            if (patterns.equals(BannerTranslator.OMINOUS_BANNER_PATTERN)) {
+            if (patterns.equals(BannerItem.OMINOUS_BANNER_PATTERN)) {
                 // This is an ominous banner; don't try to translate the raw patterns (it doesn't translate correctly)
                 // and tell the Bedrock client that this is an ominous banner
                 builder.putInt("Type", 1);
             } else {
-                builder.put("Patterns", BannerTranslator.convertBannerPattern(patterns));
+                builder.put("Patterns", BannerItem.convertBannerPattern(patterns));
             }
         }
 

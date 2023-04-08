@@ -195,7 +195,6 @@ public class GeyserImpl implements GeyserApi {
 
         /* Initialize translators */
         EntityDefinitions.init();
-        ItemTranslator.init();
         MessageTranslator.init();
 
         // Download the latest asset list and cache it

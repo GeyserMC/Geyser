@@ -51,7 +51,7 @@ public class AbstractFishEntity extends WaterEntity {
     @Nonnull
     @Override
     protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        if (EntityUtils.attemptToBucket(session, itemInHand)) {
+        if (EntityUtils.attemptToBucket(itemInHand)) {
             return InteractionResult.SUCCESS;
         } else {
             return super.mobInteract(hand, itemInHand);

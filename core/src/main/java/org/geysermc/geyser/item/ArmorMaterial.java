@@ -27,22 +27,24 @@ package org.geysermc.geyser.item;
 
 import org.geysermc.geyser.item.type.Item;
 
+import java.util.function.Supplier;
+
 public enum ArmorMaterial {
-    LEATHER(Items.LEATHER),
-    CHAIN(Items.IRON_INGOT),
-    IRON(Items.IRON_INGOT),
-    GOLD(Items.GOLD_INGOT),
-    DIAMOND(Items.DIAMOND),
-    TURTLE(Items.SCUTE),
-    NETHERITE(Items.NETHERITE_INGOT);
+    LEATHER(() -> Items.LEATHER),
+    CHAIN(() -> Items.IRON_INGOT),
+    IRON(() -> Items.IRON_INGOT),
+    GOLD(() -> Items.GOLD_INGOT),
+    DIAMOND(() -> Items.DIAMOND),
+    TURTLE(() -> Items.SCUTE),
+    NETHERITE(() -> Items.NETHERITE_INGOT);
 
-    private final Item repairIngredient;
+    private final Supplier<Item> repairIngredient;
 
-    ArmorMaterial(Item repairIngredient) {
+    ArmorMaterial(Supplier<Item> repairIngredient) {
         this.repairIngredient = repairIngredient;
     }
 
     public Item getRepairIngredient() {
-        return repairIngredient;
+        return repairIngredient.get();
     }
 }

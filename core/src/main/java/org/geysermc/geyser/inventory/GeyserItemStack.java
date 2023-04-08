@@ -27,6 +27,8 @@ package org.geysermc.geyser.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import lombok.AccessLevel;
+import lombok.Getter;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import lombok.Data;
 import org.geysermc.geyser.item.type.Item;
@@ -107,6 +109,7 @@ public class GeyserItemStack {
         return session.getItemMappings().getMapping(this.javaId);
     }
 
+    @Getter(AccessLevel.NONE)
     private Item item; //TODO
 
     public Item asItem() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,30 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.inventory.item.nbt;
+package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.opennbt.tag.builtin.*;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.IntTag;
+import com.github.steveice10.opennbt.tag.builtin.ListTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
-import org.geysermc.geyser.translator.inventory.item.NbtItemStackTranslator;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import static org.geysermc.erosion.util.BannerUtils.getJavaPatternTag;
 
-@ItemRemapper
-public class BannerTranslator extends NbtItemStackTranslator {
+public class BannerItem extends BlockItem {
     /**
      * Holds what a Java ominous banner pattern looks like.
      *
@@ -55,8 +51,6 @@ public class BannerTranslator extends NbtItemStackTranslator {
      * the correct ominous banner pattern if Bedrock pulls the item from creative.
      */
     public static final ListTag OMINOUS_BANNER_PATTERN;
-
-    private final List<Item> appliedItems;
 
     static {
         OMINOUS_BANNER_PATTERN = new ListTag("Patterns");
@@ -69,12 +63,6 @@ public class BannerTranslator extends NbtItemStackTranslator {
         OMINOUS_BANNER_PATTERN.add(getJavaPatternTag("hh", 8));
         OMINOUS_BANNER_PATTERN.add(getJavaPatternTag("mc", 8));
         OMINOUS_BANNER_PATTERN.add(getJavaPatternTag("bo", 15));
-    }
-
-    public BannerTranslator() {
-        appliedItems = Registries.JAVA_ITEMS.get().stream()
-                .filter(entry -> entry.javaIdentifier().endsWith("banner"))
-                .collect(Collectors.toList());
     }
 
     /**
@@ -128,42 +116,44 @@ public class BannerTranslator extends NbtItemStackTranslator {
         }
     }
 
+    public BannerItem(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
+    }
+
     @Override
-    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
-        CompoundTag blockEntityTag = itemTag.get("BlockEntityTag");
+    public void translateNbtToBedrock(@NotNull GeyserSession session, @NotNull CompoundTag tag, @NotNull ItemMapping mapping) {
+        super.translateNbtToBedrock(session, tag, mapping);
+
+        CompoundTag blockEntityTag = tag.remove("BlockEntityTag");
         if (blockEntityTag != null && blockEntityTag.get("Patterns") instanceof ListTag patterns) {
             if (patterns.equals(OMINOUS_BANNER_PATTERN)) {
                 // Remove the current patterns and set the ominous banner type
-                itemTag.put(new IntTag("Type", 1));
+                tag.put(new IntTag("Type", 1));
             } else {
                 invertBannerColors(patterns);
-                itemTag.put(patterns);
+                tag.put(patterns);
             }
-            itemTag.remove("BlockEntityTag");
         }
     }
 
     @Override
-    public void translateToJava(CompoundTag itemTag, ItemMapping mapping) {
-        if (itemTag.get("Type") instanceof IntTag type && type.getValue() == 1) {
+    public void translateNbtToJava(@NotNull CompoundTag tag, @NotNull ItemMapping mapping) {
+        super.translateNbtToJava(tag, mapping);
+
+        if (tag.get("Type") instanceof IntTag type && type.getValue() == 1) {
             // Ominous banner pattern
-            itemTag.remove("Type");
+            tag.remove("Type");
             CompoundTag blockEntityTag = new CompoundTag("BlockEntityTag");
             blockEntityTag.put(OMINOUS_BANNER_PATTERN);
 
-            itemTag.put(blockEntityTag);
-        } else if (itemTag.get("Patterns") instanceof ListTag patterns) {
+            tag.put(blockEntityTag);
+        } else if (tag.get("Patterns") instanceof ListTag patterns) {
             CompoundTag blockEntityTag = new CompoundTag("BlockEntityTag");
             invertBannerColors(patterns);
             blockEntityTag.put(patterns);
 
-            itemTag.put(blockEntityTag);
-            itemTag.remove("Patterns"); // Remove the old Bedrock patterns list
+            tag.put(blockEntityTag);
+            tag.remove("Patterns"); // Remove the old Bedrock patterns list
         }
-    }
-
-    @Override
-    public boolean acceptItem(Item item) {
-        return appliedItems.contains(item);
     }
 }

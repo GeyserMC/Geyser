@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,16 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.processor;
+package org.geysermc.geyser.item.type;
 
-import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedSourceVersion;
-import javax.lang.model.SourceVersion;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.item.DyeableLeatherItem;
+import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.session.GeyserSession;
 
-@SupportedAnnotationTypes("*")
-@SupportedSourceVersion(SourceVersion.RELEASE_16)
-public class ItemRemapperProcessor extends ClassProcessor {
-    public ItemRemapperProcessor() {
-        super("org.geysermc.geyser.translator.inventory.item.ItemRemapper");
+public class DyeableHorseArmorItem extends Item implements DyeableLeatherItem {
+    public DyeableHorseArmorItem(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
+    }
+
+    @Override
+    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
+        super.translateNbtToBedrock(session, tag, mapping);
+
+        DyeableLeatherItem.translateNbtToBedrock(tag);
+    }
+
+    @Override
+    public void translateNbtToJava(@NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
+        super.translateNbtToJava(tag, mapping);
+
+        DyeableLeatherItem.translateNbtToJava(tag);
     }
 }

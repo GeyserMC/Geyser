@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,26 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.inventory.item.nbt;
+package org.geysermc.geyser.item.type;
 
 import com.github.steveice10.mc.protocol.data.game.Identifier;
 import com.github.steveice10.opennbt.tag.builtin.*;
-import org.geysermc.geyser.item.type.Item;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
-import org.geysermc.geyser.translator.inventory.item.NbtItemStackTranslator;
 import org.geysermc.geyser.util.MathUtils;
 
-@ItemRemapper
-public class ShulkerBoxItemTranslator extends NbtItemStackTranslator {
+public class ShulkerBoxItem extends BlockItem {
+    public ShulkerBoxItem(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
+    }
 
     @Override
-    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
-        if (!itemTag.contains("BlockEntityTag")) return; // Empty shulker box
+    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
+        super.translateNbtToBedrock(session, tag, mapping);
 
-        CompoundTag blockEntityTag = itemTag.get("BlockEntityTag");
+        CompoundTag blockEntityTag = tag.get("BlockEntityTag");
+        if (blockEntityTag == null) {
+            // Empty shulker box
+            return;
+        }
         if (blockEntityTag.get("Items") == null) return;
         ListTag itemsList = new ListTag("Items");
         for (Tag item : (ListTag) blockEntityTag.get("Items")) {
@@ -72,21 +76,17 @@ public class ShulkerBoxItemTranslator extends NbtItemStackTranslator {
 
             itemsList.add(boxItemTag);
         }
-        itemTag.put(itemsList);
+        tag.put(itemsList);
         // Don't actually bother with removing the block entity tag. Too risky to translate
         // if the user is on creative and messing with a shulker box
         //itemTag.remove("BlockEntityTag");
     }
 
     @Override
-    public void translateToJava(CompoundTag itemTag, ItemMapping mapping) {
-        if (itemTag.contains("Items")) { // Remove any extraneous Bedrock tag and don't touch the Java one
-            itemTag.remove("Items");
-        }
-    }
+    public void translateNbtToJava(@NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
+        super.translateNbtToJava(tag, mapping);
 
-    @Override
-    public boolean acceptItem(Item item) {
-        return item.javaIdentifier().contains("shulker_box");
+        // Remove any extraneous Bedrock tag and don't touch the Java one
+        tag.remove("Items");
     }
 }

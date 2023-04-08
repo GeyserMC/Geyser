@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,28 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.inventory.item.nbt;
+package org.geysermc.geyser.item.type;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntArrayTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
-import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.type.Item;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
 
-@ItemRemapper
-public class FireworkStarTranslator extends FireworkBaseTranslator {
+public class FireworkStarItem extends Item {
+    public FireworkStarItem(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
+    }
 
     @Override
-    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
-        Tag explosion = itemTag.get("Explosion");
+    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
+        super.translateNbtToBedrock(session, tag, mapping);
+
+        Tag explosion = tag.remove("Explosion");
         if (explosion instanceof CompoundTag) {
-            CompoundTag newExplosion = translateExplosionToBedrock((CompoundTag) explosion, "FireworksItem");
-            itemTag.remove("Explosion");
-            itemTag.put(newExplosion);
+            CompoundTag newExplosion = FireworkRocketItem.translateExplosionToBedrock((CompoundTag) explosion, "FireworksItem");
+            tag.put(newExplosion);
             Tag color = ((CompoundTag) explosion).get("Colors");
             if (color instanceof IntArrayTag) {
                 // Determine the custom color, if any.
@@ -74,25 +75,21 @@ public class FireworkStarTranslator extends FireworkBaseTranslator {
                     finalColor = r << 16 | g << 8 | b;
                 }
 
-                itemTag.put(new IntTag("customColor", finalColor));
+                tag.put(new IntTag("customColor", finalColor));
             }
         }
     }
 
     @Override
-    public void translateToJava(CompoundTag itemTag, ItemMapping mapping) {
-        Tag explosion = itemTag.get("FireworksItem");
+    public void translateNbtToJava(@NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
+        super.translateNbtToJava(tag, mapping);
+
+        Tag explosion = tag.remove("FireworksItem");
         if (explosion instanceof CompoundTag) {
-            CompoundTag newExplosion = translateExplosionToJava((CompoundTag) explosion, "Explosion");
-            itemTag.remove("FireworksItem");
-            itemTag.put(newExplosion);
+            CompoundTag newExplosion = FireworkRocketItem.translateExplosionToJava((CompoundTag) explosion, "Explosion");
+            tag.put(newExplosion);
         }
         // Remove custom color, if any, since this only exists on Bedrock
-        itemTag.remove("customColor");
-    }
-
-    @Override
-    public boolean acceptItem(Item item) {
-        return item == Items.FIREWORK_STAR;
+        tag.remove("customColor");
     }
 }
