@@ -252,7 +252,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     /**
      * Stores the map between Java and Bedrock biome network IDs.
      */
-    private final Int2IntMap biomeTranslations = new Int2IntOpenHashMap();
+    @Setter
+    private int[] biomeTranslations = null;
 
     /**
      * A map of Vector3i positions to Java entities.

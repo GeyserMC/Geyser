@@ -35,6 +35,7 @@ import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
@@ -52,8 +53,7 @@ import org.geysermc.geyser.util.MathUtils;
 public class BiomeTranslator {
 
     public static void loadServerBiomes(GeyserSession session, CompoundTag codec) {
-        Int2IntMap biomeTranslations = session.getBiomeTranslations();
-        biomeTranslations.clear();
+        Int2IntMap biomeTranslations = new Int2IntOpenHashMap();
 
         CompoundTag worldGen = codec.get("minecraft:worldgen/biome");
         ListTag serverBiomes = worldGen.get("value");
@@ -88,16 +88,22 @@ public class BiomeTranslator {
                 biomeTranslations.defaultReturnValue(bedrockId);
             }
         }
+
+        int[] biomes = new int[biomeTranslations.size()];
+        for (Int2IntMap.Entry entry : biomeTranslations.int2IntEntrySet()) {
+            biomes[entry.getIntKey()] = entry.getIntValue();
+        }
+        session.setBiomeTranslations(biomes);
     }
 
     public static BlockStorage toNewBedrockBiome(GeyserSession session, DataPalette biomeData) {
-        Int2IntMap biomeTranslations = session.getBiomeTranslations();
+        int[] biomeTranslations = session.getBiomeTranslations();
         // As of 1.17.10: the client expects the same format as a chunk but filled with biomes
         // As of 1.18 this is the same as Java Edition
 
         Palette palette = biomeData.getPalette();
         if (palette instanceof SingletonPalette) {
-            int biomeId = biomeTranslations.get(palette.idToState(0));
+            int biomeId = biomeTranslations[palette.idToState(0)];
             return new BlockStorage(SingletonBitArray.INSTANCE, IntLists.singleton(biomeId));
         } else {
             BlockStorage storage;
@@ -112,7 +118,7 @@ public class BiomeTranslator {
 
                 for (int i = 0; i < size; i++) {
                     int javaId = palette.idToState(i);
-                    bedrockPalette.add(biomeTranslations.get(javaId));
+                    bedrockPalette.add(biomeTranslations[javaId]);
                 }
 
                 // Each section of biome corresponding to a chunk section contains 4 * 4 * 4 entries
@@ -137,7 +143,7 @@ public class BiomeTranslator {
                     int y = (i >> 4) & 3;
                     int z = (i >> 2) & 3;
                     // Get the Bedrock biome ID override
-                    int biomeId = biomeTranslations.get(javaId);
+                    int biomeId = biomeTranslations[javaId];
                     int idx = storage.idFor(biomeId);
                     // Convert biome coordinates into block coordinates
                     // Bedrock expects a full 4096 blocks
@@ -150,11 +156,11 @@ public class BiomeTranslator {
         }
     }
 
-    private static void multiplyIdToStorage(BitArray bitArray, int idx, int x, int y, int z) {
+    private static void multiplyIdToStorage(final BitArray bitArray, final int idx, final int x, final int y, final int z) {
         for (int blockX = x << 2; blockX < (x << 2) + 4; blockX++) {
             for (int blockZ = z << 2; blockZ < (z << 2) + 4; blockZ++) {
                 for (int blockY = y << 2; blockY < (y << 2) + 4; blockY++) {
-                    bitArray.set(GeyserChunkSection.blockPosition(blockX, blockY, blockZ), idx);
+                    bitArray.set((blockX << 8) | (blockZ << 4) | blockY, idx);
                 }
             }
         }
