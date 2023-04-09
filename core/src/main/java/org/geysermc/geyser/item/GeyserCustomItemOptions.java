@@ -32,12 +32,18 @@ import java.util.OptionalInt;
 
 public record GeyserCustomItemOptions(TriState unbreakable,
                                       OptionalInt customModelData,
-                                      OptionalInt damagePredicate) implements CustomItemOptions {
+                                      OptionalInt damagePredicate,
+                                      boolean defaultItem) implements CustomItemOptions {
+
+    public GeyserCustomItemOptions(TriState unbreakable, OptionalInt customModelData, OptionalInt damagePredicate) {
+        this(unbreakable, customModelData, damagePredicate, false);
+    }
 
     public static class CustomItemOptionsBuilder implements CustomItemOptions.Builder {
         private TriState unbreakable = TriState.NOT_SET;
         private OptionalInt customModelData = OptionalInt.empty();
         private OptionalInt damagePredicate = OptionalInt.empty();
+        private boolean defaultItem = false;
 
         @Override
         public Builder unbreakable(boolean unbreakable) {
@@ -62,8 +68,14 @@ public record GeyserCustomItemOptions(TriState unbreakable,
         }
 
         @Override
+        public Builder defaultItem(boolean defaultItem) {
+            this.defaultItem = defaultItem;
+            return this;
+        }
+
+        @Override
         public CustomItemOptions build() {
-            return new GeyserCustomItemOptions(unbreakable, customModelData, damagePredicate);
+            return new GeyserCustomItemOptions(this.unbreakable, this.customModelData, this.damagePredicate, this.defaultItem);
         }
     }
 }
