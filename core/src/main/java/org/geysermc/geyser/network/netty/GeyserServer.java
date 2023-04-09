@@ -44,6 +44,7 @@ import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerOfflineHandle
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
+import org.geysermc.geyser.network.CIDRMatcher;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.GeyserServerInitializer;
 import org.geysermc.geyser.ping.GeyserPingInfo;
@@ -53,6 +54,7 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.IntFunction;
 
@@ -95,7 +97,9 @@ public final class GeyserServer {
         });
 
         // Add our ping handler
-        this.future.channel().pipeline().addAfter(RakServerOfflineHandler.NAME, RakPingHandler.NAME, new RakPingHandler(this));
+        this.future.channel().pipeline()
+                .addFirst(RakConnectionRequestHandler.NAME, new RakConnectionRequestHandler(this))
+                .addAfter(RakServerOfflineHandler.NAME, RakPingHandler.NAME, new RakPingHandler(this));
         return future;
     }
 
@@ -124,6 +128,27 @@ public final class GeyserServer {
                 .group(group)
                 .option(RakChannelOption.RAK_HANDLE_PING, true)
                 .childHandler(new GeyserServerInitializer(this.geyser));
+    }
+
+    public boolean onConnectionRequest(InetSocketAddress inetSocketAddress) {
+        List<String> allowedProxyIPs = geyser.getConfig().getBedrock().getProxyProtocolWhitelistedIPs();
+        if (geyser.getConfig().getBedrock().isEnableProxyProtocol() && !allowedProxyIPs.isEmpty()) {
+            boolean isWhitelistedIP = false;
+            for (CIDRMatcher matcher : geyser.getConfig().getBedrock().getWhitelistedIPsMatchers()) {
+                if (matcher.matches(inetSocketAddress.getAddress())) {
+                    isWhitelistedIP = true;
+                    break;
+                }
+            }
+
+            if (!isWhitelistedIP) {
+                return false;
+            }
+        }
+
+        String ip = geyser.getConfig().isLogPlayerIpAddresses() ? inetSocketAddress.toString() : "<IP address withheld>";
+        geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.attempt_connect", ip));
+        return true;
     }
 
     public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {

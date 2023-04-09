@@ -43,32 +43,6 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
         this.geyser = geyser;
     }
 
-    //TODO
-    /*
-    @Override
-    public boolean onConnectionRequest(InetSocketAddress inetSocketAddress) {
-        List<String> allowedProxyIPs = geyser.getConfig().getBedrock().getProxyProtocolWhitelistedIPs();
-        if (geyser.getConfig().getBedrock().isEnableProxyProtocol() && !allowedProxyIPs.isEmpty()) {
-            boolean isWhitelistedIP = false;
-            for (CIDRMatcher matcher : geyser.getConfig().getBedrock().getWhitelistedIPsMatchers()) {
-                if (matcher.matches(inetSocketAddress.getAddress())) {
-                    isWhitelistedIP = true;
-                    break;
-                }
-            }
-
-            if (!isWhitelistedIP) {
-                return false;
-            }
-        }
-
-        String ip = geyser.getConfig().isLogPlayerIpAddresses() ? inetSocketAddress.toString() : "<IP address withheld>";
-        geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.attempt_connect", ip));
-        return true;
-    }
-
-     */
-
     @Override
     public void initSession(@Nonnull BedrockServerSession bedrockServerSession) {
         try {
