@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.network.netty;
+package org.geysermc.geyser.network.netty.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
@@ -34,6 +34,7 @@ import io.netty.channel.socket.DatagramPacket;
 import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
+import org.geysermc.geyser.network.netty.GeyserServer;
 
 import java.net.InetSocketAddress;
 

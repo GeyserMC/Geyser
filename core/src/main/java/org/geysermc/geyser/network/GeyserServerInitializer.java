@@ -25,8 +25,10 @@
 
 package org.geysermc.geyser.network;
 
+import io.netty.channel.Channel;
 import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import org.cloudburstmc.protocol.bedrock.BedrockPeer;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.netty.initializer.BedrockServerInitializer;
 import org.geysermc.geyser.GeyserImpl;
@@ -53,6 +55,11 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
             this.geyser.getLogger().error("Error occurred while initializing player!", e);
             bedrockServerSession.disconnect(e.getMessage());
         }
+    }
+
+    @Override
+    protected BedrockPeer createPeer(Channel channel) {
+        return new GeyserBedrockPeer(channel, this::createSession);
     }
 
     /*

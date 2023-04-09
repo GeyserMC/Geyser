@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,28 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.network.netty;
+package org.geysermc.geyser.network;
 
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
-import lombok.RequiredArgsConstructor;
-import org.cloudburstmc.netty.channel.raknet.RakPing;
-import org.cloudburstmc.netty.channel.raknet.RakPong;
-import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
+import io.netty.channel.Channel;
+import org.cloudburstmc.protocol.bedrock.BedrockPeer;
+import org.cloudburstmc.protocol.bedrock.BedrockSessionFactory;
 
-@ChannelHandler.Sharable
-@RequiredArgsConstructor
-public class RakPingHandler extends SimpleChannelInboundHandler<RakPing> {
-    public static final String NAME = "rak-ping-handler";
+import java.net.SocketAddress;
 
-    private final GeyserServer server;
+public class GeyserBedrockPeer extends BedrockPeer {
+    private SocketAddress proxiedAddress;
 
-    @Override
-    protected void channelRead0(ChannelHandlerContext ctx, RakPing msg) {
-        long guid = ctx.channel().config().getOption(RakChannelOption.RAK_GUID);
+    public GeyserBedrockPeer(Channel channel, BedrockSessionFactory sessionFactory) {
+        super(channel, sessionFactory);
+    }
 
-        RakPong pong = msg.reply(guid, this.server.onQuery(msg.getSender()).toByteBuf());
-        ctx.writeAndFlush(pong);
+    public SocketAddress getRealAddress() {
+        SocketAddress proxied = this.proxiedAddress;
+        return proxied == null ? this.getSocketAddress() : proxied;
+    }
+
+    public void setProxiedAddress(SocketAddress proxiedAddress) {
+        this.proxiedAddress = proxiedAddress;
     }
 }
