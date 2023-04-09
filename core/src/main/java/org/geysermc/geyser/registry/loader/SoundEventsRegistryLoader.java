@@ -27,8 +27,8 @@ package org.geysermc.geyser.registry.loader;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.protocol.data.game.level.event.LevelEvent;
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
 import org.geysermc.geyser.translator.level.event.PlaySoundEventTranslator;
@@ -59,13 +59,13 @@ public class SoundEventsRegistryLoader extends EffectRegistryLoader<Map<LevelEve
                 switch (type) {
                     case "soundLevel" -> {
                         javaEffect = LevelEvent.valueOf(entry.getKey());
-                        LevelEventType levelEventType = LevelEventType.valueOf(node.get("name").asText());
+                        LevelEventType levelEventType = org.cloudburstmc.protocol.bedrock.data.LevelEvent.valueOf(node.get("name").asText());
                         int data = node.has("data") ? node.get("data").intValue() : 0;
                         transformer = new SoundLevelEventTranslator(levelEventType, data);
                     }
                     case "soundEvent" -> {
                         javaEffect = LevelEvent.valueOf(entry.getKey());
-                        com.nukkitx.protocol.bedrock.data.SoundEvent soundEvent = com.nukkitx.protocol.bedrock.data.SoundEvent.valueOf(node.get("name").asText());
+                        org.cloudburstmc.protocol.bedrock.data.SoundEvent soundEvent = org.cloudburstmc.protocol.bedrock.data.SoundEvent.valueOf(node.get("name").asText());
                         String identifier = node.has("identifier") ? node.get("identifier").asText() : "";
                         int extraData = node.has("extraData") ? node.get("extraData").intValue() : -1;
                         transformer = new SoundEventEventTranslator(soundEvent, identifier, extraData);

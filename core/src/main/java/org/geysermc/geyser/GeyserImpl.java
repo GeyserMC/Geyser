@@ -30,11 +30,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.steveice10.packetlib.tcp.TcpSession;
-import com.nukkitx.network.raknet.RakNetConstants;
-import com.nukkitx.network.util.EventLoops;
-import com.nukkitx.protocol.bedrock.BedrockServer;
 import io.netty.channel.epoll.Epoll;
-import io.netty.channel.kqueue.KQueue;
 import io.netty.util.NettyRuntime;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.internal.SystemPropertyUtil;
@@ -72,7 +68,7 @@ import org.geysermc.geyser.erosion.UnixSocketClientListener;
 import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.extension.GeyserExtensionManager;
 import org.geysermc.geyser.level.WorldManager;
-import org.geysermc.geyser.network.ConnectorServerEventHandler;
+import org.geysermc.geyser.network.netty.GeyserServer;
 import org.geysermc.geyser.pack.ResourcePack;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -148,7 +144,7 @@ public class GeyserImpl implements GeyserApi {
 
     private ScheduledExecutorService scheduledThread;
 
-    private BedrockServer bedrockServer;
+    private GeyserServer geyserServer;
     private final PlatformType platformType;
     private final GeyserBootstrap bootstrap;
 
@@ -199,7 +195,6 @@ public class GeyserImpl implements GeyserApi {
 
         /* Initialize translators */
         EntityDefinitions.init();
-        ItemTranslator.init();
         MessageTranslator.init();
 
         // Download the latest asset list and cache it
@@ -308,53 +303,29 @@ public class GeyserImpl implements GeyserApi {
         CooldownUtils.setDefaultShowCooldown(config.getShowCooldown());
         DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
 
-        // https://github.com/GeyserMC/Geyser/issues/957
-        RakNetConstants.MAXIMUM_MTU_SIZE = (short) config.getMtu();
-        logger.debug("Setting MTU to " + config.getMtu());
-
         Integer bedrockThreadCount = Integer.getInteger("Geyser.BedrockNetworkThreads");
         if (bedrockThreadCount == null) {
             // Copy the code from Netty's default thread count fallback
             bedrockThreadCount = Math.max(1, SystemPropertyUtil.getInt("io.netty.eventLoopThreads", NettyRuntime.availableProcessors() * 2));
         }
 
-        boolean enableProxyProtocol = config.getBedrock().isEnableProxyProtocol();
-        bedrockServer = new BedrockServer(
-                new InetSocketAddress(config.getBedrock().address(), config.getBedrock().port()),
-                bedrockThreadCount,
-                EventLoops.commonGroup(),
-                enableProxyProtocol
-        );
-
-        if (config.isDebugMode()) {
-            logger.debug("EventLoop type: " + EventLoops.getChannelType());
-            if (EventLoops.getChannelType() == EventLoops.ChannelType.NIO) {
-                if (System.getProperties().contains("disableNativeEventLoop")) {
-                    logger.debug("EventLoop type is NIO because native event loops are disabled.");
-                } else {
-                    logger.debug("Reason for no Epoll: " + Epoll.unavailabilityCause().toString());
-                    logger.debug("Reason for no KQueue: " + KQueue.unavailabilityCause().toString());
-                }
-            }
-        }
-
-        bedrockServer.setHandler(new ConnectorServerEventHandler(this));
-
         if (shouldStartListener) {
-            bedrockServer.bind().whenComplete((avoid, throwable) -> {
-                if (throwable == null) {
-                    logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start", config.getBedrock().address(),
-                            String.valueOf(config.getBedrock().port())));
-                } else {
-                    String address = config.getBedrock().address();
-                    int port = config.getBedrock().port();
-                    logger.severe(GeyserLocale.getLocaleStringLog("geyser.core.fail", address, String.valueOf(port)));
-                    if (!"0.0.0.0".equals(address)) {
-                        logger.info(Component.text("Suggestion: try setting `address` under `bedrock` in the Geyser config back to 0.0.0.0", NamedTextColor.GREEN));
-                        logger.info(Component.text("Then, restart this server.", NamedTextColor.GREEN));
+            this.geyserServer = new GeyserServer(this, bedrockThreadCount);
+            this.geyserServer.bind(new InetSocketAddress(config.getBedrock().address(), config.getBedrock().port()))
+                .whenComplete((avoid, throwable) -> {
+                    if (throwable == null) {
+                        logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start", config.getBedrock().address(),
+                                String.valueOf(config.getBedrock().port())));
+                    } else {
+                        String address = config.getBedrock().address();
+                        int port = config.getBedrock().port();
+                        logger.severe(GeyserLocale.getLocaleStringLog("geyser.core.fail", address, String.valueOf(port)));
+                        if (!"0.0.0.0".equals(address)) {
+                            logger.info(Component.text("Suggestion: try setting `address` under `bedrock` in the Geyser config back to 0.0.0.0", NamedTextColor.GREEN));
+                            logger.info(Component.text("Then, restart this server.", NamedTextColor.GREEN));
+                        }
                     }
-                }
-            }).join();
+                }).join();
         }
 
         if (config.getRemote().authType() == AuthType.FLOODGATE) {
@@ -575,7 +546,7 @@ public class GeyserImpl implements GeyserApi {
         }
 
         scheduledThread.shutdown();
-        bedrockServer.close();
+        geyserServer.shutdown();
         if (skinUploader != null) {
             skinUploader.close();
         }

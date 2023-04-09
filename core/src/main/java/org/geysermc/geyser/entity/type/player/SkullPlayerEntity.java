@@ -25,14 +25,14 @@
 
 package org.geysermc.geyser.entity.type.player;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.data.GameType;
-import com.nukkitx.protocol.bedrock.data.PlayerPermission;
-import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.bedrock.data.GameType;
+import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
 import lombok.Getter;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
@@ -63,9 +63,9 @@ public class SkullPlayerEntity extends PlayerEntity {
     protected void initializeMetadata() {
         // Deliberately do not call super
         // Set bounding box to almost nothing so the skull is able to be broken and not cause entity to cast a shadow
-        dirtyMetadata.put(EntityData.SCALE, 1.08f);
-        dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.001f);
-        dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.001f);
+        dirtyMetadata.put(EntityDataTypes.SCALE, 1.08f);
+        dirtyMetadata.put(EntityDataTypes.HEIGHT, 0.001f);
+        dirtyMetadata.put(EntityDataTypes.WIDTH, 0.001f);
         setFlag(EntityFlag.CAN_SHOW_NAME, false);
         setFlag(EntityFlag.INVISIBLE, true); // Until the skin is loaded
     }
@@ -84,7 +84,7 @@ public class SkullPlayerEntity extends PlayerEntity {
         addPlayerPacket.setRotation(getBedrockRotation());
         addPlayerPacket.setMotion(motion);
         addPlayerPacket.setHand(hand);
-        addPlayerPacket.getAdventureSettings().setCommandPermission(CommandPermission.NORMAL);
+        addPlayerPacket.getAdventureSettings().setCommandPermission(CommandPermission.ANY);
         addPlayerPacket.getAdventureSettings().setPlayerPermission(PlayerPermission.MEMBER);
         addPlayerPacket.setDeviceId("");
         addPlayerPacket.setPlatformChatId("");

@@ -27,8 +27,12 @@ package org.geysermc.geyser.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
+import lombok.AccessLevel;
+import lombok.Getter;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import lombok.Data;
+import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
@@ -92,14 +96,27 @@ public class GeyserItemStack {
     }
 
     public ItemData getItemData(GeyserSession session) {
-        ItemData itemData = ItemTranslator.translateToBedrock(session, getItemStack());
-        itemData.setNetId(getNetId());
-        itemData.setUsingNetId(true); // Seems silly - this should probably be on the protocol level
-        return itemData;
+        if (isEmpty()) {
+            return ItemData.AIR;
+        }
+        ItemData.Builder itemData = ItemTranslator.translateToBedrock(session, javaId, amount, nbt);
+        itemData.netId(getNetId());
+        itemData.usingNetId(true);
+        return itemData.build();
     }
 
     public ItemMapping getMapping(GeyserSession session) {
         return session.getItemMappings().getMapping(this.javaId);
+    }
+
+    @Getter(AccessLevel.NONE)
+    private Item item; //TODO
+
+    public Item asItem() {
+        if (item == null) {
+            return (item = Registries.JAVA_ITEMS.get().get(javaId));
+        }
+        return item;
     }
 
     public boolean isEmpty() {

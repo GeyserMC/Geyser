@@ -27,11 +27,11 @@ package org.geysermc.geyser.entity.type.living.monster;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
-import com.nukkitx.math.GenericMath;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.packet.PlaySoundPacket;
+import org.cloudburstmc.math.GenericMath;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.session.GeyserSession;
@@ -53,7 +53,7 @@ public class WardenEntity extends MonsterEntity implements Tickable {
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
-        dirtyMetadata.put(EntityData.HEARTBEAT_INTERVAL_TICKS, heartBeatDelay);
+        dirtyMetadata.put(EntityDataTypes.HEARTBEAT_INTERVAL_TICKS, heartBeatDelay);
     }
 
     @Override
@@ -68,7 +68,7 @@ public class WardenEntity extends MonsterEntity implements Tickable {
     public void setAngerLevel(IntEntityMetadata entityMetadata) {
         float anger = (float) entityMetadata.getPrimitiveValue() / 80f;
         heartBeatDelay = 40 - GenericMath.floor(MathUtils.clamp(anger, 0.0F, 1.0F) * 30F);
-        dirtyMetadata.put(EntityData.HEARTBEAT_INTERVAL_TICKS, heartBeatDelay);
+        dirtyMetadata.put(EntityDataTypes.HEARTBEAT_INTERVAL_TICKS, heartBeatDelay);
     }
 
     @Override

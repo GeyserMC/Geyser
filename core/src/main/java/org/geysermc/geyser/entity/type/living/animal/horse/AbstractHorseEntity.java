@@ -27,19 +27,19 @@ package org.geysermc.geyser.entity.type.living.animal.horse;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.google.common.collect.ImmutableSet;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
-import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
-import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
+import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
@@ -53,14 +53,14 @@ public class AbstractHorseEntity extends AnimalEntity {
      * A list of all foods a horse/donkey can eat on Java Edition.
      * Used to display interactive tag if needed.
      */
-    private static final Set<String> DONKEY_AND_HORSE_FOODS = ImmutableSet.of("golden_apple", "enchanted_golden_apple",
-            "golden_carrot", "sugar", "apple", "wheat", "hay_block");
+    private static final Set<Item> DONKEY_AND_HORSE_FOODS = Set.of(Items.GOLDEN_APPLE, Items.ENCHANTED_GOLDEN_APPLE,
+            Items.GOLDEN_CARROT, Items.SUGAR, Items.APPLE, Items.WHEAT, Items.HAY_BLOCK);
 
     public AbstractHorseEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
 
         // Specifies the size of the entity's inventory. Required to place slots in the entity.
-        dirtyMetadata.put(EntityData.CONTAINER_BASE_SIZE, getContainerBaseSize());
+        dirtyMetadata.put(EntityDataTypes.CONTAINER_SIZE, getContainerBaseSize());
 
         setFlag(EntityFlag.WASD_CONTROLLED, true);
     }
@@ -102,8 +102,8 @@ public class AbstractHorseEntity extends AnimalEntity {
         // Only set eating when we don't have mouth open so a player interaction doesn't trigger the eating animation
         horseFlags = (xd & 0x10) == 0x10 && (xd & 0x40) != 0x40 ? horseFlags | 0x20 : horseFlags;
 
-        // Set the flags into the display item
-        dirtyMetadata.put(EntityData.DISPLAY_ITEM, horseFlags);
+        // Set the flags into the horse flags
+        dirtyMetadata.put(EntityDataTypes.HORSE_FLAGS, horseFlags);
 
         // Send the eating particles
         // We use the wheat metadata as static particles since Java
@@ -112,25 +112,25 @@ public class AbstractHorseEntity extends AnimalEntity {
             EntityEventPacket entityEventPacket = new EntityEventPacket();
             entityEventPacket.setRuntimeEntityId(geyserId);
             entityEventPacket.setType(EntityEventType.EATING_ITEM);
-            entityEventPacket.setData(session.getItemMappings().getStoredItems().wheat().getBedrockId() << 16);
+            entityEventPacket.setData(session.getItemMappings().getStoredItems().wheat().getBedrockDefinition().getRuntimeId() << 16);
             session.sendUpstreamPacket(entityEventPacket);
         }
 
         // Set container type if tamed
-        dirtyMetadata.put(EntityData.CONTAINER_TYPE, tamed ? (byte) ContainerType.HORSE.getId() : (byte) 0);
+        dirtyMetadata.put(EntityDataTypes.CONTAINER_TYPE, tamed ? (byte) ContainerType.HORSE.getId() : (byte) 0);
 
         // Shows the jump meter
         setFlag(EntityFlag.CAN_POWER_JUMP, saddled);
     }
 
     @Override
-    public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
-        return DONKEY_AND_HORSE_FOODS.contains(javaIdentifierStripped);
+    public boolean canEat(Item item) {
+        return DONKEY_AND_HORSE_FOODS.contains(item);
     }
 
     @Nonnull
     @Override
-    protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractiveTag testMobInteraction(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
         return testHorseInteraction(hand, itemInHand);
     }
 
@@ -165,7 +165,7 @@ public class AbstractHorseEntity extends AnimalEntity {
                 return InteractiveTag.ATTACH_CHEST;
             }
 
-            if (additionalTestForInventoryOpen(itemInHand) || !isBaby && !getFlag(EntityFlag.SADDLED) && itemInHand.getJavaId() == session.getItemMappings().getStoredItems().saddle()) {
+            if (additionalTestForInventoryOpen(itemInHand) || !isBaby && !getFlag(EntityFlag.SADDLED) && itemInHand.asItem() == Items.SADDLE) {
                 // Will open the inventory to be saddled
                 return InteractiveTag.OPEN_CONTAINER;
             }
@@ -221,7 +221,7 @@ public class AbstractHorseEntity extends AnimalEntity {
             }
 
             // Note: yes, this code triggers for llamas too. lol (as of Java Edition 1.18.1)
-            if (additionalTestForInventoryOpen(itemInHand) || (!isBaby && !getFlag(EntityFlag.SADDLED) && itemInHand.getJavaId() == session.getItemMappings().getStoredItems().saddle())) {
+            if (additionalTestForInventoryOpen(itemInHand) || (!isBaby && !getFlag(EntityFlag.SADDLED) && itemInHand.asItem() == Items.SADDLE)) {
                 // Will open the inventory to be saddled
                 return InteractionResult.SUCCESS;
             }
@@ -245,7 +245,7 @@ public class AbstractHorseEntity extends AnimalEntity {
     }
 
     protected boolean additionalTestForInventoryOpen(@Nonnull GeyserItemStack itemInHand) {
-        return itemInHand.getMapping(session).getJavaIdentifier().endsWith("_horse_armor");
+        return itemInHand.asItem().javaIdentifier().endsWith("_horse_armor");
     }
 
     /* Just a place to stuff common code for the undead variants without having duplicate code */
@@ -260,7 +260,7 @@ public class AbstractHorseEntity extends AnimalEntity {
         } else if (!passengers.isEmpty()) {
             return testHorseInteraction(hand, itemInHand);
         } else {
-            if (session.getItemMappings().getStoredItems().saddle() == itemInHand.getJavaId()) {
+            if (Items.SADDLE == itemInHand.asItem()) {
                 return InteractiveTag.OPEN_CONTAINER;
             }
 

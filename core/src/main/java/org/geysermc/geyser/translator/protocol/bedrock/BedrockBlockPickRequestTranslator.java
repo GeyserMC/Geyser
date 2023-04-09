@@ -29,8 +29,8 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.packet.BlockPickRequestPacket;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.bedrock.packet.BlockPickRequestPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.level.block.BlockStateValues;
@@ -90,7 +90,7 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
                         // I don't really like this... I'd rather get an ID from the block mapping I think
                         ItemMapping mapping = session.getItemMappings().getMapping(blockMapping.getPickItem());
 
-                        ItemStack itemStack = new ItemStack(mapping.getJavaId(), 1, tag);
+                        ItemStack itemStack = new ItemStack(mapping.getJavaItem().javaId(), 1, tag);
                         InventoryUtils.findOrCreateItem(session, itemStack);
                     }));
             return;

@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.level.physics;
 
-import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.math.vector.Vector3i;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;

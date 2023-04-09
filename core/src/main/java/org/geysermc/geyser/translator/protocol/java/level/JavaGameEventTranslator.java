@@ -33,11 +33,12 @@ import com.github.steveice10.mc.protocol.data.game.level.notify.RespawnScreenVal
 import com.github.steveice10.mc.protocol.data.game.level.notify.ThunderStrengthValue;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundGameEventPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundClientCommandPacket;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.GameRuleData;
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
-import com.nukkitx.protocol.bedrock.packet.*;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
+import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
+import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
+import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.MinecraftLocale;
@@ -65,7 +66,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
             // Behavior last verified with Java 1.19.4 and Bedrock 1.19.71
             case START_RAIN:
                 LevelEventPacket stopRainPacket = new LevelEventPacket();
-                stopRainPacket.setType(LevelEventType.STOP_RAINING);
+                stopRainPacket.setType(LevelEvent.STOP_RAINING);
                 stopRainPacket.setData(0);
                 stopRainPacket.setPosition(Vector3f.ZERO);
                 session.sendUpstreamPacket(stopRainPacket);
@@ -73,7 +74,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 break;
             case STOP_RAIN:
                 LevelEventPacket startRainPacket = new LevelEventPacket();
-                startRainPacket.setType(LevelEventType.START_RAINING);
+                startRainPacket.setType(LevelEvent.START_RAINING);
                 startRainPacket.setData(MAX_STORM_STRENGTH);
                 startRainPacket.setPosition(Vector3f.ZERO);
                 session.sendUpstreamPacket(startRainPacket);
@@ -83,7 +84,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 float rainStrength = ((RainStrengthValue) packet.getValue()).getStrength();
                 boolean isCurrentlyRaining = rainStrength > 0f;
                 LevelEventPacket changeRainPacket = new LevelEventPacket();
-                changeRainPacket.setType(isCurrentlyRaining ? LevelEventType.START_RAINING : LevelEventType.STOP_RAINING);
+                changeRainPacket.setType(isCurrentlyRaining ? LevelEvent.START_RAINING : LevelEvent.STOP_RAINING);
                 // This is the rain strength on LevelEventType.START_RAINING, but can be any value on LevelEventType.STOP_RAINING
                 changeRainPacket.setData((int) (rainStrength * MAX_STORM_STRENGTH));
                 changeRainPacket.setPosition(Vector3f.ZERO);
@@ -95,7 +96,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 float thunderStrength = ((ThunderStrengthValue) packet.getValue()).getStrength();
                 boolean isCurrentlyThundering = thunderStrength > 0f;
                 LevelEventPacket changeThunderPacket = new LevelEventPacket();
-                changeThunderPacket.setType(isCurrentlyThundering ? LevelEventType.START_THUNDERSTORM : LevelEventType.STOP_THUNDERSTORM);
+                changeThunderPacket.setType(isCurrentlyThundering ? LevelEvent.START_THUNDERSTORM : LevelEvent.STOP_THUNDERSTORM);
                 changeThunderPacket.setData((int) (thunderStrength * MAX_STORM_STRENGTH));
                 changeThunderPacket.setPosition(Vector3f.ZERO);
                 session.sendUpstreamPacket(changeThunderPacket);

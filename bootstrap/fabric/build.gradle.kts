@@ -68,10 +68,11 @@ tasks {
         relocate("net.kyori", "org.geysermc.relocate.kyori")
 
         dependencies {
-            // Exclude everything EXCEPT KQueue and some DNS stuff required for HAProxyc
+            // Exclude everything EXCEPT some DNS stuff required for HAProxy
             exclude(dependency("io.netty:netty-transport-classes-epoll:.*"))
             exclude(dependency("io.netty:netty-transport-native-epoll:.*"))
             exclude(dependency("io.netty:netty-transport-native-unix-common:.*"))
+            exclude(dependency("io.netty:netty-transport-classes-kqueue:.*"))
             exclude(dependency("io.netty:netty-transport-native-kqueue:.*"))
             exclude(dependency("io.netty:netty-handler:.*"))
             exclude(dependency("io.netty:netty-common:.*"))

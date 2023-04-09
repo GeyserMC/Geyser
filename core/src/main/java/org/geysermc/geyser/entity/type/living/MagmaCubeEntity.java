@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.entity.type.living;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -53,7 +53,7 @@ public class MagmaCubeEntity extends SlimeEntity {
     public void updateJump(boolean newOnGround) {
         if (newOnGround != onGround) {
             // Add the jumping effect to the magma cube
-            dirtyMetadata.put(EntityData.CLIENT_EVENT, (byte) (newOnGround ? 1 : 2));
+            dirtyMetadata.put(EntityDataTypes.CLIENT_EVENT, (byte) (newOnGround ? 1 : 2));
             updateBedrockMetadata();
         }
     }

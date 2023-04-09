@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.level.chunk;
 
-import com.nukkitx.network.util.Preconditions;
 import io.netty.buffer.ByteBuf;
+import org.cloudburstmc.protocol.common.util.Preconditions;
 
 public class GeyserChunkSection {
 

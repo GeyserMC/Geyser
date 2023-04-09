@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.inventory;
 
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 
 public record BedrockContainerSlot(ContainerSlotType container, int slot) {
 }

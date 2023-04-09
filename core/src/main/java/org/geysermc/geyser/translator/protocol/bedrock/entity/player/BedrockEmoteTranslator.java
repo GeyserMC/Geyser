@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
-import com.nukkitx.protocol.bedrock.packet.EmotePacket;
+import org.cloudburstmc.protocol.bedrock.packet.EmotePacket;
 import org.geysermc.geyser.api.event.bedrock.ClientEmoteEvent;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.geyser.entity.type.Entity;

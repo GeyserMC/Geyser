@@ -25,47 +25,68 @@
 
 package org.geysermc.geyser.registry.type;
 
-import com.nukkitx.nbt.NbtList;
-import com.nukkitx.nbt.NbtMap;
-import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.Builder;
 import lombok.Value;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
+import org.cloudburstmc.protocol.common.DefinitionRegistry;
 
 import java.util.Map;
+import java.util.Set;
 
 @Builder
 @Value
-public class BlockMappings {
-    int bedrockAirId;
-    int bedrockWaterId;
-    int bedrockMovingBlockId;
+public class BlockMappings implements DefinitionRegistry<GeyserBedrockBlock> {
+    GeyserBedrockBlock bedrockAir;
+    BlockDefinition bedrockWater;
+    BlockDefinition bedrockMovingBlock;
 
     int blockStateVersion;
 
-    int[] javaToBedrockBlocks;
+    GeyserBedrockBlock[] javaToBedrockBlocks;
 
-    NbtList<NbtMap> bedrockBlockStates;
+    GeyserBedrockBlock[] bedrockRuntimeMap;
 
-    int commandBlockRuntimeId;
+    BlockDefinition commandBlock;
 
-    Object2IntMap<NbtMap> itemFrames;
+    Map<NbtMap, BlockDefinition> itemFrames;
     Map<String, NbtMap> flowerPotBlocks;
 
-    IntSet jigsawStateIds;
+    Set<BlockDefinition> jigsawStates;
 
-    public int getBedrockBlockId(int state) {
-        if (state >= this.javaToBedrockBlocks.length) {
-            return bedrockAirId;
+    public int getBedrockBlockId(int javaState) {
+        return getBedrockBlock(javaState).getRuntimeId();
+    }
+
+    public GeyserBedrockBlock getBedrockBlock(int javaState) {
+        if (javaState < 0 || javaState >= this.javaToBedrockBlocks.length) {
+            return bedrockAir;
         }
-        return this.javaToBedrockBlocks[state];
+        return this.javaToBedrockBlocks[javaState];
     }
 
-    public int getItemFrame(NbtMap tag) {
-        return this.itemFrames.getOrDefault(tag, -1);
+    public BlockDefinition getItemFrame(NbtMap tag) {
+        return this.itemFrames.get(tag);
     }
 
-    public boolean isItemFrame(int bedrockBlockRuntimeId) {
-        return this.itemFrames.values().contains(bedrockBlockRuntimeId);
+    public boolean isItemFrame(BlockDefinition definition) {
+        if (definition instanceof GeyserBedrockBlock def) {
+            return this.itemFrames.containsKey(def.getState());
+        }
+
+        return false;
+    }
+
+    @Override
+    public GeyserBedrockBlock getDefinition(int bedrockId) {
+        if (bedrockId < 0 || bedrockId >= this.bedrockRuntimeMap.length) {
+            return null;
+        }
+        return bedrockRuntimeMap[bedrockId];
+    }
+
+    @Override
+    public boolean isRegistered(GeyserBedrockBlock bedrockBlock) {
+        return getDefinition(bedrockBlock.getRuntimeId()) == bedrockBlock;
     }
 }
