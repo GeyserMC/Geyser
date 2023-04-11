@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
+import org.jetbrains.annotations.Nullable;
 
 public class CrossbowItem extends Item {
     public CrossbowItem(String javaIdentifier, Builder builder) {
@@ -45,12 +46,12 @@ public class CrossbowItem extends Item {
         ListTag chargedProjectiles = tag.get("ChargedProjectiles");
         if (chargedProjectiles != null) {
             if (!chargedProjectiles.getValue().isEmpty()) {
-                CompoundTag projectile = (CompoundTag) chargedProjectiles.getValue().get(0);
+                CompoundTag javaProjectileAsNbt = (CompoundTag) chargedProjectiles.getValue().get(0);
 
-                ItemMapping projectileMapping = session.getItemMappings().getMapping((String) projectile.get("id").getValue());
+                ItemMapping projectileMapping = session.getItemMappings().getMapping((String) javaProjectileAsNbt.get("id").getValue());
                 if (projectileMapping == null) return;
-                CompoundTag projectileTag = projectile.get("tag");
-                ItemStack itemStack = new ItemStack(projectileMapping.getJavaItem().javaId(), (byte) projectile.get("Count").getValue(), projectileTag);
+                @Nullable CompoundTag projectileTag = javaProjectileAsNbt.get("tag");
+                ItemStack itemStack = new ItemStack(projectileMapping.getJavaItem().javaId(), (byte) javaProjectileAsNbt.get("Count").getValue(), projectileTag);
                 ItemData itemData = ItemTranslator.translateToBedrock(session, itemStack);
 
                 CompoundTag newProjectile = new CompoundTag("chargedItem");
@@ -59,7 +60,7 @@ public class CrossbowItem extends Item {
 
                 newProjectile.put(new ShortTag("Damage", (short) itemData.getDamage()));
 
-                projectileTag.put(newProjectile);
+                tag.put(newProjectile);
             }
         }
     }
