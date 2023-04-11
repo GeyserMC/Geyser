@@ -93,6 +93,10 @@ public final class CustomItemTranslator {
                 continue;
             }
 
+            if (options.defaultItem()) {
+                return null;
+            }
+
             return mappingTypes.value();
         }
 
