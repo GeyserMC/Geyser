@@ -34,13 +34,8 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.ints.IntLists;
+import it.unimi.dsi.fastutil.ints.*;
 import org.geysermc.geyser.level.chunk.BlockStorage;
-import org.geysermc.geyser.level.chunk.GeyserChunkSection;
 import org.geysermc.geyser.level.chunk.bitarray.BitArray;
 import org.geysermc.geyser.level.chunk.bitarray.BitArrayVersion;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
@@ -59,10 +54,14 @@ public class BiomeTranslator {
         ListTag serverBiomes = worldGen.get("value");
         session.setBiomeGlobalPalette(MathUtils.getGlobalPaletteForSize(serverBiomes.size()));
 
+        int greatestBiomeId = 0;
         for (CompoundTag biomeTag : JavaCodecUtil.iterateAsTag(worldGen)) {
             String javaIdentifier = ((StringTag) biomeTag.get("name")).getValue();
             int bedrockId = Registries.BIOME_IDENTIFIERS.get().getOrDefault(javaIdentifier, 0);
             int javaId = ((IntTag) biomeTag.get("id")).getValue();
+            if (javaId > greatestBiomeId) {
+                greatestBiomeId = javaId;
+            }
 
             // TODO - the category tag no longer exists - find a better replacement option
 //            if (bedrockId == -1) {
@@ -89,7 +88,7 @@ public class BiomeTranslator {
             }
         }
 
-        int[] biomes = new int[biomeTranslations.size()];
+        int[] biomes = new int[greatestBiomeId + 1];
         for (Int2IntMap.Entry entry : biomeTranslations.int2IntEntrySet()) {
             biomes[entry.getIntKey()] = entry.getIntValue();
         }
