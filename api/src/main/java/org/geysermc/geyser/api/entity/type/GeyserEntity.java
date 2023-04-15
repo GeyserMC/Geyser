@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,22 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java;
+package org.geysermc.geyser.api.entity.type;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundServerDataPacket;
-import org.geysermc.geyser.api.util.TriState;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
+import org.checkerframework.checker.index.qual.NonNegative;
 
-@Translator(packet = ClientboundServerDataPacket.class)
-public class JavaServerDataTranslator extends PacketTranslator<ClientboundServerDataPacket> {
-
-    @Override
-    public void translate(GeyserSession session, ClientboundServerDataPacket packet) {
-        // We only want to warn about chat maybe not working once
-        if (packet.isEnforcesSecureChat() && session.getWorldCache().getChatWarningSent() == TriState.NOT_SET) {
-            session.getWorldCache().setChatWarningSent(TriState.FALSE);
-        }
-    }
+/**
+ * Represents a unique instance of an entity. Each {@link org.geysermc.geyser.api.connection.GeyserConnection}
+ * have their own sets of entities - no two instances will share the same GeyserEntity instance.
+ */
+public interface GeyserEntity {
+    /**
+     * @return the entity ID that the server has assigned to this entity.
+     */
+    @NonNegative
+    int javaId();
 }

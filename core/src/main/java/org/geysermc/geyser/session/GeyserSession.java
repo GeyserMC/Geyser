@@ -63,8 +63,6 @@ import com.github.steveice10.packetlib.tcp.TcpSession;
 import com.nimbusds.jwt.SignedJWT;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -75,10 +73,12 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.value.qual.IntRange;
 import org.cloudburstmc.math.vector.*;
 import org.cloudburstmc.nbt.NbtMap;
@@ -102,6 +102,8 @@ import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.entity.type.GeyserEntity;
+import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.command.GeyserCommandSource;
@@ -1919,6 +1921,26 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         transferPacket.setPort(port);
         sendUpstreamPacket(transferPacket);
         return true;
+    }
+
+    @Override
+    public @NonNull CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId) {
+        CompletableFuture<GeyserEntity> future = new CompletableFuture<>();
+        ensureInEventLoop(() -> future.complete(this.entityCache.getEntityByJavaId(javaId)));
+        return future;
+    }
+
+    @Override
+    public void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId) {
+        Entity entity = (Entity) emoter;
+        if (entity.getSession() != this) {
+            throw new IllegalStateException("Given entity must be from this session!");
+        }
+
+        EmotePacket packet = new EmotePacket();
+        packet.setEmoteId(emoteId);
+        packet.setRuntimeEntityId(entity.getGeyserId());
+        sendUpstreamPacket(packet);
     }
 
     public void addCommandEnum(String name, String enums) {

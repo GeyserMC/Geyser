@@ -29,6 +29,7 @@ import org.cloudburstmc.protocol.bedrock.packet.EmotePacket;
 import org.geysermc.geyser.api.event.bedrock.ClientEmoteEvent;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -61,7 +62,7 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
                 if (otherSession.getEventLoop().inEventLoop()) {
                     playEmote(otherSession, javaId, packet.getEmoteId());
                 } else {
-                    session.executeInEventLoop(() -> playEmote(otherSession, javaId, packet.getEmoteId()));
+                    otherSession.executeInEventLoop(() -> playEmote(otherSession, javaId, packet.getEmoteId()));
                 }
             }
         }
@@ -69,10 +70,7 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
 
     private void playEmote(GeyserSession otherSession, int javaId, String emoteId) {
         Entity otherEntity = otherSession.getEntityCache().getEntityByJavaId(javaId); // Must be ran on same thread
-        if (otherEntity == null) return;
-        EmotePacket otherEmotePacket = new EmotePacket();
-        otherEmotePacket.setEmoteId(emoteId);
-        otherEmotePacket.setRuntimeEntityId(otherEntity.getGeyserId());
-        otherSession.sendUpstreamPacket(otherEmotePacket);
+        if (!(otherEntity instanceof PlayerEntity otherPlayer)) return;
+        otherSession.showEmote(otherPlayer, emoteId);
     }
 }

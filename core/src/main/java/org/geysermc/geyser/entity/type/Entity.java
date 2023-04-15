@@ -46,6 +46,7 @@ import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RemoveEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
+import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
 import org.geysermc.geyser.session.GeyserSession;
@@ -63,7 +64,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class Entity {
+public class Entity implements GeyserEntity {
     protected final GeyserSession session;
 
     protected int entityId;
@@ -507,6 +508,11 @@ public class Entity {
             EntityUtils.updateMountOffset(this, vehicle, rider, true, vehicle.getPassengers().size() > 1);
             updateBedrockMetadata();
         }
+    }
+
+    @Override
+    public int javaId() {
+        return entityId;
     }
 
     public boolean isAlive() {
