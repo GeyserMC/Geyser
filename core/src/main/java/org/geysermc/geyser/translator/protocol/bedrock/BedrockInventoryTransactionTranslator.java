@@ -45,8 +45,10 @@ import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.InventoryTransactionPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
+import com.nukkitx.protocol.bedrock.data.inventory.LegacySetItemSlotData;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
@@ -60,6 +62,7 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.skin.FakeHeadProvider;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -68,7 +71,9 @@ import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.CooldownUtils;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.InventoryUtils;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -347,6 +352,46 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         ServerboundUseItemPacket useItemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getWorldCache().nextPredictionSequence());
                         session.sendDownstreamPacket(useItemPacket);
+
+                        List<LegacySetItemSlotData> legacySlots = packet.getLegacySlots();
+                        if (packet.getActions().size() == 1 && legacySlots.size() > 0) {
+                            InventoryActionData actionData = packet.getActions().get(0);
+                            LegacySetItemSlotData slotData = legacySlots.get(0);
+                            if (slotData.getContainerId() == 6 && actionData.getToItem().getId() != 0) {
+                                // The player is trying to swap out an armor piece that already has an item in it
+                                // 1.19.4 brings this natively, but we need this specific case for custom head rendering to work
+                                int bedrockHotbarSlot = packet.getHotbarSlot();
+                                Click click = InventoryUtils.getClickForHotbarSwap(bedrockHotbarSlot);
+                                if (click != null && slotData.getSlots().length != 0) {
+                                    Inventory playerInventory = session.getPlayerInventory();
+                                    // Bedrock sends us the index of the slot in the armor container; armor in Java
+                                    // Edition is offset by 5 in the player inventory
+                                    int armorSlot = slotData.getSlots()[0] + 5;
+                                    if (armorSlot == 5) {
+                                        GeyserItemStack armorSlotItem = playerInventory.getItem(armorSlot);
+                                        if (armorSlotItem.getJavaId() == 1055) {
+                                            // checking for player head in the head slot; if there is, we need to manually replace it & apply old skin
+                                            // just calling FakeHeadProvider.restoreOriginalSkin does work too, but causes a visual duplication glitch
+                                            // when trying to re-equip the head. Which should not be possible, but for some reason, is..
+                                            GeyserItemStack hotbarItem = playerInventory.getItem(playerInventory.getOffsetForHotbar(bedrockHotbarSlot));
+
+                                            FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
+                                            playerInventory.setItem(armorSlot, hotbarItem, session);
+                                            playerInventory.setItem(bedrockHotbarSlot, armorSlotItem, session);
+
+                                            Int2ObjectMap<ItemStack> changedSlots = new Int2ObjectOpenHashMap<>(2);
+                                            changedSlots.put(armorSlot, hotbarItem.getItemStack());
+                                            changedSlots.put(bedrockHotbarSlot, armorSlotItem.getItemStack());
+
+                                            ServerboundContainerClickPacket clickPacket = new ServerboundContainerClickPacket(
+                                                playerInventory.getJavaId(), playerInventory.getStateId(), armorSlot,
+                                                click.actionType, click.action, null, changedSlots);
+                                            session.sendDownstreamPacket(clickPacket);
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                     case 2 -> {
                         int blockState = session.getGameMode() == GameMode.CREATIVE ?
