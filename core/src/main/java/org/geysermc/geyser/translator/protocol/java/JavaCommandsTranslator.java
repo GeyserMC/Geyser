@@ -199,9 +199,10 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
      */
     private static CommandParamData[][] getParams(GeyserSession session, CommandNode commandNode, CommandNode[] allNodes) {
         // Check if the command is an alias and redirect it
-        if (commandNode.getRedirectIndex() != -1) {
-            GeyserImpl.getInstance().getLogger().debug("Redirecting command " + commandNode.getName() + " to " + allNodes[commandNode.getRedirectIndex()].getName());
-            commandNode = allNodes[commandNode.getRedirectIndex()];
+        if (commandNode.getRedirectIndex().isPresent()) {
+            int redirectIndex = commandNode.getRedirectIndex().getAsInt();
+            GeyserImpl.getInstance().getLogger().debug("Redirecting command " + commandNode.getName() + " to " + allNodes[redirectIndex].getName());
+            commandNode = allNodes[redirectIndex];
         }
 
         if (commandNode.getChildIndices().length >= 1) {

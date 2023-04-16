@@ -23,25 +23,19 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Validate Gradle Wrapper
+        uses: gradle/wrapper-validation-action@v1
+
       - uses: actions/setup-java@v3
         with:
           java-version: 17
           distribution: temurin
           
-      - name: Cache Gradle Packages
-        uses: actions/cache@v3
-        with:
-          path: | 
-            ~/.m2
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ github.ref_name }}-gradle-${{ hashFiles('*.gradle.kts', 'gradle.properties', 'gradlew', 'gradle/*', 'gradle/**/*', 'build-logic/*', 'build-logic/**/**/**/*', '**/*.gradle.kts', '**/**/*.gradle.kts') }}
-          restore-keys: ${{ github.ref_name }}-gradle-
-
       - name: Build
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: build --no-daemon
+          arguments: build
+          gradle-home-cache-cleanup: true
           
       - name: Archive artifacts (Geyser Fabric)
         uses: actions/upload-artifact@v3
@@ -87,7 +81,7 @@ jobs:
           if-no-files-found: error
 
       - name: Publish to Maven Repository
-        if: ${{ job.status == 'success' && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
+        if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
         uses: gradle/gradle-build-action@v2
         env:
           ORG_GRADLE_PROJECT_geysermcUsername: ${{ vars.DEPLOY_USER }}
@@ -96,7 +90,7 @@ jobs:
           arguments: publish
 
       - name: Publish to Downloads API
-        if: ${{ github.ref_name == 'master' && job.status == 'success' && github.repository == 'GeyserMC/Geyser' }}
+        if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
         shell: bash
         env:
           DOWNLOADS_USERNAME: ${{ vars.DOWNLOADS_USERNAME }}
@@ -106,13 +100,28 @@ jobs:
           # Save the private key to a file
           echo "$DOWNLOADS_PRIVATE_KEY" > id_ecdsa
           chmod 600 id_ecdsa
+          # Set the project
+          project=geyser
           # Get the version from gradle.properties
           version=$(cat gradle.properties | grep -o "version=[0-9\\.]*" | cut -d"=" -f2)
+          # Create the build folder
+          ssh -o StrictHostKeyChecking=no -i id_ecdsa $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP mkdir -p "~/uploads/$project/$GITHUB_RUN_NUMBER/"
           # Copy over artifacts
-          scp -B -o StrictHostKeyChecking=no -i id_ecdsa bootstrap/**/build/libs/Geyser-*.jar $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP:~/files/
+          rsync -P -e "ssh -o StrictHostKeyChecking=no -i id_ecdsa" bootstrap/**/build/libs/Geyser-*.jar $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP:~/uploads/$project/$GITHUB_RUN_NUMBER/
           # Run the build script
-          ssh -o StrictHostKeyChecking=no -i id_ecdsa $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP ./handleBuild.sh geyser $version $GITHUB_RUN_NUMBER $GITHUB_SHA
+          # Push the metadata
+          echo "{\"project\": \"$project\", \"version\": \"$version\", \"id\": $GITHUB_RUN_NUMBER, \"commit\": \"$GITHUB_SHA\"}" > metadata.json
+          rsync -P -e "ssh -o StrictHostKeyChecking=no -i id_ecdsa" metadata.json $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP:~/uploads/$project/$GITHUB_RUN_NUMBER/
 
+      - name: Publish to Modrinth
+        uses: gradle/gradle-build-action@v2
+        if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+        with:
+          arguments: fabric:modrinth
+          gradle-home-cache-cleanup: true
+          
       - name: Notify Discord
         if: ${{ (success() || failure()) && github.repository == 'GeyserMC/Geyser' }}
         uses: Tim203/actions-git-discord-webhook@main

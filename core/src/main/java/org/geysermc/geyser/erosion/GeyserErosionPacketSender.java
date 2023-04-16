@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,20 +23,38 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.bedrock;
+package org.geysermc.geyser.erosion;
 
-import com.nukkitx.protocol.bedrock.data.AdventureSetting;
-import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
+import org.geysermc.erosion.Constants;
+import org.geysermc.erosion.packet.ErosionPacketSender;
+import org.geysermc.erosion.packet.Packets;
+import org.geysermc.erosion.packet.backendbound.BackendboundPacket;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.PluginMessageUtils;
 
-@Translator(packet = AdventureSettingsPacket.class)
-public class BedrockAdventureSettingsTranslator extends PacketTranslator<AdventureSettingsPacket> {
+import java.io.IOException;
+
+public record GeyserErosionPacketSender(GeyserSession session) implements ErosionPacketSender<BackendboundPacket> {
 
     @Override
-    public void translate(GeyserSession session, AdventureSettingsPacket packet) {
-        boolean isFlying = packet.getSettings().contains(AdventureSetting.FLYING);
-        BedrockRequestAbilityTranslator.handle(session, isFlying);
+    public void sendPacket(BackendboundPacket packet) {
+        ByteBuf buf = Unpooled.buffer();
+        try {
+            Packets.encode(buf, packet);
+            byte[] bytes = new byte[buf.readableBytes()];
+            buf.readBytes(bytes);
+            PluginMessageUtils.sendMessage(session, Constants.PLUGIN_MESSAGE, bytes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            buf.release();
+        }
+    }
+
+    @Override
+    public void setChannel(Channel channel) {
     }
 }

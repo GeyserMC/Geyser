@@ -102,13 +102,17 @@ public class ResourcePack {
 
                 pack.sha256 = FileUtils.calculateSHA256(file);
 
-                Stream<? extends ZipEntry> stream = null;
-                try {
-                    ZipFile zip = new ZipFile(file);
-
-                    stream = zip.stream();
+                try (ZipFile zip = new ZipFile(file);
+                     Stream<? extends ZipEntry> stream = zip.stream()) {
                     stream.forEach((x) -> {
-                        if (x.getName().contains("manifest.json")) {
+                        String name = x.getName();
+                        if (name.length() >= 80) {
+                            GeyserImpl.getInstance().getLogger().warning("The resource pack " + file.getName()
+                                    + " has a file in it that meets or exceeds 80 characters in its path (" + name
+                                    + ", " + name.length() + " characters long). This will cause problems on some Bedrock platforms." +
+                                    " Please rename it to be shorter, or reduce the amount of folders needed to get to the file.");
+                        }
+                        if (name.contains("manifest.json")) {
                             try {
                                 ResourcePackManifest manifest = FileUtils.loadJson(zip.getInputStream(x), ResourcePackManifest.class);
                                 // Sometimes a pack_manifest file is present and not in a valid format,
@@ -133,10 +137,6 @@ public class ResourcePack {
                 } catch (Exception e) {
                     GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", file.getName()));
                     e.printStackTrace();
-                } finally {
-                    if (stream != null) {
-                        stream.close();
-                    }
                 }
             }
         }

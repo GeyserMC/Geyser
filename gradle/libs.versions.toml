@@ -1,6 +1,7 @@
 [versions]
 base-api = "1.0.0-SNAPSHOT"
 cumulus = "1.1.1"
+erosion = "1.0-20230330.170602-3"
 events = "1.0-SNAPSHOT"
 jackson = "2.14.0"
 fastutil = "8.5.2"
@@ -11,7 +12,7 @@ websocket = "1.5.1"
 protocol = "2.9.17-20230217.002312-1"
 raknet = "1.6.28-20220125.214016-6"
 mcauthlib = "d9d773e"
-mcprotocollib = "1.19.4-20230315.153350-3"
+mcprotocollib = "1.19.4-20230319.175814-6"
 adventure = "4.12.0-20220629.025215-9"
 adventure-platform = "4.1.2"
 junit = "5.9.2"
@@ -19,9 +20,9 @@ checkerframework = "3.19.0"
 log4j = "2.17.1"
 jline = "3.21.0"
 terminalconsoleappender = "1.2.0"
-paper = "1.19-R0.1-SNAPSHOT"
+folia = "1.19.4-R0.1-SNAPSHOT"
 viaversion = "4.0.0"
-adapters = "1.6-SNAPSHOT"
+adapters = "1.8-SNAPSHOT"
 commodore = "2.2"
 bungeecord = "a7c6ede"
 velocity = "3.0.0"
@@ -34,6 +35,9 @@ fabric-api = "0.58.5+1.19.1"
 base-api = { group = "org.geysermc.api", name = "base-api", version.ref = "base-api" }
 cumulus = { group = "org.geysermc.cumulus", name = "cumulus", version.ref = "cumulus" }
 events = { group = "org.geysermc.event", name = "events", version.ref = "events" }
+
+erosion-bukkit-common = { group = "org.geysermc.erosion", name = "bukkit-common", version.ref = "erosion" }
+erosion-common = { group = "org.geysermc.erosion", name = "common", version.ref = "erosion" }
 
 jackson-annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson" }
 jackson-core = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
@@ -66,8 +70,8 @@ jline-terminal = { group = "org.jline", name = "jline-terminal", version.ref = "
 jline-terminal-jna = { group = "org.jline", name = "jline-terminal-jna", version.ref = "jline" }
 jline-reader = { group = "org.jline", name = "jline-reader", version.ref = "jline" }
 
-paper-api = { group = "io.papermc.paper", name = "paper-api", version.ref = "paper" }
-paper-mojangapi = { group = "io.papermc.paper", name = "paper-mojangapi", version.ref = "paper" }
+folia-api = { group = "dev.folia", name = "folia-api", version.ref = "folia" }
+paper-mojangapi = { group = "io.papermc.paper", name = "paper-mojangapi", version.ref = "folia" }
 
 # check these on https://modmuss50.me/fabric.html
 fabric-minecraft = { group = "com.mojang", name = "minecraft", version.ref = "fabric-minecraft" }

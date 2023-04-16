@@ -48,15 +48,23 @@ public class PotionTranslator extends ItemTranslator {
         if (itemStack.getNbt() == null) return super.translateToBedrock(itemStack, mapping, mappings);
         Tag potionTag = itemStack.getNbt().get("Potion");
         if (potionTag instanceof StringTag) {
-            Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
-            if (potion != null) {
+            int customItemId = CustomItemTranslator.getCustomItem(itemStack.getNbt(), mapping);
+            if (customItemId == -1) {
+                Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
+                if (potion != null) {
+                    return ItemData.builder()
+                            .id(mapping.getBedrockId())
+                            .damage(potion.getBedrockId())
+                            .count(itemStack.getAmount())
+                            .tag(translateNbtToBedrock(itemStack.getNbt()));
+                }
+                GeyserImpl.getInstance().getLogger().debug("Unknown Java potion: " + potionTag.getValue());
+            } else {
                 return ItemData.builder()
-                        .id(mapping.getBedrockId())
-                        .damage(potion.getBedrockId())
+                        .id(customItemId)
                         .count(itemStack.getAmount())
                         .tag(translateNbtToBedrock(itemStack.getNbt()));
             }
-            GeyserImpl.getInstance().getLogger().debug("Unknown Java potion: " + potionTag.getValue());
         }
         return super.translateToBedrock(itemStack, mapping, mappings);
     }

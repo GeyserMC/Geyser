@@ -33,10 +33,10 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import lombok.Getter;
 import lombok.Setter;
+import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.level.block.BlockPositionIterator;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.PistonCache;
@@ -215,7 +215,7 @@ public class CollisionManager {
         int minCollisionZ = (int) Math.floor(position.getZ() - ((box.getSizeZ() / 2) + COLLISION_TOLERANCE + pistonExpand));
         int maxCollisionZ = (int) Math.floor(position.getZ() + (box.getSizeZ() / 2) + COLLISION_TOLERANCE + pistonExpand);
 
-        return new BlockPositionIterator(minCollisionX, minCollisionY, minCollisionZ, maxCollisionX, maxCollisionY, maxCollisionZ);
+        return BlockPositionIterator.fromMinMax(minCollisionX, minCollisionY, minCollisionZ, maxCollisionX, maxCollisionY, maxCollisionZ);
     }
 
     public BlockPositionIterator playerCollidableBlocksIterator() {
@@ -235,8 +235,9 @@ public class CollisionManager {
 
         // Used when correction code needs to be run before the main correction
         BlockPositionIterator iter = session.getCollisionManager().playerCollidableBlocksIterator();
-        for (; iter.hasNext(); iter.next()) {
-            BlockCollision blockCollision = BlockUtils.getCollisionAt(session, iter.getX(), iter.getY(), iter.getZ());
+        int[] blocks = session.getGeyser().getWorldManager().getBlocksAt(session, iter);
+        for (iter.reset(); iter.hasNext(); iter.next()) {
+            BlockCollision blockCollision = BlockUtils.getCollision(blocks[iter.getIteration()]);
             if (blockCollision != null) {
                 blockCollision.beforeCorrectPosition(iter.getX(), iter.getY(), iter.getZ(), playerBoundingBox);
             }
@@ -244,7 +245,7 @@ public class CollisionManager {
 
         // Main correction code
         for (iter.reset(); iter.hasNext(); iter.next()) {
-            BlockCollision blockCollision = BlockUtils.getCollisionAt(session, iter.getX(), iter.getY(), iter.getZ());
+            BlockCollision blockCollision = BlockUtils.getCollision(blocks[iter.getIteration()]);
             if (blockCollision != null) {
                 if (!blockCollision.correctPosition(session, iter.getX(), iter.getY(), iter.getZ(), playerBoundingBox)) {
                     return false;

@@ -43,6 +43,15 @@ public class ShulkerEntity extends GolemEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
         // Indicate that invisibility should be fixed through the resource pack
         setFlag(EntityFlag.BRIBED, true);
+
+    }
+
+    @Override
+    protected void initializeMetadata() {
+        super.initializeMetadata();
+        // As of 1.19.4, it seems Java no longer sends the shulker color if it's the default color on initial spawn
+        // We still need the special case for 16 color in setShulkerColor though as it will send it for an entity metadata update
+        dirtyMetadata.put(EntityData.VARIANT, 16);
     }
 
     public void setAttachedFace(EntityMetadata<Direction, ?> entityMetadata) {
