@@ -44,6 +44,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.InventoryActionData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.InventorySource;
+import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.LegacySetItemSlotData;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryTransactionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
@@ -63,8 +64,8 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.item.type.SpawnEggItem;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.skin.FakeHeadProvider;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -73,7 +74,9 @@ import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.CooldownUtils;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.InventoryUtils;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -92,8 +95,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
     public void translate(GeyserSession session, InventoryTransactionPacket packet) {
         // Send book updates before opening inventories
         session.getBookEditCache().checkForSend();
-
-        ItemMappings mappings = session.getItemMappings();
 
         switch (packet.getTransactionType()) {
             case NORMAL:
@@ -350,6 +351,30 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         ServerboundUseItemPacket useItemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getWorldCache().nextPredictionSequence());
                         session.sendDownstreamPacket(useItemPacket);
+
+                        List<LegacySetItemSlotData> legacySlots = packet.getLegacySlots();
+                        if (packet.getActions().size() == 1 && legacySlots.size() > 0) {
+                            InventoryActionData actionData = packet.getActions().get(0);
+                            LegacySetItemSlotData slotData = legacySlots.get(0);
+                            if (slotData.getContainerId() == 6 && !actionData.getFromItem().isNull()) {
+                                // The player is trying to swap out an armor piece that already has an item in it
+                                // 1.19.4 brings this natively, but we need this specific case for custom head rendering to work
+                                int bedrockHotbarSlot = packet.getHotbarSlot();
+                                Click click = InventoryUtils.getClickForHotbarSwap(bedrockHotbarSlot);
+                                if (click != null && slotData.getSlots().length != 0) {
+                                    Inventory playerInventory = session.getPlayerInventory();
+                                    // Bedrock sends us the index of the slot in the armor container; armor in Java
+                                    // Edition is offset by 5 in the player inventory
+                                    int armorSlot = slotData.getSlots()[0] + 5;
+                                    if (armorSlot == 5) {
+                                        GeyserItemStack armorSlotItem = playerInventory.getItem(armorSlot);
+                                        if (armorSlotItem.asItem() == Items.PLAYER_HEAD) {
+                                            FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                     case 2 -> {
                         int blockState = session.getGameMode() == GameMode.CREATIVE ?

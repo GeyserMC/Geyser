@@ -28,12 +28,14 @@ package org.geysermc.geyser.translator.inventory;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import it.unimi.dsi.fastutil.ints.*;
 import lombok.AllArgsConstructor;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.*;
@@ -49,7 +51,9 @@ import org.geysermc.geyser.inventory.click.ClickPlan;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.skin.FakeHeadProvider;
 import org.geysermc.geyser.translator.inventory.chest.DoubleChestInventoryTranslator;
 import org.geysermc.geyser.translator.inventory.chest.SingleChestInventoryTranslator;
 import org.geysermc.geyser.translator.inventory.furnace.BlastFurnaceInventoryTranslator;
@@ -215,6 +219,22 @@ public abstract class InventoryTranslator {
                     int destSlot = bedrockSlotToJava(transferAction.getDestination());
                     boolean isSourceCursor = isCursor(transferAction.getSource());
                     boolean isDestCursor = isCursor(transferAction.getDestination());
+
+                    if (destSlot == 5 || sourceSlot == 5) {
+                        if (destSlot == 5) {
+                            //only set the head if the destination is the head slot
+                            GeyserItemStack javaItem = inventory.getItem(sourceSlot);
+                            ItemData itemData = javaItem.getItemData(session);
+                            if (javaItem.getJavaId() == Items.PLAYER_HEAD.javaId()
+                                    && javaItem.getNbt() != null
+                                    && javaItem.getNbt().get("SkullOwner") instanceof CompoundTag profile) {
+                                FakeHeadProvider.setHead(session, session.getPlayerEntity(), profile);
+                            }
+                        } else {
+                            //we are probably removing the head, so restore the original skin
+                            FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
+                        }
+                    }
 
                     if (shouldRejectItemPlace(session, inventory, transferAction.getSource().getContainer(),
                             isSourceCursor ? -1 : sourceSlot,
