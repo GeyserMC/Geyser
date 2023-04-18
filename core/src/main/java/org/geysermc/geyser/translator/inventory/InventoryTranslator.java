@@ -225,7 +225,7 @@ public abstract class InventoryTranslator {
                             //only set the head if the destination is the head slot
                             GeyserItemStack javaItem = inventory.getItem(sourceSlot);
                             ItemData itemData = javaItem.getItemData(session);
-                            if (javaItem.getJavaId() == Items.PLAYER_HEAD.javaId()
+                            if (javaItem.asItem() == Items.PLAYER_HEAD
                                     && javaItem.getNbt() != null
                                     && javaItem.getNbt().get("SkullOwner") instanceof CompoundTag profile) {
                                 FakeHeadProvider.setHead(session, session.getPlayerEntity(), profile);
