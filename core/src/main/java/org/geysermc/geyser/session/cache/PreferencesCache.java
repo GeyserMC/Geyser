@@ -54,6 +54,12 @@ public class PreferencesCache {
     private boolean prefersCustomSkulls;
 
     /**
+     * If the session wants to enable above bedrock Nether building.
+     */
+    @Setter
+    private boolean prefersAboveBedrockNetherBuilding;
+
+    /**
      * Which CooldownType the client prefers. Initially set to {@link CooldownUtils#getDefaultShowCooldown()}.
      */
     @Setter
@@ -83,5 +89,12 @@ public class PreferencesCache {
      */
     public boolean showCustomSkulls() {
         return prefersCustomSkulls && session.getGeyser().getConfig().isAllowCustomSkulls();
+    }
+
+    /**
+     * @return true if the session prefers above bedrock Nether building, and the config allows them.
+     */
+    public boolean allowAboveBedrockNetherBuilding() {
+        return prefersAboveBedrockNetherBuilding && session.getGeyser().getConfig().isAboveBedrockNetherBuilding();
     }
 }

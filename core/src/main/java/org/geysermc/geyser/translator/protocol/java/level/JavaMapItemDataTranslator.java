@@ -47,7 +47,7 @@ public class JavaMapItemDataTranslator extends PacketTranslator<ClientboundMapIt
         boolean shouldStore = false;
 
         mapItemDataPacket.setUniqueMapId(packet.getMapId());
-        mapItemDataPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
+        mapItemDataPacket.setDimensionId(DimensionUtils.javaToBedrock(session, session.getDimension()));
         mapItemDataPacket.setLocked(packet.isLocked());
         mapItemDataPacket.setOrigin(Vector3i.ZERO); // Required since 1.19.20
         mapItemDataPacket.setScale(packet.getScale());

@@ -306,7 +306,6 @@ public class GeyserImpl implements GeyserApi {
         }
 
         CooldownUtils.setDefaultShowCooldown(config.getShowCooldown());
-        DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
 
         // https://github.com/GeyserMC/Geyser/issues/957
         RakNetConstants.MAXIMUM_MTU_SIZE = (short) config.getMtu();

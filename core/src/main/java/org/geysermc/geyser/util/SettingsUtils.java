@@ -54,7 +54,8 @@ public class SettingsUtils {
         // Only show the client title if any of the client settings are available
         boolean showClientSettings = session.getPreferencesCache().isAllowShowCoordinates()
                 || CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED
-                || session.getGeyser().getConfig().isAllowCustomSkulls();
+                || session.getGeyser().getConfig().isAllowCustomSkulls()
+                || session.getGeyser().getConfig().isAboveBedrockNetherBuilding();
 
         if (showClientSettings) {
             builder.label("geyser.settings.title.client");
@@ -74,6 +75,10 @@ public class SettingsUtils {
 
             if (session.getGeyser().getConfig().isAllowCustomSkulls()) {
                 builder.toggle("geyser.settings.option.customSkulls", session.getPreferencesCache().isPrefersCustomSkulls());
+            }
+
+            if (session.getGeyser().getConfig().isAboveBedrockNetherBuilding()) {
+                builder.toggle("geyser.settings.option.aboveBedrockNetherBuilding", session.getPreferencesCache().isPrefersAboveBedrockNetherBuilding());
             }
         }
 
@@ -125,6 +130,10 @@ public class SettingsUtils {
 
                 if (session.getGeyser().getConfig().isAllowCustomSkulls()) {
                     session.getPreferencesCache().setPrefersCustomSkulls(response.next());
+                }
+
+                if (session.getGeyser().getConfig().isAboveBedrockNetherBuilding()) {
+                    session.getPreferencesCache().setPrefersAboveBedrockNetherBuilding(response.next());
                 }
             }
 
