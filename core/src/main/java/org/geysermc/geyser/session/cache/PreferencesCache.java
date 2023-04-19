@@ -69,6 +69,7 @@ public class PreferencesCache {
         this.session = session;
 
         prefersCustomSkulls = session.getGeyser().getConfig().isAllowCustomSkulls();
+        prefersAboveBedrockNetherBuilding = session.getGeyser().getConfig().isAboveBedrockNetherBuilding();
     }
 
     /**
