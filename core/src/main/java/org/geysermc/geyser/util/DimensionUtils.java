@@ -172,21 +172,6 @@ public class DimensionUtils {
     /**
      * Maps a Minecraft Java edition dimension to a Bedrock dimension identifier.
      *
-     * @param session Geyser session (this is used to check whether the "fake" Nether is enabled)
-     * @param dimension Minecraft Bedrock edition dimension
-     * @return Minecraft Bedrock edition dimension identifier
-     */
-    public static int javaToBedrock(GeyserSession session, BedrockDimension dimension) {
-        return switch (dimension) {
-            case BedrockDimension.THE_NETHER -> session.getPreferencesCache().allowAboveBedrockNetherBuilding() ? 2 : 1;
-            case BedrockDimension.THE_END -> 2;
-            default -> 0;
-        };
-    }
-
-    /**
-     * Maps a Minecraft Java edition dimension to a Bedrock dimension identifier.
-     *
      * @param javaDimension Minecraft Java edition dimension identifier
      * @return Minecraft Bedrock edition dimension identifier
      */
@@ -198,12 +183,36 @@ public class DimensionUtils {
         };
     }
 
+    /**
+     * Maps a Minecraft Java edition dimension to a Bedrock dimension identifier.
+     *
+     * @param session Geyser session (this is used to check whether the "fake" Nether is enabled)
+     * @param javaDimension Minecraft Java edition dimension identifier
+     * @return Minecraft Bedrock edition dimension identifier
+     */
     public static int javaToBedrock(GeyserSession session, String javaDimension) {
         return switch (javaDimension) {
             case NETHER -> session.getPreferencesCache().allowAboveBedrockNetherBuilding() ? 2 : 1;
             case THE_END -> 2;
             default -> 0;
         };
+    }
+
+    /**
+     * Maps a Minecraft Bedrock edition dimension to a Bedrock dimension identifier.
+     *
+     * @param session Geyser session (this is used to check whether the "fake" Nether is enabled)
+     * @param dimension Minecraft Bedrock edition dimension
+     * @return Minecraft Bedrock edition dimension identifier
+     */
+    public static int javaToBedrock(GeyserSession session, BedrockDimension dimension) {
+        if (dimension == BedrockDimension.THE_NETHER) {
+            return session.getPreferencesCache().allowAboveBedrockNetherBuilding() ? 2 : 1;
+        } else if (dimension == BedrockDimension.THE_END) {
+            return 2;
+        } else {
+            return 0;
+        }
     }
 
     /**

@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import org.geysermc.cumulus.component.DropdownComponent;
 import org.geysermc.cumulus.form.CustomForm;
+import org.geysermc.cumulus.form.ModalForm;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.GameRule;
 import org.geysermc.geyser.level.WorldManager;
@@ -133,7 +134,12 @@ public class SettingsUtils {
                 }
 
                 if (session.getGeyser().getConfig().isAboveBedrockNetherBuilding()) {
-                    session.getPreferencesCache().setPrefersAboveBedrockNetherBuilding(response.next());
+                    boolean result = response.next();
+                    // If the setting changed, send a notice prompting the user of any side effects
+                    if (session.getPreferencesCache().isPrefersAboveBedrockNetherBuilding() != result) {
+                        session.getPreferencesCache().setPrefersAboveBedrockNetherBuilding(result);
+                        session.sendMessage("%geyser.settings.option.aboveBedrockNetherBuilding.notice");
+                    }
                 }
             }
 
