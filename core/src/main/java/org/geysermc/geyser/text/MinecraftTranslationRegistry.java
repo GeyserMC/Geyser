@@ -42,13 +42,23 @@ public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<
     private final Pattern stringReplacement = Pattern.compile("%s");
     private final Pattern positionalStringReplacement = Pattern.compile("%([0-9]+)\\$s");
 
+    // Exists to maintain compatibility with Velocity's older Adventure version
     @Override
     public @Nullable MessageFormat translate(@Nonnull String key, @Nonnull String locale) {
+        return this.translate(key, null, locale);
+    }
+
+    @Override
+    protected @Nullable MessageFormat translate(@Nonnull String key, @Nullable String fallback, @Nonnull String locale) {
         // Get the locale string
         String localeString = MinecraftLocale.getLocaleStringIfPresent(key, locale);
         if (localeString == null) {
-            // Allow fallback components to take priority
-            return null;
+            if (fallback == null) {
+                // No fallback and no match for string; nothing will be translated/inserted
+                return null;
+            }
+            // Fallback strings will still have their params inserted
+            localeString = fallback;
         }
 
         // Replace the `%s` with numbered inserts `{0}`
