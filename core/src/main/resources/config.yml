@@ -12,7 +12,9 @@ bedrock:
   # Generally, you should only uncomment and change this if you want to limit what IPs can connect to your server.
   #address: 0.0.0.0
   # The port that will listen for connections
-  port: 19132
+  # Geyser will try to resolve the port by first checking the geyserUdpPort system property, then the pluginUdpPort
+  # and default to 19132 if neither of them are set.
+  #port: 19132
   # Some hosting services change your Java port everytime you start the server and require the same port to be used for Bedrock.
   # This option makes the Bedrock port the same as the Java port every time you start the server.
   # This option is for the plugin version only.

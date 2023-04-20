@@ -39,6 +39,7 @@ import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.network.CIDRMatcher;
 import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.SystemPropertiesUtil;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -163,7 +164,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     public static class BedrockConfiguration implements IBedrockConfiguration {
         @AsteriskSerializer.Asterisk(isIp = true)
         @JsonProperty("address")
-        private String address = "0.0.0.0";
+        private String address = SystemPropertiesUtil.getDefaultUDPAddress();
 
         @Override
         public String address() {
@@ -172,7 +173,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
         @Setter
         @JsonProperty("port")
-        private int port = 19132;
+        private int port = SystemPropertiesUtil.getDefaultUdpPort();
 
         @Override
         public int port() {
