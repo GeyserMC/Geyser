@@ -261,12 +261,13 @@ public class GeyserImpl implements GeyserApi {
 
         ResourcePack.loadPacks();
 
-        String pluginUdpPort = System.getProperty("pluginUdpPort", "");
+        String geyserUdpPort = System.getProperty("geyserUdpPort", "");
+        String pluginUdpPort = geyserUdpPort.isEmpty() ? System.getProperty("pluginUdpPort", "") : geyserUdpPort;
         if ("-1".equals(pluginUdpPort)) {
             throw new UnsupportedOperationException("This hosting/service provider does not support applications running on the UDP port");
         }
         boolean portPropertyApplied = false;
-        String pluginUdpAddress = System.getProperty("pluginUdpAddress", "");
+        String pluginUdpAddress = System.getProperty("geyserUdpAddress", System.getProperty("pluginUdpAddress", ""));
 
         if (platformType != PlatformType.STANDALONE) {
             int javaPort = bootstrap.getServerPort();
@@ -296,7 +297,12 @@ public class GeyserImpl implements GeyserApi {
             if ((config.getBedrock().isCloneRemotePort() || forceMatchServerPort) && javaPort != -1) {
                 config.getBedrock().setPort(javaPort);
                 if (forceMatchServerPort) {
-                    logger.info("Port set from system property match Java server.");
+                    if (geyserUdpPort.isEmpty()) {
+                        logger.info("Port set from system generic property to match Java server.");
+                    }
+                    else {
+                        logger.info("Port set from system property to match Java server.");
+                    }
                     portPropertyApplied = true;
                 }
             }
@@ -313,7 +319,12 @@ public class GeyserImpl implements GeyserApi {
             if (!portPropertyApplied && !pluginUdpPort.isEmpty()) {
                 int port = Integer.parseInt(pluginUdpPort);
                 config.getBedrock().setPort(port);
-                logger.info("Port set from system property: " + port);
+                if (geyserUdpPort.isEmpty()) {
+                    logger.info("Port set from generic system property: " + port);
+                }
+                else {
+                    logger.info("Port set from system property: " + port);
+                }
             }
         }
         String remoteAddress = config.getRemote().address();
