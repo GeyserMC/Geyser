@@ -36,7 +36,6 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundCl
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
-import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;

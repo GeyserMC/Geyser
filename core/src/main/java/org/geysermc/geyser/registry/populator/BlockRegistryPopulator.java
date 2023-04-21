@@ -36,6 +36,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v544.Bedrock_v544;
 import org.cloudburstmc.protocol.bedrock.codec.v560.Bedrock_v560;
 import org.cloudburstmc.protocol.bedrock.codec.v567.Bedrock_v567;
 import org.cloudburstmc.protocol.bedrock.codec.v575.Bedrock_v575;
+import org.cloudburstmc.protocol.bedrock.codec.v582.Bedrock_v582;
 import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.block.BlockStateValues;
@@ -69,20 +70,40 @@ public final class BlockRegistryPopulator {
     }
 
     private static void registerBedrockBlocks() {
+        BiFunction<String, NbtMapBuilder, String> woolMapper = (bedrockIdentifier, statesBuilder) -> {
+            if (bedrockIdentifier.equals("minecraft:wool")) {
+                String color = (String) statesBuilder.remove("color");
+                if ("silver".equals(color)) {
+                    color = "light_gray";
+                }
+                return "minecraft:" + color + "_wool";
+            }
+            return null;
+        };
         BiFunction<String, NbtMapBuilder, String> emptyMapper = (bedrockIdentifier, statesBuilder) -> null;
         ImmutableMap<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> blockMappers = ImmutableMap.<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>>builder()
                 .put(ObjectIntPair.of("1_19_20", Bedrock_v544.CODEC.getProtocolVersion()), emptyMapper)
                 .put(ObjectIntPair.of("1_19_50", Bedrock_v560.CODEC.getProtocolVersion()), emptyMapper)
                 .put(ObjectIntPair.of("1_19_60", Bedrock_v567.CODEC.getProtocolVersion()), emptyMapper)
-                .put(ObjectIntPair.of("1_19_70", Bedrock_v575.CODEC.getProtocolVersion()), (bedrockIdentifier, statesBuilder) -> {
-                    if (bedrockIdentifier.equals("minecraft:wool")) {
-                        String color = (String) statesBuilder.remove("color");
-                        if ("silver".equals(color)) {
-                            color = "light_gray";
-                        }
-                        return "minecraft:" + color + "_wool";
+                .put(ObjectIntPair.of("1_19_70", Bedrock_v575.CODEC.getProtocolVersion()), woolMapper)
+                .put(ObjectIntPair.of("1_19_80", Bedrock_v582.CODEC.getProtocolVersion()), (bedrockIdentifier, statesBuilder) -> {
+                    String identifier = woolMapper.apply(bedrockIdentifier, statesBuilder);
+                    if (identifier != null) {
+                        return identifier;
                     }
-                    return null;
+                    switch (bedrockIdentifier) {
+                        case "minecraft:log", "minecraft:log2" -> {
+                            String woodType = (String) statesBuilder.remove(bedrockIdentifier.equals("minecraft:log") ? "old_log_type" : "new_log_type");
+                            return "minecraft:" + woodType + "_log";
+                        }
+                        case "minecraft:fence" -> {
+                            String woodType = (String) statesBuilder.remove("wood_type");
+                            return "minecraft:" + woodType + "_fence";
+                        }
+                        default -> {
+                            return null;
+                        }
+                    }
                 })
                 .build();
 
@@ -108,6 +129,7 @@ public final class BlockRegistryPopulator {
             for (int i = 0; i < blocksTag.size(); i++) {
                 NbtMapBuilder builder = blocksTag.get(i).toBuilder();
                 builder.remove("name_hash"); // Quick workaround - was added in 1.19.20
+                builder.remove("network_id"); // Added in 1.19.80 - ????
                 builder.putCompound("states", statesInterner.intern((NbtMap) builder.remove("states")));
                 NbtMap tag = builder.build();
                 if (blockStateOrderedMap.containsKey(tag)) {

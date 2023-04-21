@@ -41,6 +41,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v544.Bedrock_v544;
 import org.cloudburstmc.protocol.bedrock.codec.v560.Bedrock_v560;
 import org.cloudburstmc.protocol.bedrock.codec.v567.Bedrock_v567;
 import org.cloudburstmc.protocol.bedrock.codec.v575.Bedrock_v575;
+import org.cloudburstmc.protocol.bedrock.codec.v582.Bedrock_v582;
 import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.defintions.SimpleItemDefinition;
@@ -84,6 +85,7 @@ public class ItemRegistryPopulator {
         paletteVersions.put("1_19_50", new PaletteVersion(Bedrock_v560.CODEC.getProtocolVersion(), manualFallback));
         paletteVersions.put("1_19_60", new PaletteVersion(Bedrock_v567.CODEC.getProtocolVersion(), Collections.emptyMap()));
         paletteVersions.put("1_19_70", new PaletteVersion(Bedrock_v575.CODEC.getProtocolVersion(), Collections.emptyMap()));
+        paletteVersions.put("1_19_80", new PaletteVersion(Bedrock_v582.CODEC.getProtocolVersion(), Collections.emptyMap()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
@@ -209,18 +211,19 @@ public class ItemRegistryPopulator {
                     mappingItem = entry.getValue();
                 }
 
-                // 1.19.70+
-                if (palette.getValue().protocolVersion() >= Bedrock_v575.CODEC.getProtocolVersion() && mappingItem.getBedrockIdentifier().equals("minecraft:wool")) {
-                    mappingItem.setBedrockIdentifier(javaItem.javaIdentifier());
-                }
-
                 if (customItemsAllowed && javaItem == Items.FURNACE_MINECART) {
                     // Will be added later
                     mappings.add(null);
                     continue;
                 }
 
-                String bedrockIdentifier = mappingItem.getBedrockIdentifier();
+                String bedrockIdentifier;
+                // 1.19.70+
+                if (palette.getValue().protocolVersion() >= Bedrock_v575.CODEC.getProtocolVersion() && mappingItem.getBedrockIdentifier().equals("minecraft:wool")) {
+                    bedrockIdentifier = javaItem.javaIdentifier();
+                } else {
+                    bedrockIdentifier = mappingItem.getBedrockIdentifier();
+                }
                 ItemDefinition definition = definitions.get(bedrockIdentifier);
                 if (definition == null) {
                     throw new RuntimeException("Missing Bedrock ItemDefinition in mappings: " + bedrockIdentifier);
