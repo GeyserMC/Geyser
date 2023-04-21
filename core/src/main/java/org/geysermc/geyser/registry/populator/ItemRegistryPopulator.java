@@ -73,7 +73,6 @@ public class ItemRegistryPopulator {
     }
 
     public static void populate() {
-
         Map<Item, String> manualFallback = new HashMap<>();
         manualFallback.put(Items.ENDER_DRAGON_SPAWN_EGG, "minecraft:enderman_spawn_egg");
         manualFallback.put(Items.WITHER_SPAWN_EGG, "minecraft:wither_skeleton_spawn_egg");
