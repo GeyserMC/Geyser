@@ -261,16 +261,59 @@ public class GeyserImpl implements GeyserApi {
 
         ResourcePack.loadPacks();
 
-        if (platformType != PlatformType.STANDALONE && config.getRemote().address().equals("auto")) {
-            // Set the remote address to localhost since that is where we are always connecting
-            try {
-                config.getRemote().setAddress(InetAddress.getLocalHost().getHostAddress());
-            } catch (UnknownHostException ex) {
-                logger.debug("Unknown host when trying to find localhost.");
-                if (config.isDebugMode()) {
-                    ex.printStackTrace();
+        String pluginUdpPort = System.getProperty("pluginUdpPort", "");
+        if ("-1".equals(pluginUdpPort)) {
+            throw new UnsupportedOperationException("This hosting/service provider does not support applications running on the UDP port");
+        }
+        boolean portPropertyApplied = false;
+        String pluginUdpAddress = System.getProperty("pluginUdpAddress", "");
+
+        if (platformType != PlatformType.STANDALONE) {
+            int javaPort = bootstrap.getServerPort();
+            if (config.getRemote().address().equals("auto")) {
+                config.setAutoconfiguredRemote(true);
+                String serverAddress = bootstrap.getServerBindAddress();
+                if (!serverAddress.isEmpty() && !"0.0.0.0".equals(serverAddress)) {
+                    config.getRemote().setAddress(serverAddress);
+                } else {
+                    // Set the remote address to localhost since that is where we are always connecting
+                    try {
+                        config.getRemote().setAddress(InetAddress.getLocalHost().getHostAddress());
+                    } catch (UnknownHostException ex) {
+                        logger.debug("Unknown host when trying to find localhost.");
+                        if (config.isDebugMode()) {
+                            ex.printStackTrace();
+                        }
+                        config.getRemote().setAddress(InetAddress.getLoopbackAddress().getHostAddress());
+                    }
                 }
-                config.getRemote().setAddress(InetAddress.getLoopbackAddress().getHostAddress());
+                if (javaPort != -1) {
+                    config.getRemote().setPort(javaPort);
+                }
+            }
+
+            boolean forceMatchServerPort = "server".equals(pluginUdpPort);
+            if ((config.getBedrock().isCloneRemotePort() || forceMatchServerPort) && javaPort != -1) {
+                config.getBedrock().setPort(javaPort);
+                if (forceMatchServerPort) {
+                    logger.info("Port set from system property match Java server.");
+                    portPropertyApplied = true;
+                }
+            }
+
+            if ("server".equals(pluginUdpAddress)) {
+                String address = bootstrap.getServerBindAddress();
+                if (!address.isEmpty()) {
+                    config.getBedrock().setAddress(address);
+                }
+            } else if (!pluginUdpAddress.isEmpty()) {
+                config.getBedrock().setAddress(pluginUdpAddress);
+            }
+
+            if (!portPropertyApplied && !pluginUdpPort.isEmpty()) {
+                int port = Integer.parseInt(pluginUdpPort);
+                config.getBedrock().setPort(port);
+                logger.info("Port set from system property: " + port);
             }
         }
         String remoteAddress = config.getRemote().address();

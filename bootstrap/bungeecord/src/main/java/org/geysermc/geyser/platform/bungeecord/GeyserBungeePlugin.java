@@ -45,6 +45,7 @@ import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.bungeecord.command.GeyserBungeeCommandExecutor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,6 +56,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -114,26 +116,6 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         if (getProxy().getPluginManager().getPlugin("floodgate-bungee") != null) {
             geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.outdated", "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/"));
             return;
-        }
-
-        if (getProxy().getConfig().getListeners().size() == 1) {
-            ListenerInfo listener = getProxy().getConfig().getListeners().toArray(new ListenerInfo[0])[0];
-
-            InetSocketAddress javaAddr = listener.getHost();
-
-            // By default this should be localhost but may need to be changed in some circumstances
-            if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
-                this.geyserConfig.setAutoconfiguredRemote(true);
-                // Don't use localhost if not listening on all interfaces
-                if (!javaAddr.getHostString().equals("0.0.0.0") && !javaAddr.getHostString().equals("")) {
-                    this.geyserConfig.getRemote().setAddress(javaAddr.getHostString());
-                }
-                this.geyserConfig.getRemote().setPort(javaAddr.getPort());
-            }
-
-            if (geyserConfig.getBedrock().isCloneRemotePort()) {
-                geyserConfig.getBedrock().setPort(javaAddr.getPort());
-            }
         }
 
         // Force-disable query if enabled, or else Geyser won't enable
@@ -273,5 +255,23 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     @Override
     public SocketAddress getSocketAddress() {
         return this.geyserInjector.getServerSocketAddress();
+    }
+
+    @NotNull
+    @Override
+    public String getServerBindAddress() {
+        return findCompatibleListener().map(InetSocketAddress::getHostString).orElse("");
+    }
+
+    @Override
+    public int getServerPort() {
+        return findCompatibleListener().stream().mapToInt(InetSocketAddress::getPort).findFirst().orElse(-1);
+    }
+
+    private Optional<InetSocketAddress> findCompatibleListener() {
+        return getProxy().getConfig().getListeners().stream()
+                .filter(info -> info.getSocketAddress() instanceof InetSocketAddress)
+                .map(info -> (InetSocketAddress) info.getSocketAddress())
+                .findFirst();
     }
 }

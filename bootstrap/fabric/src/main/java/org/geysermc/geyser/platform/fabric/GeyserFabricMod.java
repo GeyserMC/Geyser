@@ -53,6 +53,7 @@ import org.geysermc.geyser.platform.fabric.command.GeyserFabricCommandExecutor;
 import org.geysermc.geyser.platform.fabric.world.GeyserFabricWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -137,20 +138,6 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
      */
     public void startGeyser(MinecraftServer server) {
         this.server = server;
-
-        if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
-            this.geyserConfig.setAutoconfiguredRemote(true);
-            String ip = server.getLocalIp();
-            int port = ((GeyserServerPortGetter) server).geyser$getServerPort();
-            if (ip != null && !ip.isEmpty() && !ip.equals("0.0.0.0")) {
-                this.geyserConfig.getRemote().setAddress(ip);
-            }
-            this.geyserConfig.getRemote().setPort(port);
-        }
-
-        if (geyserConfig.getBedrock().isCloneRemotePort()) {
-            geyserConfig.getBedrock().setPort(geyserConfig.getRemote().port());
-        }
 
         Optional<ModContainer> floodgate = FabricLoader.getInstance().getModContainer("floodgate");
         boolean floodgatePresent = floodgate.isPresent();
@@ -240,6 +227,17 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     @Override
     public String getMinecraftServerVersion() {
         return this.server.getServerVersion();
+    }
+
+    @NotNull
+    @Override
+    public String getServerBindAddress() {
+        return this.server.getLocalIp();
+    }
+
+    @Override
+    public int getServerPort() {
+        return ((GeyserServerPortGetter) server).geyser$getServerPort();
     }
 
     @Nullable

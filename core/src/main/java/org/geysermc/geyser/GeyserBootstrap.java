@@ -158,4 +158,15 @@ public interface GeyserBootstrap {
         }
         return stream;
     }
+
+    /**
+     * @return the bind address being used by the Java server.
+     */
+    @Nonnull
+    String getServerBindAddress();
+
+    /**
+     * @return the listening port being used by the Java server. -1 if can't be found
+     */
+    int getServerPort();
 }
