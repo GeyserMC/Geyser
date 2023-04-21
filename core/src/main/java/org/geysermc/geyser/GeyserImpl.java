@@ -299,8 +299,7 @@ public class GeyserImpl implements GeyserApi {
                 if (forceMatchServerPort) {
                     if (geyserUdpPort.isEmpty()) {
                         logger.info("Port set from system generic property to match Java server.");
-                    }
-                    else {
+                    } else {
                         logger.info("Port set from system property to match Java server.");
                     }
                     portPropertyApplied = true;
@@ -321,8 +320,7 @@ public class GeyserImpl implements GeyserApi {
                 config.getBedrock().setPort(port);
                 if (geyserUdpPort.isEmpty()) {
                     logger.info("Port set from generic system property: " + port);
-                }
-                else {
+                } else {
                     logger.info("Port set from system property: " + port);
                 }
             }
