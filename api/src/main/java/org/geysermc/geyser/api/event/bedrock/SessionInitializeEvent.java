@@ -36,11 +36,4 @@ public final class SessionInitializeEvent extends ConnectionEvent {
     public SessionInitializeEvent(@NonNull GeyserConnection connection) {
         super(connection);
     }
-
-    /**
-     * @return the connection for the new session
-     */
-    public GeyserConnection connection() {
-        return this.connection;
-    }
 }

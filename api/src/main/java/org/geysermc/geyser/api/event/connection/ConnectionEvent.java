@@ -33,7 +33,7 @@ import org.geysermc.geyser.api.connection.GeyserConnection;
  * An event that contains a {@link GeyserConnection}.
  */
 public abstract class ConnectionEvent implements Event {
-    protected final GeyserConnection connection;
+    private final GeyserConnection connection;
 
     public ConnectionEvent(@NonNull GeyserConnection connection) {
         this.connection = connection;
