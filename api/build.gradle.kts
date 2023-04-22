@@ -4,4 +4,5 @@ plugins {
 
 dependencies {
     api(libs.base.api)
+    api(libs.protocol.connection)
 }
