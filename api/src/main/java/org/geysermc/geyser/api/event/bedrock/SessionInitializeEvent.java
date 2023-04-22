@@ -26,13 +26,21 @@
 package org.geysermc.geyser.api.event.bedrock;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
-import org.geysermc.event.Event;
+import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 
 /**
  * Called when Geyser initialises a session for a new bedrock client.
- *
- * @param bedrockServerSession the bedrock session
  */
-public record SessionInitializeEvent(@NonNull BedrockServerSession bedrockServerSession) implements Event {
+public final class SessionInitializeEvent extends ConnectionEvent {
+    public SessionInitializeEvent(@NonNull GeyserConnection connection) {
+        super(connection);
+    }
+
+    /**
+     * @return the connection for the new session
+     */
+    public GeyserConnection connection() {
+        return this.connection;
+    }
 }

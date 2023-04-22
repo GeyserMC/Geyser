@@ -51,8 +51,9 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
     public void initSession(@Nonnull BedrockServerSession bedrockServerSession) {
         try {
             bedrockServerSession.setLogging(true);
-            bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(this.geyser, new GeyserSession(this.geyser, bedrockServerSession, this.eventLoopGroup.next())));
-            this.geyser.eventBus().fire(new SessionInitializeEvent(bedrockServerSession));
+            GeyserSession geyserSession = new GeyserSession(this.geyser, bedrockServerSession, this.eventLoopGroup.next());
+            bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(this.geyser, geyserSession));
+            this.geyser.eventBus().fire(new SessionInitializeEvent(geyserSession));
         } catch (Throwable e) {
             // Error must be caught or it will be swallowed
             this.geyser.getLogger().error("Error occurred while initializing player!", e);
