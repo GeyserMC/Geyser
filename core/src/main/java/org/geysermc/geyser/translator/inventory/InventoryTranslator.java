@@ -28,14 +28,12 @@ package org.geysermc.geyser.translator.inventory;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import it.unimi.dsi.fastutil.ints.*;
 import lombok.AllArgsConstructor;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.*;
@@ -220,17 +218,15 @@ public abstract class InventoryTranslator {
                     boolean isSourceCursor = isCursor(transferAction.getSource());
                     boolean isDestCursor = isCursor(transferAction.getDestination());
 
-                    if (destSlot == 5 || sourceSlot == 5) {
+                    if ((this) instanceof PlayerInventoryTranslator) {
                         if (destSlot == 5) {
                             //only set the head if the destination is the head slot
                             GeyserItemStack javaItem = inventory.getItem(sourceSlot);
-                            ItemData itemData = javaItem.getItemData(session);
                             if (javaItem.asItem() == Items.PLAYER_HEAD
-                                    && javaItem.getNbt() != null
-                                    && javaItem.getNbt().get("SkullOwner") instanceof CompoundTag profile) {
-                                FakeHeadProvider.setHead(session, session.getPlayerEntity(), profile);
+                                    && javaItem.getNbt() != null) {
+                                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getNbt().get("SkullOwner"));
                             }
-                        } else {
+                        } else if (sourceSlot == 5) {
                             //we are probably removing the head, so restore the original skin
                             FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
                         }
