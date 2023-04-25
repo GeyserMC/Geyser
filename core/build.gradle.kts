@@ -58,6 +58,8 @@ dependencies {
     compileOnly(projects.ap)
 
     annotationProcessor(projects.ap)
+
+    api(libs.events)
 }
 
 configurations.api {

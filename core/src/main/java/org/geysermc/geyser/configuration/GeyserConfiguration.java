@@ -38,6 +38,10 @@ import java.util.List;
 import java.util.Map;
 
 public interface GeyserConfiguration {
+    /**
+     * If the config was originally 'auto' before the values changed
+     */
+    void setAutoconfiguredRemote(boolean autoconfiguredRemote);
 
     // Modify this when you introduce breaking changes into the config
     int CURRENT_CONFIG_VERSION = 4;
@@ -116,6 +120,9 @@ public interface GeyserConfiguration {
     int getPendingAuthenticationTimeout();
 
     interface IBedrockConfiguration extends BedrockListener {
+        void setAddress(String address);
+
+        void setPort(int port);
 
         boolean isCloneRemotePort();
 

@@ -28,6 +28,7 @@ package org.geysermc.geyser.skin;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.Getter;
@@ -191,7 +192,9 @@ public final class FloodgateSkinUploader {
         }
 
         ObjectNode node = JACKSON.createObjectNode();
-        node.put("chain_data", chainData.toString()); // TODO: Check this
+        ArrayNode chainDataNode = JACKSON.createArrayNode();
+        chainData.forEach(jwt -> chainDataNode.add(jwt.serialize()));
+        node.set("chain_data", chainDataNode);
         node.put("client_data", clientData);
 
         // The reason why I don't like Jackson

@@ -158,7 +158,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                             if (GameProtocol.supports1_19_60(session)) {
                                 // Note: vanilla inputs use aux value of Short.MAX_VALUE
                                 craftingDataPacket.getCraftingData().add(SmithingTransformRecipeData.of(recipe.getIdentifier(),
-                                        bedrockBase, bedrockAddition, output, "smithing_table", netId++));
+                                        ItemDescriptorWithCount.EMPTY, bedrockBase, bedrockAddition, output, "smithing_table", netId++));
                             } else {
                                 UUID uuid = UUID.randomUUID();
                                 craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData.shapeless(uuid.toString(),
