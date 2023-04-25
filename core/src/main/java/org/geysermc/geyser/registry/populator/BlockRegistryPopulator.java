@@ -137,7 +137,7 @@ public final class BlockRegistryPopulator {
                 }
                 GeyserBedrockBlock block = new GeyserBedrockBlock(i, tag);
                 blockStateOrderedMap.put(tag, block);
-                //bedrockRuntimeMap[i] = block; //TODO UNCOMMENT IF SOMETHING IS WRONG IN THE CREATIVE PALETTE
+                bedrockRuntimeMap[i] = block;
                 if (stateVersion == -1) {
                     stateVersion = tag.getInt("version");
                 }
@@ -199,8 +199,6 @@ public final class BlockRegistryPopulator {
 
                 javaToBedrockBlocks[javaRuntimeId] = bedrockDefinition;
             }
-
-            Arrays.stream(javaToBedrockBlocks).distinct().forEach(block -> bedrockRuntimeMap[block.getRuntimeId()] = block);
 
             if (commandBlockDefinition == null) {
                 throw new AssertionError("Unable to find command block in palette");
