@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.pack;
+package org.geysermc.geyser.api.packs;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
@@ -85,9 +85,9 @@ public class ResourcePackManifest {
 
     @Value
     public static class Version {
-        private final int major;
-        private final int minor;
-        private final int patch;
+        int major;
+        int minor;
+        int patch;
 
         public static Version fromString(String ver) {
             String[] split = ver.replace(']', ' ')
