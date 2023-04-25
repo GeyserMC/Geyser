@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.command.defaults;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
@@ -37,8 +38,6 @@ import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.WebUtils;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class VersionCommand extends GeyserCommand {
@@ -72,27 +71,34 @@ public class VersionCommand extends GeyserCommand {
                 GeyserImpl.NAME, GeyserImpl.VERSION, javaVersions, bedrockVersions));
 
         // Disable update checking in dev mode and for players in Geyser Standalone
-        if (GeyserImpl.getInstance().isProductionEnvironment() && !(!sender.isConsole() && geyser.getPlatformType() == PlatformType.STANDALONE)) {
-            sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.checking", sender.locale()));
-            try {
-                String buildXML = WebUtils.getBody("https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/" +
-                        URLEncoder.encode(GeyserImpl.BRANCH, StandardCharsets.UTF_8.toString()) + "/lastSuccessfulBuild/api/xml?xpath=//buildNumber");
-                if (buildXML.startsWith("<buildNumber>")) {
-                    int latestBuildNum = Integer.parseInt(buildXML.replaceAll("<(\\\\)?(/)?buildNumber>", "").trim());
-                    int buildNum = this.geyser.buildNumber();
-                    if (latestBuildNum == buildNum) {
-                        sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.no_updates", sender.locale()));
-                    } else {
-                        sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.outdated",
-                                sender.locale(), (latestBuildNum - buildNum), "https://ci.geysermc.org/"));
-                    }
-                } else {
-                    throw new AssertionError("buildNumber missing");
-                }
-            } catch (IOException e) {
-                GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.commands.version.failed"), e);
-                sender.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.commands.version.failed", sender.locale()));
+        if (!GeyserImpl.getInstance().isProductionEnvironment() || (!sender.isConsole() && geyser.getPlatformType() == PlatformType.STANDALONE)) {
+            return;
+        }
+
+        sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.checking", sender.locale()));
+        try {
+            int buildNumber = this.geyser.buildNumber();
+            if (buildNumber > 1300) {
+                // most likely a Jenkins build
+                // subtract latest GH Actions run number from the latest Jenkins build number
+                buildNumber -= (1341 - 38);
             }
+
+            JsonNode response = WebUtils.getJson("https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest");
+            int latestBuildNumber = response.get("build").asInt();
+
+            if (latestBuildNumber == buildNumber) {
+                sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.no_updates", sender.locale()));
+                return;
+            }
+
+            sender.sendMessage(GeyserLocale.getPlayerLocaleString(
+                    "geyser.commands.version.outdated",
+                    sender.locale(), (latestBuildNumber - buildNumber), "https://geysermc.org/download"
+            ));
+        } catch (IOException | AssertionError e) {
+            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.commands.version.failed"), e);
+            sender.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.commands.version.failed", sender.locale()));
         }
     }
 
