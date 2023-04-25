@@ -34,12 +34,13 @@ import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public class SquidEntity extends WaterEntity implements Tickable {
     private float targetPitch;
     private float targetYaw;
 
-    private boolean inWater;
+    private CompletableFuture<Boolean> inWater = CompletableFuture.completedFuture(Boolean.FALSE);
 
     public SquidEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
@@ -50,7 +51,7 @@ public class SquidEntity extends WaterEntity implements Tickable {
         boolean pitchChanged;
         boolean yawChanged;
         float oldPitch = pitch;
-        if (inWater) {
+        if (inWater.join()) {
             float oldYaw = yaw;
             pitch += (targetPitch - pitch) * 0.1f;
             yaw += (targetYaw - yaw) * 0.1f;
@@ -93,7 +94,7 @@ public class SquidEntity extends WaterEntity implements Tickable {
     @Override
     public void setYaw(float yaw) {
         // Let the Java server control yaw when the squid is out of water
-        if (!inWater) {
+        if (!inWater.join()) {
             this.yaw = yaw;
         }
     }
@@ -127,10 +128,10 @@ public class SquidEntity extends WaterEntity implements Tickable {
 
     private void checkInWater() {
         if (getFlag(EntityFlag.RIDING)) {
-            inWater = false;
+            inWater = CompletableFuture.completedFuture(false);
         } else {
-            int block = session.getGeyser().getWorldManager().getBlockAt(session, position.toInt());
-            inWater = BlockStateValues.getWaterLevel(block) != -1;
+            inWater = session.getGeyser().getWorldManager().getBlockAtAsync(session, position.toInt())
+                    .thenApply(block -> BlockStateValues.getWaterLevel(block) != -1);
         }
     }
 }

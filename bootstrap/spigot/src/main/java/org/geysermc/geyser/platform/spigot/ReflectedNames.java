@@ -60,16 +60,16 @@ public final class ReflectedNames {
     }
 
     static Constructor<PaperServerListPingEvent> getOldPaperPingConstructor() {
-        if (getConstructor(PaperServerListPingEvent.class, StatusClient.class, String.class, boolean.class, int.class,
+        if (getConstructor(PaperServerListPingEvent.class, StatusClient.class, String.class, int.class,
                 int.class, String.class, int.class, CachedServerIcon.class) != null) {
-            // @NotNull StatusClient client, @NotNull String motd, boolean shouldSendChatPreviews, int numPlayers, int maxPlayers,
+            // @NotNull StatusClient client, @NotNull String motd, int numPlayers, int maxPlayers,
             //            @NotNull String version, int protocolVersion, @Nullable CachedServerIcon favicon
             // New constructor is present
             return null;
         }
-        // @NotNull StatusClient client, @NotNull String motd, int numPlayers, int maxPlayers,
+        // @NotNull StatusClient client, @NotNull String motd, boolean shouldSendChatPreviews, int numPlayers, int maxPlayers,
         //            @NotNull String version, int protocolVersion, @Nullable CachedServerIcon favicon
-        return getConstructor(PaperServerListPingEvent.class, StatusClient.class, String.class, int.class, int.class,
+        return getConstructor(PaperServerListPingEvent.class, StatusClient.class, String.class, boolean.class, int.class, int.class,
                 String.class, int.class, CachedServerIcon.class);
     }
 

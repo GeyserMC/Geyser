@@ -35,10 +35,13 @@ import io.netty.buffer.Unpooled;
 import org.geysermc.cumulus.Forms;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormType;
+import org.geysermc.erosion.Constants;
+import org.geysermc.erosion.packet.ErosionPacket;
+import org.geysermc.erosion.packet.Packets;
+import org.geysermc.erosion.packet.geyserbound.GeyserboundPacket;
 import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -51,82 +54,96 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
 
     @Override
     public void translate(GeyserSession session, ClientboundCustomPayloadPacket packet) {
-        // The only plugin messages it has to listen for are Floodgate plugin messages
-        if (session.remoteServer().authType() != AuthType.FLOODGATE) {
+        String channel = packet.getChannel();
+
+        if (channel.equals(Constants.PLUGIN_MESSAGE)) {
+            ByteBuf buf = Unpooled.wrappedBuffer(packet.getData());
+            ErosionPacket<?> erosionPacket = Packets.decode(buf);
+            ((GeyserboundPacket) erosionPacket).handle(session.getErosionHandler());
             return;
         }
 
-        String channel = packet.getChannel();
-
         if (channel.equals(PluginMessageChannels.FORM)) {
-            byte[] data = packet.getData();
+            session.ensureInEventLoop(() -> {
+                byte[] data = packet.getData();
 
-            // receive: first byte is form type, second and third are the id, remaining is the form data
-            // respond: first and second byte id, remaining is form response data
+                // receive: first byte is form type, second and third are the id, remaining is the form data
+                // respond: first and second byte id, remaining is form response data
 
-            FormType type = FormType.fromOrdinal(data[0]);
-            if (type == null) {
-                throw new NullPointerException("Got type " + data[0] + " which isn't a valid form type!");
-            }
-
-            String dataString = new String(data, 3, data.length - 3, Charsets.UTF_8);
-
-            Form form = Forms.fromJson(dataString, type, (ignored, response) -> {
-                byte[] finalData;
-                if (response == null) {
-                    // Response data can be null as of 1.19.20 (same behaviour as empty response data)
-                    // Only need to send the form id
-                    finalData = new byte[]{data[1], data[2]};
-                } else {
-                    byte[] raw = response.getBytes(StandardCharsets.UTF_8);
-                    finalData = new byte[raw.length + 2];
-
-                    finalData[0] = data[1];
-                    finalData[1] = data[2];
-                    System.arraycopy(raw, 0, finalData, 2, raw.length);
+                FormType type = FormType.fromOrdinal(data[0]);
+                if (type == null) {
+                    throw new NullPointerException("Got type " + data[0] + " which isn't a valid form type!");
                 }
 
-                session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(channel, finalData));
+                String dataString = new String(data, 3, data.length - 3, Charsets.UTF_8);
+
+                Form form = Forms.fromJson(dataString, type, (ignored, response) -> {
+                    byte[] finalData;
+                    if (response == null) {
+                        // Response data can be null as of 1.19.20 (same behaviour as empty response data)
+                        // Only need to send the form id
+                        finalData = new byte[]{data[1], data[2]};
+                    } else {
+                        byte[] raw = response.getBytes(StandardCharsets.UTF_8);
+                        finalData = new byte[raw.length + 2];
+
+                        finalData[0] = data[1];
+                        finalData[1] = data[2];
+                        System.arraycopy(raw, 0, finalData, 2, raw.length);
+                    }
+
+                    session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(channel, finalData));
+                });
+                session.sendForm(form);
             });
-            session.sendForm(form);
 
         } else if (channel.equals(PluginMessageChannels.TRANSFER)) {
-            byte[] data = packet.getData();
+            session.ensureInEventLoop(() -> {
+                byte[] data = packet.getData();
 
-            // port (4 bytes), address (remaining data)
-            if (data.length < 5) {
-                throw new NullPointerException("Transfer data should be at least 5 bytes long");
-            }
+                // port (4 bytes), address (remaining data)
+                if (data.length < 5) {
+                    throw new NullPointerException("Transfer data should be at least 5 bytes long");
+                }
 
-            int port = data[0] << 24 | (data[1] & 0xFF) << 16 | (data[2] & 0xFF) << 8 | data[3] & 0xFF;
-            String address = new String(data, 4, data.length - 4);
+                int port = data[0] << 24 | (data[1] & 0xFF) << 16 | (data[2] & 0xFF) << 8 | data[3] & 0xFF;
+                String address = new String(data, 4, data.length - 4);
 
-            if (logger.isDebug()) {
-                logger.info("Transferring client to: " + address + ":" + port);
-            }
+                if (logger.isDebug()) {
+                    logger.info("Transferring client to: " + address + ":" + port);
+                }
 
-            TransferPacket transferPacket = new TransferPacket();
-            transferPacket.setAddress(address);
-            transferPacket.setPort(port);
-            session.sendUpstreamPacket(transferPacket);
+                TransferPacket transferPacket = new TransferPacket();
+                transferPacket.setAddress(address);
+                transferPacket.setPort(port);
+                session.sendUpstreamPacket(transferPacket);
+            });
 
         } else if (channel.equals(PluginMessageChannels.PACKET)) {
-            logger.debug("A packet has been sent using the Floodgate api");
-            byte[] data = packet.getData();
+            session.ensureInEventLoop(() -> {
+                logger.debug("A packet has been sent using the Floodgate api");
+                byte[] data = packet.getData();
 
-            // packet id, packet data
-            if (data.length < 2) {
-                throw new IllegalStateException("Packet data should be at least 2 bytes long");
-            }
+                // packet id, packet data
+                if (data.length < 2) {
+                    throw new IllegalStateException("Packet data should be at least 2 bytes long");
+                }
 
-            int packetId = data[0] & 0xFF;
-            ByteBuf packetData = Unpooled.wrappedBuffer(data, 1, data.length - 1);
+                int packetId = data[0] & 0xFF;
+                ByteBuf packetData = Unpooled.wrappedBuffer(data, 1, data.length - 1);
 
-            var toSend = new UnknownPacket();
-            toSend.setPacketId(packetId);
-            toSend.setPayload(packetData);
+                var toSend = new UnknownPacket();
+                toSend.setPacketId(packetId);
+                toSend.setPayload(packetData);
 
-            session.sendUpstreamPacket(toSend);
+                session.sendUpstreamPacket(toSend);
+            });
         }
+    }
+
+    @Override
+    public boolean shouldExecuteInEventLoop() {
+        // For Erosion packets
+        return false;
     }
 }

@@ -224,7 +224,7 @@ public class PistonBlockEntity {
         int blockId = session.getGeyser().getWorldManager().getBlockAt(session, blockInFront);
         if (BlockStateValues.isPistonHead(blockId)) {
             ChunkUtils.updateBlock(session, BlockStateValues.JAVA_AIR_ID, blockInFront);
-        } else if (session.getGeyser().getPlatformType() == PlatformType.SPIGOT && blockId == BlockStateValues.JAVA_AIR_ID) {
+        } else if ((session.getGeyser().getPlatformType() == PlatformType.SPIGOT || session.getErosionHandler().isActive()) && blockId == BlockStateValues.JAVA_AIR_ID) {
             // Spigot removes the piston head from the cache, but we need to send the block update ourselves
             ChunkUtils.updateBlock(session, BlockStateValues.JAVA_AIR_ID, blockInFront);
         }
