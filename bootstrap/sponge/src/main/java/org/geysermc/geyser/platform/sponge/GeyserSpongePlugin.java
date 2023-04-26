@@ -239,4 +239,9 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     public int getServerPort() {
         return Sponge.server().boundAddress().stream().mapToInt(InetSocketAddress::getPort).findFirst().orElse(-1);
     }
+
+    @Override
+    public boolean isFloodgatePluginPresent() {
+        return false;
+    }
 }

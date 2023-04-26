@@ -169,4 +169,6 @@ public interface GeyserBootstrap {
      * @return the listening port being used by the Java server. -1 if can't be found
      */
     int getServerPort();
+
+    boolean isFloodgatePluginPresent();
 }

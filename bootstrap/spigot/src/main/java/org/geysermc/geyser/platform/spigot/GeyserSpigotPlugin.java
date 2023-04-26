@@ -171,15 +171,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             return;
         }
 
-        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE && Bukkit.getPluginManager().getPlugin("floodgate") == null) {
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
-            this.getPluginLoader().disablePlugin(this);
-        } else if (geyserConfig.isAutoconfiguredRemote() && Bukkit.getPluginManager().getPlugin("floodgate") != null) {
-            // Floodgate installed means that the user wants Floodgate authentication
-            geyserLogger.debug("Auto-setting to Floodgate authentication.");
-            geyserConfig.getRemote().setAuthType(AuthType.FLOODGATE);
-        }
-
         geyserConfig.loadFloodgate(this);
 
         this.geyserCommandManager = new GeyserSpigotCommandManager(geyser);
@@ -457,5 +448,10 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     @Override
     public int getServerPort() {
         return Bukkit.getPort();
+    }
+
+    @Override
+    public boolean isFloodgatePluginPresent() {
+        return Bukkit.getPluginManager().getPlugin("floodgate") != null;
     }
 }

@@ -27,6 +27,7 @@ package org.geysermc.geyser.configuration;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.network.CIDRMatcher;
@@ -119,6 +120,8 @@ public interface GeyserConfiguration {
 
     int getPendingAuthenticationTimeout();
 
+    boolean isAutoconfiguredRemote();
+
     interface IBedrockConfiguration extends BedrockListener {
         void setAddress(String address);
 
@@ -157,6 +160,8 @@ public interface GeyserConfiguration {
         default int protocolVersion() {
             return GameProtocol.getJavaProtocolVersion();
         }
+
+        void setAuthType(AuthType authType);
     }
 
     interface IUserAuthenticationInfo {
