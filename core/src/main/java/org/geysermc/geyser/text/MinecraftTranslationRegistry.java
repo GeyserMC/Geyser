@@ -53,12 +53,14 @@ public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<
         // Get the locale string
         String localeString = MinecraftLocale.getLocaleStringIfPresent(key, locale);
         if (localeString == null) {
-            if (fallback == null) {
-                // No fallback and no match for string; nothing will be translated/inserted
-                return null;
+            if (fallback != null) {
+                // Fallback strings will still have their params inserted
+                localeString = fallback;
+            } else {
+                // The original translation will be translated
+                // Can be tested with 1.19.4: {"translate":"%s","with":[{"text":"weeeeeee"}]}
+                localeString = key;
             }
-            // Fallback strings will still have their params inserted
-            localeString = fallback;
         }
 
         // Replace the `%s` with numbered inserts `{0}`
