@@ -83,8 +83,9 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
 
     @Override
     public boolean updateSlot(InventoryTranslator translator, GeyserSession session, Inventory inventory, int javaSlot) {
-        if (super.updateSlot(translator, session, inventory, javaSlot))
+        if (super.updateSlot(translator, session, inventory, javaSlot)) {
             return true;
+        }
         AnvilContainer anvilContainer = (AnvilContainer) inventory;
         updateInventoryState(session, anvilContainer);
 
@@ -113,7 +114,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     private void updateInventoryState(GeyserSession session, AnvilContainer anvilContainer) {
         GeyserItemStack input = anvilContainer.getInput();
         if (!input.equals(anvilContainer.getLastInput())) {
-            anvilContainer.setLastInput(input.copy());
+            anvilContainer.setLastInput(input);
             anvilContainer.setUseJavaLevelCost(false);
 
             // Changing the item in the input slot resets the name field on Bedrock, but
@@ -127,7 +128,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
 
         GeyserItemStack material = anvilContainer.getMaterial();
         if (!material.equals(anvilContainer.getLastMaterial())) {
-            anvilContainer.setLastMaterial(material.copy());
+            anvilContainer.setLastMaterial(material);
             anvilContainer.setUseJavaLevelCost(false);
         }
     }
