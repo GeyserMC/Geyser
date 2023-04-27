@@ -28,11 +28,13 @@ package org.geysermc.geyser.entity.type;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.level.particle.Particle;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.ParticleType;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.type.ParticleMapping;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.UUID;
@@ -47,12 +49,12 @@ public class AreaEffectCloudEntity extends Entity {
     protected void initializeMetadata() {
         super.initializeMetadata();
         // Without this the cloud doesn't appear,
-        dirtyMetadata.put(EntityData.AREA_EFFECT_CLOUD_DURATION, Integer.MAX_VALUE);
+        dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_DURATION, Integer.MAX_VALUE);
 
         // This disabled client side shrink of the cloud
-        dirtyMetadata.put(EntityData.AREA_EFFECT_CLOUD_RADIUS, 0.0f);
-        dirtyMetadata.put(EntityData.AREA_EFFECT_CLOUD_CHANGE_RATE, Float.MIN_VALUE);
-        dirtyMetadata.put(EntityData.AREA_EFFECT_CLOUD_CHANGE_ON_PICKUP, Float.MIN_VALUE);
+        dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_RADIUS, 0.0f);
+        dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_CHANGE_RATE, Float.MIN_VALUE);
+        dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_CHANGE_ON_PICKUP, Float.MIN_VALUE);
 
         setFlag(EntityFlag.FIRE_IMMUNE, true);
     }
@@ -60,15 +62,13 @@ public class AreaEffectCloudEntity extends Entity {
     public void setRadius(FloatEntityMetadata entityMetadata) {
         // Anything less than 0.5 will cause the cloud to despawn
         float value = Math.max(entityMetadata.getPrimitiveValue(), 0.5f);
-        dirtyMetadata.put(EntityData.AREA_EFFECT_CLOUD_RADIUS, value);
-        dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, 2.0f * value);
+        dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_RADIUS, value);
+        dirtyMetadata.put(EntityDataTypes.WIDTH, 2.0f * value);
     }
 
     public void setParticle(EntityMetadata<Particle, ?> entityMetadata) {
         Particle particle = entityMetadata.getValue();
-        int particleId = Registries.PARTICLES.map(particle.getType(), mapping -> mapping.getParticleId(this.session)).orElse(-1);
-        if (particleId != -1) {
-            dirtyMetadata.put(EntityData.AREA_EFFECT_CLOUD_PARTICLE_ID, particleId);
-        }
+        Registries.PARTICLES.map(particle.getType(), p -> p.levelEventType() instanceof ParticleType particleType ? particleType : null).ifPresent(type ->
+                dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_PARTICLE, type));
     }
 }

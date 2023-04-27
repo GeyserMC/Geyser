@@ -41,6 +41,7 @@ public class GeyserCustomItemData implements CustomItemData {
     private final String displayName;
     private final String icon;
     private final boolean allowOffhand;
+    private final boolean displayHandheld;
     private final int textureSize;
     private final CustomRenderOffsets renderOffsets;
 
@@ -49,6 +50,7 @@ public class GeyserCustomItemData implements CustomItemData {
                                 String displayName,
                                 String icon,
                                 boolean allowOffhand,
+                                boolean displayHandheld,
                                 int textureSize,
                                 CustomRenderOffsets renderOffsets) {
         this.name = name;
@@ -56,34 +58,47 @@ public class GeyserCustomItemData implements CustomItemData {
         this.displayName = displayName;
         this.icon = icon;
         this.allowOffhand = allowOffhand;
+        this.displayHandheld = displayHandheld;
         this.textureSize = textureSize;
         this.renderOffsets = renderOffsets;
     }
 
+    @Override
     public @NotNull String name() {
         return name;
     }
 
+    @Override
     public CustomItemOptions customItemOptions() {
         return customItemOptions;
     }
 
+    @Override
     public @NotNull String displayName() {
         return displayName;
     }
 
+    @Override
     public @NotNull String icon() {
         return icon;
     }
 
+    @Override
     public boolean allowOffhand() {
         return allowOffhand;
     }
 
+    @Override
+    public boolean displayHandheld() {
+        return this.displayHandheld;
+    }
+
+    @Override
     public int textureSize() {
         return textureSize;
     }
 
+    @Override
     public CustomRenderOffsets renderOffsets() {
         return renderOffsets;
     }
@@ -95,6 +110,7 @@ public class GeyserCustomItemData implements CustomItemData {
         protected String displayName = null;
         protected String icon = null;
         protected boolean allowOffhand = true; // Bedrock doesn't give items offhand allowance unless they serve gameplay purpose, but we want to be friendly with Java
+        protected boolean displayHandheld = false;
         protected int textureSize = 16;
         protected CustomRenderOffsets renderOffsets = null;
 
@@ -129,6 +145,12 @@ public class GeyserCustomItemData implements CustomItemData {
         }
 
         @Override
+        public Builder displayHandheld(boolean displayHandheld) {
+            this.displayHandheld = displayHandheld;
+            return this;
+        }
+
+        @Override
         public Builder textureSize(int textureSize) {
             this.textureSize = textureSize;
             return this;
@@ -152,7 +174,7 @@ public class GeyserCustomItemData implements CustomItemData {
             if (this.icon == null) {
                 this.icon = this.name;
             }
-            return new GeyserCustomItemData(this.name, this.customItemOptions, this.displayName, this.icon, this.allowOffhand, this.textureSize, this.renderOffsets);
+            return new GeyserCustomItemData(this.name, this.customItemOptions, this.displayName, this.icon, this.allowOffhand, this.displayHandheld, this.textureSize, this.renderOffsets);
         }
     }
 }

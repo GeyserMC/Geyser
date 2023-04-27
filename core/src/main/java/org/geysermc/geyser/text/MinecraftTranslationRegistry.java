@@ -42,10 +42,26 @@ public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<
     private final Pattern stringReplacement = Pattern.compile("%s");
     private final Pattern positionalStringReplacement = Pattern.compile("%([0-9]+)\\$s");
 
+    // Exists to maintain compatibility with Velocity's older Adventure version
     @Override
     public @Nullable MessageFormat translate(@Nonnull String key, @Nonnull String locale) {
+        return this.translate(key, null, locale);
+    }
+
+    @Override
+    protected @Nullable MessageFormat translate(@Nonnull String key, @Nullable String fallback, @Nonnull String locale) {
         // Get the locale string
-        String localeString = MinecraftLocale.getLocaleString(key, locale);
+        String localeString = MinecraftLocale.getLocaleStringIfPresent(key, locale);
+        if (localeString == null) {
+            if (fallback != null) {
+                // Fallback strings will still have their params inserted
+                localeString = fallback;
+            } else {
+                // The original translation will be translated
+                // Can be tested with 1.19.4: {"translate":"%s","with":[{"text":"weeeeeee"}]}
+                localeString = key;
+            }
+        }
 
         // Replace the `%s` with numbered inserts `{0}`
         Pattern p = stringReplacement;

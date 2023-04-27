@@ -28,7 +28,7 @@ package org.geysermc.geyser.translator.protocol.bedrock;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.InteractAction;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
-import com.nukkitx.protocol.bedrock.packet.ItemFrameDropItemPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ItemFrameDropItemPacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.session.GeyserSession;

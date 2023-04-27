@@ -30,10 +30,11 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntArrayTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
+import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
@@ -95,11 +96,11 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         return CompletableFuture.completedFuture(texture.getValue());
     }
 
-    public static int translateSkull(GeyserSession session, CompoundTag tag, Vector3i blockPosition, int blockState) {
+    public static BlockDefinition translateSkull(GeyserSession session, CompoundTag tag, Vector3i blockPosition, int blockState) {
         CompoundTag owner = tag.get("SkullOwner");
         if (owner == null) {
             session.getSkullCache().removeSkull(blockPosition);
-            return -1;
+            return null;
         }
         UUID uuid = getUUID(owner);
 
@@ -107,14 +108,14 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         if (texturesFuture.isDone()) {
             try {
                 SkullCache.Skull skull = session.getSkullCache().putSkull(blockPosition, uuid, texturesFuture.get(), blockState);
-                return skull.getCustomRuntimeId();
+                return skull.getBlockDefinition();
             } catch (InterruptedException | ExecutionException e) {
                 session.getGeyser().getLogger().debug("Failed to acquire textures for custom skull: " + blockPosition + " " + tag);
                 if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
                     e.printStackTrace();
                 }
             }
-            return -1;
+            return null;
         }
 
         // SkullOwner contained a username, so we have to wait for it to be retrieved
@@ -131,16 +132,16 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         });
 
         // We don't have the textures yet, so we can't determine if a custom block was defined for this skull
-        return -1;
+        return null;
     }
 
     private static void putSkull(GeyserSession session, Vector3i blockPosition, UUID uuid, String texturesProperty, int blockState) {
         SkullCache.Skull skull = session.getSkullCache().putSkull(blockPosition, uuid, texturesProperty, blockState);
-        if (skull.getCustomRuntimeId() != -1) {
+        if (skull.getBlockDefinition() != null) {
             UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
             updateBlockPacket.setDataLayer(0);
             updateBlockPacket.setBlockPosition(blockPosition);
-            updateBlockPacket.setRuntimeId(skull.getCustomRuntimeId());
+            updateBlockPacket.setDefinition(skull.getBlockDefinition());
             updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
             updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
             session.sendUpstreamPacket(updateBlockPacket);

@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.level.block.entity;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 
 public class EmptyBlockEntityTranslator extends BlockEntityTranslator {
     @Override

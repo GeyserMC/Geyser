@@ -27,8 +27,8 @@ package org.geysermc.geyser.entity.type;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -46,7 +46,7 @@ public class DefaultBlockMinecartEntity extends MinecartEntity {
     public DefaultBlockMinecartEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
 
-        dirtyMetadata.put(EntityData.CUSTOM_DISPLAY, (byte) 1);
+        dirtyMetadata.put(EntityDataTypes.CUSTOM_DISPLAY, (byte) 1);
     }
 
     @Override
@@ -60,7 +60,7 @@ public class DefaultBlockMinecartEntity extends MinecartEntity {
         customBlock = entityMetadata.getPrimitiveValue();
 
         if (showCustomBlock) {
-            dirtyMetadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getBedrockBlockId(customBlock));
+            dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getBedrockBlock(customBlock));
         }
     }
 
@@ -69,7 +69,7 @@ public class DefaultBlockMinecartEntity extends MinecartEntity {
         customBlockOffset = entityMetadata.getPrimitiveValue();
 
         if (showCustomBlock) {
-            dirtyMetadata.put(EntityData.DISPLAY_OFFSET, customBlockOffset);
+            dirtyMetadata.put(EntityDataTypes.DISPLAY_OFFSET, customBlockOffset);
         }
     }
 
@@ -77,8 +77,8 @@ public class DefaultBlockMinecartEntity extends MinecartEntity {
     public void setShowCustomBlock(BooleanEntityMetadata entityMetadata) {
         if (entityMetadata.getPrimitiveValue()) {
             showCustomBlock = true;
-            dirtyMetadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getBedrockBlockId(customBlock));
-            dirtyMetadata.put(EntityData.DISPLAY_OFFSET, customBlockOffset);
+            dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getBedrockBlock(customBlock));
+            dirtyMetadata.put(EntityDataTypes.DISPLAY_OFFSET, customBlockOffset);
         } else {
             showCustomBlock = false;
             updateDefaultBlockMetadata();

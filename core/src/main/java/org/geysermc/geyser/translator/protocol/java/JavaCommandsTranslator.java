@@ -30,11 +30,6 @@ import com.github.steveice10.mc.protocol.data.game.command.CommandParser;
 import com.github.steveice10.mc.protocol.data.game.command.properties.ResourceProperties;
 import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundCommandsPacket;
-import com.nukkitx.protocol.bedrock.data.command.CommandData;
-import com.nukkitx.protocol.bedrock.data.command.CommandEnumData;
-import com.nukkitx.protocol.bedrock.data.command.CommandParam;
-import com.nukkitx.protocol.bedrock.data.command.CommandParamData;
-import com.nukkitx.protocol.bedrock.packet.AvailableCommandsPacket;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -45,6 +40,8 @@ import lombok.Getter;
 import lombok.ToString;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
+import org.cloudburstmc.protocol.bedrock.data.command.*;
+import org.cloudburstmc.protocol.bedrock.packet.AvailableCommandsPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent;
 import org.geysermc.geyser.command.GeyserCommandManager;
@@ -58,6 +55,7 @@ import org.geysermc.geyser.util.EntityUtils;
 
 import java.util.*;
 
+@SuppressWarnings("removal") // We know. This is our doing.
 @Translator(packet = ClientboundCommandsPacket.class)
 public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommandsPacket> {
 
@@ -165,14 +163,20 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         }
 
         // The command flags, not sure what these do apart from break things
-        List<CommandData.Flag> flags = Collections.emptyList();
+        Set<CommandData.Flag> flags = Set.of();
 
         // Loop through all the found commands
         for (Map.Entry<BedrockCommandInfo, Set<String>> entry : commands.entrySet()) {
             String commandName = entry.getValue().iterator().next(); // We know this has a value
 
+            LinkedHashMap<String, Set<CommandEnumConstraint>> values = new LinkedHashMap<>();
+            // Is this right?
+            for (String s : entry.getValue()) {
+                values.put(s, EnumSet.of(CommandEnumConstraint.ALLOW_ALIASES));
+            }
+
             // Create a basic alias
-            CommandEnumData aliases = new CommandEnumData(commandName + "Aliases", entry.getValue().toArray(new String[0]), false);
+            CommandEnumData aliases = new CommandEnumData(commandName + "Aliases", values, false);
 
             // Build the completed command and add it to the final list
             CommandData data = new CommandData(commandName, entry.getKey().description(), flags, (byte) 0, aliases, entry.getKey().paramData());
@@ -243,7 +247,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             case BOOL -> ENUM_BOOLEAN;
             case OPERATION -> CommandParam.OPERATOR; // ">=", "==", etc
             case BLOCK_STATE -> context.getBlockStates();
-            case ITEM_STACK -> context.session.getItemMappings().getItemNames();
+            case ITEM_STACK -> context.getItemNames();
             case COLOR -> VALID_COLORS;
             case SCOREBOARD_SLOT -> VALID_SCOREBOARD_SLOTS;
             case RESOURCE -> handleResource(context, ((ResourceProperties) node.getProperties()).getRegistryKey(), false);
@@ -284,6 +288,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         private Object biomesNoTags;
         private String[] blockStates;
         private String[] entityTypes;
+        private String[] itemNames;
         private CommandEnumData teams;
 
         CommandBuilderContext(GeyserSession session) {
@@ -322,12 +327,20 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             return (entityTypes = Registries.JAVA_ENTITY_IDENTIFIERS.get().keySet().toArray(new String[0]));
         }
 
+        public String[] getItemNames() {
+            if (itemNames != null) {
+                return itemNames;
+            }
+            return (itemNames = Registries.JAVA_ITEM_IDENTIFIERS.get().keySet().toArray(new String[0]));
+        }
+
         private CommandEnumData getTeams() {
             if (teams != null) {
                 return teams;
             }
             return (teams = new CommandEnumData("Geyser_Teams",
-                    session.getWorldCache().getScoreboard().getTeamNames(), true));
+                    session.getWorldCache().getScoreboard().getTeamNames(), true
+            ));
         }
     }
 
@@ -372,25 +385,41 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                         // Check to make sure all descending nodes of this command are compatible - otherwise, create a new overload
                         if (isCompatible(allNodes, enumParamInfo.getParamNode(), paramNode)) {
                             foundCompatible = true;
+                            // TODO: Check this
                             // Extend the current list of enum values
-                            String[] enumOptions = Arrays.copyOf(enumParamInfo.getParamData().getEnumData().getValues(), enumParamInfo.getParamData().getEnumData().getValues().length + 1);
-                            enumOptions[enumOptions.length - 1] = paramNode.getName();
+                            // String[] enumOptions = Arrays.copyOf(enumParamInfo.getParamData().getEnumData().getValues(), enumParamInfo.getParamData().getEnumData().getValues().size() + 1);
+                            // enumOptions[enumOptions.length - 1] = paramNode.getName();
+
+                            Map<String, Set<CommandEnumConstraint>> values = new LinkedHashMap<>(enumParamInfo.getParamData().getEnumData().getValues());
+                            values.put(paramNode.getName(), Set.of());
 
                             // Re-create the command using the updated values
-                            CommandEnumData enumData = new CommandEnumData(enumParamInfo.getParamData().getEnumData().getName(), enumOptions, false);
-                            children.set(i, new ParamInfo(enumParamInfo.getParamNode(), new CommandParamData(enumParamInfo.getParamData().getName(), this.paramNode.isExecutable(), enumData, null, null, Collections.emptyList())));
+                            CommandEnumData enumData = new CommandEnumData(enumParamInfo.getParamData().getEnumData().getName(), values, false);
+                            CommandParamData commandParamData = new CommandParamData();
+                            commandParamData.setName(enumParamInfo.getParamData().getName());
+                            commandParamData.setOptional(this.paramNode.isExecutable());
+                            commandParamData.setEnumData(enumData);
+
+                            children.set(i, new ParamInfo(enumParamInfo.getParamNode(), commandParamData));
                             break;
                         }
                     }
 
                     if (!foundCompatible) {
                         // Create a new subcommand with this exact type
-                        CommandEnumData enumData = new CommandEnumData(paramNode.getName(), new String[]{paramNode.getName()}, false);
+                        LinkedHashMap<String, Set<CommandEnumConstraint>> map = new LinkedHashMap<>();
+                        map.put(paramNode.getName(), Set.of());
+                        CommandEnumData enumData = new CommandEnumData(paramNode.getName(), map, false);
 
                         // On setting optional:
                         // isExecutable is defined as a node "constitutes a valid command."
                         // Therefore, any children of the parameter must simply be optional.
-                        children.add(new ParamInfo(paramNode, new CommandParamData(paramNode.getName(), this.paramNode.isExecutable(), enumData, null, null, Collections.emptyList())));
+                        CommandParamData commandParamData = new CommandParamData();
+                        commandParamData.setName(paramNode.getName());
+                        commandParamData.setOptional(this.paramNode.isExecutable());
+                        commandParamData.setEnumData(enumData);
+
+                        children.add(new ParamInfo(paramNode, commandParamData));
                     }
                 } else {
                     // Put the non-enum param into the list
@@ -402,7 +431,12 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                         // Likely to specify isSoft, to be possibly updated later.
                         enumData = (CommandEnumData) mappedType;
                     } else if (mappedType instanceof String[]) {
-                        enumData = new CommandEnumData(getEnumDataName(paramNode).toLowerCase(Locale.ROOT), (String[]) mappedType, false);
+                        LinkedHashMap<String, Set<CommandEnumConstraint>> map = new LinkedHashMap<>();
+                        for (String s : (String[]) mappedType) {
+                            map.put(s, Set.of());
+                        }
+
+                        enumData = new CommandEnumData(getEnumDataName(paramNode).toLowerCase(Locale.ROOT), map, false);
                     } else {
                         type = (CommandParam) mappedType;
                         // Bedrock throws a fit if an optional message comes after a string or target
@@ -414,7 +448,13 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                     // IF enumData != null:
                     // In game, this will show up like <paramNode.getName(): enumData.getName()>
                     // So if paramNode.getName() == "value" and enumData.getName() == "bool": <value: bool>
-                    children.add(new ParamInfo(paramNode, new CommandParamData(paramNode.getName(), optional, enumData, type, null, Collections.emptyList())));
+                    CommandParamData commandParamData = new CommandParamData();
+                    commandParamData.setName(paramNode.getName());
+                    commandParamData.setOptional(optional);
+                    commandParamData.setEnumData(enumData);
+                    commandParamData.setType(type);
+
+                    children.add(new ParamInfo(paramNode, commandParamData));
                 }
             }
 

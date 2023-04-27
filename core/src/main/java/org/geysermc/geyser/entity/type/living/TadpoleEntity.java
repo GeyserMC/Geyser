@@ -26,9 +26,10 @@
 package org.geysermc.geyser.entity.type.living;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
@@ -61,6 +62,6 @@ public class TadpoleEntity extends AbstractFishEntity {
     }
 
     private boolean isFood(GeyserItemStack itemStack) {
-        return itemStack.getJavaId() == session.getItemMappings().getStoredItems().slimeBall();
+        return itemStack.asItem() == Items.SLIME_BALL;
     }
 }

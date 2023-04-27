@@ -26,6 +26,7 @@
 package org.geysermc.geyser.translator.inventory.item;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -53,11 +54,11 @@ public abstract class NbtItemStackTranslator {
     /**
      * Gets whether this nbt translator takes in this item.
      *
-     * @param mapping Geyser's item mapping
+     * @param item Geyser's item mapping
      * @return if the item should be processed under this class
      */
-    public boolean acceptItem(ItemMapping mapping) {
+    public boolean acceptItem(Item item) {
         return true;
-    }
+    } // TODO
 
 }

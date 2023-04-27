@@ -26,12 +26,17 @@
 package org.geysermc.geyser.translator.protocol.java.entity;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundEntityEventPacket;
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
-import com.nukkitx.protocol.bedrock.packet.*;
+import org.cloudburstmc.protocol.bedrock.data.ParticleType;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEvent2Packet;
+import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.EvokerFangsEntity;
@@ -87,15 +92,15 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 entityEventPacket.setType(EntityEventType.DEATH);
                 if (entity.getDefinition() == EntityDefinitions.EGG) {
                     LevelEventPacket particlePacket = new LevelEventPacket();
-                    particlePacket.setType(LevelEventType.PARTICLE_ITEM_BREAK);
-                    particlePacket.setData(session.getItemMappings().getStoredItems().egg().getBedrockId() << 16);
+                    particlePacket.setType(ParticleType.ICON_CRACK);
+                    particlePacket.setData(session.getItemMappings().getStoredItems().egg().getBedrockDefinition().getRuntimeId() << 16);
                     particlePacket.setPosition(entity.getPosition());
                     for (int i = 0; i < 6; i++) {
                         session.sendUpstreamPacket(particlePacket);
                     }
                 } else if (entity.getDefinition() == EntityDefinitions.SNOWBALL) {
                     LevelEventPacket particlePacket = new LevelEventPacket();
-                    particlePacket.setType(LevelEventType.PARTICLE_SNOWBALL_POOF);
+                    particlePacket.setType(ParticleType.SNOWBALL_POOF);
                     particlePacket.setPosition(entity.getPosition());
                     for (int i = 0; i < 8; i++) {
                         session.sendUpstreamPacket(particlePacket);
@@ -176,7 +181,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 break;
             case VILLAGER_SWEAT:
                 LevelEventPacket levelEventPacket = new LevelEventPacket();
-                levelEventPacket.setType(LevelEventType.PARTICLE_SPLASH);
+                levelEventPacket.setType(ParticleType.WATER_SPLASH);
                 levelEventPacket.setPosition(entity.getPosition().up(entity.getDefinition().height()));
                 session.sendUpstreamPacket(levelEventPacket);
                 return;
@@ -197,7 +202,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                     // This doesn't match vanilla Bedrock behavior but I'm unsure how to make it better
                     // I assume part of the problem is that Bedrock uses a duration and Java just says the rabbit is jumping
                     SetEntityDataPacket dataPacket = new SetEntityDataPacket();
-                    dataPacket.getMetadata().put(EntityData.JUMP_DURATION, (byte) 3);
+                    dataPacket.getMetadata().put(EntityDataTypes.JUMP_DURATION, (byte) 3);
                     dataPacket.setRuntimeEntityId(entity.getGeyserId());
                     session.sendUpstreamPacket(dataPacket);
                     return;

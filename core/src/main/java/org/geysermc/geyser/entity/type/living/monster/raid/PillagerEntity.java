@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.entity.type.living.monster.raid;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -58,8 +58,8 @@ public class PillagerEntity extends AbstractIllagerEntity {
      */
     protected void checkForCrossbow() {
         ItemMapping crossbow = session.getItemMappings().getStoredItems().crossbow();
-        boolean hasCrossbow = this.hand.getId() == crossbow.getBedrockId()
-                || this.offHand.getId() == crossbow.getBedrockId();
+        boolean hasCrossbow = this.hand.getDefinition() == crossbow.getBedrockDefinition()
+                || this.offHand.getDefinition() == crossbow.getBedrockDefinition();
         setFlag(EntityFlag.USING_ITEM, hasCrossbow);
         setFlag(EntityFlag.CHARGED, hasCrossbow);
 

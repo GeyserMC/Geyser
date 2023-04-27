@@ -25,17 +25,18 @@
 
 package org.geysermc.geyser.util;
 
-import com.nukkitx.math.GenericMath;
-import com.nukkitx.math.vector.Vector2i;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
-import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
-import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.ints.IntLists;
 import lombok.experimental.UtilityClass;
+import org.cloudburstmc.math.GenericMath;
+import org.cloudburstmc.math.vector.Vector2i;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
+import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
+import org.cloudburstmc.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
@@ -129,7 +130,8 @@ public class ChunkUtils {
             // Otherwise, let's still store our reference to the item frame, but let the new block take precedence for now
         }
 
-        int bedrockId = session.getBlockMappings().getBedrockBlockId(blockState);
+        BlockDefinition definition = session.getBlockMappings().getBedrockBlock(blockState);
+
         int skullVariant = BlockStateValues.getSkullVariant(blockState);
         if (skullVariant == -1) {
             // Skull is gone
@@ -137,27 +139,27 @@ public class ChunkUtils {
         } else if (skullVariant == 3) {
             // The changed block was a player skull so check if a custom block was defined for this skull
             SkullCache.Skull skull = session.getSkullCache().updateSkull(position, blockState);
-            if (skull != null && skull.getCustomRuntimeId() != -1) {
-                bedrockId = skull.getCustomRuntimeId();
+            if (skull != null && skull.getBlockDefinition() != null) {
+                definition = skull.getBlockDefinition();
             }
         }
 
         // Extended collision boxes for custom blocks
         if (!session.getBlockMappings().getExtendedCollisionBoxes().isEmpty()) {
-            int aboveBedrockExtendedCollisionId = session.getBlockMappings().getExtendedCollisionBoxes().getOrDefault(blockState, -1);
+            BlockDefinition aboveBedrockExtendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes().get(blockState);
             int aboveBlock = session.getGeyser().getWorldManager().getBlockAt(session, position.getX(), position.getY() + 1, position.getZ());
-            if (aboveBedrockExtendedCollisionId != -1) {
+            if (aboveBedrockExtendedCollisionDefinition != null) {
                 UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
                 updateBlockPacket.setDataLayer(0);
                 updateBlockPacket.setBlockPosition(position.add(0, 1, 0));
-                updateBlockPacket.setRuntimeId(aboveBedrockExtendedCollisionId);
+                updateBlockPacket.setDefinition(aboveBedrockExtendedCollisionDefinition);
                 updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
                 session.sendUpstreamPacket(updateBlockPacket);
             } else if (aboveBlock == BlockStateValues.JAVA_AIR_ID) {
                 UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
                 updateBlockPacket.setDataLayer(0);
                 updateBlockPacket.setBlockPosition(position.add(0, 1, 0));
-                updateBlockPacket.setRuntimeId(session.getBlockMappings().getBedrockAirId());
+                updateBlockPacket.setDefinition(session.getBlockMappings().getBedrockAir());
                 updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
                 session.sendUpstreamPacket(updateBlockPacket);
             }
@@ -169,7 +171,7 @@ public class ChunkUtils {
             UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
             updateBlockPacket.setDataLayer(0);
             updateBlockPacket.setBlockPosition(position);
-            updateBlockPacket.setRuntimeId(bedrockId);
+            updateBlockPacket.setDefinition(definition);
             updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
             updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
             session.sendUpstreamPacket(updateBlockPacket);
@@ -177,10 +179,10 @@ public class ChunkUtils {
             UpdateBlockPacket waterPacket = new UpdateBlockPacket();
             waterPacket.setDataLayer(1);
             waterPacket.setBlockPosition(position);
-            if (BlockRegistries.WATERLOGGED.get().contains(blockState)) {
-                waterPacket.setRuntimeId(session.getBlockMappings().getBedrockWaterId());
+            if (BlockRegistries.WATERLOGGED.get().get(blockState)) {
+                waterPacket.setDefinition(session.getBlockMappings().getBedrockWater());
             } else {
-                waterPacket.setRuntimeId(session.getBlockMappings().getBedrockAirId());
+                waterPacket.setDefinition(session.getBlockMappings().getBedrockAir());
             }
             session.sendUpstreamPacket(waterPacket);
         }
@@ -203,7 +205,6 @@ public class ChunkUtils {
         int bedrockSubChunkCount = bedrockDimension.height() >> 4;
 
         byte[] payload;
-
         // Allocate output buffer
         ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer(ChunkUtils.EMPTY_BIOME_DATA.length * bedrockSubChunkCount + 1); // Consists only of biome data and border blocks
         try {
@@ -216,24 +217,24 @@ public class ChunkUtils {
 
             payload = new byte[byteBuf.readableBytes()];
             byteBuf.readBytes(payload);
+
+            LevelChunkPacket data = new LevelChunkPacket();
+            data.setChunkX(chunkX);
+            data.setChunkZ(chunkZ);
+            data.setSubChunksLength(0);
+            data.setData(Unpooled.wrappedBuffer(payload));
+            data.setCachingEnabled(false);
+            session.sendUpstreamPacket(data);
         } finally {
             byteBuf.release();
         }
-
-        LevelChunkPacket data = new LevelChunkPacket();
-        data.setChunkX(chunkX);
-        data.setChunkZ(chunkZ);
-        data.setSubChunksLength(0);
-        data.setData(payload);
-        data.setCachingEnabled(false);
-        session.sendUpstreamPacket(data);
 
         if (forceUpdate) {
             Vector3i pos = Vector3i.from(chunkX << 4, 80, chunkZ << 4);
             UpdateBlockPacket blockPacket = new UpdateBlockPacket();
             blockPacket.setBlockPosition(pos);
             blockPacket.setDataLayer(0);
-            blockPacket.setRuntimeId(1);
+            blockPacket.setDefinition(session.getBlockMappings().getBedrockBlock(1));
             session.sendUpstreamPacket(blockPacket);
         }
     }

@@ -25,12 +25,13 @@
 
 package org.geysermc.geyser.session.cache;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
@@ -100,9 +101,9 @@ public class SkullCache {
             }
         }
         skull.blockState = blockState;
-        skull.customRuntimeId = translateCustomSkull(skull.skinHash, blockState);
+        skull.blockDefinition = translateCustomSkull(skull.skinHash, blockState);
 
-        if (skull.customRuntimeId != -1) {
+        if (skull.blockDefinition != null) {
             reassignSkullEntity(skull);
             return skull;
         }
@@ -163,7 +164,7 @@ public class SkullCache {
 
             inRangeSkulls.clear();
             for (Skull skull : skulls.values()) {
-                if (skull.customRuntimeId != -1) {
+                if (skull.blockDefinition != null) {
                     continue;
                 }
 
@@ -246,7 +247,7 @@ public class SkullCache {
         lastPlayerPosition = null;
     }
 
-    private int translateCustomSkull(String skinHash, int blockState) {
+    private BlockDefinition translateCustomSkull(String skinHash, int blockState) {
         CustomSkull customSkull = BlockRegistries.CUSTOM_SKULLS.get(skinHash);
         if (customSkull != null) {
             byte floorRotation = BlockStateValues.getSkullRotation(blockState);
@@ -259,9 +260,9 @@ public class SkullCache {
                 customBlockState = customSkull.getFloorBlockState(floorRotation);
             }
 
-            return session.getBlockMappings().getCustomBlockStateIds().getOrDefault(customBlockState, -1);
+            return session.getBlockMappings().getCustomBlockStateDefinitions().get(customBlockState);
         }
-        return -1;
+        return null;
     }
 
     @RequiredArgsConstructor
@@ -272,7 +273,7 @@ public class SkullCache {
         private String skinHash;
 
         private int blockState;
-        private int customRuntimeId = -1;
+        private BlockDefinition blockDefinition;
         private SkullPlayerEntity entity;
 
         private final Vector3i position;

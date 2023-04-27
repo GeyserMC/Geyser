@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.nukkitx.protocol.bedrock.packet.ServerSettingsRequestPacket;
-import com.nukkitx.protocol.bedrock.packet.ServerSettingsResponsePacket;
+import org.cloudburstmc.protocol.bedrock.packet.ServerSettingsRequestPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ServerSettingsResponsePacket;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.impl.FormDefinitions;
 import org.geysermc.geyser.session.GeyserSession;

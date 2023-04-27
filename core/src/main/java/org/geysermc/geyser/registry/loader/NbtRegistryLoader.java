@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.registry.loader;
 
-import com.nukkitx.nbt.NBTInputStream;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtUtils;
+import org.cloudburstmc.nbt.NBTInputStream;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtUtils;
 import org.geysermc.geyser.GeyserImpl;
 
 /**
@@ -37,8 +37,7 @@ public class NbtRegistryLoader implements RegistryLoader<String, NbtMap> {
 
     @Override
     public NbtMap load(String input) {
-        try (NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(GeyserImpl.getInstance().getBootstrap().getResource(input),
-                true, true)) {
+        try (NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(GeyserImpl.getInstance().getBootstrap().getResource(input), true, true)) {
             return (NbtMap) nbtInputStream.readTag();
         } catch (Exception e) {
             throw new AssertionError("Failed to load registrations for " + input, e);
