@@ -69,6 +69,13 @@ public interface CustomItemData {
     boolean allowOffhand();
 
     /**
+     * Gets if the item should be displayed as handheld, like a tool.
+     *
+     * @return true if the item should be displayed as handheld, false otherwise
+     */
+    boolean displayHandheld();
+
+    /**
      * Gets the item's texture size. This is to resize the item if the texture is not 16x16.
      *
      * @return the item's texture size
@@ -99,6 +106,8 @@ public interface CustomItemData {
         Builder icon(@NonNull String icon);
 
         Builder allowOffhand(boolean allowOffhand);
+
+        Builder displayHandheld(boolean displayHandheld);
 
         Builder textureSize(int textureSize);
 

@@ -25,11 +25,11 @@
 
 package org.geysermc.geyser.translator.inventory.horse;
 
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
-import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
-import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
+import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.session.GeyserSession;
@@ -52,11 +52,11 @@ public abstract class ChestedHorseInventoryTranslator extends AbstractHorseInven
     }
 
     @Override
-    public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
+    public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
         if (slotInfoData.getContainer() == ContainerSlotType.HORSE_EQUIP) {
             return this.equipSlot;
         }
-        if (slotInfoData.getContainer() == ContainerSlotType.CONTAINER) {
+        if (slotInfoData.getContainer() == ContainerSlotType.LEVEL_ENTITY) {
             return slotInfoData.getSlot() + 1;
         }
         return super.bedrockSlotToJava(slotInfoData);
@@ -68,7 +68,7 @@ public abstract class ChestedHorseInventoryTranslator extends AbstractHorseInven
             return new BedrockContainerSlot(ContainerSlotType.HORSE_EQUIP, 0);
         }
         if (slot <= this.size - 1) { // Accommodate for the lack of one slot (saddle or armor)
-            return new BedrockContainerSlot(ContainerSlotType.CONTAINER, slot - 1);
+            return new BedrockContainerSlot(ContainerSlotType.LEVEL_ENTITY, slot - 1);
         }
         return super.javaSlotToBedrockContainer(slot);
     }

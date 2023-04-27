@@ -26,9 +26,9 @@
 package org.geysermc.geyser.translator.protocol.java.entity.player;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.player.ClientboundSetHealthPacket;
-import com.nukkitx.protocol.bedrock.data.AttributeData;
-import com.nukkitx.protocol.bedrock.packet.RespawnPacket;
-import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.cloudburstmc.protocol.bedrock.data.AttributeData;
+import org.cloudburstmc.protocol.bedrock.packet.RespawnPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;

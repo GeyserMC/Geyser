@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.protocol.java.entity.spawn;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.spawn.ClientboundAddExperienceOrbPacket;
-import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ExpOrbEntity;
 import org.geysermc.geyser.session.GeyserSession;

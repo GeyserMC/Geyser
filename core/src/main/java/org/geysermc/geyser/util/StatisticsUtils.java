@@ -29,8 +29,9 @@ import com.github.steveice10.mc.protocol.data.game.statistic.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.util.FormImage;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.type.ItemMappings;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
@@ -74,7 +75,7 @@ public class StatisticsUtils {
 
                             List<String> content = new ArrayList<>();
 
-                            ItemMappings mappings = session.getItemMappings();
+                            List<Item> itemRegistry = Registries.JAVA_ITEMS.get();
                             switch (response.clickedButtonId()) {
                                 case 0:
                                     builder.title("stat.generalButton");
@@ -105,7 +106,7 @@ public class StatisticsUtils {
 
                                     for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof BreakItemStatistic statistic) {
-                                            String item = mappings.getMapping(statistic.getId()).getJavaIdentifier();
+                                            String item = itemRegistry.get(statistic.getId()).javaIdentifier();
                                             content.add(getItemTranslateKey(item, language) + ": " + entry.getIntValue());
                                         }
                                     }
@@ -115,7 +116,7 @@ public class StatisticsUtils {
 
                                     for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof CraftItemStatistic statistic) {
-                                            String item = mappings.getMapping(statistic.getId()).getJavaIdentifier();
+                                            String item = itemRegistry.get(statistic.getId()).javaIdentifier();
                                             content.add(getItemTranslateKey(item, language) + ": " + entry.getIntValue());
                                         }
                                     }
@@ -125,7 +126,7 @@ public class StatisticsUtils {
 
                                     for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof UseItemStatistic statistic) {
-                                            String item = mappings.getMapping(statistic.getId()).getJavaIdentifier();
+                                            String item = itemRegistry.get(statistic.getId()).javaIdentifier();
                                             content.add(getItemTranslateKey(item, language) + ": " + entry.getIntValue());
                                         }
                                     }
@@ -135,7 +136,7 @@ public class StatisticsUtils {
 
                                     for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof PickupItemStatistic statistic) {
-                                            String item = mappings.getMapping(statistic.getId()).getJavaIdentifier();
+                                            String item = itemRegistry.get(statistic.getId()).javaIdentifier();
                                             content.add(getItemTranslateKey(item, language) + ": " + entry.getIntValue());
                                         }
                                     }
@@ -145,7 +146,7 @@ public class StatisticsUtils {
 
                                     for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof DropItemStatistic statistic) {
-                                            String item = mappings.getMapping(statistic.getId()).getJavaIdentifier();
+                                            String item = itemRegistry.get(statistic.getId()).javaIdentifier();
                                             content.add(getItemTranslateKey(item, language) + ": " + entry.getIntValue());
                                         }
                                     }

@@ -25,11 +25,31 @@
 
 package org.geysermc.geyser.api.connection;
 
+import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.connection.Connection;
 import org.geysermc.geyser.api.command.CommandSource;
+import org.geysermc.geyser.api.entity.type.GeyserEntity;
+import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Represents a player connection used in Geyser.
  */
 public interface GeyserConnection extends Connection, CommandSource {
+    /**
+     * @param javaId the Java entity ID to look up.
+     * @return a {@link GeyserEntity} if present in this connection's entity tracker.
+     */
+    @NonNull
+    CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId);
+
+    /**
+     *
+     * @param emoter the player entity emoting.
+     * @param emoteId the emote ID to send to the client.
+     */
+    void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId);
 }

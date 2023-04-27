@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.session;
 
 import com.github.steveice10.packetlib.packet.Packet;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.connector.network.session.auth.AuthData;
 
 /**

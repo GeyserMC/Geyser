@@ -28,20 +28,19 @@ package org.geysermc.geyser.registry.populator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableMap;
-import com.nukkitx.nbt.*;
-import com.nukkitx.protocol.bedrock.data.BlockPropertyData;
-import com.nukkitx.protocol.bedrock.v544.Bedrock_v544;
-import com.nukkitx.protocol.bedrock.v560.Bedrock_v560;
-import com.nukkitx.protocol.bedrock.v567.Bedrock_v567;
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMaps;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectIntPair;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.*;
+import org.cloudburstmc.nbt.*;
+import org.cloudburstmc.protocol.bedrock.codec.v544.Bedrock_v544;
+import org.cloudburstmc.protocol.bedrock.codec.v560.Bedrock_v560;
+import org.cloudburstmc.protocol.bedrock.codec.v567.Bedrock_v567;
+import org.cloudburstmc.protocol.bedrock.codec.v575.Bedrock_v575;
+import org.cloudburstmc.protocol.bedrock.codec.v582.Bedrock_v582;
+import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
+import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
@@ -50,19 +49,13 @@ import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.BlockMappings;
+import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 import org.geysermc.geyser.util.BlockUtils;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.zip.GZIPInputStream;
 
@@ -75,23 +68,51 @@ public final class BlockRegistryPopulator {
      */
     private static JsonNode BLOCKS_JSON;
 
+    public static void prePopulate() {
+        BLOCKS_JSON = null;
+    }
+
     public static void registerBedrockBlocks() {
+        BiFunction<String, NbtMapBuilder, String> woolMapper = (bedrockIdentifier, statesBuilder) -> {
+            if (bedrockIdentifier.equals("minecraft:wool")) {
+                String color = (String) statesBuilder.remove("color");
+                if ("silver".equals(color)) {
+                    color = "light_gray";
+                }
+                return "minecraft:" + color + "_wool";
+            }
+            return null;
+        };
         BiFunction<String, NbtMapBuilder, String> emptyMapper = (bedrockIdentifier, statesBuilder) -> null;
         ImmutableMap<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> blockMappers = ImmutableMap.<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>>builder()
-                .put(ObjectIntPair.of("1_19_20", Bedrock_v544.V544_CODEC.getProtocolVersion()), emptyMapper)
-                .put(ObjectIntPair.of("1_19_50", Bedrock_v560.V560_CODEC.getProtocolVersion()), emptyMapper)
-                .put(ObjectIntPair.of("1_19_60", Bedrock_v567.V567_CODEC.getProtocolVersion()), emptyMapper)
-                .put(ObjectIntPair.of("1_19_70", 575), (bedrockIdentifier, statesBuilder) -> {
-                    if (bedrockIdentifier.equals("minecraft:wool")) {
-                        String color = (String) statesBuilder.remove("color");
-                        if ("silver".equals(color)) {
-                            color = "light_gray";
-                        }
-                        return "minecraft:" + color + "_wool";
+                .put(ObjectIntPair.of("1_19_20", Bedrock_v544.CODEC.getProtocolVersion()), emptyMapper)
+                .put(ObjectIntPair.of("1_19_50", Bedrock_v560.CODEC.getProtocolVersion()), emptyMapper)
+                .put(ObjectIntPair.of("1_19_60", Bedrock_v567.CODEC.getProtocolVersion()), emptyMapper)
+                .put(ObjectIntPair.of("1_19_70", Bedrock_v575.CODEC.getProtocolVersion()), woolMapper)
+                .put(ObjectIntPair.of("1_19_80", Bedrock_v582.CODEC.getProtocolVersion()), (bedrockIdentifier, statesBuilder) -> {
+                    String identifier = woolMapper.apply(bedrockIdentifier, statesBuilder);
+                    if (identifier != null) {
+                        return identifier;
                     }
-                    return null;
+                    switch (bedrockIdentifier) {
+                        case "minecraft:log", "minecraft:log2" -> {
+                            String woodType = (String) statesBuilder.remove(bedrockIdentifier.equals("minecraft:log") ? "old_log_type" : "new_log_type");
+                            return "minecraft:" + woodType + "_log";
+                        }
+                        case "minecraft:fence" -> {
+                            String woodType = (String) statesBuilder.remove("wood_type");
+                            return "minecraft:" + woodType + "_fence";
+                        }
+                        default -> {
+                            return null;
+                        }
+                    }
                 })
                 .build();
+
+        // We can keep this strong as nothing should be garbage collected
+        // Safe to intern since Cloudburst NBT is immutable
+        Interner<NbtMap> statesInterner = Interners.newStrongInterner();
 
         for (Map.Entry<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> palette : blockMappers.entrySet()) {
             int protocolVersion = palette.getKey().valueInt();
@@ -105,6 +126,8 @@ public final class BlockRegistryPopulator {
                 for (int i = 0; i < vanillaBlockStates.size(); i++) {
                     NbtMapBuilder builder = vanillaBlockStates.get(i).toBuilder();
                     builder.remove("name_hash"); // Quick workaround - was added in 1.19.20
+                    builder.remove("network_id"); // Added in 1.19.80 - ????
+                    builder.putCompound("states", statesInterner.intern((NbtMap) builder.remove("states")));
                     vanillaBlockStates.set(i, builder.build());
                 }
 
@@ -132,89 +155,94 @@ public final class BlockRegistryPopulator {
 
             // New since 1.16.100 - find the block runtime ID by the order given to us in the block palette,
             // as we no longer send a block palette
-            Object2IntMap<NbtMap> blockStateOrderedMap = new Object2IntOpenHashMap<>(blockStates.size());
+            Object2ObjectMap<NbtMap, GeyserBedrockBlock> blockStateOrderedMap = new Object2ObjectOpenHashMap<>(blockStates.size());
+            GeyserBedrockBlock[] bedrockRuntimeMap = new GeyserBedrockBlock[blockStates.size()];
             for (int i = 0; i < blockStates.size(); i++) {
                 NbtMap tag = blockStates.get(i);
                 if (blockStateOrderedMap.containsKey(tag)) {
                     throw new AssertionError("Duplicate block states in Bedrock palette: " + tag);
                 }
-                blockStateOrderedMap.put(tag, i);
+                GeyserBedrockBlock block = new GeyserBedrockBlock(i, tag);
+                blockStateOrderedMap.put(tag, block);
+                bedrockRuntimeMap[i] = block;
             }
 
-            Object2IntMap<CustomBlockState> customBlockStateIds = Object2IntMaps.emptyMap();
-            Int2IntMap extendedCollisionBoxes = new Int2IntOpenHashMap();
+            Object2ObjectMap<CustomBlockState, GeyserBedrockBlock> customBlockStateDefinitions = Object2ObjectMaps.emptyMap();
+            Int2ObjectMap<GeyserBedrockBlock> extendedCollisionBoxes = new Int2ObjectOpenHashMap<>();
             if (BlockRegistries.CUSTOM_BLOCKS.get().length != 0) {
-                customBlockStateIds = new Object2IntOpenHashMap<>(customExtBlockStates.size());
+                customBlockStateDefinitions = new Object2ObjectOpenHashMap<>(customExtBlockStates.size());
                 //Map<Integer, Integer> extendedCollisionBoxes = new HashMap<>();
                 for (int i = 0; i < customExtBlockStates.size(); i++) {
                     NbtMap tag = customBlockStates.get(i);
                     CustomBlockState blockState = customExtBlockStates.get(i);
-                    int bedrockRuntimeId = blockStateOrderedMap.getOrDefault(tag, -1);
-                    customBlockStateIds.put(blockState, bedrockRuntimeId);
+                    GeyserBedrockBlock bedrockBlock = blockStateOrderedMap.get(tag);
+                    customBlockStateDefinitions.put(blockState, bedrockBlock);
 
                     Set<Integer> extendedCollisionjavaIds = BlockRegistries.EXTENDED_COLLISION_BOXES.getOrDefault(blockState.block(), null);
                     if (extendedCollisionjavaIds != null) {
                         for (int javaId : extendedCollisionjavaIds) {
-                            extendedCollisionBoxes.put(javaId, bedrockRuntimeId);
+                            extendedCollisionBoxes.put(javaId, bedrockBlock);
                         }
                     }
                 }
 
                 remappedVanillaIds = new int[vanillaBlockStates.size()];
                 for (int i = 0; i < vanillaBlockStates.size(); i++) {
-                    remappedVanillaIds[i] = blockStateOrderedMap.getOrDefault(vanillaBlockStates.get(i), -1);
+                    GeyserBedrockBlock bedrockBlock = blockStateOrderedMap.get(vanillaBlockStates.get(i));
+                    remappedVanillaIds[i] = bedrockBlock != null ? bedrockBlock.getRuntimeId() : -1;
                 }
             }
 
-            int airRuntimeId = -1;
-            int commandBlockRuntimeId = -1;
             int javaRuntimeId = -1;
-            int waterRuntimeId = -1;
-            int movingBlockRuntimeId = -1;
+
+            GeyserBedrockBlock airDefinition = null;
+            BlockDefinition commandBlockDefinition = null;
+            BlockDefinition waterDefinition = null;
+            BlockDefinition movingBlockDefinition = null;
             Iterator<Map.Entry<String, JsonNode>> blocksIterator = BLOCKS_JSON.fields();
 
             BiFunction<String, NbtMapBuilder, String> stateMapper = blockMappers.getOrDefault(palette.getKey(), emptyMapper);
 
-            int[] javaToBedrockBlocks = new int[BLOCKS_JSON.size()];
-            int[] javaToVanillaBedrockBlocks = new int[BLOCKS_JSON.size()];
+            GeyserBedrockBlock[] javaToBedrockBlocks = new GeyserBedrockBlock[BLOCKS_JSON.size()];
+            GeyserBedrockBlock[] javaToVanillaBedrockBlocks = new GeyserBedrockBlock[BLOCKS_JSON.size()];
 
             Map<String, NbtMap> flowerPotBlocks = new Object2ObjectOpenHashMap<>();
-            Object2IntMap<NbtMap> itemFrames = new Object2IntOpenHashMap<>();
+            Map<NbtMap, BlockDefinition> itemFrames = new Object2ObjectOpenHashMap<>();
 
-            IntSet jigsawStateIds = new IntOpenHashSet();
+            Set<BlockDefinition> jigsawDefinitions = new ObjectOpenHashSet<>();
 
             BlockMappings.BlockMappingsBuilder builder = BlockMappings.builder();
             while (blocksIterator.hasNext()) {
                 javaRuntimeId++;
                 Map.Entry<String, JsonNode> entry = blocksIterator.next();
                 String javaId = entry.getKey();
-                int vanillaBedrockRuntimeId = blockStateOrderedMap.getOrDefault(buildBedrockState(entry.getValue(), stateVersion, stateMapper), -1);
+                GeyserBedrockBlock vanillaBedrockDefinition = blockStateOrderedMap.get(buildBedrockState(entry.getValue(), stateVersion, stateMapper));
 
-                int bedrockRuntimeId;
+                GeyserBedrockBlock bedrockDefinition;
                 CustomBlockState blockStateOverride = BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get(javaRuntimeId);
                 if (blockStateOverride == null) {
-                    bedrockRuntimeId = vanillaBedrockRuntimeId;
-                    if (bedrockRuntimeId == -1) {
+                    bedrockDefinition = vanillaBedrockDefinition;
+                    if (bedrockDefinition == null) {
                         throw new RuntimeException("Unable to find " + javaId + " Bedrock runtime ID! Built NBT tag: \n" +
                                 buildBedrockState(entry.getValue(), stateVersion, stateMapper));
                     }
                 } else {
-                    bedrockRuntimeId = customBlockStateIds.getOrDefault(blockStateOverride, -1);
-                    if (bedrockRuntimeId == -1) {
+                    bedrockDefinition = customBlockStateDefinitions.get(blockStateOverride);
+                    if (bedrockDefinition == null) {
                         throw new RuntimeException("Unable to find " + javaId + " Bedrock runtime ID! Custom block override: \n" +
                             blockStateOverride);
                     }
                 }
 
                 switch (javaId) {
-                    case "minecraft:air" -> airRuntimeId = bedrockRuntimeId;
-                    case "minecraft:water[level=0]" -> waterRuntimeId = bedrockRuntimeId;
-                    case "minecraft:command_block[conditional=false,facing=north]" -> commandBlockRuntimeId = bedrockRuntimeId;
-                    case "minecraft:moving_piston[facing=north,type=normal]" -> movingBlockRuntimeId = bedrockRuntimeId;
+                    case "minecraft:air" -> airDefinition = bedrockDefinition;
+                    case "minecraft:water[level=0]" -> waterDefinition = bedrockDefinition;
+                    case "minecraft:command_block[conditional=false,facing=north]" -> commandBlockDefinition = bedrockDefinition;
+                    case "minecraft:moving_piston[facing=north,type=normal]" -> movingBlockDefinition = bedrockDefinition;
                 }
 
                 if (javaId.contains("jigsaw")) {
-                    jigsawStateIds.add(bedrockRuntimeId);
+                    jigsawDefinitions.add(bedrockDefinition);
                 }
 
                 boolean waterlogged = entry.getKey().contains("waterlogged=true")
@@ -222,58 +250,59 @@ public final class BlockRegistryPopulator {
 
                 if (waterlogged) {
                     int finalJavaRuntimeId = javaRuntimeId;
-                    BlockRegistries.WATERLOGGED.register(set -> set.add(finalJavaRuntimeId));
+                    BlockRegistries.WATERLOGGED.register(set -> set.set(finalJavaRuntimeId));
                 }
 
                 String cleanJavaIdentifier = BlockUtils.getCleanIdentifier(entry.getKey());
 
                 // Get the tag needed for non-empty flower pots
                 if (entry.getValue().get("pottable") != null) {
-                    flowerPotBlocks.put(cleanJavaIdentifier.intern(), blockStates.get(bedrockRuntimeId));
+                    flowerPotBlocks.put(cleanJavaIdentifier.intern(), blockStates.get(bedrockDefinition.getRuntimeId()));
                 }
 
-                javaToVanillaBedrockBlocks[javaRuntimeId] = vanillaBedrockRuntimeId;
-                javaToBedrockBlocks[javaRuntimeId] = bedrockRuntimeId;
+                javaToVanillaBedrockBlocks[javaRuntimeId] = vanillaBedrockDefinition;
+                javaToBedrockBlocks[javaRuntimeId] = bedrockDefinition;
             }
 
-            if (commandBlockRuntimeId == -1) {
+            if (commandBlockDefinition == null) {
                 throw new AssertionError("Unable to find command block in palette");
             }
-            builder.commandBlockRuntimeId(commandBlockRuntimeId);
 
-            if (waterRuntimeId == -1) {
+            builder.commandBlock(commandBlockDefinition);
+
+            if (waterDefinition  == null) {
                 throw new AssertionError("Unable to find water in palette");
             }
-            builder.bedrockWaterId(waterRuntimeId);
+            builder.bedrockWater(waterDefinition);
 
-            if (airRuntimeId == -1) {
+            if (airDefinition  == null) {
                 throw new AssertionError("Unable to find air in palette");
             }
-            builder.bedrockAirId(airRuntimeId);
+            builder.bedrockAir(airDefinition);
 
-            if (movingBlockRuntimeId == -1) {
+            if (movingBlockDefinition  == null) {
                 throw new AssertionError("Unable to find moving block in palette");
             }
-            builder.bedrockMovingBlockId(movingBlockRuntimeId);
+            builder.bedrockMovingBlock(movingBlockDefinition);
 
             // Loop around again to find all item frame runtime IDs
-            for (Object2IntMap.Entry<NbtMap> entry : blockStateOrderedMap.object2IntEntrySet()) {
+            Object2ObjectMaps.fastForEach(blockStateOrderedMap, entry -> {
                 String name = entry.getKey().getString("name");
                 if (name.equals("minecraft:frame") || name.equals("minecraft:glow_frame")) {
-                    itemFrames.put(entry.getKey(), entry.getIntValue());
+                    itemFrames.put(entry.getKey(), entry.getValue());
                 }
-            }
-            builder.bedrockBlockStates(new NbtList<>(NbtType.COMPOUND, blockStates));
+            });
 
             BlockRegistries.BLOCKS.register(palette.getKey().valueInt(), builder.blockStateVersion(stateVersion)
+                    .bedrockRuntimeMap(bedrockRuntimeMap)
                     .javaToBedrockBlocks(javaToBedrockBlocks)
                     .javaToVanillaBedrockBlocks(javaToVanillaBedrockBlocks)
                     .itemFrames(itemFrames)
                     .flowerPotBlocks(flowerPotBlocks)
-                    .jigsawStateIds(jigsawStateIds)
+                    .jigsawStates(jigsawDefinitions)
                     .remappedVanillaIds(remappedVanillaIds)
                     .blockProperties(customBlockProperties)
-                    .customBlockStateIds(customBlockStateIds)
+                    .customBlockStateDefinitions(customBlockStateDefinitions)
                     .extendedCollisionBoxes(extendedCollisionBoxes)
                     .build());
         }
@@ -363,7 +392,7 @@ public final class BlockRegistryPopulator {
             builder.javaIdentifier(javaId);
             builder.javaBlockId(uniqueJavaId);
 
-            BlockRegistries.JAVA_IDENTIFIERS.register(javaId, javaRuntimeId);
+            BlockRegistries.JAVA_IDENTIFIER_TO_ID.register(javaId, javaRuntimeId);
             BlockRegistries.JAVA_BLOCKS.register(javaRuntimeId, builder.build());
 
             // Keeping this here since this is currently unchanged between versions
@@ -442,10 +471,10 @@ public final class BlockRegistryPopulator {
         BlockRegistries.INTERACTIVE_MAY_BUILD.set(toBlockStateSet((ArrayNode) blockInteractionsJson.get("requires_may_build")));
     }
 
-    private static IntSet toBlockStateSet(ArrayNode node) {
-        IntSet blockStateSet = new IntOpenHashSet(node.size());
+    private static BitSet toBlockStateSet(ArrayNode node) {
+        BitSet blockStateSet = new BitSet(node.size());
         for (JsonNode javaIdentifier : node) {
-            blockStateSet.add(BlockRegistries.JAVA_IDENTIFIERS.get().getInt(javaIdentifier.textValue()));
+            blockStateSet.set(BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().getInt(javaIdentifier.textValue()));
         }
         return blockStateSet;
     }
@@ -459,8 +488,9 @@ public final class BlockRegistryPopulator {
         NbtMapBuilder statesBuilder = NbtMap.builder();
 
         // check for states
-        if (node.has("bedrock_states")) {
-            Iterator<Map.Entry<String, JsonNode>> statesIterator = node.get("bedrock_states").fields();
+        JsonNode states = node.get("bedrock_states");
+        if (states != null) {
+            Iterator<Map.Entry<String, JsonNode>> statesIterator = states.fields();
 
             while (statesIterator.hasNext()) {
                 Map.Entry<String, JsonNode> stateEntry = statesIterator.next();

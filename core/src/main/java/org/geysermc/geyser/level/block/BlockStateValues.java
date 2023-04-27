@@ -468,7 +468,7 @@ public final class BlockStateValues {
      */
     public static double getWaterHeight(int state) {
         int waterLevel = BlockStateValues.getWaterLevel(state);
-        if (BlockRegistries.WATERLOGGED.get().contains(state)) {
+        if (BlockRegistries.WATERLOGGED.get().get(state)) {
             waterLevel = 0;
         }
         if (waterLevel >= 0) {

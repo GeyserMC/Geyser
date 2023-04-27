@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.level.chunk.bitarray;
 
-import com.nukkitx.network.util.Preconditions;
+import org.cloudburstmc.protocol.common.util.Preconditions;
 import org.geysermc.geyser.util.MathUtils;
 
 import java.util.Arrays;

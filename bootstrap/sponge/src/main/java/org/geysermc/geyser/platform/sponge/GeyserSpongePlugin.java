@@ -41,6 +41,7 @@ import org.geysermc.geyser.platform.sponge.command.GeyserSpongeCommandManager;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.platform.sponge.command.GeyserSpongeCommandExecutor;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
@@ -179,24 +180,6 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
             return;
         }
 
-        if (Sponge.server().boundAddress().isPresent()) {
-            InetSocketAddress javaAddr = Sponge.server().boundAddress().get();
-
-            // By default this should be 127.0.0.1 but may need to be changed in some circumstances
-            if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
-                this.geyserConfig.setAutoconfiguredRemote(true);
-                // Don't change the ip if its listening on all interfaces
-                if (!javaAddr.getHostString().equals("0.0.0.0") && !javaAddr.getHostString().equals("")) {
-                    this.geyserConfig.getRemote().setAddress(javaAddr.getHostString());
-                }
-                geyserConfig.getRemote().setPort(javaAddr.getPort());
-            }
-        }
-
-        if (geyserConfig.getBedrock().isCloneRemotePort()) {
-            geyserConfig.getBedrock().setPort(geyserConfig.getRemote().port());
-        }
-
         GeyserImpl.start();
 
         if (geyserConfig.isLegacyPingPassthrough()) {
@@ -244,5 +227,21 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     @Override
     public String getMinecraftServerVersion() {
         return Sponge.platform().minecraftVersion().name();
+    }
+
+    @NotNull
+    @Override
+    public String getServerBindAddress() {
+        return Sponge.server().boundAddress().map(InetSocketAddress::getHostString).orElse("");
+    }
+
+    @Override
+    public int getServerPort() {
+        return Sponge.server().boundAddress().stream().mapToInt(InetSocketAddress::getPort).findFirst().orElse(-1);
+    }
+
+    @Override
+    public boolean testFloodgatePluginPresent() {
+        return false;
     }
 }

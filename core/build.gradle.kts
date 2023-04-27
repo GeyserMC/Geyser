@@ -20,9 +20,7 @@ dependencies {
     // Network libraries
     implementation(libs.websocket)
 
-    api(libs.protocol) {
-        exclude("com.nukkitx.network", "raknet")
-    }
+    api(libs.bundles.protocol)
 
     api(libs.mcauthlib)
     api(libs.mcprotocollib) {
@@ -60,11 +58,17 @@ dependencies {
     compileOnly(projects.ap)
 
     annotationProcessor(projects.ap)
+
+    api(libs.events)
 }
 
 configurations.api {
     // This is still experimental - additionally, it could only really benefit standalone
     exclude(group = "io.netty.incubator", module = "netty-incubator-transport-native-io_uring")
+}
+java {
+    sourceCompatibility = JavaVersion.VERSION_14
+    targetCompatibility = JavaVersion.VERSION_14
 }
 
 tasks.processResources {

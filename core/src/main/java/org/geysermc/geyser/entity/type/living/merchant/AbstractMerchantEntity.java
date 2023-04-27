@@ -26,12 +26,13 @@
 package org.geysermc.geyser.entity.type.living.merchant;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.living.AgeableEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
@@ -52,9 +53,8 @@ public class AbstractMerchantEntity extends AgeableEntity {
 
     @Nonnull
     @Override
-    protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        String javaIdentifier = itemInHand.getMapping(session).getJavaIdentifier();
-        if (!javaIdentifier.equals("minecraft:villager_spawn_egg")
+    protected InteractiveTag testMobInteraction(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
+        if (itemInHand.asItem() != Items.VILLAGER_SPAWN_EGG
                 && (definition != EntityDefinitions.VILLAGER || !getFlag(EntityFlag.SLEEPING) && ((VillagerEntity) this).isCanTradeWith())) {
             // An additional check we know cannot work
             if (!isBaby()) {
@@ -66,9 +66,8 @@ public class AbstractMerchantEntity extends AgeableEntity {
 
     @Nonnull
     @Override
-    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        String javaIdentifier = itemInHand.getMapping(session).getJavaIdentifier();
-        if (!javaIdentifier.equals("minecraft:villager_spawn_egg")
+    protected InteractionResult mobInteract(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
+        if (itemInHand.asItem() != Items.VILLAGER_SPAWN_EGG
                 && (definition != EntityDefinitions.VILLAGER || !getFlag(EntityFlag.SLEEPING))
                 && (definition != EntityDefinitions.WANDERING_TRADER || !getFlag(EntityFlag.BABY))) {
             // Trading time

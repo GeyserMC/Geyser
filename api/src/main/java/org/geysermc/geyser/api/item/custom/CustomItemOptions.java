@@ -57,6 +57,14 @@ public interface CustomItemOptions {
     @NonNull OptionalInt damagePredicate();
 
     /**
+     * Gets if this mapping should just translate to the default item.
+     * This is used for the damage predicate of damaged 1 damage 0 that is required to allow the default item to exist.
+     *
+     * @return true if this mapping should just translate to the default item, false otherwise
+     */
+    boolean defaultItem();
+
+    /**
      * Checks if the item has at least one option set
      *
      * @return true if the item at least one options set
@@ -77,6 +85,8 @@ public interface CustomItemOptions {
         Builder customModelData(int customModelData);
 
         Builder damagePredicate(int damagePredicate);
+
+        Builder defaultItem(boolean defaultItem);
 
         CustomItemOptions build();
     }

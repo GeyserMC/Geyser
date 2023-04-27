@@ -53,9 +53,6 @@ import java.util.stream.Collectors;
 @SuppressWarnings("FieldMayBeFinal") // Jackson requires that the fields are not final
 public abstract class GeyserJacksonConfiguration implements GeyserConfiguration {
 
-    /**
-     * If the config was originally 'auto' before the values changed
-     */
     @Setter
     private boolean autoconfiguredRemote = false;
 
@@ -163,6 +160,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     public static class BedrockConfiguration implements IBedrockConfiguration {
         @AsteriskSerializer.Asterisk(isIp = true)
         @JsonProperty("address")
+        @Setter
         private String address = "0.0.0.0";
 
         @Override

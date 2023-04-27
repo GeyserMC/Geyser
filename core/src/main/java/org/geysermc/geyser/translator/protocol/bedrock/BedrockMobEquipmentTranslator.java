@@ -28,9 +28,10 @@ package org.geysermc.geyser.translator.protocol.bedrock;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundSetCarriedItemPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundUseItemPacket;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
-import com.nukkitx.protocol.bedrock.packet.MobEquipmentPacket;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
+import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -61,7 +62,7 @@ public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipment
 
         GeyserItemStack newItem = session.getPlayerInventory().getItemInHand();
 
-        if (session.isSneaking() && newItem.getJavaId() == session.getItemMappings().getStoredItems().shield().getJavaId()) {
+        if (session.isSneaking() && newItem.asItem() == Items.SHIELD) {
             // Activate shield since we are already sneaking
             // (No need to send a release item packet - Java doesn't do this when swapping items)
             // Required to do it a tick later or else it doesn't register

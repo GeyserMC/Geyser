@@ -26,7 +26,7 @@
 package org.geysermc.geyser.entity.type;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
-import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.session.GeyserSession;

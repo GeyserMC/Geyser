@@ -32,16 +32,21 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEnti
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlags;
-import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
+import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
+import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
+import org.cloudburstmc.protocol.bedrock.packet.RemoveEntityPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
+import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
 import org.geysermc.geyser.session.GeyserSession;
@@ -52,13 +57,14 @@ import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.geyser.util.MathUtils;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Getter
 @Setter
-public class Entity {
+public class Entity implements GeyserEntity {
     protected final GeyserSession session;
 
     protected int entityId;
@@ -110,7 +116,7 @@ public class Entity {
      * think they are set to false.
      */
     @Getter(AccessLevel.NONE)
-    protected final EntityFlags flags = new EntityFlags();
+    protected final EnumSet<EntityFlag> flags = EnumSet.noneOf(EntityFlag.class);
     /**
      * Indicates if flags have been updated and need to be sent to the client.
      */
@@ -142,9 +148,9 @@ public class Entity {
      * Called on entity spawn. Used to populate the entity metadata and flags with default values.
      */
     protected void initializeMetadata() {
-        dirtyMetadata.put(EntityData.SCALE, 1f);
-        dirtyMetadata.put(EntityData.COLOR, (byte) 0);
-        dirtyMetadata.put(EntityData.MAX_AIR_SUPPLY, getMaxAir());
+        dirtyMetadata.put(EntityDataTypes.SCALE, 1f);
+        dirtyMetadata.put(EntityDataTypes.COLOR, (byte) 0);
+        dirtyMetadata.put(EntityDataTypes.AIR_SUPPLY_MAX, getMaxAir());
         setDimensions(Pose.STANDING);
         setFlag(EntityFlag.HAS_GRAVITY, true);
         setFlag(EntityFlag.HAS_COLLISION, true);
@@ -165,7 +171,7 @@ public class Entity {
         addEntityPacket.setUniqueEntityId(geyserId);
         addEntityPacket.setPosition(position);
         addEntityPacket.setMotion(motion);
-        addEntityPacket.setRotation(getBedrockRotation());
+        addEntityPacket.setRotation(getBedrockRotation().toVector2(false)); // TODO: Check this
         addEntityPacket.getMetadata().putFlags(flags);
         dirtyMetadata.apply(addEntityPacket.getMetadata());
         addAdditionalSpawnData(addEntityPacket);
@@ -320,14 +326,14 @@ public class Entity {
     }
 
     public final boolean getFlag(EntityFlag flag) {
-        return flags.getFlag(flag);
+        return this.flags.contains(flag);
     }
 
     /**
      * Updates a flag value and determines if the flags would need synced with the Bedrock client.
      */
     public final void setFlag(EntityFlag flag, boolean value) {
-        flagsDirty |= flags.setFlag(flag, value);
+        flagsDirty |= value ? this.flags.add(flag) : this.flags.remove(flag);
     }
 
     /**
@@ -379,7 +385,7 @@ public class Entity {
     }
 
     protected void setAirSupply(int amount) {
-        dirtyMetadata.put(EntityData.AIR_SUPPLY, (short) MathUtils.constrain(amount, 0, getMaxAir()));
+        dirtyMetadata.put(EntityDataTypes.AIR_SUPPLY, (short) MathUtils.constrain(amount, 0, getMaxAir()));
     }
 
     protected short getMaxAir() {
@@ -390,15 +396,15 @@ public class Entity {
         Optional<Component> name = entityMetadata.getValue();
         if (name.isPresent()) {
             nametag = MessageTranslator.convertMessage(name.get(), session.locale());
-            dirtyMetadata.put(EntityData.NAMETAG, nametag);
+            dirtyMetadata.put(EntityDataTypes.NAME, nametag);
         } else if (!nametag.isEmpty()) {
             // Clear nametag
-            dirtyMetadata.put(EntityData.NAMETAG, "");
+            dirtyMetadata.put(EntityDataTypes.NAME, "");
         }
     }
 
     public void setDisplayNameVisible(BooleanEntityMetadata entityMetadata) {
-        dirtyMetadata.put(EntityData.NAMETAG_ALWAYS_SHOW, (byte) (entityMetadata.getPrimitiveValue() ? 1 : 0));
+        dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) (entityMetadata.getPrimitiveValue() ? 1 : 0));
     }
 
     public final void setSilent(BooleanEntityMetadata entityMetadata) {
@@ -431,7 +437,7 @@ public class Entity {
     public boolean setBoundingBoxHeight(float height) {
         if (height != boundingBoxHeight) {
             boundingBoxHeight = height;
-            dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, boundingBoxHeight);
+            dirtyMetadata.put(EntityDataTypes.HEIGHT, boundingBoxHeight);
 
             updatePassengerOffsets();
             return true;
@@ -442,7 +448,7 @@ public class Entity {
     public void setBoundingBoxWidth(float width) {
         if (width != boundingBoxWidth) {
             boundingBoxWidth = width;
-            dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, boundingBoxWidth);
+            dirtyMetadata.put(EntityDataTypes.WIDTH, boundingBoxWidth);
         }
     }
 
@@ -454,12 +460,12 @@ public class Entity {
         // The Java client caps its freezing tick percentage at 140
         int freezingTicks = Math.min(entityMetadata.getPrimitiveValue(), 140);
         float freezingPercentage = freezingTicks / 140f;
-        dirtyMetadata.put(EntityData.FREEZING_EFFECT_STRENGTH, freezingPercentage);
+        dirtyMetadata.put(EntityDataTypes.FREEZING_EFFECT_STRENGTH, freezingPercentage);
         return freezingPercentage;
     }
 
     public void setRiderSeatPosition(Vector3f position) {
-        dirtyMetadata.put(EntityData.RIDER_SEAT_POSITION, position);
+        dirtyMetadata.put(EntityDataTypes.SEAT_OFFSET, position);
     }
 
     /**
@@ -504,6 +510,11 @@ public class Entity {
         }
     }
 
+    @Override
+    public int javaId() {
+        return entityId;
+    }
+
     public boolean isAlive() {
         return this.valid;
     }
@@ -519,7 +530,7 @@ public class Entity {
                 break;
             }
         }
-        session.getPlayerEntity().getDirtyMetadata().put(EntityData.INTERACTIVE_TAG, tag.getValue());
+        session.getPlayerEntity().getDirtyMetadata().put(EntityDataTypes.INTERACT_TEXT, tag.getValue());
         session.getPlayerEntity().updateBedrockMetadata();
     }
 

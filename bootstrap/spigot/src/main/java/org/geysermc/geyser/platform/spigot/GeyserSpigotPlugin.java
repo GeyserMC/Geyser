@@ -49,7 +49,6 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.extension.Extension;
-import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
@@ -62,9 +61,12 @@ import org.geysermc.geyser.platform.spigot.command.GeyserSpigotCommandExecutor;
 import org.geysermc.geyser.platform.spigot.command.GeyserSpigotCommandManager;
 import org.geysermc.geyser.platform.spigot.world.GeyserPistonListener;
 import org.geysermc.geyser.platform.spigot.world.GeyserSpigotBlockPlaceListener;
-import org.geysermc.geyser.platform.spigot.world.manager.*;
+import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotLegacyNativeWorldManager;
+import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotNativeWorldManager;
+import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -169,31 +171,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             this.getPluginLoader().disablePlugin(this);
             return;
         }
-
-        // By default this should be localhost but may need to be changed in some circumstances
-        if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
-            geyserConfig.setAutoconfiguredRemote(true);
-            // Don't use localhost if not listening on all interfaces
-            if (!Bukkit.getIp().equals("0.0.0.0") && !Bukkit.getIp().equals("")) {
-                geyserConfig.getRemote().setAddress(Bukkit.getIp());
-            }
-            geyserConfig.getRemote().setPort(Bukkit.getPort());
-        }
-
-        if (geyserConfig.getBedrock().isCloneRemotePort()) {
-            geyserConfig.getBedrock().setPort(Bukkit.getPort());
-        }
-
-        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE && Bukkit.getPluginManager().getPlugin("floodgate") == null) {
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
-            this.getPluginLoader().disablePlugin(this);
-        } else if (geyserConfig.isAutoconfiguredRemote() && Bukkit.getPluginManager().getPlugin("floodgate") != null) {
-            // Floodgate installed means that the user wants Floodgate authentication
-            geyserLogger.debug("Auto-setting to Floodgate authentication.");
-            geyserConfig.getRemote().setAuthType(AuthType.FLOODGATE);
-        }
-
-        geyserConfig.loadFloodgate(this);
 
         this.geyserCommandManager = new GeyserSpigotCommandManager(geyser);
         this.geyserCommandManager.init();
@@ -431,40 +408,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         return this.geyserInjector.getServerSocketAddress();
     }
 
-    public boolean isCompatible(String version, String whichVersion) {
-        int[] currentVersion = parseVersion(version);
-        int[] otherVersion = parseVersion(whichVersion);
-        int length = Math.max(currentVersion.length, otherVersion.length);
-        for (int index = 0; index < length; index = index + 1) {
-            int self = (index < currentVersion.length) ? currentVersion[index] : 0;
-            int other = (index < otherVersion.length) ? otherVersion[index] : 0;
-
-            if (self != other) {
-                return (self - other) > 0;
-            }
-        }
-        return true;
-    }
-
-    private int[] parseVersion(String versionParam) {
-        versionParam = (versionParam == null) ? "" : versionParam;
-        if (versionParam.contains("(MC: ")) {
-            versionParam = versionParam.split("\\(MC: ")[1];
-            versionParam = versionParam.split("\\)")[0];
-        }
-        String[] stringArray = versionParam.split("[_.-]");
-        int[] temp = new int[stringArray.length];
-        for (int index = 0; index <= (stringArray.length - 1); index = index + 1) {
-            String t = stringArray[index].replaceAll("\\D", "");
-            try {
-                temp[index] = Integer.parseInt(t);
-            } catch (NumberFormatException ex) {
-                temp[index] = 0;
-            }
-        }
-        return temp;
-    }
-
     /**
      * @return the server version before ViaVersion finishes initializing
      */
@@ -492,6 +435,26 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             }
         }
         // All mapping data is null, which means client and server block states are the same
+        return false;
+    }
+
+    @NotNull
+    @Override
+    public String getServerBindAddress() {
+        return Bukkit.getIp();
+    }
+
+    @Override
+    public int getServerPort() {
+        return Bukkit.getPort();
+    }
+
+    @Override
+    public boolean testFloodgatePluginPresent() {
+        if (Bukkit.getPluginManager().getPlugin("floodgate") != null) {
+            geyserConfig.loadFloodgate(this);
+            return true;
+        }
         return false;
     }
 }

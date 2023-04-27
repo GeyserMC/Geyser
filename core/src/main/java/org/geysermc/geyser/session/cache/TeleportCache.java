@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.session.cache;
 
-import com.nukkitx.math.vector.Vector3d;
+import org.cloudburstmc.math.vector.Vector3d;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 

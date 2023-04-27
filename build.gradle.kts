@@ -14,6 +14,12 @@ allprojects {
     }
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(16))
+    }
+}
+
 val platforms = setOf(
     projects.fabric,
     projects.bungeecord,

@@ -28,10 +28,11 @@ package org.geysermc.geyser.translator.protocol.java.level;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundBlockEntityDataPacket;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
-import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
-import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
+import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
@@ -66,13 +67,13 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
         // Check for custom skulls.
         boolean hasCustomHeadBlock = false;
         if (session.getPreferencesCache().showCustomSkulls() && packet.getNbt() != null && packet.getNbt().contains("SkullOwner")) {
-            int runtimeId = SkullBlockEntityTranslator.translateSkull(session, packet.getNbt(), position, blockState);
-            if (runtimeId != -1) {
+            BlockDefinition blockDefinition = SkullBlockEntityTranslator.translateSkull(session, packet.getNbt(), position, blockState);
+            if (blockDefinition != null) {
                 hasCustomHeadBlock = true;
                 UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
                 updateBlockPacket.setDataLayer(0);
                 updateBlockPacket.setBlockPosition(position);
-                updateBlockPacket.setRuntimeId(runtimeId);
+                updateBlockPacket.setDefinition(blockDefinition);
                 updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
                 updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
                 session.sendUpstreamPacket(updateBlockPacket);

@@ -126,6 +126,11 @@ public class MappingsReader_v1 extends MappingsReader {
             customItemOptions.unbreakable(unbreakable.asBoolean());
         }
 
+        JsonNode defaultItem = node.get("default");
+        if (defaultItem != null && defaultItem.isBoolean()) {
+            customItemOptions.defaultItem(defaultItem.asBoolean());
+        }
+
         return customItemOptions.build();
     }
 
@@ -135,13 +140,13 @@ public class MappingsReader_v1 extends MappingsReader {
             throw new InvalidCustomMappingsFileException("Invalid item mappings entry");
         }
 
-        String name = node.get("name").asText();
-        if (name == null || name.isEmpty()) {
+        JsonNode name = node.get("name");
+        if (name == null || !name.isTextual() || name.asText().isEmpty()) {
             throw new InvalidCustomMappingsFileException("An item entry has no name");
         }
 
         CustomItemData.Builder customItemData = CustomItemData.builder()
-                .name(name)
+                .name(name.asText())
                 .customItemOptions(this.readItemCustomItemOptions(node));
 
         //The next entries are optional
@@ -155,6 +160,10 @@ public class MappingsReader_v1 extends MappingsReader {
 
         if (node.has("allow_offhand")) {
             customItemData.allowOffhand(node.get("allow_offhand").asBoolean());
+        }
+
+        if (node.has("display_handheld")) {
+            customItemData.displayHandheld(node.get("display_handheld").asBoolean());
         }
 
         if (node.has("texture_size")) {
@@ -195,7 +204,7 @@ public class MappingsReader_v1 extends MappingsReader {
         CustomBlockData.Builder customBlockDataBuilder = new CustomBlockDataBuilder()
                 .name(name);
 
-        if (BlockRegistries.JAVA_IDENTIFIERS.get().containsKey(identifier)) {
+        if (BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().containsKey(identifier)) {
             // There is only one Java block state to override
             CustomBlockComponentsMapping componentsMapping = createCustomBlockComponentsMapping(node, identifier, name);
             CustomBlockData blockData = customBlockDataBuilder
@@ -213,7 +222,7 @@ public class MappingsReader_v1 extends MappingsReader {
             while (fields.hasNext()) {
                 Map.Entry<String, JsonNode> overrideEntry = fields.next();
                 String state = identifier + "[" + overrideEntry.getKey() + "]";
-                if (!BlockRegistries.JAVA_IDENTIFIERS.get().containsKey(state)) {
+                if (!BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().containsKey(state)) {
                     throw new InvalidCustomMappingsFileException("Unknown Java block state: " + state + " for state_overrides.");
                 }
                 componentsMap.put(state, createCustomBlockComponentsMapping(overrideEntry.getValue(), state, name));
@@ -225,7 +234,7 @@ public class MappingsReader_v1 extends MappingsReader {
 
         if (!onlyOverrideStates) {
             // Create components for any remaining Java block states
-            BlockRegistries.JAVA_IDENTIFIERS.get().keySet()
+            BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().keySet()
                     .stream()
                     .filter(s -> s.startsWith(identifier + "["))
                     .filter(Predicate.not(componentsMap::containsKey))
@@ -297,7 +306,7 @@ public class MappingsReader_v1 extends MappingsReader {
      */
     private CustomBlockComponentsMapping createCustomBlockComponentsMapping(JsonNode node, String stateKey, String name) {
         // This is needed to find the correct selection box for the given block
-        int id = BlockRegistries.JAVA_IDENTIFIERS.getOrDefault(stateKey, -1);
+        int id = BlockRegistries.JAVA_IDENTIFIER_TO_ID.getOrDefault(stateKey, -1);
         BoxComponent boxComponent = createBoxComponent(id);
         BoxComponent extendedBoxComponent = createExtendedBoxComponent(id);
         CustomBlockComponents.Builder builder = new CustomBlockComponentsBuilder()
