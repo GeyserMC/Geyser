@@ -148,8 +148,6 @@ public final class GeyserServer {
     }
 
     private ServerBootstrap createBootstrap(EventLoopGroup group) {
-        // TODO
-        boolean enableProxyProtocol = this.geyser.getConfig().getBedrock().isEnableProxyProtocol();
         if (this.geyser.getConfig().isDebugMode()) {
             this.geyser.getLogger().debug("EventLoop type: " + TRANSPORT.datagramChannel());
             if (TRANSPORT.datagramChannel() == NioDatagramChannel.class) {

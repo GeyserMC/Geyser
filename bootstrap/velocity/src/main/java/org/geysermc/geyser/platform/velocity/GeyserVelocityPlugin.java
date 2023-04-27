@@ -41,7 +41,6 @@ import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.extension.Extension;
-import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
@@ -125,8 +124,6 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
             return;
         } catch (ClassNotFoundException ignored) {
         }
-
-        geyserConfig.loadFloodgate(this, proxyServer, configFolder.toFile());
     }
 
     private void postStartup() {
@@ -233,7 +230,12 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     }
 
     @Override
-    public boolean isFloodgatePluginPresent() {
-        return proxyServer.getPluginManager().getPlugin("floodgate").isPresent();
+    public boolean testFloodgatePluginPresent() {
+        var floodgate = proxyServer.getPluginManager().getPlugin("floodgate");
+        if (floodgate.isPresent()) {
+            geyserConfig.loadFloodgate(this, proxyServer, configFolder.toFile());
+            return true;
+        }
+        return false;
     }
 }
