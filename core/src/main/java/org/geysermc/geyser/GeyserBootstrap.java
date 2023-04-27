@@ -170,5 +170,8 @@ public interface GeyserBootstrap {
      */
     int getServerPort();
 
-    boolean isFloodgatePluginPresent();
+    /**
+     * Tests if Floodgate is installed, loads the Floodgate key if so, and returns the result of Floodgate installed.
+     */
+    boolean testFloodgatePluginPresent();
 }

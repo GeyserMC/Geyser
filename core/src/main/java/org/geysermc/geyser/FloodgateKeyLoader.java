@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser;
 
-import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.configuration.GeyserJacksonConfiguration;
 import org.geysermc.geyser.text.GeyserLocale;
 
@@ -34,10 +33,6 @@ import java.nio.file.Path;
 
 public class FloodgateKeyLoader {
     public static Path getKeyPath(GeyserJacksonConfiguration config, Path floodgateDataFolder, Path geyserDataFolder, GeyserLogger logger) {
-        if (config.getRemote().authType() != AuthType.FLOODGATE) {
-            return geyserDataFolder.resolve(config.getFloodgateKeyFile());
-        }
-
         // Always prioritize Floodgate's key, if it is installed.
         // This mostly prevents people from trying to copy the key and corrupting it in the process
         if (floodgateDataFolder != null) {
