@@ -220,8 +220,6 @@ public class ItemRegistryPopulator {
                             mappingItem.getBedrockIdentifier().equals("minecraft:log2") ||
                             mappingItem.getBedrockIdentifier().equals("minecraft:fence")) {
                         bedrockIdentifier = javaItem.javaIdentifier();
-                    } else {
-                        bedrockIdentifier = mappingItem.getBedrockIdentifier();
                     }
                 }
 
