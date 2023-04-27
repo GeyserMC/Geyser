@@ -51,6 +51,7 @@ import org.geysermc.geyser.platform.standalone.gui.GeyserStandaloneGUI;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.LoopbackUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -289,6 +290,22 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     @Override
     public BootstrapDumpInfo getDumpInfo() {
         return new GeyserStandaloneDumpInfo(this);
+    }
+
+    @NotNull
+    @Override
+    public String getServerBindAddress() {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public int getServerPort() {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean testFloodgatePluginPresent() {
+        return false;
     }
 
     /**

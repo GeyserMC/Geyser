@@ -30,15 +30,15 @@ import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeTyp
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.GlobalPos;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.AttributeData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.AttributeData;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
-import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.DimensionUtils;
@@ -125,8 +125,8 @@ public class SessionPlayerEntity extends PlayerEntity {
      * See https://github.com/GeyserMC/Geyser/issues/3370
      */
     public void updateBoundingBox() {
-        dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, getBoundingBoxHeight());
-        dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, getBoundingBoxWidth());
+        dirtyMetadata.put(EntityDataTypes.HEIGHT, getBoundingBoxHeight());
+        dirtyMetadata.put(EntityDataTypes.WIDTH, getBoundingBoxWidth());
         updateBedrockMetadata();
     }
 
@@ -177,7 +177,7 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     public void addFakeTradeExperience(int tradeXp) {
         fakeTradeXp += tradeXp;
-        dirtyMetadata.put(EntityData.TRADE_XP, fakeTradeXp);
+        dirtyMetadata.put(EntityDataTypes.TRADE_EXPERIENCE, fakeTradeXp);
     }
 
     @Override
@@ -190,12 +190,12 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
-    protected boolean hasShield(boolean offhand, ItemMapping shieldMapping) {
+    protected boolean hasShield(boolean offhand) {
         // Must be overridden to point to the player's inventory cache
         if (offhand) {
-            return session.getPlayerInventory().getOffhand().getJavaId() == shieldMapping.getJavaId();
+            return session.getPlayerInventory().getOffhand().asItem() == Items.SHIELD;
         } else {
-            return session.getPlayerInventory().getItemInHand().getJavaId() == shieldMapping.getJavaId();
+            return session.getPlayerInventory().getItemInHand().asItem() == Items.SHIELD;
         }
     }
 
@@ -243,11 +243,11 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     public void setLastDeathPosition(@Nullable GlobalPos pos) {
         if (pos != null) {
-            dirtyMetadata.put(EntityData.PLAYER_LAST_DEATH_POS, pos.getPosition());
-            dirtyMetadata.put(EntityData.PLAYER_LAST_DEATH_DIMENSION, DimensionUtils.javaToBedrock(session, pos.getDimension()));
-            dirtyMetadata.put(EntityData.PLAYER_HAS_DIED, (byte) 1);
+            dirtyMetadata.put(EntityDataTypes.PLAYER_LAST_DEATH_POS, pos.getPosition());
+            dirtyMetadata.put(EntityDataTypes.PLAYER_LAST_DEATH_DIMENSION, DimensionUtils.javaToBedrock(session, pos.getDimension()));
+            dirtyMetadata.put(EntityDataTypes.PLAYER_HAS_DIED, true);
         } else {
-            dirtyMetadata.put(EntityData.PLAYER_HAS_DIED, (byte) 0);
+            dirtyMetadata.put(EntityDataTypes.PLAYER_HAS_DIED, false);
         }
     }
 

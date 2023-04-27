@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.nukkitx.protocol.bedrock.packet.FilterTextPacket;
+import org.cloudburstmc.protocol.bedrock.packet.FilterTextPacket;
 import org.geysermc.geyser.inventory.AnvilContainer;
 import org.geysermc.geyser.inventory.CartographyContainer;
 import org.geysermc.geyser.session.GeyserSession;

@@ -158,4 +158,20 @@ public interface GeyserBootstrap {
         }
         return stream;
     }
+
+    /**
+     * @return the bind address being used by the Java server.
+     */
+    @Nonnull
+    String getServerBindAddress();
+
+    /**
+     * @return the listening port being used by the Java server. -1 if can't be found
+     */
+    int getServerPort();
+
+    /**
+     * Tests if Floodgate is installed, loads the Floodgate key if so, and returns the result of Floodgate installed.
+     */
+    boolean testFloodgatePluginPresent();
 }

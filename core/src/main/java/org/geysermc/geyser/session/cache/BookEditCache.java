@@ -28,6 +28,7 @@ package org.geysermc.geyser.session.cache;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundEditBookPacket;
 import lombok.Setter;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 
 /**
@@ -63,7 +64,7 @@ public class BookEditCache {
         }
         // Don't send the update if the player isn't not holding a book, shouldn't happen if we catch all interactions
         GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand();
-        if (itemStack == null || itemStack.getJavaId() != this.session.getItemMappings().getStoredItems().writableBook().getJavaId()) {
+        if (itemStack == null || itemStack.asItem() != Items.WRITABLE_BOOK) {
             packet = null;
             return;
         }

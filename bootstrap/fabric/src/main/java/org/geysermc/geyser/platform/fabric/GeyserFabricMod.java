@@ -41,7 +41,6 @@ import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.command.Command;
-import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -53,13 +52,16 @@ import org.geysermc.geyser.platform.fabric.command.GeyserFabricCommandExecutor;
 import org.geysermc.geyser.platform.fabric.world.GeyserFabricWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     private static GeyserFabricMod instance;
@@ -138,33 +140,6 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     public void startGeyser(MinecraftServer server) {
         this.server = server;
 
-        if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
-            this.geyserConfig.setAutoconfiguredRemote(true);
-            String ip = server.getLocalIp();
-            int port = ((GeyserServerPortGetter) server).geyser$getServerPort();
-            if (ip != null && !ip.isEmpty() && !ip.equals("0.0.0.0")) {
-                this.geyserConfig.getRemote().setAddress(ip);
-            }
-            this.geyserConfig.getRemote().setPort(port);
-        }
-
-        if (geyserConfig.getBedrock().isCloneRemotePort()) {
-            geyserConfig.getBedrock().setPort(geyserConfig.getRemote().port());
-        }
-
-        Optional<ModContainer> floodgate = FabricLoader.getInstance().getModContainer("floodgate");
-        boolean floodgatePresent = floodgate.isPresent();
-        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE && !floodgatePresent) {
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
-            return;
-        } else if (geyserConfig.isAutoconfiguredRemote() && floodgatePresent) {
-            // Floodgate installed means that the user wants Floodgate authentication
-            geyserLogger.debug("Auto-setting to Floodgate authentication.");
-            geyserConfig.getRemote().setAuthType(AuthType.FLOODGATE);
-        }
-
-        geyserConfig.loadFloodgate(this, floodgate.orElse(null));
-
         GeyserImpl.start();
 
         this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
@@ -240,6 +215,27 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     @Override
     public String getMinecraftServerVersion() {
         return this.server.getServerVersion();
+    }
+
+    @NotNull
+    @Override
+    public String getServerBindAddress() {
+        return this.server.getLocalIp();
+    }
+
+    @Override
+    public int getServerPort() {
+        return ((GeyserServerPortGetter) server).geyser$getServerPort();
+    }
+
+    @Override
+    public boolean testFloodgatePluginPresent() {
+        Optional<ModContainer> floodgate = FabricLoader.getInstance().getModContainer("floodgate");
+        if (floodgate.isPresent()) {
+            geyserConfig.loadFloodgate(this, floodgate.orElse(null));
+            return true;
+        }
+        return false;
     }
 
     @Nullable

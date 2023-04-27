@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.entity.attribute;
 
-import com.nukkitx.protocol.bedrock.data.AttributeData;
+import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

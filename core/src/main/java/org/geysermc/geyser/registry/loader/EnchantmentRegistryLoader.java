@@ -30,10 +30,9 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.Enchantment.JavaEnchantment;
-import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.EnchantmentData;
-import org.geysermc.geyser.registry.type.ItemMapping;
 
 import java.io.InputStream;
 import java.util.EnumMap;
@@ -77,9 +76,9 @@ public class EnchantmentRegistryLoader implements RegistryLoader<String, Map<Jav
             IntSet validItems = new IntOpenHashSet();
             for (JsonNode itemNode : node.get("valid_items")) {
                 String javaIdentifier = itemNode.textValue();
-                ItemMapping itemMapping = Registries.ITEMS.forVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getMapping(javaIdentifier);
-                if (itemMapping != null) {
-                    validItems.add(itemMapping.getJavaId());
+                Item item = Registries.JAVA_ITEM_IDENTIFIERS.get(javaIdentifier);
+                if (item != null) {
+                    validItems.add(item.javaId());
                 } else {
                     throw new NullPointerException("No item entry exists for java identifier: " + javaIdentifier);
                 }

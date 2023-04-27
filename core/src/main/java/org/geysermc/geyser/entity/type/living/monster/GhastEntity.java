@@ -26,8 +26,8 @@
 package org.geysermc.geyser.entity.type.living.monster;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.living.FlyingEntity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -42,7 +42,7 @@ public class GhastEntity extends FlyingEntity {
 
     public void setGhastAttacking(BooleanEntityMetadata entityMetadata) {
         // If the ghast is attacking
-        dirtyMetadata.put(EntityData.CHARGE_AMOUNT, (byte) (entityMetadata.getPrimitiveValue() ? 1 : 0));
+        dirtyMetadata.put(EntityDataTypes.CHARGE_AMOUNT, (byte) (entityMetadata.getPrimitiveValue() ? 1 : 0));
     }
 
     @Override

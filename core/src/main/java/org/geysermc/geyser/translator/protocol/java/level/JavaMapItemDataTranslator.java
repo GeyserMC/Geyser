@@ -28,9 +28,9 @@ package org.geysermc.geyser.translator.protocol.java.level;
 import com.github.steveice10.mc.protocol.data.game.level.map.MapData;
 import com.github.steveice10.mc.protocol.data.game.level.map.MapIcon;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundMapItemDataPacket;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.data.MapDecoration;
-import com.nukkitx.protocol.bedrock.data.MapTrackedObject;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.bedrock.data.MapDecoration;
+import org.cloudburstmc.protocol.bedrock.data.MapTrackedObject;
 import org.geysermc.geyser.level.BedrockMapIcon;
 import org.geysermc.geyser.level.MapColor;
 import org.geysermc.geyser.session.GeyserSession;
@@ -43,7 +43,7 @@ public class JavaMapItemDataTranslator extends PacketTranslator<ClientboundMapIt
 
     @Override
     public void translate(GeyserSession session, ClientboundMapItemDataPacket packet) {
-        com.nukkitx.protocol.bedrock.packet.ClientboundMapItemDataPacket mapItemDataPacket = new com.nukkitx.protocol.bedrock.packet.ClientboundMapItemDataPacket();
+        org.cloudburstmc.protocol.bedrock.packet.ClientboundMapItemDataPacket mapItemDataPacket = new org.cloudburstmc.protocol.bedrock.packet.ClientboundMapItemDataPacket();
         boolean shouldStore = false;
 
         mapItemDataPacket.setUniqueMapId(packet.getMapId());
