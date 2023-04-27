@@ -34,14 +34,17 @@ import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.StoneCuttingRecipeData;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateRecipesPacket;
-import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
-import com.nukkitx.protocol.bedrock.data.inventory.descriptor.DefaultDescriptor;
-import com.nukkitx.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
-import com.nukkitx.protocol.bedrock.packet.CraftingDataPacket;
 import it.unimi.dsi.fastutil.ints.*;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
+import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.MultiRecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.DefaultDescriptor;
+import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
+import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
@@ -70,16 +73,16 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
     /**
      * Required to use the specified cartography table recipes
      */
-    private static final List<CraftingData> CARTOGRAPHY_RECIPES = List.of(
-            CraftingData.fromMulti(UUID.fromString("8b36268c-1829-483c-a0f1-993b7156a8f2"), ++LAST_RECIPE_NET_ID), // Map extending
-            CraftingData.fromMulti(UUID.fromString("442d85ed-8272-4543-a6f1-418f90ded05d"), ++LAST_RECIPE_NET_ID), // Map cloning
-            CraftingData.fromMulti(UUID.fromString("98c84b38-1085-46bd-b1ce-dd38c159e6cc"), ++LAST_RECIPE_NET_ID), // Map upgrading
-            CraftingData.fromMulti(UUID.fromString("602234e4-cac1-4353-8bb7-b1ebff70024b"), ++LAST_RECIPE_NET_ID) // Map locking
+    private static final List<RecipeData> CARTOGRAPHY_RECIPES = List.of(
+            MultiRecipeData.of(UUID.fromString("8b36268c-1829-483c-a0f1-993b7156a8f2"), ++LAST_RECIPE_NET_ID), // Map extending
+            MultiRecipeData.of(UUID.fromString("442d85ed-8272-4543-a6f1-418f90ded05d"), ++LAST_RECIPE_NET_ID), // Map cloning
+            MultiRecipeData.of(UUID.fromString("98c84b38-1085-46bd-b1ce-dd38c159e6cc"), ++LAST_RECIPE_NET_ID), // Map upgrading
+            MultiRecipeData.of(UUID.fromString("602234e4-cac1-4353-8bb7-b1ebff70024b"), ++LAST_RECIPE_NET_ID) // Map locking
     );
 
     @Override
     public void translate(GeyserSession session, ClientboundUpdateRecipesPacket packet) {
-        Map<RecipeType, List<CraftingData>> recipeTypes = Registries.CRAFTING_DATA.forVersion(session.getUpstream().getProtocolVersion());
+        Map<RecipeType, List<RecipeData>> recipeTypes = Registries.CRAFTING_DATA.forVersion(session.getUpstream().getProtocolVersion());
         // Get the last known network ID (first used for the pregenerated recipes) and increment from there.
         int netId = InventoryUtils.LAST_RECIPE_NET_ID + 1;
 
@@ -105,7 +108,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
 
                     for (ItemDescriptorWithCount[] inputs : inputCombinations) {
                         UUID uuid = UUID.randomUUID();
-                        craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
+                        craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData.shapeless(uuid.toString(),
                                 Arrays.asList(inputs), Collections.singletonList(output), uuid, "crafting_table", 0, netId));
                         recipeMap.put(netId++, new GeyserShapelessRecipe(shapelessRecipeData));
                     }
@@ -125,7 +128,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     }
                     for (ItemDescriptorWithCount[] inputs : inputCombinations) {
                         UUID uuid = UUID.randomUUID();
-                        craftingDataPacket.getCraftingData().add(CraftingData.fromShaped(uuid.toString(),
+                        craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData.shaped(uuid.toString(),
                                 shapedRecipeData.getWidth(), shapedRecipeData.getHeight(), Arrays.asList(inputs),
                                 Collections.singletonList(output), uuid, "crafting_table", 0, netId));
                         recipeMap.put(netId++, new GeyserShapedRecipe(shapedRecipeData));
@@ -154,11 +157,11 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
 
                             if (GameProtocol.supports1_19_60(session)) {
                                 // Note: vanilla inputs use aux value of Short.MAX_VALUE
-                                craftingDataPacket.getCraftingData().add(CraftingData.fromSmithingTransform(recipe.getIdentifier(),
-                                        bedrockBase, bedrockAddition, output, "smithing_table", netId++));
+                                craftingDataPacket.getCraftingData().add(SmithingTransformRecipeData.of(recipe.getIdentifier(),
+                                        ItemDescriptorWithCount.EMPTY, bedrockBase, bedrockAddition, output, "smithing_table", netId++));
                             } else {
                                 UUID uuid = UUID.randomUUID();
-                                craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
+                                craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData.shapeless(uuid.toString(),
                                         List.of(bedrockBase, bedrockAddition),
                                         Collections.singletonList(output), uuid, "smithing_table", 2, netId++));
                             }
@@ -166,7 +169,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     }
                 }
                 default -> {
-                    List<CraftingData> craftingData = recipeTypes.get(recipe.getType());
+                    List<RecipeData> craftingData = recipeTypes.get(recipe.getType());
                     if (craftingData != null) {
                         craftingDataPacket.getCraftingData().addAll(craftingData);
                     }
@@ -181,8 +184,8 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             // Sort the list by each output item's Java identifier - this is how it's sorted on Java, and therefore
             // We can get the correct order for button pressing
             data.getValue().sort(Comparator.comparing((stoneCuttingRecipeData ->
-                    session.getItemMappings().getMapping(stoneCuttingRecipeData.getResult())
-                            .getJavaIdentifier())));
+                    Registries.JAVA_ITEMS.get().get(stoneCuttingRecipeData.getResult().getId())
+                            .javaIdentifier())));
 
             // Now that it's sorted, let's translate these recipes
             int buttonId = 0;
@@ -200,7 +203,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 UUID uuid = UUID.randomUUID();
 
                 // We need to register stonecutting recipes so they show up on Bedrock
-                craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
+                craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData.shapeless(uuid.toString(),
                         Collections.singletonList(descriptor), Collections.singletonList(output), uuid, "stonecutter", 0, netId));
 
                 // Save the recipe list for reference when crafting
@@ -234,7 +237,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             Ingredient ingredient = ingredients[i];
             Map<GroupedItem, List<ItemDescriptorWithCount>> groupedByIds = Arrays.stream(ingredient.getOptions())
                     .map(item -> ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, item)))
-                    .collect(Collectors.groupingBy(item -> item == ItemDescriptorWithCount.EMPTY ? new GroupedItem(0, 0) : new GroupedItem(((DefaultDescriptor) item.getDescriptor()).getItemId(), item.getCount())));
+                    .collect(Collectors.groupingBy(item -> item == ItemDescriptorWithCount.EMPTY ? new GroupedItem(ItemDefinition.AIR, 0) : new GroupedItem(((DefaultDescriptor) item.getDescriptor()).getItemId(), item.getCount())));
             Set<ItemDescriptorWithCount> optionSet = new HashSet<>(groupedByIds.size());
             for (Map.Entry<GroupedItem, List<ItemDescriptorWithCount>> entry : groupedByIds.entrySet()) {
                 if (entry.getValue().size() > 1) {
@@ -242,14 +245,14 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     int idCount = 0;
                     //not optimal
                     for (ItemMapping mapping : session.getItemMappings().getItems()) {
-                        if (mapping.getBedrockId() == groupedItem.id) {
+                        if (mapping.getBedrockDefinition() == groupedItem.id) {
                             idCount++;
                         }
                     }
                     if (entry.getValue().size() < idCount) {
                         optionSet.addAll(entry.getValue());
                     } else {
-                        optionSet.add(groupedItem.id == 0 ? ItemDescriptorWithCount.EMPTY : new ItemDescriptorWithCount(new DefaultDescriptor(groupedItem.id, Short.MAX_VALUE), groupedItem.count));
+                        optionSet.add(groupedItem.id == ItemDefinition.AIR ? ItemDescriptorWithCount.EMPTY : new ItemDescriptorWithCount(new DefaultDescriptor(groupedItem.id, Short.MAX_VALUE), groupedItem.count));
                     }
                 } else {
                     ItemDescriptorWithCount item = entry.getValue().get(0);
@@ -302,7 +305,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
     @EqualsAndHashCode
     @AllArgsConstructor
     private static class GroupedItem {
-        int id;
+        ItemDefinition id;
         int count;
     }
 }

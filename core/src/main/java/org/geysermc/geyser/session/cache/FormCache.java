@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.session.cache;
 
-import com.nukkitx.protocol.bedrock.packet.ModalFormRequestPacket;
-import com.nukkitx.protocol.bedrock.packet.ModalFormResponsePacket;
-import com.nukkitx.protocol.bedrock.packet.NetworkStackLatencyPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ModalFormRequestPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ModalFormResponsePacket;
+import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.RequiredArgsConstructor;

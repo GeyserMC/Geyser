@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.translator.collision;
 
-import com.nukkitx.math.vector.Vector3d;
-import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.math.vector.Vector3d;
+import org.cloudburstmc.math.vector.Vector3i;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.geysermc.geyser.level.physics.Axis;

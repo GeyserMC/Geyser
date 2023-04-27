@@ -26,11 +26,11 @@
 package org.geysermc.geyser.entity.type;
 
 import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
-import com.nukkitx.protocol.bedrock.packet.MoveEntityDeltaPacket;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
@@ -174,7 +174,7 @@ public class ThrowableEntity extends Entity implements Tickable {
     public boolean despawnEntity() {
         if (definition.entityType() == EntityType.ENDER_PEARL) {
             LevelEventPacket particlePacket = new LevelEventPacket();
-            particlePacket.setType(LevelEventType.PARTICLE_TELEPORT);
+            particlePacket.setType(LevelEvent.PARTICLE_TELEPORT);
             particlePacket.setPosition(position);
             session.sendUpstreamPacket(particlePacket);
         }

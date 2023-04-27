@@ -28,14 +28,15 @@ package org.geysermc.geyser.entity.type.living.animal;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
@@ -55,13 +56,13 @@ public class PandaEntity extends AnimalEntity {
     public void setEatingCounter(IntEntityMetadata entityMetadata) {
         int count = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.EATING, count > 0);
-        dirtyMetadata.put(EntityData.EATING_COUNTER, count);
+        dirtyMetadata.put(EntityDataTypes.EATING_COUNTER, count);
         if (count != 0) {
             // Particles and sound
             EntityEventPacket packet = new EntityEventPacket();
             packet.setRuntimeEntityId(geyserId);
             packet.setType(EntityEventType.EATING_ITEM);
-            packet.setData(session.getItemMappings().getStoredItems().bamboo().getBedrockId() << 16);
+            packet.setData(session.getItemMappings().getStoredItems().bamboo().getBedrockDefinition().getRuntimeId() << 16);
             session.sendUpstreamPacket(packet);
         }
     }
@@ -82,19 +83,19 @@ public class PandaEntity extends AnimalEntity {
         setFlag(EntityFlag.ROLLING, (xd & 0x04) == 0x04);
         setFlag(EntityFlag.SITTING, (xd & 0x08) == 0x08);
         // Required to put these both for sitting to actually show
-        dirtyMetadata.put(EntityData.SITTING_AMOUNT, (xd & 0x08) == 0x08 ? 1f : 0f);
-        dirtyMetadata.put(EntityData.SITTING_AMOUNT_PREVIOUS, (xd & 0x08) == 0x08 ? 1f : 0f);
+        dirtyMetadata.put(EntityDataTypes.SITTING_AMOUNT, (xd & 0x08) == 0x08 ? 1f : 0f);
+        dirtyMetadata.put(EntityDataTypes.SITTING_AMOUNT_PREVIOUS, (xd & 0x08) == 0x08 ? 1f : 0f);
         setFlag(EntityFlag.LAYING_DOWN, (xd & 0x10) == 0x10);
     }
 
     @Override
-    public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
-        return javaIdentifierStripped.equals("bamboo");
+    public boolean canEat(Item item) {
+        return item == Items.BAMBOO;
     }
 
     @Nonnull
     @Override
-    protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractiveTag testMobInteraction(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
         if (mainGene == Gene.WORRIED && session.isThunder()) {
             return InteractiveTag.NONE;
         }
@@ -103,7 +104,7 @@ public class PandaEntity extends AnimalEntity {
 
     @Nonnull
     @Override
-    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractionResult mobInteract(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
         if (mainGene == Gene.WORRIED && session.isThunder()) {
             // Huh!
             return InteractionResult.PASS;
@@ -133,14 +134,14 @@ public class PandaEntity extends AnimalEntity {
         if (mainGene.isRecessive) {
             if (mainGene == hiddenGene) {
                 // Main and hidden genes match; this is what the panda looks like.
-                dirtyMetadata.put(EntityData.VARIANT, mainGene.ordinal());
+                dirtyMetadata.put(EntityDataTypes.VARIANT, mainGene.ordinal());
             } else {
                 // Genes have no effect on appearance
-                dirtyMetadata.put(EntityData.VARIANT, Gene.NORMAL.ordinal());
+                dirtyMetadata.put(EntityDataTypes.VARIANT, Gene.NORMAL.ordinal());
             }
         } else {
             // No need to worry about hidden gene
-            dirtyMetadata.put(EntityData.VARIANT, mainGene.ordinal());
+            dirtyMetadata.put(EntityDataTypes.VARIANT, mainGene.ordinal());
         }
     }
 

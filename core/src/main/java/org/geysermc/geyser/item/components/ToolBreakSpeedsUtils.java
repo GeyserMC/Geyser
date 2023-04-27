@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.item.components;
 
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtType;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.entity.type.living.monster.raid;
 
-import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.living.monster.MonsterEntity;
 import org.geysermc.geyser.session.GeyserSession;

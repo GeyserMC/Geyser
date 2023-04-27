@@ -26,9 +26,9 @@
 package org.geysermc.geyser.entity.type;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import net.kyori.adventure.text.Component;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -45,11 +45,11 @@ public class TextDisplayEntity extends Entity {
     protected void initializeMetadata() {
         super.initializeMetadata();
         // Remove armor stand body
-        this.dirtyMetadata.put(EntityData.SCALE, 0f);
-        this.dirtyMetadata.put(EntityData.NAMETAG_ALWAYS_SHOW, (byte) 1);
+        this.dirtyMetadata.put(EntityDataTypes.SCALE, 0f);
+        this.dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
     }
 
     public void setText(EntityMetadata<Component, ?> entityMetadata) {
-        this.dirtyMetadata.put(EntityData.NAMETAG, MessageTranslator.convertMessage(entityMetadata.getValue()));
+        this.dirtyMetadata.put(EntityDataTypes.NAME, MessageTranslator.convertMessage(entityMetadata.getValue()));
     }
 }

@@ -57,7 +57,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
 
     public GeyserNonVanillaCustomItemData(NonVanillaCustomItemDataBuilder builder) {
         super(builder.name, builder.customItemOptions, builder.displayName, builder.icon, builder.allowOffhand,
-                builder.textureSize, builder.renderOffsets);
+                builder.displayHandheld, builder.textureSize, builder.renderOffsets);
 
         this.identifier = builder.identifier;
         this.javaId = builder.javaId;
@@ -140,11 +140,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         return isHat;
     }
 
-    @Override
-    public boolean isTool() {
-        return isTool;
-    }
-
     public static class NonVanillaCustomItemDataBuilder extends GeyserCustomItemData.CustomItemDataBuilder implements NonVanillaCustomItemData.Builder {
         private String identifier = null;
         private int javaId = -1;
@@ -183,6 +178,11 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         @Override
         public NonVanillaCustomItemData.Builder allowOffhand(boolean allowOffhand) {
             return (NonVanillaCustomItemData.Builder) super.allowOffhand(allowOffhand);
+        }
+
+        @Override
+        public NonVanillaCustomItemData.Builder displayHandheld(boolean displayHandheld) {
+            return (NonVanillaCustomItemData.Builder) super.displayHandheld(displayHandheld);
         }
 
         @Override
@@ -280,12 +280,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         @Override
         public NonVanillaCustomItemData.Builder hat(boolean isHat) {
             this.hat = isHat;
-            return this;
-        }
-
-        @Override
-        public NonVanillaCustomItemData.Builder tool(boolean isTool) {
-            this.tool = isTool;
             return this;
         }
 

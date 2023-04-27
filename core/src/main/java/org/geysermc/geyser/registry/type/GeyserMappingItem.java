@@ -28,8 +28,6 @@ package org.geysermc.geyser.registry.type;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-import java.util.List;
-
 /**
  * Represents Geyser's own serialized item information before being processed per-version
  */
@@ -45,9 +43,6 @@ public class GeyserMappingItem {
     @JsonProperty("armor_type") String armorType;
     @JsonProperty("protection_value") int protectionValue;
     @JsonProperty("max_damage") int maxDamage = 0;
-    @JsonProperty("repair_materials") List<String> repairMaterials;
-    @JsonProperty("has_suspicious_stew_effect") boolean hasSuspiciousStewEffect = false;
-    @JsonProperty("dye_color") int dyeColor = -1;
     @JsonProperty("is_edible") boolean edible = false;
     @JsonProperty("is_entity_placer") boolean entityPlacer = false;
 }

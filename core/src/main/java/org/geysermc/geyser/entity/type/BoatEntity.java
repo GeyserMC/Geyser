@@ -28,10 +28,10 @@ package org.geysermc.geyser.entity.type;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
-import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
+import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import lombok.Getter;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
@@ -73,8 +73,8 @@ public class BoatEntity extends Entity {
         super(session, entityId, geyserId, uuid, definition, position.add(0d, definition.offset(), 0d), motion, yaw + 90, 0, yaw + 90);
 
         // Required to be able to move on land 1.16.200+ or apply gravity not in the water 1.16.100+
-        dirtyMetadata.put(EntityData.IS_BUOYANT, (byte) 1);
-        dirtyMetadata.put(EntityData.BUOYANCY_DATA, BUOYANCY_DATA);
+        dirtyMetadata.put(EntityDataTypes.IS_BUOYANT, true);
+        dirtyMetadata.put(EntityDataTypes.BUOYANCY_DATA, BUOYANCY_DATA);
     }
 
     @Override
@@ -124,7 +124,7 @@ public class BoatEntity extends Entity {
 
     public void setVariant(IntEntityMetadata entityMetadata) {
         variant = entityMetadata.getPrimitiveValue();
-        dirtyMetadata.put(EntityData.VARIANT, switch (variant) {
+        dirtyMetadata.put(EntityDataTypes.VARIANT, switch (variant) {
             case 6, 7 -> variant - 1; // Dark oak and mangrove
             case 5, 8 -> 0; // TODO temp until 1.20. Cherry and bamboo
             default -> variant;
@@ -146,7 +146,7 @@ public class BoatEntity extends Entity {
             }
         } else {
             // Indicate that the row position should be reset
-            dirtyMetadata.put(EntityData.ROW_TIME_LEFT, 0.0f);
+            dirtyMetadata.put(EntityDataTypes.ROW_TIME_LEFT, 0.0f);
         }
     }
 
@@ -161,7 +161,7 @@ public class BoatEntity extends Entity {
                 }
             }
         } else {
-            dirtyMetadata.put(EntityData.ROW_TIME_RIGHT, 0.0f);
+            dirtyMetadata.put(EntityDataTypes.ROW_TIME_RIGHT, 0.0f);
         }
     }
 

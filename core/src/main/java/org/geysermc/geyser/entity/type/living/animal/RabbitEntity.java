@@ -26,11 +26,12 @@
 package org.geysermc.geyser.entity.type.living.animal;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.UUID;
@@ -52,7 +53,7 @@ public class RabbitEntity extends AnimalEntity {
         // Allow the resource pack to adjust to the killer bunny
         setFlag(EntityFlag.BRIBED, isKillerBunny);
 
-        dirtyMetadata.put(EntityData.VARIANT, variant);
+        dirtyMetadata.put(EntityDataTypes.VARIANT, variant);
     }
 
     @Override
@@ -66,7 +67,7 @@ public class RabbitEntity extends AnimalEntity {
     }
 
     @Override
-    public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
-        return javaIdentifierStripped.equals("dandelion") || javaIdentifierStripped.equals("carrot") || javaIdentifierStripped.equals("golden_carrot");
+    public boolean canEat(Item item) {
+        return item == Items.DANDELION || item == Items.CARROT || item == Items.GOLDEN_CARROT;
     }
 }

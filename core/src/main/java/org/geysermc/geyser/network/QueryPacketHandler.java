@@ -257,7 +257,7 @@ public class QueryPacketHandler {
      * @param data packet data
      */
     private void sendPacket(ByteBuf data) {
-        geyser.getBedrockServer().getRakNet().send(sender, data);
+        // geyser.getBedrockServer().getRakNet().send(sender, data);
     }
 
     /**

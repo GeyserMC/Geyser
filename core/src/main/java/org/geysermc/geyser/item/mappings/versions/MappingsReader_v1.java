@@ -77,6 +77,11 @@ public class MappingsReader_v1 extends MappingsReader {
             customItemOptions.unbreakable(unbreakable.asBoolean());
         }
 
+        JsonNode defaultItem = node.get("default");
+        if (defaultItem != null && defaultItem.isBoolean()) {
+            customItemOptions.defaultItem(defaultItem.asBoolean());
+        }
+
         return customItemOptions.build();
     }
 
@@ -86,13 +91,13 @@ public class MappingsReader_v1 extends MappingsReader {
             throw new InvalidCustomMappingsFileException("Invalid item mappings entry");
         }
 
-        String name = node.get("name").asText();
-        if (name == null || name.isEmpty()) {
+        JsonNode name = node.get("name");
+        if (name == null || !name.isTextual() || name.asText().isEmpty()) {
             throw new InvalidCustomMappingsFileException("An item entry has no name");
         }
 
         CustomItemData.Builder customItemData = CustomItemData.builder()
-                .name(name)
+                .name(name.asText())
                 .customItemOptions(this.readItemCustomItemOptions(node));
 
         //The next entries are optional
@@ -106,6 +111,10 @@ public class MappingsReader_v1 extends MappingsReader {
 
         if (node.has("allow_offhand")) {
             customItemData.allowOffhand(node.get("allow_offhand").asBoolean());
+        }
+
+        if (node.has("display_handheld")) {
+            customItemData.displayHandheld(node.get("display_handheld").asBoolean());
         }
 
         if (node.has("texture_size")) {

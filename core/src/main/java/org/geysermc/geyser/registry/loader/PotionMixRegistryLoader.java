@@ -25,10 +25,13 @@
 
 package org.geysermc.geyser.registry.loader;
 
-import com.nukkitx.protocol.bedrock.data.inventory.PotionMixData;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
 import org.geysermc.geyser.inventory.item.Potion;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
@@ -55,31 +58,31 @@ public class PotionMixRegistryLoader implements RegistryLoader<Object, Int2Objec
         for (var entry : Registries.ITEMS.get().int2ObjectEntrySet()) {
             ItemMappings mappings = entry.getValue();
             List<ItemMapping> ingredients = new ArrayList<>();
-            ingredients.add(getNonNull(mappings, "minecraft:nether_wart"));
-            ingredients.add(getNonNull(mappings, "minecraft:redstone"));
-            ingredients.add(getNonNull(mappings, "minecraft:glowstone_dust"));
-            ingredients.add(getNonNull(mappings, "minecraft:fermented_spider_eye"));
-            ingredients.add(getNonNull(mappings, "minecraft:gunpowder"));
-            ingredients.add(getNonNull(mappings, "minecraft:dragon_breath"));
-            ingredients.add(getNonNull(mappings, "minecraft:sugar"));
-            ingredients.add(getNonNull(mappings, "minecraft:rabbit_foot"));
-            ingredients.add(getNonNull(mappings, "minecraft:glistering_melon_slice"));
-            ingredients.add(getNonNull(mappings, "minecraft:spider_eye"));
-            ingredients.add(getNonNull(mappings, "minecraft:pufferfish"));
-            ingredients.add(getNonNull(mappings, "minecraft:magma_cream"));
-            ingredients.add(getNonNull(mappings, "minecraft:golden_carrot"));
-            ingredients.add(getNonNull(mappings, "minecraft:blaze_powder"));
-            ingredients.add(getNonNull(mappings, "minecraft:ghast_tear"));
-            ingredients.add(getNonNull(mappings, "minecraft:turtle_helmet"));
-            ingredients.add(getNonNull(mappings, "minecraft:phantom_membrane"));
+            ingredients.add(getNonNull(mappings, Items.NETHER_WART));
+            ingredients.add(getNonNull(mappings, Items.REDSTONE));
+            ingredients.add(getNonNull(mappings, Items.GLOWSTONE_DUST));
+            ingredients.add(getNonNull(mappings, Items.FERMENTED_SPIDER_EYE));
+            ingredients.add(getNonNull(mappings, Items.GUNPOWDER));
+            ingredients.add(getNonNull(mappings, Items.DRAGON_BREATH));
+            ingredients.add(getNonNull(mappings, Items.SUGAR));
+            ingredients.add(getNonNull(mappings, Items.RABBIT_FOOT));
+            ingredients.add(getNonNull(mappings, Items.GLISTERING_MELON_SLICE));
+            ingredients.add(getNonNull(mappings, Items.SPIDER_EYE));
+            ingredients.add(getNonNull(mappings, Items.PUFFERFISH));
+            ingredients.add(getNonNull(mappings, Items.MAGMA_CREAM));
+            ingredients.add(getNonNull(mappings, Items.GOLDEN_CARROT));
+            ingredients.add(getNonNull(mappings, Items.BLAZE_POWDER));
+            ingredients.add(getNonNull(mappings, Items.GHAST_TEAR));
+            ingredients.add(getNonNull(mappings, Items.TURTLE_HELMET));
+            ingredients.add(getNonNull(mappings, Items.PHANTOM_MEMBRANE));
 
             List<ItemMapping> inputs = List.of(
-                    getNonNull(mappings, "minecraft:potion"),
-                    getNonNull(mappings, "minecraft:splash_potion"),
-                    getNonNull(mappings, "minecraft:lingering_potion")
+                    getNonNull(mappings, Items.POTION),
+                    getNonNull(mappings, Items.SPLASH_POTION),
+                    getNonNull(mappings, Items.LINGERING_POTION)
             );
 
-            ItemMapping glassBottle = getNonNull(mappings, "minecraft:glass_bottle");
+            ItemMapping glassBottle = getNonNull(mappings, Items.GLASS_BOTTLE);
 
             Set<PotionMixData> potionMixes = new HashSet<>();
 
@@ -88,9 +91,9 @@ public class PotionMixRegistryLoader implements RegistryLoader<Object, Int2Objec
             for (ItemMapping entryInput : inputs) {
                 for (Potion potion : Potion.VALUES) {
                     potionMixes.add(new PotionMixData(
-                            entryInput.getBedrockId(), potion.getBedrockId(),
-                            fillerIngredient.getBedrockId(), fillerIngredient.getBedrockData(),
-                            glassBottle.getBedrockId(), glassBottle.getBedrockData())
+                            entryInput.getBedrockDefinition().getRuntimeId(), potion.getBedrockId(),
+                            fillerIngredient.getBedrockDefinition().getRuntimeId(), fillerIngredient.getBedrockData(),
+                            glassBottle.getBedrockDefinition().getRuntimeId(), glassBottle.getBedrockData())
                     );
                 }
             }
@@ -99,9 +102,9 @@ public class PotionMixRegistryLoader implements RegistryLoader<Object, Int2Objec
             // Also adds glass bottle as input
             for (ItemMapping ingredient : ingredients) {
                 potionMixes.add(new PotionMixData(
-                        glassBottle.getBedrockId(), glassBottle.getBedrockData(),
-                        ingredient.getBedrockId(), ingredient.getBedrockData(),
-                        glassBottle.getBedrockId(), glassBottle.getBedrockData())
+                        glassBottle.getBedrockDefinition().getRuntimeId(), glassBottle.getBedrockData(),
+                        ingredient.getBedrockDefinition().getRuntimeId(), ingredient.getBedrockData(),
+                        glassBottle.getBedrockDefinition().getRuntimeId(), glassBottle.getBedrockData())
                 );
             }
 
@@ -111,10 +114,10 @@ public class PotionMixRegistryLoader implements RegistryLoader<Object, Int2Objec
         return allPotionMixes;
     }
 
-    private static ItemMapping getNonNull(ItemMappings mappings, String javaIdentifier) {
-        ItemMapping itemMapping = mappings.getMapping(javaIdentifier);
+    private static ItemMapping getNonNull(ItemMappings mappings, Item javaItem) {
+        ItemMapping itemMapping = Registries.ITEMS.forVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getMapping(javaItem);
         if (itemMapping == null)
-            throw new NullPointerException("No item entry exists for java identifier: " + javaIdentifier);
+            throw new NullPointerException("No item entry exists for java identifier: " + javaItem.javaIdentifier());
 
         return itemMapping;
     }

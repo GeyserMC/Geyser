@@ -30,12 +30,12 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
@@ -133,7 +133,7 @@ public class FireworkEntity extends Entity {
 
         NbtMapBuilder builder = NbtMap.builder();
         builder.put("Fireworks", fireworksBuilder.build());
-        dirtyMetadata.put(EntityData.DISPLAY_ITEM, builder.build());
+        dirtyMetadata.put(EntityDataTypes.DISPLAY_FIREWORK, builder.build());
     }
 
     public void setPlayerGliding(EntityMetadata<OptionalInt, ?> entityMetadata) {

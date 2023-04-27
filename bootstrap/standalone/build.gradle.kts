@@ -27,3 +27,10 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
 
     transform(Log4j2PluginsCacheFileTransformer())
 }
+
+tasks.named<JavaExec>("run") {
+    val dir = projectDir.resolve("run")
+    dir.mkdirs()
+    jvmArgs("-Dio.netty.leakDetection.level=PARANOID")
+    workingDir = dir
+}

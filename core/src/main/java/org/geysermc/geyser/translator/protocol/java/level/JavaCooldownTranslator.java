@@ -26,8 +26,10 @@
 package org.geysermc.geyser.translator.protocol.java.level;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundCooldownPacket;
-import com.nukkitx.protocol.bedrock.packet.PlayerStartItemCooldownPacket;
-import org.geysermc.geyser.inventory.item.StoredItemMappings;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerStartItemCooldownPacket;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -37,15 +39,13 @@ public class JavaCooldownTranslator extends PacketTranslator<ClientboundCooldown
 
     @Override
     public void translate(GeyserSession session, ClientboundCooldownPacket packet) {
-        StoredItemMappings itemMappings = session.getItemMappings().getStoredItems();
-
-        int itemId = packet.getItemId();
+        Item item = Registries.JAVA_ITEMS.get().get(packet.getItemId());
         // Not every item, as of 1.19, appears to be server-driven. Just these two.
         // Use a map here if it gets too big.
         String cooldownCategory;
-        if (itemId == itemMappings.goatHorn()) {
+        if (item == Items.GOAT_HORN) {
             cooldownCategory = "goat_horn";
-        } else if (itemId == itemMappings.shield().getJavaId()) {
+        } else if (item == Items.SHIELD) {
             cooldownCategory = "shield";
         } else {
             cooldownCategory = null;
