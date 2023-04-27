@@ -36,7 +36,6 @@ import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.extension.Extension;
-import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
@@ -135,8 +134,6 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
                 }
             }
         }
-
-        geyserConfig.loadFloodgate(this);
 
         // Big hack - Bungee does not provide us an event to listen to, so schedule a repeating
         // task that waits for a field to be filled which is set after the plugin enable
@@ -260,8 +257,12 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     }
 
     @Override
-    public boolean isFloodgatePluginPresent() {
-        return getProxy().getPluginManager().getPlugin("floodgate") != null;
+    public boolean testFloodgatePluginPresent() {
+        if (getProxy().getPluginManager().getPlugin("floodgate") != null) {
+            geyserConfig.loadFloodgate(this);
+            return true;
+        }
+        return false;
     }
 
     private Optional<InetSocketAddress> findCompatibleListener() {

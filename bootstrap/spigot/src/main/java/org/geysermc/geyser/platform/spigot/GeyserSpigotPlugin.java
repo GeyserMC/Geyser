@@ -49,7 +49,6 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.extension.Extension;
-import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
@@ -62,7 +61,9 @@ import org.geysermc.geyser.platform.spigot.command.GeyserSpigotCommandExecutor;
 import org.geysermc.geyser.platform.spigot.command.GeyserSpigotCommandManager;
 import org.geysermc.geyser.platform.spigot.world.GeyserPistonListener;
 import org.geysermc.geyser.platform.spigot.world.GeyserSpigotBlockPlaceListener;
-import org.geysermc.geyser.platform.spigot.world.manager.*;
+import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotLegacyNativeWorldManager;
+import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotNativeWorldManager;
+import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 import org.jetbrains.annotations.NotNull;
@@ -170,8 +171,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             this.getPluginLoader().disablePlugin(this);
             return;
         }
-
-        geyserConfig.loadFloodgate(this);
 
         this.geyserCommandManager = new GeyserSpigotCommandManager(geyser);
         this.geyserCommandManager.init();
@@ -451,7 +450,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     }
 
     @Override
-    public boolean isFloodgatePluginPresent() {
-        return Bukkit.getPluginManager().getPlugin("floodgate") != null;
+    public boolean testFloodgatePluginPresent() {
+        if (Bukkit.getPluginManager().getPlugin("floodgate") != null) {
+            geyserConfig.loadFloodgate(this);
+            return true;
+        }
+        return false;
     }
 }

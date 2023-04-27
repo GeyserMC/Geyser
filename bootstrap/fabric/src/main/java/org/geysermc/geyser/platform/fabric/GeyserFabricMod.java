@@ -60,6 +60,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
@@ -138,7 +139,6 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
      */
     public void startGeyser(MinecraftServer server) {
         this.server = server;
-        geyserConfig.loadFloodgate(this, FabricLoader.getInstance().getModContainer("floodgate").orElse(null));
 
         GeyserImpl.start();
 
@@ -229,8 +229,13 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     }
 
     @Override
-    public boolean isFloodgatePluginPresent() {
-        return FabricLoader.getInstance().getModContainer("floodgate").isPresent();
+    public boolean testFloodgatePluginPresent() {
+        Optional<ModContainer> floodgate = FabricLoader.getInstance().getModContainer("floodgate");
+        if (floodgate.isPresent()) {
+            geyserConfig.loadFloodgate(this, floodgate.orElse(null));
+            return true;
+        }
+        return false;
     }
 
     @Nullable

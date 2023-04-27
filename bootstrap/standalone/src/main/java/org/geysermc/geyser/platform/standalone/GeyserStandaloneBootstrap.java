@@ -304,7 +304,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     }
 
     @Override
-    public boolean isFloodgatePluginPresent() {
+    public boolean testFloodgatePluginPresent() {
         return false;
     }
 
