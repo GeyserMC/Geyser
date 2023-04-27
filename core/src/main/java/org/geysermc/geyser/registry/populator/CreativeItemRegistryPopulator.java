@@ -81,6 +81,14 @@ public class CreativeItemRegistryPopulator {
         int damage = 0;
         int bedrockBlockRuntimeId = -1;
         NbtMap tag = null;
+
+        String identifier = itemNode.get("id").textValue();
+        for (BiPredicate<String, Integer> predicate : JAVA_ONLY_ITEM_FILTER) {
+            if (predicate.test(identifier, damage)) {
+                return null;
+            }
+        }
+
         JsonNode damageNode = itemNode.get("damage");
         if (damageNode != null) {
             damage = damageNode.asInt();
@@ -94,6 +102,9 @@ public class CreativeItemRegistryPopulator {
         JsonNode blockRuntimeIdNode = itemNode.get("blockRuntimeId");
         if (blockRuntimeIdNode != null) {
             bedrockBlockRuntimeId = blockRuntimeIdNode.asInt();
+            if (bedrockBlockRuntimeId == 0 && !identifier.equals("minecraft:blue_candle")) { // FIXME
+                bedrockBlockRuntimeId = -1;
+            }
         }
 
         JsonNode nbtNode = itemNode.get("nbt_b64");
@@ -104,13 +115,6 @@ public class CreativeItemRegistryPopulator {
                 tag = (NbtMap) NbtUtils.createReaderLE(bais).readTag();
             } catch (IOException e) {
                 e.printStackTrace();
-            }
-        }
-
-        String identifier = itemNode.get("id").textValue();
-        for (BiPredicate<String, Integer> predicate : JAVA_ONLY_ITEM_FILTER) {
-            if (predicate.test(identifier, damage)) {
-                return null;
             }
         }
 

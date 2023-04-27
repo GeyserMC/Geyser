@@ -45,6 +45,7 @@ import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.bungeecord.command.GeyserBungeeCommandExecutor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,6 +56,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -116,26 +118,6 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             return;
         }
 
-        if (getProxy().getConfig().getListeners().size() == 1) {
-            ListenerInfo listener = getProxy().getConfig().getListeners().toArray(new ListenerInfo[0])[0];
-
-            InetSocketAddress javaAddr = listener.getHost();
-
-            // By default this should be localhost but may need to be changed in some circumstances
-            if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
-                this.geyserConfig.setAutoconfiguredRemote(true);
-                // Don't use localhost if not listening on all interfaces
-                if (!javaAddr.getHostString().equals("0.0.0.0") && !javaAddr.getHostString().equals("")) {
-                    this.geyserConfig.getRemote().setAddress(javaAddr.getHostString());
-                }
-                this.geyserConfig.getRemote().setPort(javaAddr.getPort());
-            }
-
-            if (geyserConfig.getBedrock().isCloneRemotePort()) {
-                geyserConfig.getBedrock().setPort(javaAddr.getPort());
-            }
-        }
-
         // Force-disable query if enabled, or else Geyser won't enable
         for (ListenerInfo info : getProxy().getConfig().getListeners()) {
             if (info.isQueryEnabled() && info.getQueryPort() == geyserConfig.getBedrock().port()) {
@@ -152,15 +134,6 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
                     }
                 }
             }
-        }
-
-        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE && getProxy().getPluginManager().getPlugin("floodgate") == null) {
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
-            return;
-        } else if (geyserConfig.isAutoconfiguredRemote() && getProxy().getPluginManager().getPlugin("floodgate") != null) {
-            // Floodgate installed means that the user wants Floodgate authentication
-            geyserLogger.debug("Auto-setting to Floodgate authentication.");
-            geyserConfig.getRemote().setAuthType(AuthType.FLOODGATE);
         }
 
         geyserConfig.loadFloodgate(this);
@@ -273,5 +246,28 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     @Override
     public SocketAddress getSocketAddress() {
         return this.geyserInjector.getServerSocketAddress();
+    }
+
+    @NotNull
+    @Override
+    public String getServerBindAddress() {
+        return findCompatibleListener().map(InetSocketAddress::getHostString).orElse("");
+    }
+
+    @Override
+    public int getServerPort() {
+        return findCompatibleListener().stream().mapToInt(InetSocketAddress::getPort).findFirst().orElse(-1);
+    }
+
+    @Override
+    public boolean isFloodgatePluginPresent() {
+        return getProxy().getPluginManager().getPlugin("floodgate") != null;
+    }
+
+    private Optional<InetSocketAddress> findCompatibleListener() {
+        return getProxy().getConfig().getListeners().stream()
+                .filter(info -> info.getSocketAddress() instanceof InetSocketAddress)
+                .map(info -> (InetSocketAddress) info.getSocketAddress())
+                .findFirst();
     }
 }

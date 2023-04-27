@@ -28,6 +28,7 @@ package org.geysermc.geyser.inventory;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import lombok.Data;
@@ -47,6 +48,10 @@ public class GeyserItemStack {
     private int amount;
     private CompoundTag nbt;
     private int netId;
+
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    private Item item;
 
     private GeyserItemStack(int javaId, int amount, CompoundTag nbt) {
         this(javaId, amount, nbt, 1);
@@ -108,9 +113,6 @@ public class GeyserItemStack {
     public ItemMapping getMapping(GeyserSession session) {
         return session.getItemMappings().getMapping(this.javaId);
     }
-
-    @Getter(AccessLevel.NONE)
-    private Item item; //TODO
 
     public Item asItem() {
         if (item == null) {

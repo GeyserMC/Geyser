@@ -105,6 +105,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         int maxBedrockSectionY = (bedrockDimension.height() >> 4) - 1;
 
         int sectionCount;
+        byte[] payload;
         ByteBuf byteBuf = null;
         GeyserChunkSection[] sections = new GeyserChunkSection[javaChunks.length - (yOffset + (bedrockDimension.minY() >> 4))];
 
@@ -347,7 +348,8 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             for (NbtMap blockEntity : bedrockBlockEntities) {
                 nbtStream.writeTag(blockEntity);
             }
-            byteBuf.retain();
+            payload = new byte[byteBuf.readableBytes()];
+            byteBuf.readBytes(payload);
         } catch (IOException e) {
             session.getGeyser().getLogger().error("IO error while encoding chunk", e);
             return;
@@ -362,7 +364,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         levelChunkPacket.setCachingEnabled(false);
         levelChunkPacket.setChunkX(packet.getX());
         levelChunkPacket.setChunkZ(packet.getZ());
-        levelChunkPacket.setData(byteBuf);
+        levelChunkPacket.setData(Unpooled.wrappedBuffer(payload));
         session.sendUpstreamPacket(levelChunkPacket);
 
         if (!lecterns.isEmpty()) {
