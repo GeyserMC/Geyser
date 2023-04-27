@@ -136,15 +136,6 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             }
         }
 
-        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE && getProxy().getPluginManager().getPlugin("floodgate") == null) {
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
-            return;
-        } else if (geyserConfig.isAutoconfiguredRemote() && getProxy().getPluginManager().getPlugin("floodgate") != null) {
-            // Floodgate installed means that the user wants Floodgate authentication
-            geyserLogger.debug("Auto-setting to Floodgate authentication.");
-            geyserConfig.getRemote().setAuthType(AuthType.FLOODGATE);
-        }
-
         geyserConfig.loadFloodgate(this);
 
         // Big hack - Bungee does not provide us an event to listen to, so schedule a repeating
@@ -266,6 +257,11 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     @Override
     public int getServerPort() {
         return findCompatibleListener().stream().mapToInt(InetSocketAddress::getPort).findFirst().orElse(-1);
+    }
+
+    @Override
+    public boolean isFloodgatePluginPresent() {
+        return getProxy().getPluginManager().getPlugin("floodgate") != null;
     }
 
     private Optional<InetSocketAddress> findCompatibleListener() {

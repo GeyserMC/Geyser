@@ -126,18 +126,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         } catch (ClassNotFoundException ignored) {
         }
 
-        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE && proxyServer.getPluginManager().getPlugin("floodgate").isEmpty()) {
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " "
-                    + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
-            return;
-        } else if (geyserConfig.isAutoconfiguredRemote() && proxyServer.getPluginManager().getPlugin("floodgate").isPresent()) {
-            // Floodgate installed means that the user wants Floodgate authentication
-            geyserLogger.debug("Auto-setting to Floodgate authentication.");
-            geyserConfig.getRemote().setAuthType(AuthType.FLOODGATE);
-        }
-
         geyserConfig.loadFloodgate(this, proxyServer, configFolder.toFile());
-
     }
 
     private void postStartup() {
@@ -241,5 +230,10 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     @Override
     public int getServerPort() {
         return proxyServer.getBoundAddress().getPort();
+    }
+
+    @Override
+    public boolean isFloodgatePluginPresent() {
+        return proxyServer.getPluginManager().getPlugin("floodgate").isPresent();
     }
 }

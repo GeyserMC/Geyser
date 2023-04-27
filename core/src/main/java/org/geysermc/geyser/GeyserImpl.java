@@ -81,7 +81,6 @@ import org.geysermc.geyser.skin.ProvidedSkins;
 import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
-import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.*;
 
@@ -324,7 +323,18 @@ public class GeyserImpl implements GeyserApi {
                     logger.info("Port set from system property: " + port);
                 }
             }
+
+            if (config.getRemote().authType() == AuthType.FLOODGATE && !bootstrap.isFloodgatePluginPresent()) {
+                logger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " "
+                        + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
+                return;
+            } else if (config.isAutoconfiguredRemote() && bootstrap.isFloodgatePluginPresent()) {
+                // Floodgate installed means that the user wants Floodgate authentication
+                logger.debug("Auto-setting to Floodgate authentication.");
+                config.getRemote().setAuthType(AuthType.FLOODGATE);
+            }
         }
+
         String remoteAddress = config.getRemote().address();
         // Filters whether it is not an IP address or localhost, because otherwise it is not possible to find out an SRV entry.
         if (!remoteAddress.matches(IP_REGEX) && !remoteAddress.equalsIgnoreCase("localhost")) {

@@ -303,6 +303,11 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         throw new IllegalStateException();
     }
 
+    @Override
+    public boolean isFloodgatePluginPresent() {
+        return false;
+    }
+
     /**
      * Get the {@link BeanPropertyDefinition}s for the given class
      *

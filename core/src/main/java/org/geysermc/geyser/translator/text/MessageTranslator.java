@@ -112,7 +112,7 @@ public class MessageTranslator {
             formats.add(CharacterAndFormat.characterAndFormat('g', TextColor.color(221, 214, 5))); // Minecoin Gold
             // Add the new characters implemented in 1.19.80
             formats.add(CharacterAndFormat.characterAndFormat('h', TextColor.color(227, 212, 209))); // Quartz
-            formats.add(CharacterAndFormat.characterAndFormat('i', TextColor.color(206, 212, 202))); // Iron
+            formats.add(CharacterAndFormat.characterAndFormat('i', TextColor.color(206, 202, 202))); // Iron
             formats.add(CharacterAndFormat.characterAndFormat('j', TextColor.color(68, 58, 59))); // Netherite
             formats.add(CharacterAndFormat.characterAndFormat('m', TextColor.color(151, 22, 7))); // Redstone
             formats.add(CharacterAndFormat.characterAndFormat('n', TextColor.color(180, 104, 77))); // Copper
