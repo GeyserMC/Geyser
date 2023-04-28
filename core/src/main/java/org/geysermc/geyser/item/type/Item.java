@@ -197,7 +197,7 @@ public class Item {
                 }
             }
             if (!enchantments.isEmpty()) {
-                tag.put(new ListTag("Enchantments", enchantments));
+                tag.put(new ListTag("StoredEnchantments", enchantments));
             }
         }
     }
