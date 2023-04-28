@@ -197,7 +197,11 @@ public class Item {
                 }
             }
             if (!enchantments.isEmpty()) {
-                tag.put(new ListTag("StoredEnchantments", enchantments));
+                if ((this instanceof EnchantedBookItem)) {
+                    tag.put(new ListTag("StoredEnchantments", enchantments));
+                } else {
+                    tag.put(new ListTag("Enchantments", enchantments));
+                }
             }
         }
     }
