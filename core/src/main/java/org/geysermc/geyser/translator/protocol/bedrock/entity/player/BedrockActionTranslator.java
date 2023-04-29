@@ -35,6 +35,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.Server
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
+import lombok.SneakyThrows;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
@@ -57,9 +58,14 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.BlockUtils;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 @Translator(packet = PlayerActionPacket.class)
 public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket> {
 
+    @SneakyThrows
     @Override
     public void translate(GeyserSession session, PlayerActionPacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
@@ -238,7 +244,14 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 attributesPacket.getAttributes().addAll(entity.getAttributes().values());
                 session.sendUpstreamPacket(attributesPacket);
 
-                session.getEntityCache().updateBossBars();
+                CompletableFuture<Void> future = new CompletableFuture<>();
+                Executors.newSingleThreadScheduledExecutor().schedule(() -> {
+                    session.getEntityCache().updateBossBars();
+                    future.complete(null);
+                }, 2, TimeUnit.SECONDS);
+
+                future.get();
+
                 break;
             case JUMP:
                 entity.setOnGround(false); // Increase block break time while jumping
