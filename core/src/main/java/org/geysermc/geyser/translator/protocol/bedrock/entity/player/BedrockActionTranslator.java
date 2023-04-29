@@ -244,6 +244,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 attributesPacket.getAttributes().addAll(entity.getAttributes().values());
                 session.sendUpstreamPacket(attributesPacket);
 
+                // Need to delay the updateBossBar, packet action gets send before player fully loaded.
                 CompletableFuture<Void> future = new CompletableFuture<>();
                 Executors.newSingleThreadScheduledExecutor().schedule(() -> {
                     session.getEntityCache().updateBossBars();
