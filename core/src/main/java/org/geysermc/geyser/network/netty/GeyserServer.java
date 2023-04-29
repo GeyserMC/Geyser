@@ -207,8 +207,10 @@ public final class GeyserServer {
                 .gameType("Survival") // Can only be Survival or Creative as of 1.16.210.59
                 .nintendoLimited(false)
                 .protocolVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
-                .version(GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()) // Required to not be empty as of 1.16.210.59. Can only contain . and numbers.
-                .ipv4Port(this.geyser.getConfig().getBedrock().port());
+                .version(GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion())
+                .ipv4Port(this.geyser.getConfig().getBedrock().port())
+                .ipv6Port(this.geyser.getConfig().getBedrock().port())
+                .serverId(future.channel().config().getOption(RakChannelOption.RAK_GUID));
 
         if (config.isPassthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
             String[] motd = MessageTranslator.convertMessageLenient(pingInfo.getDescription()).split("\n");
