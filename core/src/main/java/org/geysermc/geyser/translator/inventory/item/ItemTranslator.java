@@ -209,8 +209,10 @@ public final class ItemTranslator {
                 if (amount == 0) continue;
                 int operation = (int) modifierValue.get("Operation").getValue();
                 String operationTotal;
-                if (operation == 0)
+                if (operation == 0) {
+                    if (modifierValue.get("Name").equals("knockback_resistance")) amount *= 10;
                     operationTotal = decimalFormat.format(amount);
+                }
                 else if (operation == 1 || operation == 2)
                     operationTotal = decimalFormat.format(amount * 100) + "%";
                 else continue;
