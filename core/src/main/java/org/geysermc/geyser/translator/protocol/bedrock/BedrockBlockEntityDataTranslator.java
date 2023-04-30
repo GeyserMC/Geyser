@@ -34,6 +34,7 @@ import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.SignUtils;
 
 @Translator(packet = BlockEntityDataPacket.class)
@@ -52,6 +53,7 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
             } else {
                 text = tag.getString("Text");
             }
+            text = MessageTranslator.convertToPlainText(text);
             // Note: as of 1.18.30, only one packet is sent from Bedrock when the sign is finished.
             // Previous versions did not have this behavior.
             StringBuilder newMessage = new StringBuilder();
