@@ -478,7 +478,6 @@ public final class ProxyProtocolDecoder {
          * @param buffer  the {@link ByteBuf} from which to read data
          * @return frame  the {@link ByteBuf} which represent the frame or {@code null} if no frame could
          *                be created
-         * @throws Exception if exceed maxLength
          */
         public ByteBuf extract(ByteBuf buffer) {
             final int eoh = findEndOfHeader(buffer);
