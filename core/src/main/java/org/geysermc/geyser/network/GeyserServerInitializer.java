@@ -33,10 +33,10 @@ import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.netty.initializer.BedrockServerInitializer;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.bedrock.SessionInitializeEvent;
-import org.geysermc.geyser.api.event.lifecycle.GeyserPreInitializeEvent;
 import org.geysermc.geyser.session.GeyserSession;
 
 import javax.annotation.Nonnull;
+import java.net.InetSocketAddress;
 
 public class GeyserServerInitializer extends BedrockServerInitializer {
     private final GeyserImpl geyser;
@@ -48,8 +48,20 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
     }
 
     @Override
+    protected void postInitChannel(Channel channel) throws Exception {
+        super.postInitChannel(channel);
+    }
+
+    @Override
     public void initSession(@Nonnull BedrockServerSession bedrockServerSession) {
         try {
+            if (this.geyser.getGeyserServer().getProxiedAddresses() != null) {
+                InetSocketAddress address = this.geyser.getGeyserServer().getProxiedAddresses().get((InetSocketAddress) bedrockServerSession.getSocketAddress());
+                if (address != null) {
+                    ((GeyserBedrockPeer) bedrockServerSession.getPeer()).setProxiedAddress(address);
+                }
+            }
+
             bedrockServerSession.setLogging(true);
             GeyserSession session = new GeyserSession(this.geyser, bedrockServerSession, this.eventLoopGroup.next());
             bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(this.geyser, session));
@@ -65,21 +77,4 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
     protected BedrockPeer createPeer(Channel channel) {
         return new GeyserBedrockPeer(channel, this::createSession);
     }
-
-    /*
-    @Override
-    public void onUnhandledDatagram(@Nonnull ChannelHandlerContext ctx, @Nonnull DatagramPacket packet) {
-        try {
-            ByteBuf content = packet.content();
-            if (QueryPacketHandler.isQueryPacket(content)) {
-                new QueryPacketHandler(geyser, packet.sender(), content);
-            }
-        } catch (Throwable e) {
-            // Error must be caught or it will be swallowed
-            if (geyser.getConfig().isDebugMode()) {
-                geyser.getLogger().error("Error occurred during unhandled datagram!", e);
-            }
-        }
-    }
-     */
 }
