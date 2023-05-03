@@ -53,8 +53,11 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
 
     @Override
     public void translate(GeyserSession session, ClientboundLevelEventPacket packet) {
+        if (!(packet.getEvent() instanceof LevelEventType levelEvent)) {
+            return;
+        }
         // Separate case since each RecordEventData in Java is an individual track in Bedrock
-        if (packet.getEvent() == LevelEvent.RECORD) {
+        if (levelEvent == LevelEventType.RECORD) {
             RecordEventData recordEventData = (RecordEventData) packet.getData();
             SoundEvent soundEvent = Registries.RECORDS.get(recordEventData.getRecordId());
             if (soundEvent == null) {
@@ -99,7 +102,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
         LevelEventPacket effectPacket = new LevelEventPacket();
         effectPacket.setPosition(pos);
         effectPacket.setData(0);
-        switch (packet.getEvent()) {
+        switch (levelEvent) {
             case COMPOSTER -> {
                 effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_CROP_GROWTH);
 
@@ -216,7 +219,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             case BREAK_EYE_OF_ENDER -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_EYE_OF_ENDER_DEATH);
             case MOB_SPAWN -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_MOB_BLOCK_SPAWN); // TODO: Check, but I don't think I really verified this ever went into effect on Java
             case BONEMEAL_GROW_WITH_SOUND, BONEMEAL_GROW -> {
-                effectPacket.setType(packet.getEvent() == LevelEvent.BONEMEAL_GROW ? org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TURTLE_EGG : org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_CROP_GROWTH);
+                effectPacket.setType(levelEvent == LevelEventType.BONEMEAL_GROW ? org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TURTLE_EGG : org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_CROP_GROWTH);
 
                 BonemealGrowEventData growEventData = (BonemealGrowEventData) packet.getData();
                 effectPacket.setData(growEventData.getParticleCount());
