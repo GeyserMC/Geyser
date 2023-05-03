@@ -116,7 +116,7 @@ public final class ItemTranslator {
 
         nbt = translateDisplayProperties(session, nbt, bedrockItem);
 
-        if (nbt.contains("AttributeModifiers")) {
+        if (nbt != null && nbt.contains("AttributeModifiers")) {
             addAttributes(nbt, javaItem, session.locale());
         }
 
