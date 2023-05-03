@@ -224,7 +224,7 @@ public final class GeyserServer {
             pong.subMotd(config.getBedrock().secondaryMotd());
         }
 
-        //Moved to prevent overriding values set in the ping event.
+        // Placed here to prevent overriding values set in the ping event.
         if (config.isPassthroughPlayerCounts() && pingInfo != null) {
             pong.playerCount(pingInfo.getPlayers().getOnline());
             pong.maximumPlayerCount(pingInfo.getPlayers().getMax());
@@ -233,7 +233,7 @@ public final class GeyserServer {
             pong.maximumPlayerCount(config.getMaxPlayers());
         }
 
-        //Only fire the event if there are subscribers.
+        // Only fire the event if there are subscribers.
         if (!this.geyser.eventBus().subscribers(GeyserBedrockPingEvent.class).isEmpty()) {
             this.geyser.eventBus().fire(new GeyserBedrockPingEventImpl(pong, inetSocketAddress));
         }

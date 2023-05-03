@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.api.event.lifecycle;
 
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.event.Event;
@@ -73,21 +74,21 @@ public interface GeyserBedrockPingEvent extends Event {
      *
      * @return the primary motd string
      */
-    @Nullable String getMotd1();
+    @Nullable String getPrimaryMotd();
 
     /**
      * Gets the secondary motd.
      *
      * @return the secondary motd string
      */
-    @Nullable String getMotd2();
+    @Nullable String getSecondaryMotd();
 
     /**
      * Gets the current number of players.
      *
      * @return number of players online
      */
-    int getPlayerCount();
+    @NonNegative int getPlayerCount();
 
     /**
      * Gets the maximum number of players that can join this server
@@ -101,5 +102,5 @@ public interface GeyserBedrockPingEvent extends Event {
      *
      * @return a {@link InetSocketAddress}
      */
-    InetSocketAddress getAddress();
+    @NonNull InetSocketAddress getAddress();
 }

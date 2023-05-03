@@ -25,9 +25,11 @@
 
 package org.geysermc.geyser.event.type;
 
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.api.event.lifecycle.GeyserBedrockPingEvent;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.net.InetSocketAddress;
@@ -65,17 +67,17 @@ public class GeyserBedrockPingEventImpl implements GeyserBedrockPingEvent {
     }
 
     @Override
-    public @Nullable String getMotd1() {
+    public @Nullable String getPrimaryMotd() {
         return pong.motd();
     }
 
     @Override
-    public @Nullable String getMotd2() {
+    public @Nullable String getSecondaryMotd() {
         return pong.subMotd();
     }
 
     @Override
-    public int getPlayerCount() {
+    public @NonNegative int getPlayerCount() {
         return pong.playerCount();
     }
 
@@ -85,7 +87,7 @@ public class GeyserBedrockPingEventImpl implements GeyserBedrockPingEvent {
     }
 
     @Override
-    public InetSocketAddress getAddress() {
+    public @NotNull InetSocketAddress getAddress() {
         return address;
     }
 }
