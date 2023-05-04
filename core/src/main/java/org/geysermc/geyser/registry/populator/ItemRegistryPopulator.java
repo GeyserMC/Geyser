@@ -398,7 +398,7 @@ public class ItemRegistryPopulator {
                         }
 
                         GeyserCustomMappingData customMapping = CustomItemRegistryPopulator.registerCustomItem(
-                                customItemName, mappingItem, customItem, customProtocolId
+                                customItemName, javaItem, mappingItem, customItem, customProtocolId
                         );
                         // ComponentItemData - used to register some custom properties
                         componentItemData.add(customMapping.componentItemData());

@@ -37,12 +37,10 @@ public class GeyserMappingItem {
     @JsonProperty("bedrock_data") int bedrockData;
     Integer firstBlockRuntimeId;
     Integer lastBlockRuntimeId;
-    @JsonProperty("stack_size") int stackSize = 64;
     @JsonProperty("tool_type") String toolType;
     @JsonProperty("tool_tier") String toolTier;
     @JsonProperty("armor_type") String armorType;
     @JsonProperty("protection_value") int protectionValue;
-    @JsonProperty("max_damage") int maxDamage = 0;
     @JsonProperty("is_edible") boolean edible = false;
     @JsonProperty("is_entity_placer") boolean entityPlacer = false;
 }
