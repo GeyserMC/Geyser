@@ -42,7 +42,7 @@ public class PlayerResourcePackLoadEvent extends ConnectionEvent {
     }
 
     public @NonNull Map<String, ResourcePack> getPacks() {
-        return packs;
+        return this.packs;
     }
 
     public void setPacks(@NonNull Map<String, ResourcePack> packs) {

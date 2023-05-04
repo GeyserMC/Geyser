@@ -70,6 +70,7 @@ import java.io.InputStream;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.OptionalInt;
+import java.util.HashMap;
 
 public class UpstreamPacketHandler extends LoggingPacketHandler {
 
@@ -188,8 +189,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         geyser.getSessionManager().addPendingSession(session);
 
-        this.resourcePackLoadEvent = new PlayerResourcePackLoadEvent(session, ResourcePackUtil.PACKS);
-        this.geyser.eventBus().fire(resourcePackLoadEvent);
+        this.resourcePackLoadEvent = new PlayerResourcePackLoadEvent(session, new HashMap<>(ResourcePackUtil.PACKS));
+        this.geyser.eventBus().fire(this.resourcePackLoadEvent);
 
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
         for(ResourcePack resourcePack : this.resourcePackLoadEvent.getPacks().values()) {
