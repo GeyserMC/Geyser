@@ -9,20 +9,11 @@ dependencies {
     implementation(libs.commodore)
 
     implementation(libs.adventure.text.serializer.bungeecord)
-    
-    // Both folia-api and paper-mojangapi only provide Java 17 versions for 1.19
-    compileOnly(libs.folia.api) {
-        attributes {
-            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
-        }
-    }
-    compileOnly(libs.paper.mojangapi) {
-        attributes {
-            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
-        }
-    }
 
-    implementation("org.geysermc.floodgate", "spigot", "2.2.0-SNAPSHOT")
+    compileOnly(libs.folia.api)
+    compileOnly(libs.paper.mojangapi)
+
+    implementation(libs.floodgate.spigot)
 }
 
 platformRelocate("it.unimi.dsi.fastutil")

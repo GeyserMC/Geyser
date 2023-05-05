@@ -31,9 +31,9 @@ import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.protocol.ProtocolConstants;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.floodgate.BungeePlatform;
-import org.geysermc.floodgate.pluginmessage.BungeeSkinApplier;
-import org.geysermc.floodgate.skin.SkinApplier;
+import org.geysermc.floodgate.bungee.BungeePlatform;
+import org.geysermc.floodgate.bungee.pluginmessage.BungeeSkinApplier;
+import org.geysermc.floodgate.core.skin.SkinApplier;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
@@ -307,7 +307,8 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     @Override
     public SkinApplier createSkinApplier() {
-        new BungeePlatform(this); // TODO hack to ensure ReflectionUtils prefix is applied and I don't forget about dealing with it
-        return new BungeeSkinApplier(null); // Also TODO
+//        new BungeePlatform(this); // TODO hack to ensure ReflectionUtils prefix is applied and I don't forget about dealing with it
+//        return new BungeeSkinApplier(null); // Also TODO
+        return null;
     }
 }

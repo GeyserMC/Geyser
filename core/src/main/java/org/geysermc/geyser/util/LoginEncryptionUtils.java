@@ -32,13 +32,10 @@ import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.github.steveice10.mc.auth.service.MsaAuthenticationService;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
-import com.nimbusds.jose.shaded.json.JSONObject;
-import com.nimbusds.jose.shaded.json.JSONValue;
 import com.nimbusds.jwt.SignedJWT;
 import org.cloudburstmc.protocol.bedrock.packet.LoginPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ServerToClientHandshakePacket;
 import org.cloudburstmc.protocol.bedrock.util.EncryptionUtils;
-import org.cloudburstmc.protocol.common.util.Preconditions;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.ModalForm;
 import org.geysermc.cumulus.form.SimpleForm;
@@ -109,12 +106,12 @@ public class LoginEncryptionUtils {
                 mojangSigned = true;
             }
 
-            Object payload = JSONValue.parse(jwt.getPayload().toString());
-            Preconditions.checkArgument(payload instanceof JSONObject, "Payload is not an object");
-
-            Object identityPublicKey = ((JSONObject) payload).get("identityPublicKey");
-            Preconditions.checkArgument(identityPublicKey instanceof String, "identityPublicKey node is missing in chain");
-            lastKey = EncryptionUtils.generateKey((String) identityPublicKey);
+//            Object payload = JSONValue.parse(jwt.getPayload().toString());
+//            Preconditions.checkArgument(payload instanceof JSONObject, "Payload is not an object");
+//
+//            Object identityPublicKey = ((JSONObject) payload).get("identityPublicKey");
+//            Preconditions.checkArgument(identityPublicKey instanceof String, "identityPublicKey node is missing in chain");
+//            lastKey = EncryptionUtils.generateKey((String) identityPublicKey);
         }
 
         return mojangSigned;

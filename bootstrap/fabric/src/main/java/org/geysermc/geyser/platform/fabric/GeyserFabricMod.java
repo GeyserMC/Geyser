@@ -116,7 +116,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
-        this.geyser = GeyserImpl.load(PlatformType.FABRIC, this);
+        this.geyser = GeyserImpl.load(PlatformType.FABRIC, this, null);
 
         if (server == null) {
             // Server has yet to start

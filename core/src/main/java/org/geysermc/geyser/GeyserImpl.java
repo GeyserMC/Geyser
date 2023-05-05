@@ -46,7 +46,7 @@ import org.geysermc.api.Geyser;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
 import org.geysermc.erosion.packet.Packets;
-import org.geysermc.floodgate.FloodgatePlatform;
+import org.geysermc.floodgate.core.FloodgatePlatform;
 import org.geysermc.floodgate.news.NewsItemAction;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.event.EventBus;

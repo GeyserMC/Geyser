@@ -26,9 +26,9 @@
 package org.geysermc.geyser.hybrid;
 
 import io.netty.util.AttributeKey;
-import org.geysermc.floodgate.crypto.FloodgateCipher;
-import org.geysermc.floodgate.skin.SkinApplier;
-import org.geysermc.floodgate.skin.SkinData;
+import org.geysermc.floodgate.core.crypto.FloodgateCipher;
+import org.geysermc.floodgate.core.skin.SkinApplier;
+import org.geysermc.floodgate.core.skin.SkinDataImpl;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -44,7 +44,7 @@ public class IntegratedHybridProvider implements HybridProvider {
 
     @Override
     public void onSkinUpload(GeyserSession session, String value, String signature) {
-        skinApplier.applySkin(session, new SkinData(value, signature));
+        skinApplier.applySkin(session, new SkinDataImpl(value, signature));
     }
 
     @Override

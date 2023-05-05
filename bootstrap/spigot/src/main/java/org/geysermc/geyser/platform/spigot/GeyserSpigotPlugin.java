@@ -42,9 +42,7 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.geysermc.floodgate.pluginmessage.SpigotSkinApplier;
-import org.geysermc.floodgate.skin.SkinApplier;
-import org.geysermc.floodgate.util.SpigotVersionSpecificMethods;
+import org.geysermc.floodgate.core.skin.SkinApplier;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
@@ -431,7 +429,8 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     @Override
     public SkinApplier createSkinApplier() {
-        return new SpigotSkinApplier(new SpigotVersionSpecificMethods(this), this);
+//        return new SpigotSkinApplier(new SpigotVersionSpecificMethods(this), this);
+        return null;
     }
 
     /**

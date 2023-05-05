@@ -25,22 +25,21 @@
 
 package org.geysermc.geyser.platform.velocity.floodgate;
 
-import com.google.inject.Module;
-import org.geysermc.floodgate.VelocityPlatform;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.floodgate.GeyserLoadStage;
-
-import java.nio.file.Paths;
-import java.util.List;
+import org.geysermc.floodgate.isolation.library.LibraryManager;
+import org.geysermc.floodgate.velocity.VelocityPlatform;
 
 public class FloodgateVelocityPlatform extends VelocityPlatform {
-    @Override
-    protected List<Module> loadStageModules() {
-        // Geyser being a dumb dumb
-        super.dataDirectory = Paths.get("plugins/" + GeyserImpl.NAME + "-Velocity/");
-
-        var loaded = super.loadStageModules();
-        loaded.add(new GeyserLoadStage());
-        return loaded;
+    public FloodgateVelocityPlatform(LibraryManager manager) {
+        super(manager);
     }
+
+//    @Override
+//    protected List<Module> loadStageModules() {
+//        // Geyser being a dumb dumb
+//        super.dataDirectory = Paths.get("plugins/" + GeyserImpl.NAME + "-Velocity/");
+//
+//        var loaded = super.loadStageModules();
+//        loaded.add(new GeyserLoadStage());
+//        return loaded;
+//    }
 }

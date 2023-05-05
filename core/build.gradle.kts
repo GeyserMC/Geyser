@@ -7,7 +7,8 @@ plugins {
 }
 
 dependencies {
-    api("org.geysermc.floodgate", "core", "2.2.0-SNAPSHOT")
+    api(libs.floodgate.core)
+    annotationProcessor(libs.floodgate.core)
     api(projects.api)
 
     // Jackson JSON and YAML serialization

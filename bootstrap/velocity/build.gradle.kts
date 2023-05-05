@@ -1,6 +1,6 @@
 dependencies {
     annotationProcessor(libs.velocity.api)
-    implementation("org.geysermc.floodgate", "velocity", "2.2.0-SNAPSHOT")
+    implementation(libs.floodgate.velocity)
     api(projects.core)
 }
 

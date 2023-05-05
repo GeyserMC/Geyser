@@ -1,5 +1,6 @@
 [versions]
-base-api = "1.0.0-SNAPSHOT"
+base-api = "feature-floodgate-merge-1.0.0-SNAPSHOT"
+floodgate = "development-2.2.2-SNAPSHOT"
 cumulus = "1.1.1"
 erosion = "1.0-20230406.174837-8"
 events = "1.0-SNAPSHOT"
@@ -36,6 +37,11 @@ fabric-api = "0.58.5+1.19.1"
 base-api = { group = "org.geysermc.api", name = "base-api", version.ref = "base-api" }
 cumulus = { group = "org.geysermc.cumulus", name = "cumulus", version.ref = "cumulus" }
 events = { group = "org.geysermc.event", name = "events", version.ref = "events" }
+
+floodgate-core = { module = "org.geysermc.floodgate:core", version.ref = "floodgate" }
+floodgate-bungee = { module = "org.geysermc.floodgate:bungee-base", version.ref = "floodgate" }
+floodgate-spigot = { module = "org.geysermc.floodgate:spigot-base", version.ref = "floodgate" }
+floodgate-velocity = { module = "org.geysermc.floodgate:velocity-base", version.ref = "floodgate" }
 
 erosion-bukkit-common = { group = "org.geysermc.erosion", name = "bukkit-common", version.ref = "erosion" }
 erosion-common = { group = "org.geysermc.erosion", name = "common", version.ref = "erosion" }
@@ -100,9 +106,9 @@ protocol-codec = { group = "org.cloudburstmc.protocol", name = "bedrock-codec", 
 protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol-connection" }
 
 [bundles]
-jackson = [ "jackson-annotations", "jackson-core", "jackson-dataformat-yaml" ]
-fastutil = [ "fastutil-int-int-maps", "fastutil-int-long-maps", "fastutil-int-byte-maps", "fastutil-int-boolean-maps", "fastutil-object-int-maps", "fastutil-object-object-maps" ]
-adventure = [ "adventure-text-serializer-gson", "adventure-text-serializer-legacy", "adventure-text-serializer-plain" ]
-log4j = [ "log4j-api", "log4j-core", "log4j-slf4j18-impl" ]
-jline = [ "jline-terminal", "jline-terminal-jna", "jline-reader" ]
-protocol = [ "protocol-common", "protocol-codec", "protocol-connection" ]
+jackson = ["jackson-annotations", "jackson-core", "jackson-dataformat-yaml"]
+fastutil = ["fastutil-int-int-maps", "fastutil-int-long-maps", "fastutil-int-byte-maps", "fastutil-int-boolean-maps", "fastutil-object-int-maps", "fastutil-object-object-maps"]
+adventure = ["adventure-text-serializer-gson", "adventure-text-serializer-legacy", "adventure-text-serializer-plain"]
+log4j = ["log4j-api", "log4j-core", "log4j-slf4j18-impl"]
+jline = ["jline-terminal", "jline-terminal-jna", "jline-reader"]
+protocol = ["protocol-common", "protocol-codec", "protocol-connection"]

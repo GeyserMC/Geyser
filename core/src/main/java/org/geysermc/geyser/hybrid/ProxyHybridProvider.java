@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.hybrid;
 
-import org.geysermc.floodgate.crypto.FloodgateCipher;
+import org.geysermc.floodgate.core.crypto.FloodgateCipher;
 import org.geysermc.geyser.GeyserImpl;
 
 public final class ProxyHybridProvider extends IntegratedHybridProvider {
@@ -33,7 +33,7 @@ public final class ProxyHybridProvider extends IntegratedHybridProvider {
 
     public ProxyHybridProvider(GeyserImpl geyser) {
         super(geyser);
-        this.cipher = geyser.getFloodgatePlatform().getInstance(FloodgateCipher.class);
+        this.cipher = geyser.getFloodgatePlatform().getBean(FloodgateCipher.class);
     }
 
     @Override

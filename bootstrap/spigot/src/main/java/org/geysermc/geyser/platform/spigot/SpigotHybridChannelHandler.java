@@ -29,13 +29,13 @@ import com.mojang.authlib.GameProfile;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import org.geysermc.floodgate.util.ClassNames;
+import org.geysermc.floodgate.spigot.util.ClassNames;
 import org.geysermc.geyser.hybrid.IntegratedHybridProvider;
 import org.geysermc.geyser.session.GeyserSession;
 
 import javax.annotation.Nonnull;
 
-import static org.geysermc.floodgate.util.ReflectionUtils.setValue;
+import static org.geysermc.floodgate.core.util.ReflectionUtils.setValue;
 
 @ChannelHandler.Sharable
 public final class SpigotHybridChannelHandler extends ChannelInboundHandlerAdapter {

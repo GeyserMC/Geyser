@@ -25,16 +25,11 @@
 
 package org.geysermc.geyser.floodgate;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
-import com.google.inject.name.Named;
-
-public class GeyserLoadStage extends AbstractModule {
-    @Provides
-    @Singleton
-    @Named("configFile")
-    private String floodgateConfigName() {
-        return "floodgate.yml";
-    }
+public class GeyserLoadStage {
+//    @Provides
+//    @Singleton
+//    @Named("configFile")
+//    private String floodgateConfigName() {
+//        return "floodgate.yml";
+//    }
 }

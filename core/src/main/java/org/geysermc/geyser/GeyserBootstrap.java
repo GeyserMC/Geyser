@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser;
 
-import org.geysermc.floodgate.skin.SkinApplier;
+import org.geysermc.floodgate.core.skin.SkinApplier;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;

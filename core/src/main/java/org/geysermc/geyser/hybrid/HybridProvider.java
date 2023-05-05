@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.hybrid;
 
-import org.geysermc.floodgate.crypto.FloodgateCipher;
+import org.geysermc.floodgate.core.crypto.FloodgateCipher;
 import org.geysermc.geyser.session.GeyserSession;
 
 public interface HybridProvider {

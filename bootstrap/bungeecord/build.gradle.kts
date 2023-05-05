@@ -3,7 +3,7 @@ dependencies {
 
     implementation(libs.adventure.text.serializer.bungeecord)
 
-    implementation("org.geysermc.floodgate", "bungee", "2.2.0-SNAPSHOT")
+    implementation(libs.floodgate.bungee)
 }
 
 platformRelocate("net.md_5.bungee.jni")
