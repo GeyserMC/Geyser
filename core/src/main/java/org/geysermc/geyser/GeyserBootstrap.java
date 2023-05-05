@@ -25,9 +25,12 @@
 
 package org.geysermc.geyser;
 
+import org.geysermc.floodgate.skin.SkinApplier;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
+import org.geysermc.geyser.hybrid.FloodgateHybridProvider;
+import org.geysermc.geyser.hybrid.HybridProvider;
 import org.geysermc.geyser.level.GeyserWorldManager;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
@@ -132,6 +135,20 @@ public interface GeyserBootstrap {
 
     default Path getLogsPath() {
         return Paths.get("logs/latest.log");
+    }
+
+    /**
+     * Creates the hybrid provider for this platform. The provider will differ based on server access.
+     */
+    default HybridProvider createHybridProvider(GeyserImpl geyser) {
+        return new FloodgateHybridProvider(geyser);
+    }
+
+    /**
+     * Returns the skin applier for this platform, if the hybrid provider is integrated with the system.
+     */
+    default SkinApplier createSkinApplier() {
+        throw new IllegalStateException();
     }
 
     /**

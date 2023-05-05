@@ -7,7 +7,7 @@ plugins {
 }
 
 dependencies {
-    api(projects.common)
+    api("org.geysermc.floodgate", "core", "2.2.0-SNAPSHOT")
     api(projects.api)
 
     // Jackson JSON and YAML serialization

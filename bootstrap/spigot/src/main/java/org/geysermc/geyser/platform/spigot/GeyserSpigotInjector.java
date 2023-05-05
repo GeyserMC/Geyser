@@ -33,6 +33,8 @@ import io.netty.channel.local.LocalAddress;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.bukkit.Bukkit;
 import org.geysermc.geyser.GeyserBootstrap;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.network.netty.GeyserInjector;
 import org.geysermc.geyser.network.netty.LocalServerChannelWrapper;
 import org.geysermc.geyser.network.netty.LocalSession;
@@ -119,9 +121,16 @@ public class GeyserSpigotInjector extends GeyserInjector {
                     @Override
                     protected void initChannel(Channel ch) throws Exception {
                         initChannel.invoke(childHandler, ch);
-
                         if (bootstrap.getGeyserConfig().isDisableCompression() && GeyserSpigotCompressionDisabler.ENABLED) {
                             ch.pipeline().addAfter("encoder", "geyser-compression-disabler", new GeyserSpigotCompressionDisabler());
+                        }
+
+                        if (GeyserImpl.getInstance().getConfig().getRemote().authType() == AuthType.FLOODGATE) {
+                            // we have to add the packet blocker in the data handler, otherwise ProtocolSupport breaks
+                            ch.pipeline().addBefore(
+                                    "packet_handler", "geyser_data_handler",
+                                    new SpigotHybridChannelHandler()
+                            );
                         }
                     }
                 })
@@ -174,7 +183,7 @@ public class GeyserSpigotInjector extends GeyserInjector {
      */
     private void workAroundWeirdBug(GeyserBootstrap bootstrap) {
         MinecraftProtocol protocol = new MinecraftProtocol();
-        LocalSession session = new LocalSession(bootstrap.getGeyserConfig().getRemote().address(),
+        LocalSession session = new LocalSession(null, bootstrap.getGeyserConfig().getRemote().address(),
                 bootstrap.getGeyserConfig().getRemote().port(), this.serverSocketAddress,
                 InetAddress.getLoopbackAddress().getHostAddress(), protocol, protocol.createHelper());
         session.connect();

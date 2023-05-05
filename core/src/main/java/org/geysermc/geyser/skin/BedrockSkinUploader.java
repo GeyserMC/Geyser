@@ -32,26 +32,23 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.Getter;
-import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.floodgate.util.WebsocketEventType;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.util.PluginMessageUtils;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 import javax.net.ssl.SSLException;
 import java.net.ConnectException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
-public final class FloodgateSkinUploader {
+public final class BedrockSkinUploader {
     private final ObjectMapper JACKSON = new ObjectMapper();
     private final List<String> skinQueue = new ArrayList<>();
 
@@ -61,9 +58,8 @@ public final class FloodgateSkinUploader {
 
     @Getter private int id;
     @Getter private String verifyCode;
-    @Getter private int subscribersCount;
 
-    public FloodgateSkinUploader(GeyserImpl geyser) {
+    public BedrockSkinUploader(GeyserImpl geyser) {
         this.logger = geyser.getLogger();
         this.client = new WebSocketClient(Constants.GLOBAL_API_WS_URI) {
             @Override
@@ -102,14 +98,11 @@ public final class FloodgateSkinUploader {
                             verifyCode = node.get("verify_code").asText();
                             break;
                         case SUBSCRIBER_COUNT:
-                            subscribersCount = node.get("subscribers_count").asInt();
+                            logger.debug("Ignoring subscribers count message.");
                             break;
                         case SKIN_UPLOADED:
                             // if Geyser is the only subscriber we have send it to the server manually
                             // otherwise it's handled by the Floodgate plugin subscribers
-                            if (subscribersCount != 1) {
-                                break;
-                            }
 
                             String xuid = node.get("xuid").asText();
                             GeyserSession session = geyser.connectionByXuid(xuid);
@@ -125,9 +118,7 @@ public final class FloodgateSkinUploader {
                                 String value = data.get("value").asText();
                                 String signature = data.get("signature").asText();
 
-                                byte[] bytes = (value + '\0' + signature)
-                                        .getBytes(StandardCharsets.UTF_8);
-                                PluginMessageUtils.sendMessage(session, PluginMessageChannels.SKIN, bytes);
+                                geyser.getHybridProvider().onSkinUpload(session, value, signature);
                             }
                             break;
                         case LOG_MESSAGE:
@@ -226,7 +217,7 @@ public final class FloodgateSkinUploader {
                 .schedule(client::reconnect, 8 + additionalTime, TimeUnit.SECONDS);
     }
 
-    public FloodgateSkinUploader start() {
+    public BedrockSkinUploader start() {
         client.connect();
         return this;
     }

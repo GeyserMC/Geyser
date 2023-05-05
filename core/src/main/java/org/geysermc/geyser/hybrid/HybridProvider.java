@@ -23,21 +23,13 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.floodgate.util;
+package org.geysermc.geyser.hybrid;
 
-public enum UiProfile {
-    CLASSIC,
-    POCKET;
+import org.geysermc.floodgate.crypto.FloodgateCipher;
+import org.geysermc.geyser.session.GeyserSession;
 
-    private static final UiProfile[] VALUES = values();
+public interface HybridProvider {
+    void onSkinUpload(GeyserSession session, String value, String signature);
 
-    /**
-     * Get the UiProfile instance from the identifier.
-     *
-     * @param id the UiProfile identifier
-     * @return The UiProfile or {@link #CLASSIC} if the UiProfile wasn't found
-     */
-    public static UiProfile fromId(int id) {
-        return VALUES.length > id ? VALUES[id] : VALUES[0];
-    }
+    FloodgateCipher getCipher();
 }

@@ -31,19 +31,25 @@ import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.protocol.ProtocolConstants;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.common.PlatformType;
+import org.geysermc.floodgate.BungeePlatform;
+import org.geysermc.floodgate.pluginmessage.BungeeSkinApplier;
+import org.geysermc.floodgate.skin.SkinApplier;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
+import org.geysermc.geyser.hybrid.HybridProvider;
+import org.geysermc.geyser.hybrid.ProxyHybridProvider;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.bungeecord.command.GeyserBungeeCommandExecutor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.util.PlatformType;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -106,15 +112,29 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         this.geyserLogger = new GeyserBungeeLogger(getLogger(), geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
-        this.geyser = GeyserImpl.load(PlatformType.BUNGEECORD, this);
+        this.geyser = GeyserImpl.load(PlatformType.BUNGEECORD, this, null);
     }
 
     @Override
     public void onEnable() {
-        // Remove this in like a year
-        if (getProxy().getPluginManager().getPlugin("floodgate-bungee") != null) {
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.outdated", "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/"));
-            return;
+        if (getProxy().getConfig().getListeners().size() == 1) {
+            ListenerInfo listener = getProxy().getConfig().getListeners().toArray(new ListenerInfo[0])[0];
+
+            InetSocketAddress javaAddr = listener.getHost();
+
+            // By default this should be localhost but may need to be changed in some circumstances
+            if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
+                this.geyserConfig.setAutoconfiguredRemote(true);
+                // Don't use localhost if not listening on all interfaces
+                if (!javaAddr.getHostString().equals("0.0.0.0") && !javaAddr.getHostString().equals("")) {
+                    this.geyserConfig.getRemote().setAddress(javaAddr.getHostString());
+                }
+                this.geyserConfig.getRemote().setPort(javaAddr.getPort());
+            }
+
+            if (geyserConfig.getBedrock().isCloneRemotePort()) {
+                geyserConfig.getBedrock().setPort(javaAddr.getPort());
+            }
         }
 
         // Force-disable query if enabled, or else Geyser won't enable
@@ -133,6 +153,14 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
                     }
                 }
             }
+        }
+
+        if (getProxy().getPluginManager().getPlugin("floodgate") != null) {
+            geyserLogger.warning("WHY DO YOU HAVE FLOODGATE INSTALLED???1/");
+        }
+
+        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE) {
+            getProxy().getPluginManager().registerListener(this, new BungeeHybridListener());
         }
 
         // Big hack - Bungee does not provide us an event to listen to, so schedule a repeating
@@ -270,5 +298,16 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
                 .filter(info -> info.getSocketAddress() instanceof InetSocketAddress)
                 .map(info -> (InetSocketAddress) info.getSocketAddress())
                 .findFirst();
+    }
+
+    @Override
+    public HybridProvider createHybridProvider(GeyserImpl geyser) {
+        return new ProxyHybridProvider(geyser);
+    }
+
+    @Override
+    public SkinApplier createSkinApplier() {
+        new BungeePlatform(this); // TODO hack to ensure ReflectionUtils prefix is applied and I don't forget about dealing with it
+        return new BungeeSkinApplier(null); // Also TODO
     }
 }

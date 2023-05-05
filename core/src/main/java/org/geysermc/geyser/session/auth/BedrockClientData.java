@@ -30,9 +30,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.floodgate.util.DeviceOs;
-import org.geysermc.floodgate.util.InputMode;
-import org.geysermc.floodgate.util.UiProfile;
+import org.geysermc.api.util.BedrockPlatform;
+import org.geysermc.api.util.InputMode;
+import org.geysermc.api.util.UiProfile;
 
 import java.util.UUID;
 
@@ -80,7 +80,7 @@ public final class BedrockClientData {
     @JsonProperty(value = "DeviceModel")
     private String deviceModel;
     @JsonProperty(value = "DeviceOS")
-    private DeviceOs deviceOs;
+    private BedrockPlatform deviceOs;
     @JsonProperty(value = "UIProfile")
     private UiProfile uiProfile;
     @JsonProperty(value = "GuiScale")
@@ -113,8 +113,8 @@ public final class BedrockClientData {
     @Setter
     private String originalString = null;
 
-    public DeviceOs getDeviceOs() {
-        return deviceOs != null ? deviceOs : DeviceOs.UNKNOWN;
+    public BedrockPlatform getDeviceOs() {
+        return deviceOs != null ? deviceOs : BedrockPlatform.UNKNOWN;
     }
 
     public InputMode getCurrentInputMode() {

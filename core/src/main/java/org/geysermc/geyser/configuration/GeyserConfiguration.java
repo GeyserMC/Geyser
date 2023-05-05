@@ -51,6 +51,8 @@ public interface GeyserConfiguration {
 
     IRemoteConfiguration getRemote();
 
+    HybridInfo getHybridInfo();
+
     List<String> getSavedUserLogins();
 
     @Deprecated
@@ -162,6 +164,13 @@ public interface GeyserConfiguration {
         }
 
         void setAuthType(AuthType authType);
+    }
+
+    // TODO this is definitely temporary
+    interface HybridInfo {
+        String usernamePrefix();
+
+        boolean replaceSpaces();
     }
 
     interface IUserAuthenticationInfo {

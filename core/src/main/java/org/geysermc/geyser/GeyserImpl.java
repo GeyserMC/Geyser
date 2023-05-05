@@ -43,14 +43,10 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.Geyser;
-import org.geysermc.common.PlatformType;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
 import org.geysermc.erosion.packet.Packets;
-import org.geysermc.floodgate.crypto.AesCipher;
-import org.geysermc.floodgate.crypto.AesKeyProducer;
-import org.geysermc.floodgate.crypto.Base64Topping;
-import org.geysermc.floodgate.crypto.FloodgateCipher;
+import org.geysermc.floodgate.FloodgatePlatform;
 import org.geysermc.floodgate.news.NewsItemAction;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.event.EventBus;
@@ -67,6 +63,7 @@ import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.erosion.UnixSocketClientListener;
 import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.extension.GeyserExtensionManager;
+import org.geysermc.geyser.hybrid.HybridProvider;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.netty.GeyserServer;
 import org.geysermc.geyser.pack.ResourcePack;
@@ -76,7 +73,7 @@ import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
 import org.geysermc.geyser.session.SessionManager;
-import org.geysermc.geyser.skin.FloodgateSkinUploader;
+import org.geysermc.geyser.skin.BedrockSkinUploader;
 import org.geysermc.geyser.skin.ProvidedSkins;
 import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -90,7 +87,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
-import java.security.Key;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -133,8 +129,8 @@ public class GeyserImpl implements GeyserApi {
     @Setter
     private static boolean shouldStartListener = true;
 
-    private FloodgateCipher cipher;
-    private FloodgateSkinUploader skinUploader;
+    private HybridProvider hybridProvider;
+    private BedrockSkinUploader skinUploader;
     private NewsHandler newsHandler;
 
     private UnixSocketClientListener erosionUnixListener;
@@ -158,10 +154,18 @@ public class GeyserImpl implements GeyserApi {
 
     private static GeyserImpl instance;
 
-    private GeyserImpl(PlatformType platformType, GeyserBootstrap bootstrap) {
-        instance = this;
+    private final FloodgatePlatform floodgatePlatform;
 
-        Geyser.set(this);
+    private GeyserImpl(PlatformType platformType, GeyserBootstrap bootstrap, FloodgatePlatform floodgatePlatform) {
+        instance = this;
+        this.floodgatePlatform = floodgatePlatform;
+
+        if (floodgatePlatform != null) {
+            floodgatePlatform.load();
+            floodgatePlatform.enable();
+        } else {
+            Geyser.set(this);
+        }
 
         this.platformType = platformType;
         this.bootstrap = bootstrap;
@@ -259,7 +263,7 @@ public class GeyserImpl implements GeyserApi {
         SkinProvider.registerCacheImageTask(this);
 
         ResourcePack.loadPacks();
-
+        //TODO start
         String geyserUdpPort = System.getProperty("geyserUdpPort", "");
         String pluginUdpPort = geyserUdpPort.isEmpty() ? System.getProperty("pluginUdpPort", "") : geyserUdpPort;
         if ("-1".equals(pluginUdpPort)) {
@@ -335,6 +339,7 @@ public class GeyserImpl implements GeyserApi {
                 config.getRemote().setAuthType(AuthType.FLOODGATE);
             }
         }
+        //TODO end
 
         String remoteAddress = config.getRemote().address();
         // Filters whether it is not an IP address or localhost, because otherwise it is not possible to find out an SRV entry.
@@ -392,16 +397,14 @@ public class GeyserImpl implements GeyserApi {
         }
 
         if (config.getRemote().authType() == AuthType.FLOODGATE) {
+            hybridProvider = bootstrap.createHybridProvider(this);
             try {
-                Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyPath());
-                cipher = new AesCipher(new Base64Topping());
-                cipher.init(key);
-                logger.debug("Loaded Floodgate key!");
                 // Note: this is positioned after the bind so the skin uploader doesn't try to run if Geyser fails
                 // to load successfully. Spigot complains about class loader if the plugin is disabled.
-                skinUploader = new FloodgateSkinUploader(this).start();
+                // TODO not Floodgate exclusive?
+                skinUploader = new BedrockSkinUploader(this).start();
             } catch (Exception exception) {
-                logger.severe(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.bad_key"), exception);
+                logger.severe("Could not start the skin uploader!", exception);
             }
         }
 
@@ -687,9 +690,9 @@ public class GeyserImpl implements GeyserApi {
         return Integer.parseInt(BUILD_NUMBER);
     }
 
-    public static GeyserImpl load(PlatformType platformType, GeyserBootstrap bootstrap) {
+    public static GeyserImpl load(PlatformType platformType, GeyserBootstrap bootstrap, FloodgatePlatform floodgatePlatform) {
         if (instance == null) {
-            return new GeyserImpl(platformType, bootstrap);
+            return new GeyserImpl(platformType, bootstrap, floodgatePlatform);
         }
 
         return instance;

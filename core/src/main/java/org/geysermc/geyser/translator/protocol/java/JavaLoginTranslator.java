@@ -33,7 +33,6 @@ import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
 import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.erosion.GeyserboundHandshakePacketHandler;
@@ -141,7 +140,8 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
 //        }
         // register the plugin messaging channels used in Floodgate
         if (session.remoteServer().authType() == AuthType.FLOODGATE) {
-            session.sendDownstreamPacket(new ServerboundCustomPayloadPacket("minecraft:register", PluginMessageChannels.getFloodgateRegisterData()));
+            //todo
+//            session.sendDownstreamPacket(new ServerboundCustomPayloadPacket("minecraft:register", PluginMessageChannels.getFloodgateRegisterData()));
         }
 
         if (!newDimension.equals(session.getDimension())) {

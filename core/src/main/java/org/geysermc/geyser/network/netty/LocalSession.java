@@ -37,7 +37,12 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.*;
 import io.netty.channel.unix.PreferredDirectByteBufAllocator;
 import io.netty.handler.codec.haproxy.*;
+import io.netty.util.Attribute;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.hybrid.IntegratedHybridProvider;
+import org.geysermc.geyser.session.GeyserSession;
 
+import javax.annotation.Nullable;
 import java.net.Inet4Address;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -53,11 +58,14 @@ public final class LocalSession extends TcpSession {
     private final String clientIp;
     private final PacketCodecHelper codecHelper;
 
-    public LocalSession(String host, int port, SocketAddress targetAddress, String clientIp, PacketProtocol protocol, MinecraftCodecHelper codecHelper) {
+    private final GeyserSession session;
+
+    public LocalSession(@Nullable GeyserSession session, String host, int port, SocketAddress targetAddress, String clientIp, PacketProtocol protocol, MinecraftCodecHelper codecHelper) {
         super(host, port, protocol);
         this.targetAddress = targetAddress;
         this.clientIp = clientIp;
         this.codecHelper = codecHelper;
+        this.session = session;
     }
 
     @Override
@@ -89,6 +97,11 @@ public final class LocalSession extends TcpSession {
                     pipeline.addLast("manager", LocalSession.this);
 
                     addHAProxySupport(pipeline);
+
+                    if (GeyserImpl.getInstance().getHybridProvider() instanceof IntegratedHybridProvider) {
+                        Attribute<GeyserSession> attribute = channel.attr(IntegratedHybridProvider.SESSION_KEY);
+                        attribute.set(session);
+                    }
                 }
             }).group(DEFAULT_EVENT_LOOP_GROUP).option(ChannelOption.CONNECT_TIMEOUT_MILLIS, getConnectTimeout() * 1000);
 

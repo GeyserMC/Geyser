@@ -23,40 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.command.defaults;
+package org.geysermc.geyser.platform.velocity.floodgate;
 
+import com.google.inject.Module;
+import org.geysermc.floodgate.VelocityPlatform;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.util.PlatformType;
+import org.geysermc.geyser.floodgate.GeyserLoadStage;
 
-import java.util.Collections;
+import java.nio.file.Paths;
+import java.util.List;
 
-public class StopCommand extends GeyserCommand {
-
-    private final GeyserImpl geyser;
-
-    public StopCommand(GeyserImpl geyser, String name, String description, String permission) {
-        super(name, description, permission);
-        this.geyser = geyser;
-
-        this.setAliases(Collections.singletonList("shutdown"));
-    }
-
+public class FloodgateVelocityPlatform extends VelocityPlatform {
     @Override
-    public void execute(GeyserSession session, GeyserCommandSource sender, String[] args) {
-        if (!sender.isConsole() && geyser.getPlatformType() == PlatformType.STANDALONE) {
-            sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", sender.locale()));
-            return;
-        }
+    protected List<Module> loadStageModules() {
+        // Geyser being a dumb dumb
+        super.dataDirectory = Paths.get("plugins/" + GeyserImpl.NAME + "-Velocity/");
 
-        geyser.getBootstrap().onDisable();
-    }
-
-    @Override
-    public boolean isSuggestedOpOnly() {
-        return true;
+        var loaded = super.loadStageModules();
+        loaded.add(new GeyserLoadStage());
+        return loaded;
     }
 }

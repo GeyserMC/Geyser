@@ -23,40 +23,31 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.command.defaults;
+package org.geysermc.geyser.hybrid;
 
+import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.util.PlatformType;
 
-import java.util.Collections;
+import java.nio.charset.StandardCharsets;
 
-public class StopCommand extends GeyserCommand {
+public final class FloodgateHybridProvider implements HybridProvider {
+    private final FloodgateCipher cipher;
 
-    private final GeyserImpl geyser;
-
-    public StopCommand(GeyserImpl geyser, String name, String description, String permission) {
-        super(name, description, permission);
-        this.geyser = geyser;
-
-        this.setAliases(Collections.singletonList("shutdown"));
+    public FloodgateHybridProvider(GeyserImpl geyser) {
+        cipher = geyser.getFloodgatePlatform().getInstance(FloodgateCipher.class);
     }
 
     @Override
-    public void execute(GeyserSession session, GeyserCommandSource sender, String[] args) {
-        if (!sender.isConsole() && geyser.getPlatformType() == PlatformType.STANDALONE) {
-            sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", sender.locale()));
-            return;
-        }
-
-        geyser.getBootstrap().onDisable();
+    public void onSkinUpload(GeyserSession session, String value, String signature) {
+        byte[] bytes = (value + '\0' + signature)
+                .getBytes(StandardCharsets.UTF_8);
+        //todo
+//        PluginMessageUtils.sendMessage(session, PluginMessageChannels.SKIN, bytes);
     }
 
     @Override
-    public boolean isSuggestedOpOnly() {
-        return true;
+    public FloodgateCipher getCipher() {
+        return cipher;
     }
 }

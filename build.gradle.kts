@@ -6,7 +6,7 @@ plugins {
 
 allprojects {
     group = "org.geysermc.geyser"
-    version = "2.1.0-SNAPSHOT"
+    version = "3.0.0-SNAPSHOT"
     description = "Allows for players from Minecraft: Bedrock Edition to join Minecraft: Java Edition servers."
 
     tasks.withType<JavaCompile> {

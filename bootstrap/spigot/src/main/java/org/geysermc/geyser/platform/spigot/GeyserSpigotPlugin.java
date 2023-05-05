@@ -42,7 +42,9 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.geysermc.common.PlatformType;
+import org.geysermc.floodgate.pluginmessage.SpigotSkinApplier;
+import org.geysermc.floodgate.skin.SkinApplier;
+import org.geysermc.floodgate.util.SpigotVersionSpecificMethods;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
@@ -52,6 +54,8 @@ import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
+import org.geysermc.geyser.hybrid.HybridProvider;
+import org.geysermc.geyser.hybrid.IntegratedHybridProvider;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
@@ -66,6 +70,7 @@ import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotNativeWorld
 import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.util.PlatformType;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -154,7 +159,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
-        this.geyser = GeyserImpl.load(PlatformType.SPIGOT, this);
+        this.geyser = GeyserImpl.load(PlatformType.SPIGOT, this, null);
     }
 
     @Override
@@ -165,11 +170,22 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             return;
         }
 
-        // Remove this in like a year
-        if (Bukkit.getPluginManager().getPlugin("floodgate-bukkit") != null) {
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.outdated", Constants.FLOODGATE_DOWNLOAD_LOCATION));
-            this.getPluginLoader().disablePlugin(this);
-            return;
+        // By default this should be localhost but may need to be changed in some circumstances
+        if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
+            geyserConfig.setAutoconfiguredRemote(true);
+            // Don't use localhost if not listening on all interfaces
+            if (!Bukkit.getIp().equals("0.0.0.0") && !Bukkit.getIp().equals("")) {
+                geyserConfig.getRemote().setAddress(Bukkit.getIp());
+            }
+            geyserConfig.getRemote().setPort(Bukkit.getPort());
+        }
+
+        if (geyserConfig.getBedrock().isCloneRemotePort()) {
+            geyserConfig.getBedrock().setPort(Bukkit.getPort());
+        }
+
+        if (Bukkit.getPluginManager().getPlugin("floodgate") != null) {
+            geyserLogger.severe("WHY DO YOU HAVE FLOODGATE INSTALLED!!!!!!! REMOVE IT!!!!");
         }
 
         this.geyserCommandManager = new GeyserSpigotCommandManager(geyser);
@@ -406,6 +422,16 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     @Override
     public SocketAddress getSocketAddress() {
         return this.geyserInjector.getServerSocketAddress();
+    }
+
+    @Override
+    public HybridProvider createHybridProvider(GeyserImpl geyser) {
+        return new IntegratedHybridProvider(geyser);
+    }
+
+    @Override
+    public SkinApplier createSkinApplier() {
+        return new SpigotSkinApplier(new SpigotVersionSpecificMethods(this), this);
     }
 
     /**

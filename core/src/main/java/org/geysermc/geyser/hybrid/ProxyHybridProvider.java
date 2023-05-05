@@ -23,24 +23,21 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.floodgate.util;
+package org.geysermc.geyser.hybrid;
 
-public enum InputMode {
-    UNKNOWN,
-    KEYBOARD_MOUSE,
-    TOUCH,
-    CONTROLLER,
-    VR;
+import org.geysermc.floodgate.crypto.FloodgateCipher;
+import org.geysermc.geyser.GeyserImpl;
 
-    private static final InputMode[] VALUES = values();
+public final class ProxyHybridProvider extends IntegratedHybridProvider {
+    private final FloodgateCipher cipher;
 
-    /**
-     * Get the InputMode instance from the identifier.
-     *
-     * @param id the InputMode identifier
-     * @return The InputMode or {@link #UNKNOWN} if the DeviceOs wasn't found
-     */
-    public static InputMode fromId(int id) {
-        return VALUES.length > id ? VALUES[id] : VALUES[0];
+    public ProxyHybridProvider(GeyserImpl geyser) {
+        super(geyser);
+        this.cipher = geyser.getFloodgatePlatform().getInstance(FloodgateCipher.class);
+    }
+
+    @Override
+    public FloodgateCipher getCipher() {
+        return cipher;
     }
 }

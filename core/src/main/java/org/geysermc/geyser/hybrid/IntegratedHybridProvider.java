@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,51 +23,32 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.floodgate.util;
+package org.geysermc.geyser.hybrid;
 
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
+import io.netty.util.AttributeKey;
+import org.geysermc.floodgate.crypto.FloodgateCipher;
+import org.geysermc.floodgate.skin.SkinApplier;
+import org.geysermc.floodgate.skin.SkinData;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.session.GeyserSession;
 
-/**
- * The Operation Systems where Bedrock players can connect with
- */
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public enum DeviceOs {
-    UNKNOWN("Unknown"),
-    GOOGLE("Android"),
-    IOS("iOS"),
-    OSX("macOS"),
-    AMAZON("Amazon"),
-    GEARVR("Gear VR"),
-    HOLOLENS("Hololens"),
-    UWP("Windows"),
-    WIN32("Windows x86"),
-    DEDICATED("Dedicated"),
-    TVOS("Apple TV"),
-    PS4("PS4"),
-    NX("Switch"),
-    XBOX("Xbox One"),
-    WINDOWS_PHONE("Windows Phone");
+public class IntegratedHybridProvider implements HybridProvider {
+    // TODO This will probably end up as its own class.
+    public static final AttributeKey<GeyserSession> SESSION_KEY = AttributeKey.valueOf("geyser-session");
 
-    private static final DeviceOs[] VALUES = values();
+    private final SkinApplier skinApplier;
 
-    private final String displayName;
-
-    /**
-     * Get the DeviceOs instance from the identifier.
-     *
-     * @param id the DeviceOs identifier
-     * @return The DeviceOs or {@link #UNKNOWN} if the DeviceOs wasn't found
-     */
-    public static DeviceOs fromId(int id) {
-        return id < VALUES.length ? VALUES[id] : VALUES[0];
+    public IntegratedHybridProvider(GeyserImpl geyser) {
+        skinApplier = geyser.getBootstrap().createSkinApplier();
     }
 
-    /**
-     * @return friendly display name of platform.
-     */
     @Override
-    public String toString() {
-        return displayName;
+    public void onSkinUpload(GeyserSession session, String value, String signature) {
+        skinApplier.applySkin(session, new SkinData(value, signature));
+    }
+
+    @Override
+    public FloodgateCipher getCipher() {
+        throw new UnsupportedOperationException();
     }
 }
