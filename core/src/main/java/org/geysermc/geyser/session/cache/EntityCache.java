@@ -155,6 +155,14 @@ public class EntityCache {
         }
     }
 
+    /**
+     * Re-adds all boss bars to the client by re-creating the entities attached to them.
+     * This seems to fix boss bars showing up on dimension switch, as of Bedrock 1.19.81.
+     */
+    public void addBossBars() {
+        bossBars.values().forEach(BossBar::addBossBar);
+    }
+
     public void updateBossBars() {
         bossBars.values().forEach(BossBar::updateBossBar);
     }
