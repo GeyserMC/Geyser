@@ -238,7 +238,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 attributesPacket.getAttributes().addAll(entity.getAttributes().values());
                 session.sendUpstreamPacket(attributesPacket);
 
-                session.getEntityCache().updateBossBars();
+                session.getEntityCache().addBossBars();
                 break;
             case JUMP:
                 entity.setOnGround(false); // Increase block break time while jumping
