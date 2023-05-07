@@ -44,6 +44,7 @@ import org.java_websocket.handshake.ServerHandshake;
 
 import javax.net.ssl.SSLException;
 import java.net.ConnectException;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -175,6 +176,10 @@ public final class FloodgateSkinUploader {
 
             @Override
             public void onError(Exception ex) {
+                if (ex instanceof UnknownHostException) {
+                    logger.error("Unable to resolve the skin api! This can be caused by your connection or the skin api being unreachable. " + ex.getMessage());
+                    return;
+                }
                 if (ex instanceof ConnectException || ex instanceof SSLException) {
                     if (logger.isDebug()) {
                         logger.error("[debug] Got an error", ex);
