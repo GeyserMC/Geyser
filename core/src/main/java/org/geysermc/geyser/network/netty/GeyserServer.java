@@ -233,10 +233,7 @@ public final class GeyserServer {
             pong.maximumPlayerCount(config.getMaxPlayers());
         }
 
-        // Only fire the event if there are subscribers.
-        if (!this.geyser.eventBus().subscribers(GeyserBedrockPingEvent.class).isEmpty()) {
-            this.geyser.eventBus().fire(new GeyserBedrockPingEventImpl(pong, inetSocketAddress));
-        }
+        this.geyser.eventBus().fire(new GeyserBedrockPingEventImpl(pong, inetSocketAddress));
 
         // https://github.com/GeyserMC/Geyser/issues/3388
         pong.motd(pong.motd().replace(';', ':'));
