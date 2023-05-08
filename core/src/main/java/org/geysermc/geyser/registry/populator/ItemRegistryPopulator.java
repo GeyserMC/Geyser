@@ -496,6 +496,7 @@ public class ItemRegistryPopulator {
                         mappings.add(ItemMapping.AIR);
                     }
                     mappings.set(javaItem.javaId(), mapping);
+                    registry.put(customItemId, mapping.getBedrockDefinition());
 
                     if (customItem.creativeGroup() != null || customItem.creativeCategory().isPresent()) {
                         creativeItems.add(ItemData.builder()
