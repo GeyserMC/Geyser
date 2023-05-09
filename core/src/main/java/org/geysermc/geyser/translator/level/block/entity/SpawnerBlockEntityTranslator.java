@@ -30,7 +30,7 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.GeyserEntityDefinition;
 import org.geysermc.geyser.registry.Registries;
 
 @BlockEntity(type = BlockEntityType.MOB_SPAWNER)
@@ -75,7 +75,7 @@ public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
                 String entityId = idTag.getValue();
                 builder.put("EntityIdentifier", entityId);
 
-                EntityDefinition<?> definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityId);
+                GeyserEntityDefinition<?> definition = Registries.ENTITY_IDENTIFIERS.get(entityId);
                 if (definition != null) {
                     builder.put("DisplayEntityWidth", definition.width());
                     builder.put("DisplayEntityHeight", definition.height());
