@@ -50,7 +50,6 @@ import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerOfflineHandle
 import org.cloudburstmc.protocol.bedrock.BedrockPeer;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.event.lifecycle.GeyserBedrockPingEvent;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.event.type.GeyserBedrockPingEventImpl;
 import org.geysermc.geyser.network.CIDRMatcher;

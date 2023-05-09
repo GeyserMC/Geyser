@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event.lifecycle;
+package org.geysermc.geyser.api.event.connection;
 
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -45,7 +45,7 @@ public interface GeyserBedrockPingEvent extends Event {
      *
      * @param primary the string to set as the primary motd
      */
-    void setPrimaryMotd(@NonNull String primary);
+    void primaryMotd(@NonNull String primary);
 
     /**
      * Sets the given string as the secondary motd, the given string cannot be null.
@@ -53,54 +53,58 @@ public interface GeyserBedrockPingEvent extends Event {
      *
      * @param secondary the string to set as the secondary motd
      */
-    void setSecondaryMotd(@NonNull String secondary);
+    void secondaryMotd(@NonNull String secondary);
 
     /**
      * Sets how many players are currently online, the given number cannot be below 0.
      *
      * @param count the number to set
      */
-    void setPlayerCount(int count);
+    void playerCount(int count);
 
     /**
      * Sets the maximum number of players that can join this server, the given number cannot be below 1.
      *
      * @param max the number to set
      */
-    void setMaxPlayerCount(int max);
+    void maxPlayerCount(int max);
 
     /**
      * Gets the primary motd.
      *
      * @return the primary motd string
      */
-    @Nullable String getPrimaryMotd();
+    @Nullable
+    String primaryMotd();
 
     /**
      * Gets the secondary motd.
      *
      * @return the secondary motd string
      */
-    @Nullable String getSecondaryMotd();
+    @Nullable
+    String secondaryMotd();
 
     /**
      * Gets the current number of players.
      *
      * @return number of players online
      */
-    @NonNegative int getPlayerCount();
+    @NonNegative
+    int playerCount();
 
     /**
      * Gets the maximum number of players that can join this server
      *
      * @return maximum number of players that can join
      */
-    int getMaxPlayerCount();
+    int maxPlayerCount();
 
     /**
      * Gets the {@link InetSocketAddress} of the client pinging us.
      *
      * @return a {@link InetSocketAddress}
      */
-    @NonNull InetSocketAddress getAddress();
+    @NonNull
+    InetSocketAddress address();
 }

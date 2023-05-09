@@ -28,7 +28,7 @@ package org.geysermc.geyser.event.type;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
-import org.geysermc.geyser.api.event.lifecycle.GeyserBedrockPingEvent;
+import org.geysermc.geyser.api.event.connection.GeyserBedrockPingEvent;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -45,49 +45,49 @@ public class GeyserBedrockPingEventImpl implements GeyserBedrockPingEvent {
     }
 
     @Override
-    public void setPrimaryMotd(@Nonnull String primary) {
+    public void primaryMotd(@Nonnull String primary) {
         pong.motd(Objects.requireNonNull(primary, "Primary MOTD cannot be null"));
     }
 
     @Override
-    public void setSecondaryMotd(@Nonnull String secondary) {
+    public void secondaryMotd(@Nonnull String secondary) {
         pong.subMotd(Objects.requireNonNull(secondary, "Secondary MOTD cannot be null"));
     }
 
     @Override
-    public void setPlayerCount(int count) {
+    public void playerCount(int count) {
         if (count < 0) throw new IllegalArgumentException("Player count cannot be below 0");
         pong.playerCount(count);
     }
 
     @Override
-    public void setMaxPlayerCount(int max) {
+    public void maxPlayerCount(int max) {
         if (max < 1) throw new IllegalArgumentException("Max player count cannot be below 1");
         pong.maximumPlayerCount(max);
     }
 
     @Override
-    public @Nullable String getPrimaryMotd() {
+    public @Nullable String primaryMotd() {
         return pong.motd();
     }
 
     @Override
-    public @Nullable String getSecondaryMotd() {
+    public @Nullable String secondaryMotd() {
         return pong.subMotd();
     }
 
     @Override
-    public @NonNegative int getPlayerCount() {
+    public @NonNegative int playerCount() {
         return pong.playerCount();
     }
 
     @Override
-    public int getMaxPlayerCount() {
+    public int maxPlayerCount() {
         return pong.maximumPlayerCount();
     }
 
     @Override
-    public @NotNull InetSocketAddress getAddress() {
+    public @NotNull InetSocketAddress address() {
         return address;
     }
 }
