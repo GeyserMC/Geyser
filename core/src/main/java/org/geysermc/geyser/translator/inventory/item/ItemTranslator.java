@@ -199,24 +199,32 @@ public final class ItemTranslator {
 
             for (Tag modifier : modifiersList) {
                 Map<String, Tag> modifierValue = (Map) modifier.getValue();
-
                 double amount;
-                if (modifierValue.get("Amount") instanceof IntTag intTag)
+                if (modifierValue.get("Amount") instanceof IntTag intTag) {
                     amount = (double) intTag.getValue();
-                else if (modifierValue.get("Amount") instanceof DoubleTag doubleTag)
+                } else if (modifierValue.get("Amount") instanceof DoubleTag doubleTag) {
                     amount = doubleTag.getValue();
-                else continue;
-                if (amount == 0) continue;
+                } else {
+                    continue;
+                }
+                if (amount == 0) {
+                    continue;
+                }
                 int operation = (int) modifierValue.get("Operation").getValue();
                 String operationTotal;
                 if (operation == 0) {
-                    if (modifierValue.get("Name").equals("knockback_resistance")) amount *= 10;
+                    if (modifierValue.get("Name").equals("knockback_resistance")) {
+                        amount *= 10;
+                    }
                     operationTotal = decimalFormat.format(amount);
-                }
-                else if (operation == 1 || operation == 2)
+                } else if (operation == 1 || operation == 2) {
                     operationTotal = decimalFormat.format(amount * 100) + "%";
-                else continue;
-                if (amount > 0) operationTotal = "+" + operationTotal;
+                } else {
+                    continue;
+                }
+                if (amount > 0) {
+                    operationTotal = "+" + operationTotal;
+                }
 
                 Component attributeComponent = Component.text()
                         .resetStyle()
