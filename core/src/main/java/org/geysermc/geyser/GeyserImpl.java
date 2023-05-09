@@ -540,6 +540,8 @@ public class GeyserImpl implements GeyserApi {
         if (config.isNotifyOnNewBedrockUpdate()) {
             VersionCheckUtils.checkForGeyserUpdate(this::getLogger);
         }
+
+        VersionCheckUtils.checkForOutdatedJava(logger);
     }
 
     @Override
