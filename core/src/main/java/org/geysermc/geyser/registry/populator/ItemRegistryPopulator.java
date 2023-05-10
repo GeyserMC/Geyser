@@ -468,7 +468,7 @@ public class ItemRegistryPopulator {
                         .build());
 
                 creativeItems.add(ItemData.builder()
-                        .netId(creativeNetId.getAndIncrement())
+                        .netId(creativeNetId.incrementAndGet())
                         .definition(definition)
                         .count(1)
                         .build());
@@ -501,7 +501,7 @@ public class ItemRegistryPopulator {
                     if (customItem.creativeGroup() != null || customItem.creativeCategory().isPresent()) {
                         creativeItems.add(ItemData.builder()
                                 .definition(registration.mapping().getBedrockDefinition())
-                                .netId(creativeNetId.getAndIncrement())
+                                .netId(creativeNetId.incrementAndGet())
                                 .count(1)
                                 .build());
                     }
