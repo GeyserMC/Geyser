@@ -37,10 +37,6 @@ import it.unimi.dsi.fastutil.objects.*;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.protocol.bedrock.codec.v544.Bedrock_v544;
-import org.cloudburstmc.protocol.bedrock.codec.v560.Bedrock_v560;
-import org.cloudburstmc.protocol.bedrock.codec.v567.Bedrock_v567;
-import org.cloudburstmc.protocol.bedrock.codec.v575.Bedrock_v575;
 import org.cloudburstmc.protocol.bedrock.codec.v582.Bedrock_v582;
 import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
@@ -74,17 +70,7 @@ public class ItemRegistryPopulator {
     }
 
     public static void populate() {
-        Map<Item, String> manualFallback = new HashMap<>();
-        manualFallback.put(Items.ENDER_DRAGON_SPAWN_EGG, "minecraft:enderman_spawn_egg");
-        manualFallback.put(Items.WITHER_SPAWN_EGG, "minecraft:wither_skeleton_spawn_egg");
-        manualFallback.put(Items.SNOW_GOLEM_SPAWN_EGG, "minecraft:polar_bear_spawn_egg");
-        manualFallback.put(Items.IRON_GOLEM_SPAWN_EGG, "minecraft:villager_spawn_egg");
-
         Map<String, PaletteVersion> paletteVersions = new Object2ObjectOpenHashMap<>();
-        paletteVersions.put("1_19_20", new PaletteVersion(Bedrock_v544.CODEC.getProtocolVersion(), manualFallback));
-        paletteVersions.put("1_19_50", new PaletteVersion(Bedrock_v560.CODEC.getProtocolVersion(), manualFallback));
-        paletteVersions.put("1_19_60", new PaletteVersion(Bedrock_v567.CODEC.getProtocolVersion(), Collections.emptyMap()));
-        paletteVersions.put("1_19_70", new PaletteVersion(Bedrock_v575.CODEC.getProtocolVersion(), Collections.emptyMap()));
         paletteVersions.put("1_19_80", new PaletteVersion(Bedrock_v582.CODEC.getProtocolVersion(), Collections.emptyMap()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
@@ -182,11 +168,6 @@ public class ItemRegistryPopulator {
             Set<Item> javaOnlyItems = new ObjectOpenHashSet<>();
             Collections.addAll(javaOnlyItems, Items.SPECTRAL_ARROW, Items.DEBUG_STICK,
                     Items.KNOWLEDGE_BOOK, Items.TIPPED_ARROW, Items.BUNDLE);
-            // these spawn eggs exist in 1.19.60+;
-            if (palette.getValue().protocolVersion() < Bedrock_v567.CODEC.getProtocolVersion()) {
-                Collections.addAll(javaOnlyItems, Items.IRON_GOLEM_SPAWN_EGG, Items.SNOW_GOLEM_SPAWN_EGG,
-                        Items.WITHER_SPAWN_EGG, Items.ENDER_DRAGON_SPAWN_EGG);
-            }
             javaOnlyItems.add(Items.DECORATED_POT);
             if (!customItemsAllowed) {
                 javaOnlyItems.add(Items.FURNACE_MINECART);
@@ -218,20 +199,17 @@ public class ItemRegistryPopulator {
                 }
 
                 String bedrockIdentifier;
-                // 1.19.70+
-                if (palette.getValue().protocolVersion() >= Bedrock_v575.CODEC.getProtocolVersion() && mappingItem.getBedrockIdentifier().equals("minecraft:wool")) {
+                if (mappingItem.getBedrockIdentifier().equals("minecraft:wool")) {
                     bedrockIdentifier = javaItem.javaIdentifier();
                 } else {
                     bedrockIdentifier = mappingItem.getBedrockIdentifier();
                 }
 
                 //1.19.80+
-                if (palette.getValue().protocolVersion >= Bedrock_v582.CODEC.getProtocolVersion()) {
-                    if (mappingItem.getBedrockIdentifier().equals("minecraft:log") ||
-                            mappingItem.getBedrockIdentifier().equals("minecraft:log2") ||
-                            mappingItem.getBedrockIdentifier().equals("minecraft:fence")) {
-                        bedrockIdentifier = javaItem.javaIdentifier();
-                    }
+                if (mappingItem.getBedrockIdentifier().equals("minecraft:log") ||
+                    mappingItem.getBedrockIdentifier().equals("minecraft:log2") ||
+                    mappingItem.getBedrockIdentifier().equals("minecraft:fence")) {
+                    bedrockIdentifier = javaItem.javaIdentifier();
                 }
 
                 ItemDefinition definition = definitions.get(bedrockIdentifier);
