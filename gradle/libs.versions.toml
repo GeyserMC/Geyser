@@ -9,11 +9,11 @@ netty = "4.1.80.Final"
 guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8
 websocket = "1.5.1"
-protocol = "3.0.0.Beta1-20230424.095344-69"
-protocol-connection = "3.0.0.Beta1-20230424.095344-68"
-raknet = "1.0.0.CR1-20230429.113927-6"
+protocol = "3.0.0.Beta1-20230507.200054-78"
+protocol-connection = "3.0.0.Beta1-20230507.200054-77"
+raknet = "1.0.0.CR1-20230430.211932-7"
 mcauthlib = "d9d773e"
-mcprotocollib = "1.19.4-2-20230427.170624-2"
+mcprotocollib = "1.19.4-2-20230503.145414-3"
 adventure = "4.14.0-20230424.215040-7"
 adventure-platform = "4.1.2"
 junit = "5.9.2"
@@ -95,6 +95,7 @@ velocity-api = { group = "com.velocitypowered", name = "velocity-api", version.r
 viaversion = { group = "com.viaversion", name = "viaversion", version.ref = "viaversion" }
 websocket = { group = "org.java-websocket", name = "Java-WebSocket", version.ref = "websocket" }
 
+protocol-common = { group = "org.cloudburstmc.protocol", name = "common", version.ref = "protocol-connection" }
 protocol-codec = { group = "org.cloudburstmc.protocol", name = "bedrock-codec", version.ref = "protocol" }
 protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol-connection" }
 
@@ -104,4 +105,4 @@ fastutil = [ "fastutil-int-int-maps", "fastutil-int-long-maps", "fastutil-int-by
 adventure = [ "adventure-text-serializer-gson", "adventure-text-serializer-legacy", "adventure-text-serializer-plain" ]
 log4j = [ "log4j-api", "log4j-core", "log4j-slf4j18-impl" ]
 jline = [ "jline-terminal", "jline-terminal-jna", "jline-reader" ]
-protocol = [ "protocol-codec", "protocol-connection" ]
+protocol = [ "protocol-common", "protocol-codec", "protocol-connection" ]

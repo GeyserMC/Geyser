@@ -25,14 +25,4 @@ pipeline {
             }
         }
     }
-
-    post {
-        success {
-            script {
-                if (env.BRANCH_NAME == 'master') {
-                    build propagate: false, wait: false, job: 'GeyserMC/GeyserConnect/master', parameters: [booleanParam(name: 'SKIP_DISCORD', value: true)]
-                }
-            }
-        }
-    }
 }
