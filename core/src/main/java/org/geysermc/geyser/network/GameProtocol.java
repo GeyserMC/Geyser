@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.codec.PacketCodec;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.cloudburstmc.protocol.bedrock.codec.v582.Bedrock_v582;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
+import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,6 +76,12 @@ public final class GameProtocol {
             }
         }
         return null;
+    }
+
+    /* Bedrock convenience methods to gatekeep features and easily remove the check on version removal */
+
+    public static boolean isPre1_20(GeyserSession session) {
+        return session.getUpstream().getProtocolVersion() >= Bedrock_v582.CODEC.getProtocolVersion();
     }
 
     /**
