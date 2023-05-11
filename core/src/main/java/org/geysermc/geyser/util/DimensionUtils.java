@@ -36,6 +36,7 @@ import org.cloudburstmc.protocol.bedrock.packet.PlayerActionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.StopSoundPacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.level.BedrockDimension;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Set;
@@ -121,16 +122,18 @@ public class DimensionUtils {
         stopSoundPacket.setSoundName("");
         session.sendUpstreamPacket(stopSoundPacket);
 
-        // Kind of silly but Bedrock 1.19.50 and later requires an acknowledgement after the
+        // Kind of silly but Bedrock 1.19.50 requires an acknowledgement after the
         // initial chunks are sent, prior to the client acknowledgement
-        // Note: send this before chunks are sent. Fixed https://github.com/GeyserMC/Geyser/issues/3421
-        PlayerActionPacket ackPacket = new PlayerActionPacket();
-        ackPacket.setRuntimeEntityId(player.getGeyserId());
-        ackPacket.setAction(PlayerActionType.DIMENSION_CHANGE_SUCCESS);
-        ackPacket.setBlockPosition(Vector3i.ZERO);
-        ackPacket.setResultPosition(Vector3i.ZERO);
-        ackPacket.setFace(0);
-        session.sendUpstreamPacket(ackPacket);
+        if (GameProtocol.supports1_19_50(session)) {
+            // Note: send this before chunks are sent. Fixed https://github.com/GeyserMC/Geyser/issues/3421
+            PlayerActionPacket ackPacket = new PlayerActionPacket();
+            ackPacket.setRuntimeEntityId(player.getGeyserId());
+            ackPacket.setAction(PlayerActionType.DIMENSION_CHANGE_SUCCESS);
+            ackPacket.setBlockPosition(Vector3i.ZERO);
+            ackPacket.setResultPosition(Vector3i.ZERO);
+            ackPacket.setFace(0);
+            session.sendUpstreamPacket(ackPacket);
+        }
 
         // TODO - fix this hack of a fix by sending the final dimension switching logic after sections have been sent.
         // The client wants sections sent to it before it can successfully respawn.
