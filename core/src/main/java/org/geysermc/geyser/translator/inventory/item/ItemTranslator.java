@@ -26,6 +26,7 @@
 package org.geysermc.geyser.translator.inventory.item;
 
 import com.github.steveice10.mc.protocol.data.game.Identifier;
+import com.github.steveice10.mc.protocol.data.game.entity.attribute.ModifierOperation;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import net.kyori.adventure.text.Component;
@@ -210,14 +211,14 @@ public final class ItemTranslator {
                 if (amount == 0) {
                     continue;
                 }
-                int operation = (int) modifierValue.get("Operation").getValue();
+                ModifierOperation operation = ModifierOperation.from((int) modifierValue.get("Operation").getValue());
                 String operationTotal;
-                if (operation == 0) {
+                if (operation == ModifierOperation.ADD) {
                     if (modifierValue.get("Name").equals("knockback_resistance")) {
                         amount *= 10;
                     }
                     operationTotal = decimalFormat.format(amount);
-                } else if (operation == 1 || operation == 2) {
+                } else if (operation == ModifierOperation.ADD_MULTIPLIED || operation == ModifierOperation.MULTIPLY) {
                     operationTotal = decimalFormat.format(amount * 100) + "%";
                 } else {
                     continue;
