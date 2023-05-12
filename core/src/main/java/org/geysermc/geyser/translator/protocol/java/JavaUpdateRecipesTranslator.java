@@ -29,7 +29,6 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
-import com.github.steveice10.mc.protocol.data.game.recipe.data.LegacyUpgradeRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.StoneCuttingRecipeData;
@@ -41,7 +40,6 @@ import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.MultiRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.DefaultDescriptor;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
@@ -144,22 +142,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     data.add(stoneCuttingData);
                     // Save for processing after all recipes have been received
                 }
-                case SMITHING -> {
-                    // Required to translate these as of 1.18.10, or else they cannot be crafted
-                    LegacyUpgradeRecipeData recipeData = (LegacyUpgradeRecipeData) recipe.getData();
-                    ItemData output = ItemTranslator.translateToBedrock(session, recipeData.getResult());
-                    for (ItemStack base : recipeData.getBase().getOptions()) {
-                        ItemDescriptorWithCount bedrockBase = ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, base));
-
-                        for (ItemStack addition : recipeData.getAddition().getOptions()) {
-                            ItemDescriptorWithCount bedrockAddition = ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, addition));
-
-                            // Note: vanilla inputs use aux value of Short.MAX_VALUE
-                            craftingDataPacket.getCraftingData().add(SmithingTransformRecipeData.of(recipe.getIdentifier(),
-                                    ItemDescriptorWithCount.EMPTY, bedrockBase, bedrockAddition, output, "smithing_table", netId++));
-                        }
-                    }
-                }
+                // todo: 1.20 smithing
                 default -> {
                     List<RecipeData> craftingData = recipeTypes.get(recipe.getType());
                     if (craftingData != null) {

@@ -108,7 +108,7 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
             // Put the final line on since it isn't done in the for loop
             if (iterator < lines.length) lines[iterator] = newMessage.toString();
             Vector3i pos = Vector3i.from(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
-            ServerboundSignUpdatePacket signUpdatePacket = new ServerboundSignUpdatePacket(pos, lines);
+            ServerboundSignUpdatePacket signUpdatePacket = new ServerboundSignUpdatePacket(pos, lines, true);
             session.sendDownstreamPacket(signUpdatePacket);
 
         } else if (id.equals("JigsawBlock")) {
