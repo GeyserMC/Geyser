@@ -130,6 +130,13 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     boolean isHat();
 
     /**
+     * Gets if the item is a foil. This is used to determine if the item should be rendered with an enchantment glint effect.
+     *
+     * @return if the item is a foil
+     */
+    boolean isFoil();
+
+    /**
      * @deprecated Use {@link #displayHandheld()} instead.
      * Gets if the item is a tool. This is used to set the render type of the item, if the item is handheld.
      *
@@ -173,6 +180,8 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         Builder creativeGroup(@Nullable String creativeGroup);
 
         Builder hat(boolean isHat);
+
+        Builder foil(boolean isFoil);
 
         /**
          * @deprecated Use {@link #displayHandheld(boolean)} instead.
