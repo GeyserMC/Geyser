@@ -70,13 +70,7 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.*;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
