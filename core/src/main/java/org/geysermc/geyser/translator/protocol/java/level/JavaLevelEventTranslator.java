@@ -53,10 +53,16 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
 
     @Override
     public void translate(GeyserSession session, ClientboundLevelEventPacket packet) {
+        if (!(packet.getEvent() instanceof LevelEventType levelEvent)) {
+            return;
+        }
         // Separate case since each RecordEventData in Java is an individual track in Bedrock
-        if (packet.getEvent() == LevelEvent.RECORD) {
+        if (levelEvent == LevelEventType.RECORD) {
             RecordEventData recordEventData = (RecordEventData) packet.getData();
-            SoundEvent soundEvent = Registries.RECORDS.getOrDefault(recordEventData.getRecordId(), SoundEvent.STOP_RECORD);
+            SoundEvent soundEvent = Registries.RECORDS.get(recordEventData.getRecordId());
+            if (soundEvent == null) {
+                return;
+            }
             Vector3i origin = packet.getPosition();
             Vector3f pos = Vector3f.from(origin.getX() + 0.5f, origin.getY() + 0.5f, origin.getZ() + 0.5f);
 
@@ -69,19 +75,17 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             levelSoundEvent.setBabySound(false);
             session.sendUpstreamPacket(levelSoundEvent);
 
-            if (soundEvent != SoundEvent.STOP_RECORD) {
-                // Send text packet as it seems to be handled in Java Edition client-side.
-                TextPacket textPacket = new TextPacket();
-                textPacket.setType(TextPacket.Type.JUKEBOX_POPUP);
-                textPacket.setNeedsTranslation(true);
-                textPacket.setXuid("");
-                textPacket.setPlatformChatId("");
-                textPacket.setSourceName(null);
-                textPacket.setMessage("record.nowPlaying");
-                String recordString = "%item." + soundEvent.name().toLowerCase(Locale.ROOT) + ".desc";
-                textPacket.setParameters(Collections.singletonList(MinecraftLocale.getLocaleString(recordString, session.locale())));
-                session.sendUpstreamPacket(textPacket);
-            }
+            // Send text packet as it seems to be handled in Java Edition client-side.
+            TextPacket textPacket = new TextPacket();
+            textPacket.setType(TextPacket.Type.JUKEBOX_POPUP);
+            textPacket.setNeedsTranslation(true);
+            textPacket.setXuid("");
+            textPacket.setPlatformChatId("");
+            textPacket.setSourceName(null);
+            textPacket.setMessage("record.nowPlaying");
+            String recordString = "%item." + soundEvent.name().toLowerCase(Locale.ROOT) + ".desc";
+            textPacket.setParameters(Collections.singletonList(MinecraftLocale.getLocaleString(recordString, session.locale())));
+            session.sendUpstreamPacket(textPacket);
             return;
         }
 
@@ -98,7 +102,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
         LevelEventPacket effectPacket = new LevelEventPacket();
         effectPacket.setPosition(pos);
         effectPacket.setData(0);
-        switch (packet.getEvent()) {
+        switch (levelEvent) {
             case COMPOSTER -> {
                 effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_CROP_GROWTH);
 
@@ -215,7 +219,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             case BREAK_EYE_OF_ENDER -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_EYE_OF_ENDER_DEATH);
             case MOB_SPAWN -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_MOB_BLOCK_SPAWN); // TODO: Check, but I don't think I really verified this ever went into effect on Java
             case BONEMEAL_GROW_WITH_SOUND, BONEMEAL_GROW -> {
-                effectPacket.setType(packet.getEvent() == LevelEvent.BONEMEAL_GROW ? org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TURTLE_EGG : org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_CROP_GROWTH);
+                effectPacket.setType(levelEvent == LevelEventType.BONEMEAL_GROW ? org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TURTLE_EGG : org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_CROP_GROWTH);
 
                 BonemealGrowEventData growEventData = (BonemealGrowEventData) packet.getData();
                 effectPacket.setData(growEventData.getParticleCount());
@@ -308,6 +312,17 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 soundEventPacket.setBabySound(false);
                 soundEventPacket.setRelativeVolumeDisabled(false);
                 session.sendUpstreamPacket(soundEventPacket);
+                return;
+            }
+            case STOP_RECORD -> {
+                LevelSoundEventPacket levelSoundEvent = new LevelSoundEventPacket();
+                levelSoundEvent.setIdentifier("");
+                levelSoundEvent.setSound(SoundEvent.STOP_RECORD);
+                levelSoundEvent.setPosition(pos);
+                levelSoundEvent.setRelativeVolumeDisabled(false);
+                levelSoundEvent.setExtraData(-1);
+                levelSoundEvent.setBabySound(false);
+                session.sendUpstreamPacket(levelSoundEvent);
                 return;
             }
             default -> {

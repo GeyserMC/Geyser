@@ -29,8 +29,6 @@ import com.github.steveice10.packetlib.helper.TransportHelper;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollDatagramChannel;
@@ -41,33 +39,32 @@ import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.nio.NioDatagramChannel;
-import io.netty.handler.codec.haproxy.HAProxyCommand;
-import io.netty.handler.codec.haproxy.HAProxyMessage;
-import io.netty.handler.codec.haproxy.HAProxyMessageDecoder;
+import lombok.Getter;
+import net.jodah.expiringmap.ExpirationPolicy;
+import net.jodah.expiringmap.ExpiringMap;
 import org.cloudburstmc.netty.channel.raknet.RakChannelFactory;
 import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
 import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerOfflineHandler;
-import org.cloudburstmc.protocol.bedrock.BedrockPeer;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
+import org.geysermc.geyser.event.type.GeyserBedrockPingEventImpl;
 import org.geysermc.geyser.network.CIDRMatcher;
 import org.geysermc.geyser.network.GameProtocol;
-import org.geysermc.geyser.network.GeyserBedrockPeer;
 import org.geysermc.geyser.network.GeyserServerInitializer;
 import org.geysermc.geyser.network.netty.handler.RakConnectionRequestHandler;
 import org.geysermc.geyser.network.netty.handler.RakPingHandler;
+import org.geysermc.geyser.network.netty.proxy.ProxyServerHandler;
 import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.jetbrains.annotations.NotNull;
 
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.IntFunction;
 
 public final class GeyserServer {
@@ -89,6 +86,9 @@ public final class GeyserServer {
     private final EventLoopGroup group;
     private final ServerBootstrap bootstrap;
 
+    @Getter
+    private final ExpiringMap<InetSocketAddress, InetSocketAddress> proxiedAddresses;
+
     private ChannelFuture future;
 
     public GeyserServer(GeyserImpl geyser, int threadCount) {
@@ -96,6 +96,14 @@ public final class GeyserServer {
         this.group = TRANSPORT.eventLoopGroupFactory().apply(threadCount);
 
         this.bootstrap = this.createBootstrap(this.group);
+
+        if (this.geyser.getConfig().getBedrock().isEnableProxyProtocol()) {
+            this.proxiedAddresses = ExpiringMap.builder()
+                    .expiration(30 + 1, TimeUnit.MINUTES)
+                    .expirationPolicy(ExpirationPolicy.ACCESSED).build();
+        } else {
+            this.proxiedAddresses = null;
+        }
     }
 
     public CompletableFuture<Void> bind(InetSocketAddress address) {
@@ -116,27 +124,7 @@ public final class GeyserServer {
                 .addAfter(RakServerOfflineHandler.NAME, RakPingHandler.NAME, new RakPingHandler(this));
 
         if (this.geyser.getConfig().getBedrock().isEnableProxyProtocol()) {
-            channel.pipeline().addFirst("proxy-protocol-decoder", new HAProxyMessageDecoder());
-            channel.pipeline().addAfter("proxy-protocol-decoder", "proxy-protocol-packet-handler", new ChannelInboundHandlerAdapter() {
-
-                @Override
-                public void channelRead(@NotNull ChannelHandlerContext ctx, @NotNull Object msg) throws Exception {
-                    if (!(msg instanceof HAProxyMessage message)) {
-                        super.channelRead(ctx, msg);
-                        return;
-                    }
-
-                    if (message.command() == HAProxyCommand.PROXY) {
-                        String address = message.sourceAddress();
-                        int port = message.sourcePort();
-
-                        SocketAddress realAddress = new InetSocketAddress(address, port);
-
-                        GeyserBedrockPeer peer = (GeyserBedrockPeer) channel.pipeline().get(BedrockPeer.NAME);
-                        peer.setProxiedAddress(realAddress);
-                    }
-                }
-            });
+            channel.pipeline().addFirst("proxy-protocol-decoder", new ProxyServerHandler());
         }
 
         return future;
@@ -183,7 +171,16 @@ public final class GeyserServer {
             }
         }
 
-        String ip = geyser.getConfig().isLogPlayerIpAddresses() ? inetSocketAddress.toString() : "<IP address withheld>";
+        String ip;
+        if (geyser.getConfig().isLogPlayerIpAddresses()) {
+            if (geyser.getConfig().getBedrock().isEnableProxyProtocol()) {
+                ip = this.proxiedAddresses.getOrDefault(inetSocketAddress, inetSocketAddress).toString();
+            } else {
+                ip = inetSocketAddress.toString();
+            }
+        } else {
+            ip = "<IP address withheld>";
+        }
         geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.attempt_connect", ip));
         return true;
     }
@@ -208,7 +205,9 @@ public final class GeyserServer {
                 .nintendoLimited(false)
                 .protocolVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
                 .version(GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()) // Required to not be empty as of 1.16.210.59. Can only contain . and numbers.
-                .ipv4Port(this.geyser.getConfig().getBedrock().port());
+                .ipv4Port(this.geyser.getConfig().getBedrock().port())
+                .ipv6Port(this.geyser.getConfig().getBedrock().port())
+                .serverId(future.channel().config().getOption(RakChannelOption.RAK_GUID));
 
         if (config.isPassthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
             String[] motd = MessageTranslator.convertMessageLenient(pingInfo.getDescription()).split("\n");
@@ -221,6 +220,17 @@ public final class GeyserServer {
             pong.motd(config.getBedrock().primaryMotd());
             pong.subMotd(config.getBedrock().secondaryMotd());
         }
+
+        // Placed here to prevent overriding values set in the ping event.
+        if (config.isPassthroughPlayerCounts() && pingInfo != null) {
+            pong.playerCount(pingInfo.getPlayers().getOnline());
+            pong.maximumPlayerCount(pingInfo.getPlayers().getMax());
+        } else {
+            pong.playerCount(geyser.getSessionManager().getSessions().size());
+            pong.maximumPlayerCount(config.getMaxPlayers());
+        }
+
+        this.geyser.eventBus().fire(new GeyserBedrockPingEventImpl(pong, inetSocketAddress));
 
         // https://github.com/GeyserMC/Geyser/issues/3388
         pong.motd(pong.motd().replace(';', ':'));
@@ -251,14 +261,6 @@ public final class GeyserServer {
                 System.arraycopy(motdArray, 0, newMotdArray, 0, newMotdArray.length);
                 pong.motd(new String(newMotdArray, StandardCharsets.UTF_8));
             }
-        }
-
-        if (config.isPassthroughPlayerCounts() && pingInfo != null) {
-            pong.playerCount(pingInfo.getPlayers().getOnline());
-            pong.maximumPlayerCount(pingInfo.getPlayers().getMax());
-        } else {
-            pong.playerCount(geyser.getSessionManager().getSessions().size());
-            pong.maximumPlayerCount(config.getMaxPlayers());
         }
 
         //Bedrock will not even attempt a connection if the client thinks the server is full

@@ -85,6 +85,9 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
 
                 // Bounding box must be sent after a player dies and respawns since 1.19.40
                 entity.updateBoundingBox();
+
+                // Needed here since 1.19.81 for dimension switching
+                session.getEntityCache().updateBossBars();
                 break;
             case START_SWIMMING:
                 if (!entity.getFlag(EntityFlag.SWIMMING)) {
@@ -271,8 +274,6 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 attributesPacket.setRuntimeEntityId(entity.getGeyserId());
                 attributesPacket.getAttributes().addAll(entity.getAttributes().values());
                 session.sendUpstreamPacket(attributesPacket);
-
-                session.getEntityCache().updateBossBars();
                 break;
             case JUMP:
                 entity.setOnGround(false); // Increase block break time while jumping

@@ -82,15 +82,13 @@ public class GeyserExtensionClassLoader extends URLClassLoader {
 
         Class<?> result = this.classes.get(name);
         if (result == null) {
-            if (checkGlobal) {
+            result = super.findClass(name);
+            if (result == null && checkGlobal) {
                 result = this.loader.classByName(name);
             }
 
-            if (result == null) {
-                result = super.findClass(name);
-                if (result != null) {
-                    this.loader.setClass(name, result);
-                }
+            if (result != null) {
+                this.loader.setClass(name, result);
             }
 
             this.classes.put(name, result);
