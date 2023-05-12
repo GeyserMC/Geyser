@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.block.custom.component;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -42,14 +43,14 @@ public interface CustomBlockComponents {
      *
      * @return The selection box.
      */
-    BoxComponent selectionBox();
+    @Nullable BoxComponent selectionBox();
 
     /**
      * Gets the collision box component
      * Equivalent to "minecraft:collision_box"
      * @return The collision box.
      */
-    BoxComponent collisionBox();
+    @Nullable BoxComponent collisionBox();
 
     /**
      * Gets the display name component
@@ -57,7 +58,7 @@ public interface CustomBlockComponents {
      *
      * @return The display name.
      */
-    String displayName();
+    @Nullable String displayName();
 
     /**
      * Gets the geometry component
@@ -65,7 +66,7 @@ public interface CustomBlockComponents {
      *
      * @return The geometry.
      */
-    String geometry();
+    @Nullable String geometry();
 
     /**
      * Gets the material instances component
@@ -82,7 +83,7 @@ public interface CustomBlockComponents {
      *
      * @return The placement filter.
      */
-    List<PlacementConditions> placementFilter();
+    @Nullable List<PlacementConditions> placementFilter();
 
     /**
      * Gets the destructible by mining component
@@ -90,7 +91,7 @@ public interface CustomBlockComponents {
      *
      * @return The destructible by mining value.
      */
-    Float destructibleByMining();
+    @Nullable Float destructibleByMining();
 
     /**
      * Gets the friction component
@@ -98,7 +99,7 @@ public interface CustomBlockComponents {
      *
      * @return The friction value.
      */
-    Float friction();
+    @Nullable Float friction();
 
     /**
      * Gets the light emission component
@@ -106,7 +107,7 @@ public interface CustomBlockComponents {
      *
      * @return The light emission value.
      */
-    Integer lightEmission();
+    @Nullable Integer lightEmission();
 
     /**
      * Gets the light dampening component
@@ -114,7 +115,7 @@ public interface CustomBlockComponents {
      *
      * @return The light dampening value.
      */
-    Integer lightDampening();
+    @Nullable Integer lightDampening();
 
     /**
      * Gets the rotation component
@@ -122,7 +123,7 @@ public interface CustomBlockComponents {
      *
      * @return The rotation.
      */
-    RotationComponent rotation();
+    @Nullable RotationComponent rotation();
 
     /**
      * Gets the unit cube component
@@ -130,7 +131,7 @@ public interface CustomBlockComponents {
      *
      * @return The rotation.
      */
-    boolean unitCube();
+    @Nullable boolean unitCube();
 
     /**
      * Gets if the block should place only air
@@ -138,7 +139,7 @@ public interface CustomBlockComponents {
      * 
      * @return If the block should place only air.
      */
-    boolean placeAir();
+    @Nullable boolean placeAir();
 
     /**
      * Gets the set of tags
@@ -146,7 +147,7 @@ public interface CustomBlockComponents {
      * 
      * @return The set of tags.
      */
-    Set<String> tags();
+    @Nullable Set<String> tags();
 
     interface Builder {
         Builder selectionBox(BoxComponent selectionBox);

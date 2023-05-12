@@ -64,15 +64,35 @@ import java.util.zip.GZIPInputStream;
  */
 public final class BlockRegistryPopulator {
     /**
+     * The stage of population
+     */
+    public enum Stage {
+        PRE_INIT,
+        INIT_JAVA,
+        INIT_BEDROCK,
+        POST_INIT;
+    }
+
+    public static void populate(Stage stage) {
+        switch (stage) {
+            case PRE_INIT -> { nullifyBlocksNode(); }
+            case INIT_JAVA -> { registerJavaBlocks(); }
+            case INIT_BEDROCK -> { registerBedrockBlocks(); }
+            case POST_INIT -> { nullifyBlocksNode(); }
+            default -> { throw new IllegalArgumentException("Unknown stage: " + stage); }
+        }
+    }
+
+    /**
      * Stores the raw blocks JSON until it is no longer needed.
      */
     private static JsonNode BLOCKS_JSON;
 
-    public static void prePopulate() {
+    private static void nullifyBlocksNode() {
         BLOCKS_JSON = null;
     }
 
-    public static void registerBedrockBlocks() {
+    private static void registerBedrockBlocks() {
         BiFunction<String, NbtMapBuilder, String> woolMapper = (bedrockIdentifier, statesBuilder) -> {
             if (bedrockIdentifier.equals("minecraft:wool")) {
                 String color = (String) statesBuilder.remove("color");
@@ -306,11 +326,9 @@ public final class BlockRegistryPopulator {
                     .extendedCollisionBoxes(extendedCollisionBoxes)
                     .build());
         }
-
-        BLOCKS_JSON = null;
     }
 
-    public static void registerJavaBlocks() {
+    private static void registerJavaBlocks() {
         JsonNode blocksJson;
         try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource("mappings/blocks.json")) {
             blocksJson = GeyserImpl.JSON_MAPPER.readTree(stream);

@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.api.block.custom.property;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 /**
  * This class is used to define a custom block property's type.
  */
@@ -33,8 +35,13 @@ public class PropertyType {
     public static final PropertyType INTEGER = new PropertyType(Integer.class);
     public static final PropertyType STRING = new PropertyType(String.class);
 
-    private final Class<?> typeClass;
+    @NonNull private final Class<?> typeClass;
 
+    /**
+     * Gets the class of the property type
+     *
+     * @return The class of the property type.
+     */
     public Class<?> typeClass() {
         return typeClass;
     }

@@ -55,7 +55,7 @@ public interface CustomBlockData {
      *
      * @return The components of the custom block.
      */
-    CustomBlockComponents components();
+    @NonNull CustomBlockComponents components();
 
     /**
      * Gets the custom block's map of block property names to CustomBlockProperty
@@ -79,6 +79,11 @@ public interface CustomBlockData {
      */
     @NonNull CustomBlockState defaultBlockState();
 
+    /**
+     * Gets a builder for a custom block state
+     *
+     * @return The builder for a custom block state.
+     */
     CustomBlockState.@NonNull Builder blockStateBuilder();
 
     interface Builder {

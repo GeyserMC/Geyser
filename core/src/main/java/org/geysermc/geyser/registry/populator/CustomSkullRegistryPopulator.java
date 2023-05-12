@@ -78,7 +78,7 @@ public class CustomSkullRegistryPopulator {
 
         GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineCustomSkullsEvent() {
             @Override
-            public void registerCustomSkull(@NonNull String texture, @NonNull SkullTextureType type) {
+            public void register(@NonNull String texture, @NonNull SkullTextureType type) {
                 switch (type) {
                     case USERNAME -> usernames.add(texture);
                     case UUID -> uuids.add(texture);

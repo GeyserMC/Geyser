@@ -39,7 +39,7 @@ public class CustomBlockRegistryPopulator {
     /**
      * Registers all custom blocks defined by extensions and user supplied mappings
      */
-    public static void registerCustomBedrockBlocks() {
+    public static void populate() {
         if (!GeyserImpl.getInstance().getConfig().isAddNonBedrockItems()) {
             return;
         }
@@ -50,7 +50,7 @@ public class CustomBlockRegistryPopulator {
 
         GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineCustomBlocksEvent() {
             @Override
-            public void registerCustomBlock(@NonNull CustomBlockData customBlockData) {
+            public void register(@NonNull CustomBlockData customBlockData) {
                 if (customBlockData.name().length() == 0) {
                     throw new IllegalArgumentException("Custom block name must have at least 1 character.");
                 }
@@ -64,7 +64,7 @@ public class CustomBlockRegistryPopulator {
             }
     
             @Override
-            public void registerBlockStateOverride(@NonNull String javaIdentifier, @NonNull CustomBlockState customBlockState) {
+            public void registerOverride(@NonNull String javaIdentifier, @NonNull CustomBlockState customBlockState) {
                 int id = BlockRegistries.JAVA_IDENTIFIER_TO_ID.getOrDefault(javaIdentifier, -1);
                 if (id == -1) {
                     throw new IllegalArgumentException("Unknown Java block state. Identifier: " + javaIdentifier);
@@ -80,7 +80,7 @@ public class CustomBlockRegistryPopulator {
             }
 
             @Override
-            public void registerBlockItemOverride(@NonNull String javaIdentifier, @NonNull CustomBlockData customBlockData) {
+            public void registerItemOverride(@NonNull String javaIdentifier, @NonNull CustomBlockData customBlockData) {
                 if (!customBlocks.contains(customBlockData)) {
                     throw new IllegalArgumentException("Custom block is unregistered. Name: " + customBlockData.name());
                 }

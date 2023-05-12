@@ -33,9 +33,24 @@ import java.util.List;
  * This class is used to store a property of a custom block of a generic type.
  */
 public interface CustomBlockProperty<T> {
+    /**
+     * Gets the name of the property
+     *
+     * @return The name of the property.
+     */
     @NonNull String name();
 
+    /**
+     * Gets the values of the property
+     *
+     * @return The values of the property.
+     */
     @NonNull List<T> values();
 
+    /**
+     * Gets the type of the property
+     *
+     * @return The type of the property.
+     */
     @NonNull PropertyType type();
 }

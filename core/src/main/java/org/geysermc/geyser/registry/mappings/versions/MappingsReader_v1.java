@@ -183,7 +183,7 @@ public class MappingsReader_v1 extends MappingsReader {
      * Read a block mapping entry from a JSON node and Java identifier
      * @param identifier The Java identifier of the block
      * @param node The {@link JsonNode} containing the block mapping entry
-     * @return The {@link CustomBlockMapping} record to be read by {@link org.geysermc.geyser.registry.populator.CustomBlockRegistryPopulator#registerCustomBedrockBlocks}
+     * @return The {@link CustomBlockMapping} record to be read by {@link org.geysermc.geyser.registry.populator.CustomBlockRegistryPopulator}
      * @throws InvalidCustomMappingsFileException If the JSON node is invalid
      */
     @Override

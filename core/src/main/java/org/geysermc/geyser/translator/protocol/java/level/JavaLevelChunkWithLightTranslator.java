@@ -113,7 +113,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
         try {
             ByteBuf in = Unpooled.wrappedBuffer(packet.getChunkData());
-            int runningSectionExtendedCollisions[] = new int[BlockStorage.SIZE];
+            int[] runningSectionExtendedCollisions = new int[BlockStorage.SIZE];
             boolean extendedCollisionNextSection = false;
             for (int sectionY = 0; sectionY < chunkSize; sectionY++) {
                 ChunkSection javaSection = session.getDownstream().getCodecHelper().readChunkSection(in, biomeGlobalPalette);
@@ -193,7 +193,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     continue;
                 }
 
-                IntList bedrockPalette = new IntArrayList();
+                IntList bedrockPalette = new IntArrayList(javaPalette.size());
                 int airPaletteId = -1;
                 waterloggedPaletteIds.clear();
                 bedrockOnlyBlockEntityIds.clear();
@@ -214,6 +214,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     if (!session.getBlockMappings().getExtendedCollisionBoxes().isEmpty() && !extendedCollision) {
                         if (session.getBlockMappings().getExtendedCollisionBoxes().get(javaId) != null) {
                             extendedCollision = true;
+                            bedrockPalette = new IntArrayList();
                         }
                     }
 

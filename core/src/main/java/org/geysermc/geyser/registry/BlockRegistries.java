@@ -126,11 +126,12 @@ public class BlockRegistries {
 
     static {
         CustomSkullRegistryPopulator.populate();
-        BlockRegistryPopulator.prePopulate();
-        BlockRegistryPopulator.registerJavaBlocks();
+        BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.PRE_INIT);
+        BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.INIT_JAVA);
         COLLISIONS = IntMappedRegistry.create(Pair.of("org.geysermc.geyser.translator.collision.CollisionRemapper", "mappings/collision.json"), CollisionRegistryLoader::new);
-        CustomBlockRegistryPopulator.registerCustomBedrockBlocks();
-        BlockRegistryPopulator.registerBedrockBlocks();
+        CustomBlockRegistryPopulator.populate();
+        BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.INIT_BEDROCK);
+        BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.POST_INIT);
     }
 
     public static void init() {

@@ -56,6 +56,11 @@ public interface CustomBlockState {
      */
     @NonNull <T> T property(String propertyName);
 
+    /**
+     * Gets a map of the properties for the state
+     *
+     * @return The properties for the state.
+     */
     @NonNull Map<String, Object> properties();
 
     interface Builder {

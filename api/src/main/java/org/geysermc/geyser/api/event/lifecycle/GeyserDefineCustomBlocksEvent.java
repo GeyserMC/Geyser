@@ -42,7 +42,7 @@ public abstract class GeyserDefineCustomBlocksEvent implements Event {
      *
      * @param customBlockData the custom block to register
      */
-    public abstract void registerCustomBlock(@NonNull CustomBlockData customBlockData);
+    public abstract void register(@NonNull CustomBlockData customBlockData);
 
     /**
      * Registers the given {@link CustomBlockState} as an override for the
@@ -53,7 +53,7 @@ public abstract class GeyserDefineCustomBlocksEvent implements Event {
      * @param javaIdentifier the java state identifier to override
      * @param customBlockState the custom block state with which to override java state identifier
      */
-    public abstract void registerBlockStateOverride(@NonNull String javaIdentifier, @NonNull CustomBlockState customBlockState);
+    public abstract void registerOverride(@NonNull String javaIdentifier, @NonNull CustomBlockState customBlockState);
 
     /**
      * Registers the given {@link CustomBlockData} as an override for the
@@ -62,5 +62,5 @@ public abstract class GeyserDefineCustomBlocksEvent implements Event {
      * @param javaIdentifier the java item identifier to override
      * @param customBlockData the custom block data with which to override java item identifier
      */
-    public abstract void registerBlockItemOverride(@NonNull String javaIdentifier, @NonNull CustomBlockData customBlockData);
+    public abstract void registerItemOverride(@NonNull String javaIdentifier, @NonNull CustomBlockData customBlockData);
 }
