@@ -53,6 +53,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     private final OptionalInt creativeCategory;
     private final String creativeGroup;
     private final boolean isHat;
+    private final boolean isFoil;
     private final boolean isTool;
 
     public GeyserNonVanillaCustomItemData(NonVanillaCustomItemDataBuilder builder) {
@@ -72,6 +73,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         this.creativeCategory = builder.creativeCategory;
         this.creativeGroup = builder.creativeGroup;
         this.isHat = builder.hat;
+        this.isFoil = builder.foil;
         this.isTool = builder.tool;
     }
 
@@ -140,6 +142,11 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         return isHat;
     }
 
+    @Override
+    public boolean isFoil() {
+        return isFoil;
+    }
+
     public static class NonVanillaCustomItemDataBuilder extends GeyserCustomItemData.CustomItemDataBuilder implements NonVanillaCustomItemData.Builder {
         private String identifier = null;
         private int javaId = -1;
@@ -162,6 +169,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         private String creativeGroup = null;
 
         private boolean hat = false;
+        private boolean foil = false;
         private boolean tool = false;
 
         @Override
@@ -280,6 +288,12 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         @Override
         public NonVanillaCustomItemData.Builder hat(boolean isHat) {
             this.hat = isHat;
+            return this;
+        }
+
+        @Override
+        public NonVanillaCustomItemData.Builder foil(boolean isFoil) {
+            this.foil = isFoil;
             return this;
         }
 
