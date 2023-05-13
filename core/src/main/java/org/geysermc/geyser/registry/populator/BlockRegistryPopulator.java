@@ -66,37 +66,9 @@ public final class BlockRegistryPopulator {
     }
 
     private static void registerBedrockBlocks() {
-        BiFunction<String, NbtMapBuilder, String> woolMapper = (bedrockIdentifier, statesBuilder) -> {
-            if (bedrockIdentifier.equals("minecraft:wool")) {
-                String color = (String) statesBuilder.remove("color");
-                if ("silver".equals(color)) {
-                    color = "light_gray";
-                }
-                return "minecraft:" + color + "_wool";
-            }
-            return null;
-        };
         BiFunction<String, NbtMapBuilder, String> emptyMapper = (bedrockIdentifier, statesBuilder) -> null;
         ImmutableMap<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> blockMappers = ImmutableMap.<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>>builder()
-                .put(ObjectIntPair.of("1_19_80", Bedrock_v582.CODEC.getProtocolVersion()), (bedrockIdentifier, statesBuilder) -> {
-                    String identifier = woolMapper.apply(bedrockIdentifier, statesBuilder);
-                    if (identifier != null) {
-                        return identifier;
-                    }
-                    switch (bedrockIdentifier) {
-                        case "minecraft:log", "minecraft:log2" -> {
-                            String woodType = (String) statesBuilder.remove(bedrockIdentifier.equals("minecraft:log") ? "old_log_type" : "new_log_type");
-                            return "minecraft:" + woodType + "_log";
-                        }
-                        case "minecraft:fence" -> {
-                            String woodType = (String) statesBuilder.remove("wood_type");
-                            return "minecraft:" + woodType + "_fence";
-                        }
-                        default -> {
-                            return null;
-                        }
-                    }
-                })
+                .put(ObjectIntPair.of("1_19_80", Bedrock_v582.CODEC.getProtocolVersion()), emptyMapper)
                 .build();
 
         // We can keep this strong as nothing should be garbage collected

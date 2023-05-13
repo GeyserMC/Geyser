@@ -198,20 +198,7 @@ public class ItemRegistryPopulator {
                     continue;
                 }
 
-                String bedrockIdentifier;
-                if (mappingItem.getBedrockIdentifier().equals("minecraft:wool")) {
-                    bedrockIdentifier = javaItem.javaIdentifier();
-                } else {
-                    bedrockIdentifier = mappingItem.getBedrockIdentifier();
-                }
-
-                //1.19.80+
-                if (mappingItem.getBedrockIdentifier().equals("minecraft:log") ||
-                    mappingItem.getBedrockIdentifier().equals("minecraft:log2") ||
-                    mappingItem.getBedrockIdentifier().equals("minecraft:fence")) {
-                    bedrockIdentifier = javaItem.javaIdentifier();
-                }
-
+                String bedrockIdentifier = mappingItem.getBedrockIdentifier();
                 ItemDefinition definition = definitions.get(bedrockIdentifier);
                 if (definition == null) {
                     throw new RuntimeException("Missing Bedrock ItemDefinition in mappings: " + bedrockIdentifier);
