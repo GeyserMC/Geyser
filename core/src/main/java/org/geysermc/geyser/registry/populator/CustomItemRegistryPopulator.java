@@ -150,6 +150,7 @@ public class CustomItemRegistryPopulator {
                 .translationString(customItemData.translationString())
                 .customItemOptions(Collections.emptyList())
                 .javaItem(item)
+                .recordSound(customItemData.recordSound())
                 .build();
 
         NbtMapBuilder builder = createComponentNbt(customItemData, customItemData.identifier(), customItemId,

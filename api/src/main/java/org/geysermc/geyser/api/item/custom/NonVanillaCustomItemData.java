@@ -137,6 +137,13 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     boolean isFoil();
 
     /**
+     * Gets the item's sound when played as a record.
+     *
+     * @return the item's record sound
+     */
+    @Nullable String recordSound();
+
+    /**
      * @deprecated Use {@link #displayHandheld()} instead.
      * Gets if the item is a tool. This is used to set the render type of the item, if the item is handheld.
      *
@@ -182,6 +189,8 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         Builder hat(boolean isHat);
 
         Builder foil(boolean isFoil);
+
+        Builder recordSound(String recordSound);
 
         /**
          * @deprecated Use {@link #displayHandheld(boolean)} instead.

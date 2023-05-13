@@ -52,7 +52,8 @@ public class ItemMapping {
             null,
             null,
             Collections.emptyList(),
-            Items.AIR
+            Items.AIR,
+            null
     );
 
     String bedrockIdentifier;
@@ -75,6 +76,8 @@ public class ItemMapping {
 
     @NonNull
     Item javaItem;
+
+    String recordSound;
 
     /**
      * Gets if this item is a block.

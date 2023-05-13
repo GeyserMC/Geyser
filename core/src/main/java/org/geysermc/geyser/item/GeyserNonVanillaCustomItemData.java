@@ -54,6 +54,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     private final String creativeGroup;
     private final boolean isHat;
     private final boolean isFoil;
+    private final String recordSound;
     private final boolean isTool;
 
     public GeyserNonVanillaCustomItemData(NonVanillaCustomItemDataBuilder builder) {
@@ -74,6 +75,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         this.creativeGroup = builder.creativeGroup;
         this.isHat = builder.hat;
         this.isFoil = builder.foil;
+        this.recordSound = builder.recordSound;
         this.isTool = builder.tool;
     }
 
@@ -147,6 +149,11 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         return isFoil;
     }
 
+    @Override
+    public String recordSound() {
+        return recordSound;
+    }
+
     public static class NonVanillaCustomItemDataBuilder extends GeyserCustomItemData.CustomItemDataBuilder implements NonVanillaCustomItemData.Builder {
         private String identifier = null;
         private int javaId = -1;
@@ -170,6 +177,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
 
         private boolean hat = false;
         private boolean foil = false;
+        private String recordSound = null;
         private boolean tool = false;
 
         @Override
@@ -294,6 +302,12 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         @Override
         public NonVanillaCustomItemData.Builder foil(boolean isFoil) {
             this.foil = isFoil;
+            return this;
+        }
+
+        @Override
+        public NonVanillaCustomItemData.Builder recordSound(@Nullable String recordSound) {
+            this.recordSound = recordSound;
             return this;
         }
 

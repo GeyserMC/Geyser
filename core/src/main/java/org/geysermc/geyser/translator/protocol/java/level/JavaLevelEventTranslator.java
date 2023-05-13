@@ -35,8 +35,11 @@ import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.MinecraftLocale;
@@ -59,21 +62,33 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
         // Separate case since each RecordEventData in Java is an individual track in Bedrock
         if (levelEvent == LevelEventType.RECORD) {
             RecordEventData recordEventData = (RecordEventData) packet.getData();
-            SoundEvent soundEvent = Registries.RECORDS.get(recordEventData.getRecordId());
-            if (soundEvent == null) {
-                return;
-            }
+
             Vector3i origin = packet.getPosition();
             Vector3f pos = Vector3f.from(origin.getX() + 0.5f, origin.getY() + 0.5f, origin.getZ() + 0.5f);
 
-            LevelSoundEventPacket levelSoundEvent = new LevelSoundEventPacket();
-            levelSoundEvent.setIdentifier("");
-            levelSoundEvent.setSound(soundEvent);
-            levelSoundEvent.setPosition(pos);
-            levelSoundEvent.setRelativeVolumeDisabled(packet.isBroadcast());
-            levelSoundEvent.setExtraData(-1);
-            levelSoundEvent.setBabySound(false);
-            session.sendUpstreamPacket(levelSoundEvent);
+            SoundEvent soundEvent = Registries.RECORDS.get(recordEventData.getRecordId());
+            if (soundEvent == null) {
+                String recordSound = Registries.ITEMS.forVersion(session.getUpstream().getProtocolVersion()).getMapping(recordEventData.getRecordId()).getRecordSound();
+                if (recordSound == null) {
+                    return;
+                }
+
+                PlaySoundPacket playSoundPacket = new PlaySoundPacket();
+                playSoundPacket.setSound(recordSound);
+                playSoundPacket.setPosition(pos);
+                playSoundPacket.setVolume(1f);
+                playSoundPacket.setPitch(1f);
+                session.sendUpstreamPacket(playSoundPacket);
+            } else {
+                LevelSoundEventPacket levelSoundEvent = new LevelSoundEventPacket();
+                levelSoundEvent.setIdentifier("");
+                levelSoundEvent.setSound(soundEvent);
+                levelSoundEvent.setPosition(pos);
+                levelSoundEvent.setRelativeVolumeDisabled(packet.isBroadcast());
+                levelSoundEvent.setExtraData(-1);
+                levelSoundEvent.setBabySound(false);
+                session.sendUpstreamPacket(levelSoundEvent);
+            }
 
             // Send text packet as it seems to be handled in Java Edition client-side.
             TextPacket textPacket = new TextPacket();
