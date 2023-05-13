@@ -205,7 +205,7 @@ public class SkullResourcePackManager {
     private static void addAttachables(ZipOutputStream zipOS) throws IOException {
         String template = FileUtils.readToString("bedrock/skull_resource_pack/attachables/template_attachable.json");
         for (CustomSkull skull : BlockRegistries.CUSTOM_SKULLS.get().values()) {
-            ZipEntry entry = new ZipEntry("skull_resource_pack/attachables/" + skull.getSkinHash() + ".json");
+            ZipEntry entry = new ZipEntry("skull_resource_pack/attachables/" + truncateHash(skull.getSkinHash()) + ".json");
             zipOS.putNextEntry(entry);
             zipOS.write(fillAttachableJson(template, skull).getBytes(StandardCharsets.UTF_8));
             zipOS.closeEntry();
@@ -214,7 +214,7 @@ public class SkullResourcePackManager {
 
     private static void addSkinTextures(ZipOutputStream zipOS) throws IOException {
         for (Path skinPath : SKULL_SKINS.values()) {
-            ZipEntry entry = new ZipEntry("skull_resource_pack/textures/blocks/" + skinPath.getFileName());
+            ZipEntry entry = new ZipEntry("skull_resource_pack/textures/blocks/" + truncateHash(skinPath.getFileName().toString()) + ".png");
             zipOS.putNextEntry(entry);
             try (InputStream stream = Files.newInputStream(skinPath)) {
                 stream.transferTo(zipOS);
@@ -231,7 +231,7 @@ public class SkullResourcePackManager {
 
     private static String fillAttachableJson(String template, CustomSkull skull) {
         return template.replace("${identifier}", skull.getCustomBlockData().identifier())
-                .replace("${texture}", skull.getSkinHash());
+                .replace("${texture}", truncateHash(skull.getSkinHash()));
     }
 
     private static String fillManifestJson(String template) {
@@ -243,7 +243,7 @@ public class SkullResourcePackManager {
     private static String fillTerrainTextureJson(String template) {
         StringBuilder textures = new StringBuilder();
         for (String skinHash : SKULL_SKINS.keySet()) {
-            String texture = String.format("\"geyser.%s_player_skin\":{\"textures\":\"textures/blocks/%s\"},\n", skinHash, skinHash);
+            String texture = String.format("\"geyser.%s_player_skin\":{\"textures\":\"textures/blocks/%s\"},\n", skinHash, truncateHash(skinHash));
             textures.append(texture);
         }
         if (textures.length() != 0) {
@@ -297,5 +297,9 @@ public class SkullResourcePackManager {
             GeyserImpl.getInstance().getLogger().debug("Cached player skull resource pack was invalid! The pack will be recreated.");
         }
         return false;
+    }
+
+    private static String truncateHash(String hash) {
+        return hash.substring(0, Math.min(hash.length(), 32));
     }
 }
