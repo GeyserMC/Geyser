@@ -487,7 +487,9 @@ class ExtendedCollisionsStorage {
     private int[] data;
 
     public int get(int index) {
-        ensureDataExists();
+        if (data == null) {
+            return 0;
+        }
         return data[index];
     }
 
