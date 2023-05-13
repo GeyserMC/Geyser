@@ -1739,7 +1739,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             abilities.add(Ability.NO_CLIP);
         }
 
-        abilityLayer.setLayerType(AbilityLayer.Type.BASE);
+        // https://github.com/GeyserMC/Geyser/issues/3769 Setting Spectator mode ability layer
+        if (spectator) {
+            abilityLayer.setLayerType(AbilityLayer.Type.SPECTATOR);
+        } else {
+            abilityLayer.setLayerType(AbilityLayer.Type.BASE);
+        }
         abilityLayer.setFlySpeed(flySpeed);
         // https://github.com/GeyserMC/Geyser/issues/3139 as of 1.19.10
         abilityLayer.setWalkSpeed(walkSpeed == 0f ? 0.01f : walkSpeed);
