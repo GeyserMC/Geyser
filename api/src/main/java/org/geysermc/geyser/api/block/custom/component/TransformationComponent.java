@@ -26,7 +26,31 @@
 package org.geysermc.geyser.api.block.custom.component;
 
 /**
- * This class is used to store a rotation component for a custom block.
+ * This class is used to store the transformation component of a block
  */
-public record RotationComponent(int x, int y, int z) {
+public record TransformationComponent(int rx, int ry, int rz, float sx, float sy, float sz, float tx, float ty, float tz) {
+    /**
+     * Constructs a new TransformationComponent with the rotation values and assumes default scale and translation
+     *
+     * @param rx The rotation on the x axis
+     * @param ry The rotation on the y axis
+     * @param rz The rotation on the z axis
+     */
+    public TransformationComponent(int rx, int ry, int rz) {
+        this(rx, ry, rz, 1, 1, 1, 0, 0, 0);
+    }
+
+    /**
+     * Constructs a new TransformationComponent with the rotation and scale values and assumes default translation
+     *
+     * @param rx The rotation on the x axis
+     * @param ry The rotation on the y axis
+     * @param rz The rotation on the z axis
+     * @param sx The scale on the x axis
+     * @param sy The scale on the y axis
+     * @param sz The scale on the z axis
+     */
+    public TransformationComponent(int rx, int ry, int rz, float sx, float sy, float sz) {
+        this(rx, ry, rz, sx, sy, sz, 0, 0, 0);
+    }
 }

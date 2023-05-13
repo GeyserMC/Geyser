@@ -26,6 +26,7 @@ import org.geysermc.geyser.level.block.GeyserCustomBlockData.CustomBlockDataBuil
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.CustomSkull;
+import org.geysermc.geyser.util.MathUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -286,11 +287,17 @@ public class CustomBlockRegistryPopulator {
                     .putByte("lightLevel", components.lightDampening().byteValue())
                     .build());
         }
-        if (components.rotation() != null) {
-            builder.putCompound("minecraft:rotation", NbtMap.builder()
-                    .putFloat("x", components.rotation().x())
-                    .putFloat("y", components.rotation().y())
-                    .putFloat("z", components.rotation().z())
+        if (components.transformation() != null) {
+            builder.putCompound("minecraft:transformation", NbtMap.builder()
+                    .putInt("RX", MathUtils.unwrapDegreesToInt(components.transformation().rx()) / 90)
+                    .putInt("RY", MathUtils.unwrapDegreesToInt(components.transformation().ry()) / 90)
+                    .putInt("RZ", MathUtils.unwrapDegreesToInt(components.transformation().rz()) / 90)
+                    .putFloat("SX", components.transformation().sx())
+                    .putFloat("SY", components.transformation().sy())
+                    .putFloat("SZ", components.transformation().sz())
+                    .putFloat("TX", components.transformation().tx())
+                    .putFloat("TY", components.transformation().ty())
+                    .putFloat("TZ", components.transformation().tz())
                     .build());
         }
         if (components.unitCube()) {

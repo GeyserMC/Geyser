@@ -28,6 +28,11 @@ package org.geysermc.geyser.util;
 public class MathUtils {
     public static final double SQRT_OF_TWO = Math.sqrt(2);
 
+    /**
+     * Wrap the given float degrees to be between -180.0 and 180.0.
+     * @param degrees The degrees value to wrap
+     * @return The wrapped degrees value between -180.0 and 180.0
+     */
     public static float wrapDegrees(float degrees) {
         degrees = degrees % 360.0f;
         if (degrees < -180.0f) {
@@ -38,12 +43,49 @@ public class MathUtils {
         return degrees;
     }
 
+    /**
+     * Wrap the given double degrees to be between -180.0 and 180.0.
+     * @param degrees The degrees value to wrap
+     * @return The wrapped degrees value between -180.0 and 180.0
+     */
     public static float wrapDegrees(double degrees) {
         return wrapDegrees((float) degrees);
     }
 
+    /**
+     * Wrap the given degrees to be between -180 and 180 as an integer.
+     * @param degrees The degrees value to wrap
+     * @return The wrapped degrees value between -180 and 180 as an integer
+     */
     public static int wrapDegreesToInt(float degrees) {
         return (int) wrapDegrees(degrees);
+    }
+
+    /**
+     * Unwrap the given float degrees to be between 0.0 and 360.0.
+     * @param degrees The degrees value to unwrap
+     * @return The unwrapped degrees value between 0.0 and 360.0
+     */
+    public static float unwrapDegrees(float degrees) {
+        return (degrees % 360 + 360) % 360;
+    }
+
+    /**
+     * Unwrap the given double degrees to be between 0.0 and 360.0.
+     * @param degrees The degrees value to unwrap
+     * @return The unwrapped degrees value between 0.0 and 360.0
+     */
+    public static float unwrapDegrees(double degrees) {
+        return unwrapDegrees((float) degrees);
+    }
+
+    /**
+     * Unwrap the given degrees to be between 0 and 360 as an integer.
+     * @param degrees The degrees value to unwrap
+     * @return The unwrapped degrees value between 0 and 360 as an integer
+     */
+    public static int unwrapDegreesToInt(float degrees) {
+        return (int) unwrapDegrees(degrees);
     }
 
     /**

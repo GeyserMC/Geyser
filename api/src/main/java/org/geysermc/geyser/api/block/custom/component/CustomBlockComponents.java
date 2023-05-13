@@ -118,12 +118,12 @@ public interface CustomBlockComponents {
     @Nullable Integer lightDampening();
 
     /**
-     * Gets the rotation component
-     * Equivalent to "minecraft:rotation"
+     * Gets the transformation component
+     * Equivalent to "minecraft:transformation"
      *
-     * @return The rotation.
+     * @return The transformation.
      */
-    @Nullable RotationComponent rotation();
+    @Nullable TransformationComponent transformation();
 
     /**
      * Gets the unit cube component
@@ -170,7 +170,7 @@ public interface CustomBlockComponents {
 
         Builder lightDampening(Integer lightDampening);
 
-        Builder rotation(RotationComponent rotation);
+        Builder transformation(TransformationComponent transformation);
 
         Builder unitCube(boolean unitCube);
 

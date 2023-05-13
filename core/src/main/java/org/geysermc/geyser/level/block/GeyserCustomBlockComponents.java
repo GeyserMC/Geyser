@@ -35,7 +35,7 @@ import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.component.PlacementConditions;
-import org.geysermc.geyser.api.block.custom.component.RotationComponent;
+import org.geysermc.geyser.api.block.custom.component.TransformationComponent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
@@ -55,7 +55,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     Float friction;
     Integer lightEmission;
     Integer lightDampening;
-    RotationComponent rotation;
+    TransformationComponent transformation;
     boolean unitCube;
     boolean placeAir;
     Set<String> tags;
@@ -75,7 +75,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         this.friction = builder.friction;
         this.lightEmission = builder.lightEmission;
         this.lightDampening = builder.lightDampening;
-        this.rotation = builder.rotation;
+        this.transformation = builder.transformation;
         this.unitCube = builder.unitCube;
         this.placeAir = builder.placeAir;
         if (builder.tags.isEmpty()) {
@@ -136,8 +136,8 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     }
 
     @Override
-    public RotationComponent rotation() {
-        return rotation;
+    public TransformationComponent transformation() {
+        return transformation;
     }
 
     @Override
@@ -166,7 +166,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         protected Float friction;
         protected Integer lightEmission;
         protected Integer lightDampening;
-        protected RotationComponent rotation;
+        protected TransformationComponent transformation;
         protected boolean unitCube = false;
         protected boolean placeAir = false;
         protected final Set<String> tags = new HashSet<>();
@@ -270,11 +270,11 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         }
 
         @Override
-        public Builder rotation(RotationComponent rotation) {
-            if (rotation.x() % 90 != 0 || rotation.y() % 90 != 0 || rotation.z() % 90 != 0) {
-                throw new IllegalArgumentException("Rotation must be a multiple of 90 degrees.");
+        public Builder transformation(TransformationComponent transformation) {
+            if (transformation.rx() % 90 != 0 || transformation.ry() % 90 != 0 || transformation.rz() % 90 != 0) {
+                throw new IllegalArgumentException("Rotation of transformation must be a multiple of 90 degrees.");
             }
-            this.rotation = rotation;
+            this.transformation = transformation;
             return this;
         }
 

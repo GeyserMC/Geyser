@@ -367,12 +367,38 @@ public class MappingsReader_v1 extends MappingsReader {
         }
         builder.placeAir(placeAir);
 
-        if (node.has("rotation")) {
-            JsonNode rotation = node.get("rotation");
-            int rotationX = rotation.get(0).asInt();
-            int rotationY = rotation.get(1).asInt();
-            int rotationZ = rotation.get(2).asInt();
-            builder.rotation(new RotationComponent(rotationX, rotationY, rotationZ));
+        if (node.has("transformation")) {
+            JsonNode transformation = node.get("transformation");
+
+            int rotationX = 0;
+            int rotationY = 0;
+            int rotationZ = 0;
+            float scaleX = 1;
+            float scaleY = 1;
+            float scaleZ = 1;
+            float transformX = 0;
+            float transformY = 0;
+            float transformZ = 0;
+
+            if (transformation.has("rotation")) {
+                JsonNode rotation = transformation.get("rotation");
+                rotationX = rotation.get(0).asInt();
+                rotationY = rotation.get(1).asInt();
+                rotationZ = rotation.get(2).asInt();
+            }
+            if (transformation.has("scale")) {
+                JsonNode scale = transformation.get("scale");
+                scaleX = scale.get(0).floatValue();
+                scaleY = scale.get(1).floatValue();
+                scaleZ = scale.get(2).floatValue();
+            }
+            if (transformation.has("translation")) {
+                JsonNode translation = transformation.get("translation");
+                transformX = translation.get(0).floatValue();
+                transformY = translation.get(1).floatValue();
+                transformZ = translation.get(2).floatValue();
+            }
+            builder.transformation(new TransformationComponent(rotationX, rotationY, rotationZ, scaleX, scaleY, scaleZ, transformX, transformY, transformZ));
         }
 
         if (node.has("unit_cube")) {
