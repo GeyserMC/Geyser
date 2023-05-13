@@ -41,6 +41,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
@@ -67,8 +68,10 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             Vector3f pos = Vector3f.from(origin.getX() + 0.5f, origin.getY() + 0.5f, origin.getZ() + 0.5f);
 
             SoundEvent soundEvent = Registries.RECORDS.get(recordEventData.getRecordId());
+            String recordString;
             if (soundEvent == null) {
-                String recordSound = Registries.ITEMS.forVersion(session.getUpstream().getProtocolVersion()).getMapping(recordEventData.getRecordId()).getRecordSound();
+                ItemMapping recordMapping = Registries.ITEMS.forVersion(session.getUpstream().getProtocolVersion()).getMapping(recordEventData.getRecordId());
+                String recordSound = recordMapping.getRecordSound();
                 if (recordSound == null) {
                     return;
                 }
@@ -79,6 +82,8 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 playSoundPacket.setVolume(1f);
                 playSoundPacket.setPitch(1f);
                 session.sendUpstreamPacket(playSoundPacket);
+
+                recordString = "%item." + recordMapping.getJavaItem().javaIdentifier().toLowerCase(Locale.ROOT).replace(":", ".") + ".desc";
             } else {
                 LevelSoundEventPacket levelSoundEvent = new LevelSoundEventPacket();
                 levelSoundEvent.setIdentifier("");
@@ -88,6 +93,8 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 levelSoundEvent.setExtraData(-1);
                 levelSoundEvent.setBabySound(false);
                 session.sendUpstreamPacket(levelSoundEvent);
+
+                recordString = "%item." + soundEvent.name().toLowerCase(Locale.ROOT) + ".desc";
             }
 
             // Send text packet as it seems to be handled in Java Edition client-side.
@@ -98,7 +105,6 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             textPacket.setPlatformChatId("");
             textPacket.setSourceName(null);
             textPacket.setMessage("record.nowPlaying");
-            String recordString = "%item." + soundEvent.name().toLowerCase(Locale.ROOT) + ".desc";
             textPacket.setParameters(Collections.singletonList(MinecraftLocale.getLocaleString(recordString, session.locale())));
             session.sendUpstreamPacket(textPacket);
             return;
