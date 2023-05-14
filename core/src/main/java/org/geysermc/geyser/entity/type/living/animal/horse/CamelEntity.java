@@ -28,7 +28,6 @@ package org.geysermc.geyser.entity.type.living.animal.horse;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
@@ -42,12 +41,6 @@ public class CamelEntity extends AbstractHorseEntity {
 
     public CamelEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
-    }
-
-    @Override
-    protected void initializeMetadata() {
-        super.initializeMetadata();
-        this.dirtyMetadata.put(EntityDataTypes.VARIANT, 2); // Closest llama colour to camel
     }
 
     @Override

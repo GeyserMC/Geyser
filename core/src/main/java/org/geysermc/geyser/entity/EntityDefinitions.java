@@ -236,7 +236,7 @@ public final class EntityDefinitions {
                     .type(EntityType.EXPERIENCE_ORB)
                     .identifier("minecraft:xp_orb")
                     .build();
-            EVOKER_FANGS = EntityDefinition.builder(EvokerFangsEntity::new) // No entity metadata to listen to as of 1.18.1
+            EVOKER_FANGS = EntityDefinition.inherited(EvokerFangsEntity::new, entityBase)
                     .type(EntityType.EVOKER_FANGS)
                     .height(0.8f).width(0.5f)
                     .identifier("minecraft:evocation_fang")
@@ -847,6 +847,7 @@ public final class EntityDefinitions {
                     .type(EntityType.SNIFFER)
                     .height(1.75f).width(1.9f)
                     .addTranslator(MetadataType.SNIFFER_STATE, SnifferEntity::setSnifferState)
+                    .addTranslator(null) // Integer, drop seed at tick
                     .build();
             STRIDER = EntityDefinition.inherited(StriderEntity::new, ageableEntityBase)
                     .type(EntityType.STRIDER)
@@ -890,7 +891,6 @@ public final class EntityDefinitions {
                     .build();
             CAMEL = EntityDefinition.inherited(CamelEntity::new, abstractHorseEntityBase)
                     .type(EntityType.CAMEL)
-                    .identifier("minecraft:llama") // todo 1.20
                     .height(2.375f).width(1.7f)
                     .addTranslator(MetadataType.BOOLEAN, CamelEntity::setDashing)
                     .addTranslator(null) // Last pose change tick
