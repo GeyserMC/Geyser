@@ -199,6 +199,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                 bedrockOnlyBlockEntityIds.clear();
 
                 // Iterate through palette and convert state IDs to Bedrock, doing some additional checks as we go
+                int extendedCollisionsInPalette = 0;
                 for (int i = 0; i < javaPalette.size(); i++) {
                     int javaId = javaPalette.idToState(i);
                     bedrockPalette.add(session.getBlockMappings().getBedrockBlockId(javaId));
@@ -211,9 +212,10 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                         airPaletteId = i;
                     }
 
-                    if (!session.getBlockMappings().getExtendedCollisionBoxes().isEmpty() && !extendedCollision) {
+                    if (!session.getBlockMappings().getExtendedCollisionBoxes().isEmpty()) {
                         if (session.getBlockMappings().getExtendedCollisionBoxes().get(javaId) != null) {
                             extendedCollision = true;
+                            extendedCollisionsInPalette++;
                         }
                     }
 
@@ -238,7 +240,9 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     }
                 }
 
-                BitArray bedrockData = BitArrayVersion.forBitsCeil(javaData.getBitsPerEntry()).createArray(BlockStorage.SIZE);
+                // We need to ensure we use enough bits to represent extended collision blocks in the palette
+                int bedrockDataBits = Integer.SIZE - Integer.numberOfLeadingZeros(javaPalette.size() + extendedCollisionsInPalette);
+                BitArray bedrockData = BitArrayVersion.forBitsCeil(bedrockDataBits).createArray(BlockStorage.SIZE);
                 BlockStorage layer0 = new BlockStorage(bedrockData, bedrockPalette);
                 BlockStorage[] layers;
 
