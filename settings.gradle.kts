@@ -46,6 +46,7 @@ dependencyResolutionManagement {
 
 pluginManagement {
     repositories {
+        maven(url = "https://repo.stellardrift.ca/repository/snapshots/")
         gradlePluginPortal()
         maven("https://maven.fabricmc.net/")
         maven("https://repo.opencollab.dev/maven-snapshots")

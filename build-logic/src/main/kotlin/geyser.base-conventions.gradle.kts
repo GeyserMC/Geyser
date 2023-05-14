@@ -1,6 +1,5 @@
 plugins {
     `java-library`
-    `eclipse`
     id("net.kyori.indra")
 }
 
@@ -33,16 +32,6 @@ tasks {
                 "url" to "https://geysermc.org",
                 "author" to "GeyserMC"
             )
-        }
-    }
-}
-
-eclipse {
-    classpath.file.whenMerged {
-        (this as org.gradle.plugins.ide.eclipse.model.Classpath).entries.forEach { entry ->
-            if (entry is org.gradle.plugins.ide.eclipse.model.Library) {
-                entry.entryAttributes["module"] = false
-            }
         }
     }
 }
