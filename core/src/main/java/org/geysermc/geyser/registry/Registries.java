@@ -53,6 +53,7 @@ import org.geysermc.geyser.registry.provider.ProviderSupplier;
 import org.geysermc.geyser.registry.type.EnchantmentData;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.registry.type.ParticleMapping;
+import org.geysermc.geyser.registry.type.RecordMapping;
 import org.geysermc.geyser.registry.type.SoundMapping;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
@@ -156,7 +157,7 @@ public final class Registries {
      * A mapped registry holding the available records, with the ID of the record being the key, and the {@link org.cloudburstmc.protocol.bedrock.data.SoundEvent}
      * as the value.
      */
-    public static final IntMappedRegistry<org.cloudburstmc.protocol.bedrock.data.SoundEvent> RECORDS = IntMappedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
+    public static final IntMappedRegistry<RecordMapping> RECORDS = IntMappedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
     /**
      * A mapped registry holding sound identifiers to their corresponding {@link SoundMapping}.

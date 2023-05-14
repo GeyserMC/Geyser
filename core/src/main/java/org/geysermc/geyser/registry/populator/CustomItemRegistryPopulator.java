@@ -45,9 +45,11 @@ import org.geysermc.geyser.item.components.ToolBreakSpeedsUtils;
 import org.geysermc.geyser.item.components.WearableSlot;
 import org.geysermc.geyser.item.mappings.MappingsConfigReader;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
+import org.geysermc.geyser.registry.type.RecordMapping;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -150,7 +152,6 @@ public class CustomItemRegistryPopulator {
                 .translationString(customItemData.translationString())
                 .customItemOptions(Collections.emptyList())
                 .javaItem(item)
-                .recordSound(customItemData.recordSound())
                 .build();
 
         NbtMapBuilder builder = createComponentNbt(customItemData, customItemData.identifier(), customItemId,
@@ -250,6 +251,10 @@ public class CustomItemRegistryPopulator {
 
         if (customItemData.isFoil()) {
             itemProperties.putBoolean("foil", true);
+        }
+
+        if (customItemData.recordSound() != null) {
+            Registries.RECORDS.register(customItemData.javaId(), new RecordMapping(customItemData.recordSound()));
         }
 
         componentBuilder.putCompound("item_properties", itemProperties.build());

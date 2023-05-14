@@ -128,6 +128,7 @@ import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.ItemMappings;
+import org.geysermc.geyser.registry.type.RecordMapping;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.session.cache.*;
@@ -553,6 +554,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private ScheduledFuture<?> mountVehicleScheduledFuture = null;
+
+    /**
+     * Used to track the last record played to a user
+     * So we can stop custom records/sound when needed
+     */
+    @Setter
+    private RecordMapping lastRecordPlayed = null;
 
     private MinecraftProtocol protocol;
 
