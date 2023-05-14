@@ -31,6 +31,8 @@ import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
+import com.github.steveice10.mc.protocol.data.game.recipe.data.SmithingTransformRecipeData;
+import com.github.steveice10.mc.protocol.data.game.recipe.data.SmithingTrimRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.StoneCuttingRecipeData;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateRecipesPacket;
 import it.unimi.dsi.fastutil.ints.*;
@@ -142,7 +144,48 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     data.add(stoneCuttingData);
                     // Save for processing after all recipes have been received
                 }
-                // todo: 1.20 smithing
+                case SMITHING_TRANSFORM -> {
+                    SmithingTransformRecipeData data = (SmithingTransformRecipeData) recipe.getData();
+                    ItemData output = ItemTranslator.translateToBedrock(session, data.getResult());
+
+                    for (ItemStack template : data.getTemplate().getOptions()) {
+                        ItemDescriptorWithCount bedrockTemplate = ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, template));
+
+                        for (ItemStack base : data.getBase().getOptions()) {
+                            ItemDescriptorWithCount bedrockBase = ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, base));
+
+                            for (ItemStack addition : data.getAddition().getOptions()) {
+                                ItemDescriptorWithCount bedrockAddition = ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, addition));
+
+                                // Note: vanilla inputs use aux value of Short.MAX_VALUE
+                                craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData.of(recipe.getIdentifier(),
+                                    bedrockTemplate, bedrockBase, bedrockAddition, output, "smithing_table", netId++));
+                            }
+                        }
+                    }
+
+                }
+                /*
+                // todo 1.20: BDS sends the trim recipes very concisely using item tag descriptors. this code doesn't result in trim recipes working.
+                case SMITHING_TRIM -> {
+                    SmithingTrimRecipeData data = (SmithingTrimRecipeData) recipe.getData();
+
+                    for (ItemStack template : data.getTemplate().getOptions()) {
+                        ItemDescriptorWithCount bedrockTemplate = ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, template));
+
+                        for (ItemStack base : data.getBase().getOptions()) {
+                            ItemDescriptorWithCount bedrockBase = ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, base));
+
+                            for (ItemStack addition : data.getAddition().getOptions()) {
+                                ItemDescriptorWithCount bedrockAddition = ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, addition));
+
+                                craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTrimRecipeData.of(recipe.getIdentifier(),
+                                    bedrockBase, bedrockAddition, bedrockTemplate, "smithing_table", netId++));
+                            }
+                        }
+                    }
+                }
+                 */
                 default -> {
                     List<RecipeData> craftingData = recipeTypes.get(recipe.getType());
                     if (craftingData != null) {
