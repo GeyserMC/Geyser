@@ -173,6 +173,27 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             }
                         }
 
+                        // Check if this is a double placement due to an extended collision block
+                        if (!session.getBlockMappings().getExtendedCollisionBoxes().isEmpty()) {
+                            Vector3i belowBlockPos = null;
+                            switch (packet.getBlockFace()) {
+                                case 1 -> belowBlockPos = blockPos.add(0, -2, 0);
+                                case 2 -> belowBlockPos = blockPos.add(0, -1, 1);
+                                case 3 -> belowBlockPos = blockPos.add(0, -1, -1);
+                                case 4 -> belowBlockPos = blockPos.add(1, -1, 0);
+                                case 5 -> belowBlockPos = blockPos.add(-1, -1, 0);
+                            }
+
+                            if (belowBlockPos != null) {
+                                int belowBlock = session.getGeyser().getWorldManager().getBlockAt(session, belowBlockPos);
+                                BlockDefinition extendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes().get(belowBlock);
+                                if (extendedCollisionDefinition != null && (System.currentTimeMillis() - session.getLastInteractionTime()) < 200) {
+                                    restoreCorrectBlock(session, blockPos, packet);
+                                    return;
+                                }
+                            }
+                        }
+
                         // Check to make sure the client isn't spamming interaction
                         // Based on Nukkit 1.0, with changes to ensure holding down still works
                         boolean hasAlreadyClicked = System.currentTimeMillis() - session.getLastInteractionTime() < 110.0 &&
@@ -257,6 +278,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             restoreCorrectBlock(session, blockPos, packet);
                             return;
                         }
+
                         /*
                         Block place checks end - client is good to go
                          */
