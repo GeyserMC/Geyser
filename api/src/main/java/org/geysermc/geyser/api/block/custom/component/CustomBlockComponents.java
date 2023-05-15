@@ -76,7 +76,6 @@ public interface CustomBlockComponents {
      */
     @NonNull Map<String, MaterialInstance> materialInstances();
 
-
     /**
      * Gets the placement filter component
      * Equivalent to "minecraft:placement_filter"
