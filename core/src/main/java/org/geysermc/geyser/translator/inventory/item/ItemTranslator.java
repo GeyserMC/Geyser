@@ -26,6 +26,7 @@
 package org.geysermc.geyser.translator.inventory.item;
 
 import com.github.steveice10.mc.protocol.data.game.Identifier;
+import com.github.steveice10.mc.protocol.data.game.entity.attribute.ModifierOperation;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import net.kyori.adventure.text.Component;
@@ -49,9 +50,8 @@ import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.text.DecimalFormat;
+import java.util.*;
 
 public final class ItemTranslator {
     private ItemTranslator() {
@@ -116,6 +116,11 @@ public final class ItemTranslator {
         }
 
         nbt = translateDisplayProperties(session, nbt, bedrockItem);
+
+        if (nbt != null) {
+            addAttributes(nbt, javaItem, session.locale());
+        }
+
         if (session.isAdvancedTooltips()) {
             nbt = addAdvancedTooltips(nbt, javaItem, session.locale());
         }
@@ -142,6 +147,99 @@ public final class ItemTranslator {
         }
 
         return builder;
+    }
+
+    private static CompoundTag addAttributes(CompoundTag nbt, Item item, String language) {
+        ListTag modifiers = nbt.get("AttributeModifiers");
+        if (modifiers == null) return nbt;
+        CompoundTag newNbt = nbt;
+        if (newNbt == null) {
+            newNbt = new CompoundTag("nbt");
+            CompoundTag display = new CompoundTag("display");
+            display.put(new ListTag("Lore"));
+            newNbt.put(display);
+        }
+        CompoundTag compoundTag = newNbt.get("display");
+        if (compoundTag == null) {
+            compoundTag = new CompoundTag("display");
+        }
+        ListTag listTag = compoundTag.get("Lore");
+
+        if (listTag == null) {
+            listTag = new ListTag("Lore");
+        }
+        String[] allSlots = new String[]{"mainhand", "offhand", "feet", "legs", "chest", "head"};
+        DecimalFormat decimalFormat = new DecimalFormat("0.#####");
+        Map<String, List<Tag>> slotsToModifiers = new HashMap<>();
+        for (String slot : allSlots) {
+            slotsToModifiers.put(slot, new ArrayList<>());
+        }
+        for (Tag modifier : modifiers) {
+            Map<String, Tag> modifierValue = (Map) modifier.getValue();
+            String[] slots = allSlots;
+            if (modifierValue.get("Slot") != null) {
+                slots = new String[]{(String) modifierValue.get("Slot").getValue()};
+            }
+            for (String slot : slots) {
+                List<Tag> list = slotsToModifiers.get(slot);
+                list.add(modifier);
+                slotsToModifiers.put(slot, list);
+            }
+        }
+
+        for (String slot : allSlots) {
+            List<Tag> modifiersList = slotsToModifiers.get(slot);
+            if (modifiersList.isEmpty()) continue;
+            Component slotComponent = Component.text()
+                    .resetStyle()
+                    .color(NamedTextColor.GRAY)
+                    .append(Component.newline(), Component.translatable("item.modifiers." + slot))
+                    .build();
+            listTag.add(new StringTag("", MessageTranslator.convertMessage(slotComponent, language)));
+
+
+            for (Tag modifier : modifiersList) {
+                Map<String, Tag> modifierValue = (Map) modifier.getValue();
+                double amount;
+                if (modifierValue.get("Amount") instanceof IntTag intTag) {
+                    amount = (double) intTag.getValue();
+                } else if (modifierValue.get("Amount") instanceof DoubleTag doubleTag) {
+                    amount = doubleTag.getValue();
+                } else {
+                    continue;
+                }
+                if (amount == 0) {
+                    continue;
+                }
+                ModifierOperation operation = ModifierOperation.from((int) modifierValue.get("Operation").getValue());
+                String operationTotal;
+                if (operation == ModifierOperation.ADD) {
+                    if (modifierValue.get("Name").equals("knockback_resistance")) {
+                        amount *= 10;
+                    }
+                    operationTotal = decimalFormat.format(amount);
+                } else if (operation == ModifierOperation.ADD_MULTIPLIED || operation == ModifierOperation.MULTIPLY) {
+                    operationTotal = decimalFormat.format(amount * 100) + "%";
+                } else {
+                    continue;
+                }
+                if (amount > 0) {
+                    operationTotal = "+" + operationTotal;
+                }
+
+                Component attributeComponent = Component.text()
+                        .resetStyle()
+                        .color(amount > 0 ? NamedTextColor.BLUE : NamedTextColor.RED)
+                        .append(Component.text(operationTotal), Component.text(" "), Component.translatable("attribute.name." + modifierValue.get("Name").getValue()))
+                        .build();
+                listTag.add(new StringTag("", MessageTranslator.convertMessage(attributeComponent, language)));
+            }
+
+        }
+
+        compoundTag.put(listTag);
+        newNbt.put(compoundTag);
+        return newNbt;
     }
 
     private static CompoundTag addAdvancedTooltips(CompoundTag nbt, Item item, String language) {
