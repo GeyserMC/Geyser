@@ -29,7 +29,6 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetCreativeModeSlotPacket;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -94,7 +93,13 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         armorContentPacket.setContainerId(ContainerId.ARMOR);
         contents = new ItemData[4];
         for (int i = 5; i < 9; i++) {
-            contents[i - 5] = inventory.getItem(i).getItemData(session);
+            GeyserItemStack item = inventory.getItem(i);
+            contents[i - 5] = item.getItemData(session);
+            if (i == 5 &&
+                    item.asItem() == Items.PLAYER_HEAD &&
+                    item.getNbt() != null) {
+                FakeHeadProvider.setHead(session, session.getPlayerEntity(), item.getNbt().get("SkullOwner"));
+            }
         }
         armorContentPacket.setContents(Arrays.asList(contents));
         session.sendUpstreamPacket(armorContentPacket);
@@ -136,9 +141,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         if (slot == 5) {
             // Check for custom skull
             if (javaItem.asItem() == Items.PLAYER_HEAD
-                    && javaItem.getNbt() != null
-                    && javaItem.getNbt().get("SkullOwner") instanceof CompoundTag profile) {
-                FakeHeadProvider.setHead(session, session.getPlayerEntity(), profile);
+                    && javaItem.getNbt() != null) {
+                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getNbt().get("SkullOwner"));
             } else {
                 FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
             }
