@@ -37,6 +37,7 @@ import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Tickable;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.UUID;
@@ -61,12 +62,17 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
 
     @Override
     protected void setDimensions(Pose pose) {
-        if (this.flags.contains(EntityFlag.DIGGING)) {
+        if (getFlag(EntityFlag.DIGGING)) {
             setBoundingBoxHeight(DIGGING_HEIGHT);
             setBoundingBoxWidth(definition.width());
         } else {
             super.setDimensions(pose);
         }
+    }
+
+    @Override
+    public boolean canEat(Item item) {
+        return session.getTagCache().isSnifferFood(item);
     }
 
     public void setSnifferState(ObjectEntityMetadata<SnifferState> entityMetadata) {
@@ -82,7 +88,7 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
 
         setDimensions(pose);
 
-        if (this.flags.contains(EntityFlag.DIGGING)) {
+        if (getFlag(EntityFlag.DIGGING)) {
             digTicks = DIG_END;
         } else {
             // Handles situations where the DIGGING state is exited earlier than expected,

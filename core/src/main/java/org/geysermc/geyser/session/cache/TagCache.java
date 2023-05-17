@@ -64,6 +64,7 @@ public class TagCache {
     private IntList foxFood;
     private IntList piglinLoved;
     private IntList smallFlowers;
+    private IntList snifferFood;
 
     public TagCache() {
         // Ensure all lists are non-null
@@ -101,6 +102,7 @@ public class TagCache {
         this.foxFood = IntList.of(itemTags.get("minecraft:fox_food"));
         this.piglinLoved = IntList.of(itemTags.get("minecraft:piglin_loved"));
         this.smallFlowers = IntList.of(itemTags.get("minecraft:small_flowers"));
+        this.snifferFood = IntList.of(itemTags.get("minecraft:sniffer_food"));
 
         // Hack btw
         boolean emulatePost1_13Logic = itemTags.get("minecraft:signs").length > 1;
@@ -137,6 +139,7 @@ public class TagCache {
         this.foxFood = IntLists.emptyList();
         this.piglinLoved = IntLists.emptyList();
         this.smallFlowers = IntLists.emptyList();
+        this.snifferFood = IntLists.emptyList();
     }
 
     public boolean isAxolotlTemptItem(Item item) {
@@ -165,6 +168,10 @@ public class TagCache {
 
     public boolean isSmallFlower(GeyserItemStack itemStack) {
         return smallFlowers.contains(itemStack.getJavaId());
+    }
+
+    public boolean isSnifferFood(Item item) {
+        return snifferFood.contains(item.javaId());
     }
 
     public boolean isAxeEffective(BlockMapping blockMapping) {
