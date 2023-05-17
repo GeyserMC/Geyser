@@ -3,13 +3,12 @@ plugins {
 }
 
 repositories {
-    maven("https://repo.stellardrift.ca/repository/snapshots/")
     gradlePluginPortal()
     maven("https://repo.opencollab.dev/maven-snapshots")
 }
 
 dependencies {
-    implementation("net.kyori", "indra-common", "3.1.0-SNAPSHOT")
+    implementation("net.kyori", "indra-common", "3.1.1")
     implementation("com.github.johnrengelman", "shadow", "7.1.3-SNAPSHOT")
 
     // Within the gradle plugin classpath, there is a version conflict between loom and some other
