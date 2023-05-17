@@ -28,7 +28,6 @@ package org.geysermc.geyser.translator.protocol.java.entity;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Equipment;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundSetEquipmentPacket;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
@@ -66,9 +65,8 @@ public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetE
                     if (livingEntity instanceof PlayerEntity
                             && javaItem != null
                             && javaItem.getId() == Items.PLAYER_HEAD.javaId()
-                            && javaItem.getNbt() != null
-                            && javaItem.getNbt().get("SkullOwner") instanceof CompoundTag profile) {
-                        FakeHeadProvider.setHead(session, (PlayerEntity) livingEntity, profile);
+                            && javaItem.getNbt() != null) {
+                        FakeHeadProvider.setHead(session, (PlayerEntity) livingEntity, javaItem.getNbt().get("SkullOwner"));
                     } else {
                         FakeHeadProvider.restoreOriginalSkin(session, livingEntity);
                     }
