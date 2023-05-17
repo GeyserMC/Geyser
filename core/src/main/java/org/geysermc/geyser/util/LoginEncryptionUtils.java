@@ -133,8 +133,22 @@ public class LoginEncryptionUtils {
             geyser.getLogger().debug(String.format("Is player data valid? %s", validChain));
 
             if (!validChain && !session.getGeyser().getConfig().isEnableProxyConnections()) {
-                if (session.getGeyser().getConfig().isXboxAuthEnabled()){
-                	session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account")); 
+                if (session.getGeyser().getConfig().isXboxAuthEnabled()) {
+                    session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
+                } else {
+                    JWSObject clientJwt = JWSObject.parse(clientData);
+                    JsonNode clientDataJson = JSON_MAPPER.readTree(clientJwt.getPayload().toBytes());
+                    BedrockClientData data = JSON_MAPPER.convertValue(clientDataJson, BedrockClientData.class);
+                    data.setOriginalString(clientData);
+                    session.setClientData(data);
+                    JWSObject jwt = certChainData.get(certChainData.size() - 1);
+                    JsonNode payload = JSON_MAPPER.readTree(jwt.getPayload().toBytes());
+                    JsonNode extraData = payload.get("extraData");
+                    session.setAuthenticationData(new AuthData(
+                            extraData.get("displayName").asText(),
+                            UUID.fromString(extraData.get("identity").asText()),
+                            extraData.get("XUID").asText()
+                    ));
                 }
                 return;
             }
