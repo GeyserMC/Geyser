@@ -134,7 +134,7 @@ public class LoginEncryptionUtils {
 
             if (!validChain && !session.getGeyser().getConfig().isEnableProxyConnections()) {
                 if (session.getGeyser().getConfig().isXboxAuthEnabled()){
-                	session.disconnect(LanguageUtils.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));    
+                	session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account")); 
                 }
                 return;
             }
