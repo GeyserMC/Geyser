@@ -25,23 +25,90 @@
 
 package org.geysermc.geyser.entity.type.living.animal;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.SnifferState;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.UUID;
 
-public class SnifferEntity extends AnimalEntity {
+public class SnifferEntity extends AnimalEntity implements Tickable {
     private static final float DIGGING_HEIGHT = EntityDefinitions.SNIFFER.height() - 0.4f;
+    private static final int DIG_END = 120;
+    private static final int DIG_START = DIG_END - 34;
+
+    private Pose pose = Pose.STANDING; // Needed to call setDimensions for DIGGING state
+    private int digTicks;
 
     public SnifferEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setSnifferState(ObjectEntityMetadata<SnifferState> entityMetadata) {
+    @Override
+    public void setPose(Pose pose) {
+        this.pose = pose;
+        super.setPose(pose);
+    }
 
+    @Override
+    protected void setDimensions(Pose pose) {
+        if (this.flags.contains(EntityFlag.DIGGING)) {
+            setBoundingBoxHeight(DIGGING_HEIGHT);
+            setBoundingBoxWidth(definition.width());
+        } else {
+            super.setDimensions(pose);
+        }
+    }
+
+    public void setSnifferState(ObjectEntityMetadata<SnifferState> entityMetadata) {
+        SnifferState snifferState = entityMetadata.getValue();
+
+        // SnifferState.SCENTING and SnifferState.IDLING not used in bedrock
+        // The bedrock client does the scenting animation and sound on its own
+        setFlag(EntityFlag.FEELING_HAPPY, snifferState == SnifferState.FEELING_HAPPY);
+        setFlag(EntityFlag.SCENTING, snifferState == SnifferState.SNIFFING); // SnifferState.SNIFFING -> EntityFlag.SCENTING
+        setFlag(EntityFlag.SEARCHING, snifferState == SnifferState.SEARCHING);
+        setFlag(EntityFlag.DIGGING, snifferState == SnifferState.DIGGING);
+        setFlag(EntityFlag.RISING, snifferState == SnifferState.RISING);
+
+        setDimensions(pose);
+
+        if (this.flags.contains(EntityFlag.DIGGING)) {
+            digTicks = DIG_END;
+        }
+    }
+
+    @Override
+    public void tick() {
+        // The java client renders digging particles on its own, but bedrock does not
+        if (digTicks > 0 && --digTicks < DIG_START && digTicks % 5 == 0) {
+            Vector3f rot = Vector3f.createDirectionDeg(0, -getYaw()).mul(2.25f);
+            Vector3f pos = getPosition().add(rot);
+            int blockId = session.getBlockMappings().getBedrockBlockId(session.getGeyser().getWorldManager().getBlockAt(session, pos.toInt().down()));
+
+            LevelEventPacket levelEventPacket = new LevelEventPacket();
+            levelEventPacket.setType(LevelEvent.PARTICLE_DESTROY_BLOCK_NO_SOUND);
+            levelEventPacket.setPosition(pos);
+            levelEventPacket.setData(blockId);
+            session.getUpstream().sendPacket(levelEventPacket);
+
+            if (digTicks % 10 == 0) {
+                LevelSoundEventPacket levelSoundEventPacket = new LevelSoundEventPacket();
+                levelSoundEventPacket.setSound(SoundEvent.HIT);
+                levelSoundEventPacket.setPosition(pos);
+                levelSoundEventPacket.setExtraData(blockId);
+                levelSoundEventPacket.setIdentifier(":");
+                session.sendUpstreamPacket(levelSoundEventPacket);
+            }
+        }
     }
 }
