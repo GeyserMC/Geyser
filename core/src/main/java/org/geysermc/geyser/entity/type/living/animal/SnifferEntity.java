@@ -84,6 +84,10 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
 
         if (this.flags.contains(EntityFlag.DIGGING)) {
             digTicks = DIG_END;
+        } else {
+            // Handles situations where the DIGGING state is exited earlier than expected,
+            // such as hitting the sniffer or joining the game while it is digging
+            digTicks = 0;
         }
     }
 
@@ -99,7 +103,7 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
             levelEventPacket.setType(LevelEvent.PARTICLE_DESTROY_BLOCK_NO_SOUND);
             levelEventPacket.setPosition(pos);
             levelEventPacket.setData(blockId);
-            session.getUpstream().sendPacket(levelEventPacket);
+            session.sendUpstreamPacket(levelEventPacket);
 
             if (digTicks % 10 == 0) {
                 LevelSoundEventPacket levelSoundEventPacket = new LevelSoundEventPacket();
