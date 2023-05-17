@@ -66,6 +66,10 @@ configurations.api {
     // This is still experimental - additionally, it could only really benefit standalone
     exclude(group = "io.netty.incubator", module = "netty-incubator-transport-native-io_uring")
 }
+java {
+    sourceCompatibility = JavaVersion.VERSION_16
+    targetCompatibility = JavaVersion.VERSION_16
+}
 
 tasks.processResources {
     // This is solely for backwards compatibility for other programs that used this file before the switch to gradle.

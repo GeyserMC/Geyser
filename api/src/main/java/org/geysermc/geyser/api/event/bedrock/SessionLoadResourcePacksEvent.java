@@ -32,20 +32,19 @@ import org.geysermc.geyser.api.packs.ResourcePack;
 
 import java.util.Map;
 
-public class PlayerResourcePackLoadEvent extends ConnectionEvent {
+public class SessionLoadResourcePacksEvent extends ConnectionEvent {
 
-    private final Map<String, ResourcePack> packs;
+    /**
+     * Called when Geyser initialises a session for a new bedrock client and is in the process of sending resource packs.
+     * This includes packs sent by Geyser.
+     * String is the pack ID
+     * ResourcePack is the pack itself
+     */
+    public final Map<String, ResourcePack> packs;
 
-    public PlayerResourcePackLoadEvent(@NonNull GeyserConnection connection, @NonNull Map<String, ResourcePack> packs) {
+
+    public SessionLoadResourcePacksEvent(@NonNull GeyserConnection connection, @NonNull Map<String, ResourcePack> packs) {
         super(connection);
         this.packs = packs;
-    }
-
-    public @NonNull Map<String, ResourcePack> getPacks() {
-        return this.packs;
-    }
-
-    public void setPacks(@NonNull Map<String, ResourcePack> packs) {
-        this.packs.putAll(packs);
     }
 }

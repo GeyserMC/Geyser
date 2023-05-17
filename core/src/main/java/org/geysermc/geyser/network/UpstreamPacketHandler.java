@@ -33,31 +33,18 @@ import org.cloudburstmc.protocol.bedrock.codec.v568.Bedrock_v568;
 import org.cloudburstmc.protocol.bedrock.data.ExperimentData;
 import org.cloudburstmc.protocol.bedrock.data.PacketCompressionAlgorithm;
 import org.cloudburstmc.protocol.bedrock.data.ResourcePackType;
-import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
-import org.cloudburstmc.protocol.bedrock.packet.LoginPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ModalFormResponsePacket;
-import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
-import org.cloudburstmc.protocol.bedrock.packet.NetworkSettingsPacket;
-import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
-import org.cloudburstmc.protocol.bedrock.packet.RequestNetworkSettingsPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ResourcePackChunkDataPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ResourcePackChunkRequestPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ResourcePackClientResponsePacket;
-import org.cloudburstmc.protocol.bedrock.packet.ResourcePackDataInfoPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ResourcePackStackPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ResourcePacksInfoPacket;
-import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
+import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.protocol.common.PacketSignal;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.event.bedrock.PlayerResourcePackLoadEvent;
+import org.geysermc.geyser.api.event.bedrock.SessionLoadResourcePacksEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.packs.ResourcePack;
 import org.geysermc.geyser.api.packs.ResourcePackManifest;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
-import org.geysermc.geyser.pack.ResourcePackUtil;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.loader.ResourcePackLoader;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -65,18 +52,19 @@ import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.geyser.util.VersionCheckUtils;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.OptionalInt;
 import java.util.HashMap;
+import java.util.OptionalInt;
 
 public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     private final Deque<String> packsToSent = new ArrayDeque<>();
 
-    private PlayerResourcePackLoadEvent resourcePackLoadEvent;
+    private SessionLoadResourcePacksEvent resourcePackLoadEvent;
 
     public UpstreamPacketHandler(GeyserImpl geyser, GeyserSession session) {
         super(geyser, session);
@@ -189,15 +177,14 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         geyser.getSessionManager().addPendingSession(session);
 
-        this.resourcePackLoadEvent = new PlayerResourcePackLoadEvent(session, new HashMap<>(ResourcePackUtil.PACKS));
-        this.geyser.eventBus().fire(this.resourcePackLoadEvent);
+        this.resourcePackLoadEvent = new SessionLoadResourcePacksEvent(session, new HashMap<>(Registries.RESOURCE_PACKS.get()));
 
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
-        for(ResourcePack resourcePack : this.resourcePackLoadEvent.getPacks().values()) {
-            ResourcePackManifest.Header header = resourcePack.getManifest().getHeader();
+        for(ResourcePack resourcePack : this.resourcePackLoadEvent.packs.values()) {
+            ResourcePackManifest.Header header = resourcePack.manifest().header();
             resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(
-                    header.getUuid().toString(), header.getVersionString(), resourcePack.getFile().length(),
-                            resourcePack.getContentKey(), "", header.getUuid().toString(), false, false));
+                    header.uuid().toString(), header.getVersionString(), new File(resourcePack.path().toUri()).length(),
+                            resourcePack.contentKey(), "", header.uuid().toString(), false, false));
         }
         resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().getConfig().isForceResourcePacks());
         session.sendUpstreamPacket(resourcePacksInfo);
@@ -230,9 +217,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 stackPacket.setForcedToAccept(false); // Leaving this as false allows the player to choose to download or not
                 stackPacket.setGameVersion(session.getClientData().getGameVersion());
 
-                for (ResourcePack pack : this.resourcePackLoadEvent.getPacks().values()) {
-                    ResourcePackManifest.Header header = pack.getManifest().getHeader();
-                    stackPacket.getResourcePacks().add(new ResourcePackStackPacket.Entry(header.getUuid().toString(), header.getVersionString(), ""));
+                for (ResourcePack pack : this.resourcePackLoadEvent.packs.values()) {
+                    ResourcePackManifest.Header header = pack.manifest().header();
+                    stackPacket.getResourcePacks().add(new ResourcePackStackPacket.Entry(header.uuid().toString(), header.getVersionString(), ""));
                 }
 
                 if (GeyserImpl.getInstance().getConfig().isAddNonBedrockItems()) {
@@ -306,18 +293,18 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     @Override
     public PacketSignal handle(ResourcePackChunkRequestPacket packet) {
         ResourcePackChunkDataPacket data = new ResourcePackChunkDataPacket();
-        ResourcePack pack = this.resourcePackLoadEvent.getPacks().get(packet.getPackId().toString());
+        ResourcePack pack = this.resourcePackLoadEvent.packs.get(packet.getPackId().toString());
 
         data.setChunkIndex(packet.getChunkIndex());
-        data.setProgress((long) packet.getChunkIndex() * ResourcePackUtil.CHUNK_SIZE);
+        data.setProgress((long) packet.getChunkIndex() * ResourcePackLoader.CHUNK_SIZE);
         data.setPackVersion(packet.getPackVersion());
         data.setPackId(packet.getPackId());
 
-        int offset = packet.getChunkIndex() * ResourcePackUtil.CHUNK_SIZE;
-        long remainingSize = pack.getFile().length() - offset;
-        byte[] packData = new byte[(int) MathUtils.constrain(remainingSize, 0, ResourcePackUtil.CHUNK_SIZE)];
+        int offset = packet.getChunkIndex() * ResourcePackLoader.CHUNK_SIZE;
+        long remainingSize = new File(pack.path().toUri()).length() - offset;
+        byte[] packData = new byte[(int) MathUtils.constrain(remainingSize, 0, ResourcePackLoader.CHUNK_SIZE)];
 
-        try (InputStream inputStream = new FileInputStream(pack.getFile())) {
+        try (InputStream inputStream = new FileInputStream(new File(pack.path().toUri()))) {
             inputStream.skip(offset);
             inputStream.read(packData, 0, packData.length);
         } catch (Exception e) {
@@ -329,7 +316,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         session.sendUpstreamPacket(data);
 
         // Check if it is the last chunk and send next pack in queue when available.
-        if (remainingSize <= ResourcePackUtil.CHUNK_SIZE && !packsToSent.isEmpty()) {
+        if (remainingSize <= ResourcePackLoader.CHUNK_SIZE && !packsToSent.isEmpty()) {
             sendPackDataInfo(packsToSent.pop());
         }
 
@@ -339,15 +326,15 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     private void sendPackDataInfo(String id) {
         ResourcePackDataInfoPacket data = new ResourcePackDataInfoPacket();
         String[] packID = id.split("_");
-        ResourcePack pack = this.resourcePackLoadEvent.getPacks().get(packID[0]);
-        ResourcePackManifest.Header header = pack.getManifest().getHeader();
+        ResourcePack pack = this.resourcePackLoadEvent.packs.get(packID[0]);
+        ResourcePackManifest.Header header = pack.manifest().header();
 
-        data.setPackId(header.getUuid());
-        int chunkCount = (int) Math.ceil((int) pack.getFile().length() / (double) ResourcePackUtil.CHUNK_SIZE);
+        data.setPackId(header.uuid());
+        int chunkCount = (int) Math.ceil((int) new File(pack.path().toUri()).length() / (double) ResourcePackLoader.CHUNK_SIZE);
         data.setChunkCount(chunkCount);
-        data.setCompressedPackSize(pack.getFile().length());
-        data.setMaxChunkSize(ResourcePackUtil.CHUNK_SIZE);
-        data.setHash(pack.getSha256());
+        data.setCompressedPackSize(new File(pack.path().toUri()).length());
+        data.setMaxChunkSize(ResourcePackLoader.CHUNK_SIZE);
+        data.setHash(pack.sha256());
         data.setPackVersion(packID[1]);
         data.setPremium(false);
         data.setType(ResourcePackType.RESOURCES);

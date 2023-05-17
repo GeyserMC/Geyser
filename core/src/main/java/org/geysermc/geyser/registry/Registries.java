@@ -50,10 +50,7 @@ import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.populator.PacketRegistryPopulator;
 import org.geysermc.geyser.registry.populator.RecipeRegistryPopulator;
 import org.geysermc.geyser.registry.provider.ProviderSupplier;
-import org.geysermc.geyser.registry.type.EnchantmentData;
-import org.geysermc.geyser.registry.type.ItemMappings;
-import org.geysermc.geyser.registry.type.ParticleMapping;
-import org.geysermc.geyser.registry.type.SoundMapping;
+import org.geysermc.geyser.registry.type.*;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
@@ -167,6 +164,12 @@ public final class Registries {
      * A mapped registry holding {@link LevelEvent}s to their corresponding {@link LevelEventTranslator}.
      */
     public static final SimpleMappedRegistry<LevelEvent, LevelEventTranslator> SOUND_LEVEL_EVENTS = SimpleMappedRegistry.create("mappings/effects.json", SoundEventsRegistryLoader::new);
+
+
+    /**
+     * A mapped registry holding {@link ResourcePackMapping}s with the pack uuid as keys.
+     */
+    public static final SimpleMappedRegistry<String, ResourcePackMapping> RESOURCE_PACKS = SimpleMappedRegistry.create(RegistryLoaders.empty(HashMap::new));
 
     /**
      * A mapped registry holding {@link SoundTranslator}s to their corresponding {@link SoundInteractionTranslator}.

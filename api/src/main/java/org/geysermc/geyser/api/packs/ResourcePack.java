@@ -25,18 +25,53 @@
 
 package org.geysermc.geyser.api.packs;
 
-import lombok.Data;
-
-import java.io.File;
+import java.nio.file.Path;
 
 /**
  * This represents a resource pack and all the data relevant to it
  */
-@Data
-public class ResourcePack {
-    private byte[] sha256;
-    private File file;
-    private ResourcePackManifest manifest;
-    private ResourcePackManifest.Version version;
-    private String contentKey;
+
+public interface ResourcePack {
+
+    /**
+     * Gets the sha256 hash of the resource pack.
+     *
+     * @return the hash
+     */
+    byte[] sha256();
+
+    /**
+     * Gets the resource pack file.
+     *
+     * @return the resource pack file
+     */
+    Path path();
+
+    /**
+     * Gets the resource pack file length.
+     *
+     * @return the resource pack file length
+     */
+    long length();
+
+    /**
+     * Gets the resource pack manifest.
+     *
+     * @return the resource pack manifest
+     */
+    ResourcePackManifest manifest();
+
+    /**
+     * Gets the version of the resource pack.
+     *
+     * @return the version of the resource pack
+     */
+    ResourcePackManifest.Version version();
+
+    /**
+     * Gets the name of the command.
+     *
+     * @return the name of the command
+     */
+    String contentKey();
 }

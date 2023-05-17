@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,12 +23,13 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.pack;
+package org.geysermc.geyser.registry.loader;
 
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserLoadResourcePacksEvent;
 import org.geysermc.geyser.api.packs.ResourcePack;
 import org.geysermc.geyser.api.packs.ResourcePackManifest;
+import org.geysermc.geyser.registry.type.ResourcePackMapping;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 
@@ -48,7 +49,7 @@ import java.util.zip.ZipFile;
 /**
  * This represents a resource pack and all the data relevant to it
  */
-public class ResourcePackUtil {
+public class ResourcePackLoader implements RegistryLoader<Path, HashMap<String, ResourcePack>> {
     /**
      * The list of loaded resource packs
      */
@@ -62,7 +63,8 @@ public class ResourcePackUtil {
     /**
      * Loop through the packs directory and locate valid resource pack files
      */
-    public static Map<String, ResourcePack> loadPacksToMap(Path directory) {
+    @Override
+    public HashMap<String, ResourcePack> load(Path directory) {
         if (!Files.exists(directory)) {
             try {
                 Files.createDirectory(directory);
@@ -91,8 +93,7 @@ public class ResourcePackUtil {
             File file = path.toFile();
 
             if (file.getName().endsWith(".zip") || file.getName().endsWith(".mcpack")) {
-                ResourcePack pack = new ResourcePack();
-                pack.setSha256(FileUtils.calculateSHA256(file));
+                ResourcePackMapping pack = new ResourcePackMapping(FileUtils.calculateSHA256(file));
 
                 try (ZipFile zip = new ZipFile(file);
                      Stream<? extends ZipEntry> stream = zip.stream()) {
@@ -106,11 +107,11 @@ public class ResourcePackUtil {
                         }
                         if (name.contains("manifest.json")) {
                             try {
-                                ResourcePackManifest manifest = FileUtils.loadJson(zip.getInputStream(x), ResourcePackManifest.class);
+                                ResourcePackMapping.ResourcePackManifestMapping manifest = FileUtils.loadJson(zip.getInputStream(x), ResourcePackMapping.ResourcePackManifestMapping.class);
                                 // Sometimes a pack_manifest file is present and not in a valid format,
                                 // but a manifest file is, so we null check through that one
-                                if (manifest.getHeader().getUuid() != null) {
-                                    pack.setFile(file);
+                                if (manifest.header().uuid() != null) {
+                                    pack.setPath(file.toPath());
                                     pack.setManifest(manifest);
                                     pack.setVersion(ResourcePackManifest.Version.fromArray(manifest.getHeader().getVersion()));
 
