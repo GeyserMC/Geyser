@@ -102,7 +102,7 @@ public class TagCache {
         this.foxFood = IntList.of(itemTags.get("minecraft:fox_food"));
         this.piglinLoved = IntList.of(itemTags.get("minecraft:piglin_loved"));
         this.smallFlowers = IntList.of(itemTags.get("minecraft:small_flowers"));
-        this.snifferFood = IntList.of(itemTags.get("minecraft:sniffer_food"));
+        this.snifferFood = load(itemTags.get("minecraft:sniffer_food"));
 
         // Hack btw
         boolean emulatePost1_13Logic = itemTags.get("minecraft:signs").length > 1;
