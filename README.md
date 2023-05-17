@@ -1,4 +1,4 @@
-An xbox account is not required on the bedrock client.
+An xbox account is not required on the bedrock client. In the config setting xbox-auth-enabled
 
 <img src="https://geysermc.org/img/geyser-1760-860.png" alt="Geyser" width="600"/>
 
