@@ -46,7 +46,7 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
     private static final int DIG_END = 120;
     private static final int DIG_START = DIG_END - 34;
 
-    private Pose pose = Pose.STANDING;
+    private Pose pose = Pose.STANDING; // Needed to call setDimensions for DIGGING state
     private int digTicks;
 
     public SnifferEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
