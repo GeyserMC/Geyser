@@ -247,6 +247,10 @@ public class CustomItemRegistryPopulator {
             itemProperties.putInt("creative_category", creativeCategory.getAsInt());
         }
 
+        if (customItemData.isFoil()) {
+            itemProperties.putBoolean("foil", true);
+        }
+
         componentBuilder.putCompound("item_properties", itemProperties.build());
         builder.putCompound("components", componentBuilder.build());
 
