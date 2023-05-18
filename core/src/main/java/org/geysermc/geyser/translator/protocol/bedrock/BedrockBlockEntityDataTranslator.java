@@ -44,6 +44,9 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
         NbtMap tag = packet.getData();
         String id = tag.getString("id");
         if (id.equals("Sign")) {
+            // Hanging signs are narrower
+            int widthMax = SignUtils.getSignWidthMax(session.getGeyser().getWorldManager().getBlockAt(session, packet.getBlockPosition()));
+
             String text = MessageTranslator.convertToPlainText(
                 tag.getCompound(session.getWorldCache().isEditingSignOnFront() ? "FrontText" : "BackText").getString("Text"));
             // Note: as of 1.18.30, only one packet is sent from Bedrock when the sign is finished.
@@ -60,13 +63,10 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
             for (char character : text.toCharArray()) {
                 widthCount += SignUtils.getCharacterWidth(character);
 
-                // todo 1.20: update for hanging signs (smaller width). Currently bedrock thinks hanging signs are normal,
-                // so it thinks hanging signs have more width than they actually do. Seems like JE just truncates it.
-
                 // If we get a return in Bedrock, or go over the character width max, that signals to use the next line.
-                if (character == '\n' || widthCount > SignUtils.JAVA_CHARACTER_WIDTH_MAX) {
+                if (character == '\n' || widthCount > widthMax) {
                     // We need to apply some more logic if we went over the character width max
-                    boolean wentOverMax = widthCount > SignUtils.JAVA_CHARACTER_WIDTH_MAX && character != '\n';
+                    boolean wentOverMax = widthCount > widthMax && character != '\n';
                     widthCount = 0;
                     // Saves if we're moving a word to the next line
                     String word = null;
