@@ -38,6 +38,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -54,6 +55,10 @@ import java.text.DecimalFormat;
 import java.util.*;
 
 public final class ItemTranslator {
+
+    private static final String[] ALL_SLOTS = new String[]{"mainhand", "offhand", "feet", "legs", "chest", "head"};
+    private static final DecimalFormat ATTRIBUTE_FORMAT = new DecimalFormat("0.#####");
+
     private ItemTranslator() {
     }
 
@@ -118,7 +123,7 @@ public final class ItemTranslator {
         nbt = translateDisplayProperties(session, nbt, bedrockItem);
 
         if (nbt != null) {
-            addAttributes(nbt, javaItem, session.locale());
+            addAttributeLore(nbt, session.locale());
         }
 
         if (session.isAdvancedTooltips()) {
@@ -149,61 +154,61 @@ public final class ItemTranslator {
         return builder;
     }
 
-    private static CompoundTag addAttributes(CompoundTag nbt, Item item, String language) {
-        ListTag modifiers = nbt.get("AttributeModifiers");
-        if (modifiers == null) return nbt;
-        CompoundTag newNbt = nbt;
-        if (newNbt == null) {
-            newNbt = new CompoundTag("nbt");
-            CompoundTag display = new CompoundTag("display");
-            display.put(new ListTag("Lore"));
-            newNbt.put(display);
+    /**
+     * Bedrock Edition does not see attribute modifiers like Java Edition does,
+     * so we add them as lore instead.
+     *
+     * @param nbt the NBT of the ItemStack
+     * @param language the locale of the player
+     */
+    private static void addAttributeLore(CompoundTag nbt, String language) {
+        ListTag attributeModifiers = nbt.get("AttributeModifiers");
+        if (attributeModifiers == null) {
+            return; // nothing to convert to lore
         }
-        CompoundTag compoundTag = newNbt.get("display");
-        if (compoundTag == null) {
-            compoundTag = new CompoundTag("display");
-        }
-        ListTag listTag = compoundTag.get("Lore");
 
-        if (listTag == null) {
-            listTag = new ListTag("Lore");
+        CompoundTag displayTag = nbt.get("display");
+        if (displayTag == null) {
+            displayTag = new CompoundTag("display");
         }
-        String[] allSlots = new String[]{"mainhand", "offhand", "feet", "legs", "chest", "head"};
-        DecimalFormat decimalFormat = new DecimalFormat("0.#####");
-        Map<String, List<Tag>> slotsToModifiers = new HashMap<>();
-        for (String slot : allSlots) {
-            slotsToModifiers.put(slot, new ArrayList<>());
+        ListTag lore = displayTag.get("Lore");
+        if (lore == null) {
+            lore = new ListTag("Lore");
         }
-        for (Tag modifier : modifiers) {
-            Map<String, Tag> modifierValue = (Map) modifier.getValue();
-            String[] slots = allSlots;
-            if (modifierValue.get("Slot") != null) {
-                slots = new String[]{(String) modifierValue.get("Slot").getValue()};
+
+        Map<String, List<CompoundTag>> slotsToModifiers = new HashMap<>();
+        for (Tag modifier : attributeModifiers) {
+            CompoundTag modifierTag = (CompoundTag) modifier;
+
+            String[] slots;
+            if (modifierTag.get("Slot") == null) {
+                slots = ALL_SLOTS;
+            } else {
+                slots = new String[]{((StringTag) modifierTag.get("Slot")).getValue()};
             }
             for (String slot : slots) {
-                List<Tag> list = slotsToModifiers.get(slot);
-                list.add(modifier);
-                slotsToModifiers.put(slot, list);
+                slotsToModifiers.computeIfAbsent(slot, s -> new ArrayList<>()).add(modifierTag);
             }
         }
 
-        for (String slot : allSlots) {
-            List<Tag> modifiersList = slotsToModifiers.get(slot);
-            if (modifiersList.isEmpty()) continue;
+        for (String slot : ALL_SLOTS) {
+            List<CompoundTag> modifiers = slotsToModifiers.get(slot);
+            if (modifiers == null || modifiers.isEmpty()) {
+                continue;
+            }
+
             Component slotComponent = Component.text()
                     .resetStyle()
                     .color(NamedTextColor.GRAY)
                     .append(Component.newline(), Component.translatable("item.modifiers." + slot))
                     .build();
-            listTag.add(new StringTag("", MessageTranslator.convertMessage(slotComponent, language)));
+            lore.add(new StringTag("", MessageTranslator.convertMessage(slotComponent, language)));
 
-
-            for (Tag modifier : modifiersList) {
-                Map<String, Tag> modifierValue = (Map) modifier.getValue();
+            for (CompoundTag modifier : modifiers) {
                 double amount;
-                if (modifierValue.get("Amount") instanceof IntTag intTag) {
+                if (modifier.get("Amount") instanceof IntTag intTag) {
                     amount = (double) intTag.getValue();
-                } else if (modifierValue.get("Amount") instanceof DoubleTag doubleTag) {
+                } else if (modifier.get("Amount") instanceof DoubleTag doubleTag) {
                     amount = doubleTag.getValue();
                 } else {
                     continue;
@@ -211,16 +216,21 @@ public final class ItemTranslator {
                 if (amount == 0) {
                     continue;
                 }
-                ModifierOperation operation = ModifierOperation.from((int) modifierValue.get("Operation").getValue());
+
+                // Java Edition accepts an uppercase translation key name unlike Bedrock, so make sure it is lowercase
+                String name = ((StringTag) modifier.get("Name")).getValue().toLowerCase(Locale.ROOT);
+
+                ModifierOperation operation = ModifierOperation.from((int) modifier.get("Operation").getValue());
                 String operationTotal;
                 if (operation == ModifierOperation.ADD) {
-                    if (modifierValue.get("Name").equals("knockback_resistance")) {
+                    if (name.equals("knockback_resistance")) {
                         amount *= 10;
                     }
-                    operationTotal = decimalFormat.format(amount);
+                    operationTotal = ATTRIBUTE_FORMAT.format(amount);
                 } else if (operation == ModifierOperation.ADD_MULTIPLIED || operation == ModifierOperation.MULTIPLY) {
-                    operationTotal = decimalFormat.format(amount * 100) + "%";
+                    operationTotal = ATTRIBUTE_FORMAT.format(amount * 100) + "%";
                 } else {
+                    GeyserImpl.getInstance().getLogger().warning("Unhandled ModifierOperation while adding item attributes: " + operation);
                     continue;
                 }
                 if (amount > 0) {
@@ -230,16 +240,15 @@ public final class ItemTranslator {
                 Component attributeComponent = Component.text()
                         .resetStyle()
                         .color(amount > 0 ? NamedTextColor.BLUE : NamedTextColor.RED)
-                        .append(Component.text(operationTotal), Component.text(" "), Component.translatable("attribute.name." + modifierValue.get("Name").getValue()))
+                        .append(Component.text(operationTotal), Component.text(" "), Component.translatable("attribute.name." + name))
                         .build();
-                listTag.add(new StringTag("", MessageTranslator.convertMessage(attributeComponent, language)));
+                lore.add(new StringTag("", MessageTranslator.convertMessage(attributeComponent, language)));
             }
 
         }
 
-        compoundTag.put(listTag);
-        newNbt.put(compoundTag);
-        return newNbt;
+        displayTag.put(lore);
+        nbt.put(displayTag);
     }
 
     private static CompoundTag addAdvancedTooltips(CompoundTag nbt, Item item, String language) {
