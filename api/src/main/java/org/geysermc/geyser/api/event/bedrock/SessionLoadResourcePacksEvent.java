@@ -28,22 +28,21 @@ package org.geysermc.geyser.api.event.bedrock;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
-import org.geysermc.geyser.api.packs.ResourcePack;
+import org.geysermc.geyser.api.packs.GeyserResourcePack;
 
-import java.util.Map;
+import java.util.HashMap;
 
 public class SessionLoadResourcePacksEvent extends ConnectionEvent {
 
     /**
-     * Called when Geyser initialises a session for a new bedrock client and is in the process of sending resource packs.
-     * This includes packs sent by Geyser.
+     * Called when Geyser initializes a session for a new bedrock client and is in the process of sending resource packs.
+     * The packs map is a map of all the resource packs that are being sent to the client.
      * String is the pack ID
      * ResourcePack is the pack itself
      */
-    public final Map<String, ResourcePack> packs;
+    public HashMap<String, GeyserResourcePack> packs;
 
-
-    public SessionLoadResourcePacksEvent(@NonNull GeyserConnection connection, @NonNull Map<String, ResourcePack> packs) {
+    public SessionLoadResourcePacksEvent(@NonNull GeyserConnection connection, @NonNull HashMap<String, GeyserResourcePack> packs) {
         super(connection);
         this.packs = packs;
     }

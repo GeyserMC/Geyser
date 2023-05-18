@@ -27,9 +27,9 @@ package org.geysermc.geyser.registry.loader;
 
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserLoadResourcePacksEvent;
-import org.geysermc.geyser.api.packs.ResourcePack;
-import org.geysermc.geyser.api.packs.ResourcePackManifest;
-import org.geysermc.geyser.registry.type.ResourcePackMapping;
+import org.geysermc.geyser.api.packs.GeyserResourcePack;
+import org.geysermc.geyser.api.packs.GeyserResourcePackManifest;
+import org.geysermc.geyser.pack.ResourcePack;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 
@@ -40,7 +40,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -49,11 +48,7 @@ import java.util.zip.ZipFile;
 /**
  * This represents a resource pack and all the data relevant to it
  */
-public class ResourcePackLoader implements RegistryLoader<Path, HashMap<String, ResourcePack>> {
-    /**
-     * The list of loaded resource packs
-     */
-    public static Map<String, ResourcePack> PACKS = new HashMap<>();
+public class ResourcePackLoader implements RegistryLoader<Path, HashMap<String, GeyserResourcePack>> {
 
     /**
      * The size of each chunk to use when sending the resource packs to clients in bytes
@@ -64,7 +59,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, HashMap<String, 
      * Loop through the packs directory and locate valid resource pack files
      */
     @Override
-    public HashMap<String, ResourcePack> load(Path directory) {
+    public HashMap<String, GeyserResourcePack> load(Path directory) {
         if (!Files.exists(directory)) {
             try {
                 Files.createDirectory(directory);
@@ -87,13 +82,14 @@ public class ResourcePackLoader implements RegistryLoader<Path, HashMap<String, 
         GeyserLoadResourcePacksEvent event = new GeyserLoadResourcePacksEvent(resourcePacks);
         GeyserImpl.getInstance().eventBus().fire(event);
 
-        Map<String, ResourcePack> packMap = new HashMap<>();
+        HashMap<String, GeyserResourcePack> packMap = new HashMap<>();
 
         for (Path path : event.resourcePacks()) {
             File file = path.toFile();
 
             if (file.getName().endsWith(".zip") || file.getName().endsWith(".mcpack")) {
-                ResourcePackMapping pack = new ResourcePackMapping(FileUtils.calculateSHA256(file));
+                ResourcePack pack = new ResourcePack();
+                pack.setSha256(FileUtils.calculateSHA256(file));
 
                 try (ZipFile zip = new ZipFile(file);
                      Stream<? extends ZipEntry> stream = zip.stream()) {
@@ -107,15 +103,15 @@ public class ResourcePackLoader implements RegistryLoader<Path, HashMap<String, 
                         }
                         if (name.contains("manifest.json")) {
                             try {
-                                ResourcePackMapping.ResourcePackManifestMapping manifest = FileUtils.loadJson(zip.getInputStream(x), ResourcePackMapping.ResourcePackManifestMapping.class);
+                                GeyserResourcePackManifest manifest = FileUtils.loadJson(zip.getInputStream(x), GeyserResourcePackManifest.class);
                                 // Sometimes a pack_manifest file is present and not in a valid format,
                                 // but a manifest file is, so we null check through that one
                                 if (manifest.header().uuid() != null) {
                                     pack.setPath(file.toPath());
                                     pack.setManifest(manifest);
-                                    pack.setVersion(ResourcePackManifest.Version.fromArray(manifest.getHeader().getVersion()));
+                                    pack.setVersion(GeyserResourcePackManifest.Version.fromArray(manifest.header().version()));
 
-                                    packMap.put(pack.getManifest().getHeader().getUuid().toString(), pack);
+                                    packMap.put(pack.manifest().header().uuid().toString(), pack);
                                 }
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -134,9 +130,5 @@ public class ResourcePackLoader implements RegistryLoader<Path, HashMap<String, 
             }
         }
         return packMap;
-    }
-
-    public static void loadPacks() {
-        PACKS = loadPacksToMap(GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("packs"));
     }
 }

@@ -41,6 +41,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
+import org.geysermc.geyser.api.packs.GeyserResourcePack;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.item.Enchantment.JavaEnchantment;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
@@ -50,7 +51,10 @@ import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.populator.PacketRegistryPopulator;
 import org.geysermc.geyser.registry.populator.RecipeRegistryPopulator;
 import org.geysermc.geyser.registry.provider.ProviderSupplier;
-import org.geysermc.geyser.registry.type.*;
+import org.geysermc.geyser.registry.type.EnchantmentData;
+import org.geysermc.geyser.registry.type.ItemMappings;
+import org.geysermc.geyser.registry.type.ParticleMapping;
+import org.geysermc.geyser.registry.type.SoundMapping;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
@@ -167,9 +171,9 @@ public final class Registries {
 
 
     /**
-     * A mapped registry holding {@link ResourcePackMapping}s with the pack uuid as keys.
+     * A mapped registry holding {@link GeyserResourcePack}'s with the pack uuid as keys.
      */
-    public static final SimpleMappedRegistry<String, ResourcePackMapping> RESOURCE_PACKS = SimpleMappedRegistry.create(RegistryLoaders.empty(HashMap::new));
+    public static final SimpleMappedRegistry<String, GeyserResourcePack> RESOURCE_PACKS = SimpleMappedRegistry.create(RegistryLoaders.empty(HashMap::new));
 
     /**
      * A mapped registry holding {@link SoundTranslator}s to their corresponding {@link SoundInteractionTranslator}.

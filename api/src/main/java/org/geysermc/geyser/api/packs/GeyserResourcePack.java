@@ -31,19 +31,19 @@ import java.nio.file.Path;
  * This represents a resource pack and all the data relevant to it
  */
 
-public interface ResourcePack {
+public interface GeyserResourcePack {
 
     /**
      * Gets the sha256 hash of the resource pack.
      *
-     * @return the hash
+     * @return the hash of the resource pack
      */
     byte[] sha256();
 
     /**
-     * Gets the resource pack file.
+     * Gets the resource pack path.
      *
-     * @return the resource pack file
+     * @return the resource pack path
      */
     Path path();
 
@@ -59,19 +59,19 @@ public interface ResourcePack {
      *
      * @return the resource pack manifest
      */
-    ResourcePackManifest manifest();
+    GeyserResourcePackManifest manifest();
 
     /**
      * Gets the version of the resource pack.
      *
      * @return the version of the resource pack
      */
-    ResourcePackManifest.Version version();
+    GeyserResourcePackManifest.Version version();
 
     /**
-     * Gets the name of the command.
+     * Gets the content key of the resource pack.
      *
-     * @return the name of the command
+     * @return the content key of the resource pack
      */
     String contentKey();
 }

@@ -69,7 +69,6 @@ import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.extension.GeyserExtensionManager;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.netty.GeyserServer;
-import org.geysermc.geyser.registry.loader.ResourcePackLoader;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
@@ -257,8 +256,6 @@ public class GeyserImpl implements GeyserApi {
         ScoreboardUpdater.init();
 
         SkinProvider.registerCacheImageTask(this);
-
-        ResourcePackLoader.loadPacks();
 
         String geyserUdpPort = System.getProperty("geyserUdpPort", "");
         String pluginUdpPort = geyserUdpPort.isEmpty() ? System.getProperty("pluginUdpPort", "") : geyserUdpPort;
@@ -621,8 +618,6 @@ public class GeyserImpl implements GeyserApi {
         if (this.erosionUnixListener != null) {
             this.erosionUnixListener.close();
         }
-
-        ResourcePackLoader.PACKS.clear();
 
         this.eventBus.fire(new GeyserShutdownEvent(this.extensionManager, this.eventBus));
         this.extensionManager.disableExtensions();

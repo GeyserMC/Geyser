@@ -23,46 +23,53 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.packs;
+package org.geysermc.geyser.pack;
 
-import java.util.Collection;
-import java.util.UUID;
+import lombok.Setter;
+import org.geysermc.geyser.api.packs.GeyserResourcePack;
+import org.geysermc.geyser.api.packs.GeyserResourcePackManifest;
+
+import java.nio.file.Path;
 
 /**
- * Represents a resource pack manifest.
+ * This represents a resource pack and all the data relevant to it
  */
-public interface ResourcePackManifest {
-    Integer formatVersion();
-    Header header();
-    Collection<Module> modules();
-    Collection<Dependency> dependencies();
+@Setter
+public class ResourcePack implements GeyserResourcePack {
+    private byte[] sha256;
+    private Path path;
+    private long length;
+    private GeyserResourcePackManifest manifest;
+    private GeyserResourcePackManifest.Version version;
+    private String contentKey;
 
-    public static interface Header {
-        String description();
-        String name();
-        UUID uuid();
-        int[] version();
-        int[] minimumSupportedMinecraftVersion();
-        public String getVersionString();
+    @Override
+    public byte[] sha256() {
+        return sha256;
     }
 
-    public static interface Module {
-        String description();
-        String name();
-        UUID uuid();
-        int[] version();
+    @Override
+    public Path path() {
+        return path;
     }
 
-    public static interface Dependency {
-        UUID uuid();
-        int[] version();
+    @Override
+    public long length() {
+        return length;
     }
 
-    public static interface Version {
-        int major();
-        int minor();
-        int patch();
+    @Override
+    public GeyserResourcePackManifest manifest() {
+        return manifest;
+    }
 
+    @Override
+    public GeyserResourcePackManifest.Version version() {
+        return version;
+    }
+
+    @Override
+    public String contentKey() {
+        return contentKey;
     }
 }
-
