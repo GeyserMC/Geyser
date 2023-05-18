@@ -40,5 +40,7 @@ public class JavaOpenSignEditorTranslator extends PacketTranslator<ClientboundOp
         openSignPacket.setPosition(packet.getPosition());
         openSignPacket.setFrontSide(packet.isFrontText());
         session.sendUpstreamPacket(openSignPacket);
+
+        session.getWorldCache().setEditingSignOnFront(packet.isFrontText());
     }
 }

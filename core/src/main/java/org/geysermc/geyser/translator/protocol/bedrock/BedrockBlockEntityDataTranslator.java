@@ -44,9 +44,8 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
         NbtMap tag = packet.getData();
         String id = tag.getString("id");
         if (id.equals("Sign")) {
-            // The other side is called... you guessed it... BackText
             String text = MessageTranslator.convertToPlainText(
-                tag.getCompound("FrontText").getString("Text"));
+                tag.getCompound(session.getWorldCache().isEditingSignOnFront() ? "FrontText" : "BackText").getString("Text"));
             // Note: as of 1.18.30, only one packet is sent from Bedrock when the sign is finished.
             // Previous versions did not have this behavior.
             StringBuilder newMessage = new StringBuilder();
@@ -108,7 +107,7 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
             // Put the final line on since it isn't done in the for loop
             if (iterator < lines.length) lines[iterator] = newMessage.toString();
             Vector3i pos = Vector3i.from(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
-            ServerboundSignUpdatePacket signUpdatePacket = new ServerboundSignUpdatePacket(pos, lines, true);
+            ServerboundSignUpdatePacket signUpdatePacket = new ServerboundSignUpdatePacket(pos, lines, session.getWorldCache().isEditingSignOnFront());
             session.sendDownstreamPacket(signUpdatePacket);
 
         } else if (id.equals("JigsawBlock")) {

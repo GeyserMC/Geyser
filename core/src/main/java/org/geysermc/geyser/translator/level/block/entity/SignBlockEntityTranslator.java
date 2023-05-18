@@ -84,8 +84,9 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
         StringBuilder signText = new StringBuilder();
         Tag messages = signData.get("messages");
         if (messages instanceof ListTag listTag) {
-            for (int i = 0; i < listTag.size(); i++) {
-                String signLine = (String) listTag.get(i).getValue();
+            var it = listTag.iterator();
+            while (it.hasNext()) {
+                String signLine = (String) it.next().getValue();
                 signLine = MessageTranslator.convertMessageLenient(signLine);
 
                 // Check the character width on the sign to ensure there is no overflow that is usually hidden
@@ -114,8 +115,16 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
                 }
 
                 signText.append(finalSignLine);
-                signText.append("\n");
+                if (it.hasNext()) {
+                    signText.append("\n");
+                }
             }
+        }
+
+        // Trim extra newlines - this makes editing difficult if preserved because the cursor starts at the bottom,
+        // Which can easily go over the screen
+        while (!signText.isEmpty() && signText.charAt(signText.length() - 1) == '\n') {
+            signText.deleteCharAt(signText.length() - 1);
         }
 
         builder.putString("Text", signText.toString());
