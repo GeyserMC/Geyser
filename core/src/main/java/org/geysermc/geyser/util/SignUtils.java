@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.util;
 
+import org.geysermc.geyser.level.block.BlockStateValues;
+
 /**
  * Provides utilities for interacting with signs. Mainly, it deals with the widths of each character.
  * Since Bedrock auto-wraps signs and Java does not, we have to take this into account when translating signs.
@@ -35,12 +37,22 @@ public class SignUtils {
     /**
      * The maximum character width that a sign can hold in Bedrock
      */
-    public static final int BEDROCK_CHARACTER_WIDTH_MAX = 88;
+    public static final int BEDROCK_SIGN_WIDTH = 90;
 
     /**
      * The maximum character width that a sign can hold in Java
      */
-    public static final int JAVA_CHARACTER_WIDTH_MAX = 90;
+    public static final int JAVA_SIGN_WIDTH = 90;
+
+    /**
+     * The maximum character width that a hanging sign can hold in Bedrock
+     */
+    public static final int BEDROCK_HANGING_SIGN_WIDTH = 90;
+
+    /**
+     * The maximum character width that a hanging sign can hold in Java
+     */
+    public static final int JAVA_HANGING_SIGN_WIDTH = 60;
 
     /**
      * Gets the Minecraft width of a character
@@ -58,4 +70,10 @@ public class SignUtils {
         };
     }
 
+    public static int getJavaSignWidth(int javaBlockState) {
+        if (BlockStateValues.isHangingSign(javaBlockState)) {
+            return JAVA_HANGING_SIGN_WIDTH;
+        }
+        return JAVA_SIGN_WIDTH;
+    }
 }
