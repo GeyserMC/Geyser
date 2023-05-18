@@ -23,32 +23,49 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event.bedrock;
+package org.geysermc.geyser.api.packs;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.event.connection.ConnectionEvent;
-import org.geysermc.geyser.api.packs.ResourcePack;
-
-import java.util.Map;
+import java.nio.file.Path;
 
 /**
- * Called when Geyser initializes a session for a new Bedrock client and is in the process of sending resource packs.
+ * This representation of a resource pack only contains what Geyser requires to send it to the client.
  */
-public class SessionLoadResourcePacksEvent extends ConnectionEvent {
+public interface ResourcePack {
 
-    private final Map<String, ResourcePack> packs;
+    /**
+     * Gets the resource pack path.
+     *
+     * @return the resource pack path
+     */
+    Path path();
 
-    public SessionLoadResourcePacksEvent(@NonNull GeyserConnection connection, @NonNull Map<String, ResourcePack> packs) {
-        super(connection);
-        this.packs = packs;
+    /**
+     * Gets the sha256 hash of the resource pack.
+     *
+     * @return the hash of the resource pack
+     */
+    byte[] sha256();
+
+    /**
+     * Gets the resource pack size.
+     *
+     * @return the resource pack file size
+     */
+    default long size() {
+        return path().toFile().length();
     }
 
     /**
-     * @return a map of all the resource packs that should be sent to the client.
-     * The keys are the pack ID and the values are the resource packs themselves.
+     * Gets the resource pack manifest.
+     *
+     * @return the resource pack manifest
      */
-    public Map<String, ResourcePack> packs() {
-        return packs;
-    }
+    ResourcePackManifest manifest();
+
+    /**
+     * Gets the content key of the resource pack. Lack of a content key is represented by an empty String.
+     *
+     * @return the content key of the resource pack
+     */
+    String contentKey();
 }

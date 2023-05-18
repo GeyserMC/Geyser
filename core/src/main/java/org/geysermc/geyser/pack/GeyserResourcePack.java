@@ -25,51 +25,15 @@
 
 package org.geysermc.geyser.pack;
 
-import lombok.Setter;
-import org.geysermc.geyser.api.packs.GeyserResourcePack;
-import org.geysermc.geyser.api.packs.GeyserResourcePackManifest;
+import org.geysermc.geyser.api.packs.ResourcePack;
+import org.geysermc.geyser.api.packs.ResourcePackManifest;
 
 import java.nio.file.Path;
 
-/**
- * This represents a resource pack and all the data relevant to it
- */
-@Setter
-public class ResourcePack implements GeyserResourcePack {
-    private byte[] sha256;
-    private Path path;
-    private long length;
-    private GeyserResourcePackManifest manifest;
-    private GeyserResourcePackManifest.Version version;
-    private String contentKey;
+public record GeyserResourcePack(Path path, byte[] sha256, long size, ResourcePackManifest manifest,
+                                 String contentKey) implements ResourcePack {
 
-    @Override
-    public byte[] sha256() {
-        return sha256;
-    }
-
-    @Override
-    public Path path() {
-        return path;
-    }
-
-    @Override
-    public long length() {
-        return length;
-    }
-
-    @Override
-    public GeyserResourcePackManifest manifest() {
-        return manifest;
-    }
-
-    @Override
-    public GeyserResourcePackManifest.Version version() {
-        return version;
-    }
-
-    @Override
-    public String contentKey() {
-        return contentKey;
+    public GeyserResourcePack(Path path, byte[] sha256, ResourcePackManifest manifest, String contentKey) {
+        this(path, sha256, path.toFile().length(), manifest, contentKey);
     }
 }

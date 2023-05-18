@@ -23,32 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event.bedrock;
+package org.geysermc.geyser.pack;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.event.connection.ConnectionEvent;
-import org.geysermc.geyser.api.packs.ResourcePack;
+import org.geysermc.geyser.api.packs.ResourcePackManifest;
 
-import java.util.Map;
+import java.util.UUID;
 
-/**
- * Called when Geyser initializes a session for a new Bedrock client and is in the process of sending resource packs.
- */
-public class SessionLoadResourcePacksEvent extends ConnectionEvent {
+public record JacksonResourcePackManifest(Header header) implements ResourcePackManifest {
 
-    private final Map<String, ResourcePack> packs;
+    public record Header(UUID uuid, int[] version) implements ResourcePackManifest.Header {
 
-    public SessionLoadResourcePacksEvent(@NonNull GeyserConnection connection, @NonNull Map<String, ResourcePack> packs) {
-        super(connection);
-        this.packs = packs;
-    }
-
-    /**
-     * @return a map of all the resource packs that should be sent to the client.
-     * The keys are the pack ID and the values are the resource packs themselves.
-     */
-    public Map<String, ResourcePack> packs() {
-        return packs;
+        @Override
+        public String versionString() {
+            return version[0] + "." + version[1] + "." + version[2];
+        }
     }
 }
+

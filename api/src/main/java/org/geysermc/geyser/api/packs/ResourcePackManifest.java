@@ -25,53 +25,38 @@
 
 package org.geysermc.geyser.api.packs;
 
-import java.nio.file.Path;
+import java.util.UUID;
 
 /**
- * This represents a resource pack and all the data relevant to it
+ * Represents a resource pack manifest.
  */
-
-public interface GeyserResourcePack {
-
-    /**
-     * Gets the sha256 hash of the resource pack.
-     *
-     * @return the hash of the resource pack
-     */
-    byte[] sha256();
+public interface ResourcePackManifest {
 
     /**
-     * Gets the resource pack path.
+     * Gets the header of the resource pack.
      *
-     * @return the resource pack path
+     * @return the header
      */
-    Path path();
+    Header header();
 
     /**
-     * Gets the resource pack file length.
-     *
-     * @return the resource pack file length
+     * Represents the header of a resource pack.
      */
-    long length();
+    interface Header {
 
-    /**
-     * Gets the resource pack manifest.
-     *
-     * @return the resource pack manifest
-     */
-    GeyserResourcePackManifest manifest();
+        /**
+         * Gets the UUID of the resource pack.
+         *
+         * @return the UUID
+         */
+        UUID uuid();
 
-    /**
-     * Gets the version of the resource pack.
-     *
-     * @return the version of the resource pack
-     */
-    GeyserResourcePackManifest.Version version();
-
-    /**
-     * Gets the content key of the resource pack.
-     *
-     * @return the content key of the resource pack
-     */
-    String contentKey();
+        /**
+         * Gets the version string of the resource pack.
+         *
+         * @return the version string
+         */
+        String versionString();
+    }
 }
+
