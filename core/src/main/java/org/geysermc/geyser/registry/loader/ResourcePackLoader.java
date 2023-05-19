@@ -50,7 +50,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 /**
- * This represents a resource pack and all the data relevant to it
+ * Loads {@link ResourcePack}s within a {@link Path} directory, firing the {@link GeyserLoadResourcePacksEvent}.
  */
 public class ResourcePackLoader implements RegistryLoader<Path, Map<String, ResourcePack>> {
 
@@ -97,6 +97,14 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
         return packMap;
     }
 
+    /**
+     * Reads a resource pack at the given file. Also searches for a file in the same directory, with the same name
+     * but suffixed by ".key", containing the content key. If such file does not exist, no content key is stored.
+     *
+     * @param path the file to read from, in ZIP format
+     * @return a {@link ResourcePack} representation
+     * @throws IllegalArgumentException if the pack manifest was invalid or there was any processing exception
+     */
     public static GeyserResourcePack readPack(Path path) throws IllegalArgumentException {
         GeyserResourcePack pack;
 
