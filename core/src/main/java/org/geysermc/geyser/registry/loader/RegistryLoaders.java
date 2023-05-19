@@ -36,7 +36,12 @@ public final class RegistryLoaders {
     /**
      * The {@link RegistryLoader} responsible for loading NBT.
      */
-    public static NbtRegistryLoader NBT = new NbtRegistryLoader();
+    public static final NbtRegistryLoader NBT = new NbtRegistryLoader();
+
+    /**
+     * The {@link RegistryLoader} responsible for loading resource packs.
+     */
+    public static final ResourcePackLoader RESOURCE_PACKS = new ResourcePackLoader();
 
     /**
      * Wraps the surrounding {@link Supplier} in a {@link RegistryLoader} which does

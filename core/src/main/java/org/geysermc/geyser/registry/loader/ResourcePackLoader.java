@@ -40,8 +40,10 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -50,15 +52,17 @@ import java.util.zip.ZipFile;
 /**
  * This represents a resource pack and all the data relevant to it
  */
-public class ResourcePackLoader implements RegistryLoader<Path, HashMap<String, ResourcePack>> {
+public class ResourcePackLoader implements RegistryLoader<Path, Map<String, ResourcePack>> {
 
-    private static final PathMatcher PACK_MATCHER = FileSystems.getDefault().getPathMatcher("glob:**.{zip, mcpack}");
+    static final PathMatcher PACK_MATCHER = FileSystems.getDefault().getPathMatcher("glob:**.{zip,mcpack}");
 
     /**
      * Loop through the packs directory and locate valid resource pack files
      */
     @Override
-    public HashMap<String, ResourcePack> load(Path directory) {
+    public Map<String, ResourcePack> load(Path directory) {
+        Map<String, ResourcePack> packMap = new HashMap<>();
+
         if (!Files.exists(directory)) {
             try {
                 Files.createDirectory(directory);
@@ -66,31 +70,28 @@ public class ResourcePackLoader implements RegistryLoader<Path, HashMap<String, 
                 GeyserImpl.getInstance().getLogger().error("Could not create packs directory", e);
             }
 
-            // As we just created the directory it will be empty
-            return new HashMap<>();
+            return packMap; // As we just created the directory it will be empty
         }
 
         List<Path> resourcePacks;
         try {
-            resourcePacks = Files.walk(directory).collect(Collectors.toList());
-        } catch (IOException e) {
+            resourcePacks = Files.walk(directory)
+                    .filter(PACK_MATCHER::matches)
+                    .collect(Collectors.toCollection(ArrayList::new)); // toList() does not guarantee mutability
+        } catch (Exception e) {
             GeyserImpl.getInstance().getLogger().error("Could not list packs directory", e);
-            return new HashMap<>();
+            return packMap;
         }
 
         GeyserLoadResourcePacksEvent event = new GeyserLoadResourcePacksEvent(resourcePacks);
         GeyserImpl.getInstance().eventBus().fire(event);
 
-        HashMap<String, ResourcePack> packMap = new HashMap<>();
-
         for (Path path : event.resourcePacks()) {
-            if (PACK_MATCHER.matches(path)) {
-                try {
-                    GeyserResourcePack pack = readPack(path);
-                    packMap.put(pack.manifest().header().uuid().toString(), pack);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+            try {
+                GeyserResourcePack pack = readPack(path);
+                packMap.put(pack.manifest().header().uuid().toString(), pack);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
         return packMap;
@@ -102,12 +103,11 @@ public class ResourcePackLoader implements RegistryLoader<Path, HashMap<String, 
         try (ZipFile zip = new ZipFile(path.toFile());
              Stream<? extends ZipEntry> stream = zip.stream()) {
 
-            ResourcePackManifest manifest = readManifest(zip, "pack_manifest.json");
+            ResourcePackManifest manifest = readManifest(zip, "manifest.json");
             if (manifest == null || manifest.header().uuid() == null) {
 
-                // Sometimes a pack_manifest file is present and not in a valid format,
-                // but a manifest file is, so we null check through that one
-                manifest = readManifest(zip, "manifest.json");
+                // Outdated naming?
+                manifest = readManifest(zip, "pack_manifest.json");
                 if (manifest == null || manifest.header().uuid() == null) {
                     throw new IllegalArgumentException(path.getFileName() + " does not contain a valid pack_manifest.json or manifest.json");
                 }
@@ -132,7 +132,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, HashMap<String, 
                 }
             });
         } catch (Exception e) {
-            throw new IllegalArgumentException(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", path.getFileName()));
+            throw new IllegalArgumentException(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", path.getFileName()), e);
         }
 
         return pack;

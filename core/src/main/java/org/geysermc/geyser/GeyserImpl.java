@@ -71,6 +71,7 @@ import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.netty.GeyserServer;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
@@ -256,6 +257,8 @@ public class GeyserImpl implements GeyserApi {
         ScoreboardUpdater.init();
 
         SkinProvider.registerCacheImageTask(this);
+
+        Registries.RESOURCE_PACKS.get().putAll(RegistryLoaders.RESOURCE_PACKS.load(bootstrap.getConfigFolder().resolve("packs")));
 
         String geyserUdpPort = System.getProperty("geyserUdpPort", "");
         String pluginUdpPort = geyserUdpPort.isEmpty() ? System.getProperty("pluginUdpPort", "") : geyserUdpPort;
@@ -618,6 +621,8 @@ public class GeyserImpl implements GeyserApi {
         if (this.erosionUnixListener != null) {
             this.erosionUnixListener.close();
         }
+
+        Registries.RESOURCE_PACKS.get().clear();
 
         this.eventBus.fire(new GeyserShutdownEvent(this.extensionManager, this.eventBus));
         this.extensionManager.disableExtensions();
