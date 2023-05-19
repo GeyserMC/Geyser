@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.api.packs;
 
+import org.geysermc.geyser.api.GeyserApi;
+
 import java.nio.file.Path;
 
 /**
@@ -68,4 +70,15 @@ public interface ResourcePack {
      * @return the content key of the resource pack
      */
     String contentKey();
+
+    /**
+     * Creates a ResourcePack from the resource pack file residing at the given Path.
+     *
+     * @param path the file location to read from
+     * @return a ResourcePack that represents the one found at the given path
+     * @throws IllegalArgumentException if there was an exception while reading the pack
+     */
+    static ResourcePack fromPath(Path path) throws IllegalArgumentException {
+        return GeyserApi.api().provider(ResourcePack.class, path);
+    }
 }

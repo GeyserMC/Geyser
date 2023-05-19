@@ -29,7 +29,7 @@ import org.geysermc.geyser.api.packs.ResourcePackManifest;
 
 import java.util.UUID;
 
-public record JacksonResourcePackManifest(Header header) implements ResourcePackManifest {
+public record GeyserResourcePackManifest(Header header) implements ResourcePackManifest {
 
     public record Header(UUID uuid, int[] version) implements ResourcePackManifest.Header {
 
