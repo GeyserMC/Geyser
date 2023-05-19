@@ -55,11 +55,6 @@ public class ResourcePackLoader implements RegistryLoader<Path, HashMap<String, 
     private static final PathMatcher PACK_MATCHER = FileSystems.getDefault().getPathMatcher("glob:**.{zip, mcpack}");
 
     /**
-     * The size of each chunk to use when sending the resource packs to clients in bytes
-     */
-    public static final int CHUNK_SIZE = 102400;
-
-    /**
      * Loop through the packs directory and locate valid resource pack files
      */
     @Override

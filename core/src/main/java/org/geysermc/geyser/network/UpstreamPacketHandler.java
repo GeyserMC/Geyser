@@ -42,9 +42,9 @@ import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.packs.ResourcePack;
 import org.geysermc.geyser.api.packs.ResourcePackManifest;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
+import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.loader.ResourcePackLoader;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -295,13 +295,13 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         ResourcePack pack = this.resourcePackLoadEvent.packs().get(packet.getPackId().toString());
 
         data.setChunkIndex(packet.getChunkIndex());
-        data.setProgress((long) packet.getChunkIndex() * ResourcePackLoader.CHUNK_SIZE);
+        data.setProgress((long) packet.getChunkIndex() * GeyserResourcePack.CHUNK_SIZE);
         data.setPackVersion(packet.getPackVersion());
         data.setPackId(packet.getPackId());
 
-        int offset = packet.getChunkIndex() * ResourcePackLoader.CHUNK_SIZE;
+        int offset = packet.getChunkIndex() * GeyserResourcePack.CHUNK_SIZE;
         long remainingSize = pack.size() - offset;
-        byte[] packData = new byte[(int) MathUtils.constrain(remainingSize, 0, ResourcePackLoader.CHUNK_SIZE)];
+        byte[] packData = new byte[(int) MathUtils.constrain(remainingSize, 0, GeyserResourcePack.CHUNK_SIZE)];
 
         try (InputStream inputStream = Files.newInputStream(pack.path())) {
             inputStream.skip(offset);
@@ -315,7 +315,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         session.sendUpstreamPacket(data);
 
         // Check if it is the last chunk and send next pack in queue when available.
-        if (remainingSize <= ResourcePackLoader.CHUNK_SIZE && !packsToSent.isEmpty()) {
+        if (remainingSize <= GeyserResourcePack.CHUNK_SIZE && !packsToSent.isEmpty()) {
             sendPackDataInfo(packsToSent.pop());
         }
 
@@ -329,10 +329,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         ResourcePackManifest.Header header = pack.manifest().header();
 
         data.setPackId(header.uuid());
-        int chunkCount = (int) Math.ceil(pack.size() / (double) ResourcePackLoader.CHUNK_SIZE);
+        int chunkCount = (int) Math.ceil(pack.size() / (double) GeyserResourcePack.CHUNK_SIZE);
         data.setChunkCount(chunkCount);
         data.setCompressedPackSize(pack.size());
-        data.setMaxChunkSize(ResourcePackLoader.CHUNK_SIZE);
+        data.setMaxChunkSize(GeyserResourcePack.CHUNK_SIZE);
         data.setHash(pack.sha256());
         data.setPackVersion(packID[1]);
         data.setPremium(false);
