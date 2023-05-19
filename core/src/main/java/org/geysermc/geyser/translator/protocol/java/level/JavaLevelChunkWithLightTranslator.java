@@ -43,6 +43,8 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntImmutableList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NBTOutputStream;
@@ -174,6 +176,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                         }
                     }
                     sections[bedrockSectionY] = section;
+                    extendedCollisionNextSection = thisExtendedCollisionNextSection;
                     continue;
                 }
 
@@ -240,8 +243,13 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     }
                 }
 
-                // We need to ensure we use enough bits to represent extended collision blocks in the palette
-                int bedrockDataBits = Integer.SIZE - Integer.numberOfLeadingZeros(javaPalette.size() + extendedCollisionsInPalette);
+                // We need to ensure we use enough bits to represent extended collision blocks in the chunk section
+                int sectionCollisionBlocks = 0;
+                if (!session.getBlockMappings().getExtendedCollisionBoxes().isEmpty()) {
+                    int bottomLayerCollisions = extendedCollision ? EXTENDED_COLLISIONS_STORAGE.get().bottomLayerCollisions() : 0;
+                    sectionCollisionBlocks = bottomLayerCollisions + extendedCollisionsInPalette;
+                }
+                int bedrockDataBits = Integer.SIZE - Integer.numberOfLeadingZeros(javaPalette.size() + sectionCollisionBlocks);
                 BitArray bedrockData = BitArrayVersion.forBitsCeil(bedrockDataBits).createArray(BlockStorage.SIZE);
                 BlockStorage layer0 = new BlockStorage(bedrockData, bedrockPalette);
                 BlockStorage[] layers;
@@ -500,6 +508,20 @@ class ExtendedCollisionsStorage {
     public void set(int index, int value) {
         ensureDataExists();
         data[index] = value;
+    }
+
+    public int bottomLayerCollisions() {
+        if (data == null) {
+            return 0;
+        }
+
+        IntSet uniqueNonZeroSet = new IntOpenHashSet();
+        for (int i = 0; i < BlockStorage.SIZE / 16; i++) {
+            if (data[i] != 0) {
+                uniqueNonZeroSet.add(data[i]);
+            }
+        }
+        return uniqueNonZeroSet.size();
     }
 
     private void ensureDataExists() {
