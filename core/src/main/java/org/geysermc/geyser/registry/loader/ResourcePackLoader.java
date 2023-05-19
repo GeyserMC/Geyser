@@ -114,7 +114,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, HashMap<String, 
                 // but a manifest file is, so we null check through that one
                 manifest = readManifest(zip, "manifest.json");
                 if (manifest == null || manifest.header().uuid() == null) {
-                    throw new IllegalArgumentException(path.getFileName() + " does not contain a pack_manifest.json or manifest.json");
+                    throw new IllegalArgumentException(path.getFileName() + " does not contain a valid pack_manifest.json or manifest.json");
                 }
             }
 
