@@ -32,6 +32,7 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateEquipPacket;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.ChestedHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.LlamaEntity;
 import org.geysermc.geyser.inventory.Container;
@@ -116,6 +117,10 @@ public class JavaHorseScreenOpenTranslator extends PacketTranslator<ClientboundH
             inventoryTranslator = new LlamaInventoryTranslator(packet.getNumberOfSlots());
             slots.add(CARPET_SLOT);
         } else if (entity instanceof ChestedHorseEntity) {
+            inventoryTranslator = new DonkeyInventoryTranslator(packet.getNumberOfSlots());
+            slots.add(SADDLE_SLOT);
+        } else if (entity instanceof CamelEntity) {
+            // The camel has an invisible armor slot and needs special handling, same as the donkey
             inventoryTranslator = new DonkeyInventoryTranslator(packet.getNumberOfSlots());
             slots.add(SADDLE_SLOT);
         } else {
