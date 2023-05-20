@@ -58,6 +58,7 @@ public final class ItemTranslator {
 
     private static final String[] ALL_SLOTS = new String[]{"mainhand", "offhand", "feet", "legs", "chest", "head"};
     private static final DecimalFormat ATTRIBUTE_FORMAT = new DecimalFormat("0.#####");
+    private static final byte HIDE_ATTRIBUTES_FLAG = 1 << 1;
 
     private ItemTranslator() {
     }
@@ -123,7 +124,11 @@ public final class ItemTranslator {
         nbt = translateDisplayProperties(session, nbt, bedrockItem);
 
         if (nbt != null) {
-            addAttributeLore(nbt, session.locale());
+            Tag hideFlags = nbt.get("HideFlags");
+            if (hideFlags == null || !hasFlagPresent(hideFlags, HIDE_ATTRIBUTES_FLAG)) {
+                // only add if the hide attribute modifiers flag is not present
+                addAttributeLore(nbt, session.locale());
+            }
         }
 
         if (session.isAdvancedTooltips()) {
@@ -217,8 +222,12 @@ public final class ItemTranslator {
                     continue;
                 }
 
-                // Java Edition accepts an uppercase translation key name unlike Bedrock, so make sure it is lowercase
-                String name = ((StringTag) modifier.get("Name")).getValue().toLowerCase(Locale.ROOT);
+                String name;
+                if (modifier.get("AttributeName") instanceof StringTag nameTag) {
+                    name = nameTag.getValue().toLowerCase(Locale.ROOT);
+                } else {
+                    continue;
+                }
 
                 ModifierOperation operation = ModifierOperation.from((int) modifier.get("Operation").getValue());
                 String operationTotal;
@@ -527,5 +536,19 @@ public final class ItemTranslator {
         if (definition != null) {
             builder.definition(definition);
         }
+    }
+
+    /**
+     * Checks if the NBT of a Java item stack has the given hide flag.
+     *
+     * @param hideFlags the "HideFlags", which may not be null
+     * @param flagMask the flag to check for, as a bit mask
+     * @return true if the flag is present, false if not or if the tag value is not a number
+     */
+    private static boolean hasFlagPresent(Tag hideFlags, byte flagMask) {
+        if (hideFlags.getValue() instanceof Number flags) {
+            return (flags.byteValue() & flagMask) == flagMask;
+        }
+        return false;
     }
 }
