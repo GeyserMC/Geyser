@@ -28,7 +28,17 @@ package org.geysermc.geyser.api.block.custom.component;
 /**
  * This class is used to store the transformation component of a block
  */
-public record TransformationComponent(int rx, int ry, int rz, float sx, float sy, float sz, float tx, float ty, float tz) {
+public record TransformationComponent(
+    /** The rotation on the x axis */    int rx,
+    /** The rotation on the y axis */    int ry,
+    /** The rotation on the z axis */    int rz,
+    /** The scale on the x axis */       float sx,
+    /** The scale on the y axis */       float sy,
+    /** The scale on the z axis */       float sz,
+    /** The translation on the x axis */ float tx,
+    /** The translation on the y axis */ float ty, 
+    /** The translation on the z axis */ float tz) {
+
     /**
      * Constructs a new TransformationComponent with the rotation values and assumes default scale and translation
      *

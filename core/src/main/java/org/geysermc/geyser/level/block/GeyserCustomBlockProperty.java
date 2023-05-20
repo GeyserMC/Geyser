@@ -31,6 +31,11 @@ import org.geysermc.geyser.api.block.custom.property.PropertyType;
 
 import java.util.List;
 
+/**
+ * A custom block property that can be used to store custom data for a block.
+ *
+ * @param <T> The type of the property
+ */
 public record GeyserCustomBlockProperty<T>(@NonNull String name, @NonNull List<T> values,
                                            @NonNull PropertyType type) implements CustomBlockProperty<T> {
 }

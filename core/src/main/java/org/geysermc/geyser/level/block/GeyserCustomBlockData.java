@@ -43,7 +43,6 @@ import java.util.Map;
 
 @Value
 public class GeyserCustomBlockData implements CustomBlockData {
-
     String name;
     CustomBlockComponents components;
     Map<String, CustomBlockProperty<?>> properties;

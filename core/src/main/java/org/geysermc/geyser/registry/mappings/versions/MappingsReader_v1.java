@@ -456,7 +456,7 @@ public class MappingsReader_v1 extends MappingsReader {
         // Some blocks (e.g. plants) have no collision box
         BlockCollision blockCollision = BlockUtils.getCollision(javaId);
         if (blockCollision == null) {
-            return BoxComponent.EMPTY_BOX;
+            return BoxComponent.emptyBox();
         }
 
         Set<Float> bottomCornerXs = new ObjectOpenHashSet<>();

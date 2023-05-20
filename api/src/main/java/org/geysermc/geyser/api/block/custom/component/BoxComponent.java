@@ -31,8 +31,26 @@ package org.geysermc.geyser.api.block.custom.component;
  */
 public record BoxComponent(float originX, float originY, float originZ,
                            float sizeX, float sizeY, float sizeZ) {
-    public static final BoxComponent FULL_BLOCK = new BoxComponent(-8, 0, -8, 16, 16, 16);
-    public static final BoxComponent EMPTY_BOX = new BoxComponent(0, 0, 0, 0, 0, 0);
+    private static BoxComponent FULL_BOX = new BoxComponent(-8, 0, -8, 16, 16, 16);
+    private static BoxComponent EMPTY_BOX = new BoxComponent(0, 0, 0, 0, 0, 0);
+
+    /**
+     * Gets a full box component
+     *
+     * @return A full box component
+     */
+    public static BoxComponent fullBox() {
+        return FULL_BOX;
+    }
+
+    /**
+     * Gets an empty box component
+     *
+     * @return An empty box component
+     */
+    public static BoxComponent emptyBox() {
+        return EMPTY_BOX;
+    }
 
     /**
      * Gets if the box component is empty

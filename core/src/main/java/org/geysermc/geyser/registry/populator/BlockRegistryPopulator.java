@@ -530,6 +530,12 @@ public final class BlockRegistryPopulator {
     private static final long FNV1_64_OFFSET_BASIS = 0xcbf29ce484222325L;
     private static final long FNV1_64_PRIME = 1099511628211L;
 
+    /**
+     * Hashes a string using the FNV-1a 64-bit algorithm.
+     *
+     * @param str The string to hash
+     * @return The hashed string
+     */
     private static long fnv164(String str) {
         long hash = FNV1_64_OFFSET_BASIS;
         for (byte b : str.getBytes(StandardCharsets.UTF_8)) {

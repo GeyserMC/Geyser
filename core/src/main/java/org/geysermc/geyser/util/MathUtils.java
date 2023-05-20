@@ -30,6 +30,7 @@ public class MathUtils {
 
     /**
      * Wrap the given float degrees to be between -180.0 and 180.0.
+     * 
      * @param degrees The degrees value to wrap
      * @return The wrapped degrees value between -180.0 and 180.0
      */
@@ -45,6 +46,7 @@ public class MathUtils {
 
     /**
      * Wrap the given double degrees to be between -180.0 and 180.0.
+     * 
      * @param degrees The degrees value to wrap
      * @return The wrapped degrees value between -180.0 and 180.0
      */
@@ -54,6 +56,7 @@ public class MathUtils {
 
     /**
      * Wrap the given degrees to be between -180 and 180 as an integer.
+     * 
      * @param degrees The degrees value to wrap
      * @return The wrapped degrees value between -180 and 180 as an integer
      */
@@ -63,6 +66,7 @@ public class MathUtils {
 
     /**
      * Unwrap the given float degrees to be between 0.0 and 360.0.
+     * 
      * @param degrees The degrees value to unwrap
      * @return The unwrapped degrees value between 0.0 and 360.0
      */
@@ -72,6 +76,7 @@ public class MathUtils {
 
     /**
      * Unwrap the given double degrees to be between 0.0 and 360.0.
+     * 
      * @param degrees The degrees value to unwrap
      * @return The unwrapped degrees value between 0.0 and 360.0
      */
@@ -81,6 +86,7 @@ public class MathUtils {
 
     /**
      * Unwrap the given degrees to be between 0 and 360 as an integer.
+     * 
      * @param degrees The degrees value to unwrap
      * @return The unwrapped degrees value between 0 and 360 as an integer
      */

@@ -190,6 +190,7 @@ public class FileUtils {
 
     /**
      * @param resource the internal resource to read off from
+     * 
      * @return the contents decoded as a UTF-8 String
      */
     public static String readToString(String resource) {

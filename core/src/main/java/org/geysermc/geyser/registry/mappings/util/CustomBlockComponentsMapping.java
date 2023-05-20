@@ -29,5 +29,9 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 
+/**
+ * This class is used to store a custom block components mapping, which contains custom
+ * block components and a potenially null extended collision box
+ */
 public record CustomBlockComponentsMapping(@NonNull CustomBlockComponents components, BoxComponent extendedCollisionBox) {
 }

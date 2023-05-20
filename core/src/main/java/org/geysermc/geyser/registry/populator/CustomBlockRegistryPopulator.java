@@ -368,7 +368,7 @@ public class CustomBlockRegistryPopulator {
                 .components(
                     new CustomBlockComponentsBuilder()
                         .collisionBox(boxComponent)
-                        .selectionBox(BoxComponent.EMPTY_BOX)
+                        .selectionBox(BoxComponent.emptyBox())
                         .materialInstance("*", new MaterialInstance("glass", "alpha_test", false, false))
                         .lightDampening(0)
                         .geometry("geometry.invisible")
