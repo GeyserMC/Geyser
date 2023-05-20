@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.api.packs;
 
+import java.util.Collection;
 import java.util.UUID;
 
 /**
@@ -33,11 +34,32 @@ import java.util.UUID;
 public interface ResourcePackManifest {
 
     /**
+     * Gets the format version of the resource pack.
+     *
+     * @return the format version
+     */
+    Integer formatVersion();
+
+    /**
      * Gets the header of the resource pack.
      *
      * @return the header
      */
     Header header();
+
+    /**
+     * Gets the modules of the resource pack.
+     *
+     * @return the modules
+     */
+    Collection<? extends Module> modules();
+
+    /**
+     * Gets the dependencies of the resource pack.
+     *
+     * @return the dependencies
+     */
+    Collection<? extends Dependency> dependencies();
 
     /**
      * Represents the header of a resource pack.
@@ -52,11 +74,93 @@ public interface ResourcePackManifest {
         UUID uuid();
 
         /**
+         * Gets the version of the resource pack.
+         *
+         * @return the version
+         */
+        int[] version();
+
+        /**
+         * Gets the name of the resource pack.
+         *
+         * @return the name
+         */
+        String name();
+
+        /**
+         * Gets the description of the resource pack.
+         *
+         * @return the description
+         */
+        String description();
+
+        /**
          * Gets the version string of the resource pack.
          *
          * @return the version string
          */
         String versionString();
+
+        /**
+         * Gets the minimum supported Minecraft version of the resource pack.
+         *
+         * @return the minimum supported Minecraft version
+         */
+        int[] minimumSupportedMinecraftVersion();
+    }
+
+    /**
+     * Represents a module of a resource pack.
+     */
+    interface Module {
+
+        /**
+         * Gets the UUID of the module.
+         *
+         * @return the UUID
+         */
+        UUID uuid();
+
+        /**
+         * Gets the version of the module.
+         *
+         * @return the version
+         */
+        int[] version();
+
+        /**
+         * Gets the name of the module.
+         *
+         * @return the name
+         */
+        String name();
+
+        /**
+         * Gets the description of the module.
+         *
+         * @return the description
+         */
+        String description();
+    }
+
+    /**
+     * Represents a dependency of a resource pack.
+     */
+    interface Dependency {
+
+        /**
+         * Gets the UUID of the dependency.
+         *
+         * @return the uuid
+         */
+        UUID uuid();
+
+        /**
+         * Gets the version of the dependency.
+         *
+         * @return the version
+         */
+        int[] version();
     }
 }
 

@@ -190,6 +190,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         geyser.getSessionManager().addPendingSession(session);
 
         this.resourcePackLoadEvent = new SessionLoadResourcePacksEvent(session, new HashMap<>(Registries.RESOURCE_PACKS.get()));
+        this.geyser.eventBus().fire(this.resourcePackLoadEvent);
 
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
         for (ResourcePack pack : this.resourcePackLoadEvent.packs().values()) {

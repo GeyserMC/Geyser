@@ -27,16 +27,22 @@ package org.geysermc.geyser.pack;
 
 import org.geysermc.geyser.api.packs.ResourcePackManifest;
 
+import java.util.Collection;
 import java.util.UUID;
 
-public record GeyserResourcePackManifest(Header header) implements ResourcePackManifest {
+    public record GeyserResourcePackManifest(Integer formatVersion, Header header, Collection<Module> modules, Collection<Dependency> dependencies) implements ResourcePackManifest {
 
-    public record Header(UUID uuid, int[] version) implements ResourcePackManifest.Header {
+        public record Header(UUID uuid, int[] version, String name, String description, String versionString, int[] minimumSupportedMinecraftVersion) implements ResourcePackManifest.Header {
+            @Override
+            public String versionString() {
+                return version[0] + "." + version[1] + "." + version[2];
+            }
+        }
 
-        @Override
-        public String versionString() {
-            return version[0] + "." + version[1] + "." + version[2];
+        public record Module(UUID uuid, int[] version, String name, String description) implements ResourcePackManifest.Module {
+        }
+
+        public record Dependency(UUID uuid, int[] version) implements ResourcePackManifest.Dependency {
         }
     }
-}
 
