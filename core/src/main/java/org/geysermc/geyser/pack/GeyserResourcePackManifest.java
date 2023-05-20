@@ -25,24 +25,23 @@
 
 package org.geysermc.geyser.pack;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.geysermc.geyser.api.packs.ResourcePackManifest;
 
 import java.util.Collection;
 import java.util.UUID;
 
-    public record GeyserResourcePackManifest(Integer formatVersion, Header header, Collection<Module> modules, Collection<Dependency> dependencies) implements ResourcePackManifest {
+public record GeyserResourcePackManifest(@JsonProperty("format_version") Integer formatVersion, Header header, Collection<Module> modules, Collection<Dependency> dependencies) implements ResourcePackManifest {
 
-        public record Header(UUID uuid, int[] version, String name, String description, String versionString, int[] minimumSupportedMinecraftVersion) implements ResourcePackManifest.Header {
-            @Override
-            public String versionString() {
-                return version[0] + "." + version[1] + "." + version[2];
-            }
+    public record Header(UUID uuid, int[] version, String name, String description, @JsonProperty("min_engine_version") int[] minimumSupportedMinecraftVersion) implements ResourcePackManifest.Header {
+        @Override
+        public String versionString() {
+            return version[0] + "." + version[1] + "." + version[2];
         }
+    }
 
-        public record Module(UUID uuid, int[] version, String name, String description) implements ResourcePackManifest.Module {
-        }
+    public record Module(UUID uuid, int[] version, String name, String description) implements ResourcePackManifest.Module { }
 
-        public record Dependency(UUID uuid, int[] version) implements ResourcePackManifest.Dependency {
-        }
+    public record Dependency(UUID uuid, int[] version) implements ResourcePackManifest.Dependency { }
     }
 
