@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,22 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common;
+package org.geysermc.geyser.platform.forge;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import net.minecraft.server.MinecraftServer;
 
-@Getter
-@AllArgsConstructor
-public enum PlatformType {
-    ANDROID("Android"),
-    BUNGEECORD("BungeeCord"),
-    FABRIC("Fabric"),
-    FORGE("Forge"),
-    SPIGOT("Spigot"),
-    SPONGE("Sponge"),
-    STANDALONE("Standalone"),
-    VELOCITY("Velocity");
-
-    private final String platformName;
+/**
+ * Represents a getter to the server port in the dedicated server and in the integrated server.
+ */
+public interface GeyserServerPortGetter {
+    /**
+     * Returns the server port.
+     *
+     * <ul>
+     *     <li>If it's a dedicated server, it will return the server port specified in the {@code server.properties} file.</li>
+     *     <li>If it's an integrated server, it will return the LAN port if opened, else -1.</li>
+     * </ul>
+     *
+     * The reason is that {@link MinecraftServer#getPort()} doesn't return the LAN port if it's the integrated server,
+     * and changing the behavior of this method via a mixin should be avoided as it could have unexpected consequences.
+     *
+     * @return The server port.
+     */
+    int geyser$getServerPort();
 }

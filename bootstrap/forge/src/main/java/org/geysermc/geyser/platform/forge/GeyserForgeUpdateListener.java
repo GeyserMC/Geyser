@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,22 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common;
+package org.geysermc.geyser.platform.forge;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import net.minecraft.world.entity.player.Player;
+import org.geysermc.geyser.platform.forge.command.ForgeCommandSender;
+import org.geysermc.geyser.util.VersionCheckUtils;
 
-@Getter
-@AllArgsConstructor
-public enum PlatformType {
-    ANDROID("Android"),
-    BUNGEECORD("BungeeCord"),
-    FABRIC("Fabric"),
-    FORGE("Forge"),
-    SPIGOT("Spigot"),
-    SPONGE("Sponge"),
-    STANDALONE("Standalone"),
-    VELOCITY("Velocity");
+public final class GeyserForgeUpdateListener {
+    public static void onPlayReady(Player player) {
+        if (player.hasPermissions(3)) { // TODO: Use permissions API
+            VersionCheckUtils.checkForGeyserUpdate(() -> new ForgeCommandSender(player.createCommandSourceStack()));
+        }
+    }
 
-    private final String platformName;
+    private GeyserForgeUpdateListener() {
+    }
 }

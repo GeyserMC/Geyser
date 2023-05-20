@@ -18,6 +18,9 @@ dependencyResolutionManagement {
             mavenContent { snapshotsOnly() }
         }
 
+        // Forge
+        maven("https://maven.minecraftforge.net/")
+
         // Minecraft
         maven("https://libraries.minecraft.net") {
             name = "minecraft"
@@ -47,7 +50,9 @@ dependencyResolutionManagement {
 pluginManagement {
     repositories {
         gradlePluginPortal()
+
         maven("https://maven.fabricmc.net/")
+        maven("https://maven.minecraftforge.net/")
         maven("https://repo.opencollab.dev/maven-snapshots")
     }
     plugins {
@@ -64,6 +69,7 @@ include(":ap")
 include(":api")
 include(":bungeecord")
 include(":fabric")
+include(":forge")
 include(":spigot")
 include(":sponge")
 include(":standalone")
@@ -74,6 +80,7 @@ include(":core")
 // Specify project dirs
 project(":bungeecord").projectDir = file("bootstrap/bungeecord")
 project(":fabric").projectDir = file("bootstrap/fabric")
+project(":forge").projectDir = file("bootstrap/forge")
 project(":spigot").projectDir = file("bootstrap/spigot")
 project(":sponge").projectDir = file("bootstrap/sponge")
 project(":standalone").projectDir = file("bootstrap/standalone")

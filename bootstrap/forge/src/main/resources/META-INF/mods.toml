@@ -1,0 +1,22 @@
+modLoader="javafml"
+loaderVersion="[45,)"
+license="MIT"
+[[mods]]
+modId="geyser_forge"
+version="${version}"
+displayName="Geyser"
+logoFile= "../assets/geyser_forge/icon.png"
+authors="GeyserMC"
+description="${description}"
+[[dependencies.geyser_forge]]
+    modId="forge"
+    mandatory=true
+    versionRange="[45,)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.geyser_forge]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.19.4,1.20)"
+    ordering="NONE"
+    side="BOTH"

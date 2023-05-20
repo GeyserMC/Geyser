@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,22 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common;
+package org.geysermc.geyser.platform.forge.mixin.server;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import net.minecraft.server.dedicated.DedicatedServer;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import org.geysermc.geyser.platform.forge.GeyserServerPortGetter;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 
-@Getter
-@AllArgsConstructor
-public enum PlatformType {
-    ANDROID("Android"),
-    BUNGEECORD("BungeeCord"),
-    FABRIC("Fabric"),
-    FORGE("Forge"),
-    SPIGOT("Spigot"),
-    SPONGE("Sponge"),
-    STANDALONE("Standalone"),
-    VELOCITY("Velocity");
+@OnlyIn(Dist.DEDICATED_SERVER)
+@Mixin(DedicatedServer.class)
+public abstract class DedicatedServerMixin implements GeyserServerPortGetter {
 
-    private final String platformName;
+    @Shadow public abstract int getServerPort();
+
+    @Override
+    public int geyser$getServerPort() {
+        return this.getServerPort();
+    }
 }
