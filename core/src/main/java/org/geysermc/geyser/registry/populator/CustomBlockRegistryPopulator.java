@@ -7,6 +7,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.protocol.bedrock.codec.v582.Bedrock_v582;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
@@ -95,7 +96,6 @@ public class CustomBlockRegistryPopulator {
 
         Map<CustomBlockData, Set<Integer>> extendedCollisionBoxes = new HashMap<>();
         Map<BoxComponent, CustomBlockData> extendedCollisionBoxSet = new HashMap<>();
-        int[] extendedCollisionIndex = {0};
         MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
         mappingsConfigReader.loadBlockMappingsFromJson((key, block) -> {
             customBlocks.add(block.data());
@@ -107,17 +107,13 @@ public class CustomBlockRegistryPopulator {
                 blockStateOverrides.put(id, customBlockState.state());
                 BoxComponent extendedCollisionBox = customBlockState.extendedCollisionBox();
                 if (extendedCollisionBox != null) {
-                    CustomBlockData extendedCollisionBlock = extendedCollisionBoxSet.getOrDefault(extendedCollisionBox, null);
-                    if (extendedCollisionBlock == null) {
-                        extendedCollisionBlock = createExtendedCollisionBlock(extendedCollisionBox, extendedCollisionIndex[0]++);
-                        extendedCollisionBoxes.computeIfAbsent(extendedCollisionBlock, k -> new HashSet<>()).add(id);
-                        customBlocks.add(extendedCollisionBlock);
-                        extendedCollisionBoxSet.put(extendedCollisionBox, extendedCollisionBlock);
-                    } else {
-                        Set<Integer> existingJavaIds = extendedCollisionBoxes.getOrDefault(extendedCollisionBlock, new HashSet<>());
-                        existingJavaIds.add(id);
-                        extendedCollisionBoxes.put(extendedCollisionBlock, existingJavaIds);
-                    }
+                    CustomBlockData extendedCollisionBlock = extendedCollisionBoxSet.computeIfAbsent(extendedCollisionBox, box -> {
+                        CustomBlockData collisionBlock = createExtendedCollisionBlock(box, extendedCollisionBoxSet.size());
+                        customBlocks.add(collisionBlock);
+                        return collisionBlock;
+                    });
+                    extendedCollisionBoxes.computeIfAbsent(extendedCollisionBlock, k -> new HashSet<>())
+                            .add(id);
                 }
             });
         });
@@ -287,7 +283,8 @@ public class CustomBlockRegistryPopulator {
                     .putByte("lightLevel", components.lightDampening().byteValue())
                     .build());
         }
-        if (components.transformation() != null) {
+        // TODO: remove this protocol check when 1.19.80 becomes required w/ Java 1.20
+        if (components.transformation() != null && protocolVersion >= Bedrock_v582.CODEC.getProtocolVersion()) {
             builder.putCompound("minecraft:transformation", NbtMap.builder()
                     .putInt("RX", MathUtils.unwrapDegreesToInt(components.transformation().rx()) / 90)
                     .putInt("RY", MathUtils.unwrapDegreesToInt(components.transformation().ry()) / 90)

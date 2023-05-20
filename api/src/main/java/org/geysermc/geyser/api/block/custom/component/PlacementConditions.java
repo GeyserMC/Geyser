@@ -35,16 +35,12 @@ import org.checkerframework.checker.nullness.qual.NonNull;
  */
 public record PlacementConditions(@NonNull Set<Face> allowedFaces, @NonNull LinkedHashMap<String, BlockFilterType> blockFilters) {
     public enum Face {
-        DOWN(1),
-        UP(2),
-        NORTH(4),
-        SOUTH(8),
-        WEST(16),
-        EAST(32);
-
-        Face(int value) {
-            value = (byte) value;
-        }
+        DOWN,
+        UP,
+        NORTH,
+        SOUTH,
+        WEST,
+        EAST;
     }
     public enum BlockFilterType {
         BLOCK,
