@@ -29,6 +29,11 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**
  * This class is used to store a material instance for a custom block.
+ * 
+ * @param texture The texture of the block
+ * @param renderMethod The render method of the block
+ * @param faceDimming Whether the block should be dimmed on certain faces
+ * @param ambientOcclusion Whether the block should have ambient occlusion
  */
 public record MaterialInstance(@NonNull String texture, @NonNull String renderMethod, boolean faceDimming, boolean ambientOcclusion) {
 }

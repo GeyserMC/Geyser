@@ -34,6 +34,11 @@ import org.geysermc.geyser.api.block.custom.CustomBlockData;
  * This class is used to store a custom block mappings, which contain all of the 
  * data required to register a custom block that overrides a group of java block
  * states.
+ * 
+ * @param data The custom block data
+ * @param states The custom block state mappings
+ * @param javaIdentifier The java identifier of the block
+ * @param overrideItem Whether or not the custom block should override the java item
  */
 public record CustomBlockMapping(@NonNull CustomBlockData data, @NonNull Map<String, CustomBlockStateMapping> states, @NonNull String javaIdentifier, boolean overrideItem) {
 }

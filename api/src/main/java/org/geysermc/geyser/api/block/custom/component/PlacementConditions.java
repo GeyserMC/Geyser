@@ -30,8 +30,11 @@ import java.util.Set;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-/*
+/**
  * This class is used to store conditions for a placement filter for a custom block.
+ * 
+ * @param allowedFaces The faces that the block can be placed on
+ * @param blockFilters The block filters that control what blocks the block can be placed on
  */
 public record PlacementConditions(@NonNull Set<Face> allowedFaces, @NonNull LinkedHashMap<String, BlockFilterType> blockFilters) {
     public enum Face {

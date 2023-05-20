@@ -31,14 +31,9 @@ import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 /**
  * This class is used to store a custom block permutations, which contain custom 
  * block components mapped to a Molang query that should return true or false
+ * 
+ * @param components The components of the block
+ * @param condition The Molang query that should return true or false
  */
-public record CustomBlockPermutation(
-    /**
-     * The custom block components that should be applied when the permutation is active
-     */
-    @NonNull CustomBlockComponents components, 
-    /**
-     * The Molang query that should return true or false to determine if the permutation is active
-     */
-    @NonNull String condition) {
+public record CustomBlockPermutation(@NonNull CustomBlockComponents components, @NonNull String condition) {
 }

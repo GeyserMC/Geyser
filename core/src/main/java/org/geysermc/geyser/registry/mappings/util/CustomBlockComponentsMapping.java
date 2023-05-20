@@ -32,6 +32,9 @@ import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 /**
  * This class is used to store a custom block components mapping, which contains custom
  * block components and a potenially null extended collision box
+ * 
+ * @param components The components of the block
+ * @param extendedCollisionBox The extended collision box of the block
  */
 public record CustomBlockComponentsMapping(@NonNull CustomBlockComponents components, BoxComponent extendedCollisionBox) {
 }

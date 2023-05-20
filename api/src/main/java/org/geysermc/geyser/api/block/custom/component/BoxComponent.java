@@ -28,9 +28,15 @@ package org.geysermc.geyser.api.block.custom.component;
 /**
  * This class is used to store a box component for the selection and
  * collision boxes of a custom block.
+ * 
+ * @param originX The origin X of the box
+ * @param originY The origin Y of the box
+ * @param originZ The origin Z of the box
+ * @param sizeX The size X of the box
+ * @param sizeY The size Y of the box
+ * @param sizeZ The size Z of the box
  */
-public record BoxComponent(float originX, float originY, float originZ,
-                           float sizeX, float sizeY, float sizeZ) {
+public record BoxComponent(float originX, float originY, float originZ, float sizeX, float sizeY, float sizeZ) {
     private static BoxComponent FULL_BOX = new BoxComponent(-8, 0, -8, 16, 16, 16);
     private static BoxComponent EMPTY_BOX = new BoxComponent(0, 0, 0, 0, 0, 0);
 

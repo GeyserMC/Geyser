@@ -35,6 +35,9 @@ import java.util.List;
  * A custom block property that can be used to store custom data for a block.
  *
  * @param <T> The type of the property
+ * @param name The name of the property
+ * @param values The values of the property
+ * @param type The type of the property
  */
 public record GeyserCustomBlockProperty<T>(@NonNull String name, @NonNull List<T> values,
                                            @NonNull PropertyType type) implements CustomBlockProperty<T> {

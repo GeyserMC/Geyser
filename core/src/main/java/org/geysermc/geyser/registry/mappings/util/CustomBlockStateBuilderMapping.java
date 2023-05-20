@@ -34,6 +34,9 @@ import java.util.function.Function;
 /**
  * This class is used to store a custom block state builder mapping, which contains custom
  * block state builders and a potenially null extended collision box
+ * 
+ * @param builder The builder of the block
+ * @param extendedCollisionBox The extended collision box of the block
  */
 public record CustomBlockStateBuilderMapping(@NonNull Function<CustomBlockState.Builder, CustomBlockState> builder, BoxComponent extendedCollisionBox) {
 }
