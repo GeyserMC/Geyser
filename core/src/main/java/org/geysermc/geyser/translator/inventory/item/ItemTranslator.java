@@ -202,6 +202,7 @@ public final class ItemTranslator {
                 continue;
             }
 
+            // e.g. "When in Main Hand"
             Component slotComponent = Component.text()
                     .resetStyle()
                     .color(NamedTextColor.GRAY)
@@ -209,6 +210,7 @@ public final class ItemTranslator {
                     .build();
             lore.add(new StringTag("", MessageTranslator.convertMessage(slotComponent, language)));
 
+            // Then list all the modifiers when used in this slot
             for (CompoundTag modifier : modifiers) {
                 double amount;
                 if (modifier.get("Amount") instanceof IntTag intTag) {
@@ -229,18 +231,23 @@ public final class ItemTranslator {
                     continue;
                 }
 
-                ModifierOperation operation = ModifierOperation.from((int) modifier.get("Operation").getValue());
                 String operationTotal;
-                if (operation == ModifierOperation.ADD) {
-                    if (name.equals("knockback_resistance")) {
-                        amount *= 10;
-                    }
-                    operationTotal = ATTRIBUTE_FORMAT.format(amount);
-                } else if (operation == ModifierOperation.ADD_MULTIPLIED || operation == ModifierOperation.MULTIPLY) {
-                    operationTotal = ATTRIBUTE_FORMAT.format(amount * 100) + "%";
+                Tag operationTag = modifier.get("Operation");
+                if (operationTag == null) {
+                    operationTotal = ATTRIBUTE_FORMAT.format(amount); // apparently not required
                 } else {
-                    GeyserImpl.getInstance().getLogger().warning("Unhandled ModifierOperation while adding item attributes: " + operation);
-                    continue;
+                    ModifierOperation operation = ModifierOperation.from((int) operationTag.getValue());
+                    if (operation == ModifierOperation.ADD) {
+                        if (name.equals("knockback_resistance")) {
+                            amount *= 10;
+                        }
+                        operationTotal = ATTRIBUTE_FORMAT.format(amount);
+                    } else if (operation == ModifierOperation.ADD_MULTIPLIED || operation == ModifierOperation.MULTIPLY) {
+                        operationTotal = ATTRIBUTE_FORMAT.format(amount * 100) + "%";
+                    } else {
+                        GeyserImpl.getInstance().getLogger().warning("Unhandled ModifierOperation while adding item attributes: " + operation);
+                        continue;
+                    }
                 }
                 if (amount > 0) {
                     operationTotal = "+" + operationTotal;
