@@ -52,7 +52,7 @@ public interface CustomBlockState {
      * Gets the given property for the state
      *
      * @param propertyName the property name
-     * @return The java identifier for this item.
+     * @return the boolean, int, or string property.
      */
     @NonNull <T> T property(String propertyName);
 

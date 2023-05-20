@@ -184,11 +184,11 @@ public class CustomBlockRegistryPopulator {
         for (CustomBlockProperty<?> property : customBlock.properties().values()) {
             NbtMapBuilder propertyBuilder = NbtMap.builder()
                     .putString("name", property.name());
-            if (property.type() == PropertyType.BOOLEAN) {
+            if (property.type() == PropertyType.booleanProp()) {
                 propertyBuilder.putList("enum", NbtType.BYTE, List.of((byte) 0, (byte) 1));
-            } else if (property.type() == PropertyType.INTEGER) {
+            } else if (property.type() == PropertyType.integerProp()) {
                 propertyBuilder.putList("enum", NbtType.INT, (List<Integer>) property.values());
-            } else if (property.type() == PropertyType.STRING) {
+            } else if (property.type() == PropertyType.stringProp()) {
                 propertyBuilder.putList("enum", NbtType.STRING, (List<String>) property.values());
             }
             properties.add(propertyBuilder.build());

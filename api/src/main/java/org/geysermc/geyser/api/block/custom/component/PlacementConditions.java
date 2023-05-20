@@ -42,6 +42,7 @@ public record PlacementConditions(@NonNull Set<Face> allowedFaces, @NonNull Link
         WEST,
         EAST;
     }
+    
     public enum BlockFilterType {
         BLOCK,
         TAG

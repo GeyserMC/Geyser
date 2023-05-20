@@ -80,7 +80,7 @@ public class GeyserCustomBlockData implements CustomBlockData {
         }
 
         if (!builder.permutations.isEmpty()) {
-            this.permutations = ObjectLists.unmodifiable(new ObjectArrayList<>(builder.permutations));
+            this.permutations = List.of(builder.permutations.toArray(new CustomBlockPermutation[0]));
         } else {
             this.permutations = ObjectLists.emptyList();
         }
@@ -141,19 +141,19 @@ public class GeyserCustomBlockData implements CustomBlockData {
 
         @Override
         public Builder booleanProperty(@NonNull String propertyName) {
-            this.properties.put(propertyName, new GeyserCustomBlockProperty<>(propertyName, List.of((byte) 0, (byte) 1), PropertyType.BOOLEAN));
+            this.properties.put(propertyName, new GeyserCustomBlockProperty<>(propertyName, List.of((byte) 0, (byte) 1), PropertyType.booleanProp()));
             return this;
         }
 
         @Override
         public Builder intProperty(@NonNull String propertyName, List<Integer> values) {
-            this.properties.put(propertyName, new GeyserCustomBlockProperty<>(propertyName, values, PropertyType.INTEGER));
+            this.properties.put(propertyName, new GeyserCustomBlockProperty<>(propertyName, values, PropertyType.integerProp()));
             return this;
         }
 
         @Override
         public Builder stringProperty(@NonNull String propertyName, List<String> values) {
-            this.properties.put(propertyName, new GeyserCustomBlockProperty<>(propertyName, values, PropertyType.STRING));
+            this.properties.put(propertyName, new GeyserCustomBlockProperty<>(propertyName, values, PropertyType.stringProp()));
             return this;
         }
 
