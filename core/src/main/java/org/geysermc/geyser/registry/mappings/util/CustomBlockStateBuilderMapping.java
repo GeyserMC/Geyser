@@ -31,5 +31,9 @@ import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 
 import java.util.function.Function;
 
+/**
+ * This class is used to store a custom block state builder mapping, which contains custom
+ * block state builders and a potenially null extended collision box
+ */
 public record CustomBlockStateBuilderMapping(@NonNull Function<CustomBlockState.Builder, CustomBlockState> builder, BoxComponent extendedCollisionBox) {
 }
