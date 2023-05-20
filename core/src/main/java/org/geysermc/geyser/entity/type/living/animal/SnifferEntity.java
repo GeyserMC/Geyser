@@ -102,7 +102,7 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
         // The java client renders digging particles on its own, but bedrock does not
         if (digTicks > 0 && --digTicks < DIG_START && digTicks % 5 == 0) {
             Vector3f rot = Vector3f.createDirectionDeg(0, -getYaw()).mul(2.25f);
-            Vector3f pos = getPosition().add(rot);
+            Vector3f pos = getPosition().add(rot).up(0.2f).floor(); // Handle non-full blocks
             int blockId = session.getBlockMappings().getBedrockBlockId(session.getGeyser().getWorldManager().getBlockAt(session, pos.toInt().down()));
 
             LevelEventPacket levelEventPacket = new LevelEventPacket();
