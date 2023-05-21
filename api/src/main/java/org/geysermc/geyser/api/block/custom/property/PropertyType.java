@@ -31,9 +31,9 @@ import org.checkerframework.checker.nullness.qual.NonNull;
  * This class is used to define a custom block property's type.
  */
 public class PropertyType {
-    private static PropertyType BOOLEAN = new PropertyType(Boolean.class);
-    private static PropertyType INTEGER = new PropertyType(Integer.class);
-    private static PropertyType STRING = new PropertyType(String.class);
+    private static final PropertyType BOOLEAN = new PropertyType(Boolean.class);
+    private static final PropertyType INTEGER = new PropertyType(Integer.class);
+    private static final PropertyType STRING = new PropertyType(String.class);
 
     /**
      * Gets the property type for a boolean.

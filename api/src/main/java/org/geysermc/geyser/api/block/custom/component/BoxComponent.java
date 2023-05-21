@@ -37,8 +37,8 @@ package org.geysermc.geyser.api.block.custom.component;
  * @param sizeZ The size Z of the box
  */
 public record BoxComponent(float originX, float originY, float originZ, float sizeX, float sizeY, float sizeZ) {
-    private static BoxComponent FULL_BOX = new BoxComponent(-8, 0, -8, 16, 16, 16);
-    private static BoxComponent EMPTY_BOX = new BoxComponent(0, 0, 0, 0, 0, 0);
+    private static final BoxComponent FULL_BOX = new BoxComponent(-8, 0, -8, 16, 16, 16);
+    private static final BoxComponent EMPTY_BOX = new BoxComponent(0, 0, 0, 0, 0, 0);
 
     /**
      * Gets a full box component
