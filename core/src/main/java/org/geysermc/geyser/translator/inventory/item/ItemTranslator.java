@@ -248,12 +248,11 @@ public final class ItemTranslator {
             return null;
         }
 
-        String name;
-        if (modifier.get("AttributeName") instanceof StringTag nameTag) {
-            name = nameTag.getValue().toLowerCase(Locale.ROOT);
-        } else {
+        if (!(modifier.get("AttributeName") instanceof StringTag nameTag)) {
             return null;
         }
+        String name = nameTag.getValue().replace("minecraft:", "");
+        // the namespace does not need to be present, but if it is, the java client ignores it
 
         String operationTotal;
         Tag operationTag = modifier.get("Operation");
