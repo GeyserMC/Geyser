@@ -137,6 +137,27 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     boolean isFoil();
 
     /**
+     * Gets if the item is edible.
+     *
+     * @return if the item is edible
+     */
+    boolean isEdible();
+
+    /**
+     * Gets if the food item can always be eaten.
+     *
+     * @return if the item is allowed to be eaten all the time
+     */
+    boolean canAlwaysEat();
+
+    /**
+     * Gets if the item is chargable, like a bow.
+     *
+     * @return if the item should act like a chargable item
+     */
+    boolean isChargeable();
+
+    /**
      * @deprecated Use {@link #displayHandheld()} instead.
      * Gets if the item is a tool. This is used to set the render type of the item, if the item is handheld.
      *
@@ -182,6 +203,12 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         Builder hat(boolean isHat);
 
         Builder foil(boolean isFoil);
+
+        Builder edible(boolean isEdible);
+
+        Builder canAlwaysEat(boolean canAlwaysEat);
+
+        Builder chargeable(boolean isChargeable);
 
         /**
          * @deprecated Use {@link #displayHandheld(boolean)} instead.
