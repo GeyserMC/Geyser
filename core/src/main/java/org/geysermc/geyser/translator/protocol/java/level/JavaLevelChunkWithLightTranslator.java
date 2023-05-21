@@ -147,9 +147,9 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
     
                             layer0.idFor(session.getBlockMappings().getBedrockAir().getRuntimeId());
                             for (int yzx = 0; yzx < BlockStorage.SIZE / 16; yzx++) {
-                                if (EXTENDED_COLLISIONS_STORAGE.get().get(yzx) != 0) {
-                                    bedrockData.set(indexYZXtoXZY(yzx), layer0.idFor(EXTENDED_COLLISIONS_STORAGE.get().get(yzx)));
-                                    EXTENDED_COLLISIONS_STORAGE.get().set(yzx, 0);
+                                if (EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY) != 0) {
+                                    bedrockData.set(indexYZXtoXZY(yzx), layer0.idFor(EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY)));
+                                    EXTENDED_COLLISIONS_STORAGE.get().set(yzx, 0, sectionY);
                                 }
                             }
     
@@ -180,14 +180,14 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
                         // Extended collision blocks
                         if (USE_EXTENDED_COLLISIONS) {
-                            if (javaId == BlockStateValues.JAVA_AIR_ID && EXTENDED_COLLISIONS_STORAGE.get().get(yzx) != 0) {
-                                section.getBlockStorageArray()[0].setFullBlock(xzy, EXTENDED_COLLISIONS_STORAGE.get().get(yzx));
-                                EXTENDED_COLLISIONS_STORAGE.get().set(yzx, 0);
+                            if (javaId == BlockStateValues.JAVA_AIR_ID && EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY) != 0) {
+                                section.getBlockStorageArray()[0].setFullBlock(xzy, EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY));
+                                EXTENDED_COLLISIONS_STORAGE.get().set(yzx, 0, sectionY);
                                 continue;
                             }
                             BlockDefinition aboveBedrockExtendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes().get(javaId);
                             if (aboveBedrockExtendedCollisionDefinition != null) {
-                                EXTENDED_COLLISIONS_STORAGE.get().set((yzx + 0x100) & 0xFFF, aboveBedrockExtendedCollisionDefinition.getRuntimeId());
+                                EXTENDED_COLLISIONS_STORAGE.get().set((yzx + 0x100) & 0xFFF, aboveBedrockExtendedCollisionDefinition.getRuntimeId(), sectionY);
                                 if ((xzy & 0xF) == 15) {
                                     thisExtendedCollisionNextSection = true;
                                 }
@@ -322,15 +322,15 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                         int xzy = indexYZXtoXZY(yzx);
                         bedrockData.set(xzy, paletteId);
 
-                        if (paletteId == airPaletteId && EXTENDED_COLLISIONS_STORAGE.get().get(yzx) != 0) {
-                            bedrockData.set(xzy, layer0.idFor(EXTENDED_COLLISIONS_STORAGE.get().get(yzx)));
-                            EXTENDED_COLLISIONS_STORAGE.get().set(yzx, 0);
+                        if (paletteId == airPaletteId && EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY) != 0) {
+                            bedrockData.set(xzy, layer0.idFor(EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY)));
+                            EXTENDED_COLLISIONS_STORAGE.get().set(yzx, 0, sectionY);
                             continue;
                         }
                         BlockDefinition aboveBedrockExtendedCollisionDefinition = session.getBlockMappings()
                                 .getExtendedCollisionBoxes().get(javaPalette.idToState(paletteId));
                         if (aboveBedrockExtendedCollisionDefinition != null) {
-                            EXTENDED_COLLISIONS_STORAGE.get().set((yzx + 0x100) & 0xFFF, aboveBedrockExtendedCollisionDefinition.getRuntimeId());
+                            EXTENDED_COLLISIONS_STORAGE.get().set((yzx + 0x100) & 0xFFF, aboveBedrockExtendedCollisionDefinition.getRuntimeId(), sectionY);
                             if ((xzy & 0xF) == 15) {
                                 thisExtendedCollisionNextSection = true;
                             }
@@ -349,15 +349,15 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                             layer1Data[xzy >> 5] |= 1 << (xzy & 0x1F);
                         }
 
-                        if (paletteId == airPaletteId && EXTENDED_COLLISIONS_STORAGE.get().get(yzx) != 0) {
-                            bedrockData.set(xzy, layer0.idFor(EXTENDED_COLLISIONS_STORAGE.get().get(yzx)));
-                            EXTENDED_COLLISIONS_STORAGE.get().set(yzx, 0);
+                        if (paletteId == airPaletteId && EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY) != 0) {
+                            bedrockData.set(xzy, layer0.idFor(EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY)));
+                            EXTENDED_COLLISIONS_STORAGE.get().set(yzx, 0, sectionY);
                             continue;
                         }
                         BlockDefinition aboveBedrockExtendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes()
                                 .get(javaPalette.idToState(paletteId));
                         if (aboveBedrockExtendedCollisionDefinition != null) {
-                            EXTENDED_COLLISIONS_STORAGE.get().set((yzx + 0x100) & 0xFFF, aboveBedrockExtendedCollisionDefinition.getRuntimeId());
+                            EXTENDED_COLLISIONS_STORAGE.get().set((yzx + 0x100) & 0xFFF, aboveBedrockExtendedCollisionDefinition.getRuntimeId(), sectionY);
                             if ((xzy & 0xF) == 15) {
                                 thisExtendedCollisionNextSection = true;
                             }
@@ -527,17 +527,23 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
     static final class ExtendedCollisionsStorage {
         private int[] data;
+        private int sectionY;
     
-        int get(int index) {
+        int get(int index, int sY) {
             if (data == null) {
+                return 0;
+            }
+            if (!(sY ==  sectionY || sY == sectionY + 1)) {
+                data = null;
                 return 0;
             }
             return data[index];
         }
     
-        void set(int index, int value) {
+        void set(int index, int value, int sY) {
             ensureDataExists();
             data[index] = value;
+            sectionY = sY;
         }
 
         void clear() {
