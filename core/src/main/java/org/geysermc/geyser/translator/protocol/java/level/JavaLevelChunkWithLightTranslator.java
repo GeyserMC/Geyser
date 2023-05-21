@@ -180,8 +180,10 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
                         // Extended collision blocks
                         if (USE_EXTENDED_COLLISIONS) {
-                            if (javaId == BlockStateValues.JAVA_AIR_ID && EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY) != 0) {
-                                section.getBlockStorageArray()[0].setFullBlock(xzy, EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY));
+                            if (EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY) != 0) {
+                                if (javaId == BlockStateValues.JAVA_AIR_ID) {
+                                    section.getBlockStorageArray()[0].setFullBlock(xzy, EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY));
+                                }
                                 EXTENDED_COLLISIONS_STORAGE.get().set(yzx, 0, sectionY);
                                 continue;
                             }
@@ -322,8 +324,10 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                         int xzy = indexYZXtoXZY(yzx);
                         bedrockData.set(xzy, paletteId);
 
-                        if (paletteId == airPaletteId && EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY) != 0) {
-                            bedrockData.set(xzy, layer0.idFor(EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY)));
+                        if (EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY) != 0) {
+                            if (paletteId == airPaletteId) {
+                                bedrockData.set(xzy, layer0.idFor(EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY)));
+                            }
                             EXTENDED_COLLISIONS_STORAGE.get().set(yzx, 0, sectionY);
                             continue;
                         }
@@ -349,8 +353,10 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                             layer1Data[xzy >> 5] |= 1 << (xzy & 0x1F);
                         }
 
-                        if (paletteId == airPaletteId && EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY) != 0) {
-                            bedrockData.set(xzy, layer0.idFor(EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY)));
+                        if (EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY) != 0) {
+                            if (paletteId == airPaletteId) {
+                                bedrockData.set(xzy, layer0.idFor(EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY)));
+                            }
                             EXTENDED_COLLISIONS_STORAGE.get().set(yzx, 0, sectionY);
                             continue;
                         }
