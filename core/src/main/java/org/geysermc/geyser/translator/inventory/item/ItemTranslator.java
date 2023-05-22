@@ -197,15 +197,15 @@ public final class ItemTranslator {
             }
 
             StringTag loreTag = new StringTag("", loreEntry);
-            if (modifierTag.get("Slot") == null) {
+            StringTag slotTag = modifierTag.get("Slot");
+            if (slotTag == null) {
                 // modifier applies to all slots implicitly
                 for (String slot : ALL_SLOTS) {
                     slotsToModifiers.computeIfAbsent(slot, s -> new ArrayList<>()).add(loreTag);
                 }
             } else {
                 // modifier applies to only the specified slot
-                String slot = ((StringTag) modifierTag.get("Slot")).getValue();
-                slotsToModifiers.computeIfAbsent(slot, s -> new ArrayList<>()).add(loreTag);
+                slotsToModifiers.computeIfAbsent(slotTag.getValue(), s -> new ArrayList<>()).add(loreTag);
             }
         }
 
@@ -236,14 +236,11 @@ public final class ItemTranslator {
 
     @Nullable
     private static String attributeToLore(CompoundTag modifier, String language) {
-        double amount;
-        if (modifier.get("Amount") instanceof IntTag intTag) {
-            amount = (double) intTag.getValue();
-        } else if (modifier.get("Amount") instanceof DoubleTag doubleTag) {
-            amount = doubleTag.getValue();
-        } else {
+        Tag amountTag = modifier.get("Amount");
+        if (amountTag == null || !(amountTag.getValue() instanceof Number number)) {
             return null;
         }
+        double amount = number.doubleValue();
         if (amount == 0) {
             return null;
         }
