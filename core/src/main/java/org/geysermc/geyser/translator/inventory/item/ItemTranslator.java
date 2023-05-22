@@ -253,21 +253,17 @@ public final class ItemTranslator {
 
         String operationTotal;
         Tag operationTag = modifier.get("Operation");
-        if (operationTag == null) {
-            operationTotal = ATTRIBUTE_FORMAT.format(amount); // apparently not required
-        } else {
-            ModifierOperation operation = ModifierOperation.from((int) operationTag.getValue());
-            if (operation == ModifierOperation.ADD) {
-                if (name.equals("knockback_resistance")) {
-                    amount *= 10;
-                }
-                operationTotal = ATTRIBUTE_FORMAT.format(amount);
-            } else if (operation == ModifierOperation.ADD_MULTIPLIED || operation == ModifierOperation.MULTIPLY) {
-                operationTotal = ATTRIBUTE_FORMAT.format(amount * 100) + "%";
-            } else {
-                GeyserImpl.getInstance().getLogger().warning("Unhandled ModifierOperation while adding item attributes: " + operation);
-                return null;
+        ModifierOperation operation;
+        if (operationTag == null || (operation = ModifierOperation.from((int) operationTag.getValue())) == ModifierOperation.ADD) {
+            if (name.equals("generic.knockback_resistance")) {
+                amount *= 10;
             }
+            operationTotal = ATTRIBUTE_FORMAT.format(amount);
+        } else if (operation == ModifierOperation.ADD_MULTIPLIED || operation == ModifierOperation.MULTIPLY) {
+            operationTotal = ATTRIBUTE_FORMAT.format(amount * 100) + "%";
+        } else {
+            GeyserImpl.getInstance().getLogger().warning("Unhandled ModifierOperation while adding item attributes: " + operation);
+            return null;
         }
         if (amount > 0) {
             operationTotal = "+" + operationTotal;
