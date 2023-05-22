@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "org.geysermc.geyser.platform.forge.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "server": [
+    "server.DedicatedServerMixin"
+  ],
+  "client": [
+    "client.IntegratedServerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

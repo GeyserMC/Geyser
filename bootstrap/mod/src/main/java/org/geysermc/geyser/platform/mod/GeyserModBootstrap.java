@@ -1,0 +1,244 @@
+/*
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.platform.mod;
+
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import lombok.RequiredArgsConstructor;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.entity.player.Player;
+import org.apache.logging.log4j.LogManager;
+import org.geysermc.common.PlatformType;
+import org.geysermc.geyser.GeyserBootstrap;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.command.GeyserCommand;
+import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.configuration.GeyserConfiguration;
+import org.geysermc.geyser.dump.BootstrapDumpInfo;
+import org.geysermc.geyser.level.WorldManager;
+import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
+import org.geysermc.geyser.ping.IGeyserPingPassthrough;
+import org.geysermc.geyser.platform.mod.command.GeyserModCommandExecutor;
+import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
+import org.geysermc.geyser.platform.mod.world.GeyserModWorldManager;
+import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.FileUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.util.Map;
+import java.util.UUID;
+
+@RequiredArgsConstructor
+public abstract class GeyserModBootstrap implements GeyserBootstrap {
+    private static GeyserModBootstrap instance;
+
+    private final GeyserModPlatform platform;
+
+    private boolean reloading;
+
+    private GeyserImpl geyser;
+    private Path dataFolder;
+    private MinecraftServer server;
+
+    private GeyserCommandManager geyserCommandManager;
+    private GeyserModConfiguration geyserConfig;
+    private GeyserModLogger geyserLogger;
+    private IGeyserPingPassthrough geyserPingPassthrough;
+    private WorldManager geyserWorldManager;
+
+    @Override
+    public void onEnable() {
+        instance = this;
+
+        dataFolder = this.platform.dataFolder(this.platform.configPath());
+        if (!dataFolder.toFile().exists()) {
+            //noinspection ResultOfMethodCallIgnored
+            dataFolder.toFile().mkdir();
+        }
+
+        // Init dataFolder first as local language overrides call getConfigFolder()
+        GeyserLocale.init(this);
+
+        try {
+            File configFile = FileUtils.fileOrCopiedFromResource(dataFolder.resolve("config.yml").toFile(), "config.yml",
+                    (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
+            this.geyserConfig = FileUtils.loadConfig(configFile, GeyserModConfiguration.class);
+        } catch (IOException ex) {
+            LogManager.getLogger("geyser").error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
+            ex.printStackTrace();
+            return;
+        }
+
+        this.geyserLogger = new GeyserModLogger(geyserConfig.isDebugMode());
+
+        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
+
+        this.geyser = GeyserImpl.load(this.platform.platformType(), this);
+
+        if (server == null) {
+            // Server has started and this is the first time
+            this.onInitialStartup();
+        } else {
+            // Server has started and this is a reload
+            startGeyser(this.server);
+            reloading = false;
+        }
+    }
+
+    public abstract void onInitialStartup();
+
+    /**
+     * Initialize core Geyser.
+     * A function, as it needs to be called in different places depending on if Geyser is being reloaded or not.
+     *
+     * @param server The minecraft server.
+     */
+    public void startGeyser(MinecraftServer server) {
+        this.server = server;
+
+        GeyserImpl.start();
+
+        this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
+
+        this.geyserCommandManager = new GeyserCommandManager(geyser);
+        this.geyserCommandManager.init();
+
+        this.geyserWorldManager = new GeyserModWorldManager(server);
+
+        // Start command building
+        // Set just "geyser" as the help command
+        GeyserModCommandExecutor helpExecutor = new GeyserModCommandExecutor(geyser,
+                (GeyserCommand) geyser.commandManager().getCommands().get("help"));
+        LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("geyser").executes(helpExecutor);
+
+        // Register all subcommands as valid
+        for (Map.Entry<String, Command> command : geyser.commandManager().getCommands().entrySet()) {
+            GeyserModCommandExecutor executor = new GeyserModCommandExecutor(geyser, (GeyserCommand) command.getValue());
+            builder.then(Commands.literal(command.getKey())
+                    .executes(executor)
+                    // Could also test for Bedrock but depending on when this is called it may backfire
+                    .requires(executor::testPermission));
+        }
+        server.getCommands().getDispatcher().register(builder);
+    }
+
+    @Override
+    public void onDisable() {
+        if (geyser != null) {
+            geyser.shutdown();
+            geyser = null;
+        }
+        if (!reloading) {
+            this.server = null;
+        }
+    }
+
+    @Override
+    public GeyserModConfiguration getGeyserConfig() {
+        return geyserConfig;
+    }
+
+    @Override
+    public GeyserLogger getGeyserLogger() {
+        return geyserLogger;
+    }
+
+    @Override
+    public GeyserCommandManager getGeyserCommandManager() {
+        return geyserCommandManager;
+    }
+
+    @Override
+    public IGeyserPingPassthrough getGeyserPingPassthrough() {
+        return geyserPingPassthrough;
+    }
+
+    @Override
+    public WorldManager getWorldManager() {
+        return geyserWorldManager;
+    }
+
+    @Override
+    public Path getConfigFolder() {
+        return dataFolder;
+    }
+
+    @Override
+    public BootstrapDumpInfo getDumpInfo() {
+        return this.platform.dumpInfo(this.server);
+    }
+
+    @Override
+    public String getMinecraftServerVersion() {
+        return this.server.getServerVersion();
+    }
+
+    @NotNull
+    @Override
+    public String getServerBindAddress() {
+        return this.server.getLocalIp();
+    }
+
+    @Override
+    public int getServerPort() {
+        return ((GeyserServerPortGetter) server).geyser$getServerPort();
+    }
+
+    @Override
+    public boolean testFloodgatePluginPresent() {
+        return this.platform.testFloodgatePluginPresent(this);
+    }
+
+    @Nullable
+    @Override
+    public InputStream getResourceOrNull(String resource) {
+        return this.platform.resolveResource(resource);
+    }
+
+    public void setReloading(boolean reloading) {
+        this.reloading = reloading;
+    }
+
+    public boolean hasPermission(@NotNull Player source, @NotNull String permissionNode) {
+        return this.platform.hasPermission(source, permissionNode);
+    }
+
+    public boolean hasPermission(@NotNull Player source, @NotNull String permissionNode, int permissionLevel) {
+        return this.platform.hasPermission(source, permissionNode, permissionLevel);
+    }
+
+    public static GeyserModBootstrap getInstance() {
+        return instance;
+    }
+}

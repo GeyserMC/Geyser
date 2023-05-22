@@ -42,14 +42,14 @@ jobs:
         if: success()
         with:
           name: Geyser Fabric
-          path: bootstrap/fabric/build/libs/Geyser-Fabric.jar
+          path: bootstrap/mod/fabric/build/libs/Geyser-Fabric.jar
           if-no-files-found: error
       - name: Archive artifacts (Geyser Forge)
         uses: actions/upload-artifact@v3
         if: success()
         with:
           name: Geyser Forge
-          path: bootstrap/forge/build/libs/Geyser-Forge.jar
+          path: bootstrap/mod/forge/build/libs/Geyser-Forge.jar
           if-no-files-found: error
       - name: Archive artifacts (Geyser Standalone)
         uses: actions/upload-artifact@v3

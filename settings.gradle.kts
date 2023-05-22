@@ -51,10 +51,18 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
 
+        mavenCentral()
+
+        maven("https://repo.opencollab.dev/maven-releases/")
+        maven("https://repo.opencollab.dev/maven-snapshots/")
+
+        maven("https://jitpack.io")
+
         maven("https://maven.fabricmc.net/")
         maven("https://maven.minecraftforge.net/")
-        maven("https://repo.opencollab.dev/maven-snapshots")
+        maven("https://maven.architectury.dev/")
     }
+
     plugins {
         id("net.kyori.blossom") version "1.2.0"
         id("net.kyori.indra")
@@ -70,6 +78,7 @@ include(":api")
 include(":bungeecord")
 include(":fabric")
 include(":forge")
+include(":mod")
 include(":spigot")
 include(":sponge")
 include(":standalone")
@@ -79,8 +88,9 @@ include(":core")
 
 // Specify project dirs
 project(":bungeecord").projectDir = file("bootstrap/bungeecord")
-project(":fabric").projectDir = file("bootstrap/fabric")
-project(":forge").projectDir = file("bootstrap/forge")
+project(":fabric").projectDir = file("bootstrap/mod/fabric")
+project(":forge").projectDir = file("bootstrap/mod/forge")
+project(":mod").projectDir = file("bootstrap/mod")
 project(":spigot").projectDir = file("bootstrap/spigot")
 project(":sponge").projectDir = file("bootstrap/sponge")
 project(":standalone").projectDir = file("bootstrap/standalone")
