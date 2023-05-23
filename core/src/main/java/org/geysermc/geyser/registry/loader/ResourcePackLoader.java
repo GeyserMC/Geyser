@@ -122,7 +122,10 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
                 }
                 if (name.contains("manifest.json")) {
                     try {
-                        manifestReference.set(FileUtils.loadJson(zip.getInputStream(x), GeyserResourcePackManifest.class));
+                        GeyserResourcePackManifest manifest = FileUtils.loadJson(zip.getInputStream(x), GeyserResourcePackManifest.class);
+                        if (manifest.header().uuid() != null) {
+                            manifestReference.set(manifest);
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -130,7 +133,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
             });
 
             GeyserResourcePackManifest manifest = manifestReference.get();
-            if (manifest == null || manifest.header().uuid() == null) {
+            if (manifest == null) {
                 throw new IllegalArgumentException(path.getFileName() + " does not contain a valid pack_manifest.json or manifest.json");
             }
 
