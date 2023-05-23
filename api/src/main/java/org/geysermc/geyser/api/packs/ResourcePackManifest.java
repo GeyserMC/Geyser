@@ -129,11 +129,11 @@ public interface ResourcePackManifest {
         int[] version();
 
         /**
-         * Gets the name of the module.
+         * Gets the type of the module.
          *
-         * @return the name
+         * @return the type
          */
-        String name();
+        String type();
 
         /**
          * Gets the description of the module.

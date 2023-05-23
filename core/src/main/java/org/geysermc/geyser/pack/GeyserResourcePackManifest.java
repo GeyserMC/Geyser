@@ -40,7 +40,7 @@ public record GeyserResourcePackManifest(@JsonProperty("format_version") Integer
         }
     }
 
-    public record Module(UUID uuid, int[] version, String name, String description) implements ResourcePackManifest.Module { }
+    public record Module(UUID uuid, int[] version, String type, String description) implements ResourcePackManifest.Module { }
 
     public record Dependency(UUID uuid, int[] version) implements ResourcePackManifest.Dependency { }
 }

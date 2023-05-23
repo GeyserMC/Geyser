@@ -28,7 +28,6 @@ package org.geysermc.geyser.registry.loader;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserLoadResourcePacksEvent;
 import org.geysermc.geyser.api.packs.ResourcePack;
-import org.geysermc.geyser.api.packs.ResourcePackManifest;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.pack.GeyserResourcePackManifest;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -44,6 +43,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -55,6 +55,8 @@ import java.util.zip.ZipFile;
 public class ResourcePackLoader implements RegistryLoader<Path, Map<String, ResourcePack>> {
 
     static final PathMatcher PACK_MATCHER = FileSystems.getDefault().getPathMatcher("glob:**.{zip,mcpack}");
+
+    private static final boolean SHOW_RESOURCE_PACK_LENGTH_WARNING = Boolean.parseBoolean(System.getProperty("Geyser.ShowResourcePackLengthWarning", "true"));
 
     /**
      * Loop through the packs directory and locate valid resource pack files
@@ -74,8 +76,8 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
         }
 
         List<Path> resourcePacks;
-        try {
-            resourcePacks = Files.walk(directory)
+        try (Stream<Path> stream = Files.walk(directory)) {
+            resourcePacks = stream
                     .filter(PACK_MATCHER::matches)
                     .collect(Collectors.toCollection(ArrayList::new)); // toList() does not guarantee mutability
         } catch (Exception e) {
@@ -106,19 +108,31 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
      * @throws IllegalArgumentException if the pack manifest was invalid or there was any processing exception
      */
     public static GeyserResourcePack readPack(Path path) throws IllegalArgumentException {
+        AtomicReference<GeyserResourcePackManifest> manifestReference = new AtomicReference<>();
         GeyserResourcePack pack;
 
         try (ZipFile zip = new ZipFile(path.toFile());
              Stream<? extends ZipEntry> stream = zip.stream()) {
-
-            ResourcePackManifest manifest = readManifest(zip, "manifest.json");
-            if (manifest == null || manifest.header().uuid() == null) {
-
-                // Outdated naming?
-                manifest = readManifest(zip, "pack_manifest.json");
-                if (manifest == null || manifest.header().uuid() == null) {
-                    throw new IllegalArgumentException(path.getFileName() + " does not contain a valid pack_manifest.json or manifest.json");
+            stream.forEach(x -> {
+                String name = x.getName();
+                if (SHOW_RESOURCE_PACK_LENGTH_WARNING && name.length() >= 80) {
+                    GeyserImpl.getInstance().getLogger().warning("The resource pack " + path.getFileName()
+                            + " has a file in it that meets or exceeds 80 characters in its path (" + name
+                            + ", " + name.length() + " characters long). This will cause problems on some Bedrock platforms." +
+                            " Please rename it to be shorter, or reduce the amount of folders needed to get to the file.");
                 }
+                if (name.contains("manifest.json")) {
+                    try {
+                        manifestReference.set(FileUtils.loadJson(zip.getInputStream(x), GeyserResourcePackManifest.class));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+            GeyserResourcePackManifest manifest = manifestReference.get();
+            if (manifest == null || manifest.header().uuid() == null) {
+                throw new IllegalArgumentException(path.getFileName() + " does not contain a valid pack_manifest.json or manifest.json");
             }
 
             byte[] hash = FileUtils.calculateSHA256(path);
@@ -129,29 +143,10 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
             String contentKey = Files.exists(keyFile) ? Files.readString(path, StandardCharsets.UTF_8) : "";
 
             pack = new GeyserResourcePack(path, hash, manifest, contentKey);
-
-            stream.forEach(x -> {
-                String name = x.getName();
-                if (name.length() >= 80) {
-                    GeyserImpl.getInstance().getLogger().warning("The resource pack " + path.getFileName()
-                            + " has a file in it that meets or exceeds 80 characters in its path (" + name
-                            + ", " + name.length() + " characters long). This will cause problems on some Bedrock platforms." +
-                            " Please rename it to be shorter, or reduce the amount of folders needed to get to the file.");
-                }
-            });
         } catch (Exception e) {
             throw new IllegalArgumentException(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", path.getFileName()), e);
         }
 
         return pack;
-    }
-
-    private static ResourcePackManifest readManifest(ZipFile zip, String name) throws IOException {
-        ZipEntry manifest = zip.getEntry(name);
-        if (manifest == null) {
-            return null;
-        }
-
-        return FileUtils.loadJson(zip.getInputStream(manifest), GeyserResourcePackManifest.class);
     }
 }
