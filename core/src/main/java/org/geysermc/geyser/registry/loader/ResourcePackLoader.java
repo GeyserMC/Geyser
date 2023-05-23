@@ -108,7 +108,6 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
      */
     public static GeyserResourcePack readPack(Path path) throws IllegalArgumentException {
         AtomicReference<GeyserResourcePackManifest> manifestReference = new AtomicReference<>();
-        GeyserResourcePack pack;
 
         try (ZipFile zip = new ZipFile(path.toFile());
              Stream<? extends ZipEntry> stream = zip.stream()) {
@@ -144,11 +143,9 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
             Path keyFile = path.resolveSibling(path.getFileName().toString() + ".key");
             String contentKey = Files.exists(keyFile) ? Files.readString(path, StandardCharsets.UTF_8) : "";
 
-            pack = new GeyserResourcePack(path, hash, manifest, contentKey);
+            return new GeyserResourcePack(path, hash, manifest, contentKey);
         } catch (Exception e) {
             throw new IllegalArgumentException(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", path.getFileName()), e);
         }
-
-        return pack;
     }
 }
