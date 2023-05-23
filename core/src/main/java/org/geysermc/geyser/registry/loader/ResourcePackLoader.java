@@ -77,8 +77,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
 
         List<Path> resourcePacks;
         try (Stream<Path> stream = Files.walk(directory)) {
-            resourcePacks = stream
-                    .filter(PACK_MATCHER::matches)
+            resourcePacks = stream.filter(PACK_MATCHER::matches)
                     .collect(Collectors.toCollection(ArrayList::new)); // toList() does not guarantee mutability
         } catch (Exception e) {
             GeyserImpl.getInstance().getLogger().error("Could not list packs directory", e);
