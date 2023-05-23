@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.block.custom;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
 
@@ -49,6 +50,27 @@ public interface CustomBlockData {
      * @return The identifier of the custom block.
      */
     @NonNull String identifier();
+
+    /**
+     * Gets if the custom block is included in the creative inventory
+     * 
+     * @return If the custom block is included in the creative inventory.
+     */
+    @NonNull boolean includedInCreativeInventory();
+
+    /**
+     * Gets the item's creative category, or tab id.
+     *
+     * @return the item's creative category
+     */
+    @Nullable String creativeCategory();
+
+    /**
+     * Gets the item's creative group.
+     *
+     * @return the item's creative group
+     */
+    @Nullable String creativeGroup();
 
     /**
      * Gets the components of the custom block
@@ -88,6 +110,12 @@ public interface CustomBlockData {
 
     interface Builder {
         Builder name(@NonNull String name);
+
+        Builder includedInCreativeInventory(@NonNull boolean includedInCreativeInventory);
+
+        Builder creativeCategory(@Nullable String creativeCategory);
+
+        Builder creativeGroup(@Nullable String creativeGroup);
 
         Builder components(@NonNull CustomBlockComponents components);
 

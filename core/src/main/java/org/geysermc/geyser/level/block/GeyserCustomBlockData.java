@@ -38,12 +38,17 @@ import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
 import org.geysermc.geyser.api.block.custom.property.PropertyType;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nullable;
+
 import java.util.List;
 import java.util.Map;
 
 @Value
 public class GeyserCustomBlockData implements CustomBlockData {
     String name;
+    boolean includedInCreativeInventory;
+    String creativeCategory;
+    String creativeGroup;
     CustomBlockComponents components;
     Map<String, CustomBlockProperty<?>> properties;
     List<CustomBlockPermutation> permutations;
@@ -55,6 +60,10 @@ public class GeyserCustomBlockData implements CustomBlockData {
         if (name == null) {
             throw new IllegalStateException("Name must be set");
         }
+
+        this.includedInCreativeInventory = builder.includedInCreativeInventory;
+        this.creativeCategory = builder.creativeCategory;
+        this.creativeGroup = builder.creativeGroup;
 
         this.components = builder.components;
 
@@ -97,6 +106,21 @@ public class GeyserCustomBlockData implements CustomBlockData {
     }
 
     @Override
+    public boolean includedInCreativeInventory() {
+        return includedInCreativeInventory;
+    }
+
+    @Override
+    public @Nullable String creativeCategory() {
+        return creativeCategory;
+    }
+
+    @Override
+    public @Nullable String creativeGroup() {
+        return creativeGroup;
+    }
+
+    @Override
     public CustomBlockComponents components() {
         return components;
     }
@@ -123,6 +147,9 @@ public class GeyserCustomBlockData implements CustomBlockData {
 
     public static class CustomBlockDataBuilder implements Builder {
         private String name;
+        private boolean includedInCreativeInventory;
+        private String creativeCategory;
+        private String creativeGroup;
         private CustomBlockComponents components;
         private final Object2ObjectMap<String, CustomBlockProperty<?>> properties = new Object2ObjectOpenHashMap<>();
         private List<CustomBlockPermutation> permutations = ObjectLists.emptyList();
@@ -130,6 +157,24 @@ public class GeyserCustomBlockData implements CustomBlockData {
         @Override
         public Builder name(@NonNull String name) {
             this.name = name;
+            return this;
+        }
+
+        @Override
+        public Builder includedInCreativeInventory(boolean includedInCreativeInventory) {
+            this.includedInCreativeInventory = includedInCreativeInventory;
+            return this;
+        }
+
+        @Override
+        public Builder creativeCategory(@Nullable String creativeCategory) {
+            this.creativeCategory = creativeCategory;
+            return this;
+        }
+
+        @Override
+        public Builder creativeGroup(@Nullable String creativeGroup) {
+            this.creativeGroup = creativeGroup;
             return this;
         }
 

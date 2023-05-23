@@ -194,14 +194,16 @@ public class CustomBlockRegistryPopulator {
             properties.add(propertyBuilder.build());
         }
     
+        String creativeCategory = customBlock.creativeCategory() != null ? customBlock.creativeCategory() : "none";
+        String creativeGroup = customBlock.creativeGroup() != null ? customBlock.creativeGroup() : "";
         NbtMap propertyTag = NbtMap.builder()
                 .putCompound("components", CustomBlockRegistryPopulator.convertComponents(customBlock.components(), protocolVersion))
                 // this is required or the client will crash
                 // in the future, this can be used to replace items in the creative inventory
                 // this would require us to map https://wiki.bedrock.dev/documentation/creative-categories.html#for-blocks programatically
                 .putCompound("menu_category", NbtMap.builder()
-                    .putString("category", "none")
-                    .putString("group", "")
+                    .putString("category", creativeCategory)
+                    .putString("group", creativeGroup)
                     .putBoolean("is_hidden_in_commands", false)
                 .build())
                 // meaning of this version is unknown, but it's required for tags to work and should probably be checked periodically

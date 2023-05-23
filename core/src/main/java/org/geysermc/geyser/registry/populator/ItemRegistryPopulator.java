@@ -52,6 +52,7 @@ import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
+import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
@@ -154,6 +155,8 @@ public class ItemRegistryPopulator {
             Object2ObjectMap<String, BlockDefinition> bedrockBlockIdOverrides = new Object2ObjectOpenHashMap<>();
             Object2IntMap<String> blacklistedIdentifiers = new Object2IntOpenHashMap<>();
 
+            Object2ObjectMap<CustomBlockData, ItemDefinition> customBlockItemDefinitions = new Object2ObjectOpenHashMap<>();
+
             List<ItemDefinition> buckets = new ObjectArrayList<>();
             List<ItemData> carpets = new ObjectArrayList<>();
 
@@ -249,15 +252,29 @@ public class ItemRegistryPopulator {
 
                 BlockDefinition bedrockBlock = null;
                 Integer firstBlockRuntimeId = entry.getValue().getFirstBlockRuntimeId();
+                BlockDefinition customBlockItemOverride = null;
                 if (firstBlockRuntimeId != null) {
                     BlockDefinition blockOverride = bedrockBlockIdOverrides.get(bedrockIdentifier);
-                    if (blockOverride != null) {
+
+                    // We'll do this here for custom blocks we want in the creative inventory so we can piggyback off the existing logic to find these
+                    // blocks in creativeItems
+                    CustomBlockData customBlockData = BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.getOrDefault(javaItem.javaIdentifier(), null);
+                    if (customBlockData != null) {
+                        // this block has a custom item override and thus we should use its runtime ID for the ItemMapping
+                        if (customBlockData.includedInCreativeInventory()) {
+                            CustomBlockState customBlockState = customBlockData.defaultBlockState();
+                            customBlockItemOverride = blockMappings.getCustomBlockStateDefinitions().getOrDefault(customBlockState, null);
+                        }
+                    }
+
+                    // If it' s a custom block we can't do this because we need to make sure we find the creative item
+                    if (blockOverride != null && customBlockItemOverride == null) {
                         // Straight from BDS is our best chance of getting an item that doesn't run into issues
                         bedrockBlock = blockOverride;
                     } else {
                         // Try to get an example block runtime ID from the creative contents packet, for Bedrock identifier obtaining
                         int aValidBedrockBlockId = blacklistedIdentifiers.getOrDefault(bedrockIdentifier, -1);
-                        if (aValidBedrockBlockId == -1) {
+                        if (aValidBedrockBlockId == -1 && customBlockItemOverride == null) {
                             // Fallback
                             bedrockBlock = blockMappings.getBedrockBlock(firstBlockRuntimeId);
                         } else {
@@ -273,9 +290,6 @@ public class ItemRegistryPopulator {
                             // and the last, if relevant. We then iterate over all those values and get their Bedrock equivalents
                             Integer lastBlockRuntimeId = entry.getValue().getLastBlockRuntimeId() == null ? firstBlockRuntimeId : entry.getValue().getLastBlockRuntimeId();
                             for (int i = firstBlockRuntimeId; i <= lastBlockRuntimeId; i++) {
-                                // For now we opt to preserve the pre custom block phase and just use the vanilla blocks in the creative inventory
-                                // In the future if we get the mappings for categories it we could put the custom blocks in the creative inventory
-                                // This would likely also require changes to recipe handling
                                 GeyserBedrockBlock bedrockBlockRuntimeId = blockMappings.getVanillaBedrockBlock(i);
                                 NbtMap blockTag = bedrockBlockRuntimeId.getState();
                                 String bedrockName = blockTag.getString("name");
@@ -342,6 +356,12 @@ public class ItemRegistryPopulator {
 
                             // Because we have replaced the Bedrock block ID, we also need to replace the creative contents block runtime ID
                             // That way, creative items work correctly for these blocks
+
+                            // Set our custom block override now if there is one
+                            if (customBlockItemOverride != null) {
+                                bedrockBlock = customBlockItemOverride;
+                            }
+
                             for (int j = 0; j < creativeItems.size(); j++) {
                                 ItemData itemData = creativeItems.get(j);
                                 if (itemData.getDefinition().equals(definition)) {
@@ -350,16 +370,35 @@ public class ItemRegistryPopulator {
                                     }
 
                                     NbtMap states = ((GeyserBedrockBlock) itemData.getBlockDefinition()).getState().getCompound("states");
+
                                     boolean valid = true;
                                     for (Map.Entry<String, Object> nbtEntry : requiredBlockStates.entrySet()) {
-                                        if (!states.get(nbtEntry.getKey()).equals(nbtEntry.getValue())) {
+                                        if (states.getOrDefault(nbtEntry.getKey(), null) == null || !states.get(nbtEntry.getKey()).equals(nbtEntry.getValue())) {
                                             // A required block state doesn't match - this one is not valid
                                             valid = false;
                                             break;
                                         }
                                     }
                                     if (valid) {
-                                        creativeItems.set(j, itemData.toBuilder().blockDefinition(bedrockBlock).build());
+                                        if (customBlockItemOverride != null && customBlockData != null) {
+                                            // Assuming this is a valid custom block override we'll just register it now while we have the creative item
+                                            int customProtocolId = nextFreeBedrockId++;
+                                            mappingItem.setBedrockData(customProtocolId);
+                                            bedrockIdentifier = customBlockData.identifier();
+                                            definition = new SimpleItemDefinition(bedrockIdentifier, customProtocolId, true);
+                                            registry.put(customProtocolId, definition);
+                                            customBlockItemDefinitions.put(customBlockData, definition);
+                                            customIdMappings.put(customProtocolId, bedrockIdentifier);
+                                            
+                                            creativeItems.set(j, itemData.toBuilder()
+                                                .definition(definition)
+                                                .blockDefinition(bedrockBlock)
+                                                .netId(itemData.getNetId())
+                                                .count(1)
+                                                .build());
+                                        } else {
+                                            creativeItems.set(j, itemData.toBuilder().blockDefinition(bedrockBlock).build());
+                                        }
                                         break;
                                     }
                                 }
@@ -520,10 +559,12 @@ public class ItemRegistryPopulator {
             }
 
             // Register the item forms of custom blocks
-            Object2ObjectMap<CustomBlockData, ItemDefinition> customBlockItemDefinitions = Object2ObjectMaps.emptyMap();
             if (BlockRegistries.CUSTOM_BLOCKS.get().length != 0) {
-                customBlockItemDefinitions = new Object2ObjectOpenHashMap<>();
                 for (CustomBlockData customBlock : BlockRegistries.CUSTOM_BLOCKS.get()) {
+                    // We might've registered it already with the vanilla blocks so check first
+                    if (customBlockItemDefinitions.containsKey(customBlock)) {
+                        continue;
+                    }
                     int customProtocolId = nextFreeBedrockId++;
                     String identifier = customBlock.identifier();
 
@@ -531,6 +572,19 @@ public class ItemRegistryPopulator {
                     registry.put(customProtocolId, definition);
                     customBlockItemDefinitions.put(customBlock, definition);
                     customIdMappings.put(customProtocolId, identifier);
+
+                    GeyserBedrockBlock bedrockBlock = blockMappings.getCustomBlockStateDefinitions().getOrDefault(customBlock.defaultBlockState(), null);
+
+                    if (bedrockBlock != null && customBlock.includedInCreativeInventory()) {
+                        creativeItems.add(ItemData.builder()
+                                .definition(definition)
+                                .blockDefinition(bedrockBlock)
+                                .netId(creativeNetId.incrementAndGet())
+                                .count(1)
+                                .build());
+                    }
+
+                    // And lastly we need to figure out what to do about non-vanilla custom blocks
                 }
             }
 

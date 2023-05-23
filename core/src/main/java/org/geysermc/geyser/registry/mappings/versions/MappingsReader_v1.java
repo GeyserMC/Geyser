@@ -197,12 +197,27 @@ public class MappingsReader_v1 extends MappingsReader {
             throw new InvalidCustomMappingsFileException("A block entry has no name");
         }
 
+        boolean includedInCreativeInventory = node.has("included_in_creative_inventory") && node.get("included_in_creative_inventory").asBoolean();
+
+        String creativeCategory = "none";
+        if (node.has("creative_category")) {
+            creativeCategory = node.get("creative_category").asText();
+        }
+
+        String creativeGroup = "";
+        if (node.has("creative_group")) {
+            creativeGroup = node.get("creative_group").asText();
+        }
+
         // If this is true, we will only register the states the user has specified rather than all the possible block states
         boolean onlyOverrideStates = node.has("only_override_states") && node.get("only_override_states").asBoolean();
 
         // Create the data for the overall block
         CustomBlockData.Builder customBlockDataBuilder = new CustomBlockDataBuilder()
-                .name(name);
+                .name(name)
+                .includedInCreativeInventory(includedInCreativeInventory)
+                .creativeCategory(creativeCategory)
+                .creativeGroup(creativeGroup);
 
         if (BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().containsKey(identifier)) {
             // There is only one Java block state to override
