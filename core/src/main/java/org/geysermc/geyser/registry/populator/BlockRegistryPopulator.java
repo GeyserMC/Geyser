@@ -33,6 +33,7 @@ import com.google.common.collect.Interners;
 import it.unimi.dsi.fastutil.objects.*;
 import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.protocol.bedrock.codec.v582.Bedrock_v582;
+import org.cloudburstmc.protocol.bedrock.codec.v588.Bedrock_v588;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.block.BlockStateValues;
@@ -67,8 +68,53 @@ public final class BlockRegistryPopulator {
 
     private static void registerBedrockBlocks() {
         BiFunction<String, NbtMapBuilder, String> emptyMapper = (bedrockIdentifier, statesBuilder) -> null;
+
+        // We are using mappings that directly support 1.20, so this maps it back to 1.19.80
+        BiFunction<String, NbtMapBuilder, String> legacyMapper = (bedrockIdentifier, statesBuilder) -> {
+            if (bedrockIdentifier.endsWith("pumpkin")) {
+                String direction = statesBuilder.remove("minecraft:cardinal_direction").toString();
+                statesBuilder.putInt("direction", switch (direction) {
+                    case "north" -> 2;
+                    case "east" -> 3;
+                    case "west" -> 1;
+                    default -> 0; // south
+                });
+            } else if (bedrockIdentifier.endsWith("carpet") && !bedrockIdentifier.startsWith("minecraft:moss")) {
+                String color = bedrockIdentifier.replace("minecraft:", "").replace("_carpet", "");
+                if (color.equals("light_gray")) {
+                    color = "silver";
+                }
+                statesBuilder.putString("color", color);
+                return "minecraft:carpet";
+            } else if (bedrockIdentifier.equals("minecraft:sniffer_egg")) {
+                statesBuilder.remove("cracked_state");
+                return "minecraft:dragon_egg";
+            } else if (bedrockIdentifier.endsWith("coral")) {
+                statesBuilder.putString("coral_color", "blue"); // all blue
+                statesBuilder.putBoolean("dead_bit", bedrockIdentifier.startsWith("minecraft:dead"));
+                return "minecraft:coral";
+            } else if (bedrockIdentifier.endsWith("sculk_sensor")) {
+                int phase = (int) statesBuilder.remove("sculk_sensor_phase");
+                statesBuilder.putBoolean("powered_bit", phase != 0);
+            } else if (bedrockIdentifier.endsWith("pitcher_plant")) {
+                statesBuilder.putString("double_plant_type", "sunflower");
+                return "minecraft:double_plant";
+            } else if (bedrockIdentifier.endsWith("pitcher_crop")) {
+                statesBuilder.remove("growth");
+                if (((byte) statesBuilder.remove("upper_block_bit")) == 1){
+                    statesBuilder.putString("flower_type", "orchid");
+                    return "minecraft:red_flower"; // top
+                }
+                statesBuilder.putBoolean("update_bit", false);
+                return "minecraft:flower_pot"; // bottom
+            }
+
+            return null;
+        };
+
         ImmutableMap<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> blockMappers = ImmutableMap.<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>>builder()
-                .put(ObjectIntPair.of("1_19_80", Bedrock_v582.CODEC.getProtocolVersion()), emptyMapper)
+                .put(ObjectIntPair.of("1_19_80", Bedrock_v582.CODEC.getProtocolVersion()), legacyMapper)
+                .put(ObjectIntPair.of("1_20_0", Bedrock_v588.CODEC.getProtocolVersion()), emptyMapper)
                 .build();
 
         // We can keep this strong as nothing should be garbage collected
@@ -131,8 +177,8 @@ public final class BlockRegistryPopulator {
 
                 GeyserBedrockBlock bedrockDefinition = blockStateOrderedMap.get(buildBedrockState(entry.getValue(), stateVersion, stateMapper));
                 if (bedrockDefinition == null) {
-                    throw new RuntimeException("Unable to find " + javaId + " Bedrock BlockDefinition! Built NBT tag: \n" +
-                            buildBedrockState(entry.getValue(), stateVersion, stateMapper));
+                    throw new RuntimeException("Unable to find " + javaId + " Bedrock BlockDefinition on version "
+                            + palette.getKey().key() + "! Built NBT tag: \n" + buildBedrockState(entry.getValue(), stateVersion, stateMapper));
                 }
 
                 switch (javaId) {

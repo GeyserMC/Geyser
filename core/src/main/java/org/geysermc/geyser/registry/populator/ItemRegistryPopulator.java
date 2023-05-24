@@ -34,10 +34,12 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.*;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.codec.v582.Bedrock_v582;
+import org.cloudburstmc.protocol.bedrock.codec.v588.Bedrock_v588;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
@@ -66,12 +68,40 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ItemRegistryPopulator {
 
-    record PaletteVersion(int protocolVersion, Map<Item, String> additionalTranslatedItems) {
+    record PaletteVersion(int protocolVersion, Map<Item, String> javaOnlyItems, Remapper remapper) {
+
+        public PaletteVersion(int protocolVersion) {
+            this(protocolVersion, Collections.emptyMap(), (item, mapping) -> mapping);
+        }
+    }
+
+    @FunctionalInterface
+    interface Remapper {
+        @NonNull
+        GeyserMappingItem remap(Item item, GeyserMappingItem mapping);
     }
 
     public static void populate() {
+        Map<Item, String> legacyJavaOnly = new HashMap<>();
+        legacyJavaOnly.put(Items.MUSIC_DISC_RELIC, "minecraft:music_disc_wait");
+        legacyJavaOnly.put(Items.PITCHER_PLANT, "minecraft:chorus_flower");
+        legacyJavaOnly.put(Items.PITCHER_POD, "minecraft:beetroot");
+        legacyJavaOnly.put(Items.SNIFFER_EGG, "minecraft:sniffer_spawn_egg"); // the BlockItem of the sniffer egg block
+
         Map<String, PaletteVersion> paletteVersions = new Object2ObjectOpenHashMap<>();
-        paletteVersions.put("1_19_80", new PaletteVersion(Bedrock_v582.CODEC.getProtocolVersion(), Collections.emptyMap()));
+        paletteVersions.put("1_19_80", new PaletteVersion(Bedrock_v582.CODEC.getProtocolVersion(), legacyJavaOnly, (item, mapping) -> {
+            String id = item.javaIdentifier();
+            if (id.endsWith("pottery_sherd")) {
+                return mapping.withBedrockIdentifier(id.replace("sherd", "shard"));
+            } else if (id.endsWith("carpet") && !id.startsWith("minecraft:moss")) {
+                return mapping.withBedrockIdentifier("minecraft:carpet");
+            } else if (id.endsWith("coral")) {
+                return mapping.withBedrockIdentifier("minecraft:coral");
+            }
+
+            return mapping;
+        }));
+        paletteVersions.put("1_20_0", new PaletteVersion(Bedrock_v588.CODEC.getProtocolVersion()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
@@ -168,12 +198,11 @@ public class ItemRegistryPopulator {
             Set<Item> javaOnlyItems = new ObjectOpenHashSet<>();
             Collections.addAll(javaOnlyItems, Items.SPECTRAL_ARROW, Items.DEBUG_STICK,
                     Items.KNOWLEDGE_BOOK, Items.TIPPED_ARROW, Items.BUNDLE);
-            javaOnlyItems.add(Items.DECORATED_POT);
             if (!customItemsAllowed) {
                 javaOnlyItems.add(Items.FURNACE_MINECART);
             }
             // Java-only items for this version
-            javaOnlyItems.addAll(palette.getValue().additionalTranslatedItems().keySet());
+            javaOnlyItems.addAll(palette.getValue().javaOnlyItems().keySet());
 
             Int2ObjectMap<String> customIdMappings = new Int2ObjectOpenHashMap<>();
             Set<String> registeredItemNames = new ObjectOpenHashSet<>(); // This is used to check for duplicate item names
@@ -184,12 +213,12 @@ public class ItemRegistryPopulator {
                     throw new RuntimeException("Extra item in mappings? " + entry.getKey());
                 }
                 GeyserMappingItem mappingItem;
-                String replacementItem = palette.getValue().additionalTranslatedItems().get(javaItem);
+                String replacementItem = palette.getValue().javaOnlyItems().get(javaItem);
                 if (replacementItem != null) {
-                    mappingItem = items.get(replacementItem);
+                    mappingItem = items.get(replacementItem); // java only item, a java id fallback has been provided
                 } else {
-                    // This items has a mapping specifically for this version of the game
-                    mappingItem = entry.getValue();
+                    // check if any mapping changes need to be made on this version
+                    mappingItem = palette.getValue().remapper().remap(javaItem, entry.getValue());
                 }
 
                 if (customItemsAllowed && javaItem == Items.FURNACE_MINECART) {
@@ -201,7 +230,7 @@ public class ItemRegistryPopulator {
                 String bedrockIdentifier = mappingItem.getBedrockIdentifier();
                 ItemDefinition definition = definitions.get(bedrockIdentifier);
                 if (definition == null) {
-                    throw new RuntimeException("Missing Bedrock ItemDefinition in mappings: " + bedrockIdentifier);
+                    throw new RuntimeException("Missing Bedrock ItemDefinition in version " + palette.getKey() + " for mapping: " + mappingItem);
                 }
 
                 BlockDefinition bedrockBlock = null;
