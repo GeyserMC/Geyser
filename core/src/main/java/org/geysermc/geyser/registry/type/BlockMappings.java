@@ -66,8 +66,7 @@ public class BlockMappings implements DefinitionRegistry<GeyserBedrockBlock> {
     Int2ObjectMap<GeyserBedrockBlock> extendedCollisionBoxes;
 
     public int getBedrockBlockId(int javaState) {
-        BlockDefinition bedrockBlock = getBedrockBlock(javaState);
-        return bedrockBlock != null ? bedrockBlock.getRuntimeId() : -1;
+        return getBedrockBlock(javaState).getRuntimeId();
     }
 
     public GeyserBedrockBlock getBedrockBlock(int javaState) {

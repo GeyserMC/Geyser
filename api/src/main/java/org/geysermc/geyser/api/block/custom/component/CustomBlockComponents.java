@@ -130,7 +130,7 @@ public interface CustomBlockComponents {
      *
      * @return The rotation.
      */
-    @Nullable boolean unitCube();
+    boolean unitCube();
 
     /**
      * Gets if the block should place only air
@@ -138,7 +138,7 @@ public interface CustomBlockComponents {
      * 
      * @return If the block should place only air.
      */
-    @Nullable boolean placeAir();
+    boolean placeAir();
 
     /**
      * Gets the set of tags
@@ -146,7 +146,7 @@ public interface CustomBlockComponents {
      * 
      * @return The set of tags.
      */
-    @Nullable Set<String> tags();
+    @NonNull Set<String> tags();
 
     interface Builder {
         Builder selectionBox(BoxComponent selectionBox);

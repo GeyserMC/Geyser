@@ -56,7 +56,7 @@ public interface CustomBlockData {
      * 
      * @return If the custom block is included in the creative inventory.
      */
-    @NonNull boolean includedInCreativeInventory();
+    boolean includedInCreativeInventory();
 
     /**
      * Gets the item's creative category, or tab id.
@@ -77,7 +77,7 @@ public interface CustomBlockData {
      *
      * @return The components of the custom block.
      */
-    @NonNull CustomBlockComponents components();
+    @Nullable CustomBlockComponents components();
 
     /**
      * Gets the custom block's map of block property names to CustomBlockProperty
@@ -111,7 +111,7 @@ public interface CustomBlockData {
     interface Builder {
         Builder name(@NonNull String name);
 
-        Builder includedInCreativeInventory(@NonNull boolean includedInCreativeInventory);
+        Builder includedInCreativeInventory(boolean includedInCreativeInventory);
 
         Builder creativeCategory(@Nullable String creativeCategory);
 
