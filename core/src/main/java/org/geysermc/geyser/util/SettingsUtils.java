@@ -138,7 +138,7 @@ public class SettingsUtils {
                     // If the setting changed, send a notice prompting the user of any side effects
                     if (session.getPreferencesCache().isPrefersAboveBedrockNetherBuilding() != result) {
                         session.getPreferencesCache().setPrefersAboveBedrockNetherBuilding(result);
-                        session.sendMessage("%geyser.settings.option.aboveBedrockNetherBuilding.notice");
+                        session.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.settings.option.aboveBedrockNetherBuilding.notice", session.locale()));
                     }
                 }
             }
