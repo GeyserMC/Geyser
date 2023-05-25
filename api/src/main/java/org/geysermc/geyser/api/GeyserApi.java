@@ -35,6 +35,7 @@ import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.extension.ExtensionManager;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
+import org.geysermc.geyser.api.util.PlatformType;
 
 import java.util.List;
 import java.util.UUID;
@@ -106,6 +107,14 @@ public interface GeyserApi extends GeyserApiBase {
      */
     @NonNull
     BedrockListener bedrockListener();
+
+    /**
+     * Gets {@link PlatformType} the extension is running on
+     *
+     * @return type of platform
+     */
+    @NonNull
+    PlatformType platformType();
 
     /**
      * Gets the current {@link GeyserApiBase} instance.

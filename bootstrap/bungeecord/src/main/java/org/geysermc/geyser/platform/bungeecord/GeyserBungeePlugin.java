@@ -31,7 +31,7 @@ import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.protocol.ProtocolConstants;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.common.PlatformType;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;

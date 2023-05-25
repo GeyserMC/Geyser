@@ -43,7 +43,7 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.Geyser;
-import org.geysermc.common.PlatformType;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
 import org.geysermc.erosion.packet.Packets;
@@ -679,6 +679,12 @@ public class GeyserImpl implements GeyserApi {
     @NonNull
     public BedrockListener bedrockListener() {
         return getConfig().getBedrock();
+    }
+
+    @Override
+    @NonNull
+    public PlatformType platformType() {
+        return platformType;
     }
 
     public int buildNumber() {

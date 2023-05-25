@@ -26,7 +26,7 @@
 package org.geysermc.geyser.command.defaults;
 
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
-import org.geysermc.common.PlatformType;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
