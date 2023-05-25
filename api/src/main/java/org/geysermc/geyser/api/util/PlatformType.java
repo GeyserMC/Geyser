@@ -28,22 +28,12 @@ package org.geysermc.geyser.api.util;
 /**
  * Represents the platform Geyser is running on.
  */
-public enum PlatformType {
-    ANDROID("Android"),
-    BUNGEECORD("BungeeCord"),
-    FABRIC("Fabric"),
-    SPIGOT("Spigot"),
-    SPONGE("Sponge"),
-    STANDALONE("Standalone"),
-    VELOCITY("Velocity");
-
-    private final String platformName;
-
-    PlatformType(String platformName) {
-        this.platformName = platformName;
-    }
-
-    public String getPlatformName() {
-        return platformName;
-    }
+public record PlatformType(String platformName) {
+    public static PlatformType ANDROID = new PlatformType("Android");
+    public static PlatformType BUNGEECORD = new PlatformType("BungeeCord");
+    public static PlatformType FABRIC = new PlatformType("Fabric");
+    public static PlatformType SPIGOT = new PlatformType("Spigot");
+    public static PlatformType SPONGE = new PlatformType("Sponge");
+    public static PlatformType STANDALONE = new PlatformType("Standalone");
+    public static PlatformType VELOCITY = new PlatformType("Velocity");
 }
