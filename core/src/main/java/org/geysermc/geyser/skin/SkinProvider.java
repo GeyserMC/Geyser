@@ -808,7 +808,7 @@ public class SkinProvider {
         OPTIFINE("https://optifine.net/capes/%s.png", CapeUrlType.USERNAME),
         LABYMOD("https://dl.labymod.net/capes/%s", CapeUrlType.UUID_DASHED),
         FIVEZIG("https://textures.5zigreborn.eu/profile/%s", CapeUrlType.UUID_DASHED),
-        MINECRAFTCAPES("https://minecraftcapes.net/profile/%s/cape", CapeUrlType.UUID);
+        MINECRAFTCAPES("https://api.minecraftcapes.net/profile/%s/cape", CapeUrlType.UUID);
 
         public static final CapeProvider[] VALUES = Arrays.copyOfRange(values(), 1, 5);
         private String url;
@@ -844,7 +844,7 @@ public class SkinProvider {
     @NoArgsConstructor
     @Getter
     public enum EarsProvider {
-        MINECRAFTCAPES("https://minecraftcapes.net/profile/%s/ears", CapeUrlType.UUID);
+        MINECRAFTCAPES("https://api.minecraftcapes.net/profile/%s/ears", CapeUrlType.UUID);
 
         public static final EarsProvider[] VALUES = values();
         private String url;

@@ -56,6 +56,9 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     private final boolean isFoil;
     private final String recordSound;
     private final boolean isTool;
+    private final boolean isEdible;
+    private final boolean canAlwaysEat;
+    private final boolean isChargeable;
 
     public GeyserNonVanillaCustomItemData(NonVanillaCustomItemDataBuilder builder) {
         super(builder.name, builder.customItemOptions, builder.displayName, builder.icon, builder.allowOffhand,
@@ -77,6 +80,9 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         this.isFoil = builder.foil;
         this.recordSound = builder.recordSound;
         this.isTool = builder.tool;
+        this.isEdible = builder.edible;
+        this.canAlwaysEat = builder.canAlwaysEat;
+        this.isChargeable = builder.chargeable;
     }
 
     @Override
@@ -150,7 +156,22 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     }
 
     @Override
-    public String recordSound() {
+    public boolean isEdible() {
+        return isEdible;
+    }
+
+    @Override
+    public boolean canAlwaysEat() {
+        return canAlwaysEat;
+    }
+
+    @Override
+    public boolean isChargeable() {
+        return isChargeable;
+    }
+
+    @Override
+    public boolean recordSound() {
         return recordSound;
     }
 
@@ -179,6 +200,9 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         private boolean foil = false;
         private String recordSound = null;
         private boolean tool = false;
+        private boolean edible = false;
+        private boolean canAlwaysEat = false;
+        private boolean chargeable = false;
 
         @Override
         public NonVanillaCustomItemData.Builder name(@NonNull String name) {
@@ -302,6 +326,24 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         @Override
         public NonVanillaCustomItemData.Builder foil(boolean isFoil) {
             this.foil = isFoil;
+            return this;
+        }
+
+        @Override
+        public NonVanillaCustomItemData.Builder edible(boolean isEdible) {
+            this.edible = isEdible;
+            return this;
+        }
+
+        @Override
+        public NonVanillaCustomItemData.Builder canAlwaysEat(boolean canAlwaysEat) {
+            this.canAlwaysEat = canAlwaysEat;
+            return this;
+        }
+
+        @Override
+        public NonVanillaCustomItemData.Builder chargeable(boolean isChargeable) {
+            this.chargeable = isChargeable;
             return this;
         }
 
