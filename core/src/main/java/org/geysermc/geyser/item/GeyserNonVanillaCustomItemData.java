@@ -171,7 +171,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     }
 
     @Override
-    public boolean recordSound() {
+    public String recordSound() {
         return recordSound;
     }
 
