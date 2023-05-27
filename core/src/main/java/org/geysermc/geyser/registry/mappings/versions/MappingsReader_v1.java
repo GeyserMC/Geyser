@@ -470,43 +470,44 @@ public class MappingsReader_v1 extends MappingsReader {
     private BoxComponent createBoxComponent(int javaId, float heightTranslation) {
         // Some blocks (e.g. plants) have no collision box
         BlockCollision blockCollision = BlockUtils.getCollision(javaId);
-        if (blockCollision == null) {
+        if (blockCollision == null || blockCollision.getBoundingBoxes().length == 0) {
             return BoxComponent.emptyBox();
         }
 
-        Set<Float> bottomCornerXs = new ObjectOpenHashSet<>();
-        Set<Float> bottomCornerYs = new ObjectOpenHashSet<>();
-        Set<Float> bottomCornerZs = new ObjectOpenHashSet<>();
-        Set<Float> topCornerXs = new ObjectOpenHashSet<>();
-        Set<Float> topCornerYs = new ObjectOpenHashSet<>();
-        Set<Float> topCornerZs = new ObjectOpenHashSet<>();
+        float minX = 5;
+        float minY = 5;
+        float minZ = 5;
+        float maxX = -5;
+        float maxY = -5;
+        float maxZ = -5;
         for (BoundingBox boundingBox : blockCollision.getBoundingBoxes()) {
-            float offsetX = (float) boundingBox.getSizeX() * 8;
-            float offsetY = (float) boundingBox.getSizeY() * 8;
-            float offsetZ = (float) boundingBox.getSizeZ() * 8;
+            double offsetX = boundingBox.getSizeX() * 0.5;
+            double offsetY = boundingBox.getSizeY() * 0.5;
+            double offsetZ = boundingBox.getSizeZ() * 0.5;
 
-            float bottomCornerX = (float) Math.abs(boundingBox.getMiddleX() - 1) * 16 - 8 - offsetX;
-            float bottomCornerY = (float) boundingBox.getMiddleY() * 16 - offsetY;
-            float bottomCornerZ = (float) boundingBox.getMiddleZ() * 16 - 8 - offsetZ;
-    
-            bottomCornerXs.add(bottomCornerX);
-            bottomCornerYs.add(bottomCornerY);
-            bottomCornerZs.add(bottomCornerZ);
-    
-            topCornerXs.add((float) boundingBox.getSizeX() * 16 + bottomCornerX);
-            topCornerYs.add((float) boundingBox.getSizeY() * 16 + bottomCornerY);
-            topCornerZs.add((float) boundingBox.getSizeZ() * 16 + bottomCornerZ);
+            minX = Math.min(minX, (float) (boundingBox.getMiddleX() - offsetX));
+            minY = Math.min(minY, (float) (boundingBox.getMiddleY() - offsetY));
+            minZ = Math.min(minZ, (float) (boundingBox.getMiddleZ() - offsetZ));
+
+            maxX = Math.max(maxX, (float) (boundingBox.getMiddleX() + offsetX));
+            maxY = Math.max(maxY, (float) (boundingBox.getMiddleY() + offsetY));
+            maxZ = Math.max(maxZ, (float) (boundingBox.getMiddleZ() + offsetZ));
         }
+        minX = MathUtils.clamp(minX, 0, 1);
+        minY = MathUtils.clamp(minY + heightTranslation, 0, 1);
+        minZ = MathUtils.clamp(minZ, 0, 1);
+        maxX = MathUtils.clamp(maxX, 0, 1);
+        maxY = MathUtils.clamp(maxY + heightTranslation, 0, 1);
+        maxZ = MathUtils.clamp(maxZ, 0, 1);
 
-        float cornerX = MathUtils.clamp(Collections.min(bottomCornerXs), -8, 8);
-        float cornerY = MathUtils.clamp(Collections.min(bottomCornerYs) + heightTranslation, 0, 16);
-        float cornerZ = MathUtils.clamp(Collections.min(bottomCornerZs), -8, 8);
-
-        float sizeX = MathUtils.clamp(Collections.max(topCornerXs) - cornerX, 0, 16);
-        float sizeY = MathUtils.clamp(Collections.max(topCornerYs) - cornerY + heightTranslation, 0, 16);
-        float sizeZ = MathUtils.clamp(Collections.max(topCornerZs) - cornerZ, 0 ,16);
-
-        return new BoxComponent(cornerX, cornerY, cornerZ, sizeX, sizeY, sizeZ);
+        return new BoxComponent(
+                16 * (1 - maxX) - 8, // For some odd reason X is mirrored on Bedrock
+                16 * minY,
+                16 * minZ - 8,
+                16 * (maxX - minX),
+                16 * (maxY - minY),
+                16 * (maxZ - minZ)
+        );
     }
 
     /**
@@ -528,12 +529,11 @@ public class MappingsReader_v1 extends MappingsReader {
         if (blockCollision == null) {
             return null;
         }
-        BoundingBox boundingBox = blockCollision.getBoundingBoxes()[0];
-        float offsetY = (float) boundingBox.getSizeY() * 8;
-        float cornerY = (float) boundingBox.getMiddleY() * 16 - offsetY;
-        float sizeY = (float) boundingBox.getSizeY() * 16;
-        if (cornerY > 16 || sizeY > 16) {
-            return createBoxComponent(javaId, -16);
+        for (BoundingBox box : blockCollision.getBoundingBoxes()) {
+            double maxY = 0.5 * box.getSizeY() + box.getMiddleY();
+            if (maxY > 1) {
+                return createBoxComponent(javaId, -1);
+            }
         }
         return null;
     }

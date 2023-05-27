@@ -44,8 +44,8 @@ public class PlayerHeadItem extends Item {
         super.translateNbtToBedrock(session, tag);
 
         CompoundTag displayTag;
-        if (tag.get("display") instanceof CompoundTag) {
-            displayTag = tag;
+        if (tag.get("display") instanceof CompoundTag existingDisplayTag) {
+            displayTag = existingDisplayTag;
         } else {
             displayTag = new CompoundTag("display");
             tag.put(displayTag);

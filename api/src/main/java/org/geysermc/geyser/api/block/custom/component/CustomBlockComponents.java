@@ -27,6 +27,7 @@ package org.geysermc.geyser.api.block.custom.component;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.api.GeyserApi;
 
 import java.util.List;
 import java.util.Map;
@@ -130,7 +131,7 @@ public interface CustomBlockComponents {
      *
      * @return The rotation.
      */
-    @Nullable boolean unitCube();
+    boolean unitCube();
 
     /**
      * Gets if the block should place only air
@@ -138,7 +139,7 @@ public interface CustomBlockComponents {
      * 
      * @return If the block should place only air.
      */
-    @Nullable boolean placeAir();
+    boolean placeAir();
 
     /**
      * Gets the set of tags
@@ -146,7 +147,16 @@ public interface CustomBlockComponents {
      * 
      * @return The set of tags.
      */
-    @Nullable Set<String> tags();
+    @NonNull Set<String> tags();
+
+    /**
+     * Create a Builder for CustomBlockComponents
+     *
+     * @return A CustomBlockComponents Builder
+     */
+    static CustomBlockComponents.Builder builder() {
+        return GeyserApi.api().provider(CustomBlockComponents.Builder.class);
+    }
 
     interface Builder {
         Builder selectionBox(BoxComponent selectionBox);

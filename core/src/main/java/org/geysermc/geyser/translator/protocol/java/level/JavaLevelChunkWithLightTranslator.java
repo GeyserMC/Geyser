@@ -426,14 +426,17 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     BlockDefinition blockDefinition = SkullBlockEntityTranslator.translateSkull(session, tag, Vector3i.from(x + chunkBlockX, y, z + chunkBlockZ), blockState);
                     if (blockDefinition != null) {
                         int bedrockSectionY = (y >> 4) - (bedrockDimension.minY() >> 4);
-                        GeyserChunkSection bedrockSection = sections[bedrockSectionY];
-                        IntList palette = bedrockSection.getBlockStorageArray()[0].getPalette();
-                        if (palette instanceof IntImmutableList || palette instanceof IntLists.Singleton) {
-                            // TODO there has to be a better way to expand the palette .-.
-                            bedrockSection = bedrockSection.copy();
-                            sections[bedrockSectionY] = bedrockSection;
+                        if (0 <= bedrockSectionY && bedrockSectionY < maxBedrockSectionY) {
+                            // Custom skull is in a section accepted by Bedrock
+                            GeyserChunkSection bedrockSection = sections[bedrockSectionY];
+                            IntList palette = bedrockSection.getBlockStorageArray()[0].getPalette();
+                            if (palette instanceof IntImmutableList || palette instanceof IntLists.Singleton) {
+                                // TODO there has to be a better way to expand the palette .-.
+                                bedrockSection = bedrockSection.copy();
+                                sections[bedrockSectionY] = bedrockSection;
+                            }
+                            bedrockSection.setFullBlock(x, y & 0xF, z, 0, blockDefinition.getRuntimeId());
                         }
-                        bedrockSection.setFullBlock(x, y & 0xF, z, 0, blockDefinition.getRuntimeId());
                     }
                 }
             }

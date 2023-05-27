@@ -435,7 +435,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         LevelEventPacket blockBreakPacket = new LevelEventPacket();
                         blockBreakPacket.setType(LevelEvent.PARTICLE_DESTROY_BLOCK);
                         blockBreakPacket.setPosition(packet.getBlockPosition().toFloat());
-                        blockBreakPacket.setData(session.getBlockMappings().getBedrockBlock(blockState).getRuntimeId());
+                        blockBreakPacket.setData(session.getBlockMappings().getBedrockBlockId(blockState));
                         session.sendUpstreamPacket(blockBreakPacket);
                         session.setBreakingBlock(-1);
 

@@ -151,7 +151,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     }
 
     @Override
-    public Set<String> tags() {
+    public @NotNull Set<String> tags() {
         return tags;
     }
 
