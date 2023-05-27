@@ -131,4 +131,4 @@ inner class GitInfo {
 }
 
 // todo remove this when we're not using Jenkins anymore
-private fun jenkinsBuildNumber(): String? = System.getenv("BUILD_NUMBER")
+fun jenkinsBuildNumber(): String? = System.getenv("BUILD_NUMBER")
