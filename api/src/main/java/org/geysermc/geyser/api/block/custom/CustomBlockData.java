@@ -27,6 +27,7 @@ package org.geysermc.geyser.api.block.custom;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
 
@@ -107,6 +108,15 @@ public interface CustomBlockData {
      * @return The builder for a custom block state.
      */
     CustomBlockState.@NonNull Builder blockStateBuilder();
+
+    /**
+     * Create a Builder for CustomBlockData
+     *
+     * @return A CustomBlockData Builder
+     */
+    static CustomBlockData.Builder builder() {
+        return GeyserApi.api().provider(CustomBlockData.Builder.class);
+    }
 
     interface Builder {
         Builder name(@NonNull String name);
