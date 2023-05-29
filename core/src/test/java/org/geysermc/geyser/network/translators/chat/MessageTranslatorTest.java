@@ -38,7 +38,7 @@ import java.util.Map;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MessageTranslatorTest {
 
-    private Map<String, String> messages = new HashMap<>();
+    private final Map<String, String> messages = new HashMap<>();
 
     @BeforeAll
     public void setUp() throws Exception {
@@ -70,7 +70,7 @@ public class MessageTranslatorTest {
     @Test
     public void convertMessage() {
         for (Map.Entry<String, String> entry : messages.entrySet()) {
-            String bedrockMessage = MessageTranslator.convertMessage(entry.getKey(), "en_US");
+            String bedrockMessage = MessageTranslator.convertJsonMessage(entry.getKey(), "en_US");
             Assertions.assertEquals(entry.getValue(), bedrockMessage, "Translation of messages is incorrect");
         }
     }

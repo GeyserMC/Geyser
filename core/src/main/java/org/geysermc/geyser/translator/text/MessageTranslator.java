@@ -189,12 +189,12 @@ public class MessageTranslator {
         }
     }
 
-    public static String convertMessage(String message, String locale) {
+    public static String convertJsonMessage(String message, String locale) {
         return convertMessage(GSON_SERIALIZER.deserialize(message), locale);
     }
 
-    public static String convertMessage(String message) {
-        return convertMessage(message, GeyserLocale.getDefaultLocale());
+    public static String convertJsonMessage(String message) {
+        return convertJsonMessage(message, GeyserLocale.getDefaultLocale());
     }
 
     public static String convertMessage(Component message) {
@@ -202,7 +202,7 @@ public class MessageTranslator {
     }
 
     /**
-     * Verifies the message is valid JSON in case it's plaintext. Works around GsonComponentSeraializer not using lenient mode.
+     * Verifies the message is valid JSON in case it's plaintext. Works around GsonComponentSerializer not using lenient mode.
      * See https://wiki.vg/Chat for messages sent in lenient mode, and for a description on leniency.
      *
      * @param message Potentially lenient JSON message
@@ -218,9 +218,10 @@ public class MessageTranslator {
         }
 
         try {
-            return convertMessage(message, locale);
+            return convertJsonMessage(message, locale);
         } catch (Exception ignored) {
-            String convertedMessage = convertMessage(convertToJavaMessage(message), locale);
+            // Use the default legacy serializer since message is java-legacy
+            String convertedMessage = convertMessage(LegacyComponentSerializer.legacySection().deserialize(message), locale);
 
             // We have to do this since Adventure strips the starting reset character
             if (message.startsWith(RESET) && !convertedMessage.startsWith(RESET)) {
@@ -242,10 +243,10 @@ public class MessageTranslator {
      * @return The formatted JSON string
      */
     public static String convertToJavaMessage(String message) {
-        Component component = LegacyComponentSerializer.legacySection().deserialize(message);
+        // Our LEGACY_SERIALIZER handles legacy color codes that are unique to bedrock
+        Component component = LEGACY_SERIALIZER.deserialize(message);
         return GSON_SERIALIZER.serialize(component);
     }
-
 
     /**
      * Convert legacy format message to plain text
