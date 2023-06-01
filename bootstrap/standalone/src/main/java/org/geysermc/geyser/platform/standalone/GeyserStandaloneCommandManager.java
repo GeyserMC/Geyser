@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,21 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.fabric;
+package org.geysermc.geyser.platform.standalone;
 
-import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.minecraft.server.network.ServerGamePacketListenerImpl;
-import org.geysermc.geyser.Constants;
-import org.geysermc.geyser.platform.fabric.command.FabricCommandSource;
-import org.geysermc.geyser.util.VersionCheckUtils;
+import cloud.commandframework.CommandManager;
+import cloud.commandframework.execution.CommandExecutionCoordinator;
+import cloud.commandframework.internal.CommandRegistrationHandler;
+import cloud.commandframework.meta.CommandMeta;
+import cloud.commandframework.meta.SimpleCommandMeta;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.command.GeyserCommandSource;
 
-public final class GeyserFabricUpdateListener {
-    public static void onPlayReady(ServerGamePacketListenerImpl handler) {
-        if (Permissions.check(handler.player, Constants.UPDATE_PERMISSION, 2)) {
-            VersionCheckUtils.checkForGeyserUpdate(() -> new FabricCommandSource(handler.player.createCommandSourceStack()));
-        }
+public class GeyserStandaloneCommandManager extends CommandManager<GeyserCommandSource> {
+
+    protected GeyserStandaloneCommandManager() {
+        super(CommandExecutionCoordinator.simpleCoordinator(), CommandRegistrationHandler.nullCommandRegistrationHandler());
     }
 
-    private GeyserFabricUpdateListener() {
+    @Override
+    public boolean hasPermission(@NonNull GeyserCommandSource sender, @NonNull String permission) {
+        return false; // todo: commands
+    }
+
+    @Override
+    public @NonNull CommandMeta createDefaultCommandMeta() {
+        return SimpleCommandMeta.empty();
     }
 }

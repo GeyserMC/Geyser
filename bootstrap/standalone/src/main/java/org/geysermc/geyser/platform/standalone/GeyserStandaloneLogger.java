@@ -44,7 +44,7 @@ public class GeyserStandaloneLogger extends SimpleTerminalConsole implements Gey
 
     @Override
     protected void runCommand(String line) {
-        GeyserImpl.getInstance().commandManager().runCommand(this, line);
+        GeyserImpl.getInstance().commandManager().cloud().executeCommand(this, line);
     }
 
     @Override

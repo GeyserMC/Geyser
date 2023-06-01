@@ -29,6 +29,8 @@ import net.kyori.adventure.text.Component;
 import org.geysermc.geyser.command.GeyserCommandSource;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
+import java.util.UUID;
 
 public interface GeyserLogger extends GeyserCommandSource {
 
@@ -126,6 +128,11 @@ public interface GeyserLogger extends GeyserCommandSource {
     @Override
     default boolean isConsole() {
         return true;
+    }
+
+    @Override
+    default Optional<UUID> playerUuid() {
+        return Optional.empty();
     }
 
     @Override

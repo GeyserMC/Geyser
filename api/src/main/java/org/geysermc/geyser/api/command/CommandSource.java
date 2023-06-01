@@ -26,6 +26,10 @@
 package org.geysermc.geyser.api.command;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.api.connection.Connection;
+
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Represents an instance capable of sending commands.
@@ -63,6 +67,13 @@ public interface CommandSource {
      * @return true if this source is the console
      */
     boolean isConsole();
+
+    /**
+     * todo: commands
+     */
+    Optional<UUID> playerUuid();
+
+    Optional<? extends Connection> connection();
 
     /**
      * Returns the locale of the command source.

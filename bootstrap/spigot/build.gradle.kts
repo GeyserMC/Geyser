@@ -6,6 +6,7 @@ dependencies {
 
     implementation(libs.adapters.spigot)
 
+    implementation(libs.cloud.paper)
     implementation(libs.commodore)
 
     implementation(libs.adventure.text.serializer.bungeecord)
@@ -29,6 +30,7 @@ platformRelocate("com.fasterxml.jackson")
 platformRelocate("net.kyori", "net.kyori.adventure.text.logger.slf4j.ComponentLogger")
 platformRelocate("org.objectweb.asm")
 platformRelocate("me.lucko.commodore")
+platformRelocate("cloud.commandframework")
 
 // These dependencies are already present on the platform
 provided(libs.viaversion)

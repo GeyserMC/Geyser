@@ -33,6 +33,8 @@ import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Locale;
+import java.util.Optional;
+import java.util.UUID;
 
 public class BungeeCommandSource implements GeyserCommandSource {
 
@@ -72,6 +74,14 @@ public class BungeeCommandSource implements GeyserCommandSource {
     }
 
     @Override
+    public Optional<UUID> playerUuid() {
+        if (handle instanceof ProxiedPlayer player) {
+            return Optional.of(player.getUniqueId());
+        }
+        return Optional.empty();
+    }
+
+    @Override
     public String locale() {
         if (handle instanceof ProxiedPlayer player) {
             Locale locale = player.getLocale();
@@ -86,5 +96,10 @@ public class BungeeCommandSource implements GeyserCommandSource {
     @Override
     public boolean hasPermission(String permission) {
         return handle.hasPermission(permission);
+    }
+
+    @Override
+    public Object handle() {
+        return handle;
     }
 }

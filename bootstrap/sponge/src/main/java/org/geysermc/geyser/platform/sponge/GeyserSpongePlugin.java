@@ -30,17 +30,13 @@ import org.apache.logging.log4j.Logger;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.command.Command;
-import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
-import org.geysermc.geyser.platform.sponge.command.GeyserSpongeCommandManager;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.platform.sponge.command.GeyserSpongeCommandExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
@@ -59,7 +55,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.file.Path;
-import java.util.Map;
 import java.util.UUID;
 
 @Plugin(value = "geyser")
@@ -85,7 +80,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     private GeyserSpongeConfiguration geyserConfig;
     private GeyserSpongeLogger geyserLogger;
     private GeyserImpl geyser;
-    private GeyserSpongeCommandManager geyserCommandManager; // Commands are only registered after command registration lifecycle
+    private GeyserCommandManager geyserCommandManager;
 
     // Available after StartedEngine lifecycle
     private IGeyserPingPassthrough geyserSpongePingPassthrough;
@@ -144,29 +139,18 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
         this.geyser = GeyserImpl.load(PlatformType.SPONGE, this);
 
-        this.geyserCommandManager = new GeyserSpongeCommandManager(geyser);
+        this.geyserCommandManager = new GeyserCommandManager(geyser); // todo: commands
         this.geyserCommandManager.init();
     }
 
     /**
-     * Construct the {@link GeyserSpongeCommandManager} and register the commands
+     * Construct the {@link GeyserCommandManager} and register the commands
      *
      * @param event required to register the commands
      */
     @Listener
     public void onRegisterCommands(@Nonnull RegisterCommandEvent<org.spongepowered.api.command.Command.Raw> event) {
-        if (enabled) {
-            event.register(this.pluginContainer, new GeyserSpongeCommandExecutor(geyser, geyserCommandManager.getCommands()), "geyser");
-
-            for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
-                Map<String, Command> commands = entry.getValue();
-                if (commands.isEmpty()) {
-                    continue;
-                }
-
-                event.register(this.pluginContainer, new GeyserSpongeCommandExecutor(this.geyser, commands), entry.getKey().description().id());
-            }
-        }
+        // todo: commands. sponge-cloud probably hooks into this without us needing to
     }
 
     /**

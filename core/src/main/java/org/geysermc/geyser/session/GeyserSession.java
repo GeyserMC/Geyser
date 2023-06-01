@@ -1408,6 +1408,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
+    public Optional<UUID> playerUuid() {
+        return Optional.of(playerEntity.getUuid());
+    }
+
+    @Override
     public String locale() {
         return clientData.getLanguageCode();
     }

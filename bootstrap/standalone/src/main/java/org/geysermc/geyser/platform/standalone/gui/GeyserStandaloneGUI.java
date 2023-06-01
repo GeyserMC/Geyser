@@ -260,7 +260,7 @@ public class GeyserStandaloneGUI {
         commandsMenu.removeAll();
         optionsMenu.removeAll();
 
-        for (Map.Entry<String, Command> entry : geyserCommandManager.getCommands().entrySet()) {
+        for (Map.Entry<String, Command> entry : geyserCommandManager.commands().entrySet()) {
             // Remove the offhand command and any alias commands to prevent duplicates in the list
             if (!entry.getValue().isExecutableOnConsole() || entry.getValue().aliases().contains(entry.getKey())) {
                 continue;

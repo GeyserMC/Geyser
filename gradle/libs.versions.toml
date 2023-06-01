@@ -24,6 +24,7 @@ terminalconsoleappender = "1.2.0"
 folia = "1.19.4-R0.1-SNAPSHOT"
 viaversion = "4.0.0"
 adapters = "1.8-SNAPSHOT"
+cloud = "1.8.3"
 commodore = "2.2"
 bungeecord = "a7c6ede"
 velocity = "3.0.0"
@@ -70,6 +71,12 @@ log4j-slf4j18-impl = { group = "org.apache.logging.log4j", name = "log4j-slf4j18
 jline-terminal = { group = "org.jline", name = "jline-terminal", version.ref = "jline" }
 jline-terminal-jna = { group = "org.jline", name = "jline-terminal-jna", version.ref = "jline" }
 jline-reader = { group = "org.jline", name = "jline-reader", version.ref = "jline" }
+
+cloud-core = { group = "cloud.commandframework", name = "cloud-core", version.ref = "cloud" }
+cloud-paper = { group = "cloud.commandframework", name = "cloud-paper", version.ref = "cloud" }
+cloud-velocity = { group = "cloud.commandframework", name = "cloud-velocity", version.ref = "cloud" }
+cloud-bungee = { group = "cloud.commandframework", name = "cloud-bungee", version.ref = "cloud" }
+cloud-fabric = { group = "cloud.commandframework", name = "cloud-fabric", version.ref = "cloud" }
 
 folia-api = { group = "dev.folia", name = "folia-api", version.ref = "folia" }
 paper-mojangapi = { group = "io.papermc.paper", name = "paper-mojangapi", version.ref = "folia" }

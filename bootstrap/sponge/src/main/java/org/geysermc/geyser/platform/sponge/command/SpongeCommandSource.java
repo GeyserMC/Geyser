@@ -32,6 +32,9 @@ import org.geysermc.geyser.command.GeyserCommandSource;
 import org.spongepowered.api.command.CommandCause;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 
+import java.util.Optional;
+import java.util.UUID;
+
 @AllArgsConstructor
 public class SpongeCommandSource implements GeyserCommandSource {
 
@@ -53,7 +56,20 @@ public class SpongeCommandSource implements GeyserCommandSource {
     }
 
     @Override
+    public Optional<UUID> playerUuid() {
+        if (handle.cause().root() instanceof ServerPlayer player) {
+            return Optional.of(player.uniqueId());
+        }
+        return Optional.empty();
+    }
+
+    @Override
     public boolean hasPermission(String permission) {
         return handle.hasPermission(permission);
+    }
+
+    @Override
+    public Object handle() {
+        return handle;
     }
 }

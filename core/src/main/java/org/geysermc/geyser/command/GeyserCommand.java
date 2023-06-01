@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.command;
 
+import cloud.commandframework.CommandManager;
+import cloud.commandframework.arguments.standard.StringArgument;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -94,5 +96,32 @@ public abstract class GeyserCommand implements Command {
     @Override
     public boolean isSuggestedOpOnly() {
         return false;
+    }
+
+    public String rootCommand() {
+        return "geyser";
+    }
+
+    public void register(CommandManager<GeyserCommandSource> manager) {
+        // todo: commands all builtin commands should directly use cloud
+        // also, there needs to be customized messages for isExecutableOnConsole and isBedrockOnly, etc. Review the old CommandExecutors.
+        manager.command(manager.commandBuilder(rootCommand())
+            .literal(name, aliases.toArray(new String[0]))
+            .permission(source -> {
+                if (source.isConsole()) {
+                    return isExecutableOnConsole();
+                }
+                if (isBedrockOnly() && source.connection().isEmpty()) {
+                    return false; // bedrock only but not a bedrock player
+                }
+
+                return source.hasPermission(permission);
+            })
+            .argument(StringArgument.optional("args", StringArgument.StringMode.GREEDY))
+            .handler(context -> {
+                GeyserCommandSource source = context.getSender();
+                execute(source.connection().orElse(null), source, context.getOrDefault("args", "").split(" "));
+            })
+        );
     }
 }

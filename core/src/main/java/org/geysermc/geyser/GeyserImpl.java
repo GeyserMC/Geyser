@@ -616,7 +616,7 @@ public class GeyserImpl implements GeyserApi {
             skinUploader.close();
         }
         newsHandler.shutdown();
-        this.commandManager().getCommands().clear();
+        this.commandManager().clear();
 
         if (this.erosionUnixListener != null) {
             this.erosionUnixListener.close();

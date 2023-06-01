@@ -25,9 +25,11 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
+import cloud.commandframework.CommandManager;
 import org.cloudburstmc.protocol.bedrock.packet.CommandRequestPacket;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -40,13 +42,27 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
     @Override
     public void translate(GeyserSession session, CommandRequestPacket packet) {
         String command = MessageTranslator.convertToPlainText(packet.getCommand());
-        if (!(session.getGeyser().getPlatformType() == PlatformType.STANDALONE
-                && GeyserImpl.getInstance().commandManager().runCommand(session, command.substring(1)))) {
-            if (MessageTranslator.isTooLong(command, session)) {
-                return;
-            }
+        String strippedCommand = command.substring(1);
 
-            session.sendCommand(command.substring(1));
+        if (session.getGeyser().getPlatformType() == PlatformType.STANDALONE) {
+            // try to handle the command within the standalone command manager
+
+            String[] args = strippedCommand.split(" ");
+            if (args.length > 0) {
+                String root = args[0];
+
+                CommandManager<GeyserCommandSource> manager = GeyserImpl.getInstance().commandManager().cloud();
+                if (manager.rootCommands().contains(root)) {
+                    manager.executeCommand(session, strippedCommand);
+                    return;
+                }
+            }
         }
+
+        if (MessageTranslator.isTooLong(command, session)) {
+            return;
+        }
+
+        session.sendCommand(strippedCommand);
     }
 }

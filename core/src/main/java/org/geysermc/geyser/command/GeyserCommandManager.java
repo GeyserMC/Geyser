@@ -25,10 +25,11 @@
 
 package org.geysermc.geyser.command;
 
+import cloud.commandframework.CommandManager;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
@@ -54,22 +55,24 @@ import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
-@RequiredArgsConstructor
 public class GeyserCommandManager {
 
-    @Getter
-    private final Map<String, Command> commands = new Object2ObjectOpenHashMap<>(12);
+    private final Map<String, Command> commands = new Object2ObjectOpenHashMap<>(13);
     private final Map<Extension, Map<String, Command>> extensionCommands = new Object2ObjectOpenHashMap<>(0);
 
     private final GeyserImpl geyser;
+    private final CommandManager<GeyserCommandSource> cloud;
+
+    public GeyserCommandManager(GeyserImpl geyser, CommandManager<GeyserCommandSource> cloud) {
+        this.geyser = geyser;
+        this.cloud = cloud;
+    }
 
     public void init() {
         registerBuiltInCommand(new HelpCommand(geyser, "help", "geyser.commands.help.desc", "geyser.command.help", "geyser", this.commands));
@@ -118,11 +121,13 @@ public class GeyserCommandManager {
         register(command, this.commands);
     }
 
-    public void registerExtensionCommand(@NonNull Extension extension, @NonNull Command command) {
+    public void registerExtensionCommand(@NonNull Extension extension, @NonNull GeyserCommand command) {
         register(command, this.extensionCommands.computeIfAbsent(extension, e -> new HashMap<>()));
     }
 
-    private void register(Command command, Map<String, Command> commands) {
+    private void register(GeyserCommand command, Map<String, Command> commands) {
+        command.register(cloud);
+
         commands.put(command.name(), command);
         geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.commands.registered", command.name()));
 
@@ -135,6 +140,11 @@ public class GeyserCommandManager {
         }
     }
 
+    public void clear() {
+        this.commands.clear();
+        this.extensionCommands.clear();
+    }
+
     @NotNull
     public Map<String, Command> commands() {
         return Collections.unmodifiableMap(this.commands);
@@ -145,51 +155,9 @@ public class GeyserCommandManager {
         return Collections.unmodifiableMap(this.extensionCommands);
     }
 
-    public boolean runCommand(GeyserCommandSource sender, String command) {
-        Extension extension = null;
-        for (Extension loopedExtension : this.extensionCommands.keySet()) {
-            if (command.startsWith(loopedExtension.description().id() + " ")) {
-                extension = loopedExtension;
-                break;
-            }
-        }
-
-        if (!command.startsWith("geyser ") && extension == null) {
-            return false;
-        }
-
-        command = command.trim().replace(extension != null ? extension.description().id() + " " : "geyser ", "");
-        String label;
-        String[] args;
-
-        if (!command.contains(" ")) {
-            label = command.toLowerCase(Locale.ROOT);
-            args = new String[0];
-        } else {
-            label = command.substring(0, command.indexOf(" ")).toLowerCase(Locale.ROOT);
-            String argLine = command.substring(command.indexOf(" ") + 1);
-            args = argLine.contains(" ") ? argLine.split(" ") : new String[] { argLine };
-        }
-
-        Command cmd = (extension != null ? this.extensionCommands.getOrDefault(extension, Collections.emptyMap()) : this.commands).get(label);
-        if (cmd == null) {
-            sender.sendMessage(GeyserLocale.getLocaleStringLog("geyser.commands.invalid"));
-            return false;
-        }
-
-        if (cmd instanceof GeyserCommand) {
-            if (sender instanceof GeyserSession) {
-                ((GeyserCommand) cmd).execute((GeyserSession) sender, sender, args);
-            } else {
-                if (!cmd.isBedrockOnly()) {
-                    ((GeyserCommand) cmd).execute(null, sender, args);
-                } else {
-                    geyser.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.bootstrap.command.bedrock_only"));
-                }
-            }
-        }
-
-        return true;
+    @NotNull
+    public CommandManager<GeyserCommandSource> cloud() {
+        return cloud;
     }
 
     /**
@@ -323,6 +291,11 @@ public class GeyserCommandManager {
                 @Override
                 public boolean isExecutableOnConsole() {
                     return CommandBuilder.this.executableOnConsole;
+                }
+
+                @Override
+                public String rootCommand() {
+                    return extension().rootCommand();
                 }
             };
         }

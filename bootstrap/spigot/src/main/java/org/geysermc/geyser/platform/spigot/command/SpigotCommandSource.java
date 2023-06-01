@@ -33,6 +33,9 @@ import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.platform.spigot.PaperAdventure;
 import org.geysermc.geyser.text.GeyserLocale;
 
+import java.util.Optional;
+import java.util.UUID;
+
 public class SpigotCommandSource implements GeyserCommandSource {
     private final org.bukkit.command.CommandSender handle;
 
@@ -64,8 +67,21 @@ public class SpigotCommandSource implements GeyserCommandSource {
     }
 
     @Override
+    public Object handle() {
+        return handle;
+    }
+
+    @Override
     public boolean isConsole() {
         return handle instanceof ConsoleCommandSender;
+    }
+
+    @Override
+    public Optional<UUID> playerUuid() {
+        if (handle instanceof Player player) {
+            return Optional.of(player.getUniqueId());
+        }
+        return Optional.empty();
     }
 
     @Override

@@ -1,6 +1,7 @@
 dependencies {
     api(projects.core)
 
+    implementation(libs.cloud.bungee)
     implementation(libs.adventure.text.serializer.bungeecord)
 }
 
@@ -8,6 +9,7 @@ platformRelocate("net.md_5.bungee.jni")
 platformRelocate("com.fasterxml.jackson")
 platformRelocate("io.netty.channel.kqueue") // This is not used because relocating breaks natives, but we must include it or else we get ClassDefNotFound
 platformRelocate("net.kyori")
+platformRelocate("cloud.commandframework")
 
 // These dependencies are already present on the platform
 provided(libs.bungeecord.proxy)

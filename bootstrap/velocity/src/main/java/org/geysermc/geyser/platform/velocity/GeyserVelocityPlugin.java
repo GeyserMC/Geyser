@@ -25,28 +25,31 @@
 
 package org.geysermc.geyser.platform.velocity;
 
+import cloud.commandframework.CommandManager;
+import cloud.commandframework.execution.CommandExecutionCoordinator;
+import cloud.commandframework.velocity.VelocityCommandManager;
 import com.google.inject.Inject;
-import com.velocitypowered.api.command.CommandManager;
+import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ListenerBoundEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.network.ListenerType;
 import com.velocitypowered.api.plugin.Plugin;
+import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
 import net.kyori.adventure.util.Codec;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.command.Command;
-import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
-import org.geysermc.geyser.platform.velocity.command.GeyserVelocityCommandExecutor;
+import org.geysermc.geyser.platform.velocity.command.VelocityCommandSource;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 import org.jetbrains.annotations.NotNull;
@@ -58,7 +61,6 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 import java.util.UUID;
 
 @Plugin(id = "geyser", name = GeyserImpl.NAME + "-Velocity", version = GeyserImpl.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
@@ -71,7 +73,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     private ProxyServer proxyServer;
 
     @Inject
-    private CommandManager commandManager;
+    private PluginContainer container;
 
     private GeyserCommandManager geyserCommandManager;
     private GeyserVelocityConfiguration geyserConfig;
@@ -132,18 +134,15 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         this.geyserInjector = new GeyserVelocityInjector(proxyServer);
         // Will be initialized after the proxy has been bound
 
-        this.geyserCommandManager = new GeyserCommandManager(geyser);
+        CommandManager<GeyserCommandSource> cloud = new VelocityCommandManager<>(
+            container,
+            proxyServer,
+            CommandExecutionCoordinator.simpleCoordinator(),
+            VelocityCommandSource::new,
+            origin -> (CommandSource) origin.handle()
+        );
+        this.geyserCommandManager = new GeyserCommandManager(geyser, cloud);
         this.geyserCommandManager.init();
-
-        this.commandManager.register("geyser", new GeyserVelocityCommandExecutor(geyser, geyserCommandManager.getCommands()));
-        for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
-            Map<String, Command> commands = entry.getValue();
-            if (commands.isEmpty()) {
-                continue;
-            }
-
-            this.commandManager.register(entry.getKey().description().id(), new GeyserVelocityCommandExecutor(this.geyser, commands));
-        }
 
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);

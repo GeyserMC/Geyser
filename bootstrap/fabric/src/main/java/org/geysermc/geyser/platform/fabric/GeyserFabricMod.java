@@ -25,7 +25,11 @@
 
 package org.geysermc.geyser.platform.fabric;
 
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import cloud.commandframework.CommandManager;
+import cloud.commandframework.execution.CommandExecutionCoordinator;
+import cloud.commandframework.fabric.FabricClientCommandManager;
+import cloud.commandframework.fabric.FabricCommandManager;
+import cloud.commandframework.fabric.FabricServerCommandManager;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -33,22 +37,21 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
+import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.server.MinecraftServer;
 import org.apache.logging.log4j.LogManager;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.api.command.Command;
-import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
-import org.geysermc.geyser.platform.fabric.command.GeyserFabricCommandExecutor;
+import org.geysermc.geyser.platform.fabric.command.FabricCommandSource;
 import org.geysermc.geyser.platform.fabric.world.GeyserFabricWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
@@ -59,7 +62,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -144,26 +146,16 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
         this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
 
-        this.geyserCommandManager = new GeyserCommandManager(geyser);
+
+        CommandManager<GeyserCommandSource> cloud = new FabricServerCommandManager<>(
+            CommandExecutionCoordinator.simpleCoordinator(),
+            FabricCommandSource::new,
+            source -> (CommandSourceStack) source.handle()
+        );
+        this.geyserCommandManager = new GeyserCommandManager(geyser, cloud);
         this.geyserCommandManager.init();
 
         this.geyserWorldManager = new GeyserFabricWorldManager(server);
-
-        // Start command building
-        // Set just "geyser" as the help command
-        GeyserFabricCommandExecutor helpExecutor = new GeyserFabricCommandExecutor(geyser,
-                (GeyserCommand) geyser.commandManager().getCommands().get("help"));
-        LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("geyser").executes(helpExecutor);
-
-        // Register all subcommands as valid
-        for (Map.Entry<String, Command> command : geyser.commandManager().getCommands().entrySet()) {
-            GeyserFabricCommandExecutor executor = new GeyserFabricCommandExecutor(geyser, (GeyserCommand) command.getValue());
-            builder.then(Commands.literal(command.getKey())
-                    .executes(executor)
-                    // Could also test for Bedrock but depending on when this is called it may backfire
-                    .requires(executor::testPermission));
-        }
-        server.getCommands().getDispatcher().register(builder);
     }
 
     @Override
@@ -257,7 +249,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     }
 
     public void setReloading(boolean reloading) {
-        this.reloading = reloading;
+        this.reloading = reloading; // todo: commands
     }
 
     public static GeyserFabricMod getInstance() {

@@ -66,6 +66,7 @@ public class HelpCommand extends GeyserCommand {
         String header = GeyserLocale.getPlayerLocaleString("geyser.commands.help.header", sender.locale(), page, maxPage);
         sender.sendMessage(header);
 
+        // todo: commands looks like this doesn't guard against alias keys
         this.commands.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
             Command cmd = entry.getValue();
 

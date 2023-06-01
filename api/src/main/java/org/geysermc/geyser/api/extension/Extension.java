@@ -108,6 +108,14 @@ public interface Extension extends EventRegistrar {
     }
 
     /**
+     * todo: commands
+     */
+    @NonNull
+    default String rootCommand() {
+        return this.description().id();
+    }
+
+    /**
      * Gets the extension's logger
      *
      * @return the extension's logger

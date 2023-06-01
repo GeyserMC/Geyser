@@ -17,6 +17,9 @@ dependencies {
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation(libs.fabric.api)
 
+    modImplementation(libs.cloud.fabric)
+    include(libs.cloud.fabric)
+
     // This should be in the libs TOML, but something about modImplementation AND include just doesn't work
     include(modImplementation("me.lucko", "fabric-permissions-api", "0.2-SNAPSHOT"))
 

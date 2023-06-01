@@ -25,10 +25,14 @@
 
 package org.geysermc.geyser.command;
 
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.CommandSource;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+
+import java.util.Optional;
 
 /**
  * Implemented on top of any class that can send a command.
@@ -45,5 +49,21 @@ public interface GeyserCommandSource extends CommandSource {
 
     default void sendMessage(Component message) {
         sendMessage(LegacyComponentSerializer.legacySection().serialize(message));
+    }
+
+    default void sendLocaleString(String key, Object... values) {
+        sendMessage(GeyserLocale.getPlayerLocaleString(key, locale(), values));
+    }
+
+    @Override
+    default Optional<GeyserSession> connection() {
+        return playerUuid().map(id -> GeyserImpl.getInstance().connectionByUuid(id));
+    }
+
+    /**
+     * todo: commands
+     */
+    default Object handle() {
+        return this;
     }
 }

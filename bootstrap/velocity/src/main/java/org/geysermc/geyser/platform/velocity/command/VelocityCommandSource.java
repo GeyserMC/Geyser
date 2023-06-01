@@ -34,6 +34,8 @@ import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Locale;
+import java.util.Optional;
+import java.util.UUID;
 
 public class VelocityCommandSource implements GeyserCommandSource {
 
@@ -72,6 +74,14 @@ public class VelocityCommandSource implements GeyserCommandSource {
     }
 
     @Override
+    public Optional<UUID> playerUuid() {
+        if (handle instanceof Player player) {
+            return Optional.of(player.getUniqueId());
+        }
+        return Optional.empty();
+    }
+
+    @Override
     public String locale() {
         if (handle instanceof Player) {
             Locale locale = ((Player) handle).getPlayerSettings().getLocale();
@@ -83,5 +93,10 @@ public class VelocityCommandSource implements GeyserCommandSource {
     @Override
     public boolean hasPermission(String permission) {
         return handle.hasPermission(permission);
+    }
+
+    @Override
+    public Object handle() {
+        return handle;
     }
 }

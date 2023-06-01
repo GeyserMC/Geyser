@@ -25,8 +25,12 @@
 
 package org.geysermc.geyser.platform.bungeecord;
 
+import cloud.commandframework.CommandManager;
+import cloud.commandframework.bungee.BungeeCommandManager;
+import cloud.commandframework.execution.CommandExecutionCoordinator;
 import io.netty.channel.Channel;
 import net.md_5.bungee.BungeeCord;
+import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.protocol.ProtocolConstants;
@@ -34,14 +38,13 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.command.Command;
-import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
-import org.geysermc.geyser.platform.bungeecord.command.GeyserBungeeCommandExecutor;
+import org.geysermc.geyser.platform.bungeecord.command.BungeeCommandSource;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +57,6 @@ import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -174,18 +176,15 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         this.geyserInjector = new GeyserBungeeInjector(this);
         this.geyserInjector.initializeLocalChannel(this);
 
-        this.geyserCommandManager = new GeyserCommandManager(geyser);
+
+        CommandManager<GeyserCommandSource> cloud = new BungeeCommandManager<>(
+            this,
+            CommandExecutionCoordinator.simpleCoordinator(),
+            BungeeCommandSource::new,
+            origin -> (CommandSender) origin.handle()
+        );
+        this.geyserCommandManager = new GeyserCommandManager(geyser, cloud);
         this.geyserCommandManager.init();
-
-        this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor("geyser", this.geyser, this.geyserCommandManager.getCommands()));
-        for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
-            Map<String, Command> commands = entry.getValue();
-            if (commands.isEmpty()) {
-                continue;
-            }
-
-            this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor(entry.getKey().description().id(), this.geyser, commands));
-        }
 
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserBungeePingPassthrough = GeyserLegacyPingPassthrough.init(geyser);

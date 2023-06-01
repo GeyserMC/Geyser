@@ -35,12 +35,14 @@ import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.ChatColor;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
+import java.util.UUID;
 
-public class FabricCommandSender implements GeyserCommandSource {
+public class FabricCommandSource implements GeyserCommandSource {
 
     private final CommandSourceStack source;
 
-    public FabricCommandSender(CommandSourceStack source) {
+    public FabricCommandSource(CommandSourceStack source) {
         this.source = source;
     }
 
@@ -74,7 +76,20 @@ public class FabricCommandSender implements GeyserCommandSource {
     }
 
     @Override
+    public Optional<UUID> playerUuid() {
+        if (source.getEntity() instanceof ServerPlayer player) {
+            return Optional.of(player.getUUID());
+        }
+        return Optional.empty();
+    }
+
+    @Override
     public boolean hasPermission(String permission) {
-        return Permissions.check(source, permission);
+        return Permissions.check(source, permission, source.getServer().getOperatorUserPermissionLevel());
+    }
+
+    @Override
+    public Object handle() {
+        return source;
     }
 }
