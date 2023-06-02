@@ -27,8 +27,10 @@ package org.geysermc.geyser.platform.bungeecord.command;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
+import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.GeyserLocale;
 
@@ -38,9 +40,9 @@ import java.util.UUID;
 
 public class BungeeCommandSource implements GeyserCommandSource {
 
-    private final net.md_5.bungee.api.CommandSender handle;
+    private final CommandSender handle;
 
-    public BungeeCommandSource(net.md_5.bungee.api.CommandSender handle) {
+    public BungeeCommandSource(CommandSender handle) {
         this.handle = handle;
         // Ensure even Java players' languages are loaded
         GeyserLocale.loadGeyserLocale(this.locale());
@@ -52,7 +54,7 @@ public class BungeeCommandSource implements GeyserCommandSource {
     }
 
     @Override
-    public void sendMessage(String message) {
+    public void sendMessage(@NonNull String message) {
         handle.sendMessage(TextComponent.fromLegacyText(message));
     }
 

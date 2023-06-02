@@ -61,6 +61,7 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.UUID;
 
 @Plugin(id = "geyser", name = GeyserImpl.NAME + "-Velocity", version = GeyserImpl.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
@@ -139,10 +140,9 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
             proxyServer,
             CommandExecutionCoordinator.simpleCoordinator(),
             VelocityCommandSource::new,
-            origin -> (CommandSource) origin.handle()
+            this::convertCommandSource
         );
         this.geyserCommandManager = new GeyserCommandManager(geyser, cloud);
-        this.geyserCommandManager.init();
 
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
@@ -161,6 +161,24 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         if (geyserInjector != null) {
             geyserInjector.shutdown();
         }
+    }
+
+    private CommandSource convertCommandSource(GeyserCommandSource source) {
+        if (source.handle() instanceof CommandSource velocitySource) {
+            return velocitySource;
+        }
+
+        if (source.isConsole()) {
+            return proxyServer.getConsoleCommandSource();
+        }
+
+        Optional<UUID> optionalUUID = source.playerUuid();
+        if (optionalUUID.isPresent()) {
+            UUID uuid = optionalUUID.get();
+            return proxyServer.getPlayer(uuid).orElseThrow(() -> new IllegalArgumentException("failed to find player for " + uuid));
+        }
+
+        throw new IllegalArgumentException("failed to convert source for " + source);
     }
 
     @Override

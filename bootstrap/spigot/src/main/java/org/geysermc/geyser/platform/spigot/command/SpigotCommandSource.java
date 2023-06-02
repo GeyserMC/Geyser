@@ -27,8 +27,10 @@ package org.geysermc.geyser.platform.spigot.command;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
+import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.platform.spigot.PaperAdventure;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -37,9 +39,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class SpigotCommandSource implements GeyserCommandSource {
-    private final org.bukkit.command.CommandSender handle;
+    private final CommandSender handle;
 
-    public SpigotCommandSource(org.bukkit.command.CommandSender handle) {
+    public SpigotCommandSource(CommandSender handle) {
         this.handle = handle;
         // Ensure even Java players' languages are loaded
         GeyserLocale.loadGeyserLocale(locale());
@@ -51,7 +53,7 @@ public class SpigotCommandSource implements GeyserCommandSource {
     }
 
     @Override
-    public void sendMessage(String message) {
+    public void sendMessage(@NonNull String message) {
         handle.sendMessage(message);
     }
 

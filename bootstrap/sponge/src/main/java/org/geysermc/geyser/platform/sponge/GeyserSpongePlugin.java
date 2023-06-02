@@ -46,7 +46,6 @@ import org.spongepowered.api.event.lifecycle.ConstructPluginEvent;
 import org.spongepowered.api.event.lifecycle.RegisterCommandEvent;
 import org.spongepowered.api.event.lifecycle.StartedEngineEvent;
 import org.spongepowered.api.event.lifecycle.StoppingEngineEvent;
-import org.spongepowered.plugin.PluginContainer;
 import org.spongepowered.plugin.builtin.jvm.Plugin;
 
 import javax.annotation.Nonnull;
@@ -66,9 +65,6 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
      * This exists because you can't unregister or disable plugins in Sponge
      */
     private boolean enabled = true;
-
-    @Inject
-    private PluginContainer pluginContainer;
 
     @Inject
     private Logger logger;
@@ -141,7 +137,6 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
         this.geyser = GeyserImpl.load(PlatformType.SPONGE, this);
 
         this.geyserCommandManager = new GeyserCommandManager(geyser, Objects.requireNonNull(null)); // todo: commands
-        this.geyserCommandManager.init();
     }
 
     /**

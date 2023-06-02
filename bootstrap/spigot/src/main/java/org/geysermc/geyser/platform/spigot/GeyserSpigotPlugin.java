@@ -73,6 +73,7 @@ import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -175,7 +176,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                 this,
                 CommandExecutionCoordinator.simpleCoordinator(),
                 SpigotCommandSource::new,
-                source -> (CommandSender) source.handle()
+                this::convertCommandSource
             );
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -185,15 +186,14 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             // Should always be available on 1.13 and up
             cloud.registerBrigadier();
         } catch (BukkitCommandManager.BrigadierFailureException e) {
-            geyserLogger.error("Failed to initialize Brigadier support: " + e.getMessage());
+            geyserLogger.debug("Failed to initialize Brigadier support: " + e.getMessage());
             if (e.getReason() == BukkitCommandManager.BrigadierFailureReason.VERSION_TOO_HIGH) {
                 // Commodore brig only supports Spigot 1.13 - 1.18.2
-                geyserLogger.error("Using Paper instead of Spigot will likely fix this.");
+                geyserLogger.debug("Using Paper instead of Spigot will likely fix this.");
             }
         }
 
         this.geyserCommandManager = new GeyserCommandManager(geyser, cloud);
-        this.geyserCommandManager.init();
 
         if (!INITIALIZED) {
             // Needs to be an anonymous inner class otherwise Bukkit complains about missing classes
@@ -340,6 +340,28 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         if (geyserInjector != null) {
             geyserInjector.shutdown();
         }
+    }
+
+    private CommandSender convertCommandSource(GeyserCommandSource source) {
+        if (source.handle() instanceof CommandSender sender) {
+            return sender;
+        }
+
+        if (source.isConsole()) {
+            return getServer().getConsoleSender();
+        }
+
+        Optional<UUID> optionalUuid = source.playerUuid();
+        if (optionalUuid.isPresent()) {
+            UUID uuid = optionalUuid.get();
+            CommandSender sender = getServer().getPlayer(uuid);
+            if (sender == null) {
+                throw new IllegalArgumentException("failed to find player for " + uuid);
+            }
+            return sender;
+        }
+
+        throw new IllegalArgumentException("failed to convert source for " + source);
     }
 
     @Override

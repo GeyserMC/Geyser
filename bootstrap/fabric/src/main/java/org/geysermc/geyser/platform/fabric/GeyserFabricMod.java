@@ -27,8 +27,6 @@ package org.geysermc.geyser.platform.fabric;
 
 import cloud.commandframework.CommandManager;
 import cloud.commandframework.execution.CommandExecutionCoordinator;
-import cloud.commandframework.fabric.FabricClientCommandManager;
-import cloud.commandframework.fabric.FabricCommandManager;
 import cloud.commandframework.fabric.FabricServerCommandManager;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
@@ -37,8 +35,8 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.entity.player.Player;
 import org.apache.logging.log4j.LogManager;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
@@ -150,10 +148,9 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
         CommandManager<GeyserCommandSource> cloud = new FabricServerCommandManager<>(
             CommandExecutionCoordinator.simpleCoordinator(),
             FabricCommandSource::new,
-            source -> (CommandSourceStack) source.handle()
+            this::convertCommandSource
         );
         this.geyserCommandManager = new GeyserCommandManager(geyser, cloud);
-        this.geyserCommandManager.init();
 
         this.geyserWorldManager = new GeyserFabricWorldManager(server);
     }
@@ -167,6 +164,28 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
         if (!reloading) {
             this.server = null;
         }
+    }
+
+    private CommandSourceStack convertCommandSource(GeyserCommandSource source) {
+        if (source.handle() instanceof CommandSourceStack stack) {
+            return stack;
+        }
+
+        if (source.isConsole()) {
+            return server.createCommandSourceStack(); // todo: commands something better?
+        }
+
+        Optional<UUID> optionalUUID = source.playerUuid();
+        if (optionalUUID.isPresent()) {
+            UUID uuid = optionalUUID.get();
+            Player player = server.getPlayerList().getPlayer(uuid);
+            if (player == null) {
+                throw new IllegalArgumentException("failed to find player for " + uuid);
+            }
+            return player.createCommandSourceStack();
+        }
+
+        throw new IllegalArgumentException("failed to convert source for " + source);
     }
 
     @Override

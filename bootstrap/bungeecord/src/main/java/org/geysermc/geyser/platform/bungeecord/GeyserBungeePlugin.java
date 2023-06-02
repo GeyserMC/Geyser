@@ -181,10 +181,9 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             this,
             CommandExecutionCoordinator.simpleCoordinator(),
             BungeeCommandSource::new,
-            origin -> (CommandSender) origin.handle()
+            this::convertCommandSource
         );
         this.geyserCommandManager = new GeyserCommandManager(geyser, cloud);
-        this.geyserCommandManager.init();
 
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserBungeePingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
@@ -201,6 +200,28 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         if (geyserInjector != null) {
             geyserInjector.shutdown();
         }
+    }
+
+    private CommandSender convertCommandSource(GeyserCommandSource source) {
+        if (source.handle() instanceof CommandSender sender) {
+            return sender;
+        }
+
+        if (source.isConsole()) {
+            return getProxy().getConsole();
+        }
+
+        Optional<UUID> optionalUuid = source.playerUuid();
+        if (optionalUuid.isPresent()) {
+            UUID uuid = optionalUuid.get();
+            CommandSender sender = getProxy().getPlayer(uuid);
+            if (sender == null) {
+                throw new IllegalArgumentException("failed to find player for " + uuid);
+            }
+            return sender;
+        }
+
+        throw new IllegalArgumentException("failed to convert source for " + source);
     }
 
     @Override
