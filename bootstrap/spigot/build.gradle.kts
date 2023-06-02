@@ -17,11 +17,6 @@ dependencies {
             attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
         }
     }
-    compileOnly(libs.paper.mojangapi) {
-        attributes {
-            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
-        }
-    }
 }
 
 platformRelocate("it.unimi.dsi.fastutil")

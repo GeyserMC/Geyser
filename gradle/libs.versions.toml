@@ -79,7 +79,6 @@ cloud-bungee = { group = "cloud.commandframework", name = "cloud-bungee", versio
 cloud-fabric = { group = "cloud.commandframework", name = "cloud-fabric", version.ref = "cloud" }
 
 folia-api = { group = "dev.folia", name = "folia-api", version.ref = "folia" }
-paper-mojangapi = { group = "io.papermc.paper", name = "paper-mojangapi", version.ref = "folia" }
 
 # check these on https://modmuss50.me/fabric.html
 fabric-minecraft = { group = "com.mojang", name = "minecraft", version.ref = "fabric-minecraft" }
