@@ -55,6 +55,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.UUID;
 
 @Plugin(value = "geyser")
@@ -139,7 +140,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
         this.geyser = GeyserImpl.load(PlatformType.SPONGE, this);
 
-        this.geyserCommandManager = new GeyserCommandManager(geyser); // todo: commands
+        this.geyserCommandManager = new GeyserCommandManager(geyser, Objects.requireNonNull(null)); // todo: commands
         this.geyserCommandManager.init();
     }
 
