@@ -60,7 +60,6 @@ import com.github.steveice10.packetlib.event.session.*;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpClientSession;
 import com.github.steveice10.packetlib.tcp.TcpSession;
-import com.nimbusds.jwt.SignedJWT;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -171,7 +170,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Used for Floodgate skin uploading
      */
     @Setter
-    private List<SignedJWT> certChainData;
+    private List<String> certChainData;
 
     @NotNull
     @Setter
