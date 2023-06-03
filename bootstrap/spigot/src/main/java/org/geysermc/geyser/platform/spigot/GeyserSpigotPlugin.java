@@ -49,6 +49,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -73,7 +74,6 @@ import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -170,13 +170,14 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             return;
         }
 
+        var sourceConverter = CommandSourceConverter.simple(CommandSender.class, Bukkit::getPlayer, Bukkit::getConsoleSender);
         PaperCommandManager<GeyserCommandSource> cloud;
         try {
             cloud = new PaperCommandManager<>(
                 this,
                 CommandExecutionCoordinator.simpleCoordinator(),
                 SpigotCommandSource::new,
-                this::convertCommandSource
+                sourceConverter::convert
             );
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -340,28 +341,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         if (geyserInjector != null) {
             geyserInjector.shutdown();
         }
-    }
-
-    private CommandSender convertCommandSource(GeyserCommandSource source) {
-        if (source.handle() instanceof CommandSender sender) {
-            return sender;
-        }
-
-        if (source.isConsole()) {
-            return getServer().getConsoleSender();
-        }
-
-        Optional<UUID> optionalUuid = source.playerUuid();
-        if (optionalUuid.isPresent()) {
-            UUID uuid = optionalUuid.get();
-            CommandSender sender = getServer().getPlayer(uuid);
-            if (sender == null) {
-                throw new IllegalArgumentException("failed to find player for " + uuid);
-            }
-            return sender;
-        }
-
-        throw new IllegalArgumentException("failed to convert source for " + source);
     }
 
     @Override

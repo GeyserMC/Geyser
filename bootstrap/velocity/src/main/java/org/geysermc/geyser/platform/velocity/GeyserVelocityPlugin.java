@@ -43,6 +43,7 @@ import net.kyori.adventure.util.Codec;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -61,7 +62,6 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
 import java.util.UUID;
 
 @Plugin(id = "geyser", name = GeyserImpl.NAME + "-Velocity", version = GeyserImpl.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
@@ -135,12 +135,13 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         this.geyserInjector = new GeyserVelocityInjector(proxyServer);
         // Will be initialized after the proxy has been bound
 
+        var sourceConverter = CommandSourceConverter.simple(CommandSource.class, id -> proxyServer.getPlayer(id).get(), proxyServer::getConsoleCommandSource);
         CommandManager<GeyserCommandSource> cloud = new VelocityCommandManager<>(
             container,
             proxyServer,
             CommandExecutionCoordinator.simpleCoordinator(),
             VelocityCommandSource::new,
-            this::convertCommandSource
+            sourceConverter::convert
         );
         this.geyserCommandManager = new GeyserCommandManager(geyser, cloud);
 
@@ -161,24 +162,6 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         if (geyserInjector != null) {
             geyserInjector.shutdown();
         }
-    }
-
-    private CommandSource convertCommandSource(GeyserCommandSource source) {
-        if (source.handle() instanceof CommandSource velocitySource) {
-            return velocitySource;
-        }
-
-        if (source.isConsole()) {
-            return proxyServer.getConsoleCommandSource();
-        }
-
-        Optional<UUID> optionalUUID = source.playerUuid();
-        if (optionalUUID.isPresent()) {
-            UUID uuid = optionalUUID.get();
-            return proxyServer.getPlayer(uuid).orElseThrow(() -> new IllegalArgumentException("failed to find player for " + uuid));
-        }
-
-        throw new IllegalArgumentException("failed to convert source for " + source);
     }
 
     @Override

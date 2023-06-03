@@ -38,6 +38,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -176,12 +177,12 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         this.geyserInjector = new GeyserBungeeInjector(this);
         this.geyserInjector.initializeLocalChannel(this);
 
-
+        var sourceConverter = CommandSourceConverter.simple(CommandSender.class, id -> getProxy().getPlayer(id), () -> getProxy().getConsole());
         CommandManager<GeyserCommandSource> cloud = new BungeeCommandManager<>(
             this,
             CommandExecutionCoordinator.simpleCoordinator(),
             BungeeCommandSource::new,
-            this::convertCommandSource
+            sourceConverter::convert
         );
         this.geyserCommandManager = new GeyserCommandManager(geyser, cloud);
 
@@ -200,28 +201,6 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         if (geyserInjector != null) {
             geyserInjector.shutdown();
         }
-    }
-
-    private CommandSender convertCommandSource(GeyserCommandSource source) {
-        if (source.handle() instanceof CommandSender sender) {
-            return sender;
-        }
-
-        if (source.isConsole()) {
-            return getProxy().getConsole();
-        }
-
-        Optional<UUID> optionalUuid = source.playerUuid();
-        if (optionalUuid.isPresent()) {
-            UUID uuid = optionalUuid.get();
-            CommandSender sender = getProxy().getPlayer(uuid);
-            if (sender == null) {
-                throw new IllegalArgumentException("failed to find player for " + uuid);
-            }
-            return sender;
-        }
-
-        throw new IllegalArgumentException("failed to convert source for " + source);
     }
 
     @Override

@@ -42,6 +42,7 @@ import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -144,11 +145,16 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
         this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
 
-
+        var sourceConverter = new CommandSourceConverter<>(
+            CommandSourceStack.class,
+            id -> server.getPlayerList().getPlayer(id),
+            Player::createCommandSourceStack,
+            server::createCommandSourceStack
+        );
         CommandManager<GeyserCommandSource> cloud = new FabricServerCommandManager<>(
             CommandExecutionCoordinator.simpleCoordinator(),
             FabricCommandSource::new,
-            this::convertCommandSource
+            sourceConverter::convert
         );
         this.geyserCommandManager = new GeyserCommandManager(geyser, cloud);
 
@@ -164,28 +170,6 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
         if (!reloading) {
             this.server = null;
         }
-    }
-
-    private CommandSourceStack convertCommandSource(GeyserCommandSource source) {
-        if (source.handle() instanceof CommandSourceStack stack) {
-            return stack;
-        }
-
-        if (source.isConsole()) {
-            return server.createCommandSourceStack(); // todo: commands something better?
-        }
-
-        Optional<UUID> optionalUUID = source.playerUuid();
-        if (optionalUUID.isPresent()) {
-            UUID uuid = optionalUUID.get();
-            Player player = server.getPlayerList().getPlayer(uuid);
-            if (player == null) {
-                throw new IllegalArgumentException("failed to find player for " + uuid);
-            }
-            return player.createCommandSourceStack();
-        }
-
-        throw new IllegalArgumentException("failed to convert source for " + source);
     }
 
     @Override
