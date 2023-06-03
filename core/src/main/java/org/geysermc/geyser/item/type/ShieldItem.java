@@ -25,11 +25,38 @@
 
 package org.geysermc.geyser.item.type;
 
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.IntTag;
+import com.github.steveice10.opennbt.tag.builtin.ListTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.item.components.ToolTier;
+import org.geysermc.geyser.session.GeyserSession;
 
 public class ShieldItem extends Item {
     public ShieldItem(String javaIdentifier, Builder builder) {
         super(javaIdentifier, builder);
+    }
+
+    @Override
+    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag) {
+        super.translateNbtToBedrock(session, tag);
+
+        if (tag.remove("BlockEntityTag") instanceof CompoundTag blockEntityTag) {
+            if (blockEntityTag.get("Patterns") instanceof ListTag patterns) {
+                for (Tag pattern : patterns) {
+                    if (((CompoundTag) pattern).get("Color") instanceof IntTag color) {
+                        color.setValue(15 - color.getValue());
+                    }
+                }
+                // Bedrock looks for patterns at the root
+                tag.put(patterns);
+            }
+            if (blockEntityTag.get("Base") instanceof IntTag base) {
+                base.setValue(15 - base.getValue());
+                tag.put(base);
+            }
+        }
     }
 
     @Override
