@@ -34,7 +34,6 @@ public record CommandSourceConverter<S, P>(Class<S> senderType,
                                            Function<UUID, P> playerLookup, Function<P, S> senderLookup,
                                            Supplier<S> consoleProvider) {
 
-
     public S convert(GeyserCommandSource source) throws IllegalArgumentException {
         Object handle = source.handle();
         if (senderType.isAssignableFrom(source.handle().getClass())) {
