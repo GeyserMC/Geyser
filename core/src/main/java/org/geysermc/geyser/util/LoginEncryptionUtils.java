@@ -57,9 +57,11 @@ import javax.crypto.SecretKey;
 import java.net.URI;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECGenParameterSpec;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
@@ -69,6 +71,18 @@ public class LoginEncryptionUtils {
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
     private static boolean HAS_SENT_ENCRYPTION_MESSAGE = false;
+
+    private static final ECPublicKey MOJANG_PUBLIC_KEY_OLD;
+    private static final ECPublicKey MOJANG_PUBLIC_KEY;
+
+    static {
+        try {
+            MOJANG_PUBLIC_KEY_OLD = EncryptionUtils.generateKey("MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAE8ELkixyLcwlZryUQcu1TvPOmI2B7vX83ndnWRUaXm74wFfa5f/lwQNTfrLVHa2PmenpGI6JhIMUJaWZrjmMj90NoKNFSNBuKdm8rYiXsfaz3K36x/1U26HpG0ZxK/V1V");
+            MOJANG_PUBLIC_KEY = EncryptionUtils.generateKey("MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAECRXueJeTDqNRRgJi/vlRufByu/2G0i2Ebt6YMar5QX/R0DIIyrJMcUpruK4QveTfJSTp3Shlq4Gk34cD/4GUWwkv0DVuzeuB+tXija7HBxii03NHDbPAD0AKnLr2wdAp");
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new AssertionError("Unable to initialize required encryption", e);
+        }
+    }
 
     private static boolean validateChainData(List<SignedJWT> chain) throws Exception {
         if (chain.size() != 3) {
@@ -105,7 +119,7 @@ public class LoginEncryptionUtils {
                 return !iterator.hasNext();
             }
 
-            if (lastKey.equals(EncryptionUtils.getMojangPublicKey())) {
+            if (verifyMojangPublicKey(lastKey)) {
                 mojangSigned = true;
             }
 
@@ -118,6 +132,10 @@ public class LoginEncryptionUtils {
         }
 
         return mojangSigned;
+    }
+
+    public static boolean verifyMojangPublicKey(ECPublicKey key) {
+        return MOJANG_PUBLIC_KEY.equals(key) || MOJANG_PUBLIC_KEY_OLD.equals(key);
     }
 
     public static void encryptPlayerConnection(GeyserSession session, LoginPacket loginPacket) {

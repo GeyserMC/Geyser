@@ -39,7 +39,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.codec.v582.Bedrock_v582;
-import org.cloudburstmc.protocol.bedrock.codec.v588.Bedrock_v588;
+import org.cloudburstmc.protocol.bedrock.codec.v589.Bedrock_v589;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
@@ -101,7 +101,7 @@ public class ItemRegistryPopulator {
 
             return mapping;
         }));
-        paletteVersions.put("1_20_0", new PaletteVersion(Bedrock_v588.CODEC.getProtocolVersion()));
+        paletteVersions.put("1_20_0", new PaletteVersion(Bedrock_v589.CODEC.getProtocolVersion()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
