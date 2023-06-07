@@ -124,6 +124,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.physics.CollisionManager;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -1539,6 +1540,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT);
         startGamePacket.setRewindHistorySize(0);
         startGamePacket.setServerAuthoritativeBlockBreaking(false);
+
+        if (GameProtocol.isPre1_20(this)) {
+            startGamePacket.getExperiments().add(new ExperimentData("next_major_update", true));
+            startGamePacket.getExperiments().add(new ExperimentData("sniffer", true));
+        }
 
         upstream.sendPacket(startGamePacket);
     }
