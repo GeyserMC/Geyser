@@ -35,9 +35,15 @@ import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
+import org.cloudburstmc.protocol.bedrock.packet.StopSoundPacket;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.registry.type.RecordMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
@@ -59,21 +65,39 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
         // Separate case since each RecordEventData in Java is an individual track in Bedrock
         if (levelEvent == LevelEventType.RECORD) {
             RecordEventData recordEventData = (RecordEventData) packet.getData();
-            SoundEvent soundEvent = Registries.RECORDS.get(recordEventData.getRecordId());
-            if (soundEvent == null) {
+
+            RecordMapping recordMapping = Registries.RECORDS.get(recordEventData.getRecordId());
+            if (recordMapping == null) {
                 return;
             }
+
+            session.setLastRecordPlayed(recordMapping);
+
             Vector3i origin = packet.getPosition();
             Vector3f pos = Vector3f.from(origin.getX() + 0.5f, origin.getY() + 0.5f, origin.getZ() + 0.5f);
 
-            LevelSoundEventPacket levelSoundEvent = new LevelSoundEventPacket();
-            levelSoundEvent.setIdentifier("");
-            levelSoundEvent.setSound(soundEvent);
-            levelSoundEvent.setPosition(pos);
-            levelSoundEvent.setRelativeVolumeDisabled(packet.isBroadcast());
-            levelSoundEvent.setExtraData(-1);
-            levelSoundEvent.setBabySound(false);
-            session.sendUpstreamPacket(levelSoundEvent);
+            String recordString;
+            if (recordMapping.soundEvent() == null) {
+                PlaySoundPacket playSoundPacket = new PlaySoundPacket();
+                playSoundPacket.setSound(recordMapping.soundName());
+                playSoundPacket.setPosition(pos);
+                playSoundPacket.setVolume(1f);
+                playSoundPacket.setPitch(1f);
+                session.sendUpstreamPacket(playSoundPacket);
+
+                recordString = "%item." + Registries.JAVA_ITEMS.get().get(recordEventData.getRecordId()).javaIdentifier().toLowerCase(Locale.ROOT).replace(":", ".") + ".desc";
+            } else {
+                LevelSoundEventPacket levelSoundEvent = new LevelSoundEventPacket();
+                levelSoundEvent.setIdentifier("");
+                levelSoundEvent.setSound(recordMapping.soundEvent());
+                levelSoundEvent.setPosition(pos);
+                levelSoundEvent.setRelativeVolumeDisabled(packet.isBroadcast());
+                levelSoundEvent.setExtraData(-1);
+                levelSoundEvent.setBabySound(false);
+                session.sendUpstreamPacket(levelSoundEvent);
+
+                recordString = "%item." + recordMapping.soundEvent().name().toLowerCase(Locale.ROOT) + ".desc";
+            }
 
             // Send text packet as it seems to be handled in Java Edition client-side.
             TextPacket textPacket = new TextPacket();
@@ -83,7 +107,6 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             textPacket.setPlatformChatId("");
             textPacket.setSourceName(null);
             textPacket.setMessage("record.nowPlaying");
-            String recordString = "%item." + soundEvent.name().toLowerCase(Locale.ROOT) + ".desc";
             textPacket.setParameters(Collections.singletonList(MinecraftLocale.getLocaleString(recordString, session.locale())));
             session.sendUpstreamPacket(textPacket);
             return;
@@ -315,14 +338,20 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 return;
             }
             case STOP_RECORD -> {
-                LevelSoundEventPacket levelSoundEvent = new LevelSoundEventPacket();
-                levelSoundEvent.setIdentifier("");
-                levelSoundEvent.setSound(SoundEvent.STOP_RECORD);
-                levelSoundEvent.setPosition(pos);
-                levelSoundEvent.setRelativeVolumeDisabled(false);
-                levelSoundEvent.setExtraData(-1);
-                levelSoundEvent.setBabySound(false);
-                session.sendUpstreamPacket(levelSoundEvent);
+                if (session.getLastRecordPlayed() != null && session.getLastRecordPlayed().soundName() != null) {
+                    StopSoundPacket stopSoundPacket = new StopSoundPacket();
+                    stopSoundPacket.setSoundName(session.getLastRecordPlayed().soundName());
+                    session.sendUpstreamPacket(stopSoundPacket);
+                } else {
+                    LevelSoundEventPacket levelSoundEvent = new LevelSoundEventPacket();
+                    levelSoundEvent.setIdentifier("");
+                    levelSoundEvent.setSound(SoundEvent.STOP_RECORD);
+                    levelSoundEvent.setPosition(pos);
+                    levelSoundEvent.setRelativeVolumeDisabled(false);
+                    levelSoundEvent.setExtraData(-1);
+                    levelSoundEvent.setBabySound(false);
+                    session.sendUpstreamPacket(levelSoundEvent);
+                }
                 return;
             }
             default -> {

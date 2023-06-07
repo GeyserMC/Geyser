@@ -429,8 +429,8 @@ public class ItemRegistryPopulator {
                             .build());
                 } else if (javaItem.javaIdentifier().startsWith("minecraft:music_disc_")) {
                     // The Java record level event uses the item ID as the "key" to play the record
-                    Registries.RECORDS.register(javaItem.javaId(), SoundEvent.valueOf("RECORD_" +
-                            javaItem.javaIdentifier().replace("minecraft:music_disc_", "").toUpperCase(Locale.ENGLISH)));
+                    Registries.RECORDS.register(javaItem.javaId(), new RecordMapping(SoundEvent.valueOf("RECORD_" +
+                            javaItem.javaIdentifier().replace("minecraft:music_disc_", "").toUpperCase(Locale.ENGLISH))));
                 }
 
                 mappings.add(mapping);

@@ -54,6 +54,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     private final String creativeGroup;
     private final boolean isHat;
     private final boolean isFoil;
+    private final String recordSound;
     private final boolean isTool;
     private final boolean isEdible;
     private final boolean canAlwaysEat;
@@ -77,6 +78,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         this.creativeGroup = builder.creativeGroup;
         this.isHat = builder.hat;
         this.isFoil = builder.foil;
+        this.recordSound = builder.recordSound;
         this.isTool = builder.tool;
         this.isEdible = builder.edible;
         this.canAlwaysEat = builder.canAlwaysEat;
@@ -168,6 +170,11 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         return isChargeable;
     }
 
+    @Override
+    public String recordSound() {
+        return recordSound;
+    }
+
     public static class NonVanillaCustomItemDataBuilder extends GeyserCustomItemData.CustomItemDataBuilder implements NonVanillaCustomItemData.Builder {
         private String identifier = null;
         private int javaId = -1;
@@ -191,6 +198,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
 
         private boolean hat = false;
         private boolean foil = false;
+        private String recordSound = null;
         private boolean tool = false;
         private boolean edible = false;
         private boolean canAlwaysEat = false;
@@ -336,6 +344,12 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         @Override
         public NonVanillaCustomItemData.Builder chargeable(boolean isChargeable) {
             this.chargeable = isChargeable;
+            return this;
+        }
+
+        @Override
+        public NonVanillaCustomItemData.Builder recordSound(@Nullable String recordSound) {
+            this.recordSound = recordSound;
             return this;
         }
 
