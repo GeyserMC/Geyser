@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,31 +23,16 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.type;
+package org.geysermc.geyser.translator.level.block.entity;
 
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
+import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
+import org.geysermc.geyser.util.SignUtils;
 
-public class GeyserBedrockBlock implements BlockDefinition {
-    private final int runtimeId;
-    private final NbtMap state;
-
-    public GeyserBedrockBlock(int runtimeId, NbtMap state) {
-        this.runtimeId = runtimeId;
-        this.state = state;
-    }
+@BlockEntity(type = BlockEntityType.HANGING_SIGN)
+public class HangingSignBlockEntityTranslator extends SignBlockEntityTranslator {
 
     @Override
-    public int getRuntimeId() {
-        return runtimeId;
-    }
-
-    public NbtMap getState() {
-        return state;
-    }
-
-    @Override
-    public String toString() {
-        return "GeyserBedrockBlock{" + state.getString("name") + "}";
+    public int signWidthMax() {
+        return SignUtils.HANGING_SIGN_WIDTH_MAX; // Smaller than that for BlockEntityType.SIGN
     }
 }

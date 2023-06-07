@@ -27,8 +27,13 @@ package org.geysermc.geyser.entity.type.living.animal.horse;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
+import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
@@ -42,17 +47,57 @@ public class CamelEntity extends AbstractHorseEntity {
 
     public CamelEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+
+        dirtyMetadata.put(EntityDataTypes.CONTAINER_TYPE, (byte) ContainerType.HORSE.getId());
+
+        // Always tamed, but not indicated in horse flags
+        setFlag(EntityFlag.TAMED, true);
     }
 
-    @Override
-    protected void initializeMetadata() {
-        super.initializeMetadata();
-        this.dirtyMetadata.put(EntityDataTypes.VARIANT, 2); // Closest llama colour to camel
+    public void setHorseFlags(ByteEntityMetadata entityMetadata) {
+        byte xd = entityMetadata.getPrimitiveValue();
+        boolean saddled = (xd & 0x04) == 0x04;
+        setFlag(EntityFlag.SADDLED, saddled);
+        setFlag(EntityFlag.EATING, (xd & 0x10) == 0x10);
+        setFlag(EntityFlag.STANDING, (xd & 0x20) == 0x20);
+
+        // HorseFlags
+        // Bred 0x10
+        // Eating 0x20
+        // Open mouth 0x80
+        int horseFlags = 0x0;
+        horseFlags = (xd & 0x40) == 0x40 ? horseFlags | 0x80 : horseFlags;
+
+        // Only set eating when we don't have mouth open so a player interaction doesn't trigger the eating animation
+        horseFlags = (xd & 0x10) == 0x10 && (xd & 0x40) != 0x40 ? horseFlags | 0x20 : horseFlags;
+
+        // Set the flags into the horse flags
+        dirtyMetadata.put(EntityDataTypes.HORSE_FLAGS, horseFlags);
+
+        // Send the eating particles
+        // We use the wheat metadata as static particles since Java
+        // doesn't send over what item was used to feed the horse
+        if ((xd & 0x40) == 0x40) {
+            EntityEventPacket entityEventPacket = new EntityEventPacket();
+            entityEventPacket.setRuntimeEntityId(geyserId);
+            entityEventPacket.setType(EntityEventType.EATING_ITEM);
+            entityEventPacket.setData(session.getItemMappings().getStoredItems().wheat().getBedrockDefinition().getRuntimeId() << 16);
+            session.sendUpstreamPacket(entityEventPacket);
+        }
+
+        // Shows the dash meter
+        setFlag(EntityFlag.CAN_DASH, saddled);
     }
 
     @Override
     public boolean canEat(Item item) {
         return item == Items.CACTUS;
+    }
+
+    @Override
+    public void setPose(Pose pose) {
+        setFlag(EntityFlag.SITTING, pose == Pose.SITTING);
+        super.setPose(pose);
     }
 
     @Override
