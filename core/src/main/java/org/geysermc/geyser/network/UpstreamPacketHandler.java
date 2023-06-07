@@ -28,8 +28,6 @@ package org.geysermc.geyser.network;
 import io.netty.buffer.Unpooled;
 import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
-import org.cloudburstmc.protocol.bedrock.codec.v567.Bedrock_v567;
-import org.cloudburstmc.protocol.bedrock.codec.v568.Bedrock_v568;
 import org.cloudburstmc.protocol.bedrock.data.ExperimentData;
 import org.cloudburstmc.protocol.bedrock.data.PacketCompressionAlgorithm;
 import org.cloudburstmc.protocol.bedrock.data.ResourcePackType;
@@ -173,11 +171,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        // Hack for... whatever this is
-        if (loginPacket.getProtocolVersion() == Bedrock_v567.CODEC.getProtocolVersion() && !session.getClientData().getGameVersion().equals("1.19.60")) {
-            session.getUpstream().getSession().setCodec(Bedrock_v568.CODEC);
-        }
-
         PlayStatusPacket playStatus = new PlayStatusPacket();
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
         session.sendUpstreamPacket(playStatus);
@@ -230,6 +223,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 if (GeyserImpl.getInstance().getConfig().isAddNonBedrockItems()) {
                     // Allow custom items to work
                     stackPacket.getExperiments().add(new ExperimentData("data_driven_items", true));
+                }
+
+                if (GameProtocol.isPre1_20(session)) {
+                    stackPacket.getExperiments().add(new ExperimentData("next_major_update", true));
+                    stackPacket.getExperiments().add(new ExperimentData("sniffer", true));
                 }
 
                 session.sendUpstreamPacket(stackPacket);
