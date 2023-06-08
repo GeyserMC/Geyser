@@ -57,7 +57,7 @@ jobs:
         if: success()
         with:
           name: Geyser Fabric
-          path: geyser/bootstrap/fabric/build/libs/Geyser-Fabric.jar
+          path: geyser/bootstrap/fabric/build/libs/geyser-fabric-*.jar
           if-no-files-found: error
       - name: Archive artifacts (Geyser Standalone)
         uses: actions/upload-artifact@v3
