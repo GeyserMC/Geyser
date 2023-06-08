@@ -88,9 +88,9 @@ tasks {
     remapJar {
         dependsOn(shadowJar)
         inputFile.set(shadowJar.get().archiveFile)
-        archiveBaseName.set("Geyser-Fabric")
+        archiveBaseName.set("geyser-fabric")
+        archiveVersion.set(project.version.toString() + "+build."  + System.getenv("GITHUB_RUN_NUMBER"))
         archiveClassifier.set("")
-        archiveVersion.set("")
     }
 }
 
