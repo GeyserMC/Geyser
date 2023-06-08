@@ -133,13 +133,13 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
         builder.putString("Text", signText.toString());
 
         // Java Edition 1.14 added the ability to change the text color of the whole sign using dye
-        Tag color = signData.get("Color");
+        Tag color = signData.get("color");
         if (color != null) {
             builder.putInt("SignTextColor", getBedrockSignColor(color.getValue().toString()));
         }
 
         // Glowing text
-        boolean isGlowing = getOrDefault(signData.get("GlowingText"), (byte) 0) != (byte) 0;
+        boolean isGlowing = getOrDefault(signData.get("has_glowing_text"), (byte) 0) != (byte) 0;
         builder.putBoolean("IgnoreLighting", isGlowing);
         return builder.build();
     }
