@@ -107,6 +107,7 @@ modrinth {
     gameVersions.addAll("1.20")
 
     loaders.add("fabric")
+    failSilently.set(true)
 
     dependencies {
         required.project("fabric-api")
