@@ -104,6 +104,8 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
+import org.geysermc.geyser.api.event.bedrock.SessionJoinEvent;
+import org.geysermc.geyser.api.event.bedrock.SessionPreJoinEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.command.GeyserCommandSource;
@@ -667,6 +669,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Ensure client doesn't try and do anything funky; the server handles this for us
         gamerulePacket.getGameRules().add(new GameRuleData<>("spawnradius", 0));
         upstream.sendPacket(gamerulePacket);
+
+        GeyserImpl.getInstance().eventBus().fire(new SessionJoinEvent(this));
     }
 
     public void authenticate(String username) {
@@ -879,6 +883,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * After getting whatever credentials needed, we attempt to join the Java server.
      */
     private void connectDownstream() {
+        GeyserImpl.getInstance().eventBus().fire(new SessionPreJoinEvent(this));
+
         boolean floodgate = this.remoteServer.authType() == AuthType.FLOODGATE;
 
         // Start ticking
