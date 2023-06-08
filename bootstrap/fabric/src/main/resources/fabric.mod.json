@@ -19,7 +19,6 @@
         "org.geysermc.geyser.platform.fabric.GeyserFabricMod"
     ]
   },
-  "accessWidener": "geyser.accesswidener",
   "mixins": [
     "geyser-fabric.mixins.json"
   ],

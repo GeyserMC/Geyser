@@ -1,4 +1,0 @@
-accessWidener v1 named
-
-# To access level in the WorldManager
-accessible field net/minecraft/world/entity/Entity level Lnet/minecraft/world/level/Level;
