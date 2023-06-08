@@ -125,8 +125,8 @@ public class BoatEntity extends Entity {
     public void setVariant(IntEntityMetadata entityMetadata) {
         variant = entityMetadata.getPrimitiveValue();
         dirtyMetadata.put(EntityDataTypes.VARIANT, switch (variant) {
-            case 6, 7 -> variant - 1; // Dark oak and mangrove
-            case 5, 8 -> 0; // TODO temp until 1.20. Cherry and bamboo
+            case 6, 7, 8 -> variant - 1; // dark_oak, mangrove, bamboo
+            case 5 -> 8; // cherry
             default -> variant;
         });
     }

@@ -85,8 +85,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         return translateAndDefault(packet);
     }
 
-    private boolean newProtocol = false; // TEMPORARY
-
     private boolean setCorrectCodec(int protocolVersion) {
         BedrockCodec packetCodec = GameProtocol.getBedrockCodec(protocolVersion);
         if (packetCodec == null) {
@@ -125,9 +123,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public PacketSignal handle(RequestNetworkSettingsPacket packet) {
-        if (setCorrectCodec(packet.getProtocolVersion())) {
-            newProtocol = true;
-        } else {
+        if (!setCorrectCodec(packet.getProtocolVersion())) {
             return PacketSignal.HANDLED;
         }
 
@@ -150,14 +146,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             // Don't allow new players in if we're no longer operating
             session.disconnect(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.message"));
             return PacketSignal.HANDLED;
-        }
-
-//        session.getUpstream().getSession().getCodec() == null
-
-        if (!newProtocol) {
-            if (!setCorrectCodec(loginPacket.getProtocolVersion())) { // REMOVE WHEN ONLY 1.19.30 IS SUPPORTED OR 1.20
-                return PacketSignal.HANDLED;
-            }
         }
 
         // Set the block translation based off of version
