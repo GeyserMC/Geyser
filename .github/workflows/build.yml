@@ -107,7 +107,7 @@ jobs:
           # Create the build folder
           ssh -o StrictHostKeyChecking=no -i id_ecdsa $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP mkdir -p "~/uploads/$project/$GITHUB_RUN_NUMBER/"
           # Copy over artifacts
-          rsync -P -e "ssh -o StrictHostKeyChecking=no -i id_ecdsa" bootstrap/**/build/libs/Geyser-*.jar $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP:~/uploads/$project/$GITHUB_RUN_NUMBER/
+          rsync -P -e "ssh -o StrictHostKeyChecking=no -i id_ecdsa" bootstrap/**/build/libs/?eyser-*.jar $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP:~/uploads/$project/$GITHUB_RUN_NUMBER/
           # Run the build script
           # Push the metadata
           echo "{\"project\": \"$project\", \"version\": \"$version\", \"id\": $GITHUB_RUN_NUMBER, \"commit\": \"$GITHUB_SHA\"}" > metadata.json
