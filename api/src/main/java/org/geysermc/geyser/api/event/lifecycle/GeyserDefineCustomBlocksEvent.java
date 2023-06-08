@@ -63,4 +63,12 @@ public abstract class GeyserDefineCustomBlocksEvent implements Event {
      * @param customBlockData the custom block data with which to override java item identifier
      */
     public abstract void registerItemOverride(@NonNull String javaIdentifier, @NonNull CustomBlockData customBlockData);
+
+    // Modded implementation
+    // Basically instead of just the javaIdentifier we need an object that contains all the stuff we need to fully register the new java block
+    // e.g. identifier/namespace, runtime id, waterlogged, collision, etc.
+    // And this will be associated with a custom block state
+    
+    // Then we can have a method to register an "item" associated with some custom block data
+    
 }
