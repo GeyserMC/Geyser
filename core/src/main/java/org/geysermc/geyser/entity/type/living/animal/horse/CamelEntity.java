@@ -103,7 +103,7 @@ public class CamelEntity extends AbstractHorseEntity {
     @Override
     protected void setDimensions(Pose pose) {
         if (pose == Pose.SITTING) {
-            setBoundingBoxWidth(definition.height() - SITTING_HEIGHT_DIFFERENCE);
+            setBoundingBoxHeight(definition.height() - SITTING_HEIGHT_DIFFERENCE);
             setBoundingBoxWidth(definition.width());
         } else {
             super.setDimensions(pose);

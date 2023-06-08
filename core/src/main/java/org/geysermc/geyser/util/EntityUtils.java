@@ -82,19 +82,28 @@ public final class EntityUtils {
         float height = mount.getBoundingBoxHeight();
         float mountedHeightOffset = height * 0.75f;
         switch (mount.getDefinition().entityType()) {
+            case CAMEL -> {
+                boolean isBaby = mount.getFlag(EntityFlag.BABY);
+                mountedHeightOffset = height - (isBaby ? 0.35f : 0.6f);
+            }
             case CHICKEN, SPIDER -> mountedHeightOffset = height * 0.5f;
             case DONKEY, MULE -> mountedHeightOffset -= 0.25f;
             case TRADER_LLAMA, LLAMA -> mountedHeightOffset = height * 0.6f;
             case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
                     COMMAND_BLOCK_MINECART -> mountedHeightOffset = 0;
-            case BOAT, CHEST_BOAT -> mountedHeightOffset = -0.1f;
+            case BOAT, CHEST_BOAT -> {
+                boolean isBamboo = ((BoatEntity) mount).getVariant() == 8;
+                mountedHeightOffset = isBamboo ? 0.25f : -0.1f;
+            }
             case HOGLIN, ZOGLIN -> {
                 boolean isBaby = mount.getFlag(EntityFlag.BABY);
                 mountedHeightOffset = height - (isBaby ? 0.2f : 0.15f);
             }
             case PIGLIN -> mountedHeightOffset = height * 0.92f;
+            case PHANTOM -> mountedHeightOffset = height * 0.85f;
             case RAVAGER -> mountedHeightOffset = 2.1f;
             case SKELETON_HORSE -> mountedHeightOffset -= 0.1875f;
+            case SNIFFER -> mountedHeightOffset = 1.8f;
             case STRIDER -> mountedHeightOffset = height - 0.19f;
         }
         return mountedHeightOffset;
@@ -103,9 +112,9 @@ public final class EntityUtils {
     private static float getHeightOffset(Entity passenger) {
         boolean isBaby;
         switch (passenger.getDefinition().entityType()) {
-            case SKELETON:
-            case STRAY:
-            case WITHER_SKELETON:
+            case ALLAY, VEX:
+                return 0.4f;
+            case SKELETON, STRAY, WITHER_SKELETON:
                 return -0.6f;
             case ARMOR_STAND:
                 if (((ArmorStandEntity) passenger).isMarker()) {
@@ -113,26 +122,24 @@ public final class EntityUtils {
                 } else {
                     return 0.1f;
                 }
-            case ENDERMITE:
-            case SILVERFISH:
+            case ENDERMITE, SILVERFISH:
                 return 0.1f;
-            case PIGLIN:
-            case PIGLIN_BRUTE:
-            case ZOMBIFIED_PIGLIN:
+            case PIGLIN, PIGLIN_BRUTE, ZOMBIFIED_PIGLIN:
                 isBaby = passenger.getFlag(EntityFlag.BABY);
                 return isBaby ? -0.05f : -0.45f;
             case ZOMBIE:
                 isBaby = passenger.getFlag(EntityFlag.BABY);
                 return isBaby ? 0.0f : -0.45f;
-            case EVOKER:
-            case ILLUSIONER:
-            case PILLAGER:
-            case RAVAGER:
-            case VINDICATOR:
-            case WITCH:
+            case EVOKER, ILLUSIONER, PILLAGER, RAVAGER, VINDICATOR, WITCH:
                 return -0.45f;
             case PLAYER:
                 return -0.35f;
+            case SHULKER:
+                // TODO check and test!
+                Entity vehicle = passenger.getVehicle();
+                if (vehicle instanceof BoatEntity || vehicle.getDefinition() == EntityDefinitions.MINECART) {
+                    return 0.1875f - getMountedHeightOffset(vehicle);
+                }
         }
         if (passenger instanceof AnimalEntity) {
             return 0.14f;
