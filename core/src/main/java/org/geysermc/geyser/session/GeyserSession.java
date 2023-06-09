@@ -1967,8 +1967,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         EmotePacket packet = new EmotePacket();
-        packet.setEmoteId(emoteId);
         packet.setRuntimeEntityId(entity.getGeyserId());
+        packet.setXuid("");
+        packet.setPlatformId(""); // BDS sends empty
+        packet.setEmoteId(emoteId);
         sendUpstreamPacket(packet);
     }
 
