@@ -31,6 +31,7 @@ import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.auth.service.AuthenticationService;
 import com.github.steveice10.mc.auth.service.MojangAuthenticationService;
 import com.github.steveice10.mc.auth.service.MsaAuthenticationService;
+import com.github.steveice10.mc.auth.service.SessionService;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.ProtocolState;
@@ -690,6 +691,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                         authenticationService = new MsaAuthenticationService(GeyserImpl.OAUTH_CLIENT_ID);
                     } else {
                         authenticationService = new MojangAuthenticationService();
+
+                        String authBaseUri = geyser.getConfig().getAuthBaseUri();
+                        if (!authBaseUri.isEmpty()) {
+                            if (!authBaseUri.endsWith("/")) authBaseUri += "/";
+                            authenticationService.setBaseUri(authBaseUri);
+                        }
                     }
                     authenticationService.setUsername(username);
                     authenticationService.setPassword(password);
@@ -893,6 +900,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             this.downstream = new DownstreamSession(downstream);
         } else {
             downstream = new TcpClientSession(this.remoteServer.address(), this.remoteServer.port(), this.protocol);
+
+            String sessionBaseUri = geyser.getConfig().getSessionBaseUri();
+            if (!sessionBaseUri.isEmpty()) {
+                if (!sessionBaseUri.endsWith("/")) sessionBaseUri += "/";
+                if (!sessionBaseUri.endsWith("session/minecraft/")) sessionBaseUri += "session/minecraft/";
+
+                SessionService sessionService = new SessionService();
+                sessionService.setBaseUri(sessionBaseUri);
+                downstream.setFlag(MinecraftConstants.SESSION_SERVICE_KEY, sessionService);
+            }
+
             this.downstream = new DownstreamSession(downstream);
             disableSrvResolving();
         }

@@ -117,6 +117,17 @@ allow-third-party-capes: false
 # MinecraftCapes
 allow-third-party-ears: false
 
+# Set a custom base URI for the authentication server.
+# Should look similar to the following: https://authserver.example.com/
+# You don't need this, unless you run your own auth server.
+# Leave empty to use the official auth servers.
+auth-base-uri: ""
+# Set a custom base URI for the session server.
+# Should look similar to the following: https://session.example.com/
+# You don't need this, unless you run your own session server.
+# Leave empty to use the official session servers.
+session-base-uri: ""
+
 # Allow a fake cooldown indicator to be sent. Bedrock players otherwise do not see a cooldown as they still use 1.8 combat.
 # Please note: if the cooldown is enabled, some users may see a black box during the cooldown sequence, like below:
 # https://cdn.discordapp.com/attachments/613170125696270357/957075682230419466/Screenshot_from_2022-03-25_20-35-08.png

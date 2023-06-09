@@ -82,6 +82,10 @@ public interface GeyserConfiguration {
 
     boolean isAllowThirdPartyEars();
 
+    String getAuthBaseUri();
+
+    String getSessionBaseUri();
+
     String getShowCooldown();
 
     boolean isShowCoordinates();

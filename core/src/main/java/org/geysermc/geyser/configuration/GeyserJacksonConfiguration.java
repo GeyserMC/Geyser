@@ -99,6 +99,12 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("allow-third-party-capes")
     private boolean allowThirdPartyCapes = true;
 
+    @JsonProperty("auth-base-uri")
+    private String authBaseUri = "";
+
+    @JsonProperty("session-base-uri")
+    private String sessionBaseUri = "";
+
     @JsonProperty("show-cooldown")
     private String showCooldown = "title";
 
