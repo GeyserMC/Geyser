@@ -69,6 +69,7 @@ import java.util.OptionalInt;
 
 public class UpstreamPacketHandler extends LoggingPacketHandler {
 
+    private boolean networkSettingsRequested = false;
     private Deque<String> packsToSent = new ArrayDeque<>();
 
     public UpstreamPacketHandler(GeyserImpl geyser, GeyserSession session) {
@@ -137,6 +138,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         session.getUpstream().getSession().setCompression(algorithm);
         session.getUpstream().getSession().setCompressionLevel(this.geyser.getConfig().getBedrock().getCompressionLevel());
+        networkSettingsRequested = true;
         return PacketSignal.HANDLED;
     }
 
@@ -145,6 +147,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         if (geyser.isShuttingDown()) {
             // Don't allow new players in if we're no longer operating
             session.disconnect(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.message"));
+            return PacketSignal.HANDLED;
+        }
+
+        if (!networkSettingsRequested) {
+            session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.client", GameProtocol.getAllSupportedBedrockVersions()));
             return PacketSignal.HANDLED;
         }
 
