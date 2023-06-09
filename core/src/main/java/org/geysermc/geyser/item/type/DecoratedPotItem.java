@@ -43,7 +43,7 @@ public class DecoratedPotItem extends BlockItem {
         if (tag.remove("BlockEntityTag") instanceof CompoundTag blockEntityTag) {
             if (blockEntityTag.remove("sherds") instanceof ListTag sherds) {
                 // bedrock wants it on the root level
-                tag.put(new ListTag("sherds", sherds.getValue()));
+                tag.put(sherds);
             }
         }
     }
