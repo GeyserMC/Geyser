@@ -87,6 +87,7 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
             packet.setXuid(emoterXuid);
             packet.setPlatformId(""); // BDS sends empty
             packet.setEmoteId(emoteId);
+            session.sendUpstreamPacket(packet);
         }
     }
 }
