@@ -214,9 +214,7 @@ public final class EntityUtils {
             switch (passenger.getDefinition().entityType()) {
                 case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
                         COMMAND_BLOCK_MINECART, BOAT, CHEST_BOAT -> yOffset += passenger.getDefinition().height() * 0.5f;
-            }
-            if (passenger.getDefinition().entityType() == EntityType.FALLING_BLOCK) {
-                yOffset += 0.5f;
+                case FALLING_BLOCK -> yOffset += 0.5f;
             }
             if (mount instanceof ArmorStandEntity armorStand) {
                 yOffset -= armorStand.getYOffset();
