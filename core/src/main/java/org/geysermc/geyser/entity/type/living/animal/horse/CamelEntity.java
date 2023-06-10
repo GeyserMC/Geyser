@@ -43,7 +43,7 @@ import java.util.UUID;
 
 public class CamelEntity extends AbstractHorseEntity {
 
-    private static final float SITTING_HEIGHT_DIFFERENCE = 1.43F;
+    public static final float SITTING_HEIGHT_DIFFERENCE = 1.43F;
 
     public CamelEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);

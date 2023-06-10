@@ -36,6 +36,7 @@ import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
+import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 
@@ -163,10 +164,33 @@ public final class EntityUtils {
             switch (mount.getDefinition().entityType()) {
                 case BOAT -> {
                     // Without the X offset, more than one entity on a boat is stacked on top of each other
-                    if (rider && moreThanOneEntity) {
-                        xOffset = 0.2f;
-                    } else if (moreThanOneEntity) {
-                        xOffset = -0.6f;
+                    if (moreThanOneEntity) {
+                        if (rider) {
+                            xOffset = 0.2f;
+                        } else {
+                            xOffset = -0.6f;
+                        }
+                        if (passenger instanceof AnimalEntity) {
+                            xOffset += 0.2f;
+                        }
+                    }
+                }
+                case CAMEL -> {
+                    zOffset = 0.5f;
+                    if (moreThanOneEntity) {
+                        if (!rider) {
+                            zOffset = -0.7f;
+                        }
+                        if (passenger instanceof AnimalEntity) {
+                            zOffset += 0.2f;
+                        }
+                    }
+                    if (mount.getFlag(EntityFlag.SITTING)) {
+                        if (mount.getFlag(EntityFlag.BABY)) {
+                            yOffset += CamelEntity.SITTING_HEIGHT_DIFFERENCE * 0.5f;
+                        } else {
+                            yOffset += CamelEntity.SITTING_HEIGHT_DIFFERENCE;
+                        }
                     }
                 }
                 case CHEST_BOAT -> xOffset = 0.15F;
