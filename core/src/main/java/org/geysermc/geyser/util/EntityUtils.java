@@ -87,7 +87,7 @@ public final class EntityUtils {
                 boolean isBaby = mount.getFlag(EntityFlag.BABY);
                 mountedHeightOffset = height - (isBaby ? 0.35f : 0.6f);
             }
-            case CHICKEN, SPIDER -> mountedHeightOffset = height * 0.5f;
+            case CAVE_SPIDER, CHICKEN, SPIDER -> mountedHeightOffset = height * 0.5f;
             case DONKEY, MULE -> mountedHeightOffset -= 0.25f;
             case TRADER_LLAMA, LLAMA -> mountedHeightOffset = height * 0.6f;
             case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
@@ -101,7 +101,7 @@ public final class EntityUtils {
                 mountedHeightOffset = height - (isBaby ? 0.2f : 0.15f);
             }
             case PIGLIN -> mountedHeightOffset = height * 0.92f;
-            case PHANTOM -> mountedHeightOffset = height * 0.85f;
+            case PHANTOM -> mountedHeightOffset = height * 0.35f;
             case RAVAGER -> mountedHeightOffset = 2.1f;
             case SKELETON_HORSE -> mountedHeightOffset -= 0.1875f;
             case SNIFFER -> mountedHeightOffset = 1.8f;
@@ -128,7 +128,7 @@ public final class EntityUtils {
             case PIGLIN, PIGLIN_BRUTE, ZOMBIFIED_PIGLIN:
                 isBaby = passenger.getFlag(EntityFlag.BABY);
                 return isBaby ? -0.05f : -0.45f;
-            case ZOMBIE:
+            case DROWNED, HUSK, ZOMBIE_VILLAGER, ZOMBIE:
                 isBaby = passenger.getFlag(EntityFlag.BABY);
                 return isBaby ? 0.0f : -0.45f;
             case EVOKER, ILLUSIONER, PILLAGER, RAVAGER, VINDICATOR, WITCH:
