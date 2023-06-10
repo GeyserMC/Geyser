@@ -69,6 +69,7 @@ import java.util.OptionalInt;
 
 public class UpstreamPacketHandler extends LoggingPacketHandler {
 
+    private boolean networkSettingsRequested = false;
     private Deque<String> packsToSent = new ArrayDeque<>();
 
     public UpstreamPacketHandler(GeyserImpl geyser, GeyserSession session) {
@@ -84,8 +85,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     PacketSignal defaultHandler(BedrockPacket packet) {
         return translateAndDefault(packet);
     }
-
-    private boolean newProtocol = false; // TEMPORARY
 
     private boolean setCorrectCodec(int protocolVersion) {
         BedrockCodec packetCodec = GameProtocol.getBedrockCodec(protocolVersion);
@@ -125,9 +124,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public PacketSignal handle(RequestNetworkSettingsPacket packet) {
-        if (setCorrectCodec(packet.getProtocolVersion())) {
-            newProtocol = true;
-        } else {
+        if (!setCorrectCodec(packet.getProtocolVersion())) {
             return PacketSignal.HANDLED;
         }
 
@@ -141,6 +138,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         session.getUpstream().getSession().setCompression(algorithm);
         session.getUpstream().getSession().setCompressionLevel(this.geyser.getConfig().getBedrock().getCompressionLevel());
+        networkSettingsRequested = true;
         return PacketSignal.HANDLED;
     }
 
@@ -152,12 +150,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-//        session.getUpstream().getSession().getCodec() == null
-
-        if (!newProtocol) {
-            if (!setCorrectCodec(loginPacket.getProtocolVersion())) { // REMOVE WHEN ONLY 1.19.30 IS SUPPORTED OR 1.20
-                return PacketSignal.HANDLED;
-            }
+        if (!networkSettingsRequested) {
+            session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.client", GameProtocol.getAllSupportedBedrockVersions()));
+            return PacketSignal.HANDLED;
         }
 
         // Set the block translation based off of version
