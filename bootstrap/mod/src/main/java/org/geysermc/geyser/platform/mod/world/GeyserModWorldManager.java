@@ -26,6 +26,7 @@
 package org.geysermc.geyser.platform.mod.world;
 
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
+import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.ByteArrayTag;
 import net.minecraft.nbt.ByteTag;
@@ -47,16 +48,22 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.WritableBookItem;
 import net.minecraft.world.item.WrittenBookItem;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BannerBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.LevelChunkSection;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.erosion.util.LecternUtils;
 import org.geysermc.geyser.level.GeyserWorldManager;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
@@ -71,6 +78,43 @@ public class GeyserModWorldManager extends GeyserWorldManager {
 
     public GeyserModWorldManager(MinecraftServer server) {
         this.server = server;
+    }
+
+    @Override
+    public int getBlockAt(GeyserSession session, int x, int y, int z) {
+        // If the protocol version of Geyser and the server are not the
+        // same, fallback to the chunk cache. May be able to update this
+        // in the future to use ViaVersion however, like Spigot does.
+        if (SharedConstants.getCurrentVersion().getProtocolVersion() != GameProtocol.getJavaProtocolVersion()) {
+            return super.getBlockAt(session, x, y, z);
+        }
+
+        ServerPlayer player = this.getPlayer(session);
+        if (player == null) {
+            return 0;
+        }
+
+        Level level = player.level();
+        ChunkAccess chunk = level.getChunkSource().getChunk(x >> 4, z >> 4, ChunkStatus.FULL, false);
+        if (chunk == null) {
+            return 0;
+        }
+
+        int worldOffset = level.getMinBuildHeight() >> 4;
+        int chunkOffset = (y >> 4) - worldOffset;
+        if (chunkOffset < chunk.getSections().length) {
+            LevelChunkSection section = chunk.getSections()[chunkOffset];
+            if (section != null && !section.hasOnlyAir()) {
+                return Block.getId(section.getBlockState(x & 15, y & 15, z & 15));
+            }
+        }
+
+        return 0;
+    }
+
+    @Override
+    public boolean hasOwnChunkCache() {
+        return SharedConstants.getCurrentVersion().getProtocolVersion() == GameProtocol.getJavaProtocolVersion();
     }
 
     @Override
