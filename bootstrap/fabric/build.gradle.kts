@@ -94,13 +94,6 @@ tasks {
     }
 }
 
-    remapModrinthJar {
-        dependsOn(shadowJar)
-        inputFile.set(shadowJar.get().archiveFile)
-        archiveBaseName.set("geyser-fabric")
-        archiveVersion.set(project.version.toString() + "+build."  + System.getenv("GITHUB_RUN_NUMBER"))
-        archiveClassifier.set("")
-    }
 modrinth {
     token.set(System.getenv("MODRINTH_TOKEN")) // Even though this is the default value, apparently this prevents GitHub Actions caching the token?
     projectId.set("wKkoqHrH")
