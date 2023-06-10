@@ -79,8 +79,9 @@ public final class SoundUtils {
 
     private static String trim(String identifier) {
         // Drop any namespace if applicable
-        if (identifier.contains(":")) {
-            return identifier.split(":")[1];
+        int i = identifier.indexOf(':');
+        if (i >= 0) {
+            return identifier.substring(i + 1);
         }
         return identifier;
     }
