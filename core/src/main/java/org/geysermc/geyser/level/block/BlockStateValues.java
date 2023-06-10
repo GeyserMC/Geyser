@@ -111,6 +111,7 @@ public final class BlockStateValues {
             JsonNode brushedProgress = bedrockStates.get("brushed_progress");
             if (brushedProgress != null) {
                 BRUSH_PROGRESS.put(javaBlockState, brushedProgress.intValue());
+                return;
             }
         }
 
