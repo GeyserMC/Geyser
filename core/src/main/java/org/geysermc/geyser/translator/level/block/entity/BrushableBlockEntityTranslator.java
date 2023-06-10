@@ -66,7 +66,7 @@ public class BrushableBlockEntityTranslator extends BlockEntityTranslator implem
 
         builder.putCompound("item", itemBuilder.build());
         // controls which side the item protrudes from
-        builder.putByte("brush_direction", ((Number) hitDirection.getValue()).byteValue());
+        builder.putByte("brush_direction", (byte) hitDirection.getValue());
         // controls how much the item protrudes
         builder.putInt("brush_count", BlockStateValues.getBrushProgress(blockState));
     }
