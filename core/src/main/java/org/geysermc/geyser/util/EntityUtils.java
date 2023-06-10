@@ -136,7 +136,6 @@ public final class EntityUtils {
             case PLAYER:
                 return -0.35f;
             case SHULKER:
-                // TODO check and test!
                 Entity vehicle = passenger.getVehicle();
                 if (vehicle instanceof BoatEntity || vehicle.getDefinition() == EntityDefinitions.MINECART) {
                     return 0.1875f - getMountedHeightOffset(vehicle);
@@ -197,12 +196,6 @@ public final class EntityUtils {
                 case CHICKEN -> zOffset = -0.1f;
                 case TRADER_LLAMA, LLAMA -> zOffset = -0.3f;
             }
-            if (passenger.getDefinition().entityType() == EntityType.SHULKER) {
-                switch (mount.getDefinition().entityType()) {
-                    case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
-                            COMMAND_BLOCK_MINECART, BOAT, CHEST_BOAT -> yOffset = 0.1875f;
-                }
-            }
             /*
              * Bedrock Differences
              * Zoglin & Hoglin seem to be taller in Bedrock edition
@@ -217,6 +210,10 @@ public final class EntityUtils {
             switch (mount.getDefinition().entityType()) {
                 case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
                         COMMAND_BLOCK_MINECART, BOAT, CHEST_BOAT -> yOffset -= mount.getDefinition().height() * 0.5f;
+            }
+            switch (passenger.getDefinition().entityType()) {
+                case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
+                        COMMAND_BLOCK_MINECART, BOAT, CHEST_BOAT -> yOffset += passenger.getDefinition().height() * 0.5f;
             }
             if (passenger.getDefinition().entityType() == EntityType.FALLING_BLOCK) {
                 yOffset += 0.5f;
