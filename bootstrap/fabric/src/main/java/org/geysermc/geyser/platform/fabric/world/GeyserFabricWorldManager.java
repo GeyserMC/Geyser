@@ -92,7 +92,7 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
                 return;
             }
 
-            BlockEntity blockEntity = player.level.getBlockEntity(new BlockPos(x, y, z));
+            BlockEntity blockEntity = player.getLevel().getBlockEntity(new BlockPos(x, y, z));
             sendLecternData(session, blockEntity, false);
         });
     }
@@ -166,7 +166,7 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
 
             BlockPos pos = new BlockPos(x, y, z);
             // Don't create a new block entity if invalid
-            BlockEntity blockEntity = player.level.getChunkAt(pos).getBlockEntity(pos);
+            BlockEntity blockEntity = player.getLevel().getChunkAt(pos).getBlockEntity(pos);
             if (blockEntity instanceof BannerBlockEntity banner) {
                 // Potentially exposes other NBT data? But we need to get the NBT data for the banner patterns *and*
                 // the banner might have a custom name, both of which a Java client knows and caches

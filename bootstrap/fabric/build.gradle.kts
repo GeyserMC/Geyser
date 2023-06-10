@@ -104,9 +104,10 @@ modrinth {
     syncBodyFrom.set(rootProject.file("README.md").readText())
 
     uploadFile.set(tasks.getByPath("remapJar"))
-    gameVersions.addAll("1.19", "1.19.1", "1.19.2", "1.19.3", "1.19.4")
+    gameVersions.addAll("1.20")
 
     loaders.add("fabric")
+    failSilently.set(true)
 
     dependencies {
         required.project("fabric-api")
