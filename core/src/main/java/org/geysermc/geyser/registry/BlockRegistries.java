@@ -33,6 +33,8 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
+import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockItem;
+import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
 import org.geysermc.geyser.registry.loader.CollisionRegistryLoader;
 import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.registry.populator.BlockRegistryPopulator;
@@ -110,9 +112,19 @@ public class BlockRegistries {
     public static final MappedRegistry<Integer, CustomBlockState, Int2ObjectMap<CustomBlockState>> CUSTOM_BLOCK_STATE_OVERRIDES = MappedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
     /**
+     * A registry which stores non vanilla java blockstates and the custom block state it should be replaced with.
+     */
+    public static final SimpleMappedRegistry<JavaBlockState, CustomBlockState> NON_VANILLA_BLOCK_STATE_OVERRIDES = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
+
+    /**
      * A registry which stores clean Java Ids and the custom block it should be replaced with in the context of items.
      */
     public static final SimpleMappedRegistry<String, CustomBlockData> CUSTOM_BLOCK_ITEM_OVERRIDES = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
+
+    /**
+     * A registry which stores non vanilla java block items and the custom block it should be replaced with in the context of items.
+     */
+    public static final SimpleMappedRegistry<JavaBlockItem, CustomBlockData> NON_VANILLA_CUSTOM_BLOCK_ITEM_OVERRIDES = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     /**
      * A registry which stores Custom Block Data for extended collision boxes and the Java IDs of blocks that will have said extended collision boxes placed above them.

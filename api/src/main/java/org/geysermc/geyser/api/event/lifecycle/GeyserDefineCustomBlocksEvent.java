@@ -28,6 +28,8 @@ package org.geysermc.geyser.api.event.lifecycle;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
+import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockItem;
+import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
 import org.geysermc.event.Event;
 
 /**
@@ -68,7 +70,11 @@ public abstract class GeyserDefineCustomBlocksEvent implements Event {
     // Basically instead of just the javaIdentifier we need an object that contains all the stuff we need to fully register the new java block
     // e.g. identifier/namespace, runtime id, waterlogged, collision, etc.
     // And this will be associated with a custom block state
+
+    public abstract void registerOverride(@NonNull JavaBlockState javaBlockState, @NonNull CustomBlockState customBlockState);
     
     // Then we can have a method to register an "item" associated with some custom block data
+
+    public abstract void registerItemOverride(@NonNull JavaBlockItem javaBlockItem, @NonNull CustomBlockData customBlockData);
     
 }

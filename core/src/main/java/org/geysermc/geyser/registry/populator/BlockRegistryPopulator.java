@@ -41,6 +41,7 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
+import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -232,8 +233,23 @@ public final class BlockRegistryPopulator {
 
             BiFunction<String, NbtMapBuilder, String> stateMapper = blockMappers.getOrDefault(palette.getKey(), emptyMapper);
 
-            GeyserBedrockBlock[] javaToBedrockBlocks = new GeyserBedrockBlock[BLOCKS_JSON.size()];
-            GeyserBedrockBlock[] javaToVanillaBedrockBlocks = new GeyserBedrockBlock[BLOCKS_JSON.size()];
+            int javaBlocksSize = BLOCKS_JSON.size();
+            int minCustomRuntimeID = -1;
+            int maxCustomRuntimeID = -1;
+
+            if (BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().size() > 0) {
+                minCustomRuntimeID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().min(Comparator.comparing(JavaBlockState::javaId)).get().javaId();
+                maxCustomRuntimeID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().max(Comparator.comparing(JavaBlockState::javaId)).get().javaId();
+
+                if (minCustomRuntimeID <= BLOCKS_JSON.size()) {
+                    throw new RuntimeException("Non vanilla custom block state overrides runtime ID must start after the last vanilla block state (" + javaBlocksSize + ")");
+                }
+
+                javaBlocksSize = maxCustomRuntimeID;
+            }
+
+            GeyserBedrockBlock[] javaToBedrockBlocks = new GeyserBedrockBlock[javaBlocksSize];
+            GeyserBedrockBlock[] javaToVanillaBedrockBlocks = new GeyserBedrockBlock[javaBlocksSize];
 
             Map<String, NbtMap> flowerPotBlocks = new Object2ObjectOpenHashMap<>();
             Map<NbtMap, BlockDefinition> itemFrames = new Object2ObjectOpenHashMap<>();
@@ -291,6 +307,22 @@ public final class BlockRegistryPopulator {
 
                 javaToVanillaBedrockBlocks[javaRuntimeId] = vanillaBedrockDefinition;
                 javaToBedrockBlocks[javaRuntimeId] = bedrockDefinition;
+            }
+
+            if (BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().size() > 0) {
+                // First ensure all non vanilla runtime IDs at minimum are air in case they aren't consecutive
+                Arrays.fill(javaToVanillaBedrockBlocks, minCustomRuntimeID, javaToVanillaBedrockBlocks.length, airDefinition);
+                Arrays.fill(javaToBedrockBlocks, minCustomRuntimeID, javaToBedrockBlocks.length, airDefinition);
+
+                Set<Integer> usedNonVanillaRuntimeIDs = new ObjectOpenHashSet<>();
+
+                for (JavaBlockState javaBlockState : BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet()) {
+                    if (usedNonVanillaRuntimeIDs.contains(javaBlockState.javaId())) {
+                        throw new RuntimeException("Duplicate runtime ID " + javaBlockState.javaId() + " for non vanilla Java block state " + javaBlockState.identifier());
+                    }
+
+                    // Build the GeyserBedrockBlock...
+                }
             }
 
             if (commandBlockDefinition == null) {
