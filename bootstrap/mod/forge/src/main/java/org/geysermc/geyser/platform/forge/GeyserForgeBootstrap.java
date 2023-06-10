@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.platform.forge;
 
+import com.google.common.reflect.ClassPath;
+import net.minecraft.Util;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -34,9 +36,22 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.loading.FMLLoader;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.platform.mod.GeyserModUpdateListener;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.IOException;
+import java.util.concurrent.ExecutorService;
 
 @Mod(ModConstants.MOD_ID)
 public class GeyserForgeBootstrap extends GeyserModBootstrap {
+
+    static {
+        // This is... not great but Forge's classloader is incredibly picky
+        // and will error if classes are loaded outside certain contexts
+
+        // See: https://github.com/MinecraftForge/EventBus/issues/44
+        // preload("com.fasterxml.jackson.core");
+        // preload("com.fasterxml.jackson.databind");
+    }
 
     public GeyserForgeBootstrap() {
         super(new GeyserForgePlatform());
@@ -67,5 +82,26 @@ public class GeyserForgeBootstrap extends GeyserModBootstrap {
 
     private void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
         GeyserModUpdateListener.onPlayReady(event.getEntity());
+    }
+
+    private static void preload(String packageName) {
+        try {
+            ClassPath.from(GeyserForgeBootstrap.class.getClassLoader())
+                    .getTopLevelClasses(packageName).forEach(info -> {
+                        try {
+                            Class.forName(info.getName());
+                        } catch (ClassNotFoundException ignored) {
+                            // Shouldn't happen
+                        }
+                    });
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @NotNull
+    @Override
+    public ExecutorService platformExecutor() {
+        return Util.backgroundExecutor();
     }
 }

@@ -78,9 +78,9 @@ public final class SoundUtils {
     }
 
     private static String trim(String identifier) {
-        // Drop the Minecraft namespace if applicable
-        if (identifier.startsWith("minecraft:")) {
-            return identifier.substring("minecraft:".length());
+        // Drop any namespace if applicable
+        if (identifier.contains(":")) {
+            return identifier.split(":")[1];
         }
         return identifier;
     }

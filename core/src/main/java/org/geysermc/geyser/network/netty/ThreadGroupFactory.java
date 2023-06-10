@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,31 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.type;
+package org.geysermc.geyser.network.netty;
 
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
+import org.jetbrains.annotations.NotNull;
 
-public class GeyserBedrockBlock implements BlockDefinition {
-    private final int runtimeId;
-    private final NbtMap state;
+import java.util.concurrent.ThreadFactory;
 
-    public GeyserBedrockBlock(int runtimeId, NbtMap state) {
-        this.runtimeId = runtimeId;
-        this.state = state;
+public final class ThreadGroupFactory extends ThreadGroup implements ThreadFactory {
+
+    public ThreadGroupFactory(final String name) {
+        super(name);
     }
 
     @Override
-    public int getRuntimeId() {
-        return runtimeId;
-    }
-
-    public NbtMap getState() {
-        return state;
-    }
-
-    @Override
-    public String toString() {
-        return "GeyserBedrockBlock{" + state.getString("name") + "}";
+    public Thread newThread(@NotNull final Runnable runnable) {
+        return new Thread(this, runnable);
     }
 }

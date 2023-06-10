@@ -29,6 +29,7 @@ platformRelocate("com.fasterxml.jackson")
 platformRelocate("net.kyori", "net.kyori.adventure.text.logger.slf4j.ComponentLogger")
 platformRelocate("org.objectweb.asm")
 platformRelocate("me.lucko.commodore")
+platformRelocate("org.yaml") // Broken as of 1.20
 
 // These dependencies are already present on the platform
 provided(libs.viaversion)
@@ -42,7 +43,6 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
 
     dependencies {
         exclude(dependency("com.google.*:.*"))
-        exclude(dependency("org.yaml:.*"))
 
         // We cannot shade Netty, or else native libraries will not load
         // Needed because older Spigot builds do not provide the haproxy module

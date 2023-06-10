@@ -29,27 +29,28 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
-import com.github.steveice10.mc.protocol.data.game.recipe.data.LegacyUpgradeRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
+import com.github.steveice10.mc.protocol.data.game.recipe.data.SmithingTransformRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.StoneCuttingRecipeData;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateRecipesPacket;
 import it.unimi.dsi.fastutil.ints.*;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
-import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.MultiRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTrimRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.DefaultDescriptor;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
+import org.cloudburstmc.protocol.bedrock.packet.TrimDataPacket;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
-import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.inventory.recipe.TrimRecipe;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -145,28 +146,29 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     data.add(stoneCuttingData);
                     // Save for processing after all recipes have been received
                 }
-                case SMITHING -> {
-                    // Required to translate these as of 1.18.10, or else they cannot be crafted
-                    LegacyUpgradeRecipeData recipeData = (LegacyUpgradeRecipeData) recipe.getData();
-                    ItemData output = ItemTranslator.translateToBedrock(session, recipeData.getResult());
-                    for (ItemStack base : recipeData.getBase().getOptions()) {
-                        ItemDescriptorWithCount bedrockBase = ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, base));
+                case SMITHING_TRANSFORM -> {
+                    SmithingTransformRecipeData data = (SmithingTransformRecipeData) recipe.getData();
+                    ItemData output = ItemTranslator.translateToBedrock(session, data.getResult());
 
-                        for (ItemStack addition : recipeData.getAddition().getOptions()) {
-                            ItemDescriptorWithCount bedrockAddition = ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, addition));
+                    for (ItemStack template : data.getTemplate().getOptions()) {
+                        ItemDescriptorWithCount bedrockTemplate = ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, template));
 
-                            if (GameProtocol.supports1_19_60(session)) {
+                        for (ItemStack base : data.getBase().getOptions()) {
+                            ItemDescriptorWithCount bedrockBase = ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, base));
+
+                            for (ItemStack addition : data.getAddition().getOptions()) {
+                                ItemDescriptorWithCount bedrockAddition = ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, addition));
+
                                 // Note: vanilla inputs use aux value of Short.MAX_VALUE
-                                craftingDataPacket.getCraftingData().add(SmithingTransformRecipeData.of(recipe.getIdentifier(),
-                                        ItemDescriptorWithCount.EMPTY, bedrockBase, bedrockAddition, output, "smithing_table", netId++));
-                            } else {
-                                UUID uuid = UUID.randomUUID();
-                                craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData.shapeless(uuid.toString(),
-                                        List.of(bedrockBase, bedrockAddition),
-                                        Collections.singletonList(output), uuid, "smithing_table", 2, netId++));
+                                craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData.of(recipe.getIdentifier(),
+                                    bedrockTemplate, bedrockBase, bedrockAddition, output, "smithing_table", netId++));
                             }
                         }
                     }
+
+                }
+                case SMITHING_TRIM -> {
+                    // ignored currently - see below
                 }
                 default -> {
                     List<RecipeData> craftingData = recipeTypes.get(recipe.getType());
@@ -211,6 +213,19 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 stonecutterRecipeMap.put(netId++, new GeyserStonecutterData(buttonId++, javaOutput));
             }
         }
+
+        // FIXME: if the server/viaversion doesn't send trim recipes then we shouldn't either.
+
+        // BDS sends armor trim templates and materials before the CraftingDataPacket
+        TrimDataPacket trimDataPacket = new TrimDataPacket();
+        trimDataPacket.getPatterns().addAll(TrimRecipe.PATTERNS);
+        trimDataPacket.getMaterials().addAll(TrimRecipe.MATERIALS);
+        session.sendUpstreamPacket(trimDataPacket);
+
+        // Identical smithing_trim recipe sent by BDS that uses tag-descriptors, as the client seems to ignore the
+        // approach of using many default-descriptors (which we do for smithing_transform)
+        craftingDataPacket.getCraftingData().add(SmithingTrimRecipeData.of(TrimRecipe.ID,
+                TrimRecipe.BASE, TrimRecipe.ADDITION, TrimRecipe.TEMPLATE, "smithing_table", netId++));
 
         session.sendUpstreamPacket(craftingDataPacket);
         session.setCraftingRecipes(recipeMap);

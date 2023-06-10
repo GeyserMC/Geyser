@@ -7,7 +7,7 @@ plugins {
 }
 
 architectury {
-    minecraft = "1.19.4"
+    minecraft = "1.20"
 }
 
 loom {
@@ -55,6 +55,6 @@ tasks {
 }
 
 dependencies {
-    minecraft("com.mojang:minecraft:1.19.4")
+    minecraft("com.mojang:minecraft:1.20")
     mappings(loom.officialMojangMappings())
 }

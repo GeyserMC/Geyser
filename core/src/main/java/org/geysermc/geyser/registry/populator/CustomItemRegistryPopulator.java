@@ -30,8 +30,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
-import org.cloudburstmc.protocol.bedrock.data.defintions.SimpleItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
@@ -236,6 +236,14 @@ public class CustomItemRegistryPopulator {
         String armorType = customItemData.armorType();
         if (armorType != null) {
             computeArmorProperties(armorType, customItemData.protectionValue(), componentBuilder);
+        }
+
+        if (customItemData.isEdible()) {
+            computeConsumableProperties(itemProperties, componentBuilder, 1, customItemData.canAlwaysEat());
+        }
+
+        if (customItemData.isChargeable()) {
+            computeChargeableProperties(itemProperties, componentBuilder);
         }
 
         computeRenderOffsets(isHat, customItemData, componentBuilder);

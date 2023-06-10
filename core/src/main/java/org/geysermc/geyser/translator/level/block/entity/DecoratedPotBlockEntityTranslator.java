@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,31 +23,31 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.type;
+package org.geysermc.geyser.translator.level.block.entity;
 
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
+import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.ListTag;
+import com.github.steveice10.opennbt.tag.builtin.StringTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
 
-public class GeyserBedrockBlock implements BlockDefinition {
-    private final int runtimeId;
-    private final NbtMap state;
+import java.util.ArrayList;
+import java.util.List;
 
-    public GeyserBedrockBlock(int runtimeId, NbtMap state) {
-        this.runtimeId = runtimeId;
-        this.state = state;
-    }
-
-    @Override
-    public int getRuntimeId() {
-        return runtimeId;
-    }
-
-    public NbtMap getState() {
-        return state;
-    }
+@BlockEntity(type = BlockEntityType.DECORATED_POT)
+public class DecoratedPotBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
-    public String toString() {
-        return "GeyserBedrockBlock{" + state.getString("name") + "}";
+    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+        // exact same format
+        if (tag.get("sherds") instanceof ListTag sherds) {
+            List<String> translated = new ArrayList<>(4);
+            for (Tag sherd : sherds) {
+                translated.add(((StringTag) sherd).getValue());
+            }
+            builder.putList("sherds", NbtType.STRING, translated);
+        }
     }
 }

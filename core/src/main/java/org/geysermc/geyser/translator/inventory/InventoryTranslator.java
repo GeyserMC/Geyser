@@ -49,7 +49,9 @@ import org.geysermc.geyser.inventory.click.ClickPlan;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.skin.FakeHeadProvider;
 import org.geysermc.geyser.translator.inventory.chest.DoubleChestInventoryTranslator;
 import org.geysermc.geyser.translator.inventory.chest.SingleChestInventoryTranslator;
 import org.geysermc.geyser.translator.inventory.furnace.BlastFurnaceInventoryTranslator;
@@ -92,7 +94,7 @@ public abstract class InventoryTranslator {
             put(ContainerType.LOOM, new LoomInventoryTranslator());
             put(ContainerType.MERCHANT, new MerchantInventoryTranslator());
             put(ContainerType.SHULKER_BOX, new ShulkerInventoryTranslator());
-            put(ContainerType.LEGACY_SMITHING, new SmithingInventoryTranslator());
+            put(ContainerType.SMITHING, new SmithingInventoryTranslator());
             put(ContainerType.STONECUTTER, new StonecutterInventoryTranslator());
 
             /* Lectern */
@@ -215,6 +217,20 @@ public abstract class InventoryTranslator {
                     int destSlot = bedrockSlotToJava(transferAction.getDestination());
                     boolean isSourceCursor = isCursor(transferAction.getSource());
                     boolean isDestCursor = isCursor(transferAction.getDestination());
+
+                    if ((this) instanceof PlayerInventoryTranslator) {
+                        if (destSlot == 5) {
+                            //only set the head if the destination is the head slot
+                            GeyserItemStack javaItem = inventory.getItem(sourceSlot);
+                            if (javaItem.asItem() == Items.PLAYER_HEAD
+                                    && javaItem.getNbt() != null) {
+                                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getNbt().get("SkullOwner"));
+                            }
+                        } else if (sourceSlot == 5) {
+                            //we are probably removing the head, so restore the original skin
+                            FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
+                        }
+                    }
 
                     if (shouldRejectItemPlace(session, inventory, transferAction.getSource().getContainer(),
                             isSourceCursor ? -1 : sourceSlot,

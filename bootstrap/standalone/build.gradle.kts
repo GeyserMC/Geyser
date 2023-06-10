@@ -22,6 +22,13 @@ application {
     mainClass.set("org.geysermc.geyser.platform.standalone.GeyserStandaloneBootstrap")
 }
 
+tasks.named<Jar>("jar") {
+    manifest {
+        // log4j provides multi-release java 9 code which resolves https://github.com/GeyserMC/Geyser/issues/3693
+        attributes("Multi-Release" to true)
+    }
+}
+
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     archiveBaseName.set("Geyser-Standalone")
 

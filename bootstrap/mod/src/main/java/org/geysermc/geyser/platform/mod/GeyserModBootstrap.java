@@ -204,10 +204,12 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         return this.server.getServerVersion();
     }
 
+    @SuppressWarnings("ConstantConditions") // IDEA thinks that ip cannot be null
     @NotNull
     @Override
     public String getServerBindAddress() {
-        return this.server.getLocalIp();
+        String ip = this.server.getLocalIp();
+        return ip != null ? ip : ""; // See issue #3812
     }
 
     @Override

@@ -197,10 +197,11 @@ public class GeyserImpl implements GeyserApi {
         MessageTranslator.init();
 
         // Download the latest asset list and cache it
-        AssetUtils.generateAssetCache().whenComplete((aVoid, ex) -> {
+        AssetUtils.generateAssetCache(this.bootstrap.platformExecutor()).whenComplete((aVoid, ex) -> {
             if (ex != null) {
                 return;
             }
+
             MinecraftLocale.ensureEN_US();
             String locale = GeyserLocale.getDefaultLocale();
             if (!"en_us".equals(locale)) {

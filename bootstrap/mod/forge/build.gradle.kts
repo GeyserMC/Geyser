@@ -10,7 +10,7 @@ loom {
 }
 
 dependencies {
-    forge("net.minecraftforge:forge:1.19.4-45.0.63")
+    forge(libs.forge.minecraft)
 
     api(projects.mod)
     shadow(project(path = ":mod", configuration = "transformProductionForge")) {
