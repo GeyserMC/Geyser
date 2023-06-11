@@ -304,7 +304,7 @@ public final class Items {
     public static final Item BRICKS = register(new BlockItem("bricks", builder()));
     public static final Item BOOKSHELF = register(new BlockItem("bookshelf", builder()));
     public static final Item CHISELED_BOOKSHELF = register(new BlockItem("chiseled_bookshelf", builder()));
-    public static final Item DECORATED_POT = register(new BlockItem("decorated_pot", builder().stackSize(1)));
+    public static final Item DECORATED_POT = register(new DecoratedPotItem("decorated_pot", builder().stackSize(1)));
     public static final Item MOSSY_COBBLESTONE = register(new BlockItem("mossy_cobblestone", builder()));
     public static final Item OBSIDIAN = register(new BlockItem("obsidian", builder()));
     public static final Item TORCH = register(new BlockItem("torch", builder()));
