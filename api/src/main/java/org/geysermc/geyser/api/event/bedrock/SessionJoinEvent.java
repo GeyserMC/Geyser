@@ -30,7 +30,7 @@ import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 
 /**
- * Called when Geyser session finished connecting to a Java remote server and is in a play-ready state.
+ * Called when Geyser session connected to a Java remote server and is in a play-ready state.
  */
 public final class SessionJoinEvent extends ConnectionEvent {
     public SessionJoinEvent(@NonNull GeyserConnection connection) {

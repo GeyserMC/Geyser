@@ -26,15 +26,55 @@
 package org.geysermc.geyser.api.event.bedrock;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.event.Cancellable;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
+import org.geysermc.geyser.api.network.RemoteServer;
 
 /**
- * Called when Geyser has finished initializing a session for a new bedrock client, but before
- * the session connects to a remote Java server.
+ * Called when a session has logged in, and is about to connect to a remote jav server.
  */
-public final class SessionPreJoinEvent extends ConnectionEvent {
-    public SessionPreJoinEvent(@NonNull GeyserConnection connection) {
+public final class SessionLoginEvent extends ConnectionEvent implements Cancellable {
+    private RemoteServer remoteServer;
+    private boolean cancelled;
+
+    /**
+     * @param connection The connection that is logging in.
+     * @param remoteServer The {@link RemoteServer} the section will try to connect to.
+     */
+    public SessionLoginEvent(@NonNull GeyserConnection connection, RemoteServer remoteServer) {
         super(connection);
+        this.remoteServer = remoteServer;
+    }
+
+    /**
+     * @return The cancel status of the event.
+     */
+    @Override
+    public boolean isCancelled() {
+        return this.cancelled;
+    }
+
+    /**
+     * @param cancelled If the login event should be cancelled.
+     * If cancelled, the player disconnects without connecting to the remote server.
+     */
+    @Override
+    public void setCancelled(boolean cancelled) {
+        this.cancelled = cancelled;
+    }
+
+    /**
+     * @return The {@link RemoteServer} the section will connect to.
+     */
+    public RemoteServer remoteServer() {
+        return this.remoteServer;
+    }
+
+    /**
+     * @param remoteServer Sets the {@link RemoteServer}  to connect to.
+     */
+    public void remoteServer(RemoteServer remoteServer) {
+        this.remoteServer = remoteServer;
     }
 }
