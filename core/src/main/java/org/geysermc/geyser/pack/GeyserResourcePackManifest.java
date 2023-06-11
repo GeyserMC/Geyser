@@ -26,7 +26,7 @@
 package org.geysermc.geyser.pack;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.geysermc.geyser.api.packs.ResourcePackManifest;
+import org.geysermc.geyser.api.pack.ResourcePackManifest;
 
 import java.util.Collection;
 import java.util.UUID;

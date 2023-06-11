@@ -56,10 +56,14 @@ public final class RegistryLoaders {
     }
 
     /**
+     * Returns a {@link RegistryLoader} which has not taken
+     * in any input value.
+     *
+     * @param <I> the input
      * @param <V> the value
      * @return a RegistryLoader that is yet to contain a value.
      */
-    public static <V> RegistryLoader<Object, V> uninitialized() {
+    public static <I, V> RegistryLoader<I, V> uninitialized() {
         return input -> null;
     }
 

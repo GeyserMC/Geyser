@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.packs;
+package org.geysermc.geyser.api.pack;
 
 import java.util.Collection;
 import java.util.UUID;

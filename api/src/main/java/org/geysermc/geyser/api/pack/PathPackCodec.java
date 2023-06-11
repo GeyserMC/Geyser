@@ -23,33 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event.bedrock;
+package org.geysermc.geyser.api.pack;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.event.connection.ConnectionEvent;
-import org.geysermc.geyser.api.pack.ResourcePack;
 
-import java.util.Map;
+import java.nio.file.Path;
 
 /**
- * Called when Geyser initializes a session for a new Bedrock client and is in the process of sending resource packs.
+ * Represents a pack codec that creates a resource
+ * pack from a path on the filesystem.
  */
-public class SessionLoadResourcePacksEvent extends ConnectionEvent {
-
-    private final Map<String, ResourcePack> packs;
-
-    public SessionLoadResourcePacksEvent(@NonNull GeyserConnection connection, @NonNull Map<String, ResourcePack> packs) {
-        super(connection);
-        this.packs = packs;
-    }
+public abstract class PathPackCodec extends PackCodec {
 
     /**
-     * @return a map of all the resource packs that should be sent to the client.
-     * The keys are the pack ID and the values are the resource packs themselves.
+     * Gets the path of the resource pack.
+     *
+     * @return the path of the resource pack
      */
     @NonNull
-    public Map<String, ResourcePack> packs() {
-        return packs;
-    }
+    public abstract Path path();
 }

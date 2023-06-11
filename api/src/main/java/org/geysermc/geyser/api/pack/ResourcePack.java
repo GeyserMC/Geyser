@@ -23,45 +23,32 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.packs;
+package org.geysermc.geyser.api.pack;
 
-import org.geysermc.geyser.api.GeyserApi;
-
-import java.nio.file.Path;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**
- * This representation of a resource pack only contains what Geyser requires to send it to the client.
+ * Represents a resource pack sent to Bedrock clients
+ * <p>
+ * This representation of a resource pack only contains what
+ * Geyser requires to send it to the client.
  */
 public interface ResourcePack {
 
     /**
-     * Gets the resource pack path.
+     * The {@link PackCodec codec} for this pack.
      *
-     * @return the resource pack path
+     * @return the codec for this pack
      */
-    Path path();
-
-    /**
-     * Gets the sha256 hash of the resource pack.
-     *
-     * @return the hash of the resource pack
-     */
-    byte[] sha256();
-
-    /**
-     * Gets the resource pack size.
-     *
-     * @return the resource pack file size
-     */
-    default long size() {
-        return path().toFile().length();
-    }
+    @NonNull
+    PackCodec codec();
 
     /**
      * Gets the resource pack manifest.
      *
      * @return the resource pack manifest
      */
+    @NonNull
     ResourcePackManifest manifest();
 
     /**
@@ -69,16 +56,16 @@ public interface ResourcePack {
      *
      * @return the content key of the resource pack
      */
+    @NonNull
     String contentKey();
 
     /**
-     * Creates a ResourcePack from the resource pack file residing at the given Path.
+     * Creates a resource pack with the given {@link PackCodec}.
      *
-     * @param path the file location to read from
-     * @return a ResourcePack that represents the one found at the given path
-     * @throws IllegalArgumentException if there was an exception while reading the pack
+     * @param codec the pack codec
+     * @return the resource pack
      */
-    static ResourcePack fromPath(Path path) throws IllegalArgumentException {
-        return GeyserApi.api().provider(ResourcePack.class, path);
+    static ResourcePack create(@NonNull PackCodec codec) {
+        return codec.create();
     }
 }

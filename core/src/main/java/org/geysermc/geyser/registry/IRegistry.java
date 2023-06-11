@@ -23,33 +23,38 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event.bedrock;
+package org.geysermc.geyser.registry;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.event.connection.ConnectionEvent;
-import org.geysermc.geyser.api.pack.ResourcePack;
-
-import java.util.Map;
+import java.util.function.Consumer;
 
 /**
- * Called when Geyser initializes a session for a new Bedrock client and is in the process of sending resource packs.
+ * Represents a registry.
+ *
+ * @param <M> the value being held by the registry
  */
-public class SessionLoadResourcePacksEvent extends ConnectionEvent {
-
-    private final Map<String, ResourcePack> packs;
-
-    public SessionLoadResourcePacksEvent(@NonNull GeyserConnection connection, @NonNull Map<String, ResourcePack> packs) {
-        super(connection);
-        this.packs = packs;
-    }
+interface IRegistry<M> {
 
     /**
-     * @return a map of all the resource packs that should be sent to the client.
-     * The keys are the pack ID and the values are the resource packs themselves.
+     * Gets the underlying value held by this registry.
+     *
+     * @return the underlying value held by this registry.
      */
-    @NonNull
-    public Map<String, ResourcePack> packs() {
-        return packs;
-    }
+    M get();
+
+    /**
+     * Sets the underlying value held by this registry.
+     * Clears any existing data associated with the previous
+     * value.
+     *
+     * @param mappings the underlying value held by this registry
+     */
+    void set(M mappings);
+
+    /**
+     * Registers what is specified in the given
+     * {@link Consumer} into the underlying value.
+     *
+     * @param consumer the consumer
+     */
+    void register(Consumer<M> consumer);
 }

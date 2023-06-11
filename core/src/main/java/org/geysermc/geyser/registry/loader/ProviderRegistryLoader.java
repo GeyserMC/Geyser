@@ -31,12 +31,13 @@ import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
-import org.geysermc.geyser.api.packs.ResourcePack;
+import org.geysermc.geyser.api.pack.PathPackCodec;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.event.GeyserEventRegistrar;
 import org.geysermc.geyser.item.GeyserCustomItemData;
 import org.geysermc.geyser.item.GeyserCustomItemOptions;
 import org.geysermc.geyser.item.GeyserNonVanillaCustomItemData;
+import org.geysermc.geyser.pack.path.GeyserPathPackCodec;
 import org.geysermc.geyser.registry.provider.ProviderSupplier;
 
 import java.nio.file.Path;
@@ -52,7 +53,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         // misc
         providers.put(Command.Builder.class, args -> new GeyserCommandManager.CommandBuilder<>((Extension) args[0]));
         providers.put(EventRegistrar.class, args -> new GeyserEventRegistrar(args[0]));
-        providers.put(ResourcePack.class, args -> ResourcePackLoader.readPack((Path) args[0]));
+        providers.put(PathPackCodec.class, args -> new GeyserPathPackCodec((Path) args[0]));
 
         // items
         providers.put(CustomItemData.Builder.class, args -> new GeyserCustomItemData.CustomItemDataBuilder());

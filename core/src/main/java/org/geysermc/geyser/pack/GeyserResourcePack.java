@@ -25,20 +25,14 @@
 
 package org.geysermc.geyser.pack;
 
-import org.geysermc.geyser.api.packs.ResourcePack;
-import org.geysermc.geyser.api.packs.ResourcePackManifest;
+import org.geysermc.geyser.api.pack.PackCodec;
+import org.geysermc.geyser.api.pack.ResourcePack;
+import org.geysermc.geyser.api.pack.ResourcePackManifest;
 
-import java.nio.file.Path;
-
-public record GeyserResourcePack(Path path, byte[] sha256, long size, ResourcePackManifest manifest,
-                                 String contentKey) implements ResourcePack {
+public record GeyserResourcePack(PackCodec codec, ResourcePackManifest manifest, String contentKey) implements ResourcePack {
 
     /**
      * The size of each chunk to use when sending the resource packs to clients in bytes
      */
     public static final int CHUNK_SIZE = 102400;
-
-    public GeyserResourcePack(Path path, byte[] sha256, ResourcePackManifest manifest, String contentKey) {
-        this(path, sha256, path.toFile().length(), manifest, contentKey);
-    }
 }

@@ -27,9 +27,10 @@ package org.geysermc.geyser.registry.loader;
 
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserLoadResourcePacksEvent;
-import org.geysermc.geyser.api.packs.ResourcePack;
+import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.pack.GeyserResourcePackManifest;
+import org.geysermc.geyser.pack.path.GeyserPathPackCodec;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 
@@ -136,14 +137,12 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
                 throw new IllegalArgumentException(path.getFileName() + " does not contain a valid pack_manifest.json or manifest.json");
             }
 
-            byte[] hash = FileUtils.calculateSHA256(path);
-
             // Check if a file exists with the same name as the resource pack suffixed by .key,
             // and set this as content key. (e.g. test.zip, key file would be test.zip.key)
             Path keyFile = path.resolveSibling(path.getFileName().toString() + ".key");
             String contentKey = Files.exists(keyFile) ? Files.readString(path, StandardCharsets.UTF_8) : "";
 
-            return new GeyserResourcePack(path, hash, manifest, contentKey);
+            return new GeyserResourcePack(new GeyserPathPackCodec(path), manifest, contentKey);
         } catch (Exception e) {
             throw new IllegalArgumentException(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", path.getFileName()), e);
         }

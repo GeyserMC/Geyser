@@ -23,33 +23,52 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event.bedrock;
+package org.geysermc.geyser.pack.path;
 
+import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.event.connection.ConnectionEvent;
+import org.geysermc.geyser.api.pack.PathPackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
+import org.geysermc.geyser.registry.loader.ResourcePackLoader;
+import org.geysermc.geyser.util.FileUtils;
 
-import java.util.Map;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.nio.channels.SeekableByteChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-/**
- * Called when Geyser initializes a session for a new Bedrock client and is in the process of sending resource packs.
- */
-public class SessionLoadResourcePacksEvent extends ConnectionEvent {
+@RequiredArgsConstructor
+public class GeyserPathPackCodec extends PathPackCodec {
+    private final Path path;
 
-    private final Map<String, ResourcePack> packs;
-
-    public SessionLoadResourcePacksEvent(@NonNull GeyserConnection connection, @NonNull Map<String, ResourcePack> packs) {
-        super(connection);
-        this.packs = packs;
+    @NonNull
+    @Override
+    public Path path() {
+        return this.path;
     }
 
-    /**
-     * @return a map of all the resource packs that should be sent to the client.
-     * The keys are the pack ID and the values are the resource packs themselves.
-     */
-    @NonNull
-    public Map<String, ResourcePack> packs() {
-        return packs;
+    @Override
+    public byte @NonNull [] sha256() {
+        return FileUtils.calculateSHA256(this.path);
+    }
+
+    @Override
+    public long size() {
+        try {
+            return Files.size(this.path);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not get file size of path " + this.path, e);
+        }
+    }
+
+    @Override
+    public SeekableByteChannel serialize(@NonNull ResourcePack resourcePack) throws IOException {
+        return FileChannel.open(this.path);
+    }
+
+    @Override
+    protected ResourcePack create() {
+        return ResourcePackLoader.readPack(this.path);
     }
 }

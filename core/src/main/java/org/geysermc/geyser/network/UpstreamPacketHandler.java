@@ -50,8 +50,9 @@ import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.bedrock.SessionLoadResourcePacksEvent;
 import org.geysermc.geyser.api.network.AuthType;
-import org.geysermc.geyser.api.packs.ResourcePack;
-import org.geysermc.geyser.api.packs.ResourcePackManifest;
+import org.geysermc.geyser.api.pack.PackCodec;
+import org.geysermc.geyser.api.pack.ResourcePack;
+import org.geysermc.geyser.api.pack.ResourcePackManifest;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -63,8 +64,9 @@ import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.geyser.util.VersionCheckUtils;
 
-import java.io.InputStream;
-import java.nio.file.Files;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.SeekableByteChannel;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
@@ -182,9 +184,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
         for (ResourcePack pack : this.resourcePackLoadEvent.packs().values()) {
+            PackCodec codec = pack.codec();
             ResourcePackManifest.Header header = pack.manifest().header();
             resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(
-                    header.uuid().toString(), header.versionString(), pack.size(), pack.contentKey(),
+                    header.uuid().toString(), header.versionString(), codec.size(), pack.contentKey(),
                     "", header.uuid().toString(), false, false));
         }
         resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().getConfig().isForceResourcePacks());
@@ -300,6 +303,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     public PacketSignal handle(ResourcePackChunkRequestPacket packet) {
         ResourcePackChunkDataPacket data = new ResourcePackChunkDataPacket();
         ResourcePack pack = this.resourcePackLoadEvent.packs().get(packet.getPackId().toString());
+        PackCodec codec = pack.codec();
 
         data.setChunkIndex(packet.getChunkIndex());
         data.setProgress((long) packet.getChunkIndex() * GeyserResourcePack.CHUNK_SIZE);
@@ -307,13 +311,13 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         data.setPackId(packet.getPackId());
 
         int offset = packet.getChunkIndex() * GeyserResourcePack.CHUNK_SIZE;
-        long remainingSize = pack.size() - offset;
+        long remainingSize = codec.size() - offset;
         byte[] packData = new byte[(int) MathUtils.constrain(remainingSize, 0, GeyserResourcePack.CHUNK_SIZE)];
 
-        try (InputStream inputStream = Files.newInputStream(pack.path())) {
-            inputStream.skip(offset);
-            inputStream.read(packData, 0, packData.length);
-        } catch (Exception e) {
+        try (SeekableByteChannel channel = codec.serialize(pack)) {
+            channel.position(offset);
+            channel.read(ByteBuffer.wrap(packData, 0, packData.length));
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -333,14 +337,15 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         ResourcePackDataInfoPacket data = new ResourcePackDataInfoPacket();
         String[] packID = id.split("_");
         ResourcePack pack = this.resourcePackLoadEvent.packs().get(packID[0]);
+        PackCodec codec = pack.codec();
         ResourcePackManifest.Header header = pack.manifest().header();
 
         data.setPackId(header.uuid());
-        int chunkCount = (int) Math.ceil(pack.size() / (double) GeyserResourcePack.CHUNK_SIZE);
+        int chunkCount = (int) Math.ceil(codec.size() / (double) GeyserResourcePack.CHUNK_SIZE);
         data.setChunkCount(chunkCount);
-        data.setCompressedPackSize(pack.size());
+        data.setCompressedPackSize(codec.size());
         data.setMaxChunkSize(GeyserResourcePack.CHUNK_SIZE);
-        data.setHash(pack.sha256());
+        data.setHash(codec.sha256());
         data.setPackVersion(packID[1]);
         data.setPremium(false);
         data.setType(ResourcePackType.RESOURCES);

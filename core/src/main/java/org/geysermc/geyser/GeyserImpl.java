@@ -90,6 +90,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.nio.file.Path;
 import java.security.Key;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -258,7 +259,7 @@ public class GeyserImpl implements GeyserApi {
 
         SkinProvider.registerCacheImageTask(this);
 
-        Registries.RESOURCE_PACKS.get().putAll(RegistryLoaders.RESOURCE_PACKS.load(bootstrap.getConfigFolder().resolve("packs")));
+        Registries.RESOURCE_PACKS.load();
 
         String geyserUdpPort = System.getProperty("geyserUdpPort", "");
         String pluginUdpPort = geyserUdpPort.isEmpty() ? System.getProperty("pluginUdpPort", "") : geyserUdpPort;
@@ -721,6 +722,10 @@ public class GeyserImpl implements GeyserApi {
 
     public WorldManager getWorldManager() {
         return bootstrap.getWorldManager();
+    }
+
+    public Path packDirectory() {
+        return bootstrap.getConfigFolder().resolve("packs");
     }
 
     @Nullable
