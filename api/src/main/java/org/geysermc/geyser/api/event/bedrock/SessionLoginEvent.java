@@ -32,7 +32,7 @@ import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 import org.geysermc.geyser.api.network.RemoteServer;
 
 /**
- * Called when a session has logged in, and is about to connect to a remote jav server.
+ * Called when a session has logged in, and is about to connect to a remote java server.
  */
 public final class SessionLoginEvent extends ConnectionEvent implements Cancellable {
     private RemoteServer remoteServer;
