@@ -85,6 +85,9 @@ public final class BlockRegistryPopulator {
      * Stores the raw blocks JSON until it is no longer needed.
      */
     private static JsonNode BLOCKS_JSON;
+    private static int minCustomRuntimeID = -1;
+    private static int maxCustomRuntimeID = -1;
+    private static int javaBlocksSize = -1;
 
     private static void nullifyBlocksNode() {
         BLOCKS_JSON = null;
@@ -233,21 +236,6 @@ public final class BlockRegistryPopulator {
 
             BiFunction<String, NbtMapBuilder, String> stateMapper = blockMappers.getOrDefault(palette.getKey(), emptyMapper);
 
-            int javaBlocksSize = BLOCKS_JSON.size();
-            int minCustomRuntimeID = -1;
-            int maxCustomRuntimeID = -1;
-
-            if (BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().size() > 0) {
-                minCustomRuntimeID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().min(Comparator.comparing(JavaBlockState::javaId)).get().javaId();
-                maxCustomRuntimeID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().max(Comparator.comparing(JavaBlockState::javaId)).get().javaId();
-
-                if (minCustomRuntimeID <= BLOCKS_JSON.size()) {
-                    throw new RuntimeException("Non vanilla custom block state overrides runtime ID must start after the last vanilla block state (" + javaBlocksSize + ")");
-                }
-
-                javaBlocksSize = maxCustomRuntimeID;
-            }
-
             GeyserBedrockBlock[] javaToBedrockBlocks = new GeyserBedrockBlock[javaBlocksSize];
             GeyserBedrockBlock[] javaToVanillaBedrockBlocks = new GeyserBedrockBlock[javaBlocksSize];
 
@@ -309,22 +297,6 @@ public final class BlockRegistryPopulator {
                 javaToBedrockBlocks[javaRuntimeId] = bedrockDefinition;
             }
 
-            if (BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().size() > 0) {
-                // First ensure all non vanilla runtime IDs at minimum are air in case they aren't consecutive
-                Arrays.fill(javaToVanillaBedrockBlocks, minCustomRuntimeID, javaToVanillaBedrockBlocks.length, airDefinition);
-                Arrays.fill(javaToBedrockBlocks, minCustomRuntimeID, javaToBedrockBlocks.length, airDefinition);
-
-                Set<Integer> usedNonVanillaRuntimeIDs = new ObjectOpenHashSet<>();
-
-                for (JavaBlockState javaBlockState : BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet()) {
-                    if (usedNonVanillaRuntimeIDs.contains(javaBlockState.javaId())) {
-                        throw new RuntimeException("Duplicate runtime ID " + javaBlockState.javaId() + " for non vanilla Java block state " + javaBlockState.identifier());
-                    }
-
-                    // Build the GeyserBedrockBlock...
-                }
-            }
-
             if (commandBlockDefinition == null) {
                 throw new AssertionError("Unable to find command block in palette");
             }
@@ -345,6 +317,17 @@ public final class BlockRegistryPopulator {
                 throw new AssertionError("Unable to find moving block in palette");
             }
             builder.bedrockMovingBlock(movingBlockDefinition);
+
+            if (BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().size() > 0) {
+                // First ensure all non vanilla runtime IDs at minimum are air in case they aren't consecutive
+                Arrays.fill(javaToVanillaBedrockBlocks, minCustomRuntimeID, javaToVanillaBedrockBlocks.length, airDefinition);
+                Arrays.fill(javaToBedrockBlocks, minCustomRuntimeID, javaToBedrockBlocks.length, airDefinition);
+
+                for (JavaBlockState javaBlockState : BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet()) {
+
+                    // Build the GeyserBedrockBlock...
+                }
+            }
 
             // Loop around again to find all item frame runtime IDs
             Object2ObjectMaps.fastForEach(blockStateOrderedMap, entry -> {
@@ -377,7 +360,20 @@ public final class BlockRegistryPopulator {
             throw new AssertionError("Unable to load Java block mappings", e);
         }
 
-        BlockRegistries.JAVA_BLOCKS.set(new BlockMapping[blocksJson.size()]); // Set array size to number of blockstates
+        javaBlocksSize = blocksJson.size();
+
+        if (BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().size() > 0) {
+            minCustomRuntimeID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().min(Comparator.comparing(JavaBlockState::javaId)).get().javaId();
+            maxCustomRuntimeID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().max(Comparator.comparing(JavaBlockState::javaId)).get().javaId();
+
+            if (minCustomRuntimeID <= blocksJson.size()) {
+                throw new RuntimeException("Non vanilla custom block state overrides runtime ID must start after the last vanilla block state (" + javaBlocksSize + ")");
+            }
+
+            javaBlocksSize = maxCustomRuntimeID;
+        }
+
+        BlockRegistries.JAVA_BLOCKS.set(new BlockMapping[javaBlocksSize]); // Set array size to number of blockstates
 
         Deque<String> cleanIdentifiers = new ArrayDeque<>();
 
@@ -514,6 +510,30 @@ public final class BlockRegistryPopulator {
             throw new AssertionError("Unable to find Java water in palette");
         }
         BlockStateValues.JAVA_WATER_ID = waterRuntimeId;
+
+        if (BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().size() > 0) {
+            Set<Integer> usedNonVanillaRuntimeIDs = new HashSet<>();
+            Set<Integer> usedUniqueRuntimeIDs = new HashSet<>();
+
+            for (JavaBlockState javaBlockState : BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet()) {
+                if (usedNonVanillaRuntimeIDs.contains(javaBlockState.javaId())) {
+                    throw new RuntimeException("Duplicate runtime ID " + javaBlockState.javaId() + " for non vanilla Java block state " + javaBlockState.identifier());
+                }
+
+                CustomBlockState customBlockState = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().get(javaBlockState);
+
+                BlockMapping nonVanillaBlockMapping = BlockMapping.builder()
+                    .isNonVanilla(true)
+                    .javaIdentifier(javaBlockState.identifier())
+                    .javaBlockId(javaBlockState.stateGroupId())
+                    .hardness(javaBlockState.blockHardness())
+                    .pistonBehavior(PistonBehavior.getByName(javaBlockState.pistonBehavior()))
+                    .isBlockEntity(javaBlockState.hasBlockEntity())
+                    .build();
+
+                String cleanJavaIdentifier = BlockUtils.getCleanIdentifier(javaBlockState.identifier());
+            }
+        }
 
         BlockRegistries.CLEAN_JAVA_IDENTIFIERS.set(cleanIdentifiers.toArray(new String[0]));
 
