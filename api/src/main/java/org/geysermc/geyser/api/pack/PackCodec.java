@@ -29,7 +29,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Path;
 
@@ -77,7 +76,7 @@ public abstract class PackCodec {
      * @return the new pack provider
      */
     @NonNull
-    static PackCodec path(@NonNull Path path) {
+    public static PackCodec path(@NonNull Path path) {
         return GeyserApi.api().provider(PathPackCodec.class, path);
     }
 }
