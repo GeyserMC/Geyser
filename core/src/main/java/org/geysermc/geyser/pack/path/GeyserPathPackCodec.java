@@ -42,9 +42,8 @@ import java.nio.file.Path;
 public class GeyserPathPackCodec extends PathPackCodec {
     private final Path path;
 
-    @NonNull
     @Override
-    public Path path() {
+    public @NonNull Path path() {
         return this.path;
     }
 
@@ -63,12 +62,12 @@ public class GeyserPathPackCodec extends PathPackCodec {
     }
 
     @Override
-    public SeekableByteChannel serialize(@NonNull ResourcePack resourcePack) throws IOException {
+    public @NonNull SeekableByteChannel serialize(@NonNull ResourcePack resourcePack) throws IOException {
         return FileChannel.open(this.path);
     }
 
     @Override
-    protected ResourcePack create() {
+    protected @NonNull ResourcePack create() {
         return ResourcePackLoader.readPack(this.path);
     }
 }

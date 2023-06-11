@@ -65,6 +65,7 @@ public interface ResourcePack {
      * @param codec the pack codec
      * @return the resource pack
      */
+    @NonNull
     static ResourcePack create(@NonNull PackCodec codec) {
         return codec.create();
     }

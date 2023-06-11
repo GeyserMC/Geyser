@@ -682,6 +682,18 @@ public class GeyserImpl implements GeyserApi {
         return getConfig().getBedrock();
     }
 
+    @Override
+    @NonNull
+    public Path configDirectory() {
+        return bootstrap.getConfigFolder();
+    }
+
+    @Override
+    @NonNull
+    public Path packDirectory() {
+        return bootstrap.getConfigFolder().resolve("packs");
+    }
+
     public int buildNumber() {
         if (!this.isProductionEnvironment()) {
             return 0;
@@ -722,10 +734,6 @@ public class GeyserImpl implements GeyserApi {
 
     public WorldManager getWorldManager() {
         return bootstrap.getWorldManager();
-    }
-
-    public Path packDirectory() {
-        return bootstrap.getConfigFolder().resolve("packs");
     }
 
     @Nullable

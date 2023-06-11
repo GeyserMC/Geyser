@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.api.pack;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 import java.util.Collection;
 import java.util.UUID;
 
@@ -38,6 +40,7 @@ public interface ResourcePackManifest {
      *
      * @return the format version
      */
+    @NonNull
     Integer formatVersion();
 
     /**
@@ -45,6 +48,7 @@ public interface ResourcePackManifest {
      *
      * @return the header
      */
+    @NonNull
     Header header();
 
     /**
@@ -52,6 +56,7 @@ public interface ResourcePackManifest {
      *
      * @return the modules
      */
+    @NonNull
     Collection<? extends Module> modules();
 
     /**
@@ -59,6 +64,7 @@ public interface ResourcePackManifest {
      *
      * @return the dependencies
      */
+    @NonNull
     Collection<? extends Dependency> dependencies();
 
     /**
@@ -71,6 +77,7 @@ public interface ResourcePackManifest {
          *
          * @return the UUID
          */
+        @NonNull
         UUID uuid();
 
         /**
@@ -78,13 +85,14 @@ public interface ResourcePackManifest {
          *
          * @return the version
          */
-        int[] version();
+        int @NonNull [] version();
 
         /**
          * Gets the name of the resource pack.
          *
          * @return the name
          */
+        @NonNull
         String name();
 
         /**
@@ -92,6 +100,7 @@ public interface ResourcePackManifest {
          *
          * @return the description
          */
+        @NonNull
         String description();
 
         /**
@@ -99,6 +108,7 @@ public interface ResourcePackManifest {
          *
          * @return the version string
          */
+        @NonNull
         String versionString();
 
         /**
@@ -106,7 +116,7 @@ public interface ResourcePackManifest {
          *
          * @return the minimum supported Minecraft version
          */
-        int[] minimumSupportedMinecraftVersion();
+        int @NonNull [] minimumSupportedMinecraftVersion();
     }
 
     /**
@@ -119,6 +129,7 @@ public interface ResourcePackManifest {
          *
          * @return the UUID
          */
+        @NonNull
         UUID uuid();
 
         /**
@@ -126,13 +137,14 @@ public interface ResourcePackManifest {
          *
          * @return the version
          */
-        int[] version();
+        int @NonNull [] version();
 
         /**
          * Gets the type of the module.
          *
          * @return the type
          */
+        @NonNull
         String type();
 
         /**
@@ -140,6 +152,7 @@ public interface ResourcePackManifest {
          *
          * @return the description
          */
+        @NonNull
         String description();
     }
 
@@ -153,6 +166,7 @@ public interface ResourcePackManifest {
          *
          * @return the uuid
          */
+        @NonNull
         UUID uuid();
 
         /**
@@ -160,7 +174,7 @@ public interface ResourcePackManifest {
          *
          * @return the version
          */
-        int[] version();
+        int @NonNull [] version();
     }
 }
 

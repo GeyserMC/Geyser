@@ -76,6 +76,7 @@ public abstract class PackCodec {
      * @param path the path to create the pack provider from
      * @return the new pack provider
      */
+    @NonNull
     static PackCodec path(@NonNull Path path) {
         return GeyserApi.api().provider(PathPackCodec.class, path);
     }
