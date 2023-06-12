@@ -887,7 +887,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         SessionLoginEvent loginEvent = new SessionLoginEvent(this, remoteServer);
         GeyserImpl.getInstance().eventBus().fire(loginEvent);
         if (loginEvent.isCancelled()) {
-            disconnect("Login event cancelled");
+            String disconnectReason = loginEvent.disconnectReason() == null ?
+                    GeyserLocale.getLocaleStringLog("geyser.network.disconnect.closed_by_remote_peer") : loginEvent.disconnectReason();
+            disconnect(disconnectReason);
             return;
         }
 
