@@ -91,8 +91,9 @@ tasks {
         dependsOn(shadowJar)
         inputFile.set(shadowJar.get().archiveFile)
         archiveBaseName.set("Geyser-Fabric")
-        archiveClassifier.set("")
         archiveVersion.set("")
+        archiveClassifier.set("")
+
     }
 
     register("remapModrinthJar", RemapJarTask::class) {
