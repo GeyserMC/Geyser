@@ -29,61 +29,64 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
-import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Encapsulates written books and writable books. Customly named class to share common code.
- */
-public class ReadableBookItem extends Item {
-    public ReadableBookItem(String javaIdentifier, Builder builder) {
+public class WrittenBookItem extends WritableBookItem {
+    public WrittenBookItem(String javaIdentifier, Builder builder) {
         super(javaIdentifier, builder);
     }
 
     @Override
     public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag) {
+        boolean isValid = isValidWrittenBook(tag);
+        if (!isValid) {
+            tag.remove("pages");
+        }
+
         super.translateNbtToBedrock(session, tag);
 
-        ListTag pagesTag = tag.remove("pages");
-        if (pagesTag == null) {
-            return;
+        if (!isValid) {
+            CompoundTag invalidTagPage = new CompoundTag("");
+            invalidTagPage.put(new StringTag("photoname", ""));
+            invalidTagPage.put(new StringTag(
+                    "text",
+                    MessageTranslator.convertMessage(
+                            Component.translatable("book.invalid.tag").color(NamedTextColor.DARK_RED),
+                            session.locale()
+                    )
+            ));
+            tag.put(new ListTag("pages", List.of(invalidTagPage)));
         }
-        List<Tag> pages = new ArrayList<>();
-        for (Tag subTag : pagesTag.getValue()) {
-            if (!(subTag instanceof StringTag textTag))
-                continue;
-
-            CompoundTag pageTag = new CompoundTag("");
-            pageTag.put(new StringTag("photoname", ""));
-            pageTag.put(new StringTag("text", MessageTranslator.convertMessageLenient(textTag.getValue())));
-            pages.add(pageTag);
-        }
-
-        tag.put(new ListTag("pages", pages));
     }
 
-    @Override
-    public void translateNbtToJava(@NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
-        super.translateNbtToJava(tag, mapping);
-
-        if (!tag.contains("pages")) {
-            return;
+    private boolean isValidWrittenBook(CompoundTag tag) {
+        if (!(tag.get("title") instanceof StringTag title)) {
+            return false;
         }
-        List<Tag> pages = new ArrayList<>();
-        ListTag pagesTag = tag.get("pages");
-        for (Tag subTag : pagesTag.getValue()) {
-            if (!(subTag instanceof CompoundTag pageTag))
-                continue;
-
-            StringTag textTag = pageTag.get("text");
-            pages.add(new StringTag("", textTag.getValue()));
+        if (title.getValue().length() > 32) {
+            return false;
         }
-        tag.remove("pages");
-        tag.put(new ListTag("pages", pages));
+
+        if (!(tag.get("author") instanceof StringTag)) {
+            return false;
+        }
+
+        if (!(tag.get("pages") instanceof ListTag pages)) {
+            return false;
+        }
+        for (Tag pageTag : pages) {
+            if (pageTag instanceof StringTag page) {
+                if (page.getValue().length() > 32767) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
