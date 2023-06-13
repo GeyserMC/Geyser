@@ -93,7 +93,6 @@ tasks {
         archiveBaseName.set("Geyser-Fabric")
         archiveVersion.set("")
         archiveClassifier.set("")
-
     }
 
     register("remapModrinthJar", RemapJarTask::class) {
@@ -103,7 +102,6 @@ tasks {
         archiveVersion.set(project.version.toString() + "+build."  + System.getenv("GITHUB_RUN_NUMBER"))
         archiveClassifier.set("")
     }
-
 }
 
 modrinth {
