@@ -64,7 +64,6 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
 
     @Override
     public boolean unregister(@NonNull UUID uuid) {
-        packs.remove(uuid.toString());
-        return true;
+        return packs.remove(uuid.toString()) != null;
     }
 }
