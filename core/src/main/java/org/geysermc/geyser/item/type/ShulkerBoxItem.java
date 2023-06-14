@@ -77,9 +77,17 @@ public class ShulkerBoxItem extends BlockItem {
             itemsList.add(boxItemTag);
         }
         tag.put(itemsList);
-        // Don't actually bother with removing the block entity tag. Too risky to translate
-        // if the user is on creative and messing with a shulker box
-        //itemTag.remove("BlockEntityTag");
+
+        // Strip the BlockEntityTag from the chests contents
+        // sent to the client. The client does not parse this
+        // or use it for anything, as this tag is fully
+        // server-side, so we remove it to reduce bandwidth and
+        // solve potential issues with very large tags.
+
+        // There was a problem in the past where this would strip
+        // NBT data in creative mode, however with the new server
+        // authoritative inventories, this is no longer a concern.
+        tag.remove("BlockEntityTag");
     }
 
     @Override

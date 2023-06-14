@@ -1,3 +1,5 @@
+import net.fabricmc.loom.task.RemapJarTask
+
 plugins {
     id("fabric-loom") version "1.0-SNAPSHOT"
     id("com.modrinth.minotaur") version "2.+"
@@ -89,8 +91,16 @@ tasks {
         dependsOn(shadowJar)
         inputFile.set(shadowJar.get().archiveFile)
         archiveBaseName.set("Geyser-Fabric")
-        archiveClassifier.set("")
         archiveVersion.set("")
+        archiveClassifier.set("")
+    }
+
+    register("remapModrinthJar", RemapJarTask::class) {
+        dependsOn(shadowJar)
+        inputFile.set(shadowJar.get().archiveFile)
+        archiveBaseName.set("geyser-fabric")
+        archiveVersion.set(project.version.toString() + "+build."  + System.getenv("GITHUB_RUN_NUMBER"))
+        archiveClassifier.set("")
     }
 }
 
@@ -103,7 +113,7 @@ modrinth {
 
     syncBodyFrom.set(rootProject.file("README.md").readText())
 
-    uploadFile.set(tasks.getByPath("remapJar"))
+    uploadFile.set(tasks.getByPath("remapModrinthJar"))
     gameVersions.addAll("1.20")
 
     loaders.add("fabric")
