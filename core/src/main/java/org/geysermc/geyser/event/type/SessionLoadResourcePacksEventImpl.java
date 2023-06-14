@@ -36,38 +36,35 @@ import java.util.UUID;
 
 public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksEvent {
 
-    private final Map<String, ResourcePack> packMap;
+    private final Map<String, ResourcePack> packs;
 
     public SessionLoadResourcePacksEventImpl(GeyserSession session, Map<String, ResourcePack> packMap) {
         super(session);
-        this.packMap = packMap;
+        this.packs = packMap;
     }
 
-    public @NonNull Map<String, ResourcePack> getPackMap() {
-        return packMap;
+    public @NonNull Map<String, ResourcePack> getPacks() {
+        return packs;
     }
 
     @Override
     public @NonNull List<ResourcePack> resourcePacks() {
-        return List.copyOf(packMap.values());
+        return List.copyOf(packs.values());
     }
 
     @Override
     public boolean register(@NonNull ResourcePack resourcePack) {
         String packID = resourcePack.manifest().header().uuid().toString();
-        if (packMap.containsValue(resourcePack) || packMap.containsKey(packID)) {
+        if (packs.containsValue(resourcePack) || packs.containsKey(packID)) {
             return false;
         }
-        packMap.put(resourcePack.manifest().header().uuid().toString(), resourcePack);
+        packs.put(resourcePack.manifest().header().uuid().toString(), resourcePack);
         return true;
     }
 
     @Override
     public boolean unregister(@NonNull UUID uuid) {
-        if (!packMap.containsKey(uuid.toString())) {
-            return false;
-        }
-        packMap.remove(uuid.toString());
+        packs.remove(uuid.toString());
         return true;
     }
 }
