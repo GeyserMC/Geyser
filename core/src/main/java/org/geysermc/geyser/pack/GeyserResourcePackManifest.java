@@ -27,21 +27,44 @@ package org.geysermc.geyser.pack;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.UUID;
 
-public record GeyserResourcePackManifest(@JsonProperty("format_version") Integer formatVersion, Header header, Collection<Module> modules, Collection<Dependency> dependencies) implements ResourcePackManifest {
+public record GeyserResourcePackManifest(@JsonProperty("format_version") int formatVersion, Header header, Collection<Module> modules, Collection<Dependency> dependencies) implements ResourcePackManifest {
 
     public record Header(UUID uuid, int[] version, String name, String description, @JsonProperty("min_engine_version") int[] minimumSupportedMinecraftVersion) implements ResourcePackManifest.Header {
         @Override
-        public String versionString() {
-            return version[0] + "." + version[1] + "." + version[2];
+        public @NotNull String versionString() {
+            return new Version(version).versionString();
         }
     }
 
     public record Module(UUID uuid, int[] version, String type, String description) implements ResourcePackManifest.Module { }
 
     public record Dependency(UUID uuid, int[] version) implements ResourcePackManifest.Dependency { }
+
+    public record Version(int[] version) implements ResourcePackManifest.Version {
+
+        public String versionString() {
+            return major() + "." + minor() + "." + patch();
+        }
+
+        @Override
+        public int major() {
+            return version[0];
+        }
+
+        @Override
+        public int minor() {
+            return version[1];
+        }
+
+        @Override
+        public int patch() {
+            return version[2];
+        }
+    }
 }
 

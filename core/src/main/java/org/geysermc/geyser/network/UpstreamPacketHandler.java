@@ -48,12 +48,12 @@ import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
 import org.cloudburstmc.protocol.common.PacketSignal;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.event.bedrock.SessionLoadResourcePacksEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.pack.PackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
+import org.geysermc.geyser.event.type.SessionLoadResourcePacksEventImpl;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -75,9 +75,9 @@ import java.util.OptionalInt;
 public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     private boolean networkSettingsRequested = false;
-    private Deque<String> packsToSent = new ArrayDeque<>();
+    private final Deque<String> packsToSent = new ArrayDeque<>();
 
-    private SessionLoadResourcePacksEvent resourcePackLoadEvent;
+    private SessionLoadResourcePacksEventImpl resourcePackLoadEvent;
 
     public UpstreamPacketHandler(GeyserImpl geyser, GeyserSession session) {
         super(geyser, session);
@@ -179,11 +179,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         geyser.getSessionManager().addPendingSession(session);
 
-        this.resourcePackLoadEvent = new SessionLoadResourcePacksEvent(session, new HashMap<>(Registries.RESOURCE_PACKS.get()));
+        this.resourcePackLoadEvent = new SessionLoadResourcePacksEventImpl(session, new HashMap<>(Registries.RESOURCE_PACKS.get()));
         this.geyser.eventBus().fire(this.resourcePackLoadEvent);
 
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
-        for (ResourcePack pack : this.resourcePackLoadEvent.packs().values()) {
+        for (ResourcePack pack : this.resourcePackLoadEvent.resourcePacks()) {
             PackCodec codec = pack.codec();
             ResourcePackManifest.Header header = pack.manifest().header();
             resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(
@@ -221,7 +221,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 stackPacket.setForcedToAccept(false); // Leaving this as false allows the player to choose to download or not
                 stackPacket.setGameVersion(session.getClientData().getGameVersion());
 
-                for (ResourcePack pack : this.resourcePackLoadEvent.packs().values()) {
+                for (ResourcePack pack : this.resourcePackLoadEvent.resourcePacks()) {
                     ResourcePackManifest.Header header = pack.manifest().header();
                     stackPacket.getResourcePacks().add(new ResourcePackStackPacket.Entry(header.uuid().toString(), header.versionString(), ""));
                 }
@@ -302,7 +302,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     @Override
     public PacketSignal handle(ResourcePackChunkRequestPacket packet) {
         ResourcePackChunkDataPacket data = new ResourcePackChunkDataPacket();
-        ResourcePack pack = this.resourcePackLoadEvent.packs().get(packet.getPackId().toString());
+        ResourcePack pack = this.resourcePackLoadEvent.getPackMap().get(packet.getPackId().toString());
         PackCodec codec = pack.codec();
 
         data.setChunkIndex(packet.getChunkIndex());
@@ -336,7 +336,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     private void sendPackDataInfo(String id) {
         ResourcePackDataInfoPacket data = new ResourcePackDataInfoPacket();
         String[] packID = id.split("_");
-        ResourcePack pack = this.resourcePackLoadEvent.packs().get(packID[0]);
+        ResourcePack pack = this.resourcePackLoadEvent.getPackMap().get(packID[0]);
         PackCodec codec = pack.codec();
         ResourcePackManifest.Header header = pack.manifest().header();
 

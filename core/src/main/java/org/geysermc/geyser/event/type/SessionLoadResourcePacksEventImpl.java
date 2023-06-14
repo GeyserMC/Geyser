@@ -23,39 +23,51 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event.bedrock;
+package org.geysermc.geyser.event.type;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.event.connection.ConnectionEvent;
+import org.geysermc.geyser.api.event.bedrock.SessionLoadResourcePacksEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
+import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
-/**
- * Called when Geyser initializes a session for a new Bedrock client and is in the process of sending resource packs.
- */
-public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
-    public SessionLoadResourcePacksEvent(@NonNull GeyserConnection connection) {
-        super(connection);
+public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksEvent {
+
+    private final Map<String, ResourcePack> packMap;
+
+    public SessionLoadResourcePacksEventImpl(GeyserSession session, Map<String, ResourcePack> packMap) {
+        super(session);
+        this.packMap = packMap;
     }
 
-    /**
-     * @return an unmodifiable list of resource packs that will be sent to the client.
-     */
-    public abstract @NonNull List<ResourcePack> resourcePacks();
+    public @NonNull Map<String, ResourcePack> getPackMap() {
+        return packMap;
+    }
 
-    /**
-     * @param resourcePack a resource pack that will be sent to the client.
-     * @return true if the resource pack was added to the list of resource packs to be sent to the client.
-     * Returns false if the resource pack is already in the list.
-     */
-    public abstract boolean register(@NonNull ResourcePack resourcePack);
+    @Override
+    public @NonNull List<ResourcePack> resourcePacks() {
+        return List.copyOf(packMap.values());
+    }
 
-    /**
-     * @param uuid a resource pack that will be sent to the client.
-     * @return true whether the resource pack was removed from the list of resource packs.
-     */
-    public abstract boolean unregister(@NonNull UUID uuid);
+    @Override
+    public boolean register(@NonNull ResourcePack resourcePack) {
+        String packID = resourcePack.manifest().header().uuid().toString();
+        if (packMap.containsValue(resourcePack) || packMap.containsKey(packID)) {
+            return false;
+        }
+        packMap.put(resourcePack.manifest().header().uuid().toString(), resourcePack);
+        return true;
+    }
+
+    @Override
+    public boolean unregister(@NonNull UUID uuid) {
+        if (!packMap.containsKey(uuid.toString())) {
+            return false;
+        }
+        packMap.remove(uuid.toString());
+        return true;
+    }
 }

@@ -40,8 +40,7 @@ public interface ResourcePackManifest {
      *
      * @return the format version
      */
-    @NonNull
-    Integer formatVersion();
+    int formatVersion();
 
     /**
      * Gets the header of the resource pack.
@@ -175,6 +174,36 @@ public interface ResourcePackManifest {
          * @return the version
          */
         int @NonNull [] version();
+    }
+
+    interface Version {
+        /**
+         * Gets the version of the resource pack.
+         *
+         * @return the version
+         */
+        int @NonNull [] version();
+
+        /**
+         * Gets the major version.
+         *
+         * @return the major version
+         */
+        int major();
+
+        /**
+         * Gets the minor version.
+         *
+         * @return the minor version
+         */
+        int minor();
+
+        /**
+         * Gets the patch version.
+         *
+         * @return the patch version
+         */
+        int patch();
     }
 }
 
