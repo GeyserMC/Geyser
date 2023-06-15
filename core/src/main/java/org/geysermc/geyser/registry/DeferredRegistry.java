@@ -43,28 +43,28 @@ import java.util.function.Supplier;
  *
  * @param <M> the value being held by the registry
  */
-public class DeferredRegistry<M> implements IRegistry<M> {
+public final class DeferredRegistry<M> implements IRegistry<M> {
     private final Registry<M> backingRegistry;
     private final Supplier<M> loader;
 
     private boolean loaded;
 
-    protected <I> DeferredRegistry(Function<RegistryLoader<I, M>, Registry<M>> registryLoader, RegistryLoader<I, M> deferredLoader) {
+    private <I> DeferredRegistry(Function<RegistryLoader<I, M>, Registry<M>> registryLoader, RegistryLoader<I, M> deferredLoader) {
         this.backingRegistry = registryLoader.apply(RegistryLoaders.uninitialized());
         this.loader = () -> deferredLoader.load(null);
     }
 
-    protected <I> DeferredRegistry(Function<RegistryLoader<I, M>, Registry<M>> registryLoader, Supplier<RegistryLoader<I, M>> deferredLoader) {
+    private <I> DeferredRegistry(Function<RegistryLoader<I, M>, Registry<M>> registryLoader, Supplier<RegistryLoader<I, M>> deferredLoader) {
         this.backingRegistry = registryLoader.apply(RegistryLoaders.uninitialized());
         this.loader = () -> deferredLoader.get().load(null);
     }
 
-    protected <I> DeferredRegistry(I input, RegistryInitializer<M> registryInitializer, RegistryLoader<I, M> deferredLoader) {
+    private <I> DeferredRegistry(I input, RegistryInitializer<M> registryInitializer, RegistryLoader<I, M> deferredLoader) {
         this.backingRegistry = registryInitializer.initialize(input, RegistryLoaders.uninitialized());
         this.loader = () -> deferredLoader.load(input);
     }
 
-    protected <I> DeferredRegistry(I input, RegistryInitializer<M> registryInitializer, Supplier<RegistryLoader<I, M>> deferredLoader) {
+    private <I> DeferredRegistry(I input, RegistryInitializer<M> registryInitializer, Supplier<RegistryLoader<I, M>> deferredLoader) {
         this.backingRegistry = registryInitializer.initialize(input, RegistryLoaders.uninitialized());
         this.loader = () -> deferredLoader.get().load(input);
     }
