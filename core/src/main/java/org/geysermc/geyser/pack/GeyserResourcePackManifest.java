@@ -26,44 +26,38 @@
 package org.geysermc.geyser.pack;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.UUID;
 
 public record GeyserResourcePackManifest(@JsonProperty("format_version") int formatVersion, Header header, Collection<Module> modules, Collection<Dependency> dependencies) implements ResourcePackManifest {
 
-    public record Header(UUID uuid, int[] version, String name, String description, @JsonProperty("min_engine_version") int[] minimumSupportedMinecraftVersion) implements ResourcePackManifest.Header {
+    public record Header(UUID uuid, Version version, String name, String description, @JsonProperty("min_engine_version") Version minimumSupportedMinecraftVersion) implements ResourcePackManifest.Header {
         @Override
         public @NotNull String versionString() {
-            return new Version(version).versionString();
+            return version.major() + "." + version.minor() + "." + version.patch();
         }
     }
 
-    public record Module(UUID uuid, int[] version, String type, String description) implements ResourcePackManifest.Module { }
+    public record Module(UUID uuid, Version version, String type, String description) implements ResourcePackManifest.Module { }
 
-    public record Dependency(UUID uuid, int[] version) implements ResourcePackManifest.Dependency { }
+    public record Dependency(UUID uuid, Version version) implements ResourcePackManifest.Dependency { }
 
-    public record Version(int[] version) implements ResourcePackManifest.Version {
-
-        public String versionString() {
-            return major() + "." + minor() + "." + patch();
-        }
-
-        @Override
-        public int major() {
-            return version[0];
-        }
-
-        @Override
-        public int minor() {
-            return version[1];
-        }
-
-        @Override
-        public int patch() {
-            return version[2];
+    @JsonDeserialize(using = Version.VersionDeserializer.class)
+    public record Version(int major, int minor, int patch) implements ResourcePackManifest.Version {
+        public static class VersionDeserializer extends JsonDeserializer<Version> {
+            @Override
+            public Version deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+                int[] version = ctxt.readValue(p, int[].class);
+                return new Version(version[0], version[1], version[2]);
+            }
         }
     }
 }

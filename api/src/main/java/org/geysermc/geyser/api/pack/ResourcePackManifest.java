@@ -84,7 +84,8 @@ public interface ResourcePackManifest {
          *
          * @return the version
          */
-        int @NonNull [] version();
+        @NonNull
+        Version version();
 
         /**
          * Gets the name of the resource pack.
@@ -115,7 +116,8 @@ public interface ResourcePackManifest {
          *
          * @return the minimum supported Minecraft version
          */
-        int @NonNull [] minimumSupportedMinecraftVersion();
+        @NonNull
+        Version minimumSupportedMinecraftVersion();
     }
 
     /**
@@ -136,7 +138,8 @@ public interface ResourcePackManifest {
          *
          * @return the version
          */
-        int @NonNull [] version();
+        @NonNull
+        Version version();
 
         /**
          * Gets the type of the module.
@@ -173,16 +176,11 @@ public interface ResourcePackManifest {
          *
          * @return the version
          */
-        int @NonNull [] version();
+        @NonNull
+        Version version();
     }
 
     interface Version {
-        /**
-         * Gets the version of the resource pack.
-         *
-         * @return the version
-         */
-        int @NonNull [] version();
 
         /**
          * Gets the major version.
