@@ -179,7 +179,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             CommandEnumData aliases = new CommandEnumData(commandName + "Aliases", values, false);
 
             // Build the completed command and add it to the final list
-            CommandData data = new CommandData(commandName, entry.getKey().description(), flags, (byte) 0, aliases, entry.getKey().paramData());
+            CommandData data = new CommandData(commandName, entry.getKey().description(), flags, CommandPermission.ANY, aliases, entry.getKey().paramData());
             commandData.add(data);
         }
 
