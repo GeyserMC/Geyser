@@ -32,6 +32,8 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
+import lombok.Setter;
+import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
@@ -67,6 +69,16 @@ public class SessionPlayerEntity extends PlayerEntity {
      */
     @Getter
     private boolean isRidingInFront;
+    /**
+     * Used when emulating client-side vehicles
+     */
+    @Getter @Setter
+    private Vector2f vehicleInput = Vector2f.ZERO;
+    /**
+     * Used when emulating client-side vehicles
+     */
+    @Getter @Setter
+    private int vehicleJumpStrength;
     /**
      * Used for villager inventory emulation.
      */

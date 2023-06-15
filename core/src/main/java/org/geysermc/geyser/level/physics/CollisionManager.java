@@ -41,7 +41,9 @@ import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.PistonCache;
 import org.geysermc.geyser.translator.collision.BlockCollision;
+import org.geysermc.geyser.translator.collision.OtherCollision;
 import org.geysermc.geyser.translator.collision.ScaffoldingCollision;
+import org.geysermc.geyser.translator.collision.SolidCollision;
 import org.geysermc.geyser.util.BlockUtils;
 
 import java.text.DecimalFormat;
@@ -49,6 +51,8 @@ import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
 public class CollisionManager {
+    public static final BlockCollision SOLID_COLLISION = new SolidCollision("");
+    public static final BlockCollision FLUID_COLLISION = new OtherCollision(new BoundingBox[]{new BoundingBox(0.5, 0.25, 0.5, 1, 0.5, 1)});
 
     private final GeyserSession session;
 
@@ -264,13 +268,13 @@ public class CollisionManager {
         if (teleported || (!checkWorld && session.getPistonCache().getPistons().isEmpty())) { // There is nothing to check
             return movement;
         }
-        return correctMovement(movement, playerBoundingBox, session.getPlayerEntity().isOnGround(), PLAYER_STEP_UP, checkWorld);
+        return correctMovement(movement, playerBoundingBox, session.getPlayerEntity().isOnGround(), PLAYER_STEP_UP, checkWorld, false);
     }
 
-    public Vector3d correctMovement(Vector3d movement, BoundingBox boundingBox, boolean onGround, double stepUp, boolean checkWorld) {
+    public Vector3d correctMovement(Vector3d movement, BoundingBox boundingBox, boolean onGround, double stepUp, boolean checkWorld, boolean walkOnLava) {
         Vector3d adjustedMovement = movement;
         if (!movement.equals(Vector3d.ZERO)) {
-            adjustedMovement = correctMovementForCollisions(movement, boundingBox, checkWorld);
+            adjustedMovement = correctMovementForCollisions(movement, boundingBox, checkWorld, walkOnLava);
         }
 
         boolean verticalCollision = adjustedMovement.getY() != movement.getY();
@@ -279,14 +283,14 @@ public class CollisionManager {
         onGround = onGround || (verticalCollision && falling);
         if (onGround && horizontalCollision) {
             Vector3d horizontalMovement = Vector3d.from(movement.getX(), 0, movement.getZ());
-            Vector3d stepUpMovement = correctMovementForCollisions(horizontalMovement.up(stepUp), boundingBox, checkWorld);
+            Vector3d stepUpMovement = correctMovementForCollisions(horizontalMovement.up(stepUp), boundingBox, checkWorld, walkOnLava);
 
             BoundingBox stretchedBoundingBox = boundingBox.clone();
             stretchedBoundingBox.extend(horizontalMovement);
-            double maxStepUp = correctMovementForCollisions(Vector3d.from(0, stepUp, 0), stretchedBoundingBox, checkWorld).getY();
+            double maxStepUp = correctMovementForCollisions(Vector3d.from(0, stepUp, 0), stretchedBoundingBox, checkWorld, walkOnLava).getY();
             if (maxStepUp < stepUp) { // The player collided with a block above them
                 boundingBox.translate(0, maxStepUp, 0);
-                Vector3d adjustedStepUpMovement = correctMovementForCollisions(horizontalMovement, boundingBox, checkWorld);
+                Vector3d adjustedStepUpMovement = correctMovementForCollisions(horizontalMovement, boundingBox, checkWorld, walkOnLava);
                 boundingBox.translate(0, -maxStepUp, 0);
 
                 if (squaredHorizontalLength(adjustedStepUpMovement) > squaredHorizontalLength(stepUpMovement)) {
@@ -297,7 +301,7 @@ public class CollisionManager {
             if (squaredHorizontalLength(stepUpMovement) > squaredHorizontalLength(adjustedMovement)) {
                 boundingBox.translate(stepUpMovement.getX(), stepUpMovement.getY(), stepUpMovement.getZ());
                 // Apply the player's remaining vertical movement
-                double verticalMovement = correctMovementForCollisions(Vector3d.from(0, movement.getY() - stepUpMovement.getY(), 0), boundingBox, checkWorld).getY();
+                double verticalMovement = correctMovementForCollisions(Vector3d.from(0, movement.getY() - stepUpMovement.getY(), 0), boundingBox, checkWorld, walkOnLava).getY();
                 boundingBox.translate(-stepUpMovement.getX(), -stepUpMovement.getY(), -stepUpMovement.getZ());
 
                 stepUpMovement = stepUpMovement.up(verticalMovement);
@@ -311,7 +315,7 @@ public class CollisionManager {
         return vector.getX() * vector.getX() + vector.getZ() * vector.getZ();
     }
 
-    private Vector3d correctMovementForCollisions(Vector3d movement, BoundingBox boundingBox, boolean checkWorld) {
+    private Vector3d correctMovementForCollisions(Vector3d movement, BoundingBox boundingBox, boolean checkWorld, boolean walkOnLava) {
         double movementX = movement.getX();
         double movementY = movement.getY();
         double movementZ = movement.getZ();
@@ -320,20 +324,20 @@ public class CollisionManager {
         movementBoundingBox.extend(movement);
         BlockPositionIterator iter = collidableBlocksIterator(movementBoundingBox);
         if (Math.abs(movementY) > CollisionManager.COLLISION_TOLERANCE) {
-            movementY = computeCollisionOffset(boundingBox, Axis.Y, movementY, iter, checkWorld);
+            movementY = computeCollisionOffset(boundingBox, Axis.Y, movementY, iter, checkWorld, walkOnLava);
             boundingBox.translate(0, movementY, 0);
         }
         boolean checkZFirst = Math.abs(movementZ) > Math.abs(movementX);
         if (checkZFirst && Math.abs(movementZ) > CollisionManager.COLLISION_TOLERANCE) {
-            movementZ = computeCollisionOffset(boundingBox, Axis.Z, movementZ, iter, checkWorld);
+            movementZ = computeCollisionOffset(boundingBox, Axis.Z, movementZ, iter, checkWorld, walkOnLava);
             boundingBox.translate(0, 0, movementZ);
         }
         if (Math.abs(movementX) > CollisionManager.COLLISION_TOLERANCE) {
-            movementX = computeCollisionOffset(boundingBox, Axis.X, movementX, iter, checkWorld);
+            movementX = computeCollisionOffset(boundingBox, Axis.X, movementX, iter, checkWorld, walkOnLava);
             boundingBox.translate(movementX, 0, 0);
         }
         if (!checkZFirst && Math.abs(movementZ) > CollisionManager.COLLISION_TOLERANCE) {
-            movementZ = computeCollisionOffset(boundingBox, Axis.Z, movementZ, iter, checkWorld);
+            movementZ = computeCollisionOffset(boundingBox, Axis.Z, movementZ, iter, checkWorld, walkOnLava);
             boundingBox.translate(0, 0, movementZ);
         }
 
@@ -341,13 +345,21 @@ public class CollisionManager {
         return Vector3d.from(movementX, movementY, movementZ);
     }
 
-    private double computeCollisionOffset(BoundingBox boundingBox, Axis axis, double offset, BlockPositionIterator iter, boolean checkWorld) {
+    private double computeCollisionOffset(BoundingBox boundingBox, Axis axis, double offset, BlockPositionIterator iter, boolean checkWorld, boolean walkOnLava) {
         for (iter.reset(); iter.hasNext(); iter.next()) {
             int x = iter.getX();
             int y = iter.getY();
             int z = iter.getZ();
             if (checkWorld) {
-                BlockCollision blockCollision = BlockUtils.getCollisionAt(session, x, y, z);
+                int blockId = session.getGeyser().getWorldManager().getBlockAt(session, x, y, z);
+
+                BlockCollision blockCollision;
+                if (walkOnLava) {
+                    blockCollision = getCollisionLavaWalking(blockId, y, boundingBox);
+                } else {
+                    blockCollision = BlockUtils.getCollision(blockId);
+                }
+
                 if (blockCollision != null && !(blockCollision instanceof ScaffoldingCollision)) {
                     offset = blockCollision.computeCollisionOffset(x, y, z, boundingBox, axis, offset);
                 }
@@ -358,6 +370,16 @@ public class CollisionManager {
             }
         }
         return offset;
+    }
+
+    /**
+     * @return the block collision appropriate for entities that can walk on lava (Strider)
+     */
+    public BlockCollision getCollisionLavaWalking(int blockId, int blockY, BoundingBox boundingBox) {
+        if (BlockStateValues.getLavaLevel(blockId) == 0 && FLUID_COLLISION.isBelow(blockY, boundingBox)) {
+            return FLUID_COLLISION;
+        }
+        return BlockUtils.getCollision(blockId);
     }
 
     /**
@@ -412,7 +434,7 @@ public class CollisionManager {
         double eyeY = playerBoundingBox.getMiddleY() - playerBoundingBox.getSizeY() / 2d + session.getEyeHeight();
         double eyeZ = playerBoundingBox.getMiddleZ();
 
-        eyeY -= 1 / ((double) BlockStateValues.NUM_WATER_LEVELS); // Subtract the height of one water layer
+        eyeY -= 1 / ((double) BlockStateValues.NUM_FLUID_LEVELS); // Subtract the height of one water layer
         int blockID = session.getGeyser().getWorldManager().getBlockAt(session, GenericMath.floor(eyeX), GenericMath.floor(eyeY), GenericMath.floor(eyeZ));
         double waterHeight = BlockStateValues.getWaterHeight(blockID);
 

@@ -270,6 +270,10 @@ public final class BlockRegistryPopulator {
         int spawnerRuntimeId = -1;
         int uniqueJavaId = -1;
         int waterRuntimeId = -1;
+        int bubbleColumnUpwardRuntimeId = -1;
+        int bubbleColumnDragRuntimeId = -1;
+        int soulSandRuntimeId = -1;
+        int iceRuntimeId = -1;
         Iterator<Map.Entry<String, JsonNode>> blocksIterator = blocksJson.fields();
         while (blocksIterator.hasNext()) {
             javaRuntimeId++;
@@ -357,6 +361,16 @@ public final class BlockRegistryPopulator {
                 honeyBlockRuntimeId = javaRuntimeId;
             } else if (javaId.equals("minecraft:slime_block")) {
                 slimeBlockRuntimeId = javaRuntimeId;
+            } else if (javaId.startsWith("minecraft:bubble_column")) {
+                if (javaId.contains("drag=true")) {
+                    bubbleColumnDragRuntimeId = javaRuntimeId;
+                } else {
+                    bubbleColumnUpwardRuntimeId = javaRuntimeId;
+                }
+            } else if (javaId.equals("minecraft:soul_sand")) {
+                soulSandRuntimeId = javaRuntimeId;
+            } else if (javaId.equals("minecraft:ice")) {
+                iceRuntimeId = javaRuntimeId;
             }
         }
 
@@ -394,6 +408,26 @@ public final class BlockRegistryPopulator {
             throw new AssertionError("Unable to find Java water in palette");
         }
         BlockStateValues.JAVA_WATER_ID = waterRuntimeId;
+
+        if (bubbleColumnDragRuntimeId == -1) {
+            throw new AssertionError("Unable to find drag bubble column in palette");
+        }
+        BlockStateValues.JAVA_BUBBLE_COLUMN_DRAG_ID = bubbleColumnDragRuntimeId;
+
+        if (bubbleColumnUpwardRuntimeId == -1) {
+            throw new AssertionError("Unable to find upward bubble column in palette");
+        }
+        BlockStateValues.JAVA_BUBBLE_COLUMN_UPWARD_ID = bubbleColumnUpwardRuntimeId;
+
+        if (soulSandRuntimeId == -1) {
+            throw new AssertionError("Unable to find soul sand in palette");
+        }
+        BlockStateValues.JAVA_SOUL_SAND_ID = soulSandRuntimeId;
+
+        if (iceRuntimeId == -1) {
+            throw new AssertionError("Unable to find ice in palette");
+        }
+        BlockStateValues.JAVA_ICE_ID = iceRuntimeId;
 
         BlockRegistries.CLEAN_JAVA_IDENTIFIERS.set(cleanIdentifiers.toArray(new String[0]));
 

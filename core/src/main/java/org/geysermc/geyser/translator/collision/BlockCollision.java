@@ -166,4 +166,15 @@ public class BlockCollision {
         }
         return offset;
     }
+
+    public boolean isBelow(double y, BoundingBox boundingBox) {
+        double minY = boundingBox.getMiddleY() - boundingBox.getSizeY() / 2;
+        for (BoundingBox b : boundingBoxes) {
+            double offset = y + b.getMiddleY() + b.getSizeY() / 2 - minY;
+            if (offset > CollisionManager.COLLISION_TOLERANCE) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

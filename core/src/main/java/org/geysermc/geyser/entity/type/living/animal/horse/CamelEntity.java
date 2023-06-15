@@ -25,25 +25,37 @@
 
 package org.geysermc.geyser.entity.type.living.animal.horse;
 
+import com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute;
+import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeType;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.entity.type.Tickable;
+import org.geysermc.geyser.entity.vehicle.CamelVehicleComponent;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
+import org.geysermc.geyser.entity.vehicle.VehicleComponent;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 
+import javax.annotation.Nonnull;
 import java.util.UUID;
 
-public class CamelEntity extends AbstractHorseEntity {
-
+public class CamelEntity extends AbstractHorseEntity implements Tickable, ClientVehicle {
     public static final float SITTING_HEIGHT_DIFFERENCE = 1.43F;
+
+    private final CamelVehicleComponent vehicleComponent = new CamelVehicleComponent(this);
+    private int dashTicks;
 
     public CamelEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
@@ -111,6 +123,64 @@ public class CamelEntity extends AbstractHorseEntity {
     }
 
     public void setDashing(BooleanEntityMetadata entityMetadata) {
+        if (entityMetadata.getPrimitiveValue()) {
+            setFlag(EntityFlag.HAS_DASH_COOLDOWN, true);
+            dashTicks = 55;
+        }
+    }
 
+    @Override
+    protected AttributeData calculateAttribute(Attribute javaAttribute, GeyserAttributeType type) {
+        AttributeData attributeData = super.calculateAttribute(javaAttribute, type);
+        if (javaAttribute.getType() == AttributeType.Builtin.HORSE_JUMP_STRENGTH) {
+            vehicleComponent.setHorseJumpStrength(attributeData.getValue());
+        }
+        return attributeData;
+    }
+
+    @Override
+    public void tick() {
+        vehicleComponent.tickVehicle(this);
+        if (dashTicks > 0 && --dashTicks == 0) {
+            setFlag(EntityFlag.HAS_DASH_COOLDOWN, false);
+            updateBedrockMetadata();
+        }
+    }
+
+    @Nonnull
+    @Override
+    public VehicleComponent<?> getVehicleComponent() {
+        return vehicleComponent;
+    }
+
+    @Nonnull
+    @Override
+    public Vector2f getAdjustedInput(Vector2f input) {
+        return input.mul(0.5f, input.getY() < 0 ? 0.25f : 1.0f);
+    }
+
+    @Override
+    public boolean isLogicalSideForUpdatingMovement() {
+        return getFlag(EntityFlag.SADDLED) && !passengers.isEmpty() && passengers.get(0) == session.getPlayerEntity();
+    }
+
+    @Override
+    public float getSaddledSpeed() {
+        float moveSpeed = vehicleComponent.getMoveSpeed();
+        if (dashTicks == 0 && session.getPlayerEntity().getFlag(EntityFlag.SPRINTING)) {
+            return moveSpeed + 0.1f;
+        }
+
+        return moveSpeed;
+    }
+
+    @Override
+    public float getStepHeight() {
+        return 1.5f;
+    }
+
+    @Override
+    public boolean canClimb() {
+        return false;
     }
 }

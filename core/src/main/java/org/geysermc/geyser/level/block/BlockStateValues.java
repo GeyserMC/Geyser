@@ -39,6 +39,7 @@ import org.geysermc.geyser.util.collection.FixedInt2IntMap;
 import org.geysermc.geyser.util.collection.LecternHasBookMap;
 
 import java.util.Locale;
+import java.util.Optional;
 
 /**
  * Used for block entities if the Java block state contains Bedrock block information.
@@ -66,6 +67,10 @@ public final class BlockStateValues {
     private static final Int2IntMap SKULL_WALL_DIRECTIONS = new Int2IntOpenHashMap();
     private static final Int2ByteMap SHULKERBOX_DIRECTIONS = new FixedInt2ByteMap();
     private static final Int2IntMap WATER_LEVEL = new Int2IntOpenHashMap();
+    private static final Int2IntMap LAVA_LEVEL = new Int2IntOpenHashMap();
+    private static final IntSet ALL_CLIMBABLE = new IntOpenHashSet();
+    private static final Int2ObjectMap<Direction> LADDER_DIRECTION = new Int2ObjectOpenHashMap<>();
+    private static final Int2ObjectMap<Direction> OPEN_TRAPDOOR_DIRECTION = new Int2ObjectOpenHashMap<>();
 
     public static final int JAVA_AIR_ID = 0;
 
@@ -76,8 +81,12 @@ public final class BlockStateValues {
     public static int JAVA_SLIME_BLOCK_ID;
     public static int JAVA_SPAWNER_ID;
     public static int JAVA_WATER_ID;
+    public static int JAVA_BUBBLE_COLUMN_DRAG_ID;
+    public static int JAVA_BUBBLE_COLUMN_UPWARD_ID;
+    public static int JAVA_SOUL_SAND_ID;
+    public static int JAVA_ICE_ID;
 
-    public static final int NUM_WATER_LEVELS = 9;
+    public static final int NUM_FLUID_LEVELS = 9;
 
     /**
      * Determines if the block state contains Bedrock block information
@@ -193,6 +202,13 @@ public final class BlockStateValues {
             return;
         }
 
+        if (javaId.startsWith("minecraft:lava") && !javaId.contains("cauldron")) {
+            String strLevel = javaId.substring(javaId.lastIndexOf("level=") + 6, javaId.length() - 1);
+            int level = Integer.parseInt(strLevel);
+            LAVA_LEVEL.put(javaBlockState, level);
+            return;
+        }
+
         if (javaId.startsWith("minecraft:jigsaw[orientation=")) {
             String blockStateData = javaId.substring(javaId.indexOf("orientation=") + "orientation=".length(), javaId.lastIndexOf('_'));
             Direction direction = Direction.valueOf(blockStateData.toUpperCase(Locale.ROOT));
@@ -207,6 +223,18 @@ public final class BlockStateValues {
         }
         if (javaId.contains("_cauldron") && !javaId.contains("water_")) {
              NON_WATER_CAULDRONS.add(javaBlockState);
+        }
+
+        if (javaId.contains("vine") || javaId.startsWith("minecraft:ladder") || javaId.startsWith("minecraft:scaffolding")) {
+            ALL_CLIMBABLE.add(javaBlockState);
+        }
+
+        if (javaId.startsWith("minecraft:ladder")) {
+            LADDER_DIRECTION.put(javaBlockState, getBlockDirection(javaId));
+        }
+
+        if (javaId.contains("_trapdoor[") && javaId.contains("open=true")) {
+            OPEN_TRAPDOOR_DIRECTION.put(javaBlockState, getBlockDirection(javaId));
         }
     }
 
@@ -467,6 +495,24 @@ public final class BlockStateValues {
     }
 
     /**
+     * Get the type of fluid from the block state.
+     *
+     * @param state BlockState of the block
+     * @return The type of fluid
+     */
+    public static Fluid getFluid(int state) {
+        if (WATER_LEVEL.containsKey(state) || BlockRegistries.WATERLOGGED.get().get(state)) {
+            return Fluid.WATER;
+        }
+
+        if (LAVA_LEVEL.containsKey(state)) {
+            return Fluid.LAVA;
+        }
+
+        return Fluid.EMPTY;
+    }
+
+    /**
      * Get the level of water from the block state.
      *
      * @param state BlockState of the block
@@ -490,7 +536,7 @@ public final class BlockStateValues {
             waterLevel = 0;
         }
         if (waterLevel >= 0) {
-            double waterHeight = 1 - (waterLevel + 1) / ((double) NUM_WATER_LEVELS);
+            double waterHeight = 1 - (waterLevel + 1) / ((double) NUM_FLUID_LEVELS);
             // Falling water is a full block
             if (waterLevel >= 8) {
                 waterHeight = 1;
@@ -498,6 +544,39 @@ public final class BlockStateValues {
             return waterHeight;
         }
         return -1;
+    }
+
+    /**
+     * Get the level of lava from the block state.
+     *
+     * @param state BlockState of the block
+     * @return The lava level or -1 if the block isn't lava
+     */
+    public static int getLavaLevel(int state) {
+        return LAVA_LEVEL.getOrDefault(state, -1);
+    }
+
+    /**
+     * Get the height of lava from the block state
+     *
+     * @param state BlockState of the block
+     * @return The lava height or -1 if the block does not contain lava
+     */
+    public static double getLavaHeight(int state) {
+        int lavaLevel = BlockStateValues.getLavaLevel(state);
+        if (lavaLevel >= 0) {
+            double lavaHeight = 1 - (lavaLevel + 1) / ((double) NUM_FLUID_LEVELS);
+            // Falling lava is a full block
+            if (lavaLevel >= 8) {
+                lavaHeight = 1;
+            }
+            return lavaHeight;
+        }
+        return -1;
+    }
+
+    public static boolean isClimbable(int state) {
+        return ALL_CLIMBABLE.contains(state);
     }
 
     /**
@@ -515,6 +594,28 @@ public final class BlockStateValues {
             case "minecraft:blue_ice" -> 0.989f;
             default -> 0.6f;
         };
+    }
+
+    /**
+     * Get the direction of a ladder.
+     * Used when determining if an entity is climbing
+     *
+     * @param state BlockState of the block
+     * @return The ladder's direction, or empty if not a ladder
+     */
+    public static Optional<Direction> getLadderDirection(int state) {
+        return Optional.ofNullable(LADDER_DIRECTION.get(state));
+    }
+
+    /**
+     * Get the direction of an open trapdoor.
+     * Used when determining if an entity is climbing
+     *
+     * @param state BlockState of the block
+     * @return The open trapdoor's direction, or empty if not an open trapdoor
+     */
+    public static Optional<Direction> getOpenTrapdoorDirection(int state) {
+        return Optional.ofNullable(OPEN_TRAPDOOR_DIRECTION.get(state));
     }
 
     private static Direction getBlockDirection(String javaId) {

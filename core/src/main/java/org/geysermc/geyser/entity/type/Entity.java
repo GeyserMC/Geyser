@@ -50,6 +50,7 @@ import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.EntityUtils;
@@ -225,6 +226,13 @@ public class Entity implements GeyserEntity {
     }
 
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        if (this instanceof ClientVehicle clientVehicle) {
+            if (clientVehicle.isLogicalSideForUpdatingMovement()) {
+                return;
+            }
+            clientVehicle.getVehicleComponent().moveRelative(relX, relY, relZ);
+        }
+
         position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
 
         MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
@@ -443,6 +451,10 @@ public class Entity implements GeyserEntity {
             dirtyMetadata.put(EntityDataTypes.HEIGHT, boundingBoxHeight);
 
             updatePassengerOffsets();
+
+            if (valid && this instanceof ClientVehicle clientVehicle) {
+                clientVehicle.getVehicleComponent().setHeight(boundingBoxHeight);
+            }
             return true;
         }
         return false;
@@ -452,6 +464,10 @@ public class Entity implements GeyserEntity {
         if (width != boundingBoxWidth) {
             boundingBoxWidth = width;
             dirtyMetadata.put(EntityDataTypes.WIDTH, boundingBoxWidth);
+
+            if (valid && this instanceof ClientVehicle clientVehicle) {
+                clientVehicle.getVehicleComponent().setWidth(boundingBoxWidth);
+            }
         }
     }
 
