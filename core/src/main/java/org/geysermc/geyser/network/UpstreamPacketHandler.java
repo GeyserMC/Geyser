@@ -187,7 +187,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             PackCodec codec = pack.codec();
             ResourcePackManifest.Header header = pack.manifest().header();
             resourcePacksInfo.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(
-                    header.uuid().toString(), header.versionString(), codec.size(), pack.contentKey(),
+                    header.uuid().toString(), header.version().toString(), codec.size(), pack.contentKey(),
                     "", header.uuid().toString(), false, false));
         }
         resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().getConfig().isForceResourcePacks());
@@ -223,7 +223,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
                 for (ResourcePack pack : this.resourcePackLoadEvent.resourcePacks()) {
                     ResourcePackManifest.Header header = pack.manifest().header();
-                    stackPacket.getResourcePacks().add(new ResourcePackStackPacket.Entry(header.uuid().toString(), header.versionString(), ""));
+                    stackPacket.getResourcePacks().add(new ResourcePackStackPacket.Entry(header.uuid().toString(), header.version().toString(), ""));
                 }
 
                 if (GeyserImpl.getInstance().getConfig().isAddNonBedrockItems()) {

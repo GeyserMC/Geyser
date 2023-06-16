@@ -104,14 +104,6 @@ public interface ResourcePackManifest {
         String description();
 
         /**
-         * Gets the version string of the resource pack.
-         *
-         * @return the version string
-         */
-        @NonNull
-        String versionString();
-
-        /**
          * Gets the minimum supported Minecraft version of the resource pack.
          *
          * @return the minimum supported Minecraft version
@@ -202,6 +194,13 @@ public interface ResourcePackManifest {
          * @return the patch version
          */
         int patch();
+
+        /**
+         * Gets the version formatted as a String.
+         *
+         * @return the version string
+         */
+        @NonNull String toString();
     }
 }
 

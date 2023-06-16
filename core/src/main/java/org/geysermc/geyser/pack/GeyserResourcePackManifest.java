@@ -39,12 +39,7 @@ import java.util.UUID;
 
 public record GeyserResourcePackManifest(@JsonProperty("format_version") int formatVersion, Header header, Collection<Module> modules, Collection<Dependency> dependencies) implements ResourcePackManifest {
 
-    public record Header(UUID uuid, Version version, String name, String description, @JsonProperty("min_engine_version") Version minimumSupportedMinecraftVersion) implements ResourcePackManifest.Header {
-        @Override
-        public @NotNull String versionString() {
-            return version.major() + "." + version.minor() + "." + version.patch();
-        }
-    }
+    public record Header(UUID uuid, Version version, String name, String description, @JsonProperty("min_engine_version") Version minimumSupportedMinecraftVersion) implements ResourcePackManifest.Header { }
 
     public record Module(UUID uuid, Version version, String type, String description) implements ResourcePackManifest.Module { }
 
@@ -52,6 +47,12 @@ public record GeyserResourcePackManifest(@JsonProperty("format_version") int for
 
     @JsonDeserialize(using = Version.VersionDeserializer.class)
     public record Version(int major, int minor, int patch) implements ResourcePackManifest.Version {
+
+        @Override
+        public @NotNull String toString() {
+            return major + "." + minor + "." + patch;
+        }
+
         public static class VersionDeserializer extends JsonDeserializer<Version> {
             @Override
             public Version deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
