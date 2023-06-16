@@ -72,8 +72,6 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
             } catch (IOException e) {
                 GeyserImpl.getInstance().getLogger().error("Could not create packs directory", e);
             }
-
-            return packMap; // As we just created the directory it will be empty
         }
 
         List<Path> resourcePacks;
@@ -82,7 +80,11 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
                     .collect(Collectors.toCollection(ArrayList::new)); // toList() does not guarantee mutability
         } catch (Exception e) {
             GeyserImpl.getInstance().getLogger().error("Could not list packs directory", e);
-            return packMap;
+
+            // Ensure the event is fired even if there was an issue reading
+            // from our own resource pack directory. External projects may have
+            // resource packs located at different locations.
+            resourcePacks = new ArrayList<>();
         }
 
         GeyserLoadResourcePacksEvent event = new GeyserLoadResourcePacksEvent(resourcePacks);
@@ -108,6 +110,10 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
      * @throws IllegalArgumentException if the pack manifest was invalid or there was any processing exception
      */
     public static GeyserResourcePack readPack(Path path) throws IllegalArgumentException {
+        if (!path.getFileName().toString().endsWith(".mcpack") && !path.getFileName().toString().endsWith(".zip")) {
+            throw new IllegalArgumentException("Resource pack " + path.getFileName() + " must be a .zip or .mcpack file!");
+        }
+
         AtomicReference<GeyserResourcePackManifest> manifestReference = new AtomicReference<>();
 
         try (ZipFile zip = new ZipFile(path.toFile());
