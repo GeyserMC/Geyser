@@ -42,19 +42,25 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
     }
 
     /**
+     * Gets an unmodifiable list of {@link ResourcePack}s that will be sent to the client.
+     *
      * @return an unmodifiable list of resource packs that will be sent to the client.
      */
     public abstract @NonNull List<ResourcePack> resourcePacks();
 
     /**
+     * Registers a {@link ResourcePack} to be sent to the client.
+     *
      * @param resourcePack a resource pack that will be sent to the client.
-     * @return true if the resource pack was added to the list of resource packs to be sent to the client.
-     * Returns false if the resource pack is already in the list.
+     * @return true if the resource pack was added successfully,
+     *         or false if already present
      */
     public abstract boolean register(@NonNull ResourcePack resourcePack);
 
     /**
-     * @param uuid a resource pack that will be sent to the client.
+     * Unregisters a resource pack from being sent to the client.
+     *
+     * @param uuid the UUID of the resource pack
      * @return true whether the resource pack was removed from the list of resource packs.
      */
     public abstract boolean unregister(@NonNull UUID uuid);

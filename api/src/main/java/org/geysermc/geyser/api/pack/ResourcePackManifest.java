@@ -180,6 +180,9 @@ public interface ResourcePackManifest {
         Version version();
     }
 
+    /**
+     * Represents a version of a resource pack.
+     */
     interface Version {
 
         /**
