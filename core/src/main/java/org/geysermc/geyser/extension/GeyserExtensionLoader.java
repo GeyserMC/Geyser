@@ -167,8 +167,10 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                         }
 
                         // Completely different API version - or if the extension requires new API features, being backwards compatible
-                        if (GeyserApi.api().geyserApiVersion().isCompatible(new ApiVersion(description.majorApiVersion(), description.minorApiVersion(), description.patchApiVersion()))) {
+                        if (!GeyserApi.api().geyserApiVersion().isCompatible(new ApiVersion(description.majorApiVersion(), description.minorApiVersion(), description.patchApiVersion()))) {
+
                             // workaround for the switch to Geyser API version
+                            // remove this at some point - probably when we hit 2.0
                             if (description.majorApiVersion() != 1) {
                                 GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, description.apiVersion()));
                                 return;

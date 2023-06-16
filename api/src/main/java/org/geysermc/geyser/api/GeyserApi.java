@@ -119,10 +119,11 @@ public interface GeyserApi extends GeyserApiBase {
     }
 
     /**
-     * Gets the {@link org.geysermc.api.util.ApiVersion} Geyser API version
+     * Gets the {@link ApiVersion} Geyser API version
+     *
      * @return the current geyser api version
      */
-     default org.geysermc.api.util.ApiVersion geyserApiVersion() {
+     default ApiVersion geyserApiVersion() {
         return new ApiVersion(2, 1, 1);
      }
 }
