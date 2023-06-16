@@ -34,22 +34,21 @@ import org.geysermc.geyser.api.network.RemoteServer;
 
 /**
  * Called when a session has logged in, and is about to connect to a remote java server.
+ * This event is cancellable, and can be used to prevent the player from connecting to the remote server.
  */
 public final class SessionLoginEvent extends ConnectionEvent implements Cancellable {
     private RemoteServer remoteServer;
     private boolean cancelled;
     private String disconnectReason;
 
-    /**
-     * @param connection The connection that is logging in.
-     * @param remoteServer The {@link RemoteServer} the section will try to connect to.
-     */
     public SessionLoginEvent(@NonNull GeyserConnection connection, @NonNull RemoteServer remoteServer) {
         super(connection);
         this.remoteServer = remoteServer;
     }
 
     /**
+     * Returns whether the event is cancelled.
+     *
      * @return The cancel status of the event.
      */
     @Override
@@ -58,9 +57,11 @@ public final class SessionLoginEvent extends ConnectionEvent implements Cancella
     }
 
     /**
-     * @param cancelled If the login event should be cancelled.
+     * Cancels the login event, and disconnects the player.
      * If cancelled, the player disconnects without connecting to the remote server.
      * This method will use a default disconnect reason. To specify one, use {@link #setCancelled(boolean, String)}.
+     *
+     * @param cancelled If the login event should be cancelled.
      */
     @Override
     public void setCancelled(boolean cancelled) {
@@ -68,9 +69,11 @@ public final class SessionLoginEvent extends ConnectionEvent implements Cancella
     }
 
     /**
+     * Cancels the login event, and disconnects the player with the specified reason.
+     * If cancelled, the player disconnects without connecting to the remote server.
+     *
      * @param cancelled If the login event should be cancelled.
      * @param disconnectReason The reason for the cancellation.
-     * If cancelled, the player disconnects without connecting to the remote server.
      */
     public void setCancelled(boolean cancelled, @NonNull String disconnectReason) {
         this.cancelled = cancelled;
@@ -78,22 +81,27 @@ public final class SessionLoginEvent extends ConnectionEvent implements Cancella
     }
 
     /**
+     * Returns the reason for the cancellation, or null if there is no reason given.
+     *
      * @return The reason for the cancellation.
-     * Returns null if there is no reason given.
      */
     public @Nullable String disconnectReason() {
         return this.disconnectReason;
     }
 
     /**
-     * @return The {@link RemoteServer} the section will connect to.
+     * Gets the {@link RemoteServer} the section will attempt to connect to.
+     *
+     * @return the {@link RemoteServer} the section will attempt to connect to.
      */
     public @NonNull RemoteServer remoteServer() {
         return this.remoteServer;
     }
 
     /**
-     * @param remoteServer Sets the {@link RemoteServer}  to connect to.
+     * Sets the {@link RemoteServer} to connect the session to.
+     *
+     * @param remoteServer Sets the {@link RemoteServer} to connect to.
      */
     public void remoteServer(@NonNull RemoteServer remoteServer) {
         this.remoteServer = remoteServer;
