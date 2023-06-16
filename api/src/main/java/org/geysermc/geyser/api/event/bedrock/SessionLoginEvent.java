@@ -72,7 +72,7 @@ public final class SessionLoginEvent extends ConnectionEvent implements Cancella
      * @param disconnectReason The reason for the cancellation.
      * If cancelled, the player disconnects without connecting to the remote server.
      */
-    public void setCancelled(boolean cancelled,  @NonNull String disconnectReason) {
+    public void setCancelled(boolean cancelled, @NonNull String disconnectReason) {
         this.cancelled = cancelled;
         this.disconnectReason = disconnectReason;
     }
