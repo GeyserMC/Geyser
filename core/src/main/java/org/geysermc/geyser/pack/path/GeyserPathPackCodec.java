@@ -27,6 +27,7 @@ package org.geysermc.geyser.pack.path;
 
 import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.pack.PathPackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.registry.loader.ResourcePackLoader;
@@ -37,25 +38,41 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 
 @RequiredArgsConstructor
 public class GeyserPathPackCodec extends PathPackCodec {
     private final Path path;
+    private FileTime lastModified;
+
+    private byte[] sha256;
+    private long size = -1;
 
     @Override
     public @NonNull Path path() {
+        this.checkLastModified();
         return this.path;
     }
 
     @Override
     public byte @NonNull [] sha256() {
-        return FileUtils.calculateSHA256(this.path);
+        this.checkLastModified();
+        if (this.sha256 != null) {
+            return this.sha256;
+        }
+
+        return this.sha256 = FileUtils.calculateSHA256(this.path);
     }
 
     @Override
     public long size() {
+        this.checkLastModified();
+        if (this.size != -1) {
+            return this.size;
+        }
+
         try {
-            return Files.size(this.path);
+            return this.size = Files.size(this.path);
         } catch (IOException e) {
             throw new RuntimeException("Could not get file size of path " + this.path, e);
         }
@@ -69,5 +86,24 @@ public class GeyserPathPackCodec extends PathPackCodec {
     @Override
     protected @NonNull ResourcePack create() {
         return ResourcePackLoader.readPack(this.path);
+    }
+
+    private void checkLastModified() {
+        try {
+            FileTime lastModified = Files.getLastModifiedTime(this.path);
+            if (this.lastModified == null) {
+                this.lastModified = lastModified;
+                return;
+            }
+
+            if (lastModified.toInstant().isAfter(this.lastModified.toInstant())) {
+                GeyserImpl.getInstance().getLogger().warning("Detected a change in the resource pack " + path + ". This is likely to cause undefined behavior for new clients joining. It is suggested you restart Geyser.");
+                this.lastModified = lastModified;
+                this.sha256 = null;
+                this.size = -1;
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
