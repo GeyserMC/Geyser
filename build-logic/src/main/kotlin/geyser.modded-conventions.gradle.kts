@@ -2,7 +2,7 @@ import net.fabricmc.loom.task.RemapJarTask
 import org.gradle.kotlin.dsl.dependencies
 
 plugins {
-    id("geyser.platform-conventions")
+    id("geyser.publish-conventions")
     id("architectury-plugin")
     id("dev.architectury.loom")
     id("com.modrinth.minotaur")

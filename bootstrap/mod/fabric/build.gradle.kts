@@ -1,3 +1,7 @@
+plugins {
+    application
+}
+
 architectury {
     platformSetupLoomIde()
     fabric()

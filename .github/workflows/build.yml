@@ -120,7 +120,7 @@ jobs:
           echo "{\"project\": \"$project\", \"version\": \"$version\", \"id\": $GITHUB_RUN_NUMBER, \"commit\": \"$GITHUB_SHA\"}" > metadata.json
           rsync -P -e "ssh -o StrictHostKeyChecking=no -i id_ecdsa" metadata.json $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP:~/uploads/$project/$GITHUB_RUN_NUMBER/
 
-      - name: Publish to Modrinth
+      - name: Publish to Modrinth (Fabric)
         uses: gradle/gradle-build-action@v2
         if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
         env:
@@ -128,7 +128,16 @@ jobs:
         with:
           arguments: fabric:modrinth
           gradle-home-cache-cleanup: true
-          
+
+      - name: Publish to Modrinth (Forge)
+        uses: gradle/gradle-build-action@v2
+        if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+        with:
+          arguments: forge:modrinth
+          gradle-home-cache-cleanup: true
+
       - name: Notify Discord
         if: ${{ (success() || failure()) && github.repository == 'GeyserMC/Geyser' }}
         uses: Tim203/actions-git-discord-webhook@main
