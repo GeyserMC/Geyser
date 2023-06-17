@@ -33,7 +33,7 @@ import lombok.experimental.UtilityClass;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2i;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
+import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
 import org.cloudburstmc.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;

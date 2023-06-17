@@ -28,7 +28,7 @@ package org.geysermc.geyser.registry.type;
 import lombok.Builder;
 import lombok.Value;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
+import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
 
 import java.util.Map;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,42 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.inventory.item;
+package org.geysermc.geyser.item.type;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.registry.type.ItemMapping;
+import com.github.steveice10.opennbt.tag.builtin.ListTag;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.session.GeyserSession;
 
-public abstract class NbtItemStackTranslator {
+public class DecoratedPotItem extends BlockItem {
 
-    /**
-     * Translate the item NBT to Bedrock
-     * @param session the client's current session
-     * @param itemTag the item's CompoundTag (cloned from Geyser's cached copy)
-     * @param mapping Geyser's item mapping
-     */
-    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
-
+    public DecoratedPotItem(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
     }
 
-    /**
-     * Translate the item NBT to Java.
-     * @param itemTag the item's CompoundTag
-     * @param mapping Geyser's item mapping
-     */
-    public void translateToJava(CompoundTag itemTag, ItemMapping mapping) {
+    @Override
+    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag) {
+        super.translateNbtToBedrock(session, tag);
 
+        if (tag.remove("BlockEntityTag") instanceof CompoundTag blockEntityTag) {
+            if (blockEntityTag.remove("sherds") instanceof ListTag sherds) {
+                // bedrock wants it on the root level
+                tag.put(sherds);
+            }
+        }
     }
-
-    /**
-     * Gets whether this nbt translator takes in this item.
-     *
-     * @param item Geyser's item mapping
-     * @return if the item should be processed under this class
-     */
-    public boolean acceptItem(Item item) {
-        return true;
-    } // TODO
-
 }

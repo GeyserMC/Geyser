@@ -45,7 +45,9 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
                 return;
             }
 
-            session.sendCommand(command.substring(1));
+            // running commands via Bedrock's command select menu adds a trailing whitespace which Java doesn't like
+            // https://github.com/GeyserMC/Geyser/issues/3877
+            session.sendCommand(command.substring(1).stripTrailing());
         }
     }
 }

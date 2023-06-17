@@ -37,6 +37,7 @@ import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.api.util.PlatformType;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
 
@@ -107,6 +108,22 @@ public interface GeyserApi extends GeyserApiBase {
      */
     @NonNull
     BedrockListener bedrockListener();
+
+    /**
+     * Gets the {@link Path} to the Geyser config directory.
+     *
+     * @return the path to the Geyser config directory
+     */
+    @NonNull
+    Path configDirectory();
+
+    /**
+     * Gets the {@link Path} to the Geyser packs directory.
+     *
+     * @return the path to the Geyser packs directory
+     */
+    @NonNull
+    Path packDirectory();
 
     /**
      * Gets {@link PlatformType} the extension is running on

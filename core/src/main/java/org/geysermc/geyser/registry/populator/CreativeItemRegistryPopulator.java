@@ -28,7 +28,7 @@ package org.geysermc.geyser.registry.populator;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtUtils;
-import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
@@ -54,18 +54,18 @@ public class CreativeItemRegistryPopulator {
             (identifier, data) -> identifier.equals("minecraft:bordure_indented_banner_pattern") || identifier.equals("minecraft:field_masoned_banner_pattern")
     );
 
-    static void populate(Map.Entry<String, ItemRegistryPopulator.PaletteVersion> version, Map<String, ItemDefinition> definitions, Consumer<ItemData.Builder> itemConsumer) {
+    static void populate(ItemRegistryPopulator.PaletteVersion palette, Map<String, ItemDefinition> definitions, Consumer<ItemData.Builder> itemConsumer) {
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
         // Load creative items
         JsonNode creativeItemEntries;
-        try (InputStream stream = bootstrap.getResource(String.format("bedrock/creative_items.%s.json", version.getKey()))) {
+        try (InputStream stream = bootstrap.getResource(String.format("bedrock/creative_items.%s.json", palette.version()))) {
             creativeItemEntries = GeyserImpl.JSON_MAPPER.readTree(stream).get("items");
         } catch (Exception e) {
             throw new AssertionError("Unable to load creative items", e);
         }
 
-        BlockMappings blockMappings = BlockRegistries.BLOCKS.forVersion(version.getValue().protocolVersion());
+        BlockMappings blockMappings = BlockRegistries.BLOCKS.forVersion(palette.protocolVersion());
         for (JsonNode itemNode : creativeItemEntries) {
             ItemData.Builder itemBuilder = createItemData(itemNode, blockMappings, definitions);
             if (itemBuilder == null) {

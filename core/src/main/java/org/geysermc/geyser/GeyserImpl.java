@@ -69,9 +69,9 @@ import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.extension.GeyserExtensionManager;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.netty.GeyserServer;
-import org.geysermc.geyser.pack.ResourcePack;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
@@ -90,6 +90,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.nio.file.Path;
 import java.security.Key;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -258,7 +259,7 @@ public class GeyserImpl implements GeyserApi {
 
         SkinProvider.registerCacheImageTask(this);
 
-        ResourcePack.loadPacks();
+        Registries.RESOURCE_PACKS.load();
 
         String geyserUdpPort = System.getProperty("geyserUdpPort", "");
         String pluginUdpPort = geyserUdpPort.isEmpty() ? System.getProperty("pluginUdpPort", "") : geyserUdpPort;
@@ -622,7 +623,7 @@ public class GeyserImpl implements GeyserApi {
             this.erosionUnixListener.close();
         }
 
-        ResourcePack.PACKS.clear();
+        Registries.RESOURCE_PACKS.get().clear();
 
         this.eventBus.fire(new GeyserShutdownEvent(this.extensionManager, this.eventBus));
         this.extensionManager.disableExtensions();
@@ -679,6 +680,18 @@ public class GeyserImpl implements GeyserApi {
     @NonNull
     public BedrockListener bedrockListener() {
         return getConfig().getBedrock();
+    }
+
+    @Override
+    @NonNull
+    public Path configDirectory() {
+        return bootstrap.getConfigFolder();
+    }
+
+    @Override
+    @NonNull
+    public Path packDirectory() {
+        return bootstrap.getConfigFolder().resolve("packs");
     }
 
     @Override
