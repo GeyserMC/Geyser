@@ -39,10 +39,17 @@ application {
 
 tasks {
     remapJar {
-        dependsOn(shadowJar)
-        inputFile.set(shadowJar.get().archiveFile)
         archiveBaseName.set("Geyser-Fabric")
-        archiveClassifier.set("")
-        archiveVersion.set("")
+    }
+
+    remapModrinthJar {
+        archiveBaseName.set("geyser-fabric")
+    }
+}
+
+modrinth {
+    loaders.add("fabric")
+    dependencies {
+        required.project("fabric-api")
     }
 }

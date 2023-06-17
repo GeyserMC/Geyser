@@ -41,10 +41,14 @@ application {
 
 tasks {
     remapJar {
-        dependsOn(shadowJar)
-        inputFile.set(shadowJar.get().archiveFile)
         archiveBaseName.set("Geyser-Forge")
-        archiveClassifier.set("")
-        archiveVersion.set("")
     }
+
+    remapModrinthJar {
+        archiveBaseName.set("geyser-forge")
+    }
+}
+
+modrinth {
+    loaders.add("forge")
 }

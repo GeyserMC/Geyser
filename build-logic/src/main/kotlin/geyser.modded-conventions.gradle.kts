@@ -1,9 +1,11 @@
+import net.fabricmc.loom.task.RemapJarTask
 import org.gradle.kotlin.dsl.dependencies
 
 plugins {
     id("geyser.platform-conventions")
     id("architectury-plugin")
     id("dev.architectury.loom")
+    id("com.modrinth.minotaur")
 }
 
 architectury {
@@ -52,9 +54,37 @@ tasks {
             exclude(dependency("io.netty:netty-resolver-dns-native-macos:.*"))
         }
     }
+
+    remapJar {
+        dependsOn(shadowJar)
+        inputFile.set(shadowJar.get().archiveFile)
+        archiveClassifier.set("")
+        archiveVersion.set("")
+    }
+
+    register("remapModrinthJar", RemapJarTask::class) {
+        dependsOn(shadowJar)
+        inputFile.set(shadowJar.get().archiveFile)
+        archiveVersion.set(project.version.toString() + "+build."  + System.getenv("GITHUB_RUN_NUMBER"))
+        archiveClassifier.set("")
+    }
 }
 
 dependencies {
     minecraft("com.mojang:minecraft:1.20")
     mappings(loom.officialMojangMappings())
+}
+
+modrinth {
+    token.set(System.getenv("MODRINTH_TOKEN")) // Even though this is the default value, apparently this prevents GitHub Actions caching the token?
+    projectId.set("wKkoqHrH")
+    versionNumber.set(project.version as String + "-" + System.getenv("GITHUB_RUN_NUMBER"))
+    versionType.set("beta")
+    changelog.set("A changelog can be found at https://github.com/GeyserMC/Geyser/commits")
+
+    syncBodyFrom.set(rootProject.file("README.md").readText())
+
+    uploadFile.set(tasks.getByPath("remapModrinthJar"))
+    gameVersions.addAll("1.20")
+    failSilently.set(true)
 }
