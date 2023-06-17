@@ -25,13 +25,16 @@
 
 package org.geysermc.geyser.platform.fabric;
 
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.world.entity.player.Player;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.platform.mod.GeyserModUpdateListener;
+import org.jetbrains.annotations.NotNull;
 
 public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInitializer {
 
@@ -55,5 +58,15 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
         ServerLifecycleEvents.SERVER_STOPPING.register((server) -> onDisable());
 
         ServerPlayConnectionEvents.JOIN.register((handler, $, $$) -> GeyserModUpdateListener.onPlayReady(handler.getPlayer()));
+    }
+
+    @Override
+    public boolean hasPermission(@NotNull Player source, @NotNull String permissionNode) {
+        return Permissions.check(source, permissionNode);
+    }
+
+    @Override
+    public boolean hasPermission(@NotNull Player source, @NotNull String permissionNode, int permissionLevel) {
+        return Permissions.check(source, permissionNode, permissionLevel);
     }
 }

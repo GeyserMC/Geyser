@@ -26,7 +26,6 @@
 package org.geysermc.geyser.platform.forge;
 
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.fml.loading.FMLPaths;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.api.util.PlatformType;
@@ -69,15 +68,5 @@ public class GeyserForgePlatform implements GeyserModPlatform {
     @Override
     public @Nullable InputStream resolveResource(@NotNull String resource) {
         return GeyserBootstrap.class.getClassLoader().getResourceAsStream(resource);
-    }
-
-    @Override
-    public boolean hasPermission(@NotNull Player source, @NotNull String permissionNode) {
-        return true; // TODO
-    }
-
-    @Override
-    public boolean hasPermission(@NotNull Player source, @NotNull String permissionNode, int permissionLevel) {
-        return true; // TODO
     }
 }

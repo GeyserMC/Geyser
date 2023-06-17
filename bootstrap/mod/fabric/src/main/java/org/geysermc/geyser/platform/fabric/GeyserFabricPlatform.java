@@ -25,11 +25,9 @@
 
 package org.geysermc.geyser.platform.fabric;
 
-import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.entity.player.Player;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
@@ -96,15 +94,5 @@ public class GeyserFabricPlatform implements GeyserModPlatform {
         } catch (IOException e) {
             return null;
         }
-    }
-
-    @Override
-    public boolean hasPermission(@NotNull Player source, @NotNull String permissionNode) {
-        return Permissions.check(source, permissionNode);
-    }
-
-    @Override
-    public boolean hasPermission(@NotNull Player source, @NotNull String permissionNode, int permissionLevel) {
-        return Permissions.check(source, permissionNode, permissionLevel);
     }
 }

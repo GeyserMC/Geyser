@@ -107,6 +107,9 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
 
         this.geyser = GeyserImpl.load(this.platform.platformType(), this);
 
+        this.geyserCommandManager = new GeyserCommandManager(geyser);
+        this.geyserCommandManager.init();
+
         if (server == null) {
             // Server has started and this is the first time
             this.onInitialStartup();
@@ -131,10 +134,6 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         GeyserImpl.start();
 
         this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
-
-        this.geyserCommandManager = new GeyserCommandManager(geyser);
-        this.geyserCommandManager.init();
-
         this.geyserWorldManager = new GeyserModWorldManager(server);
 
         // We want to do this late in the server startup process to allow other mods
@@ -238,13 +237,9 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         this.reloading = reloading;
     }
 
-    public boolean hasPermission(@NotNull Player source, @NotNull String permissionNode) {
-        return this.platform.hasPermission(source, permissionNode);
-    }
+    public abstract boolean hasPermission(@NotNull Player source, @NotNull String permissionNode);
 
-    public boolean hasPermission(@NotNull Player source, @NotNull String permissionNode, int permissionLevel) {
-        return this.platform.hasPermission(source, permissionNode, permissionLevel);
-    }
+    public abstract boolean hasPermission(@NotNull Player source, @NotNull String permissionNode, int permissionLevel);
 
     public static GeyserModBootstrap getInstance() {
         return instance;

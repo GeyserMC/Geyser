@@ -26,7 +26,6 @@
 package org.geysermc.geyser.platform.mod.platform;
 
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.entity.player.Player;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
@@ -90,23 +89,4 @@ public interface GeyserModPlatform {
      */
     @Nullable
     InputStream resolveResource(@NotNull String resource);
-
-    /**
-     * Tests if the given source has the specified permission node.
-     *
-     * @param source the source to test
-     * @param permissionNode the permission node
-     * @return {@code true} if the source has the specified permission node, {@code false} otherwise
-     */
-    boolean hasPermission(@NotNull Player source, @NotNull String permissionNode);
-
-    /**
-     * Tests if the given source has the specified permission node.
-     *
-     * @param source the source to test
-     * @param permissionNode the permission node
-     * @param permissionLevel the permission level
-     * @return {@code true} if the source has the specified permission node, {@code false} otherwise
-     */
-    boolean hasPermission(@NotNull Player source, @NotNull String permissionNode, int permissionLevel);
 }

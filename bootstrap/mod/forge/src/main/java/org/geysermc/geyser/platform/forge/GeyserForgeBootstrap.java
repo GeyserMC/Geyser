@@ -26,6 +26,7 @@
 package org.geysermc.geyser.platform.forge;
 
 import net.minecraft.Util;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -41,6 +42,7 @@ import java.util.concurrent.ExecutorService;
 
 @Mod(ModConstants.MOD_ID)
 public class GeyserForgeBootstrap extends GeyserModBootstrap {
+    private final GeyserForgePermissionHandler permissionHandler = new GeyserForgePermissionHandler();
 
     public GeyserForgeBootstrap() {
         super(new GeyserForgePlatform());
@@ -59,6 +61,8 @@ public class GeyserForgeBootstrap extends GeyserModBootstrap {
         // Register onDisable so players are properly kicked
         MinecraftForge.EVENT_BUS.addListener(this::onServerStopped);
         MinecraftForge.EVENT_BUS.addListener(this::onPlayerJoin);
+
+        MinecraftForge.EVENT_BUS.addListener(this.permissionHandler::onPermissionGather);
     }
 
     private void onServerStarted(ServerStartedEvent event) {
@@ -77,5 +81,15 @@ public class GeyserForgeBootstrap extends GeyserModBootstrap {
     @Override
     public ExecutorService platformExecutor() {
         return Util.backgroundExecutor();
+    }
+
+    @Override
+    public boolean hasPermission(@NotNull Player source, @NotNull String permissionNode) {
+        return this.permissionHandler.hasPermission(source, permissionNode);
+    }
+
+    @Override
+    public boolean hasPermission(@NotNull Player source, @NotNull String permissionNode, int permissionLevel) {
+        return this.permissionHandler.hasPermission(source, permissionNode, permissionLevel);
     }
 }
