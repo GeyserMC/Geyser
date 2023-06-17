@@ -30,7 +30,7 @@ import io.netty.channel.ChannelFuture;
 import java.util.List;
 
 /**
- * Represents a getter to the server port in the dedicated server and in the integrated server.
+ * Represents a getter to the server channels in the connection listener class.
  */
 public interface GeyserChannelGetter {
 
