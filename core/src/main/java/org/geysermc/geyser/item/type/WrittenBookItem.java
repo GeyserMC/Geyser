@@ -38,6 +38,11 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 import java.util.List;
 
 public class WrittenBookItem extends WritableBookItem {
+    public static final int MAXIMUM_PAGE_EDIT_LENGTH = 1024;
+    public static final int MAXIMUM_PAGE_LENGTH = 32768;
+    public static final int MAXIMUM_PAGE_COUNT = 100; // Java edition limit. Bedrock edition has a limit of 50 pages.
+    public static final int MAXIMUM_TITLE_LENGTH = 16;
+
     public WrittenBookItem(String javaIdentifier, Builder builder) {
         super(javaIdentifier, builder);
     }
@@ -69,7 +74,7 @@ public class WrittenBookItem extends WritableBookItem {
         if (!(tag.get("title") instanceof StringTag title)) {
             return false;
         }
-        if (title.getValue().length() > 32) {
+        if (title.getValue().length() > (MAXIMUM_TITLE_LENGTH * 2)) {
             return false;
         }
 
@@ -82,7 +87,7 @@ public class WrittenBookItem extends WritableBookItem {
         }
         for (Tag pageTag : pages) {
             if (pageTag instanceof StringTag page) {
-                if (page.getValue().length() > 32767) {
+                if (page.getValue().length() > MAXIMUM_PAGE_LENGTH) {
                     return false;
                 }
             }
