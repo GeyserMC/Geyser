@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,50 +23,50 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.loader;
+package org.geysermc.geyser.api.pack;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.util.function.Supplier;
-
 /**
- * Holds common {@link RegistryLoader}s or utility methods surrounding them.
+ * Represents a resource pack sent to Bedrock clients
+ * <p>
+ * This representation of a resource pack only contains what
+ * Geyser requires to send it to the client.
  */
-public final class RegistryLoaders {
-    /**
-     * The {@link RegistryLoader} responsible for loading NBT.
-     */
-    public static final NbtRegistryLoader NBT = new NbtRegistryLoader();
+public interface ResourcePack {
 
     /**
-     * The {@link RegistryLoader} responsible for loading resource packs.
-     */
-    public static final ResourcePackLoader RESOURCE_PACKS = new ResourcePackLoader();
-
-    /**
-     * Wraps the surrounding {@link Supplier} in a {@link RegistryLoader} which does
-     * not take in any input value.
+     * The {@link PackCodec codec} for this pack.
      *
-     * @param supplier the supplier
-     * @param <V> the value
-     * @return a RegistryLoader wrapping the given Supplier
+     * @return the codec for this pack
      */
-    public static <V> RegistryLoader<Object, V> empty(@NonNull Supplier<V> supplier) {
-        return input -> supplier.get();
-    }
+    @NonNull
+    PackCodec codec();
 
     /**
-     * Returns a {@link RegistryLoader} which has not taken
-     * in any input value.
+     * Gets the resource pack manifest.
      *
-     * @param <I> the input
-     * @param <V> the value
-     * @return a RegistryLoader that is yet to contain a value.
+     * @return the resource pack manifest
      */
-    public static <I, V> RegistryLoader<I, V> uninitialized() {
-        return input -> null;
-    }
+    @NonNull
+    ResourcePackManifest manifest();
 
-    private RegistryLoaders() {
+    /**
+     * Gets the content key of the resource pack. Lack of a content key is represented by an empty String.
+     *
+     * @return the content key of the resource pack
+     */
+    @NonNull
+    String contentKey();
+
+    /**
+     * Creates a resource pack with the given {@link PackCodec}.
+     *
+     * @param codec the pack codec
+     * @return the resource pack
+     */
+    @NonNull
+    static ResourcePack create(@NonNull PackCodec codec) {
+        return codec.create();
     }
 }
