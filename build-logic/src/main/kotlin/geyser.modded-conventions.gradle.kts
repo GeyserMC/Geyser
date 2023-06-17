@@ -75,6 +75,14 @@ dependencies {
     mappings(loom.officialMojangMappings())
 }
 
+repositories {
+    maven("https://repo.opencollab.dev/maven-releases/")
+    maven("https://repo.opencollab.dev/maven-snapshots/")
+    maven("https://jitpack.io")
+    maven("https://oss.sonatype.org/content/repositories/snapshots/")
+    maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+}
+
 modrinth {
     token.set(System.getenv("MODRINTH_TOKEN")) // Even though this is the default value, apparently this prevents GitHub Actions caching the token?
     projectId.set("wKkoqHrH")

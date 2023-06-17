@@ -51,13 +51,7 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
 
-        mavenCentral()
-
-        maven("https://repo.opencollab.dev/maven-releases/")
         maven("https://repo.opencollab.dev/maven-snapshots/")
-
-        maven("https://jitpack.io")
-
         maven("https://maven.fabricmc.net/")
         maven("https://maven.minecraftforge.net/")
         maven("https://maven.architectury.dev/")
