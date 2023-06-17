@@ -7,10 +7,8 @@ dependencies {
     api(projects.core)
 
     implementation(libs.terminalconsoleappender) {
-        exclude("org.apache.logging.log4j", "log4j-core")
-        exclude("org.jline", "jline-reader")
-        exclude("org.jline", "jline-terminal")
-        exclude("org.jline", "jline-terminal-jna")
+        exclude("org.apache.logging.log4j")
+        exclude("org.jline")
     }
 
     implementation(libs.bundles.jline)

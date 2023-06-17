@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,40 +23,16 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.dump;
+package org.geysermc.geyser.pack;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.text.AsteriskSerializer;
+import org.geysermc.geyser.api.pack.PackCodec;
+import org.geysermc.geyser.api.pack.ResourcePack;
+import org.geysermc.geyser.api.pack.ResourcePackManifest;
 
-import java.util.List;
+public record GeyserResourcePack(PackCodec codec, ResourcePackManifest manifest, String contentKey) implements ResourcePack {
 
-@Getter
-public class BootstrapDumpInfo {
-    private final PlatformType platform;
-
-    public BootstrapDumpInfo() {
-        this.platform = GeyserImpl.getInstance().getPlatformType();
-    }
-
-    @Getter
-    @AllArgsConstructor
-    public static class PluginInfo {
-        public boolean enabled;
-        public String name;
-        public String version;
-        public String main;
-        public List<String> authors;
-    }
-
-    @Getter
-    @AllArgsConstructor
-    public static class ListenerInfo {
-
-        @AsteriskSerializer.Asterisk(isIp = true)
-        public String ip;
-        public int port;
-    }
+    /**
+     * The size of each chunk to use when sending the resource packs to clients in bytes
+     */
+    public static final int CHUNK_SIZE = 102400;
 }

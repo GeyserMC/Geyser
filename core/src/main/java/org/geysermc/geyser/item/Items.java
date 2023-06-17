@@ -315,7 +315,7 @@ public final class Items {
     public static final Item PURPUR_PILLAR = register(new BlockItem("purpur_pillar", builder()));
     public static final Item PURPUR_STAIRS = register(new BlockItem("purpur_stairs", builder()));
     public static final Item SPAWNER = register(new BlockItem("spawner", builder()));
-    public static final Item CHEST = register(new BlockItem("chest", builder()));
+    public static final Item CHEST = register(new ChestItem("chest", builder()));
     public static final Item CRAFTING_TABLE = register(new BlockItem("crafting_table", builder()));
     public static final Item FARMLAND = register(new BlockItem("farmland", builder()));
     public static final Item FURNACE = register(new BlockItem("furnace", builder()));
@@ -397,7 +397,7 @@ public final class Items {
     public static final Item END_STONE_BRICKS = register(new BlockItem("end_stone_bricks", builder()));
     public static final Item DRAGON_EGG = register(new BlockItem("dragon_egg", builder()));
     public static final Item SANDSTONE_STAIRS = register(new BlockItem("sandstone_stairs", builder()));
-    public static final Item ENDER_CHEST = register(new BlockItem("ender_chest", builder()));
+    public static final Item ENDER_CHEST = register(new ChestItem("ender_chest", builder()));
     public static final Item EMERALD_BLOCK = register(new BlockItem("emerald_block", builder()));
     public static final Item OAK_STAIRS = register(new BlockItem("oak_stairs", builder()));
     public static final Item SPRUCE_STAIRS = register(new BlockItem("spruce_stairs", builder()));
@@ -694,7 +694,7 @@ public final class Items {
     public static final Item SCULK_SENSOR = register(new BlockItem("sculk_sensor", builder()));
     public static final Item CALIBRATED_SCULK_SENSOR = register(new BlockItem("calibrated_sculk_sensor", builder()));
     public static final Item TRIPWIRE_HOOK = register(new BlockItem("tripwire_hook", builder()));
-    public static final Item TRAPPED_CHEST = register(new BlockItem("trapped_chest", builder()));
+    public static final Item TRAPPED_CHEST = register(new ChestItem("trapped_chest", builder()));
     public static final Item TNT = register(new BlockItem("tnt", builder()));
     public static final Item REDSTONE_LAMP = register(new BlockItem("redstone_lamp", builder()));
     public static final Item NOTE_BLOCK = register(new BlockItem("note_block", builder()));
@@ -1192,7 +1192,7 @@ public final class Items {
     public static final Item PIGLIN_BANNER_PATTERN = register(new Item("piglin_banner_pattern", builder().stackSize(1)));
     public static final Item GOAT_HORN = register(new GoatHornItem("goat_horn", builder().stackSize(1)));
     public static final Item COMPOSTER = register(new BlockItem("composter", builder()));
-    public static final Item BARREL = register(new BlockItem("barrel", builder()));
+    public static final Item BARREL = register(new ChestItem("barrel", builder()));
     public static final Item SMOKER = register(new BlockItem("smoker", builder()));
     public static final Item BLAST_FURNACE = register(new BlockItem("blast_furnace", builder()));
     public static final Item CARTOGRAPHY_TABLE = register(new BlockItem("cartography_table", builder()));

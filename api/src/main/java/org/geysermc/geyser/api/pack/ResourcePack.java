@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,40 +23,50 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.dump;
+package org.geysermc.geyser.api.pack;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.text.AsteriskSerializer;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.util.List;
+/**
+ * Represents a resource pack sent to Bedrock clients
+ * <p>
+ * This representation of a resource pack only contains what
+ * Geyser requires to send it to the client.
+ */
+public interface ResourcePack {
 
-@Getter
-public class BootstrapDumpInfo {
-    private final PlatformType platform;
+    /**
+     * The {@link PackCodec codec} for this pack.
+     *
+     * @return the codec for this pack
+     */
+    @NonNull
+    PackCodec codec();
 
-    public BootstrapDumpInfo() {
-        this.platform = GeyserImpl.getInstance().getPlatformType();
-    }
+    /**
+     * Gets the resource pack manifest.
+     *
+     * @return the resource pack manifest
+     */
+    @NonNull
+    ResourcePackManifest manifest();
 
-    @Getter
-    @AllArgsConstructor
-    public static class PluginInfo {
-        public boolean enabled;
-        public String name;
-        public String version;
-        public String main;
-        public List<String> authors;
-    }
+    /**
+     * Gets the content key of the resource pack. Lack of a content key is represented by an empty String.
+     *
+     * @return the content key of the resource pack
+     */
+    @NonNull
+    String contentKey();
 
-    @Getter
-    @AllArgsConstructor
-    public static class ListenerInfo {
-
-        @AsteriskSerializer.Asterisk(isIp = true)
-        public String ip;
-        public int port;
+    /**
+     * Creates a resource pack with the given {@link PackCodec}.
+     *
+     * @param codec the pack codec
+     * @return the resource pack
+     */
+    @NonNull
+    static ResourcePack create(@NonNull PackCodec codec) {
+        return codec.create();
     }
 }
