@@ -20,7 +20,7 @@
     ]
   },
   "mixins": [
-    "geyser-fabric.mixins.json"
+    "geyser.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.14.21",

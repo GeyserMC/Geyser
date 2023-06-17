@@ -95,6 +95,10 @@ public class GeyserModWorldManager extends GeyserWorldManager {
         }
 
         Level level = player.level();
+        if (y < level.getMinBuildHeight()) {
+            return 0;
+        }
+
         ChunkAccess chunk = level.getChunkSource().getChunk(x >> 4, z >> 4, ChunkStatus.FULL, false);
         if (chunk == null) {
             return 0;
