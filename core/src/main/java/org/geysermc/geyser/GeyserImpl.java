@@ -96,6 +96,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.regex.Matcher;
@@ -741,6 +742,10 @@ public class GeyserImpl implements GeyserApi {
 
     public WorldManager getWorldManager() {
         return bootstrap.getWorldManager();
+    }
+
+    public ExecutorService platformExecutor() {
+        return this.bootstrap.platformExecutor();
     }
 
     @Nullable

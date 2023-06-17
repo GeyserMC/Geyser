@@ -73,6 +73,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
 
     private GeyserCommandManager geyserCommandManager;
     private GeyserModConfiguration geyserConfig;
+    private GeyserModInjector geyserInjector;
     private GeyserModLogger geyserLogger;
     private IGeyserPingPassthrough geyserPingPassthrough;
     private WorldManager geyserWorldManager;
@@ -135,6 +136,11 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         this.geyserCommandManager.init();
 
         this.geyserWorldManager = new GeyserModWorldManager(server);
+
+        // We want to do this late in the server startup process to allow other mods
+        // To do their job injecting, then connect into *that*
+        this.geyserInjector = new GeyserModInjector(server);
+        this.geyserInjector.initializeLocalChannel(this);
 
         // Start command building
         // Set just "geyser" as the help command

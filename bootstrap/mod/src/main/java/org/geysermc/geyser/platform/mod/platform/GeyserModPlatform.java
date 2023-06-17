@@ -27,7 +27,7 @@ package org.geysermc.geyser.platform.mod.platform;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.player.Player;
-import org.geysermc.common.PlatformType;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.jetbrains.annotations.NotNull;

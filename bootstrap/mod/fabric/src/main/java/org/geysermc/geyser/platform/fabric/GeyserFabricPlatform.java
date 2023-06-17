@@ -30,7 +30,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.player.Player;
-import org.geysermc.common.PlatformType;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;

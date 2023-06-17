@@ -4,6 +4,8 @@ architectury {
 
 dependencies {
     api(projects.core)
+
+    compileOnly(libs.mixin)
 }
 
 repositories {

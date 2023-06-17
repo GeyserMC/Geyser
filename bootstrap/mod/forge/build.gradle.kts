@@ -5,7 +5,7 @@ architectury {
 
 loom {
     forge {
-        mixinConfig("geyser_forge.mixins.json")
+        mixinConfig("geyser.mixins.json")
     }
 }
 

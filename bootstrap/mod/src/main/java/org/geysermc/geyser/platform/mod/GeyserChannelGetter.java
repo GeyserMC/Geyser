@@ -23,18 +23,21 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.util;
+package org.geysermc.geyser.platform.mod;
+
+import io.netty.channel.ChannelFuture;
+
+import java.util.List;
 
 /**
- * Represents the platform Geyser is running on.
+ * Represents a getter to the server port in the dedicated server and in the integrated server.
  */
-public record PlatformType(String platformName) {
-    public static PlatformType ANDROID = new PlatformType("Android");
-    public static PlatformType BUNGEECORD = new PlatformType("BungeeCord");
-    public static PlatformType FABRIC = new PlatformType("Fabric");
-    public static PlatformType FORGE = new PlatformType("Forge");
-    public static PlatformType SPIGOT = new PlatformType("Spigot");
-    public static PlatformType SPONGE = new PlatformType("Sponge");
-    public static PlatformType STANDALONE = new PlatformType("Standalone");
-    public static PlatformType VELOCITY = new PlatformType("Velocity");
+public interface GeyserChannelGetter {
+
+    /**
+     * Returns the channels.
+     *
+     * @return The channels.
+     */
+    List<ChannelFuture> geyser$getChannels();
 }

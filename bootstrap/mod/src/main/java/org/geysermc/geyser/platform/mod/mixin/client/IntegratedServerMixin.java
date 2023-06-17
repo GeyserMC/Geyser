@@ -23,15 +23,13 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.forge.mixin.client;
+package org.geysermc.geyser.platform.mod.mixin.client;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.GameType;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.platform.mod.GeyserServerPortGetter;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -42,7 +40,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@OnlyIn(Dist.CLIENT)
 @Mixin(IntegratedServer.class)
 public class IntegratedServerMixin implements GeyserServerPortGetter {
     @Shadow

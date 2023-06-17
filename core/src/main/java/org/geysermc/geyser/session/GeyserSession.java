@@ -728,7 +728,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 disconnect(ex.getMessage());
             }
             return null;
-        }).whenComplete((aVoid, ex) -> {
+        }, this.geyser.platformExecutor()).whenComplete((aVoid, ex) -> {
             if (ex != null) {
                 disconnect(ex.toString());
             }

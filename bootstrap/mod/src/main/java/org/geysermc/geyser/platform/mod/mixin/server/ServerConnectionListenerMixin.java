@@ -23,29 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.fabric.mixin.server;
+package org.geysermc.geyser.platform.mod.mixin.server;
 
-import com.mojang.datafixers.DataFixer;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.Services;
-import net.minecraft.server.WorldStem;
-import net.minecraft.server.dedicated.DedicatedServer;
-import net.minecraft.server.level.progress.ChunkProgressListenerFactory;
-import net.minecraft.server.packs.repository.PackRepository;
-import net.minecraft.world.level.storage.LevelStorageSource;
-import org.geysermc.geyser.platform.mod.GeyserServerPortGetter;
+import io.netty.channel.ChannelFuture;
+import net.minecraft.server.network.ServerConnectionListener;
+import org.geysermc.geyser.platform.mod.GeyserChannelGetter;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 
-import java.net.Proxy;
+import java.util.List;
 
-@Mixin(DedicatedServer.class)
-public abstract class DedicatedServerMixin extends MinecraftServer implements GeyserServerPortGetter {
-    public DedicatedServerMixin(Thread thread, LevelStorageSource.LevelStorageAccess levelStorageAccess, PackRepository packRepository, WorldStem worldStem, Proxy proxy, DataFixer dataFixer, Services services, ChunkProgressListenerFactory chunkProgressListenerFactory) {
-        super(thread, levelStorageAccess, packRepository, worldStem, proxy, dataFixer, services, chunkProgressListenerFactory);
-    }
+@Mixin(ServerConnectionListener.class)
+public abstract class ServerConnectionListenerMixin implements GeyserChannelGetter {
+
+    @Shadow @Final private List<ChannelFuture> channels;
 
     @Override
-    public int geyser$getServerPort() {
-        return this.getPort();
+    public List<ChannelFuture> geyser$getChannels() {
+        return this.channels;
     }
 }

@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.forge.mixin.server;
+package org.geysermc.geyser.platform.mod.mixin.server;
 
 import com.mojang.datafixers.DataFixer;
 import net.minecraft.server.MinecraftServer;
