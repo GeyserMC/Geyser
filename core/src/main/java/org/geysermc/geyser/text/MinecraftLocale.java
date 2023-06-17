@@ -34,6 +34,7 @@ import org.geysermc.geyser.util.WebUtils;
 import javax.annotation.Nullable;
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
@@ -57,8 +58,8 @@ public class MinecraftLocale {
     }
 
     public static void ensureEN_US() {
-        File localeFile = getFile("en_us");
-        AssetUtils.addTask(!localeFile.exists(), new AssetUtils.ClientJarTask("assets/minecraft/lang/en_us.json",
+        Path localeFile = getPath("en_us");
+        AssetUtils.addTask(!Files.exists(localeFile), new AssetUtils.ClientJarTask("assets/minecraft/lang/en_us.json",
                 (stream) -> AssetUtils.saveFile(localeFile, stream),
                 () -> {
                     if ("en_us".equals(GeyserLocale.getDefaultLocale())) {
@@ -106,10 +107,10 @@ public class MinecraftLocale {
         if (locale.equals("en_us")) {
             return;
         }
-        File localeFile = getFile(locale);
+        Path localeFile = getPath(locale);
 
         // Check if we have already downloaded the locale file
-        if (localeFile.exists()) {
+        if (Files.exists(localeFile)) {
             String curHash = byteArrayToHexString(FileUtils.calculateSHA1(localeFile));
             String targetHash = AssetUtils.getAsset("minecraft/lang/" + locale + ".json").getHash();
 
@@ -130,8 +131,8 @@ public class MinecraftLocale {
         }
     }
 
-    private static File getFile(String locale) {
-        return GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("locales/" + locale + ".json").toFile();
+    private static Path getPath(String locale) {
+        return GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("locales/" + locale + ".json");
     }
 
     /**

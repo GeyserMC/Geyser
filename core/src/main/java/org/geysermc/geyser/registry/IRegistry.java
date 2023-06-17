@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,40 +23,38 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.dump;
+package org.geysermc.geyser.registry;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.text.AsteriskSerializer;
+import java.util.function.Consumer;
 
-import java.util.List;
+/**
+ * Represents a registry.
+ *
+ * @param <M> the value being held by the registry
+ */
+interface IRegistry<M> {
 
-@Getter
-public class BootstrapDumpInfo {
-    private final PlatformType platform;
+    /**
+     * Gets the underlying value held by this registry.
+     *
+     * @return the underlying value held by this registry.
+     */
+    M get();
 
-    public BootstrapDumpInfo() {
-        this.platform = GeyserImpl.getInstance().getPlatformType();
-    }
+    /**
+     * Sets the underlying value held by this registry.
+     * Clears any existing data associated with the previous
+     * value.
+     *
+     * @param mappings the underlying value held by this registry
+     */
+    void set(M mappings);
 
-    @Getter
-    @AllArgsConstructor
-    public static class PluginInfo {
-        public boolean enabled;
-        public String name;
-        public String version;
-        public String main;
-        public List<String> authors;
-    }
-
-    @Getter
-    @AllArgsConstructor
-    public static class ListenerInfo {
-
-        @AsteriskSerializer.Asterisk(isIp = true)
-        public String ip;
-        public int port;
-    }
+    /**
+     * Registers what is specified in the given
+     * {@link Consumer} into the underlying value.
+     *
+     * @param consumer the consumer
+     */
+    void register(Consumer<M> consumer);
 }
