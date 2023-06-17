@@ -43,7 +43,7 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.Geyser;
-import org.geysermc.common.PlatformType;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
 import org.geysermc.erosion.packet.Packets;
@@ -411,7 +411,7 @@ public class GeyserImpl implements GeyserApi {
             metrics.addCustomChart(new Metrics.SingleLineChart("players", sessionManager::size));
             // Prevent unwanted words best we can
             metrics.addCustomChart(new Metrics.SimplePie("authMode", () -> config.getRemote().authType().toString().toLowerCase(Locale.ROOT)));
-            metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::getPlatformName));
+            metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::platformName));
             metrics.addCustomChart(new Metrics.SimplePie("defaultLocale", GeyserLocale::getDefaultLocale));
             metrics.addCustomChart(new Metrics.SimplePie("version", () -> GeyserImpl.VERSION));
             metrics.addCustomChart(new Metrics.AdvancedPie("playerPlatform", () -> {
@@ -447,7 +447,7 @@ public class GeyserImpl implements GeyserApi {
             if (minecraftVersion != null) {
                 Map<String, Map<String, Integer>> versionMap = new HashMap<>();
                 Map<String, Integer> platformMap = new HashMap<>();
-                platformMap.put(platformType.getPlatformName(), 1);
+                platformMap.put(platformType.platformName(), 1);
                 versionMap.put(minecraftVersion, platformMap);
 
                 metrics.addCustomChart(new Metrics.DrilldownPie("minecraftServerVersion", () -> {
@@ -692,6 +692,12 @@ public class GeyserImpl implements GeyserApi {
     @NonNull
     public Path packDirectory() {
         return bootstrap.getConfigFolder().resolve("packs");
+    }
+
+    @Override
+    @NonNull
+    public PlatformType platformType() {
+        return platformType;
     }
 
     public int buildNumber() {
