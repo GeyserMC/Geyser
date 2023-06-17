@@ -26,6 +26,8 @@
 package org.geysermc.geyser.translator.protocol.bedrock;
 
 import org.cloudburstmc.protocol.bedrock.packet.SetLocalPlayerAsInitializedPacket;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.event.bedrock.SessionJoinEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -68,6 +70,8 @@ public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslat
 
                     // What am I to expect - as of Bedrock 1.18
                     session.getFormCache().resendAllForms();
+
+                    GeyserImpl.getInstance().eventBus().fire(new SessionJoinEvent(session));
                 }
             }
         }
