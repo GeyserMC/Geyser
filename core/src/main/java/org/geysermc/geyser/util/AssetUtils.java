@@ -192,8 +192,8 @@ public final class AssetUtils {
         }
     }
 
-    public static void saveFile(File location, InputStream fileStream) throws IOException {
-        try (FileOutputStream outStream = new FileOutputStream(location)) {
+    public static void saveFile(Path location, InputStream fileStream) throws IOException {
+        try (OutputStream outStream = Files.newOutputStream(location)) {
 
             // Write the file to the locale dir
             byte[] buf = new byte[fileStream.available()];
