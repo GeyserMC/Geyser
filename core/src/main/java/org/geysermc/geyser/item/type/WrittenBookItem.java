@@ -62,7 +62,7 @@ public class WrittenBookItem extends WritableBookItem {
             invalidTagPage.put(new StringTag(
                     "text",
                     MessageTranslator.convertMessage(
-                            Component.translatable("book.invalid.tag").color(NamedTextColor.DARK_RED),
+                            Component.translatable("book.invalid.tag", NamedTextColor.DARK_RED),
                             session.locale()
                     )
             ));
