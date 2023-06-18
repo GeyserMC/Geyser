@@ -75,6 +75,7 @@ public class WrittenBookItem extends WritableBookItem {
             return false;
         }
         if (title.getValue().length() > (MAXIMUM_TITLE_LENGTH * 2)) {
+            // Java rejects books with titles more than 2x the maximum length allowed in the input box
             return false;
         }
 
