@@ -69,6 +69,12 @@ public final class DeferredRegistry<M> implements IRegistry<M> {
         this.loader = () -> deferredLoader.get().load(input);
     }
 
+    /**
+     * Gets the underlying value held by this registry.
+     *
+     * @return the underlying value held by this registry
+     * @throws IllegalStateException if this deferred registry has not been loaded yet
+     */
     @Override
     public M get() {
         if (!this.loaded) {
@@ -80,13 +86,15 @@ public final class DeferredRegistry<M> implements IRegistry<M> {
 
     @Override
     public void set(M mappings) {
-        if (!this.loaded) {
-            throw new IllegalStateException("Registry has not been loaded yet!");
-        }
-
         this.backingRegistry.set(mappings);
     }
 
+    /**
+     * Registers what is specified in the given {@link Consumer} into the underlying value.
+     *
+     * @param consumer the consumer
+     * @throws IllegalStateException if this deferred registry has not been loaded yet
+     */
     @Override
     public void register(Consumer<M> consumer) {
         if (!this.loaded) {
@@ -100,10 +108,6 @@ public final class DeferredRegistry<M> implements IRegistry<M> {
      * Loads the registry.
      */
     public void load() {
-        if (this.loaded) {
-            throw new IllegalStateException("Registry has already been loaded!");
-        }
-
         this.backingRegistry.set(this.loader.get());
         this.loaded = true;
     }
