@@ -1084,8 +1084,8 @@ public final class Items {
     public static final Item ZOMBIFIED_PIGLIN_SPAWN_EGG = register(new SpawnEggItem("zombified_piglin_spawn_egg", builder()));
     public static final Item EXPERIENCE_BOTTLE = register(new Item("experience_bottle", builder()));
     public static final Item FIRE_CHARGE = register(new Item("fire_charge", builder()));
-    public static final Item WRITABLE_BOOK = register(new ReadableBookItem("writable_book", builder().stackSize(1)));
-    public static final Item WRITTEN_BOOK = register(new ReadableBookItem("written_book", builder().stackSize(16)));
+    public static final Item WRITABLE_BOOK = register(new WritableBookItem("writable_book", builder().stackSize(1)));
+    public static final Item WRITTEN_BOOK = register(new WrittenBookItem("written_book", builder().stackSize(16)));
     public static final Item ITEM_FRAME = register(new Item("item_frame", builder()));
     public static final Item GLOW_ITEM_FRAME = register(new Item("glow_item_frame", builder()));
     public static final Item FLOWER_POT = register(new BlockItem("flower_pot", builder()));
