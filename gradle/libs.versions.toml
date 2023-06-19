@@ -1,5 +1,5 @@
 [versions]
-base-api = "1.0.0-SNAPSHOT"
+base-api = "1.0.1-SNAPSHOT"
 cumulus = "1.1.1"
 erosion = "1.0-20230406.174837-8"
 events = "1.1-SNAPSHOT"
