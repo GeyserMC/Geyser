@@ -76,8 +76,14 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
         merchantInventory.setTradeExperience(packet.getExperience());
 
         Entity villager = merchantInventory.getVillager();
-        villager.getDirtyMetadata().put(EntityDataTypes.TRADE_TIER, packet.getVillagerLevel() - 1);
-        villager.getDirtyMetadata().put(EntityDataTypes.MAX_TRADE_TIER, 4);
+        if (packet.isRegularVillager()) {
+            villager.getDirtyMetadata().put(EntityDataTypes.TRADE_TIER, packet.getVillagerLevel() - 1);
+            villager.getDirtyMetadata().put(EntityDataTypes.MAX_TRADE_TIER, 4);
+        } else {
+            // Don't show trade level for wandering traders
+            villager.getDirtyMetadata().put(EntityDataTypes.TRADE_TIER, 0);
+            villager.getDirtyMetadata().put(EntityDataTypes.MAX_TRADE_TIER, 0);
+        }
         villager.getDirtyMetadata().put(EntityDataTypes.TRADE_EXPERIENCE, packet.getExperience());
         villager.updateBedrockMetadata();
 
