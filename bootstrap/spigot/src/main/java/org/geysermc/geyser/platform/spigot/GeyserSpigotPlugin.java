@@ -170,7 +170,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             return;
         }
 
-        var sourceConverter = CommandSourceConverter.simple(CommandSender.class, Bukkit::getPlayer, Bukkit::getConsoleSender);
+        var sourceConverter = new CommandSourceConverter<>(CommandSender.class, Bukkit::getPlayer, Bukkit::getConsoleSender);
         PaperCommandManager<GeyserCommandSource> cloud;
         try {
             cloud = new PaperCommandManager<>(

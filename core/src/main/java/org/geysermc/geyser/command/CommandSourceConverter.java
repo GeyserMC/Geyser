@@ -25,18 +25,17 @@
 
 package org.geysermc.geyser.command;
 
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public record CommandSourceConverter<S, P>(Class<S> senderType,
-                                           Function<UUID, P> playerLookup, Function<P, S> senderLookup,
+public record CommandSourceConverter<S>(Class<S> senderType,
+                                           Function<UUID, S> playerLookup,
                                            Supplier<S> consoleProvider) {
 
     public S convert(GeyserCommandSource source) throws IllegalArgumentException {
         Object handle = source.handle();
-        if (senderType.isAssignableFrom(source.handle().getClass())) {
+        if (senderType.isInstance(handle)) {
             return (S) handle; // one of the server platform implementations
         }
 
@@ -44,26 +43,23 @@ public record CommandSourceConverter<S, P>(Class<S> senderType,
             return consoleProvider.get(); // one of the loggers
         }
 
-        // GeyserSession
-        Optional<UUID> optionalUUID = source.playerUuid();
-        if (optionalUUID.isPresent()) {
-            UUID uuid = optionalUUID.get();
-
-            P player = playerLookup.apply(uuid);
-            if (player == null) {
-                throw new IllegalArgumentException("failed to find player for " + uuid);
-            }
-
-            return senderLookup.apply(player);
-        }
-
-        throw new IllegalArgumentException("failed to convert source for " + source);
+        // Handles GeyserSession
+        return source.playerUuid()
+            .map(playerLookup)
+            .orElseThrow(() -> new IllegalArgumentException("failed to find sender for name=%s, uuid=%s".formatted(source.name(), source.playerUuid())));
     }
 
-    public static <S, P extends S> CommandSourceConverter<S, P> simple(Class<S> senderType,
-                                                                       Function<UUID, P> playerLookup,
-                                                                       Supplier<S> consoleProvider) {
-
-        return new CommandSourceConverter<>(senderType, playerLookup, s -> s, consoleProvider);
+    public static <P, S> CommandSourceConverter<S> layered(Class<S> senderType,
+                                                           Function<UUID, P> playerLookup,
+                                                           Function<P, S> senderLookup,
+                                                           Supplier<S> consoleProvider) {
+        Function<UUID, S> lookup = uuid -> {
+            P player = playerLookup.apply(uuid);
+            if (player == null) {
+                return null;
+            }
+            return senderLookup.apply(player);
+        };
+        return new CommandSourceConverter<>(senderType, lookup, consoleProvider);
     }
 }

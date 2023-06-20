@@ -177,7 +177,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         this.geyserInjector = new GeyserBungeeInjector(this);
         this.geyserInjector.initializeLocalChannel(this);
 
-        var sourceConverter = CommandSourceConverter.simple(CommandSender.class, id -> getProxy().getPlayer(id), () -> getProxy().getConsole());
+        var sourceConverter = new CommandSourceConverter<>(CommandSender.class, id -> getProxy().getPlayer(id), () -> getProxy().getConsole());
         CommandManager<GeyserCommandSource> cloud = new BungeeCommandManager<>(
             this,
             CommandExecutionCoordinator.simpleCoordinator(),

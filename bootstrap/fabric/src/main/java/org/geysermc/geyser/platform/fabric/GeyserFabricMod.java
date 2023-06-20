@@ -145,7 +145,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
         this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
 
-        var sourceConverter = new CommandSourceConverter<>(
+        var sourceConverter = CommandSourceConverter.layered(
             CommandSourceStack.class,
             id -> server.getPlayerList().getPlayer(id),
             Player::createCommandSourceStack,

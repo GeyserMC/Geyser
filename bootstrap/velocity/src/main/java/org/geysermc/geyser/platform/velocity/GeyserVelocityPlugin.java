@@ -135,7 +135,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         this.geyserInjector = new GeyserVelocityInjector(proxyServer);
         // Will be initialized after the proxy has been bound
 
-        var sourceConverter = CommandSourceConverter.simple(CommandSource.class, id -> proxyServer.getPlayer(id).get(), proxyServer::getConsoleCommandSource);
+        var sourceConverter = new CommandSourceConverter<>(CommandSource.class, id -> proxyServer.getPlayer(id).orElse(null), proxyServer::getConsoleCommandSource);
         CommandManager<GeyserCommandSource> cloud = new VelocityCommandManager<>(
             container,
             proxyServer,
