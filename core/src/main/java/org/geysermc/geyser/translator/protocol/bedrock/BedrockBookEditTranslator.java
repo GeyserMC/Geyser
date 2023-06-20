@@ -33,12 +33,12 @@ import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.cloudburstmc.protocol.bedrock.packet.BookEditPacket;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.item.type.WrittenBookItem;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -46,12 +46,10 @@ import java.util.List;
 
 @Translator(packet = BookEditPacket.class)
 public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> {
-    private static final int MAXIMUM_PAGE_LENGTH = 8192 * 4;
-    private static final int MAXIMUM_TITLE_LENGTH = 128 * 4;
 
     @Override
     public void translate(GeyserSession session, BookEditPacket packet) {
-        if (packet.getText() != null && !packet.getText().isEmpty() && packet.getText().getBytes(StandardCharsets.UTF_8).length > MAXIMUM_PAGE_LENGTH) {
+        if (packet.getText() != null && !packet.getText().isEmpty() && packet.getText().length() > WrittenBookItem.MAXIMUM_PAGE_EDIT_LENGTH) {
             session.getGeyser().getLogger().warning("Page length greater than server allowed!");
             return;
         }
@@ -63,6 +61,10 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
             List<Tag> pages = tag.contains("pages") ? new LinkedList<>(((ListTag) tag.get("pages")).getValue()) : new LinkedList<>();
 
             int page = packet.getPageNumber();
+            if (page < 0 || WrittenBookItem.MAXIMUM_PAGE_COUNT <= page) {
+                session.getGeyser().getLogger().warning("Edited page is out of acceptable bounds!");
+                return;
+            }
             switch (packet.getAction()) {
                 case ADD_PAGE: {
                     // Add empty pages in between
@@ -129,7 +131,7 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
             if (packet.getAction() == BookEditPacket.Action.SIGN_BOOK) {
                 // Add title to packet so the server knows we're signing
                 title = MessageTranslator.convertToPlainText(packet.getTitle());
-                if (title.getBytes(StandardCharsets.UTF_8).length > MAXIMUM_TITLE_LENGTH) {
+                if (title.length() > WrittenBookItem.MAXIMUM_TITLE_LENGTH) {
                     session.getGeyser().getLogger().warning("Book title larger than server allows!");
                     return;
                 }
