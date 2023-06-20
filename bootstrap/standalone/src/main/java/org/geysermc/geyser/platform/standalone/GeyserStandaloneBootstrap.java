@@ -220,7 +220,9 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         geyser = GeyserImpl.load(PlatformType.STANDALONE, this);
         GeyserImpl.start();
 
-        geyserCommandManager = new GeyserCommandManager(geyser, new GeyserStandaloneCommandManager());
+        GeyserStandaloneCommandManager cloud = new GeyserStandaloneCommandManager(geyser);
+        geyserCommandManager = new GeyserCommandManager(geyser, cloud);
+        cloud.gatherPermissions();
 
         if (gui != null) {
             gui.setupInterface(geyserLogger, geyserCommandManager);

@@ -30,18 +30,65 @@ import cloud.commandframework.execution.CommandExecutionCoordinator;
 import cloud.commandframework.internal.CommandRegistrationHandler;
 import cloud.commandframework.meta.CommandMeta;
 import cloud.commandframework.meta.SimpleCommandMeta;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionCheckersEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
+import org.geysermc.geyser.api.permission.PermissionChecker;
+import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.util.FileUtils;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 public class GeyserStandaloneCommandManager extends CommandManager<GeyserCommandSource> {
 
-    protected GeyserStandaloneCommandManager() {
+    private final GeyserImpl geyser;
+    private final List<PermissionChecker> permissionCheckers = new ArrayList<>();
+    private final Set<String> basePermissions = new ObjectOpenHashSet<>();
+
+    public GeyserStandaloneCommandManager(GeyserImpl geyser) {
         super(CommandExecutionCoordinator.simpleCoordinator(), CommandRegistrationHandler.nullCommandRegistrationHandler());
+        this.geyser = geyser;
+
+        // allow any extensions to customize permissions
+        geyser.getEventBus().fire((GeyserRegisterPermissionCheckersEvent) permissionCheckers::add);
+
+        // must still implement a basic permission system
+        try {
+            File permissionsFile = geyser.getBootstrap().getConfigFolder().resolve("permissions.yml").toFile();
+            FileUtils.fileOrCopiedFromResource(permissionsFile, "permissions.yml", geyser.getBootstrap());
+            PermissionConfiguration config = FileUtils.loadConfig(permissionsFile, PermissionConfiguration.class);
+            basePermissions.addAll(config.getDefaultPermissions());
+        } catch (Exception e) {
+            geyser.getLogger().warning("Failed to load permissions.yml");
+            e.printStackTrace();
+        }
+    }
+
+    public void gatherPermissions() {
+        geyser.getEventBus().fire((GeyserRegisterPermissionsEvent) (permission, def) -> {
+            if (def == TriState.TRUE) {
+                basePermissions.add(permission);
+            } else if (def == TriState.FALSE) {
+                basePermissions.remove(permission);
+            }
+        });
     }
 
     @Override
     public boolean hasPermission(@NonNull GeyserCommandSource sender, @NonNull String permission) {
-        return false; // todo: commands
+        for (PermissionChecker checker : permissionCheckers) {
+            Boolean result = checker.hasPermission(sender, permission).toBoolean();
+            if (result != null) {
+                return result;
+            }
+        }
+        return basePermissions.contains(permission);
     }
 
     @Override
