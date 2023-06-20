@@ -187,7 +187,16 @@ public final class GeyserServer {
 
     public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {
         if (geyser.getConfig().isDebugMode() && PRINT_DEBUG_PINGS) {
-            String ip = geyser.getConfig().isLogPlayerIpAddresses() ? inetSocketAddress.toString() : "<IP address withheld>";
+            String ip;
+            if (geyser.getConfig().isLogPlayerIpAddresses()) {
+                if (geyser.getConfig().getBedrock().isEnableProxyProtocol()) {
+                    ip = this.proxiedAddresses.getOrDefault(inetSocketAddress, inetSocketAddress).toString();
+                } else {
+                    ip = inetSocketAddress.toString();
+                }
+            } else {
+                ip = "<IP address withheld>";
+            }
             geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.network.pinged", ip));
         }
 
