@@ -30,7 +30,7 @@ import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import it.unimi.dsi.fastutil.Pair;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.registry.type.ItemMapping;

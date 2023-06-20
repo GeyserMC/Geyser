@@ -26,7 +26,7 @@
 package org.geysermc.geyser.registry.type;
 
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
+import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 
 public class GeyserBedrockBlock implements BlockDefinition {
     private final int runtimeId;

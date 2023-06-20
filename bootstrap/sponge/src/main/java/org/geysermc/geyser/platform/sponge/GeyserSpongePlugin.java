@@ -27,7 +27,7 @@ package org.geysermc.geyser.platform.sponge;
 
 import com.google.inject.Inject;
 import org.apache.logging.log4j.Logger;
-import org.geysermc.common.PlatformType;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommandManager;

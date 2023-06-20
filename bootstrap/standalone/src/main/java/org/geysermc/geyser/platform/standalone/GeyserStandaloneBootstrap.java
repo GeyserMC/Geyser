@@ -38,7 +38,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.appender.ConsoleAppender;
-import org.geysermc.common.PlatformType;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommandManager;

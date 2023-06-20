@@ -30,7 +30,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.common.PlatformType;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.command.CommandExecutor;

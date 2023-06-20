@@ -42,7 +42,7 @@ import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.geysermc.common.PlatformType;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;

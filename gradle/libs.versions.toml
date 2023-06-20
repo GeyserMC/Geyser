@@ -2,23 +2,23 @@
 base-api = "1.0.0-SNAPSHOT"
 cumulus = "1.1.1"
 erosion = "1.0-20230406.174837-8"
-events = "1.0-SNAPSHOT"
+events = "1.1-SNAPSHOT"
 jackson = "2.14.0"
 fastutil = "8.5.2"
 netty = "4.1.80.Final"
 guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8
 websocket = "1.5.1"
-protocol = "3.0.0.Beta1-20230507.200054-78"
-protocol-connection = "3.0.0.Beta1-20230507.200054-77"
-raknet = "1.0.0.CR1-20230430.211932-7"
+protocol = "3.0.0.Beta1-20230613.104224-93"
+protocol-connection = "3.0.0.Beta1-20230613.104224-92"
+raknet = "1.0.0.CR1-20230609.174844-8"
 mcauthlib = "d9d773e"
-mcprotocollib = "1.19.4-2-20230503.145414-3"
+mcprotocollib = "1.20-1-20230607.135651-6" # Temporary hack - needs to be updated to release once publishing is fixed
 adventure = "4.14.0-20230424.215040-7"
 adventure-platform = "4.1.2"
 junit = "5.9.2"
 checkerframework = "3.19.0"
-log4j = "2.17.1"
+log4j = "2.20.0"
 jline = "3.21.0"
 terminalconsoleappender = "1.2.0"
 folia = "1.19.4-R0.1-SNAPSHOT"
@@ -29,9 +29,9 @@ commodore = "2.2"
 bungeecord = "a7c6ede"
 velocity = "3.0.0"
 sponge = "8.0.0"
-fabric-minecraft = "1.19.1"
-fabric-loader = "0.14.8"
-fabric-api = "0.58.5+1.19.1"
+fabric-minecraft = "1.20"
+fabric-loader = "0.14.21"
+fabric-api = "0.83.0+1.20"
 
 [libraries]
 base-api = { group = "org.geysermc.api", name = "base-api", version.ref = "base-api" }
@@ -66,7 +66,7 @@ netty-transport-native-kqueue = { group = "io.netty", name = "netty-transport-na
 
 log4j-api = { group = "org.apache.logging.log4j", name = "log4j-api", version.ref = "log4j" }
 log4j-core = { group = "org.apache.logging.log4j", name = "log4j-core", version.ref = "log4j" }
-log4j-slf4j18-impl = { group = "org.apache.logging.log4j", name = "log4j-slf4j18-impl", version.ref = "log4j" }
+log4j-slf4j2-impl = { group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version.ref = "log4j" }
 
 jline-terminal = { group = "org.jline", name = "jline-terminal", version.ref = "jline" }
 jline-terminal-jna = { group = "org.jline", name = "jline-terminal-jna", version.ref = "jline" }
@@ -109,6 +109,6 @@ protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-con
 jackson = [ "jackson-annotations", "jackson-core", "jackson-dataformat-yaml" ]
 fastutil = [ "fastutil-int-int-maps", "fastutil-int-long-maps", "fastutil-int-byte-maps", "fastutil-int-boolean-maps", "fastutil-object-int-maps", "fastutil-object-object-maps" ]
 adventure = [ "adventure-text-serializer-gson", "adventure-text-serializer-legacy", "adventure-text-serializer-plain" ]
-log4j = [ "log4j-api", "log4j-core", "log4j-slf4j18-impl" ]
+log4j = [ "log4j-api", "log4j-core", "log4j-slf4j2-impl" ]
 jline = [ "jline-terminal", "jline-terminal-jna", "jline-reader" ]
 protocol = [ "protocol-common", "protocol-codec", "protocol-connection" ]

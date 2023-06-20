@@ -31,7 +31,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Use author's API repo if it exists
-        if: steps.find_forks.outputs.target_branch_found == 'true'
+        if: ${{ steps.find_forks.outputs.target_branch_found == 'true' }}
         env:
           API_FORK_URL: ${{ steps.find_forks.outputs.user_fork_url }}
           API_FORK_BRANCH: ${{ github.event.pull_request.head.ref }}

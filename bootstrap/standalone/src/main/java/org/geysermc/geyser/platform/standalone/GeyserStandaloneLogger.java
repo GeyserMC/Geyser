@@ -92,6 +92,7 @@ public class GeyserStandaloneLogger extends SimpleTerminalConsole implements Gey
         Configurator.setLevel(log.getName(), debug ? Level.DEBUG : Level.INFO);
     }
 
+    @Override
     public boolean isDebug() {
         return log.isDebugEnabled();
     }

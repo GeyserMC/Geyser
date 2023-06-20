@@ -37,11 +37,8 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Encapsulates written books and writable books. Customly named class to share common code.
- */
-public class ReadableBookItem extends Item {
-    public ReadableBookItem(String javaIdentifier, Builder builder) {
+public class WritableBookItem extends Item {
+    public WritableBookItem(String javaIdentifier, Builder builder) {
         super(javaIdentifier, builder);
     }
 
