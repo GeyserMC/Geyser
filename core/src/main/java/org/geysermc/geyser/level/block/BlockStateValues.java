@@ -45,7 +45,6 @@ import java.util.Locale;
  */
 public final class BlockStateValues {
     private static final IntSet ALL_CAULDRONS = new IntOpenHashSet();
-    private static final IntSet HANGING_SIGNS = new IntOpenHashSet();
     private static final Int2IntMap BANNER_COLORS = new FixedInt2IntMap();
     private static final Int2ByteMap BED_COLORS = new FixedInt2ByteMap();
     private static final Int2IntMap BRUSH_PROGRESS = new Int2IntOpenHashMap();
@@ -88,12 +87,6 @@ public final class BlockStateValues {
      * @param blockData      JsonNode of info about the block from blocks.json
      */
     public static void storeBlockStateValues(String javaId, int javaBlockState, JsonNode blockData) {
-        if (javaId.contains("_hanging_sign")) {
-            // covers hanging_sign and wall_hanging_sign
-            HANGING_SIGNS.add(javaBlockState);
-            return;
-        }
-
         JsonNode bannerColor = blockData.get("banner_color");
         if (bannerColor != null) {
             BANNER_COLORS.put(javaBlockState, (byte) bannerColor.intValue());
@@ -218,17 +211,6 @@ public final class BlockStateValues {
         if (javaId.contains("_cauldron") && !javaId.contains("water_")) {
              NON_WATER_CAULDRONS.add(javaBlockState);
         }
-    }
-
-    /**
-     * Hanging signs have a different maximum text width than "normal" signs. As a result, when the client
-     * updates the text of a sign without indication of the sign type, we must determine it.
-     *
-     * @param state BlockState of the block
-     * @return true if the sign is any hanging variant
-     */
-    public static boolean isHangingSign(int state) {
-        return HANGING_SIGNS.contains(state);
     }
 
     /**
