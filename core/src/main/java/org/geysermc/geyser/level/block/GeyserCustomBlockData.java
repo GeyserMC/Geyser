@@ -26,6 +26,7 @@
 package org.geysermc.geyser.level.block;
 
 import it.unimi.dsi.fastutil.objects.*;
+import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.Constants;
@@ -43,19 +44,19 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
-@Value
+@RequiredArgsConstructor
 public class GeyserCustomBlockData implements CustomBlockData {
-    String name;
-    boolean includedInCreativeInventory;
-    String creativeCategory;
-    String creativeGroup;
-    CustomBlockComponents components;
-    Map<String, CustomBlockProperty<?>> properties;
-    List<CustomBlockPermutation> permutations;
+    private final String name;
+    private final boolean includedInCreativeInventory;
+    private final String creativeCategory;
+    private final String creativeGroup;
+    private final CustomBlockComponents components;
+    private final Map<String, CustomBlockProperty<?>> properties;
+    private final List<CustomBlockPermutation> permutations;
 
-    Map<String, Object> defaultProperties;
+    private final Map<String, Object> defaultProperties;
 
-    private GeyserCustomBlockData(CustomBlockDataBuilder builder) {
+    GeyserCustomBlockData(CustomBlockDataBuilder builder) {
         this.name = builder.name;
         if (name == null) {
             throw new IllegalStateException("Name must be set");
