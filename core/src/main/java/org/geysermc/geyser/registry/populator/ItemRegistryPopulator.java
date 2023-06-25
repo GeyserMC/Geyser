@@ -51,6 +51,7 @@ import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
+import org.geysermc.geyser.api.block.custom.NonVanillaCustomBlockData;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
@@ -379,7 +380,7 @@ public class ItemRegistryPopulator {
                                             int customProtocolId = nextFreeBedrockId++;
                                             mappingItem.setBedrockData(customProtocolId);
                                             bedrockIdentifier = customBlockData.identifier();
-                                            definition = new SimpleItemDefinition(bedrockIdentifier, customProtocolId, false);
+                                            definition = new SimpleItemDefinition(bedrockIdentifier, customProtocolId, true);
                                             registry.put(customProtocolId, definition);
                                             customBlockItemDefinitions.put(customBlockData, definition);
                                             customIdMappings.put(customProtocolId, bedrockIdentifier);
@@ -559,10 +560,17 @@ public class ItemRegistryPopulator {
                     if (customBlockItemDefinitions.containsKey(customBlock)) {
                         continue;
                     }
+
+                    // Non-vanilla custom blocks will be handled in the item
+                    // registry, so we don't need to do anything here.
+                    if (customBlock instanceof NonVanillaCustomBlockData) {
+                        continue;
+                    }
+
                     int customProtocolId = nextFreeBedrockId++;
                     String identifier = customBlock.identifier();
 
-                    final ItemDefinition definition = new SimpleItemDefinition(identifier, customProtocolId, false);
+                    final ItemDefinition definition = new SimpleItemDefinition(identifier, customProtocolId, true);
                     registry.put(customProtocolId, definition);
                     customBlockItemDefinitions.put(customBlock, definition);
                     customIdMappings.put(customProtocolId, identifier);
@@ -577,8 +585,6 @@ public class ItemRegistryPopulator {
                                 .count(1)
                                 .build());
                     }
-
-                    // And lastly we need to figure out what to do about non-vanilla custom blocks
                 }
             }
 

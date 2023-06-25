@@ -96,7 +96,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 case CRAFTING_SHAPELESS -> {
                     ShapelessRecipeData shapelessRecipeData = (ShapelessRecipeData) recipe.getData();
                     ItemData output = ItemTranslator.translateToBedrock(session, shapelessRecipeData.getResult());
-                    if (output.equals(ItemData.AIR)) {
+                    if (!output.isValid()) {
                         // Likely modded item that Bedrock will complain about if it persists
                         continue;
                     }
@@ -117,7 +117,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 case CRAFTING_SHAPED -> {
                     ShapedRecipeData shapedRecipeData = (ShapedRecipeData) recipe.getData();
                     ItemData output = ItemTranslator.translateToBedrock(session, shapedRecipeData.getResult());
-                    if (output.equals(ItemData.AIR)) {
+                    if (!output.isValid()) {
                         // Likely modded item that Bedrock will complain about if it persists
                         continue;
                     }
@@ -198,7 +198,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 ItemDescriptorWithCount descriptor = ItemDescriptorWithCount.fromItem(input);
                 ItemStack javaOutput = stoneCuttingData.getResult();
                 ItemData output = ItemTranslator.translateToBedrock(session, javaOutput);
-                if (input.equals(ItemData.AIR) || output.equals(ItemData.AIR)) {
+                if (!input.isValid() || !output.isValid()) {
                     // Probably modded items
                     continue;
                 }
