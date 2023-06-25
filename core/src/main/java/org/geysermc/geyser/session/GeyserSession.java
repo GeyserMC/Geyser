@@ -1693,7 +1693,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Override
     public boolean hasPermission(String permission) {
-        return geyser.getWorldManager().hasPermission(this, permission);
+        // let the cloud implementation handle permission checking
+        return geyser.commandManager().cloud().hasPermission(this, permission);
     }
 
     private static final Ability[] USED_ABILITIES = Ability.values();

@@ -37,6 +37,7 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionCheckersE
 import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 import org.geysermc.geyser.api.permission.PermissionChecker;
 import org.geysermc.geyser.api.util.TriState;
+import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.util.FileUtils;
 
@@ -70,6 +71,10 @@ public class GeyserStandaloneCommandManager extends CommandManager<GeyserCommand
         }
     }
 
+    /**
+     * Fire a {@link GeyserRegisterPermissionsEvent} to determine any additions or removals to the base list of
+     * permissions. This should be called after any event listeners have been registered, such as that of {@link GeyserCommandManager}.
+     */
     public void gatherPermissions() {
         geyser.getEventBus().fire((GeyserRegisterPermissionsEvent) (permission, def) -> {
             if (def == TriState.TRUE) {
@@ -82,6 +87,15 @@ public class GeyserStandaloneCommandManager extends CommandManager<GeyserCommand
 
     @Override
     public boolean hasPermission(@NonNull GeyserCommandSource sender, @NonNull String permission) {
+        // Note: the two GeyserCommandSources on Geyser-Standalone are GeyserLogger and GeyserSession
+        // GeyserLogger#hasPermission always returns true
+        // GeyserSession#hasPermission delegates to this method,
+        // which is why this method doesn't just call GeyserCommandSource#hasPermission
+
+        if (sender.isConsole()) {
+            return true;
+        }
+
         for (PermissionChecker checker : permissionCheckers) {
             Boolean result = checker.hasPermission(sender, permission).toBoolean();
             if (result != null) {

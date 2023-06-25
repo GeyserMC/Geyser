@@ -147,12 +147,6 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
         BlockEntityUtils.updateBlockEntity(session, blockEntityTag, Vector3i.from(x, y, z));
     }
 
-    @Override
-    public boolean hasPermission(GeyserSession session, String permission) {
-        ServerPlayer player = getPlayer(session);
-        return Permissions.check(player, permission);
-    }
-
     @Nonnull
     @Override
     public CompletableFuture<com.github.steveice10.opennbt.tag.builtin.CompoundTag> getPickItemNbt(GeyserSession session, int x, int y, int z, boolean addNbtData) {

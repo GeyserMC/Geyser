@@ -31,5 +31,6 @@ import org.geysermc.geyser.api.util.TriState;
 
 public interface PermissionChecker {
 
+    @NonNull
     TriState hasPermission(@NonNull CommandSource source, @NonNull String permission);
 }

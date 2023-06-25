@@ -29,6 +29,14 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ * Converts {@link GeyserCommandSource}s to the server's command sender type in a lenient manner.
+ *
+ * @param senderType class of the server command sender type
+ * @param playerLookup function for looking up a player command sender by UUID
+ * @param consoleProvider supplier of the console command sender
+ * @param <S> server command sender type
+ */
 public record CommandSourceConverter<S>(Class<S> senderType,
                                            Function<UUID, S> playerLookup,
                                            Supplier<S> consoleProvider) {
@@ -49,6 +57,18 @@ public record CommandSourceConverter<S>(Class<S> senderType,
             .orElseThrow(() -> new IllegalArgumentException("failed to find sender for name=%s, uuid=%s".formatted(source.name(), source.playerUuid())));
     }
 
+    /**
+     * Creates a new CommandSourceConverter for a server platform
+     * in which the player type is not the command sender type, and must be mapped.
+     *
+     * @param senderType class of the command sender type
+     * @param playerLookup function for looking up a player by UUID
+     * @param senderLookup function for converting a player to a command sender
+     * @param consoleProvider supplier of the console command sender
+     * @return a new CommandSourceConverter
+     * @param <P> server player type
+     * @param <S> server command sender type
+     */
     public static <P, S> CommandSourceConverter<S> layered(Class<S> senderType,
                                                            Function<UUID, P> playerLookup,
                                                            Function<P, S> senderLookup,

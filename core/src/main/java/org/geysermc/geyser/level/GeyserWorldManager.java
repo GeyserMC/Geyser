@@ -160,11 +160,6 @@ public class GeyserWorldManager extends WorldManager {
         return gameRule.getDefaultIntValue();
     }
 
-    @Override
-    public boolean hasPermission(GeyserSession session, String permission) {
-        return false;
-    }
-
     @Nonnull
     @Override
     public CompletableFuture<@Nullable CompoundTag> getPickItemNbt(GeyserSession session, int x, int y, int z, boolean addNbtData) {

@@ -165,7 +165,7 @@ public class GeyserCommandManager {
      * @return Command description
      */
     public String description(String command) {
-        return "";
+        return ""; // todo: reimplement
     }
 
     @RequiredArgsConstructor
