@@ -278,7 +278,7 @@ public class GeyserStandaloneGUI {
     public void enableCommands(ScheduledExecutorService executor, GeyserCommandManager commandManager) {
         // we don't want to block the GUI thread with the command execution
         // todo: once cloud is used, an AsynchronousCommandExecutionCoordinator can be used to avoid this scheduler
-        commandListener.handler = cmd -> executor.schedule(() -> commandManager.runCommand(logger, cmd), 0, TimeUnit.SECONDS);
+        commandListener.handler = cmd -> executor.schedule(() -> commandManager.cloud().executeCommand(logger, cmd), 0, TimeUnit.SECONDS);
         commandInput.setEnabled(true);
         commandInput.requestFocusInWindow();
     }
