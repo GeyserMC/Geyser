@@ -218,25 +218,9 @@ public class GeyserImpl implements GeyserApi {
 
         GeyserConfiguration config = bootstrap.getGeyserConfig();
 
-        boolean isGui = false;
-        // This will check if we are in standalone and get the 'useGui' variable from there
-        if (platformType == PlatformType.STANDALONE) {
-            try {
-                Class<?> cls = Class.forName("org.geysermc.geyser.platform.standalone.GeyserStandaloneBootstrap");
-                isGui = (boolean) cls.getMethod("isUseGui").invoke(cls.cast(bootstrap));
-            } catch (Exception e) {
-                logger.debug("Failed detecting if standalone is using a GUI; if this is a GeyserConnect instance this can be safely ignored.");
-            }
-        }
-
         double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
-        String message = GeyserLocale.getLocaleStringLog("geyser.core.finish.done", new DecimalFormat("#.###").format(completeTime)) + " ";
-        if (isGui) {
-            message += GeyserLocale.getLocaleStringLog("geyser.core.finish.gui");
-        } else {
-            message += GeyserLocale.getLocaleStringLog("geyser.core.finish.console");
-        }
-
+        String message = GeyserLocale.getLocaleStringLog("geyser.core.finish.done", new DecimalFormat("#.###").format(completeTime));
+        message += " " + GeyserLocale.getLocaleStringLog("geyser.core.finish.console");
         logger.info(message);
 
         if (platformType == PlatformType.STANDALONE) {
