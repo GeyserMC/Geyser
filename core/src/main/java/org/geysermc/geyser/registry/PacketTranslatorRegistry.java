@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.registry;
 
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundDelimiterPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundTabListPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLightUpdatePacket;
 import io.netty.channel.EventLoop;
@@ -44,6 +45,7 @@ public class PacketTranslatorRegistry<T> extends AbstractMappedRegistry<Class<? 
     static {
         IGNORED_PACKETS.add(ClientboundLightUpdatePacket.class); // Light is handled on Bedrock for us
         IGNORED_PACKETS.add(ClientboundTabListPacket.class); // Cant be implemented in Bedrock
+        IGNORED_PACKETS.add(ClientboundDelimiterPacket.class); // Not implemented, spams logs
     }
 
     protected PacketTranslatorRegistry() {
