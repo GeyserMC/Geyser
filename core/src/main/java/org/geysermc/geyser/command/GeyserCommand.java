@@ -25,23 +25,32 @@
 
 package org.geysermc.geyser.command;
 
+import cloud.commandframework.Command;
 import cloud.commandframework.CommandManager;
-import cloud.commandframework.arguments.standard.StringArgument;
+import cloud.commandframework.meta.CommandMeta;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.command.Command;
-import org.geysermc.geyser.session.GeyserSession;
+import org.jetbrains.annotations.Contract;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
 @Accessors(fluent = true)
 @Getter
 @RequiredArgsConstructor
-public abstract class GeyserCommand implements Command {
+public abstract class GeyserCommand implements org.geysermc.geyser.api.command.Command {
+
+    /**
+     * CommandMeta to indicate that the command is only available to bedrock players. default of false.
+     */
+    public static final CommandMeta.Key<Boolean> BEDROCK_ONLY = CommandMeta.Key.of(Boolean.class, "bedrock-only", meta -> false);
+
+    /**
+     * CommandMeta to indicate that the command is only available to players. default of false.
+     */
+    public static final CommandMeta.Key<Boolean> PLAYER_ONLY = CommandMeta.Key.of(Boolean.class, "player-only", meta -> false);
 
     protected final String name;
     /**
@@ -50,78 +59,23 @@ public abstract class GeyserCommand implements Command {
     protected final String description;
     protected final String permission;
 
+    @Setter
     private List<String> aliases = Collections.emptyList();
-
-    public abstract void execute(@Nullable GeyserSession session, GeyserCommandSource sender, String[] args);
-
-    /**
-     * If false, hides the command from being shown on the Geyser Standalone GUI.
-     *
-     * @return true if the command can be run on the server console
-     */
-    @Override
-    public boolean isExecutableOnConsole() {
-        return true;
-    }
-
-    /**
-     * Used in the GUI to know what subcommands can be run
-     *
-     * @return a list of all possible subcommands, or empty if none.
-     */
-    @NonNull
-    @Override
-    public List<String> subCommands() {
-        return Collections.emptyList();
-    }
-
-    /**
-     * Shortcut to {@link #subCommands()} ()}{@code .isEmpty()}.
-     *
-     * @return true if there are subcommand present for this command.
-     */
-    public boolean hasSubCommands() {
-        return !this.subCommands().isEmpty();
-    }
-
-    public void setAliases(List<String> aliases) {
-        this.aliases = aliases;
-    }
-
-    /**
-     * Used for permission defaults on server implementations.
-     *
-     * @return if this command is designated to be used only by server operators.
-     */
-    @Override
-    public boolean isSuggestedOpOnly() {
-        return false;
-    }
 
     public String rootCommand() {
         return "geyser";
     }
 
-    public void register(CommandManager<GeyserCommandSource> manager) {
-        // todo: commands all builtin commands should directly use cloud
-        // also, there needs to be customized messages for isExecutableOnConsole and isBedrockOnly, etc. Review the old CommandExecutors.
-        manager.command(manager.commandBuilder(rootCommand())
+    @Contract(value = "_ -> new", pure = true)
+    public Command.Builder<GeyserCommandSource> builder(CommandManager<GeyserCommandSource> manager) {
+        return manager.commandBuilder(rootCommand())
             .literal(name, aliases.toArray(new String[0]))
-            .permission(source -> {
-                if (source.isConsole()) {
-                    return isExecutableOnConsole();
-                }
-                if (isBedrockOnly() && source.connection().isEmpty()) {
-                    return false; // bedrock only but not a bedrock player
-                }
+            .meta(BEDROCK_ONLY, isBedrockOnly())
+            .meta(PLAYER_ONLY, !isExecutableOnConsole())
+            .permission(permission);
+    }
 
-                return source.hasPermission(permission);
-            })
-            .argument(StringArgument.optional("args", StringArgument.StringMode.GREEDY))
-            .handler(context -> {
-                GeyserCommandSource source = context.getSender();
-                execute(source.connection().orElse(null), source, context.getOrDefault("args", "").split(" "));
-            })
-        );
+    public void register(CommandManager<GeyserCommandSource> manager) {
+        manager.command(builder(manager));
     }
 }

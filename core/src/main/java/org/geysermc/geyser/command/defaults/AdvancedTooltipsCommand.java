@@ -25,9 +25,10 @@
 
 package org.geysermc.geyser.command.defaults;
 
+import cloud.commandframework.Command;
+import cloud.commandframework.CommandManager;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.MinecraftLocale;
 
 public class AdvancedTooltipsCommand extends GeyserCommand {
@@ -36,13 +37,14 @@ public class AdvancedTooltipsCommand extends GeyserCommand {
     }
 
     @Override
-    public void execute(GeyserSession session, GeyserCommandSource sender, String[] args) {
-        if (session != null) {
-            String onOrOff = session.isAdvancedTooltips() ? "off" : "on";
-            session.setAdvancedTooltips(!session.isAdvancedTooltips());
-            session.sendMessage("§l§e" + MinecraftLocale.getLocaleString("debug.prefix", session.locale()) + " §r" + MinecraftLocale.getLocaleString("debug.advanced_tooltips." + onOrOff, session.locale()));
-            session.getInventoryTranslator().updateInventory(session, session.getPlayerInventory());
-        }
+    public Command.Builder<GeyserCommandSource> builder(CommandManager<GeyserCommandSource> manager) {
+        return super.builder(manager)
+            .handler(context -> context.getSender().connection().ifPresent(session -> {
+                String onOrOff = session.isAdvancedTooltips() ? "off" : "on";
+                session.setAdvancedTooltips(!session.isAdvancedTooltips());
+                session.sendMessage("§l§e" + MinecraftLocale.getLocaleString("debug.prefix", session.locale()) + " §r" + MinecraftLocale.getLocaleString("debug.advanced_tooltips." + onOrOff, session.locale()));
+                session.getInventoryTranslator().updateInventory(session, session.getPlayerInventory());
+            }));
     }
 
     @Override

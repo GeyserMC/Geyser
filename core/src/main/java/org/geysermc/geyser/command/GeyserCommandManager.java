@@ -26,10 +26,10 @@
 package org.geysermc.geyser.command;
 
 import cloud.commandframework.CommandManager;
+import cloud.commandframework.arguments.standard.StringArgument;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
@@ -72,6 +72,8 @@ public class GeyserCommandManager {
     public GeyserCommandManager(GeyserImpl geyser, CommandManager<GeyserCommandSource> cloud) {
         this.geyser = geyser;
         this.cloud = cloud;
+
+        cloud.registerCommandPostProcessor(new SenderTypeProcessor());
 
         registerBuiltInCommand(new HelpCommand(geyser, "help", "geyser.commands.help.desc", "geyser.command.help", "geyser", this.commands));
         registerBuiltInCommand(new ListCommand(geyser, "list", "geyser.commands.list.desc", "geyser.command.list"));
@@ -178,7 +180,6 @@ public class GeyserCommandManager {
         private List<String> aliases;
         private boolean suggestedOpOnly = false;
         private boolean executableOnConsole = true;
-        private List<String> subCommands;
         private boolean bedrockOnly;
         private CommandExecutor<T> executor;
 
@@ -219,11 +220,6 @@ public class GeyserCommandManager {
             return this;
         }
 
-        public CommandBuilder<T> subCommands(@NonNull List<String> subCommands) {
-            this.subCommands = subCommands;
-            return this;
-        }
-
         public CommandBuilder<T> bedrockOnly(boolean bedrockOnly) {
             this.bedrockOnly = bedrockOnly;
             return this;
@@ -248,20 +244,29 @@ public class GeyserCommandManager {
 
                 @SuppressWarnings("unchecked")
                 @Override
-                public void execute(@Nullable GeyserSession session, GeyserCommandSource sender, String[] args) {
-                    Class<? extends T> sourceType = CommandBuilder.this.sourceType;
-                    CommandExecutor<T> executor = CommandBuilder.this.executor;
-                    if (sourceType.isInstance(session)) {
-                        executor.execute((T) session, this, args);
-                        return;
-                    }
+                public cloud.commandframework.Command.Builder<GeyserCommandSource> builder(CommandManager<GeyserCommandSource> manager) {
+                    return super.builder(manager)
+                        .argument(StringArgument.optional("args", StringArgument.StringMode.GREEDY))
+                        .handler(context -> {
+                            GeyserCommandSource source = context.getSender();
+                            String[] args = context.getOrDefault("args", "").split(" ");
 
-                    if (sourceType.isInstance(sender)) {
-                        executor.execute((T) sender, this, args);
-                        return;
-                    }
+                            Class<? extends T> sourceType = CommandBuilder.this.sourceType;
+                            CommandExecutor<T> executor = CommandBuilder.this.executor;
 
-                    GeyserImpl.getInstance().getLogger().debug("Ignoring command " + this.name + " due to no suitable sender.");
+                            if (sourceType.isInstance(source)) {
+                                executor.execute((T) source, this, args);
+                                return;
+                            }
+
+                            GeyserSession session = source.connection().orElse(null);
+                            if (sourceType.isInstance(session)) {
+                                executor.execute((T) session, this, args);
+                                return;
+                            }
+
+                            GeyserImpl.getInstance().getLogger().debug("Ignoring command " + this.name + " due to no suitable sender.");
+                        });
                 }
 
                 @NonNull
@@ -275,20 +280,14 @@ public class GeyserCommandManager {
                     return CommandBuilder.this.suggestedOpOnly;
                 }
 
-                @NonNull
                 @Override
-                public List<String> subCommands() {
-                    return CommandBuilder.this.subCommands == null ? Collections.emptyList() : CommandBuilder.this.subCommands;
+                public boolean isExecutableOnConsole() {
+                    return CommandBuilder.this.executableOnConsole;
                 }
 
                 @Override
                 public boolean isBedrockOnly() {
                     return CommandBuilder.this.bedrockOnly;
-                }
-
-                @Override
-                public boolean isExecutableOnConsole() {
-                    return CommandBuilder.this.executableOnConsole;
                 }
 
                 @Override

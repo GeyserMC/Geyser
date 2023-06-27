@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.command.defaults;
 
+import cloud.commandframework.Command;
+import cloud.commandframework.CommandManager;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
@@ -44,12 +46,17 @@ public class ListCommand extends GeyserCommand {
     }
 
     @Override
-    public void execute(GeyserSession session, GeyserCommandSource sender, String[] args) {
-        String message = GeyserLocale.getPlayerLocaleString("geyser.commands.list.message", sender.locale(),
-                geyser.getSessionManager().size(),
-                geyser.getSessionManager().getAllSessions().stream().map(GeyserSession::bedrockUsername).collect(Collectors.joining(" ")));
+    public Command.Builder<GeyserCommandSource> builder(CommandManager<GeyserCommandSource> manager) {
+        return super.builder(manager)
+            .handler(context -> {
+                GeyserCommandSource source = context.getSender();
 
-        sender.sendMessage(message);
+                String message = GeyserLocale.getPlayerLocaleString("geyser.commands.list.message", source.locale(),
+                    geyser.getSessionManager().size(),
+                    geyser.getSessionManager().getAllSessions().stream().map(GeyserSession::bedrockUsername).collect(Collectors.joining(" ")));
+
+                source.sendMessage(message);
+            });
     }
 
     @Override

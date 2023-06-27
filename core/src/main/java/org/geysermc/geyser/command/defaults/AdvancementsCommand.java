@@ -25,9 +25,10 @@
 
 package org.geysermc.geyser.command.defaults;
 
+import cloud.commandframework.Command;
+import cloud.commandframework.CommandManager;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.session.GeyserSession;
 
 public class AdvancementsCommand extends GeyserCommand {
     public AdvancementsCommand(String name, String description, String permission) {
@@ -35,10 +36,11 @@ public class AdvancementsCommand extends GeyserCommand {
     }
 
     @Override
-    public void execute(GeyserSession session, GeyserCommandSource sender, String[] args) {
-        if (session != null) {
-            session.getAdvancementsCache().buildAndShowMenuForm();
-        }
+    public Command.Builder<GeyserCommandSource> builder(CommandManager<GeyserCommandSource> manager) {
+        return super.builder(manager)
+            .handler(context ->
+                context.getSender().connection().ifPresent(session ->
+                    session.getAdvancementsCache().buildAndShowMenuForm()));
     }
 
     @Override

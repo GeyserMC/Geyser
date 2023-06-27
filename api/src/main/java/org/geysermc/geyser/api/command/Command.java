@@ -76,25 +76,18 @@ public interface Command {
      *
      * @return if this command is designated to be used only by server operators.
      */
-    boolean isSuggestedOpOnly();
+    @Deprecated(forRemoval = true)
+    default boolean isSuggestedOpOnly() {
+        return false;
+    }
 
     /**
      * Gets if this command is executable on console.
      *
      * @return if this command is executable on console
      */
-    boolean isExecutableOnConsole();
-
-    /**
-     * Gets the subcommands associated with this
-     * command. Mainly used within the Geyser Standalone
-     * GUI to know what subcommands are supported.
-     *
-     * @return the subcommands associated with this command
-     */
-    @NonNull
-    default List<String> subCommands() {
-        return Collections.emptyList();
+    default boolean isExecutableOnConsole() {
+        return true;
     }
 
     /**
@@ -104,6 +97,19 @@ public interface Command {
      */
     default boolean isBedrockOnly() {
         return false;
+    }
+
+    /**
+     * Gets the subcommands associated with this
+     * command. Mainly used within the Geyser Standalone
+     * GUI to know what subcommands are supported.
+     *
+     * @return the subcommands associated with this command
+     */
+    @Deprecated(forRemoval = true)
+    @NonNull
+    default List<String> subCommands() {
+        return Collections.emptyList();
     }
 
     /**
@@ -181,20 +187,23 @@ public interface Command {
         Builder<T> executableOnConsole(boolean executableOnConsole);
 
         /**
-         * Sets the subcommands.
-         *
-         * @param subCommands the subcommands
-         * @return the builder
-         */
-        Builder<T> subCommands(@NonNull List<String> subCommands);
-
-        /**
          * Sets if this command is bedrock only.
          *
          * @param bedrockOnly if this command is bedrock only
          * @return the builder
          */
         Builder<T> bedrockOnly(boolean bedrockOnly);
+
+        /**
+         * Sets the subcommands.
+         *
+         * @param subCommands the subcommands
+         * @return the builder
+         */
+        @Deprecated(forRemoval = true)
+        default Builder<T> subCommands(@NonNull List<String> subCommands) {
+            return this;
+        }
 
         /**
          * Sets the {@link CommandExecutor} for this command.

@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.command.defaults;
 
+import cloud.commandframework.Command;
+import cloud.commandframework.CommandManager;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
@@ -37,12 +39,9 @@ public class OffhandCommand extends GeyserCommand {
     }
 
     @Override
-    public void execute(GeyserSession session, GeyserCommandSource sender, String[] args) {
-        if (session == null) {
-            return;
-        }
-
-        session.requestOffhandSwap();
+    public Command.Builder<GeyserCommandSource> builder(CommandManager<GeyserCommandSource> manager) {
+        return super.builder(manager)
+            .handler(context -> context.getSender().connection().ifPresent(GeyserSession::requestOffhandSwap));
     }
 
     @Override

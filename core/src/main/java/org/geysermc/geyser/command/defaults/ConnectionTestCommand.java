@@ -25,20 +25,25 @@
 
 package org.geysermc.geyser.command.defaults;
 
+import cloud.commandframework.Command;
+import cloud.commandframework.CommandManager;
+import cloud.commandframework.arguments.standard.IntegerArgument;
+import cloud.commandframework.arguments.standard.StringArgument;
+import cloud.commandframework.context.CommandContext;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.LoopbackUtil;
 import org.geysermc.geyser.util.WebUtils;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.CompletableFuture;
 
 public class ConnectionTestCommand extends GeyserCommand {
+
+    private static final String ADDRESS = "address";
+    private static final String PORT = "port";
+
     private final GeyserImpl geyser;
 
     public ConnectionTestCommand(GeyserImpl geyser, String name, String description, String permission) {
@@ -47,64 +52,57 @@ public class ConnectionTestCommand extends GeyserCommand {
     }
 
     @Override
-    public void execute(@Nullable GeyserSession session, GeyserCommandSource sender, String[] args) {
-        // Only allow the console to create dumps on Geyser Standalone
-        if (!sender.isConsole() && geyser.getPlatformType() == PlatformType.STANDALONE) {
-            sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", sender.locale()));
-            return;
-        }
+    public Command.Builder<GeyserCommandSource> builder(CommandManager<GeyserCommandSource> manager) {
+        return super.builder(manager)
+            .argument(StringArgument.of(ADDRESS))
+            .argument(IntegerArgument.<GeyserCommandSource>builder(PORT)
+                .asOptionalWithDefault(19132)
+                .withMax(65535).withMin(0)
+                .build())
+            .handler(this::execute);
+    }
 
-        if (args.length == 0) {
-            sender.sendMessage("Provide the Bedrock server IP you are trying to connect with. Example: `test.geysermc.org:19132`");
-            return;
-        }
-
-        // Still allow people to not supply a port and fallback to 19132
-        String[] fullAddress = args[0].split(":", 2);
-        int port;
-        if (fullAddress.length == 2) {
-            port = Integer.parseInt(fullAddress[1]);
-        } else {
-            port = 19132;
-        }
+    private void execute(CommandContext<GeyserCommandSource> context) {
+        GeyserCommandSource source = context.getSender();
+        String address = context.get(ADDRESS);
+        int port = context.get(PORT);
 
         // Issue: do the ports not line up?
         if (port != geyser.getConfig().getBedrock().port()) {
-            sender.sendMessage("The port you supplied (" + port + ") does not match the port supplied in Geyser's configuration ("
+            source.sendMessage("The port you supplied (" + port + ") does not match the port supplied in Geyser's configuration ("
                     + geyser.getConfig().getBedrock().port() + "). You can change it under `bedrock` `port`.");
         }
 
         // Issue: is the `bedrock` `address` in the config different?
         if (!geyser.getConfig().getBedrock().address().equals("0.0.0.0")) {
-            sender.sendMessage("The address specified in `bedrock` `address` is not \"0.0.0.0\" - this may cause issues unless this is deliberate and intentional.");
+            source.sendMessage("The address specified in `bedrock` `address` is not \"0.0.0.0\" - this may cause issues unless this is deliberate and intentional.");
         }
 
         // Issue: did someone turn on enable-proxy-protocol and they didn't mean it?
         if (geyser.getConfig().getBedrock().isEnableProxyProtocol()) {
-            sender.sendMessage("You have the `enable-proxy-protocol` setting enabled. " +
+            source.sendMessage("You have the `enable-proxy-protocol` setting enabled. " +
                     "Unless you're deliberately using additional software that REQUIRES this setting, you may not need it enabled.");
         }
 
         CompletableFuture.runAsync(() -> {
             try {
                 // Issue: SRV record?
-                String ip = fullAddress[0];
-                String[] record = WebUtils.findSrvRecord(geyser, ip);
-                if (record != null && !ip.equals(record[3]) && !record[2].equals(String.valueOf(port))) {
-                    sender.sendMessage("Bedrock Edition does not support SRV records. Try connecting to your server using the address " + record[3] + " and the port " + record[2]
+                String[] record = WebUtils.findSrvRecord(geyser, address);
+                if (record != null && !address.equals(record[3]) && !record[2].equals(String.valueOf(port))) {
+                    source.sendMessage("Bedrock Edition does not support SRV records. Try connecting to your server using the address " + record[3] + " and the port " + record[2]
                             + ". If that fails, re-run this command with that address and port.");
                     return;
                 }
 
                 // Issue: does Loopback need applying?
                 if (LoopbackUtil.needsLoopback(GeyserImpl.getInstance().getLogger())) {
-                    sender.sendMessage("Loopback is not applied on this computer! You will have issues connecting from the same computer. " +
+                    source.sendMessage("Loopback is not applied on this computer! You will have issues connecting from the same computer. " +
                             "See here for steps on how to resolve: " + "https://wiki.geysermc.org/geyser/fixing-unable-to-connect-to-world/#using-geyser-on-the-same-computer");
                 }
 
                 // mcsrvstatus will likely be replaced in the future with our own service where we can also test
                 // around the OVH workaround without worrying about caching
-                JsonNode output = WebUtils.getJson("https://api.mcsrvstat.us/bedrock/2/" + args[0]);
+                JsonNode output = WebUtils.getJson("https://api.mcsrvstat.us/bedrock/2/" + address);
 
                 long cacheTime = output.get("debug").get("cachetime").asLong();
                 String when;
@@ -115,15 +113,15 @@ public class ConnectionTestCommand extends GeyserCommand {
                 }
 
                 if (output.get("online").asBoolean()) {
-                    sender.sendMessage("Your server is likely online as of " + when + "!");
-                    sendLinks(sender);
+                    source.sendMessage("Your server is likely online as of " + when + "!");
+                    sendLinks(source);
                     return;
                 }
 
-                sender.sendMessage("Your server is likely unreachable from outside the network as of " + when + ".");
-                sendLinks(sender);
+                source.sendMessage("Your server is likely unreachable from outside the network as of " + when + ".");
+                sendLinks(source);
             } catch (Exception e) {
-                sender.sendMessage("Error while trying to check your connection!");
+                source.sendMessage("Error while trying to check your connection!");
                 geyser.getLogger().error("Error while trying to check your connection!", e);
             }
         });

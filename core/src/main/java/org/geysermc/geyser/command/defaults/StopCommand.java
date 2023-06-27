@@ -25,12 +25,11 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import org.geysermc.geyser.api.util.PlatformType;
+import cloud.commandframework.Command;
+import cloud.commandframework.CommandManager;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Collections;
 
@@ -42,17 +41,13 @@ public class StopCommand extends GeyserCommand {
         super(name, description, permission);
         this.geyser = geyser;
 
-        this.setAliases(Collections.singletonList("shutdown"));
+        this.aliases(Collections.singletonList("shutdown"));
     }
 
     @Override
-    public void execute(GeyserSession session, GeyserCommandSource sender, String[] args) {
-        if (!sender.isConsole() && geyser.getPlatformType() == PlatformType.STANDALONE) {
-            sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", sender.locale()));
-            return;
-        }
-
-        geyser.getBootstrap().onDisable();
+    public Command.Builder<GeyserCommandSource> builder(CommandManager<GeyserCommandSource> manager) {
+        return super.builder(manager)
+            .handler(context -> geyser.getBootstrap().onDisable());
     }
 
     @Override

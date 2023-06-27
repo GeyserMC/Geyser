@@ -25,12 +25,13 @@
 
 package org.geysermc.geyser.command.defaults;
 
+import cloud.commandframework.Command;
+import cloud.commandframework.CommandManager;
 import com.github.steveice10.mc.protocol.data.game.ClientCommand;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundClientCommandPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.session.GeyserSession;
 
 public class StatisticsCommand extends GeyserCommand {
 
@@ -39,12 +40,13 @@ public class StatisticsCommand extends GeyserCommand {
     }
 
     @Override
-    public void execute(GeyserSession session, GeyserCommandSource sender, String[] args) {
-        if (session == null) return;
-
-        session.setWaitingForStatistics(true);
-        ServerboundClientCommandPacket ServerboundClientCommandPacket = new ServerboundClientCommandPacket(ClientCommand.STATS);
-        session.sendDownstreamPacket(ServerboundClientCommandPacket);
+    public Command.Builder<GeyserCommandSource> builder(CommandManager<GeyserCommandSource> manager) {
+        return super.builder(manager)
+            .handler(context -> context.getSender().connection().ifPresent(session -> {
+                session.setWaitingForStatistics(true);
+                ServerboundClientCommandPacket packet = new ServerboundClientCommandPacket(ClientCommand.STATS);
+                session.sendDownstreamPacket(packet);
+            }));
     }
 
     @Override

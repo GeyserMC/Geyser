@@ -25,61 +25,55 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import org.geysermc.geyser.api.util.PlatformType;
+import cloud.commandframework.CommandManager;
+import cloud.commandframework.context.CommandContext;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Map;
 
 public class HelpCommand extends GeyserCommand {
-    private final GeyserImpl geyser;
     private final String baseCommand;
-    private final Map<String, Command> commands;
+    private final Collection<Command> commands;
 
     public HelpCommand(GeyserImpl geyser, String name, String description, String permission,
                        String baseCommand, Map<String, Command> commands) {
         super(name, description, permission);
-        this.geyser = geyser;
         this.baseCommand = baseCommand;
-        this.commands = commands;
+        this.commands = commands.values();
 
-        this.setAliases(Collections.singletonList("?"));
+        this.aliases(Collections.singletonList("?"));
     }
 
-    /**
-     * Sends the help menu to a command sender. Will not show certain commands depending on the command sender and session.
-     *
-     * @param session The Geyser session of the command sender, if it is a bedrock player. If null, bedrock-only commands will be hidden.
-     * @param sender The CommandSender to send the help message to.
-     * @param args Not used.
-     */
     @Override
-    public void execute(GeyserSession session, GeyserCommandSource sender, String[] args) {
+    public cloud.commandframework.Command.Builder<GeyserCommandSource> builder(CommandManager<GeyserCommandSource> manager) {
+        return super.builder(manager)
+            .handler(this::execute);
+    }
+
+    private void execute(CommandContext<GeyserCommandSource> context) {
+        GeyserCommandSource source = context.getSender();
+        boolean bedrockPlayer = source.connection().isPresent();
+
+        // todo: pagination
         int page = 1;
         int maxPage = 1;
-        String header = GeyserLocale.getPlayerLocaleString("geyser.commands.help.header", sender.locale(), page, maxPage);
-        sender.sendMessage(header);
+        String header = GeyserLocale.getPlayerLocaleString("geyser.commands.help.header", source.locale(), page, maxPage);
+        source.sendMessage(header);
 
-        // todo: commands looks like this doesn't guard against alias keys
-        this.commands.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
-            Command cmd = entry.getValue();
-
-            // Standalone hack-in since it doesn't have a concept of permissions
-            if (geyser.getPlatformType() == PlatformType.STANDALONE || sender.hasPermission(cmd.permission())) {
-                // Only list commands the player can actually run
-                if (cmd.isBedrockOnly() && session == null) {
-                    return;
-                }
-
-                sender.sendMessage(ChatColor.YELLOW + "/" + baseCommand + " " + entry.getKey() + ChatColor.WHITE + ": " +
-                        GeyserLocale.getPlayerLocaleString(cmd.description(), sender.locale()));
-            }
-        });
+        this.commands.stream()
+            .distinct() // remove aliases
+            .sorted(Comparator.comparing(Command::name))
+            .filter(cmd -> source.hasPermission(cmd.permission()))
+            .filter(cmd -> !cmd.isBedrockOnly() || bedrockPlayer) // remove bedrock only commands if not a bedrock player
+            .forEach(cmd -> source.sendMessage(ChatColor.YELLOW + "/" + baseCommand + " " + cmd.name() + ChatColor.WHITE + ": " +
+                GeyserLocale.getPlayerLocaleString(cmd.description(), source.locale())));
     }
 }
