@@ -30,7 +30,7 @@ dependencies {
     }
 
     implementation(libs.raknet) {
-        exclude("io.netty", "*");
+        exclude("io.netty", "*")
     }
 
     implementation(libs.netty.resolver.dns)

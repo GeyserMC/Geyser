@@ -61,6 +61,10 @@ public final class WorldCache {
     private int currentSequence;
     private final Object2IntMap<Vector3i> unverifiedPredictions = new Object2IntOpenHashMap<>(1);
 
+    @Getter
+    @Setter
+    private boolean editingSignOnFront;
+
     public WorldCache(GeyserSession session) {
         this.session = session;
         this.scoreboard = new Scoreboard(session);

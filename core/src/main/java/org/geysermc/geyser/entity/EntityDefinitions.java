@@ -104,6 +104,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<HorseEntity> HORSE;
     public static final EntityDefinition<ZombieEntity> HUSK;
     public static final EntityDefinition<SpellcasterIllagerEntity> ILLUSIONER; // Not present on Bedrock
+    public static final EntityDefinition<InteractionEntity> INTERACTION;
     public static final EntityDefinition<IronGolemEntity> IRON_GOLEM;
     public static final EntityDefinition<ItemEntity> ITEM;
     public static final EntityDefinition<ItemFrameEntity> ITEM_FRAME;
@@ -133,6 +134,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<AbstractFishEntity> SALMON;
     public static final EntityDefinition<SheepEntity> SHEEP;
     public static final EntityDefinition<ShulkerEntity> SHULKER;
+    public static final EntityDefinition<SnifferEntity> SNIFFER;
     public static final EntityDefinition<ThrowableEntity> SHULKER_BULLET;
     public static final EntityDefinition<MonsterEntity> SILVERFISH;
     public static final EntityDefinition<SkeletonEntity> SKELETON;
@@ -235,7 +237,7 @@ public final class EntityDefinitions {
                     .type(EntityType.EXPERIENCE_ORB)
                     .identifier("minecraft:xp_orb")
                     .build();
-            EVOKER_FANGS = EntityDefinition.builder(EvokerFangsEntity::new) // No entity metadata to listen to as of 1.18.1
+            EVOKER_FANGS = EntityDefinition.inherited(EvokerFangsEntity::new, entityBase)
                     .type(EntityType.EVOKER_FANGS)
                     .height(0.8f).width(0.5f)
                     .identifier("minecraft:evocation_fang")
@@ -316,6 +318,15 @@ public final class EntityDefinitions {
                     .type(EntityType.TEXT_DISPLAY)
                     .identifier("minecraft:armor_stand")
                     .addTranslator(MetadataType.CHAT, TextDisplayEntity::setText)
+                    .build();
+
+            INTERACTION = EntityDefinition.inherited(InteractionEntity::new, entityBase)
+                    .type(EntityType.INTERACTION)
+                    .heightAndWidth(1.0f) // default size until server specifies otherwise
+                    .identifier("minecraft:armor_stand")
+                    .addTranslator(MetadataType.FLOAT, InteractionEntity::setWidth)
+                    .addTranslator(MetadataType.FLOAT, InteractionEntity::setHeight)
+                    .addTranslator(MetadataType.BOOLEAN, InteractionEntity::setResponse)
                     .build();
 
             EntityDefinition<FireballEntity> fireballBase = EntityDefinition.inherited(FireballEntity::new, entityBase)
@@ -842,6 +853,12 @@ public final class EntityDefinitions {
                     .height(1.3f).width(0.9f)
                     .addTranslator(MetadataType.BYTE, SheepEntity::setSheepFlags)
                     .build();
+            SNIFFER = EntityDefinition.inherited(SnifferEntity::new, ageableEntityBase)
+                    .type(EntityType.SNIFFER)
+                    .height(1.75f).width(1.9f)
+                    .addTranslator(MetadataType.SNIFFER_STATE, SnifferEntity::setSnifferState)
+                    .addTranslator(null) // Integer, drop seed at tick
+                    .build();
             STRIDER = EntityDefinition.inherited(StriderEntity::new, ageableEntityBase)
                     .type(EntityType.STRIDER)
                     .height(1.7f).width(0.9f)
@@ -884,7 +901,6 @@ public final class EntityDefinitions {
                     .build();
             CAMEL = EntityDefinition.inherited(CamelEntity::new, abstractHorseEntityBase)
                     .type(EntityType.CAMEL)
-                    .identifier("minecraft:llama") // todo 1.20
                     .height(2.375f).width(1.7f)
                     .addTranslator(MetadataType.BOOLEAN, CamelEntity::setDashing)
                     .addTranslator(null) // Last pose change tick

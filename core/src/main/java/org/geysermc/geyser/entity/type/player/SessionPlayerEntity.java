@@ -67,10 +67,6 @@ public class SessionPlayerEntity extends PlayerEntity {
      */
     @Getter
     private boolean isRidingInFront;
-    /**
-     * Used for villager inventory emulation.
-     */
-    private int fakeTradeXp;
 
     public SessionPlayerEntity(GeyserSession session) {
         super(session, -1, 1, null, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, null, null);
@@ -173,11 +169,6 @@ public class SessionPlayerEntity extends PlayerEntity {
     public void setRiderSeatPosition(Vector3f position) {
         super.setRiderSeatPosition(position);
         this.isRidingInFront = position != null && position.getX() > 0;
-    }
-
-    public void addFakeTradeExperience(int tradeXp) {
-        fakeTradeXp += tradeXp;
-        dirtyMetadata.put(EntityDataTypes.TRADE_EXPERIENCE, fakeTradeXp);
     }
 
     @Override

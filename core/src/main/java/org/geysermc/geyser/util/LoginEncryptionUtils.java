@@ -96,7 +96,7 @@ public class LoginEncryptionUtils {
                 startEncryptionHandshake(session, identityPublicKey);
             } catch (Throwable e) {
                 // An error can be thrown on older Java 8 versions about an invalid key
-                if (true || geyser.getConfig().isDebugMode()) {
+                if (geyser.getConfig().isDebugMode()) {
                     e.printStackTrace();
                 }
 

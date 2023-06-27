@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,21 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common;
+package org.geysermc.geyser.item.type;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.ListTag;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.session.GeyserSession;
 
-@Getter
-@AllArgsConstructor
-public enum PlatformType {
-    ANDROID("Android"),
-    BUNGEECORD("BungeeCord"),
-    FABRIC("Fabric"),
-    SPIGOT("Spigot"),
-    SPONGE("Sponge"),
-    STANDALONE("Standalone"),
-    VELOCITY("Velocity");
+public class DecoratedPotItem extends BlockItem {
 
-    private final String platformName;
+    public DecoratedPotItem(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
+    }
+
+    @Override
+    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag) {
+        super.translateNbtToBedrock(session, tag);
+
+        if (tag.remove("BlockEntityTag") instanceof CompoundTag blockEntityTag) {
+            if (blockEntityTag.remove("sherds") instanceof ListTag sherds) {
+                // bedrock wants it on the root level
+                tag.put(sherds);
+            }
+        }
+    }
 }

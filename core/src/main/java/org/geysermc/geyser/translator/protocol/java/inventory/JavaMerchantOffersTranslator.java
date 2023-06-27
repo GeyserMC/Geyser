@@ -73,9 +73,17 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
     public static void openMerchant(GeyserSession session, ClientboundMerchantOffersPacket packet, MerchantContainer merchantInventory) {
         // Retrieve the fake villager involved in the trade, and update its metadata to match with the window information
         merchantInventory.setVillagerTrades(packet.getTrades());
+        merchantInventory.setTradeExperience(packet.getExperience());
+
         Entity villager = merchantInventory.getVillager();
-        villager.getDirtyMetadata().put(EntityDataTypes.TRADE_TIER, packet.getVillagerLevel() - 1);
-        villager.getDirtyMetadata().put(EntityDataTypes.MAX_TRADE_TIER, 4);
+        if (packet.isRegularVillager()) {
+            villager.getDirtyMetadata().put(EntityDataTypes.TRADE_TIER, packet.getVillagerLevel() - 1);
+            villager.getDirtyMetadata().put(EntityDataTypes.MAX_TRADE_TIER, 4);
+        } else {
+            // Don't show trade level for wandering traders
+            villager.getDirtyMetadata().put(EntityDataTypes.TRADE_TIER, 0);
+            villager.getDirtyMetadata().put(EntityDataTypes.MAX_TRADE_TIER, 0);
+        }
         villager.getDirtyMetadata().put(EntityDataTypes.TRADE_EXPERIENCE, packet.getExperience());
         villager.updateBedrockMetadata();
 
