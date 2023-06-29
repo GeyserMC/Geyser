@@ -265,7 +265,7 @@ public class MessageTranslator {
      * @param locale Locale to use for translation strings
      * @return The plain text of the message
      */
-    public static String convertToPlainText(String message, String locale) {
+    public static String convertToPlainTextLenient(String message, String locale) {
         if (message == null) {
             return "";
         }
