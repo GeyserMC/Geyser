@@ -48,11 +48,6 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
     }
 
     @Override
-    protected void postInitChannel(Channel channel) throws Exception {
-        super.postInitChannel(channel);
-    }
-
-    @Override
     public void initSession(@Nonnull BedrockServerSession bedrockServerSession) {
         try {
             if (this.geyser.getGeyserServer().getProxiedAddresses() != null) {
