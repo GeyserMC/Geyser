@@ -146,7 +146,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
             // Check if a file exists with the same name as the resource pack suffixed by .key,
             // and set this as content key. (e.g. test.zip, key file would be test.zip.key)
             Path keyFile = path.resolveSibling(path.getFileName().toString() + ".key");
-            String contentKey = Files.exists(keyFile) ? Files.readString(path, StandardCharsets.UTF_8) : "";
+            String contentKey = Files.exists(keyFile) ? Files.readString(keyFile, StandardCharsets.UTF_8) : "";
 
             return new GeyserResourcePack(new GeyserPathPackCodec(path), manifest, contentKey);
         } catch (Exception e) {
