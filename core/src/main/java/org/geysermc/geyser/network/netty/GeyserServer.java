@@ -205,7 +205,9 @@ public final class GeyserServer {
         GeyserPingInfo pingInfo = null;
         if (config.isPassthroughMotd() || config.isPassthroughPlayerCounts()) {
             IGeyserPingPassthrough pingPassthrough = geyser.getBootstrap().getGeyserPingPassthrough();
-            pingInfo = pingPassthrough.getPingInformation(inetSocketAddress);
+            if (pingPassthrough != null) {
+                pingInfo = pingPassthrough.getPingInformation(inetSocketAddress);
+            }
         }
 
         BedrockPong pong = new BedrockPong()
