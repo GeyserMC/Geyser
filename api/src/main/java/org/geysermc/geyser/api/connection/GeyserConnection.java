@@ -29,6 +29,7 @@ import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.connection.Connection;
+import org.geysermc.geyser.api.bedrock.data.CameraShake;
 import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
@@ -47,9 +48,44 @@ public interface GeyserConnection extends Connection, CommandSource {
     CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId);
 
     /**
+     * Displays a player entity as emoting to this client.
      *
      * @param emoter the player entity emoting.
-     * @param emoteId the emote ID to send to the client.
+     * @param emoteId the emote ID to send to this client.
      */
     void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId);
+
+    /**
+     * Shakes the client's camera.<br><br>
+     * If the camera is already shaking with the same {@link CameraShake} type, then the additional intensity
+     * will be layered on top of the existing intensity, with their own distinct durations.<br>
+     * If the existing shake type is different and the new intensity/duration are not positive, the existing shake only
+     * switches to the new type. Otherwise, the existing shake is completely overridden.
+     *
+     * @param intensity the intensity of the shake. The client has a maximum total intensity of 4.
+     * @param duration the time in seconds that the shake will occur for
+     * @param type the type of shake
+     */
+    void shakeCamera(float intensity, float duration, @NonNull CameraShake type);
+
+    /**
+     * Stops all camera shake of any type.
+     */
+    void stopCameraShake();
+
+    /**
+     * Adds the given fog IDs to the fog cache, then sends all fog IDs in the cache to the client.
+     * <p>
+     * Fog IDs can be found <a href="https://wiki.bedrock.dev/documentation/fog-ids.html">here</a>
+     *
+     * @param fogNameSpaces the fog IDs to add. If empty, the existing cached IDs will still be sent.
+     */
+    void sendFog(String... fogNameSpaces);
+
+    /**
+     * Removes the given fog IDs from the fog cache, then sends all fog IDs in the cache to the client.
+     *
+     * @param fogNameSpaces the fog IDs to remove. If empty, all fog IDs will be removed.
+     */
+    void removeFog(String... fogNameSpaces);
 }
