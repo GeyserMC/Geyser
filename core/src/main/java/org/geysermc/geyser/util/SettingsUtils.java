@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import org.geysermc.cumulus.component.DropdownComponent;
 import org.geysermc.cumulus.form.CustomForm;
+import org.geysermc.cumulus.form.ModalForm;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.GameRule;
 import org.geysermc.geyser.level.WorldManager;
@@ -54,7 +55,8 @@ public class SettingsUtils {
         // Only show the client title if any of the client settings are available
         boolean showClientSettings = session.getPreferencesCache().isAllowShowCoordinates()
                 || CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED
-                || session.getGeyser().getConfig().isAllowCustomSkulls();
+                || session.getGeyser().getConfig().isAllowCustomSkulls()
+                || session.getGeyser().getConfig().isAboveBedrockNetherBuilding();
 
         if (showClientSettings) {
             builder.label("geyser.settings.title.client");
@@ -74,6 +76,10 @@ public class SettingsUtils {
 
             if (session.getGeyser().getConfig().isAllowCustomSkulls()) {
                 builder.toggle("geyser.settings.option.customSkulls", session.getPreferencesCache().isPrefersCustomSkulls());
+            }
+
+            if (session.getGeyser().getConfig().isAboveBedrockNetherBuilding()) {
+                builder.toggle("geyser.settings.option.aboveBedrockNetherBuilding", session.getPreferencesCache().isPrefersAboveBedrockNetherBuilding());
             }
         }
 
@@ -125,6 +131,15 @@ public class SettingsUtils {
 
                 if (session.getGeyser().getConfig().isAllowCustomSkulls()) {
                     session.getPreferencesCache().setPrefersCustomSkulls(response.next());
+                }
+
+                if (session.getGeyser().getConfig().isAboveBedrockNetherBuilding()) {
+                    boolean result = response.next();
+                    // If the setting changed, send a notice prompting the user of any side effects
+                    if (session.getPreferencesCache().isPrefersAboveBedrockNetherBuilding() != result) {
+                        session.getPreferencesCache().setPrefersAboveBedrockNetherBuilding(result);
+                        session.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.settings.option.aboveBedrockNetherBuilding.notice", session.locale()));
+                    }
                 }
             }
 

@@ -349,7 +349,6 @@ public class GeyserImpl implements GeyserApi {
         }
 
         CooldownUtils.setDefaultShowCooldown(config.getShowCooldown());
-        DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
 
         Integer bedrockThreadCount = Integer.getInteger("Geyser.BedrockNetworkThreads");
         if (bedrockThreadCount == null) {
