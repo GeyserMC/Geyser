@@ -93,5 +93,6 @@ public interface GeyserConnection extends Connection, CommandSource {
     /**
      * Returns an immutable copy of all fog affects currently applied to this client.
      */
+    @NonNull
     Set<String> fogEffects();
 }
