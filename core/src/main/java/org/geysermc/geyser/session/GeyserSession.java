@@ -534,7 +534,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private boolean waitingForStatistics = false;
 
-    private final Set<String> fogNameSpaces = new HashSet<>();
+    /**
+     * All fog effects that are currently applied to the client.
+     */
+    private final Set<String> appliedFog = new HashSet<>();
 
     private final Set<UUID> emotes;
 
@@ -1961,23 +1964,31 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public void sendFog(String... fogNameSpaces) {
-        this.fogNameSpaces.addAll(Arrays.asList(fogNameSpaces));
+        Collections.addAll(this.appliedFog, fogNameSpaces);
 
         PlayerFogPacket packet = new PlayerFogPacket();
-        packet.getFogStack().addAll(this.fogNameSpaces);
+        packet.getFogStack().addAll(this.appliedFog);
         sendUpstreamPacket(packet);
     }
 
     @Override
     public void removeFog(String... fogNameSpaces) {
         if (fogNameSpaces.length == 0) {
-            this.fogNameSpaces.clear();
+            this.appliedFog.clear();
         } else {
-            this.fogNameSpaces.removeAll(Arrays.asList(fogNameSpaces));
+            for (String id : fogNameSpaces) {
+                this.appliedFog.remove(id);
+            }
         }
         PlayerFogPacket packet = new PlayerFogPacket();
-        packet.getFogStack().addAll(this.fogNameSpaces);
+        packet.getFogStack().addAll(this.appliedFog);
         sendUpstreamPacket(packet);
+    }
+
+    @Override
+    public Set<String> fogEffects() {
+        // Use a copy so that sendFog/removeFog can be called while iterating the returned set (avoid CME)
+        return Set.copyOf(this.appliedFog);
     }
 
     public void addCommandEnum(String name, String enums) {

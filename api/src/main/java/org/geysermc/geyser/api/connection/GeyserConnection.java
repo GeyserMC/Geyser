@@ -34,6 +34,7 @@ import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -88,4 +89,9 @@ public interface GeyserConnection extends Connection, CommandSource {
      * @param fogNameSpaces the fog IDs to remove. If empty, all fog IDs will be removed.
      */
     void removeFog(String... fogNameSpaces);
+
+    /**
+     * Returns an immutable copy of all fog affects currently applied to this client.
+     */
+    Set<String> fogEffects();
 }
