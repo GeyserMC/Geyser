@@ -52,6 +52,11 @@ application {
     mainClass.set("org.geysermc.geyser.platform.fabric.GeyserFabricMain")
 }
 
+loom {
+    val widener = project.sourceSets["main"].resources.findLast { it.name.equals("geyser-fabric.accesswidener") }
+    accessWidenerPath.set(widener!!)
+}
+
 tasks {
     // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
     // if it is present.

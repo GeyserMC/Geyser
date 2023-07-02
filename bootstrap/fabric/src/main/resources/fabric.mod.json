@@ -22,6 +22,7 @@
   "mixins": [
     "geyser-fabric.mixins.json"
   ],
+  "accessWidener": "geyser-fabric.accesswidener",
   "depends": {
     "fabricloader": ">=0.14.21",
     "fabric": "*",

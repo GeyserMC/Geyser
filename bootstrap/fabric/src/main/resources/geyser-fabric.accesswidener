@@ -1,0 +1,6 @@
+accessWidener	v1	named
+
+# Access the packet queue
+accessible field net/minecraft/network/Connection queue Ljava/util/Queue;
+# Access PacketHolder within the queue and its packet
+accessible field net/minecraft/network/Connection$PacketHolder packet Lnet/minecraft/network/protocol/Packet;
