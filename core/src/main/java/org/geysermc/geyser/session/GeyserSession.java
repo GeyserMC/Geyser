@@ -98,6 +98,7 @@ import org.cloudburstmc.protocol.common.util.OptionalBoolean;
 import org.geysermc.api.util.BedrockPlatform;
 import org.geysermc.api.util.InputMode;
 import org.geysermc.api.util.UiProfile;
+import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
@@ -533,7 +534,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private boolean waitingForStatistics = false;
 
-    private final Set<String> fogNameSpaces = new HashSet<>();
+    /**
+     * All fog effects that are currently applied to the client.
+     */
+    private final Set<String> appliedFog = new HashSet<>();
 
     private final Set<UUID> emotes;
 
@@ -1828,38 +1832,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
     }
 
-    /**
-     * Send the following fog IDs, as well as the cached ones, to the client.
-     *
-     * Fog IDs can be found here:
-     * https://wiki.bedrock.dev/documentation/fog-ids.html
-     *
-     * @param fogNameSpaces the fog ids to add
-     */
-    public void sendFog(String... fogNameSpaces) {
-        this.fogNameSpaces.addAll(Arrays.asList(fogNameSpaces));
-
-        PlayerFogPacket packet = new PlayerFogPacket();
-        packet.getFogStack().addAll(this.fogNameSpaces);
-        sendUpstreamPacket(packet);
-    }
-
-    /**
-     * Removes the following fog IDs from the client and the cache.
-     *
-     * @param fogNameSpaces the fog ids to remove
-     */
-    public void removeFog(String... fogNameSpaces) {
-        if (fogNameSpaces.length == 0) {
-            this.fogNameSpaces.clear();
-        } else {
-            this.fogNameSpaces.removeAll(Arrays.asList(fogNameSpaces));
-        }
-        PlayerFogPacket packet = new PlayerFogPacket();
-        packet.getFogStack().addAll(this.fogNameSpaces);
-        sendUpstreamPacket(packet);
-    }
-
     public boolean canUseCommandBlocks() {
         return instabuild && opPermissionLevel >= 2;
     }
@@ -1969,6 +1941,54 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         packet.setPlatformId(""); // BDS sends empty
         packet.setEmoteId(emoteId);
         sendUpstreamPacket(packet);
+    }
+
+    @Override
+    public void shakeCamera(float intensity, float duration, @NonNull CameraShake type) {
+        CameraShakePacket packet = new CameraShakePacket();
+        packet.setIntensity(intensity);
+        packet.setDuration(duration);
+        packet.setShakeType(type == CameraShake.POSITIONAL ? CameraShakeType.POSITIONAL : CameraShakeType.ROTATIONAL);
+        packet.setShakeAction(CameraShakeAction.ADD);
+        sendUpstreamPacket(packet);
+    }
+
+    @Override
+    public void stopCameraShake() {
+        CameraShakePacket packet = new CameraShakePacket();
+        // CameraShakeAction.STOP removes all types regardless of the given type, but regardless it can't be null
+        packet.setShakeType(CameraShakeType.POSITIONAL);
+        packet.setShakeAction(CameraShakeAction.STOP);
+        sendUpstreamPacket(packet);
+    }
+
+    @Override
+    public void sendFog(String... fogNameSpaces) {
+        Collections.addAll(this.appliedFog, fogNameSpaces);
+
+        PlayerFogPacket packet = new PlayerFogPacket();
+        packet.getFogStack().addAll(this.appliedFog);
+        sendUpstreamPacket(packet);
+    }
+
+    @Override
+    public void removeFog(String... fogNameSpaces) {
+        if (fogNameSpaces.length == 0) {
+            this.appliedFog.clear();
+        } else {
+            for (String id : fogNameSpaces) {
+                this.appliedFog.remove(id);
+            }
+        }
+        PlayerFogPacket packet = new PlayerFogPacket();
+        packet.getFogStack().addAll(this.appliedFog);
+        sendUpstreamPacket(packet);
+    }
+
+    @Override
+    public @NonNull Set<String> fogEffects() {
+        // Use a copy so that sendFog/removeFog can be called while iterating the returned set (avoid CME)
+        return Set.copyOf(this.appliedFog);
     }
 
     public void addCommandEnum(String name, String enums) {
