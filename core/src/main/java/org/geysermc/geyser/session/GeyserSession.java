@@ -98,7 +98,7 @@ import org.cloudburstmc.protocol.common.util.OptionalBoolean;
 import org.geysermc.api.util.BedrockPlatform;
 import org.geysermc.api.util.InputMode;
 import org.geysermc.api.util.UiProfile;
-import org.geysermc.geyser.api.bedrock.data.CameraShake;
+import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;

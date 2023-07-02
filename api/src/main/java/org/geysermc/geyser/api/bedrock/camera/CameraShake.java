@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.bedrock.data;
+package org.geysermc.geyser.api.bedrock.camera;
 
 public enum CameraShake {
     POSITIONAL,
