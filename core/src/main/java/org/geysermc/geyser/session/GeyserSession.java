@@ -1986,7 +1986,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
-    public Set<String> fogEffects() {
+    public @NonNull Set<String> fogEffects() {
         // Use a copy so that sendFog/removeFog can be called while iterating the returned set (avoid CME)
         return Set.copyOf(this.appliedFog);
     }
