@@ -78,9 +78,6 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("passthrough-player-counts")
     private boolean isPassthroughPlayerCounts = false;
 
-    @JsonProperty("passthrough-protocol-name")
-    private boolean isPassthroughProtocolName = false;
-
     @JsonProperty("legacy-ping-passthrough")
     private boolean isLegacyPingPassthrough = false;
 

@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.platform.sponge;
 
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -36,7 +35,6 @@ import org.spongepowered.api.event.EventContext;
 import org.spongepowered.api.event.SpongeEventFactory;
 import org.spongepowered.api.event.server.ClientPingServerEvent;
 import org.spongepowered.api.network.status.StatusClient;
-import org.spongepowered.api.profile.GameProfile;
 
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
@@ -66,24 +64,12 @@ public class GeyserSpongePingPassthrough implements IGeyserPingPassthrough {
             throw new RuntimeException(e);
         }
         Sponge.eventManager().post(event);
-        GeyserPingInfo geyserPingInfo = new GeyserPingInfo(
-                MessageTranslator.convertMessage(event.response().description()),
-                new GeyserPingInfo.Players(
-                        event.response().players().orElseThrow(IllegalStateException::new).max(),
-                        event.response().players().orElseThrow(IllegalStateException::new).online()
-                ),
-                new GeyserPingInfo.Version(
-                        event.response().version().name(),
-                        GameProtocol.getJavaProtocolVersion()) // thanks for also not exposing this sponge
-        );
-        event.response().players().ifPresent(players -> players.profiles().stream()
-            .map(GameProfile::name)
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .forEach(geyserPingInfo.getPlayerList()::add)
-        );
 
-        return geyserPingInfo;
+        return new GeyserPingInfo(
+                MessageTranslator.convertMessage(event.response().description()),
+                event.response().players().orElseThrow(IllegalStateException::new).max(),
+                event.response().players().orElseThrow(IllegalStateException::new).online()
+        );
     }
 
     private record GeyserStatusClient(InetSocketAddress remote) implements StatusClient {
