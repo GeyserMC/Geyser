@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.pack.ResourcePackManifest;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.skin.SkinProvider;
@@ -283,14 +284,14 @@ public class SkullResourcePackManager {
                     .filter(entry -> entry.getName().contains("manifest.json"))
                     .findFirst();
             if (manifestEntry.isPresent()) {
-                ResourcePackManifest manifest = FileUtils.loadJson(zipFile.getInputStream(manifestEntry.get()), ResourcePackManifest.class);
-                if (!uuids.first().equals(manifest.getHeader().getUuid())) {
+                GeyserResourcePackManifest manifest = FileUtils.loadJson(zipFile.getInputStream(manifestEntry.get()), GeyserResourcePackManifest.class);
+                if (!uuids.first().equals(manifest.header().uuid())) {
                     return false;
                 }
-                Optional<UUID> resourceUUID = manifest.getModules().stream()
-                        .filter(module -> "resources".equals(module.getType()))
+                Optional<UUID> resourceUUID = manifest.modules().stream()
+                        .filter(module -> "resources".equals(module.type()))
                         .findFirst()
-                        .map(ResourcePackManifest.Module::getUuid);
+                        .map(ResourcePackManifest.Module::uuid);
                 return resourceUUID.isPresent() && uuids.second().equals(resourceUUID.get());
             }
         } catch (IOException e) {

@@ -525,10 +525,28 @@ public abstract class InventoryTranslator {
 
                         int remainder = transferAction.getCount() % resultSize;
                         int timesToCraft = transferAction.getCount() / resultSize;
-                        for (int i = 0; i < timesToCraft; i++) {
-                            plan.add(Click.LEFT, sourceSlot);
-                            plan.add(Click.LEFT, destSlot);
+
+                        if (plan.getCursor().isEmpty()) {
+                            // No carried items - move to destination
+                            for (int i = 0; i < timesToCraft; i++) {
+                                plan.add(Click.LEFT, sourceSlot);
+                                plan.add(Click.LEFT, destSlot);
+                            }
+                        } else {
+                            GeyserItemStack cursor = session.getPlayerInventory().getCursor();
+                            int tempSlot = findTempSlot(inventory, cursor, true, sourceSlot, destSlot);
+                            if (tempSlot == -1) {
+                                return rejectRequest(request);
+                            }
+
+                            plan.add(Click.LEFT, tempSlot); //place cursor into temp slot
+                            for (int i = 0; i < timesToCraft; i++) {
+                                plan.add(Click.LEFT, sourceSlot); //pick up source item
+                                plan.add(Click.LEFT, destSlot); //place source item into dest slot
+                            }
+                            plan.add(Click.LEFT, tempSlot); //pick up original item
                         }
+
                         if (remainder > 0) {
                             plan.add(Click.LEFT, 0);
                             for (int i = 0; i < remainder; i++) {

@@ -148,7 +148,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             DimensionUtils.switchDimension(session, newDimension);
         } else if (DimensionUtils.isCustomBedrockNetherId() && newDimension.equalsIgnoreCase(DimensionUtils.NETHER)) {
             // If the player is spawning into the "fake" nether, send them some fog
-            session.sendFog("minecraft:fog_hell");
+            session.sendFog(DimensionUtils.BEDROCK_FOG_HELL);
         }
 
         ChunkUtils.loadDimension(session);

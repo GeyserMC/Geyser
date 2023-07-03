@@ -104,6 +104,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<HorseEntity> HORSE;
     public static final EntityDefinition<ZombieEntity> HUSK;
     public static final EntityDefinition<SpellcasterIllagerEntity> ILLUSIONER; // Not present on Bedrock
+    public static final EntityDefinition<InteractionEntity> INTERACTION;
     public static final EntityDefinition<IronGolemEntity> IRON_GOLEM;
     public static final EntityDefinition<ItemEntity> ITEM;
     public static final EntityDefinition<ItemFrameEntity> ITEM_FRAME;
@@ -317,6 +318,15 @@ public final class EntityDefinitions {
                     .type(EntityType.TEXT_DISPLAY)
                     .identifier("minecraft:armor_stand")
                     .addTranslator(MetadataType.CHAT, TextDisplayEntity::setText)
+                    .build();
+
+            INTERACTION = EntityDefinition.inherited(InteractionEntity::new, entityBase)
+                    .type(EntityType.INTERACTION)
+                    .heightAndWidth(1.0f) // default size until server specifies otherwise
+                    .identifier("minecraft:armor_stand")
+                    .addTranslator(MetadataType.FLOAT, InteractionEntity::setWidth)
+                    .addTranslator(MetadataType.FLOAT, InteractionEntity::setHeight)
+                    .addTranslator(MetadataType.BOOLEAN, InteractionEntity::setResponse)
                     .build();
 
             EntityDefinition<FireballEntity> fireballBase = EntityDefinition.inherited(FireballEntity::new, entityBase)

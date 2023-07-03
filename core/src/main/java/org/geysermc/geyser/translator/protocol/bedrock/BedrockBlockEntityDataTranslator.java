@@ -43,9 +43,9 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
     public void translate(GeyserSession session, BlockEntityDataPacket packet) {
         NbtMap tag = packet.getData();
         String id = tag.getString("id");
-        if (id.equals("Sign")) {
+        if (id.endsWith("Sign")) {
             // Hanging signs are narrower
-            int widthMax = SignUtils.getSignWidthMax(session.getGeyser().getWorldManager().getBlockAt(session, packet.getBlockPosition()));
+            int widthMax = SignUtils.getSignWidthMax(id.startsWith("Hanging"));
 
             String text = MessageTranslator.convertToPlainText(
                 tag.getCompound(session.getWorldCache().isEditingSignOnFront() ? "FrontText" : "BackText").getString("Text"));

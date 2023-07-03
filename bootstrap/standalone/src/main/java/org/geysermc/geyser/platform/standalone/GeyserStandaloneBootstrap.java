@@ -38,7 +38,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.appender.ConsoleAppender;
-import org.geysermc.common.PlatformType;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommandManager;
@@ -181,13 +181,13 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
             }
         }
 
+        this.geyserLogger = new GeyserStandaloneLogger();
+
         if (useGui && gui == null) {
-            gui = new GeyserStandaloneGUI();
+            gui = new GeyserStandaloneGUI(geyserLogger);
             gui.redirectSystemStreams();
             gui.startUpdateThread();
         }
-
-        geyserLogger = new GeyserStandaloneLogger();
 
         LoopbackUtil.checkAndApplyLoopback(geyserLogger);
         
@@ -224,7 +224,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         geyserCommandManager.init();
 
         if (gui != null) {
-            gui.setupInterface(geyserLogger, geyserCommandManager);
+            gui.enableCommands(geyser.getScheduledThread(), geyserCommandManager);
         }
 
         geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);

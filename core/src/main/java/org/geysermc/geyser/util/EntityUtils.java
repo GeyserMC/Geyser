@@ -230,12 +230,12 @@ public final class EntityUtils {
             // Head rotation is locked while riding in a boat
             passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, true);
             passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 90f);
-            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET, 1f);
+            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_HAS_ROTATION, true);
             passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, -90f);
         } else {
             passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, false);
             passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 0f);
-            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET, 0f);
+            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_HAS_ROTATION, false);
             passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, 0f);
         }
     }
