@@ -44,6 +44,7 @@ public class JavaSetActionBarTextTranslator extends PacketTranslator<Clientbound
             text = MessageTranslator.convertMessage(packet.getText(), session.locale());
         }
 
+        // Type seems wrong, but is intentional to avoid collisions with armor/remaining air bars
         TextPacket textPacket = new TextPacket();
         textPacket.setType(TextPacket.Type.JUKEBOX_POPUP);
         textPacket.setNeedsTranslation(false);
