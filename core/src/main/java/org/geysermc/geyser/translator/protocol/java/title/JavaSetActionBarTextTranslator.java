@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.protocol.java.title;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.title.ClientboundSetActionBarTextPacket;
-import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
+import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -44,11 +44,13 @@ public class JavaSetActionBarTextTranslator extends PacketTranslator<Clientbound
             text = MessageTranslator.convertMessage(packet.getText(), session.locale());
         }
 
-        SetTitlePacket titlePacket = new SetTitlePacket();
-        titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
-        titlePacket.setText(text);
-        titlePacket.setXuid("");
-        titlePacket.setPlatformOnlineId("");
-        session.sendUpstreamPacket(titlePacket);
+        TextPacket textPacket = new TextPacket();
+        textPacket.setType(TextPacket.Type.JUKEBOX_POPUP);
+        textPacket.setNeedsTranslation(false);
+        textPacket.setSourceName("");
+        textPacket.setMessage(text);
+        textPacket.setXuid("");
+        textPacket.setPlatformChatId("");
+        session.sendUpstreamPacket(textPacket);
     }
 }
