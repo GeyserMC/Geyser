@@ -73,14 +73,14 @@ public class GeyserExtensionLoader extends ExtensionLoader {
 
         final GeyserExtensionClassLoader loader;
         try {
-            loader = new GeyserExtensionClassLoader(this, getClass().getClassLoader(), path);
+            loader = new GeyserExtensionClassLoader(this, getClass().getClassLoader(), path, description);
         } catch (Throwable e) {
             throw new InvalidExtensionException(e);
         }
 
-        this.classLoaders.put(description.name(), loader);
+        this.classLoaders.put(description.id(), loader);
 
-        final Extension extension = loader.load(description);
+        final Extension extension = loader.load();
         return this.setup(extension, description, dataFolder, new GeyserExtensionEventBus(GeyserImpl.getInstance().eventBus(), extension));
     }
 
