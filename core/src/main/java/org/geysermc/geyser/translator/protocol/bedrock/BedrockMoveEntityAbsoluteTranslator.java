@@ -64,7 +64,7 @@ public class BedrockMoveEntityAbsoluteTranslator extends PacketTranslator<MoveEn
         }
 
         float y = packet.getPosition().getY();
-        if (ridingEntity instanceof BoatEntity && !ridingEntity.isOnGround() && !ridingEntity.getPassengers().isEmpty()) {
+        if (ridingEntity instanceof BoatEntity && !ridingEntity.isOnGround()) {
             // Remove the offset to prevents boats from looking like they're floating in water
             y -= EntityDefinitions.BOAT.offset();
         }
