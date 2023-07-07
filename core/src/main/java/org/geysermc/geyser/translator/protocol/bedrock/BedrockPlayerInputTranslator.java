@@ -74,7 +74,7 @@ public class BedrockPlayerInputTranslator extends PacketTranslator<PlayerInputPa
             if (timeSinceVehicleMove >= 100) {
                 Vector3f vehiclePosition = vehicle.getPosition();
 
-                if (vehicle instanceof BoatEntity) {
+                if (vehicle instanceof BoatEntity && !vehicle.isOnGround() && !vehicle.getPassengers().isEmpty()) {
                     // Remove some Y position to prevents boats flying up
                     vehiclePosition = vehiclePosition.down(EntityDefinitions.BOAT.offset());
                 }
