@@ -35,6 +35,10 @@ dependencies {
     }
 }
 
+loom {
+    mixin.defaultRefmapName.set("geyser-fabric-refmap.json")
+}
+
 repositories {
     mavenLocal()
     maven("https://repo.opencollab.dev/maven-releases/")
@@ -114,7 +118,7 @@ modrinth {
     syncBodyFrom.set(rootProject.file("README.md").readText())
 
     uploadFile.set(tasks.getByPath("remapModrinthJar"))
-    gameVersions.addAll("1.20")
+    gameVersions.addAll("1.20", "1.20.1")
 
     loaders.add("fabric")
     failSilently.set(true)
