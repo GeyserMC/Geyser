@@ -36,6 +36,7 @@ import org.geysermc.geyser.util.LoopbackUtil;
 import org.geysermc.geyser.util.WebUtils;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.FileNotFoundException;
 import java.util.concurrent.CompletableFuture;
 
 public class ConnectionTestCommand extends GeyserCommand {
@@ -55,7 +56,7 @@ public class ConnectionTestCommand extends GeyserCommand {
         }
 
         if (args.length == 0) {
-            sender.sendMessage("Provide the Bedrock server IP you are trying to connect with. Example: `test.geysermc.org:19132`");
+            sender.sendMessage("Provide the Bedrock server IP and port you are trying to connect with. Example: `test.geysermc.org:19132`");
             return;
         }
 
@@ -63,15 +64,40 @@ public class ConnectionTestCommand extends GeyserCommand {
         String[] fullAddress = args[0].split(":", 2);
         int port;
         if (fullAddress.length == 2) {
-            port = Integer.parseInt(fullAddress[1]);
+            try {
+                port = Integer.parseInt(fullAddress[1]);
+            } catch (NumberFormatException e) {
+                // can occur if e.g. "/geyser connectiontest <ip>:<port> is ran
+                sender.sendMessage("Not a valid port! Specify a valid numeric port.");
+                return;
+            }
         } else {
             port = 19132;
+        }
+        String ip = fullAddress[0];
+
+        // Issue: people commonly checking placeholders
+        if (ip.equals("0.0.0.0") || ip.equals("<ip>")) {
+            sender.sendMessage(ip + " is not a valid IP, and instead a placeholder. Please specify the IP to check.");
+            return;
+        }
+
+        // Issue: people testing local ip
+        if (ip.equals("localhost") || ip.startsWith("127.") || ip.startsWith("10.")) {
+            sender.sendMessage("This tool checks if connections from other networks are possible, so you cannot check a local IP.");
+            return;
         }
 
         // Issue: do the ports not line up?
         if (port != geyser.getConfig().getBedrock().port()) {
-            sender.sendMessage("The port you supplied (" + port + ") does not match the port supplied in Geyser's configuration ("
-                    + geyser.getConfig().getBedrock().port() + "). You can change it under `bedrock` `port`.");
+            if (fullAddress.length == 2) {
+                sender.sendMessage("The port you supplied (" + port + ") does not match the port in your Geyser configuration ("
+                    + geyser.getConfig().getBedrock().port() + "). Re-run the command with the the port in the config, or change it under `bedrock` `port`.");
+            } else {
+                sender.sendMessage("You did not specify which port to check (add it with \":<port>\"), " +
+                        "so we check the default port, 19132. It does not match the port in your Geyser configuration ("
+                        + geyser.getConfig().getBedrock().port() + ")! Re-run the command with the port in the config, or change it under `bedrock` `port`.");
+            }
         }
 
         // Issue: is the `bedrock` `address` in the config different?
@@ -79,7 +105,7 @@ public class ConnectionTestCommand extends GeyserCommand {
             sender.sendMessage("The address specified in `bedrock` `address` is not \"0.0.0.0\" - this may cause issues unless this is deliberate and intentional.");
         }
 
-        // Issue: did someone turn on enable-proxy-protocol and they didn't mean it?
+        // Issue: did someone turn on enable-proxy-protocol, and they didn't mean it?
         if (geyser.getConfig().getBedrock().isEnableProxyProtocol()) {
             sender.sendMessage("You have the `enable-proxy-protocol` setting enabled. " +
                     "Unless you're deliberately using additional software that REQUIRES this setting, you may not need it enabled.");
@@ -88,7 +114,6 @@ public class ConnectionTestCommand extends GeyserCommand {
         CompletableFuture.runAsync(() -> {
             try {
                 // Issue: SRV record?
-                String ip = fullAddress[0];
                 String[] record = WebUtils.findSrvRecord(geyser, ip);
                 if (record != null && !ip.equals(record[3]) && !record[2].equals(String.valueOf(port))) {
                     sender.sendMessage("Bedrock Edition does not support SRV records. Try connecting to your server using the address " + record[3] + " and the port " + record[2]
@@ -124,6 +149,10 @@ public class ConnectionTestCommand extends GeyserCommand {
                 sendLinks(sender);
             } catch (Exception e) {
                 sender.sendMessage("Error while trying to check your connection!");
+                if (e instanceof FileNotFoundException) {
+                    sender.sendMessage("Specify a valid IP or domain to check!");
+                    return;
+                }
                 geyser.getLogger().error("Error while trying to check your connection!", e);
             }
         });
