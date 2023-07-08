@@ -29,6 +29,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.Geyser;
 import org.geysermc.api.GeyserApiBase;
+import org.geysermc.api.util.ApiVersion;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.event.EventRegistrar;
@@ -142,4 +143,13 @@ public interface GeyserApi extends GeyserApiBase {
     static GeyserApi api() {
         return Geyser.api(GeyserApi.class);
     }
+
+    /**
+     * Gets the {@link ApiVersion} Geyser API version
+     *
+     * @return the current geyser api version
+     */
+     default ApiVersion geyserApiVersion() {
+        return new ApiVersion(2, 1, 1);
+     }
 }
