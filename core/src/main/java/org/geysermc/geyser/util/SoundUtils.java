@@ -75,10 +75,9 @@ public final class SoundUtils {
     }
 
     private static String trim(String identifier) {
-        // Drop any namespace if applicable
-        int i = identifier.indexOf(':');
-        if (i >= 0) {
-            return identifier.substring(i + 1);
+        // Drop any minecraft namespace if applicable
+        if (identifier.startsWith("minecraft:")) {
+            return identifier.substring("minecraft:".length());
         }
         return identifier;
     }
@@ -103,7 +102,7 @@ public final class SoundUtils {
     public static void playSound(GeyserSession session, Sound javaSound, Vector3f position, float volume, float pitch) {
         String packetSound = javaSound.getName();
 
-        SoundMapping soundMapping = Registries.SOUNDS.get(packetSound);
+        SoundMapping soundMapping = Registries.SOUNDS.get(trim(packetSound));
         if (soundMapping == null) {
             session.getGeyser().getLogger().debug("[Builtin] Sound mapping for " + packetSound + " not found; assuming custom.");
             playSound(session, packetSound, position, volume, pitch);
