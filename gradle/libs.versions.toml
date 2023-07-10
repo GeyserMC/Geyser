@@ -1,6 +1,6 @@
 [versions]
 base-api = "1.0.0-SNAPSHOT"
-cumulus = "1.1.1"
+cumulus = "1.1.2"
 erosion = "1.0-20230406.174837-8"
 events = "1.1-SNAPSHOT"
 jackson = "2.14.0"
