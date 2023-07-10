@@ -26,8 +26,8 @@
 package org.geysermc.geyser.command.defaults;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
@@ -77,8 +77,14 @@ public class ConnectionTestCommand extends GeyserCommand {
         String ip = fullAddress[0];
 
         // Issue: people commonly checking placeholders
-        if (ip.equals("0.0.0.0") || ip.equals("<ip>")) {
+        if (ip.equals("<ip>")) {
             sender.sendMessage(ip + " is not a valid IP, and instead a placeholder. Please specify the IP to check.");
+            return;
+        }
+
+        // Issue: checking 0.0.0.0 won't work
+        if (ip.equals("0.0.0.0")) {
+            sender.sendMessage("Please specify the IP that you would connect with. 0.0.0.0 in the config tells Geyser to the listen on the server's IPv4.");
             return;
         }
 
@@ -94,8 +100,8 @@ public class ConnectionTestCommand extends GeyserCommand {
                 sender.sendMessage("The port you supplied (" + port + ") does not match the port in your Geyser configuration ("
                     + geyser.getConfig().getBedrock().port() + "). Re-run the command with the the port in the config, or change it under `bedrock` `port`.");
             } else {
-                sender.sendMessage("You did not specify which port to check (add it with \":<port>\"), " +
-                        "so we check the default port, 19132. It does not match the port in your Geyser configuration ("
+                sender.sendMessage("You did not specify the port to check (add it with \":<port>\"), " +
+                        "and the default port 19132 does not match the port in your Geyser configuration ("
                         + geyser.getConfig().getBedrock().port() + ")! Re-run the command with the port in the config, or change it under `bedrock` `port`.");
             }
         }
@@ -147,12 +153,10 @@ public class ConnectionTestCommand extends GeyserCommand {
 
                 sender.sendMessage("Your server is likely unreachable from outside the network as of " + when + ".");
                 sendLinks(sender);
+            } catch (FileNotFoundException e) {
+                sender.sendMessage("Specify a valid IP or domain to check!");
             } catch (Exception e) {
-                sender.sendMessage("Error while trying to check your connection!");
-                if (e instanceof FileNotFoundException) {
-                    sender.sendMessage("Specify a valid IP or domain to check!");
-                    return;
-                }
+                sender.sendMessage("An error occurred while trying to check your connection! Check the console for more information.");
                 geyser.getLogger().error("Error while trying to check your connection!", e);
             }
         });
