@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.util;
 
+import lombok.AllArgsConstructor;
 import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
 import lombok.Getter;
 import org.geysermc.geyser.session.GeyserSession;
@@ -146,12 +147,16 @@ public class CooldownUtils {
     }
 
     @Getter
+    @AllArgsConstructor
     public enum CooldownType {
-        TITLE,
-        ACTIONBAR,
-        DISABLED;
+        TITLE("options.attack.crosshair"),
+        ACTIONBAR("options.attack.hotbar"),
+        DISABLED("options.off");
 
+        public static final String OPTION_DESCRIPTION = "options.attackIndicator";
         public static final CooldownType[] VALUES = values();
+
+        private final String translation;
 
         /**
          * Convert the CooldownType string (from config) to the enum, DISABLED on fail

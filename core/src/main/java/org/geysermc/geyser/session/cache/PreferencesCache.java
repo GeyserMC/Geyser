@@ -25,63 +25,83 @@
 
 package org.geysermc.geyser.session.cache;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
-import lombok.Setter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
+import org.geysermc.geyser.preference.CooldownPreference;
+import org.geysermc.geyser.preference.CustomSkullsPreference;
+import org.geysermc.geyser.preference.PreferenceHolder;
+import org.geysermc.geyser.preference.ShowCoordinatesPreference;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.CooldownUtils;
 
-@Getter
+import java.util.Map;
+
 public class PreferencesCache {
     private final GeyserSession session;
 
-    /**
-     * True if the client prefers being shown their coordinates, regardless if they're being shown or not.
-     * This will be true everytime the client joins the server because neither the client nor server store the preference permanently.
-     */
-    @Setter
-    private boolean prefersShowCoordinates = true;
-
-    /**
-     * If the client's preference will be ignored, this will return false.
-     */
-    private boolean allowShowCoordinates;
-
-    /**
-     * If the session wants custom skulls to be shown.
-     */
-    @Setter
-    private boolean prefersCustomSkulls;
-
-    /**
-     * Which CooldownType the client prefers. Initially set to {@link CooldownUtils#getDefaultShowCooldown()}.
-     */
-    @Setter
-    private CooldownUtils.CooldownType cooldownPreference = CooldownUtils.getDefaultShowCooldown();
+    @Getter
+    private final Map<String, PreferenceHolder<?>> preferences = new Object2ObjectOpenHashMap<>();
 
     public PreferencesCache(GeyserSession session) {
         this.session = session;
 
-        prefersCustomSkulls = session.getGeyser().getConfig().isAllowCustomSkulls();
+        preferences.put(CooldownPreference.KEY, new PreferenceHolder<>(new CooldownPreference(), session));
+        preferences.put(CustomSkullsPreference.KEY, new PreferenceHolder<>(new CustomSkullsPreference(), session));
+        preferences.put(ShowCoordinatesPreference.KEY, new PreferenceHolder<>(new ShowCoordinatesPreference(), session));
+    }
+
+    @Nullable
+    public <T> T getPreference(String key) {
+        PreferenceHolder<T> holder = get(key);
+        if (holder == null) {
+            return null;
+        }
+        return holder.value();
+    }
+
+    public <T> T getPreference(String key, T defaultValue) {
+        T value = getPreference(key);
+        if (value == null) {
+            return defaultValue;
+        }
+        return value;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> PreferenceHolder<T> get(String key) {
+        return (PreferenceHolder<T>) preferences.get(key);
     }
 
     /**
-     * Tell the client to hide or show the coordinates.
-     *
-     * If {@link #prefersShowCoordinates} is true, coordinates will be shown, unless either of the following conditions apply: <br>
-     * <br>
-     * {@link GeyserSession#reducedDebugInfo} is enabled
-     * {@link GeyserConfiguration#isShowCoordinates()} is disabled
+     * Tell the client to hide or show the coordinates. The client's preference will be overridden if either of the
+     * following are true:
+     * <br><br>
+     * {@link GeyserSession#isReducedDebugInfo} is enabled.<br>
+     * {@link GeyserConfiguration#isShowCoordinates()} is disabled.
      */
     public void updateShowCoordinates() {
-        allowShowCoordinates = !session.isReducedDebugInfo() && session.getGeyser().getConfig().isShowCoordinates();
-        session.sendGameRule("showcoordinates", allowShowCoordinates && prefersShowCoordinates);
+        PreferenceHolder<Boolean> holder = get(ShowCoordinatesPreference.KEY);
+        // preference itself won't be any different, but trigger an update anyway in case
+        // reduced-debug-info has changed or the config has changed
+        holder.preference().onUpdate(holder.value(), session);
     }
 
     /**
      * @return true if the session prefers custom skulls, and the config allows them.
      */
     public boolean showCustomSkulls() {
-        return prefersCustomSkulls && session.getGeyser().getConfig().isAllowCustomSkulls();
+        if (session.getGeyser().getConfig().isAllowCustomSkulls()) {
+            return false;
+        }
+        return getPreference(CustomSkullsPreference.KEY, true);
+    }
+
+    /**
+     * @return the session's cooldown preference. does not take the config setting into account.
+     */
+    public CooldownUtils.CooldownType getCooldownPreference() {
+        return getPreference(CooldownPreference.KEY, CooldownUtils.getDefaultShowCooldown());
     }
 }
