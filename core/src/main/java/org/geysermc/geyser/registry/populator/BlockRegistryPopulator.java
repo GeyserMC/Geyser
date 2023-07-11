@@ -69,6 +69,28 @@ public final class BlockRegistryPopulator {
     private static void registerBedrockBlocks() {
         BiFunction<String, NbtMapBuilder, String> emptyMapper = (bedrockIdentifier, statesBuilder) -> null;
 
+        // adapt 1.20 mappings to 1.20.10+
+        BiFunction<String, NbtMapBuilder, String> concreteAndShulkerBoxMapper = (bedrockIdentifier, statesBuilder) -> {
+            if (bedrockIdentifier.equals("minecraft:concrete")) {
+                String color = (String) statesBuilder.remove("color");
+                return "minecraft:" + color + "_wool";
+            }
+            if (bedrockIdentifier.equals("minecraft:shulker_box")) {
+                String color = (String) statesBuilder.remove("color");
+                return "minecraft:" + color + "_shulker_box";
+            }
+            if (bedrockIdentifier.equals("minecraft:observer")) {
+                int direction = (int) statesBuilder.remove("facing_direction");
+                statesBuilder.putString("facing_direction", switch (direction) {
+                    case 0 -> "east";
+                    case 1 -> "south";
+                    case 2 -> "north";
+                    default -> "west";
+                });
+            }
+            return null;
+        };
+
         // We are using mappings that directly support 1.20, so this maps it back to 1.19.80
         BiFunction<String, NbtMapBuilder, String> legacyMapper = (bedrockIdentifier, statesBuilder) -> {
             if (bedrockIdentifier.endsWith("pumpkin")) {
@@ -115,6 +137,7 @@ public final class BlockRegistryPopulator {
         ImmutableMap<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> blockMappers = ImmutableMap.<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>>builder()
                 .put(ObjectIntPair.of("1_19_80", Bedrock_v582.CODEC.getProtocolVersion()), legacyMapper)
                 .put(ObjectIntPair.of("1_20_0", Bedrock_v589.CODEC.getProtocolVersion()), emptyMapper)
+                .put(ObjectIntPair.of("1_20_10", Bedrock_v589.CODEC.getProtocolVersion()), concreteAndShulkerBoxMapper)
                 .build();
 
         // We can keep this strong as nothing should be garbage collected
