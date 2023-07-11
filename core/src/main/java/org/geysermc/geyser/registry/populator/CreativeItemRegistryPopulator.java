@@ -105,6 +105,8 @@ public class CreativeItemRegistryPopulator {
             if (bedrockBlockRuntimeId == 0 && !identifier.equals("minecraft:blue_candle")) { // FIXME
                 bedrockBlockRuntimeId = -1;
             }
+        } else if (itemNode.get("block_state_b64") != null) {
+            throw new IllegalArgumentException("Item definition contained block_state_b64 instead of blockRuntimeId");
         }
 
         JsonNode nbtNode = itemNode.get("nbt_b64");
