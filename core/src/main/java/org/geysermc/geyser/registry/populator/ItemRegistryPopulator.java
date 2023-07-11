@@ -33,13 +33,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -64,23 +58,10 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.type.BlockMappings;
-import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
-import org.geysermc.geyser.registry.type.GeyserMappingItem;
-import org.geysermc.geyser.registry.type.ItemMapping;
-import org.geysermc.geyser.registry.type.ItemMappings;
-import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
-import org.geysermc.geyser.registry.type.PaletteItem;
+import org.geysermc.geyser.registry.type.*;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -111,6 +92,7 @@ public class ItemRegistryPopulator {
 
         List<PaletteVersion> paletteVersions = new ArrayList<>(2);
         paletteVersions.add(new PaletteVersion("1_19_80", Bedrock_v582.CODEC.getProtocolVersion(), legacyJavaOnly, (item, mapping) -> {
+            // Backward-map 1.20 mappings to 1.19.80
             String id = item.javaIdentifier();
             if (id.endsWith("pottery_sherd")) {
                 return mapping.withBedrockIdentifier(id.replace("sherd", "shard"));
@@ -123,7 +105,17 @@ public class ItemRegistryPopulator {
             return mapping;
         }));
         paletteVersions.add(new PaletteVersion("1_20_0", Bedrock_v589.CODEC.getProtocolVersion()));
-        paletteVersions.add(new PaletteVersion("1_20_10", Bedrock_v594.CODEC.getProtocolVersion()));
+        paletteVersions.add(new PaletteVersion("1_20_10", Bedrock_v594.CODEC.getProtocolVersion(), Collections.emptyMap(), (item, mapping) -> {
+            // Forward-map 1.20 mappings to 1.20.10
+            // 1.20.10+ received parity for concrete and shulker boxes
+            String id = item.javaIdentifier();
+            if (id.endsWith("_concrete") || id.endsWith("_shulker_box")) {
+                // the first underscore in "_shulker_box" accounts for ignoring "minecraft:shulker_box"
+                // which is mapped to "minecraft:undyed_shulker_box"
+                return mapping.withBedrockIdentifier(id);
+            }
+            return mapping;
+        }));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
@@ -250,16 +242,6 @@ public class ItemRegistryPopulator {
                 }
 
                 String bedrockIdentifier = mappingItem.getBedrockIdentifier();
-
-                // 1.20.1+ changes concrete and shulker box mappings to be consistent with Java
-                if (palette.protocolVersion() >= Bedrock_v594.CODEC.getProtocolVersion()) {
-                    if (mappingItem.getBedrockIdentifier().equals("minecraft:concrete") || mappingItem.getBedrockIdentifier().equals("minecraft:shulker_box")) {
-                        bedrockIdentifier = javaItem.javaIdentifier();
-                    } else {
-                        bedrockIdentifier = mappingItem.getBedrockIdentifier();
-                    }
-                }
-
                 ItemDefinition definition = definitions.get(bedrockIdentifier);
                 if (definition == null) {
                     throw new RuntimeException("Missing Bedrock ItemDefinition in version " + palette.version() + " for mapping: " + mappingItem);

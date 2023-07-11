@@ -73,15 +73,21 @@ public final class BlockRegistryPopulator {
         BiFunction<String, NbtMapBuilder, String> concreteAndShulkerBoxMapper = (bedrockIdentifier, statesBuilder) -> {
             if (bedrockIdentifier.equals("minecraft:concrete")) {
                 String color = (String) statesBuilder.remove("color");
-                return "minecraft:" + color + "_wool";
+                if (color.equals("silver")) {
+                    color = "light_gray";
+                }
+                return "minecraft:" + color + "_concrete";
             }
             if (bedrockIdentifier.equals("minecraft:shulker_box")) {
                 String color = (String) statesBuilder.remove("color");
+                if (color.equals("silver")) {
+                    color = "light_gray";
+                }
                 return "minecraft:" + color + "_shulker_box";
             }
             if (bedrockIdentifier.equals("minecraft:observer")) {
                 int direction = (int) statesBuilder.remove("facing_direction");
-                statesBuilder.putString("facing_direction", switch (direction) {
+                statesBuilder.putString("minecraft:facing_direction", switch (direction) {
                     case 0 -> "east";
                     case 1 -> "south";
                     case 2 -> "north";
