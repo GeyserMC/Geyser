@@ -66,7 +66,7 @@ public class BoatEntity extends Entity {
     private int variant;
 
     // Looks too fast and too choppy with 0.1f, which is how I believe the Microsoftian client handles it
-    private final float ROWING_SPEED = 0.05f;
+    private final float ROWING_SPEED = 0.1f;
 
     public BoatEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         // Initial rotation is incorrect
