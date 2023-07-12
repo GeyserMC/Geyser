@@ -31,12 +31,11 @@ import org.geysermc.cumulus.component.DropdownComponent;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.preference.Preference;
 import org.geysermc.geyser.api.preference.PreferenceKey;
+import org.geysermc.geyser.configuration.CooldownType;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Arrays;
 import java.util.List;
-
-import static org.geysermc.geyser.util.CooldownUtils.CooldownType;
 
 public class CooldownPreference extends Preference<CooldownType> {
 

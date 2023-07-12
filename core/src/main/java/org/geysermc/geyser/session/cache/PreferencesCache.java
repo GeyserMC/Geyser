@@ -30,12 +30,12 @@ import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.preference.Preference;
 import org.geysermc.geyser.api.preference.PreferenceKey;
+import org.geysermc.geyser.configuration.CooldownType;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.preference.CooldownPreference;
 import org.geysermc.geyser.preference.CustomSkullsPreference;
 import org.geysermc.geyser.preference.ShowCoordinatesPreference;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.util.CooldownUtils;
 
 import java.util.Map;
 import java.util.Optional;
@@ -99,9 +99,9 @@ public class PreferencesCache {
     }
 
 
-    public CooldownUtils.CooldownType getEffectiveCooldown() {
-        if (session.getGeyser().getConfig().getShowCooldown() == CooldownUtils.CooldownType.DISABLED) {
-            return CooldownUtils.CooldownType.DISABLED;
+    public CooldownType getEffectiveCooldown() {
+        if (session.getGeyser().getConfig().getShowCooldown() == CooldownType.DISABLED) {
+            return CooldownType.DISABLED;
         }
         return require(CooldownPreference.KEY).value();
     }

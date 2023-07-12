@@ -25,18 +25,12 @@
 
 package org.geysermc.geyser.util;
 
-import com.fasterxml.jackson.core.JacksonException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import lombok.AllArgsConstructor;
 import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
-import lombok.Getter;
+import org.geysermc.geyser.configuration.CooldownType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.PreferencesCache;
 import org.geysermc.geyser.text.ChatColor;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -151,43 +145,4 @@ public class CooldownUtils {
         return builder.toString();
     }
 
-    @Getter
-    @AllArgsConstructor
-    public enum CooldownType {
-        TITLE("options.attack.crosshair"),
-        ACTIONBAR("options.attack.hotbar"),
-        DISABLED("options.off");
-
-        public static final String OPTION_DESCRIPTION = "options.attackIndicator";
-        public static final CooldownType[] VALUES = values();
-
-        private final String translation;
-
-        /**
-         * Convert the CooldownType string (from config) to the enum, DISABLED on fail
-         *
-         * @param name CooldownType string
-         *
-         * @return The converted CooldownType
-         */
-        public static CooldownType getByName(String name) {
-            if (name.equalsIgnoreCase("true")) { // Backwards config compatibility
-                return CooldownType.TITLE;
-            }
-
-            for (CooldownType type : VALUES) {
-                if (type.name().equalsIgnoreCase(name)) {
-                    return type;
-                }
-            }
-            return DISABLED;
-        }
-
-        public static class Deserializer extends JsonDeserializer<CooldownType> {
-            @Override
-            public CooldownType deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JacksonException {
-                return CooldownType.getByName(p.getValueAsString());
-            }
-        }
-    }
 }

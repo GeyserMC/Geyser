@@ -33,7 +33,6 @@ import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.network.CIDRMatcher;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.util.CooldownUtils;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -83,7 +82,7 @@ public interface GeyserConfiguration {
 
     boolean isAllowThirdPartyEars();
 
-    CooldownUtils.CooldownType getShowCooldown();
+    CooldownType getShowCooldown();
 
     boolean isShowCoordinates();
 
