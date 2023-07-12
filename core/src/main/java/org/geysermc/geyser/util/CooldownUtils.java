@@ -25,6 +25,10 @@
 
 package org.geysermc.geyser.util;
 
+import com.fasterxml.jackson.core.JacksonException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import lombok.AllArgsConstructor;
 import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
 import lombok.Getter;
@@ -32,6 +36,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.PreferencesCache;
 import org.geysermc.geyser.text.ChatColor;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -41,8 +46,8 @@ import java.util.concurrent.TimeUnit;
 public class CooldownUtils {
     private static CooldownType DEFAULT_SHOW_COOLDOWN;
 
-    public static void setDefaultShowCooldown(String showCooldown) {
-        DEFAULT_SHOW_COOLDOWN = CooldownType.getByName(showCooldown);
+    public static void setDefaultShowCooldown(CooldownType showCooldown) {
+        DEFAULT_SHOW_COOLDOWN = showCooldown;
     }
 
     public static CooldownType getDefaultShowCooldown() {
@@ -55,7 +60,7 @@ public class CooldownUtils {
      */
     public static void sendCooldown(GeyserSession session) {
         if (DEFAULT_SHOW_COOLDOWN == CooldownType.DISABLED) return;
-        CooldownType sessionPreference = session.getPreferencesCache().getCooldownPreference();
+        CooldownType sessionPreference = session.getPreferencesCache().getEffectiveCooldown();
         if (sessionPreference == CooldownType.DISABLED) return;
 
         if (session.getAttackSpeed() == 0.0 || session.getAttackSpeed() > 20) return; // 0.0 usually happens on login and causes issues with visuals; anything above 20 means a plugin like OldCombatMechanics is being used
@@ -176,6 +181,13 @@ public class CooldownUtils {
                 }
             }
             return DISABLED;
+        }
+
+        public static class Deserializer extends JsonDeserializer<CooldownType> {
+            @Override
+            public CooldownType deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JacksonException {
+                return CooldownType.getByName(p.getValueAsString());
+            }
         }
     }
 }

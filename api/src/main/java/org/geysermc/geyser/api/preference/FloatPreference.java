@@ -27,12 +27,16 @@ package org.geysermc.geyser.api.preference;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-public abstract class FloatPreference implements Preference<Float> {
+public abstract class FloatPreference extends Preference<Float> {
+
+    public FloatPreference(@NonNull Float initialValue) {
+        super(initialValue);
+    }
 
     @Override
-    public Float deserialize(@NonNull Object response) throws IllegalArgumentException {
+    public void onFormResponse(@NonNull Object response) throws IllegalArgumentException {
         if (response instanceof Float floatValue) {
-            return floatValue;
+            update(floatValue);
         }
         throw new IllegalArgumentException(response + " is not a float");
     }

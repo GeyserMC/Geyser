@@ -90,7 +90,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         int yOffset = session.getChunkCache().getChunkMinY();
         int chunkSize = session.getChunkCache().getChunkHeightY();
         int biomeGlobalPalette = session.getBiomeGlobalPalette();
-        boolean customSkulls = session.getPreferencesCache().showCustomSkulls();
+        boolean customSkulls = session.getPreferencesCache().getEffectiveShowSkulls();
 
         DataPalette[] javaChunks = new DataPalette[chunkSize];
         DataPalette[] javaBiomes = new DataPalette[chunkSize];

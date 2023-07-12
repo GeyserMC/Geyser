@@ -23,43 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.preference;
+package org.geysermc.geyser.api.preference;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.cumulus.component.Component;
-import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.preference.Preference;
-
-@Getter
-@Accessors(fluent = true)
-public class PreferenceHolder<T> {
-
-    @Setter
-    @NonNull
-    private T value;
-
-    @NonNull
-    private final Preference<T> preference;
-
-    public PreferenceHolder(Preference<T> preference, GeyserConnection connection) {
-        this.value = preference.defaultValue(connection);
-        this.preference = preference;
-    }
-
-    public Component component(GeyserConnection connection) {
-        return preference.component(value, connection);
-    }
-
-    public void onFormUpdate(Object formResponse, GeyserConnection connection) {
-        // parsed the cumulus form response value into the preference value
-        T newValue = preference.deserialize(formResponse);
-
-        if (value != newValue) {
-            value = newValue;
-            preference.onUpdate(value, connection);
-        }
-    }
+public record PreferenceKey<T>(String key) {
 }

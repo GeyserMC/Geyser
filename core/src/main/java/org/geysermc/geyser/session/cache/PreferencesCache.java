@@ -27,51 +27,54 @@ package org.geysermc.geyser.session.cache;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.preference.Preference;
+import org.geysermc.geyser.api.preference.PreferenceKey;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.preference.CooldownPreference;
 import org.geysermc.geyser.preference.CustomSkullsPreference;
-import org.geysermc.geyser.preference.PreferenceHolder;
 import org.geysermc.geyser.preference.ShowCoordinatesPreference;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.CooldownUtils;
 
 import java.util.Map;
+import java.util.Optional;
 
 public class PreferencesCache {
     private final GeyserSession session;
 
     @Getter
-    private final Map<String, PreferenceHolder<?>> preferences = new Object2ObjectOpenHashMap<>();
+    private final Map<PreferenceKey<?>, Preference<?>> preferences = new Object2ObjectOpenHashMap<>();
 
     public PreferencesCache(GeyserSession session) {
         this.session = session;
 
-        preferences.put(CooldownPreference.KEY, new PreferenceHolder<>(new CooldownPreference(), session));
-        preferences.put(CustomSkullsPreference.KEY, new PreferenceHolder<>(new CustomSkullsPreference(), session));
-        preferences.put(ShowCoordinatesPreference.KEY, new PreferenceHolder<>(new ShowCoordinatesPreference(), session));
+        register(CooldownPreference.KEY, new CooldownPreference(session));
+        register(CustomSkullsPreference.KEY, new CustomSkullsPreference(session));
+        register(ShowCoordinatesPreference.KEY, new ShowCoordinatesPreference(session));
     }
 
-    @Nullable
-    public <T> T getPreference(String key) {
-        PreferenceHolder<T> holder = get(key);
-        if (holder == null) {
-            return null;
+    public <T> void register(PreferenceKey<T> key, Preference<T> preference) {
+        if (preference == null) {
+            throw new IllegalArgumentException("preference cannot be null");
         }
-        return holder.value();
-    }
-
-    public <T> T getPreference(String key, T defaultValue) {
-        T value = getPreference(key);
-        if (value == null) {
-            return defaultValue;
-        }
-        return value;
+        preferences.put(key, preference);
     }
 
     @SuppressWarnings("unchecked")
-    private <T> PreferenceHolder<T> get(String key) {
-        return (PreferenceHolder<T>) preferences.get(key);
+    @NonNull
+    public <T> Preference<T> require(PreferenceKey<T> key) throws IllegalArgumentException {
+        Preference<T> preference = (Preference<T>) preferences.get(key);
+        if (preference == null) {
+            throw new IllegalArgumentException("preference with key " + key + " is not stored for session " + session.javaUuid());
+        }
+        return preference;
+    }
+
+    @SuppressWarnings("unchecked")
+    @NonNull
+    public <T> Optional<Preference<T>> get(PreferenceKey<T> key) {
+        return Optional.ofNullable((Preference<T>) preferences.get(key));
     }
 
     /**
@@ -82,26 +85,24 @@ public class PreferencesCache {
      * {@link GeyserConfiguration#isShowCoordinates()} is disabled.
      */
     public void updateShowCoordinates() {
-        PreferenceHolder<Boolean> holder = get(ShowCoordinatesPreference.KEY);
+        Preference<Boolean> preference = require(ShowCoordinatesPreference.KEY);
         // preference itself won't be any different, but trigger an update anyway in case
         // reduced-debug-info has changed or the config has changed
-        holder.preference().onUpdate(holder.value(), session);
+        preference.onUpdate(session);
     }
 
-    /**
-     * @return true if the session prefers custom skulls, and the config allows them.
-     */
-    public boolean showCustomSkulls() {
-        if (session.getGeyser().getConfig().isAllowCustomSkulls()) {
+    public boolean getEffectiveShowSkulls() {
+        if (!session.getGeyser().getConfig().isAllowCustomSkulls()) {
             return false;
         }
-        return getPreference(CustomSkullsPreference.KEY, true);
+        return require(CustomSkullsPreference.KEY).value();
     }
 
-    /**
-     * @return the session's cooldown preference. does not take the config setting into account.
-     */
-    public CooldownUtils.CooldownType getCooldownPreference() {
-        return getPreference(CooldownPreference.KEY, CooldownUtils.getDefaultShowCooldown());
+
+    public CooldownUtils.CooldownType getEffectiveCooldown() {
+        if (session.getGeyser().getConfig().getShowCooldown() == CooldownUtils.CooldownType.DISABLED) {
+            return CooldownUtils.CooldownType.DISABLED;
+        }
+        return require(CooldownPreference.KEY).value();
     }
 }

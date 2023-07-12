@@ -27,15 +27,18 @@ package org.geysermc.geyser.util;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
+import it.unimi.dsi.fastutil.Pair;
 import org.geysermc.cumulus.component.DropdownComponent;
+import org.geysermc.cumulus.component.LabelComponent;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.GameRule;
 import org.geysermc.geyser.level.WorldManager;
-import org.geysermc.geyser.preference.PreferenceHolder;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
+
+import java.util.Objects;
 
 public class SettingsUtils {
     /**
@@ -55,7 +58,9 @@ public class SettingsUtils {
 
         var preferences = session.getPreferencesCache().getPreferences().values()
             .stream()
-            .filter(s -> s.preference().isModifiable(session)) // only show modifiable preferences
+            .filter(pref -> pref.isModifiable(session)) // only show modifiable preferences
+            .map(pref -> Pair.of(pref, pref.component(session))) // compute components
+            .filter(p -> !(p.value() instanceof LabelComponent)) // skip any that gave us a label
             .toList();
 
         // Only show the client title if any of the client settings are available
@@ -63,8 +68,8 @@ public class SettingsUtils {
         if (showClientSettings) {
             builder.label("geyser.settings.title.client");
 
-            for (PreferenceHolder<?> preference : preferences) {
-                builder.component(preference.component(session));
+            for (var preferenceData : preferences) {
+                builder.component(preferenceData.value());
             }
         }
 
@@ -103,8 +108,9 @@ public class SettingsUtils {
 
         builder.validResultHandler((response) -> {
             if (showClientSettings) {
-                for (PreferenceHolder<?> preference : preferences) {
-                    preference.onFormUpdate(response.next(), session);
+                for (var preferenceData : preferences) {
+                    Object value = Objects.requireNonNull(response.next(), "response for preference " + preferenceData.key());
+                    preferenceData.key().onFormResponse(value);
                 }
             }
 

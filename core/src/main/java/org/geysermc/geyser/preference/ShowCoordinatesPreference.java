@@ -25,44 +25,45 @@
 
 package org.geysermc.geyser.preference;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.cumulus.component.Component;
 import org.geysermc.cumulus.component.ToggleComponent;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.preference.BooleanPreference;
+import org.geysermc.geyser.api.preference.PreferenceKey;
 import org.geysermc.geyser.session.GeyserSession;
 
 public class ShowCoordinatesPreference extends BooleanPreference {
 
-    public static final String KEY = "geyser:show_coordinates";
+    public static final PreferenceKey<Boolean> KEY = new PreferenceKey<>("geyser:show_coordinates");
 
-    @NonNull
-    @Override
-    public Boolean defaultValue(GeyserConnection connection) {
-        return isModifiable(connection);
+    public ShowCoordinatesPreference(GeyserSession session) {
+        super(isAllowed(session));
     }
 
     @Override
     public boolean isModifiable(GeyserConnection connection) {
-        GeyserSession session = (GeyserSession) connection;
-        return !session.isReducedDebugInfo() && session.getGeyser().getConfig().isShowCoordinates();
+        return isAllowed((GeyserSession) connection);
     }
 
     @Override
-    public Component component(@NonNull Boolean currentValue, GeyserConnection connection) {
-        return ToggleComponent.of("%createWorldScreen.showCoordinates", currentValue);
+    public Component component(GeyserConnection connection) {
+        return ToggleComponent.of("%createWorldScreen.showCoordinates", value());
     }
 
     @Override
-    public void onUpdate(@NonNull Boolean value, GeyserConnection connection) {
+    public void onUpdate(GeyserConnection connection) {
         boolean showCoordinates;
         if (isModifiable(connection)) {
-            showCoordinates = value;
+            showCoordinates = value();
         } else {
             showCoordinates = false;
         }
 
         GeyserSession session = (GeyserSession) connection;
         session.sendGameRule("showcoordinates", showCoordinates);
+    }
+
+    private static boolean isAllowed(GeyserSession session) {
+        return !session.isReducedDebugInfo() && session.getGeyser().getConfig().isShowCoordinates();
     }
 }

@@ -27,12 +27,16 @@ package org.geysermc.geyser.api.preference;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-public abstract class StringPreference implements Preference<String> {
+public abstract class StringPreference extends Preference<String> {
+
+    public StringPreference(@NonNull String initialValue) {
+        super(initialValue);
+    }
 
     @Override
-    public String deserialize(@NonNull Object response) throws IllegalArgumentException {
+    public void onFormResponse(@NonNull Object response) throws IllegalArgumentException {
         if (response instanceof String stringValue) {
-            return stringValue;
+            update(stringValue);
         }
         throw new IllegalArgumentException(response + " is not a string");
     }

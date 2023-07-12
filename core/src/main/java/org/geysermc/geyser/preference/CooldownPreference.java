@@ -30,6 +30,7 @@ import org.geysermc.cumulus.component.Component;
 import org.geysermc.cumulus.component.DropdownComponent;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.preference.Preference;
+import org.geysermc.geyser.api.preference.PreferenceKey;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Arrays;
@@ -37,39 +38,34 @@ import java.util.List;
 
 import static org.geysermc.geyser.util.CooldownUtils.CooldownType;
 
-public class CooldownPreference implements Preference<CooldownType> {
+public class CooldownPreference extends Preference<CooldownType> {
 
-    public static final String KEY = "geyser:cooldown_type";
+    public static final PreferenceKey<CooldownType> KEY = new PreferenceKey<>("geyser:cooldown_type");
 
     private static final List<String> OPTIONS = Arrays.stream(CooldownType.VALUES)
         .map(CooldownType::getTranslation)
         .toList();
 
-    @NonNull
-    @Override
-    public CooldownType defaultValue(GeyserConnection connection) {
-        GeyserSession session = (GeyserSession) connection;
-        String type = session.getGeyser().getConfig().getShowCooldown();
-        return CooldownType.getByName(type);
+    public CooldownPreference(GeyserSession session) {
+        super(configSetting(session));
     }
 
     @Override
     public boolean isModifiable(GeyserConnection connection) {
-        return defaultValue(connection) != CooldownType.DISABLED;
+        return configSetting((GeyserSession) connection) != CooldownType.DISABLED;
     }
 
     @Override
-    public Component component(@NonNull CooldownType currentValue, GeyserConnection connection) {
-        return DropdownComponent.of(CooldownType.OPTION_DESCRIPTION, OPTIONS, currentValue.ordinal());
+    public Component component(GeyserConnection connection) {
+        return DropdownComponent.of(CooldownType.OPTION_DESCRIPTION, OPTIONS, value().ordinal());
     }
 
     @Override
-    public CooldownType deserialize(@NonNull Object response) throws IllegalArgumentException {
-        return CooldownType.VALUES[(int) response];
+    public void onFormResponse(@NonNull Object response) throws IllegalArgumentException {
+        update(CooldownType.VALUES[(int) response]);
     }
 
-    @Override
-    public void onUpdate(@NonNull CooldownType value, GeyserConnection connection) {
-        //no-op
+    private static CooldownType configSetting(GeyserSession session) {
+        return session.getGeyser().getConfig().getShowCooldown();
     }
 }

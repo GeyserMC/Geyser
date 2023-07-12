@@ -27,12 +27,16 @@ package org.geysermc.geyser.api.preference;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-public abstract class IntegerPreference implements Preference<Integer> {
+public abstract class IntegerPreference extends Preference<Integer> {
+
+    public IntegerPreference(@NonNull Integer initialValue) {
+        super(initialValue);
+    }
 
     @Override
-    public Integer deserialize(@NonNull Object response) throws IllegalArgumentException {
+    public void onFormResponse(@NonNull Object response) throws IllegalArgumentException {
         if (response instanceof Integer integerValue) {
-            return integerValue;
+            update(integerValue);
         }
         throw new IllegalArgumentException(response + " is not an integer");
     }

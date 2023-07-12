@@ -25,35 +25,32 @@
 
 package org.geysermc.geyser.preference;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.cumulus.component.Component;
 import org.geysermc.cumulus.component.ToggleComponent;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.preference.BooleanPreference;
+import org.geysermc.geyser.api.preference.PreferenceKey;
 import org.geysermc.geyser.session.GeyserSession;
 
 public class CustomSkullsPreference extends BooleanPreference {
 
-    public static final String KEY = "geyser:show_custom_skulls";
+    public static final PreferenceKey<Boolean> KEY = new PreferenceKey<>("geyser:show_custom_skulls");
 
-    @Override
-    public @NonNull Boolean defaultValue(GeyserConnection connection) {
-        return isModifiable(connection);
+    public CustomSkullsPreference(GeyserSession session) {
+        super(configSetting(session));
     }
 
     @Override
     public boolean isModifiable(GeyserConnection connection) {
-        GeyserSession session = (GeyserSession) connection;
+        return configSetting((GeyserSession) connection);
+    }
+
+    @Override
+    public Component component(GeyserConnection connection) {
+        return ToggleComponent.of("geyser.settings.option.customSkulls", value());
+    }
+
+    private static boolean configSetting(GeyserSession session) {
         return session.getGeyser().getConfig().isAllowCustomSkulls();
-    }
-
-    @Override
-    public Component component(@NonNull Boolean currentValue, GeyserConnection connection) {
-        return ToggleComponent.of("geyser.settings.option.customSkulls", currentValue);
-    }
-
-    @Override
-    public void onUpdate(@NonNull Boolean value, GeyserConnection connection) {
-        //no-op
     }
 }

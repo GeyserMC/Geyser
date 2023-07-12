@@ -27,12 +27,16 @@ package org.geysermc.geyser.api.preference;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-public abstract class BooleanPreference implements Preference<Boolean> {
+public abstract class BooleanPreference extends Preference<Boolean> {
+
+    public BooleanPreference(@NonNull Boolean initialValue) {
+        super(initialValue);
+    }
 
     @Override
-    public Boolean deserialize(@NonNull Object response) {
+    public void onFormResponse(@NonNull Object response) {
         if (response instanceof Boolean booleanValue) {
-            return booleanValue;
+            update(booleanValue);
         }
         throw new IllegalArgumentException(response + " is not a boolean");
     }

@@ -39,6 +39,7 @@ import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.network.CIDRMatcher;
 import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.CooldownUtils;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -99,8 +100,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("allow-third-party-capes")
     private boolean allowThirdPartyCapes = true;
 
+    @JsonDeserialize(using = CooldownUtils.CooldownType.Deserializer.class)
     @JsonProperty("show-cooldown")
-    private String showCooldown = "title";
+    private CooldownUtils.CooldownType showCooldown = CooldownUtils.CooldownType.TITLE;
 
     @JsonProperty("show-coordinates")
     private boolean showCoordinates = true;

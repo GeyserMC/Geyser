@@ -29,16 +29,33 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.cumulus.component.Component;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 
-public interface Preference<T> {
+import java.util.Objects;
+
+public abstract class Preference<T> {
 
     @NonNull
-    T defaultValue(GeyserConnection connection);
+    private T value;
 
-    boolean isModifiable(GeyserConnection connection);
+    public Preference(@NonNull T initialValue) {
+        this.value = Objects.requireNonNull(initialValue, "initialValue");
+    }
 
-    Component component(@NonNull T currentValue, GeyserConnection connection);
+    @NonNull
+    public final T value() {
+        return value;
+    }
 
-    T deserialize(@NonNull Object response) throws IllegalArgumentException;
+    public final void update(@NonNull T newValue) {
+        this.value = Objects.requireNonNull(newValue, "newValue");
+    }
 
-    void onUpdate(@NonNull T value, GeyserConnection connection);
+    public abstract boolean isModifiable(GeyserConnection connection);
+
+    public abstract Component component(GeyserConnection connection);
+
+    public abstract void onFormResponse(@NonNull Object response) throws IllegalArgumentException;
+
+    public void onUpdate(GeyserConnection connection) {
+        // no-op by default
+    }
 }
