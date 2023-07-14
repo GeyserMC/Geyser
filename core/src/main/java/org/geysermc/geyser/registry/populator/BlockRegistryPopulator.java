@@ -34,6 +34,7 @@ import it.unimi.dsi.fastutil.objects.*;
 import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.protocol.bedrock.codec.v582.Bedrock_v582;
 import org.cloudburstmc.protocol.bedrock.codec.v589.Bedrock_v589;
+import org.cloudburstmc.protocol.bedrock.codec.v594.Bedrock_v594;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.block.BlockStateValues;
@@ -68,6 +69,36 @@ public final class BlockRegistryPopulator {
 
     private static void registerBedrockBlocks() {
         BiFunction<String, NbtMapBuilder, String> emptyMapper = (bedrockIdentifier, statesBuilder) -> null;
+
+        // adapt 1.20 mappings to 1.20.10+
+        BiFunction<String, NbtMapBuilder, String> concreteAndShulkerBoxMapper = (bedrockIdentifier, statesBuilder) -> {
+            if (bedrockIdentifier.equals("minecraft:concrete")) {
+                String color = (String) statesBuilder.remove("color");
+                if (color.equals("silver")) {
+                    color = "light_gray";
+                }
+                return "minecraft:" + color + "_concrete";
+            }
+            if (bedrockIdentifier.equals("minecraft:shulker_box")) {
+                String color = (String) statesBuilder.remove("color");
+                if (color.equals("silver")) {
+                    color = "light_gray";
+                }
+                return "minecraft:" + color + "_shulker_box";
+            }
+            if (bedrockIdentifier.equals("minecraft:observer")) {
+                int direction = (int) statesBuilder.remove("facing_direction");
+                statesBuilder.putString("minecraft:facing_direction", switch (direction) {
+                    case 0 -> "down";
+                    case 1 -> "up";
+                    case 2 -> "north";
+                    case 3 -> "south";
+                    case 4 -> "west";
+                    default -> "east";
+                });
+            }
+            return null;
+        };
 
         // We are using mappings that directly support 1.20, so this maps it back to 1.19.80
         BiFunction<String, NbtMapBuilder, String> legacyMapper = (bedrockIdentifier, statesBuilder) -> {
@@ -115,6 +146,7 @@ public final class BlockRegistryPopulator {
         ImmutableMap<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> blockMappers = ImmutableMap.<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>>builder()
                 .put(ObjectIntPair.of("1_19_80", Bedrock_v582.CODEC.getProtocolVersion()), legacyMapper)
                 .put(ObjectIntPair.of("1_20_0", Bedrock_v589.CODEC.getProtocolVersion()), emptyMapper)
+                .put(ObjectIntPair.of("1_20_10", Bedrock_v594.CODEC.getProtocolVersion()), concreteAndShulkerBoxMapper)
                 .build();
 
         // We can keep this strong as nothing should be garbage collected
@@ -242,6 +274,7 @@ public final class BlockRegistryPopulator {
             BlockRegistries.BLOCKS.register(palette.getKey().valueInt(), builder.blockStateVersion(stateVersion)
                     .bedrockRuntimeMap(bedrockRuntimeMap)
                     .javaToBedrockBlocks(javaToBedrockBlocks)
+                    .stateDefinitionMap(blockStateOrderedMap)
                     .itemFrames(itemFrames)
                     .flowerPotBlocks(flowerPotBlocks)
                     .jigsawStates(jigsawDefinitions)
