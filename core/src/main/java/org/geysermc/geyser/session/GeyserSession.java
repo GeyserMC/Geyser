@@ -1765,8 +1765,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         // https://github.com/GeyserMC/Geyser/issues/3769 Setting Spectator mode ability layer
-        abilityLayer.setLayerType(AbilityLayer.Type.SPECTATOR);
-        updateAbilitiesPacket.getAbilityLayers().add(abilityLayer);
+        if (spectator) {
+            abilityLayer.setLayerType(AbilityLayer.Type.SPECTATOR);
+            updateAbilitiesPacket.getAbilityLayers().add(abilityLayer);
+        }
         // https://github.com/GeyserMC/Geyser/issues/3896 Add Base mode ability layer to fixing FOV locks when changed world
         abilityLayer.setLayerType(AbilityLayer.Type.BASE);
         abilityLayer.setFlySpeed(flySpeed);
