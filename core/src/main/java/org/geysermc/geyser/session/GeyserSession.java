@@ -1776,6 +1776,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         Collections.addAll(abilityLayer.getAbilitiesSet(), USED_ABILITIES);
 
         updateAbilitiesPacket.getAbilityLayers().add(abilityLayer);
+        // https://github.com/GeyserMC/Geyser/issues/3896 Add Base mode ability layer to fixing FOV locks when changed world
+        if (spectator) {
+            abilityLayer.setLayerType(AbilityLayer.Type.BASE);
+            updateAbilitiesPacket.getAbilityLayers().add(abilityLayer);
+        }
         sendUpstreamPacket(updateAbilitiesPacket);
     }
 
