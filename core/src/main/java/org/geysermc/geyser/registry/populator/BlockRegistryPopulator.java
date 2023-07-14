@@ -89,10 +89,12 @@ public final class BlockRegistryPopulator {
             if (bedrockIdentifier.equals("minecraft:observer")) {
                 int direction = (int) statesBuilder.remove("facing_direction");
                 statesBuilder.putString("minecraft:facing_direction", switch (direction) {
-                    case 0 -> "east";
-                    case 1 -> "south";
+                    case 0 -> "down";
+                    case 1 -> "up";
                     case 2 -> "north";
-                    default -> "west";
+                    case 3 -> "south";
+                    case 4 -> "west";
+                    default -> "east";
                 });
             }
             return null;
