@@ -41,12 +41,13 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.codec.v582.Bedrock_v582;
 import org.cloudburstmc.protocol.bedrock.codec.v589.Bedrock_v589;
+import org.cloudburstmc.protocol.bedrock.codec.v594.Bedrock_v594;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
@@ -92,6 +93,7 @@ public class ItemRegistryPopulator {
     }
 
     public static void populate() {
+        // Used for the 1.19.80 item palette
         Map<Item, String> legacyJavaOnly = new HashMap<>();
         legacyJavaOnly.put(Items.MUSIC_DISC_RELIC, "minecraft:music_disc_wait");
         legacyJavaOnly.put(Items.PITCHER_PLANT, "minecraft:chorus_flower");
@@ -100,6 +102,7 @@ public class ItemRegistryPopulator {
 
         List<PaletteVersion> paletteVersions = new ArrayList<>(2);
         paletteVersions.add(new PaletteVersion("1_19_80", Bedrock_v582.CODEC.getProtocolVersion(), legacyJavaOnly, (item, mapping) -> {
+            // Backward-map 1.20 mappings to 1.19.80
             String id = item.javaIdentifier();
             if (id.endsWith("pottery_sherd")) {
                 return mapping.withBedrockIdentifier(id.replace("sherd", "shard"));
@@ -112,6 +115,17 @@ public class ItemRegistryPopulator {
             return mapping;
         }));
         paletteVersions.add(new PaletteVersion("1_20_0", Bedrock_v589.CODEC.getProtocolVersion()));
+        paletteVersions.add(new PaletteVersion("1_20_10", Bedrock_v594.CODEC.getProtocolVersion(), Collections.emptyMap(), (item, mapping) -> {
+            // Forward-map 1.20 mappings to 1.20.10
+            // 1.20.10+ received parity for concrete and shulker boxes
+            String id = item.javaIdentifier();
+            if (id.endsWith("_concrete") || id.endsWith("_shulker_box")) {
+                // the first underscore in "_shulker_box" accounts for ignoring "minecraft:shulker_box"
+                // which is mapped to "minecraft:undyed_shulker_box"
+                return mapping.withBedrockIdentifier(id);
+            }
+            return mapping;
+        }));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 

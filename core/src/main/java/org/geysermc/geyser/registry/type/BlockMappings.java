@@ -51,6 +51,7 @@ public class BlockMappings implements DefinitionRegistry<GeyserBedrockBlock> {
     GeyserBedrockBlock[] javaToBedrockBlocks;
     GeyserBedrockBlock[] javaToVanillaBedrockBlocks;
 
+    Map<NbtMap, GeyserBedrockBlock> stateDefinitionMap;
     GeyserBedrockBlock[] bedrockRuntimeMap;
     int[] remappedVanillaIds;
 
@@ -101,6 +102,14 @@ public class BlockMappings implements DefinitionRegistry<GeyserBedrockBlock> {
             return null;
         }
         return bedrockRuntimeMap[bedrockId];
+    }
+
+    public GeyserBedrockBlock getDefinition(NbtMap tag) {
+        if (tag == null) {
+            return null;
+        }
+
+        return this.stateDefinitionMap.get(tag);
     }
 
     @Override

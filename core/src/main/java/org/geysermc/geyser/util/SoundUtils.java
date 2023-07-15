@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.util;
 
-import com.github.steveice10.mc.protocol.data.game.level.sound.BuiltinSound;
 import com.github.steveice10.mc.protocol.data.game.level.sound.Sound;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
@@ -66,9 +65,7 @@ public final class SoundUtils {
      * @return a Bedrock sound
      */
     public static String translatePlaySound(String javaIdentifier) {
-        javaIdentifier = trim(javaIdentifier);
-
-        SoundMapping soundMapping = Registries.SOUNDS.get(javaIdentifier);
+        SoundMapping soundMapping = Registries.SOUNDS.get(trim(javaIdentifier));
         if (soundMapping == null || soundMapping.getPlaysound() == null) {
             // no mapping
             GeyserImpl.getInstance().getLogger().debug("[PlaySound] Defaulting to sound server gave us for " + javaIdentifier);
@@ -104,13 +101,7 @@ public final class SoundUtils {
      * @param pitch the pitch
      */
     public static void playSound(GeyserSession session, Sound javaSound, Vector3f position, float volume, float pitch) {
-        String packetSound;
-        if (!(javaSound instanceof BuiltinSound)) {
-            // Identifier needs trimmed probably.
-            packetSound = trim(javaSound.getName());
-        } else {
-            packetSound = javaSound.getName();
-        }
+        String packetSound = javaSound.getName();
 
         SoundMapping soundMapping = Registries.SOUNDS.get(packetSound);
         if (soundMapping == null) {

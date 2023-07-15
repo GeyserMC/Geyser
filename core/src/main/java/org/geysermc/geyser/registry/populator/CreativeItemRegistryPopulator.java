@@ -26,7 +26,10 @@
 package org.geysermc.geyser.registry.populator;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -34,6 +37,7 @@ import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMappings;
+import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -99,15 +103,31 @@ public class CreativeItemRegistryPopulator {
             count = countNode.asInt();
         }
 
+        GeyserBedrockBlock blockDefinition = null;
         JsonNode blockRuntimeIdNode = itemNode.get("blockRuntimeId");
+        JsonNode blockStateNode;
         if (blockRuntimeIdNode != null) {
             bedrockBlockRuntimeId = blockRuntimeIdNode.asInt();
             if (bedrockBlockRuntimeId == 0 && !identifier.equals("minecraft:blue_candle")) { // FIXME
                 bedrockBlockRuntimeId = -1;
             }
 
-            if (bedrockBlockRuntimeId != -1 && blockMappings.getRemappedVanillaIds().length != 0) {
-                bedrockBlockRuntimeId = blockMappings.getRemappedVanillaIds()[bedrockBlockRuntimeId];
+            blockDefinition = bedrockBlockRuntimeId == -1 ? null : blockMappings.getDefinition(bedrockBlockRuntimeId);
+        } else if ((blockStateNode = itemNode.get("block_state_b64")) != null) {
+            byte[] bytes = Base64.getDecoder().decode(blockStateNode.asText());
+            ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+            try {
+                NbtMap stateTag = (NbtMap) NbtUtils.createReaderLE(bais).readTag();
+
+                // We remove these from the state definition map in
+                // BlockMappings, so we need to remove it from here
+                NbtMapBuilder builder = stateTag.toBuilder();
+                builder.remove("name_hash");
+                builder.remove("network_id");
+
+                blockDefinition = blockMappings.getDefinition(builder.build());
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
@@ -133,6 +153,6 @@ public class CreativeItemRegistryPopulator {
                 .damage(damage)
                 .count(count)
                 .tag(tag)
-                .blockDefinition(bedrockBlockRuntimeId == -1 ? null : blockMappings.getDefinition(bedrockBlockRuntimeId));
+                .blockDefinition(blockDefinition);
     }
 }
