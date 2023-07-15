@@ -8,6 +8,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.codec.v582.Bedrock_v582;
+import org.cloudburstmc.protocol.bedrock.codec.v594.Bedrock_v594;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
@@ -263,9 +264,13 @@ public class CustomBlockRegistryPopulator {
             builder.putCompound("minecraft:collision_box", convertBox(components.collisionBox()));
         }
         if (components.geometry() != null) {
-            builder.putCompound("minecraft:geometry", NbtMap.builder()
-                    .putString("value", components.geometry())
-                    .build());
+            NbtMapBuilder geometryBuilder = NbtMap.builder();
+            if (protocolVersion >= Bedrock_v594.CODEC.getProtocolVersion()) {
+                geometryBuilder.putString("identifier", components.geometry());
+            } else {
+                geometryBuilder.putString("value", components.geometry());
+            }
+            builder.putCompound("minecraft:geometry", geometryBuilder.build());
         }
         if (!components.materialInstances().isEmpty()) {
             NbtMapBuilder materialsBuilder = NbtMap.builder();
