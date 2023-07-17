@@ -31,6 +31,7 @@ import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -50,10 +51,15 @@ public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<Netwo
         // so apparently, as of 1.16.200
         // PS4 divides the network stack latency timestamp FOR US!!!
         // WTF
-        if (session.getClientData().getDeviceOs().equals(DeviceOs.PS4)) {
-            pingId = packet.getTimestamp();
+        if (GameProtocol.isPre1_20_10(session)) {
+            if (session.getClientData().getDeviceOs().equals(DeviceOs.PS4)) {
+                pingId = packet.getTimestamp();
+            } else {
+                pingId = packet.getTimestamp() / 1000;
+            }
         } else {
-            pingId = packet.getTimestamp() / 1000;
+            // changed in 1.20.10 todo: is ps4 still different?
+            pingId = packet.getTimestamp() / (1000 * 1000 * 1000);
         }
 
         // negative timestamps are used as hack to fix the url image loading bug
