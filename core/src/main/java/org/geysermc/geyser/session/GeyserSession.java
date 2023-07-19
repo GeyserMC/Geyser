@@ -114,6 +114,7 @@ import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
+import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.Entity;
@@ -563,6 +564,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private ScheduledFuture<?> mountVehicleScheduledFuture = null;
+
+    /**
+     * The last ID from a ClientboundKeepAlivePacket.
+     * Only used if {@link GeyserConfiguration#isForwardPlayerPing()} is enabled.
+     */
+    @Setter
+    private long lastKeepAliveId = -1;
 
     private MinecraftProtocol protocol;
 

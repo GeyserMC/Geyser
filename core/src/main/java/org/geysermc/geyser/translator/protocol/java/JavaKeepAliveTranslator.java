@@ -42,9 +42,12 @@ public class JavaKeepAliveTranslator extends PacketTranslator<ClientboundKeepAli
         if (!session.getGeyser().getConfig().isForwardPlayerPing()) {
             return;
         }
+        // We use this once the client replies (see BedrockNetworkStackLatencyTranslator)
+        session.setLastKeepAliveId(packet.getPingId());
+
         NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
         latencyPacket.setFromServer(true);
-        latencyPacket.setTimestamp(packet.getPingId() * 1000);
+        latencyPacket.setTimestamp(packet.getPingId());
         session.sendUpstreamPacket(latencyPacket);
     }
 

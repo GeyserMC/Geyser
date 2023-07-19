@@ -29,9 +29,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundKe
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
-import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -47,25 +45,14 @@ public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<Netwo
 
     @Override
     public void translate(GeyserSession session, NetworkStackLatencyPacket packet) {
-        long pingId;
-        // so apparently, as of 1.16.200
-        // PS4 divides the network stack latency timestamp FOR US!!!
-        // WTF
-        if (GameProtocol.isPre1_20_10(session)) {
-            if (session.getClientData().getDeviceOs().equals(DeviceOs.PS4)) {
-                pingId = packet.getTimestamp();
-            } else {
-                pingId = packet.getTimestamp() / 1000;
-            }
-        } else {
-            // changed in 1.20.10 todo: is ps4 still different?
-            pingId = packet.getTimestamp() / (1000 * 1000 * 1000);
-        }
-
         // negative timestamps are used as hack to fix the url image loading bug
         if (packet.getTimestamp() > 0) {
             if (session.getGeyser().getConfig().isForwardPlayerPing()) {
-                ServerboundKeepAlivePacket keepAlivePacket = new ServerboundKeepAlivePacket(pingId);
+                // use our cached value because
+                // a) bedrock can be inaccurate with the value returned
+                // b) playstation replies with a different magnitude than other platforms
+                // c) 1.20.10 and later reply with a different magnitude
+                ServerboundKeepAlivePacket keepAlivePacket = new ServerboundKeepAlivePacket(session.getLastKeepAliveId());
                 session.sendDownstreamPacket(keepAlivePacket);
             }
             return;
