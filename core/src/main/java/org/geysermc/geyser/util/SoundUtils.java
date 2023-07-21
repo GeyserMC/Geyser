@@ -65,16 +65,17 @@ public final class SoundUtils {
      * @return a Bedrock sound
      */
     public static String translatePlaySound(String javaIdentifier) {
-        SoundMapping soundMapping = Registries.SOUNDS.get(trim(javaIdentifier));
+        String soundIdentifier = removeMinecraftNamespace(javaIdentifier);
+        SoundMapping soundMapping = Registries.SOUNDS.get(soundIdentifier);
         if (soundMapping == null || soundMapping.getPlaysound() == null) {
             // no mapping
             GeyserImpl.getInstance().getLogger().debug("[PlaySound] Defaulting to sound server gave us for " + javaIdentifier);
-            return javaIdentifier;
+            return soundIdentifier;
         }
         return soundMapping.getPlaysound();
     }
 
-    private static String trim(String identifier) {
+    private static String removeMinecraftNamespace(String identifier) {
         // Drop any minecraft namespace if applicable
         if (identifier.startsWith("minecraft:")) {
             return identifier.substring("minecraft:".length());
@@ -101,11 +102,12 @@ public final class SoundUtils {
      */
     public static void playSound(GeyserSession session, Sound javaSound, Vector3f position, float volume, float pitch) {
         String packetSound = javaSound.getName();
+        String soundIdentifier = removeMinecraftNamespace(packetSound);
 
-        SoundMapping soundMapping = Registries.SOUNDS.get(trim(packetSound));
+        SoundMapping soundMapping = Registries.SOUNDS.get(soundIdentifier);
         if (soundMapping == null) {
             session.getGeyser().getLogger().debug("[Builtin] Sound mapping for " + packetSound + " not found; assuming custom.");
-            playSound(session, packetSound, position, volume, pitch);
+            playSound(session, soundIdentifier, position, volume, pitch);
             return;
         }
 
@@ -127,7 +129,7 @@ public final class SoundUtils {
         LevelSoundEventPacket soundPacket = new LevelSoundEventPacket();
         SoundEvent sound = SoundUtils.toSoundEvent(soundMapping.getBedrock());
         if (sound == null) {
-            sound = SoundUtils.toSoundEvent(packetSound);
+            sound = SoundUtils.toSoundEvent(soundIdentifier);
         }
         if (sound == null) {
             session.getGeyser().getLogger().debug("[Builtin] Sound for original '" + packetSound + "' to mappings '" + soundMapping.getBedrock()
