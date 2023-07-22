@@ -101,12 +101,11 @@ public final class SoundUtils {
      * @param pitch the pitch
      */
     public static void playSound(GeyserSession session, Sound javaSound, Vector3f position, float volume, float pitch) {
-        String packetSound = javaSound.getName();
-        String soundIdentifier = removeMinecraftNamespace(packetSound);
+        String soundIdentifier = removeMinecraftNamespace(javaSound.getName());
 
         SoundMapping soundMapping = Registries.SOUNDS.get(soundIdentifier);
         if (soundMapping == null) {
-            session.getGeyser().getLogger().debug("[Builtin] Sound mapping for " + packetSound + " not found; assuming custom.");
+            session.getGeyser().getLogger().debug("[Builtin] Sound mapping for " + soundIdentifier + " not found; assuming custom.");
             playSound(session, soundIdentifier, position, volume, pitch);
             return;
         }
@@ -132,7 +131,7 @@ public final class SoundUtils {
             sound = SoundUtils.toSoundEvent(soundIdentifier);
         }
         if (sound == null) {
-            session.getGeyser().getLogger().debug("[Builtin] Sound for original '" + packetSound + "' to mappings '" + soundMapping.getBedrock()
+            session.getGeyser().getLogger().debug("[Builtin] Sound for original '" + soundIdentifier + "' to mappings '" + soundMapping.getBedrock()
                     + "' was not a playable level sound, or has yet to be mapped to an enum in SoundEvent.");
             return;
         }
