@@ -43,7 +43,7 @@ public class JavaKeepAliveTranslator extends PacketTranslator<ClientboundKeepAli
             return;
         }
         // We use this once the client replies (see BedrockNetworkStackLatencyTranslator)
-        session.setLastKeepAliveId(packet.getPingId());
+        session.getKeepAliveCache().add(packet.getPingId());
 
         NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
         latencyPacket.setFromServer(true);

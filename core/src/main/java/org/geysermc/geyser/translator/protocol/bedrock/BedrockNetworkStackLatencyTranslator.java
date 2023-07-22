@@ -52,7 +52,12 @@ public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<Netwo
                 // a) bedrock can be inaccurate with the value returned
                 // b) playstation replies with a different magnitude than other platforms
                 // c) 1.20.10 and later reply with a different magnitude
-                ServerboundKeepAlivePacket keepAlivePacket = new ServerboundKeepAlivePacket(session.getLastKeepAliveId());
+                Long keepAliveId = session.getKeepAliveCache().poll();
+                if (keepAliveId == null) {
+                    session.getGeyser().getLogger().debug("Received a latency packet that we don't have a KeepAlive for: " + packet);
+                    return;
+                }
+                ServerboundKeepAlivePacket keepAlivePacket = new ServerboundKeepAlivePacket(keepAliveId);
                 session.sendDownstreamPacket(keepAlivePacket);
             }
             return;

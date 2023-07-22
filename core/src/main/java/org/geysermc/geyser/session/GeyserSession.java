@@ -566,11 +566,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private ScheduledFuture<?> mountVehicleScheduledFuture = null;
 
     /**
-     * The last ID from a ClientboundKeepAlivePacket.
-     * Only used if {@link GeyserConfiguration#isForwardPlayerPing()} is enabled.
+     * A cache of IDs from ClientboundKeepAlivePackets that have been sent to the Bedrock client, but haven't been
+     * returned to the server. Only used if {@link GeyserConfiguration#isForwardPlayerPing()} is enabled.
      */
-    @Setter
-    private long lastKeepAliveId = -1;
+    private final Queue<Long> keepAliveCache = new ArrayDeque<>();
 
     private MinecraftProtocol protocol;
 
