@@ -52,29 +52,35 @@ public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<Netwo
                 // a) bedrock can be inaccurate with the value returned
                 // b) playstation replies with a different magnitude than other platforms
                 // c) 1.20.10 and later reply with a different magnitude
-                Long keepAliveId = session.getKeepAliveCache().poll();
-                if (keepAliveId == null) {
+                if (session.getKeepAliveCache().size() < 1) {
                     session.getGeyser().getLogger().debug("Received a latency packet that we don't have a KeepAlive for: " + packet);
                     return;
                 }
+                long keepAliveId = session.getKeepAliveCache().removeLong(0);
                 ServerboundKeepAlivePacket keepAlivePacket = new ServerboundKeepAlivePacket(keepAliveId);
                 session.sendDownstreamPacket(keepAlivePacket);
             }
             return;
         }
 
-        // Hack to fix the url image loading bug
-        UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
-        attributesPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+        session.scheduleInEventLoop(() -> {
+            // Hack to fix the url image loading bug
+            UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+            attributesPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
 
-        AttributeData attribute = session.getPlayerEntity().getAttributes().get(GeyserAttributeType.EXPERIENCE_LEVEL);
-        if (attribute != null) {
-            attributesPacket.setAttributes(Collections.singletonList(attribute));
-        } else {
-            attributesPacket.setAttributes(Collections.singletonList(GeyserAttributeType.EXPERIENCE_LEVEL.getAttribute(0)));
-        }
+            AttributeData attribute = session.getPlayerEntity().getAttributes().get(GeyserAttributeType.EXPERIENCE_LEVEL);
+            if (attribute != null) {
+                attributesPacket.setAttributes(Collections.singletonList(attribute));
+            } else {
+                attributesPacket.setAttributes(Collections.singletonList(GeyserAttributeType.EXPERIENCE_LEVEL.getAttribute(0)));
+            }
 
-        session.scheduleInEventLoop(() -> session.sendUpstreamPacket(attributesPacket),
-                500, TimeUnit.MILLISECONDS);
+            session.sendUpstreamPacket(attributesPacket);
+        }, 500, TimeUnit.MILLISECONDS);
+    }
+
+    @Override
+    public boolean shouldExecuteInEventLoop() {
+        return false;
     }
 }

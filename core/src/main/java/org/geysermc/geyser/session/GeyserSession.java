@@ -70,6 +70,9 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongList;
+import it.unimi.dsi.fastutil.longs.LongLists;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -566,10 +569,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private ScheduledFuture<?> mountVehicleScheduledFuture = null;
 
     /**
-     * A cache of IDs from ClientboundKeepAlivePackets that have been sent to the Bedrock client, but haven't been
-     * returned to the server. Only used if {@link GeyserConfiguration#isForwardPlayerPing()} is enabled.
+     * A cache of IDs from ClientboundKeepAlivePackets that have been sent to the Bedrock client, but haven't been returned to the server.
+     * To preserve chronological order, IDs should be added to the end of the list, and popped from index 0.
+     * Only used if {@link GeyserConfiguration#isForwardPlayerPing()} is enabled.
      */
-    private final Queue<Long> keepAliveCache = new ArrayDeque<>(3);
+    private final LongList keepAliveCache = LongLists.synchronize(new LongArrayList(3));
 
     private MinecraftProtocol protocol;
 
