@@ -26,11 +26,16 @@
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
 import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
-import com.github.steveice10.mc.protocol.data.game.entity.player.*;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
+import com.github.steveice10.mc.protocol.data.game.entity.player.InteractAction;
+import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
+import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerState;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.*;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
@@ -277,6 +282,19 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 break;
             case JUMP:
                 entity.setOnGround(false); // Increase block break time while jumping
+                break;
+            case MISSED_SWING:
+                // TODO Re-evaluate after pre-1.20.10 is supported?
+                if (session.getArmAnimationTicks() == -1) {
+                    session.sendDownstreamPacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
+                    session.activateArmAnimationTicking();
+
+                    // Send packet to Bedrock so it knows
+                    AnimatePacket animatePacket = new AnimatePacket();
+                    animatePacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+                    animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
+                    session.sendUpstreamPacket(animatePacket);
+                }
                 break;
         }
     }
