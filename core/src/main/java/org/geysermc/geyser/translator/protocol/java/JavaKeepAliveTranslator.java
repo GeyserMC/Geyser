@@ -48,7 +48,7 @@ public class JavaKeepAliveTranslator extends PacketTranslator<ClientboundKeepAli
         NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
         latencyPacket.setFromServer(true);
         latencyPacket.setTimestamp(packet.getPingId());
-        session.sendUpstreamPacket(latencyPacket);
+        session.sendUpstreamPacketImmediately(latencyPacket);
     }
 
     @Override
