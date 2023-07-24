@@ -47,7 +47,10 @@ public class JavaKeepAliveTranslator extends PacketTranslator<ClientboundKeepAli
 
         NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
         latencyPacket.setFromServer(true);
-        latencyPacket.setTimestamp(packet.getPingId());
+        // We take the abs because we rely on the client responding with a negative value ONLY when we send
+        // a negative timestamp in the form-image-hack performed in FormCache.
+        // Apart from that case, we don't actually use the value the client responds with, instead using our keep alive cache.
+        latencyPacket.setTimestamp(Math.abs(packet.getPingId()));
         session.sendUpstreamPacketImmediately(latencyPacket);
     }
 
