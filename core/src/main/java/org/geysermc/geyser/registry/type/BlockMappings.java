@@ -41,8 +41,6 @@ public class BlockMappings implements DefinitionRegistry<GeyserBedrockBlock> {
     BlockDefinition bedrockWater;
     BlockDefinition bedrockMovingBlock;
 
-    int blockStateVersion;
-
     GeyserBedrockBlock[] javaToBedrockBlocks;
 
     Map<NbtMap, GeyserBedrockBlock> stateDefinitionMap;

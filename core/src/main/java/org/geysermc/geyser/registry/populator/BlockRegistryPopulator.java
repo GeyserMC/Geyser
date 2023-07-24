@@ -167,9 +167,9 @@ public final class BlockRegistryPopulator {
             Object2ObjectMap<NbtMap, GeyserBedrockBlock> blockStateOrderedMap = new Object2ObjectOpenHashMap<>(blocksTag.size());
             GeyserBedrockBlock[] bedrockRuntimeMap = new GeyserBedrockBlock[blocksTag.size()];
 
-            int stateVersion = -1;
             for (int i = 0; i < blocksTag.size(); i++) {
                 NbtMapBuilder builder = blocksTag.get(i).toBuilder();
+                builder.remove("version");
                 builder.remove("name_hash"); // Quick workaround - was added in 1.19.20
                 builder.remove("network_id"); // Added in 1.19.80 - ????
                 builder.putCompound("states", statesInterner.intern((NbtMap) builder.remove("states")));
@@ -180,9 +180,6 @@ public final class BlockRegistryPopulator {
                 GeyserBedrockBlock block = new GeyserBedrockBlock(i, tag);
                 blockStateOrderedMap.put(tag, block);
                 bedrockRuntimeMap[i] = block;
-                if (stateVersion == -1) {
-                    stateVersion = tag.getInt("version");
-                }
             }
             int javaRuntimeId = -1;
 
@@ -207,10 +204,10 @@ public final class BlockRegistryPopulator {
                 Map.Entry<String, JsonNode> entry = blocksIterator.next();
                 String javaId = entry.getKey();
 
-                GeyserBedrockBlock bedrockDefinition = blockStateOrderedMap.get(buildBedrockState(entry.getValue(), stateVersion, stateMapper));
+                GeyserBedrockBlock bedrockDefinition = blockStateOrderedMap.get(buildBedrockState(entry.getValue(), stateMapper));
                 if (bedrockDefinition == null) {
                     throw new RuntimeException("Unable to find " + javaId + " Bedrock BlockDefinition on version "
-                            + palette.getKey().key() + "! Built NBT tag: \n" + buildBedrockState(entry.getValue(), stateVersion, stateMapper));
+                            + palette.getKey().key() + "! Built NBT tag: \n" + buildBedrockState(entry.getValue(), stateMapper));
                 }
 
                 switch (javaId) {
@@ -271,8 +268,7 @@ public final class BlockRegistryPopulator {
                 }
             });
 
-            BlockRegistries.BLOCKS.register(palette.getKey().valueInt(), builder.blockStateVersion(stateVersion)
-                    .bedrockRuntimeMap(bedrockRuntimeMap)
+            BlockRegistries.BLOCKS.register(palette.getKey().valueInt(), builder.bedrockRuntimeMap(bedrockRuntimeMap)
                     .javaToBedrockBlocks(javaToBedrockBlocks)
                     .stateDefinitionMap(blockStateOrderedMap)
                     .itemFrames(itemFrames)
@@ -451,11 +447,10 @@ public final class BlockRegistryPopulator {
         return blockStateSet;
     }
 
-    private static NbtMap buildBedrockState(JsonNode node, int blockStateVersion, BiFunction<String, NbtMapBuilder, String> statesMapper) {
+    private static NbtMap buildBedrockState(JsonNode node, BiFunction<String, NbtMapBuilder, String> statesMapper) {
         NbtMapBuilder tagBuilder = NbtMap.builder();
         String bedrockIdentifier = node.get("bedrock_identifier").textValue();
-        tagBuilder.putString("name", bedrockIdentifier)
-                .putInt("version", blockStateVersion);
+        tagBuilder.putString("name", bedrockIdentifier);
 
         NbtMapBuilder statesBuilder = NbtMap.builder();
 
