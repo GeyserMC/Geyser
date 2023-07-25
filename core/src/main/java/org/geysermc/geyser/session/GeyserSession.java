@@ -1565,6 +1565,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             startGamePacket.getExperiments().add(new ExperimentData("sniffer", true));
         }
 
+        if (!GameProtocol.isPre1_20_10(this)) {
+            startGamePacket.getExperiments().add(new ExperimentData("recipe_unlocking", true));
+        }
+
         upstream.sendPacket(startGamePacket);
     }
 

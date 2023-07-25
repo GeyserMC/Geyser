@@ -236,6 +236,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     stackPacket.getExperiments().add(new ExperimentData("sniffer", true));
                 }
 
+                // since 1.20.10: recipe unlocking exists
+                if (!GameProtocol.isPre1_20_10(session)) {
+                    stackPacket.getExperiments().add(new ExperimentData("recipe_unlocking", true));
+                }
+
                 session.sendUpstreamPacket(stackPacket);
                 break;
 
