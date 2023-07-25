@@ -39,8 +39,7 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 public class CampfireBlockEntityTranslator extends BlockEntityTranslator {
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
-        ListTag items = tag.get("Items");
-        if (items != null) {
+        if (tag.get("Items") instanceof ListTag items) {
             int i = 1;
             for (Tag itemTag : items.getValue()) {
                 builder.put("Item" + i, getItem((CompoundTag) itemTag));
