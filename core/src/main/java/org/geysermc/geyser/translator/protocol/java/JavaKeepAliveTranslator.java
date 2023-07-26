@@ -45,12 +45,26 @@ public class JavaKeepAliveTranslator extends PacketTranslator<ClientboundKeepAli
         // We use this once the client replies (see BedrockNetworkStackLatencyTranslator)
         session.getKeepAliveCache().add(packet.getPingId());
 
-        NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
-        latencyPacket.setFromServer(true);
+        long timestamp = packet.getPingId();
+
         // We take the abs because we rely on the client responding with a negative value ONLY when we send
         // a negative timestamp in the form-image-hack performed in FormCache.
         // Apart from that case, we don't actually use the value the client responds with, instead using our keep alive cache.
-        latencyPacket.setTimestamp(Math.abs(packet.getPingId()));
+        if (timestamp == Long.MIN_VALUE) {
+            timestamp = Long.MAX_VALUE; // There is not an abs representation of MIN_VALUE (2's complement)
+        } else {
+            timestamp = Math.absExact(timestamp);
+        }
+
+        // Bedrock will overflow on timestamps that are too large, and respond with a mangled negative value.
+        // Keeping leftmost digits allows for easier debugging
+        while (timestamp > 1e10) {
+            timestamp /= 10;
+        }
+
+        NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
+        latencyPacket.setFromServer(true);
+        latencyPacket.setTimestamp(timestamp);
         session.sendUpstreamPacketImmediately(latencyPacket);
     }
 
