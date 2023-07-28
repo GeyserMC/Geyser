@@ -396,6 +396,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private Entity mouseoverEntity;
 
+    /**
+     * Stores all Java recipes by identifier, and matches them to all possible Bedrock recipe identifiers.
+     */
+    @Setter @Getter
+    private Map<String, List<String>> identifierToBedrockRecipes;
+
     @Setter
     private Int2ObjectMap<GeyserRecipe> craftingRecipes;
     private final AtomicInteger lastRecipeNetId;
@@ -596,6 +602,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.playerInventory = new PlayerInventory();
         this.openInventory = null;
         this.craftingRecipes = new Int2ObjectOpenHashMap<>();
+        this.identifierToBedrockRecipes = new HashMap<>();
         this.lastRecipeNetId = new AtomicInteger(1);
 
         this.spawned = false;

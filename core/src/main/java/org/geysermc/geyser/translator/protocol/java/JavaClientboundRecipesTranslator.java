@@ -28,11 +28,12 @@ package org.geysermc.geyser.translator.protocol.java;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundRecipePacket;
 import org.cloudburstmc.protocol.bedrock.packet.UnlockedRecipesPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 @Translator(packet = ClientboundRecipePacket.class)
@@ -40,29 +41,39 @@ public class JavaClientboundRecipesTranslator extends PacketTranslator<Clientbou
 
     @Override
     public void translate(GeyserSession session, ClientboundRecipePacket packet) {
-        UnlockedRecipesPacket recipesPacket = new UnlockedRecipesPacket();
-        //GeyserImpl.getInstance().getLogger().info("DEBUG: init packet" + packet);
+        // recipe unlocking does not exist pre 1.20.10
+        if (GameProtocol.isPre1_20_10(session)) {
+            return;
+        }
 
-        // current state: recipes do show up; but are not taken away/properly unlocked. Need to do more BDS digging
+        UnlockedRecipesPacket recipesPacket = new UnlockedRecipesPacket();
         switch (packet.getAction()) {
             case INIT -> {
-                GeyserImpl.getInstance().getLogger().info("Sending all recipes to client");
                 recipesPacket.setAction(UnlockedRecipesPacket.ActionType.INITIALLY_UNLOCKED);
-                recipesPacket.getUnlockedRecipes().addAll(List.of(packet.getAlreadyKnownRecipes()));
+                recipesPacket.getUnlockedRecipes().addAll(getBedrockRecipes(session, packet.getAlreadyKnownRecipes()));
             }
             case ADD -> {
                 recipesPacket.setAction(UnlockedRecipesPacket.ActionType.NEWLY_UNLOCKED);
-                recipesPacket.getUnlockedRecipes().addAll(List.of(packet.getRecipes()));
+                recipesPacket.getUnlockedRecipes().addAll(getBedrockRecipes(session, packet.getRecipes()));
             }
             case REMOVE -> {
-                // TODO: doesnt fully work yet.
                 recipesPacket.setAction(UnlockedRecipesPacket.ActionType.REMOVE_UNLOCKED);
-                recipesPacket.getUnlockedRecipes().removeAll(Arrays.asList(packet.getRecipes()));
+                recipesPacket.getUnlockedRecipes().addAll(getBedrockRecipes(session, packet.getRecipes()));
             }
         }
-
-        // not yet lol
         session.sendUpstreamPacket(recipesPacket);
+    }
+
+    private List<String> getBedrockRecipes(GeyserSession session, String[] javaRecipeIdentifiers) {
+        List<String> recipes = new ArrayList<>();
+        for (String javaIdentifier : javaRecipeIdentifiers) {
+            if (!session.getIdentifierToBedrockRecipes().containsKey(javaIdentifier)) {
+                GeyserImpl.getInstance().getLogger().info("Missing recipe mapping for " + javaIdentifier);
+                continue;
+            }
+            recipes.addAll(session.getIdentifierToBedrockRecipes().get(javaIdentifier));
+        }
+        return recipes;
     }
 }
 
