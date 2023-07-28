@@ -68,7 +68,7 @@ public class JavaClientboundRecipesTranslator extends PacketTranslator<Clientbou
         List<String> recipes = new ArrayList<>();
         for (String javaIdentifier : javaRecipeIdentifiers) {
             if (!session.getIdentifierToBedrockRecipes().containsKey(javaIdentifier)) {
-                GeyserImpl.getInstance().getLogger().info("Missing recipe mapping for " + javaIdentifier);
+                GeyserImpl.getInstance().getLogger().debug("Missing recipe mapping for " + javaIdentifier);
                 continue;
             }
             recipes.addAll(session.getIdentifierToBedrockRecipes().get(javaIdentifier));

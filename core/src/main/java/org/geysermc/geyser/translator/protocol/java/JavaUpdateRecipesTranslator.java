@@ -81,15 +81,6 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             MultiRecipeData.of(UUID.fromString("602234e4-cac1-4353-8bb7-b1ebff70024b"), ++LAST_RECIPE_NET_ID) // Map locking
     );
 
-    /**
-    * Required to use the specified decorated pot recipes
-    */
-    // TODO: figure out why this doesn't work
-    private static final List<RecipeData> DECORATED_POT_RECIPES = List.of(
-            MultiRecipeData.of(UUID.fromString("685a742a-c42e-4a4e-88ea-5eb83fc98e5b"), ++LAST_RECIPE_NET_ID),
-            MultiRecipeData.of(UUID.fromString("d392b075-4ba1-40ae-8789-af868d56f6ce"), ++LAST_RECIPE_NET_ID)
-    );
-
     @Override
     public void translate(GeyserSession session, ClientboundUpdateRecipesPacket packet) {
         Map<RecipeType, List<RecipeData>> recipeTypes = Registries.CRAFTING_DATA.forVersion(session.getUpstream().getProtocolVersion());
@@ -148,6 +139,13 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     }
                     for (ItemDescriptorWithCount[] inputs : inputCombinations) {
                         String id = recipe.getIdentifier();
+                        UUID uuid = UUID.randomUUID();
+                        if (recipeIDs.containsKey(id)) {
+                            recipeIDs.get(id).add(uuid.toString());
+                            id = uuid.toString();
+                        } else {
+                            recipeIDs.put(id, new ArrayList<>(Collections.singletonList(id)));
+                        }
 
                         craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData.shaped(id,
                         shapedRecipeData.getWidth(), shapedRecipeData.getHeight(), Arrays.asList(inputs),
@@ -190,12 +188,6 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     }
 
                 }
-                case CRAFTING_DECORATED_POT -> {
-                // TODO
-                    //GeyserImpl.getInstance().getLogger().error("CRAFTING_DECORATED_POT");
-                    craftingDataPacket.getCraftingData().addAll(DECORATED_POT_RECIPES);
-                }
-
                 case SMITHING_TRIM -> {
                     // ignored currently - see below
                 }
@@ -233,9 +225,9 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     continue;
                 }
                 UUID uuid = UUID.randomUUID();
-                // TODO: use the correct identifier?
+                String id = data.getValue().get(stoneCuttingData);
                 // We need to register stonecutting recipes so they show up on Bedrock
-                craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData.shapeless(uuid.toString(),
+                craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData.shapeless(id,
                         Collections.singletonList(descriptor), Collections.singletonList(output), uuid, "stonecutter", 0, netId));
 
                 // Save the recipe list for reference when crafting
