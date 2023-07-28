@@ -89,7 +89,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
 
         Map<String, List<String>> recipeIDs = session.getIdentifierToBedrockRecipes();
         Int2ObjectMap<GeyserRecipe> recipeMap = new Int2ObjectOpenHashMap<>(Registries.RECIPES.forVersion(session.getUpstream().getProtocolVersion()));
-        Int2ObjectMap<List<StoneCuttingRecipeData>> unsortedStonecutterData = new Int2ObjectOpenHashMap<>();
+        Int2ObjectMap<Map<StoneCuttingRecipeData, String>> unsortedStonecutterData = new Int2ObjectOpenHashMap<>();
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
         craftingDataPacket.setCleanRecipes(true);
 
@@ -156,12 +156,13 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 case STONECUTTING -> {
                     StoneCuttingRecipeData stoneCuttingData = (StoneCuttingRecipeData) recipe.getData();
                     ItemStack ingredient = stoneCuttingData.getIngredient().getOptions()[0];
-                    List<StoneCuttingRecipeData> data = unsortedStonecutterData.get(ingredient.getId());
+                    Map<StoneCuttingRecipeData, String> data = unsortedStonecutterData.get(ingredient.getId());
                     if (data == null) {
-                        data = new ArrayList<>();
+                        data = new HashMap<>();
                         unsortedStonecutterData.put(ingredient.getId(), data);
                     }
-                    data.add(stoneCuttingData);
+                    // saving Java recipe identifier for use later.
+                    data.put(stoneCuttingData, recipe.getIdentifier());
                     // Save for processing after all recipes have been received
                 }
                 case SMITHING_TRANSFORM -> {
@@ -186,7 +187,6 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                             }
                         }
                     }
-
                 }
                 case SMITHING_TRIM -> {
                     // ignored currently - see below
@@ -204,16 +204,17 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.forVersion(session.getUpstream().getProtocolVersion()));
 
         Int2ObjectMap<GeyserStonecutterData> stonecutterRecipeMap = new Int2ObjectOpenHashMap<>();
-        for (Int2ObjectMap.Entry<List<StoneCuttingRecipeData>> data : unsortedStonecutterData.int2ObjectEntrySet()) {
+        for (Int2ObjectMap.Entry<Map<StoneCuttingRecipeData, String>> data : unsortedStonecutterData.int2ObjectEntrySet()) {
             // Sort the list by each output item's Java identifier - this is how it's sorted on Java, and therefore
             // We can get the correct order for button pressing
-            data.getValue().sort(Comparator.comparing((stoneCuttingRecipeData ->
+            List<StoneCuttingRecipeData> sortedIdentifiers = new ArrayList<>(data.getValue().keySet());
+            sortedIdentifiers.sort(Comparator.comparing((stoneCuttingRecipeData ->
                     Registries.JAVA_ITEMS.get().get(stoneCuttingRecipeData.getResult().getId())
                             .javaIdentifier())));
 
             // Now that it's sorted, let's translate these recipes
             int buttonId = 0;
-            for (StoneCuttingRecipeData stoneCuttingData : data.getValue()) {
+            for (StoneCuttingRecipeData stoneCuttingData : sortedIdentifiers) {
                 // As of 1.16.4, all stonecutter recipes have one ingredient option
                 ItemStack ingredient = stoneCuttingData.getIngredient().getOptions()[0];
                 ItemData input = ItemTranslator.translateToBedrock(session, ingredient);
