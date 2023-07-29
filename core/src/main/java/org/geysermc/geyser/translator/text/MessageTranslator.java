@@ -28,7 +28,9 @@ package org.geysermc.geyser.translator.text;
 import com.github.steveice10.mc.protocol.data.DefaultComponentSerializer;
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ScoreComponent;
 import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.text.flattener.ComponentFlattener;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
@@ -118,8 +120,14 @@ public class MessageTranslator {
         formats.add(CharacterAndFormat.characterAndFormat('t', TextColor.color(33, 73, 123))); // Lapis
         formats.add(CharacterAndFormat.characterAndFormat('u', TextColor.color(154, 92, 198))); // Amethyst
 
+        // Can be removed once Adventure 1.15.0 is released (see https://github.com/KyoriPowered/adventure/pull/954)
+        ComponentFlattener flattener = ComponentFlattener.basic().toBuilder()
+                .mapper(ScoreComponent.class, component -> "")
+                .build();
+
         BEDROCK_SERIALIZER = LegacyComponentSerializer.legacySection().toBuilder()
                 .formats(formats)
+                .flattener(flattener)
                 .build();
 
         // cache all the legacy character codes
