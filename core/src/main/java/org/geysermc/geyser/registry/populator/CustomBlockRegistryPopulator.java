@@ -24,8 +24,6 @@ import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
 import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
 import org.geysermc.geyser.api.block.custom.property.PropertyType;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBlocksEvent;
-import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterNonVanillaBlocksEvent;
-import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterVanillaBlocksEvent;
 import org.geysermc.geyser.level.block.GeyserCustomBlockState;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents.CustomBlockComponentsBuilder;
 import org.geysermc.geyser.level.block.GeyserCustomBlockData.CustomBlockDataBuilder;
@@ -46,10 +44,10 @@ public class CustomBlockRegistryPopulator {
      * The stage of population
      */
     public enum Stage {
-        BEDROCK,
-        VANILLA,
-        NON_VANILLA,
-        REGISTRATION;
+        DEFINITION,
+        VANILLA_REGISTRATION,
+        NON_VANILLA_REGISTRATION,
+        CUSTOM_REGISTRATION;
     }
 
     /**
@@ -62,16 +60,20 @@ public class CustomBlockRegistryPopulator {
         }
         
         switch (stage) {
-            case BEDROCK -> { populateBedrock(); }
-            case VANILLA -> { populateVanilla(); }
-            case NON_VANILLA -> { populateNonVanilla(); }
-            case REGISTRATION -> { registration(); }
+            case DEFINITION -> { populateBedrock(); }
+            case VANILLA_REGISTRATION -> { populateVanilla(); }
+            case NON_VANILLA_REGISTRATION -> { populateNonVanilla(); }
+            case CUSTOM_REGISTRATION -> { registration(); }
             default -> { throw new IllegalArgumentException("Unknown stage: " + stage); }
         }
     }
 
     private static Set<CustomBlockData> customBlocks;
     private static Set<String> customBlockNames;
+    private static Int2ObjectMap<CustomBlockState> blockStateOverrides;
+    private static Map<String, CustomBlockData> customBlockItemOverrides;
+    private static Map<JavaBlockState, CustomBlockState> nonVanillaBlockStateOverrides;
+    private static Map<JavaBlockItem, CustomBlockData> nonVanillaCustomItemOverrides;
 
     /**
      * Initializes custom blocks defined by API
@@ -79,6 +81,11 @@ public class CustomBlockRegistryPopulator {
     private static void populateBedrock() {
         customBlocks = new ObjectOpenHashSet<>();
         customBlockNames = new ObjectOpenHashSet<>();
+        blockStateOverrides = new Int2ObjectOpenHashMap<>();
+        customBlockItemOverrides = new HashMap<>();
+        nonVanillaBlockStateOverrides = new HashMap<>();
+        nonVanillaCustomItemOverrides = new HashMap<>();
+
         GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineCustomBlocksEvent() {
             @Override
             public void register(@NonNull CustomBlockData customBlockData) {
@@ -93,17 +100,7 @@ public class CustomBlockRegistryPopulator {
                 }
                 customBlocks.add(customBlockData);
             }
-        });
-    }
 
-    /**
-     * Registers all vanilla custom blocks and skulls defined by API and mappings
-     */
-    private static void populateVanilla() {
-        Int2ObjectMap<CustomBlockState> blockStateOverrides = new Int2ObjectOpenHashMap<>();
-        Map<String, CustomBlockData> customBlockItemOverrides = new HashMap<>();
-
-        GeyserImpl.getInstance().getEventBus().fire(new GeyserRegisterVanillaBlocksEvent() {
             @Override
             public void registerOverride(@NonNull String javaIdentifier, @NonNull CustomBlockState customBlockState) {
                 int id = BlockRegistries.JAVA_IDENTIFIER_TO_ID.getOrDefault(javaIdentifier, -1);
@@ -127,8 +124,29 @@ public class CustomBlockRegistryPopulator {
                 }
                 customBlockItemOverrides.put(javaIdentifier, customBlockData);
             }
+
+            @Override
+            public void registerOverride(@NonNull JavaBlockState javaBlockState, @NonNull CustomBlockState customBlockState) {
+                if (!customBlocks.contains(customBlockState.block())) {
+                    throw new IllegalArgumentException("Custom block is unregistered. Name: " + customBlockState.name());
+                }
+                nonVanillaBlockStateOverrides.put(javaBlockState, customBlockState);
+            }
+
+            @Override
+            public void registerItemOverride(@NonNull JavaBlockItem javaBlockItem, @NonNull CustomBlockData customBlockData) {
+                if (!customBlocks.contains(customBlockData)) {
+                    throw new IllegalArgumentException("Custom block is unregistered. Name: " + customBlockData.name());
+                }
+                nonVanillaCustomItemOverrides.put(javaBlockItem, customBlockData);
+            }
         });
-    
+    }
+
+    /**
+     * Registers all vanilla custom blocks and skulls defined by API and mappings
+     */
+    private static void populateVanilla() {
         for (CustomSkull customSkull : BlockRegistries.CUSTOM_SKULLS.get().values()) {
             customBlocks.add(customSkull.getCustomBlockData());
         }
@@ -171,27 +189,6 @@ public class CustomBlockRegistryPopulator {
      * Registers all non-vanilla custom blocks defined by API
      */
     private static void populateNonVanilla() {
-        Map<JavaBlockState, CustomBlockState> nonVanillaBlockStateOverrides = new HashMap<>();
-        Map<JavaBlockItem, CustomBlockData> nonVanillaCustomItemOverrides = new HashMap<>();
-
-        GeyserImpl.getInstance().getEventBus().fire(new GeyserRegisterNonVanillaBlocksEvent() {
-            @Override
-            public void registerOverride(@NonNull JavaBlockState javaBlockState, @NonNull CustomBlockState customBlockState) {
-                if (!customBlocks.contains(customBlockState.block())) {
-                    throw new IllegalArgumentException("Custom block is unregistered. Name: " + customBlockState.name());
-                }
-                nonVanillaBlockStateOverrides.put(javaBlockState, customBlockState);
-            }
-
-            @Override
-            public void registerItemOverride(@NonNull JavaBlockItem javaBlockItem, @NonNull CustomBlockData customBlockData) {
-                if (!customBlocks.contains(customBlockData)) {
-                    throw new IllegalArgumentException("Custom block is unregistered. Name: " + customBlockData.name());
-                }
-                nonVanillaCustomItemOverrides.put(javaBlockItem, customBlockData);
-            }
-        });
-
         BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.set(nonVanillaBlockStateOverrides);
         GeyserImpl.getInstance().getLogger().info("Registered " + nonVanillaBlockStateOverrides.size() + " non-vanilla block overrides.");
 

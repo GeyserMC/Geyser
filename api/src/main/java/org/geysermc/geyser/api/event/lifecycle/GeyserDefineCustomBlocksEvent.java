@@ -38,11 +38,48 @@ import org.geysermc.event.Event;
  * This event will not be called if the "add-non-bedrock-items" setting is disabled in the Geyser config.
  */
 public abstract class GeyserDefineCustomBlocksEvent implements Event {
-
     /**
      * Registers the given {@link CustomBlockData} as a custom block
      *
      * @param customBlockData the custom block to register
      */
     public abstract void register(@NonNull CustomBlockData customBlockData);
+
+    /**
+     * Registers the given {@link CustomBlockState} as an override for the
+     * given java state identifier
+     * Java state identifiers are listed in
+     * https://raw.githubusercontent.com/GeyserMC/mappings/master/blocks.json
+     *
+     * @param javaIdentifier the java state identifier to override
+     * @param customBlockState the custom block state with which to override java state identifier
+     */
+    public abstract void registerOverride(@NonNull String javaIdentifier, @NonNull CustomBlockState customBlockState);
+
+    /**
+     * Registers the given {@link CustomBlockData} as an override for the
+     * given java item identifier
+     *
+     * @param javaIdentifier the java item identifier to override
+     * @param customBlockData the custom block data with which to override java item identifier
+     */
+    public abstract void registerItemOverride(@NonNull String javaIdentifier, @NonNull CustomBlockData customBlockData);
+
+    /**
+     * Registers the given {@link CustomBlockState} as an override for the
+     * given {@link JavaBlockState}
+     *
+     * @param javaBlockState the java block state for the non-vanilla block
+     * @param customBlockState the custom block state with which to override java state identifier
+     */
+    public abstract void registerOverride(@NonNull JavaBlockState javaBlockState, @NonNull CustomBlockState customBlockState);
+
+    /**
+     * Registers the given {@link CustomBlockData} as an override for the
+     * given {@link JavaBlockItem }
+     *
+     * @param javaBlockItem the java block item for the non-vanilla block
+     * @param customBlockData the custom block data with which to override java item identifier
+     */
+    public abstract void registerItemOverride(@NonNull JavaBlockItem javaBlockItem, @NonNull CustomBlockData customBlockData);
 }
