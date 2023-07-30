@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,23 +26,28 @@
 package org.geysermc.geyser.api.event.lifecycle;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.event.Event;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockItem;
 import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
-import org.geysermc.event.Event;
 
-/**
- * Called on Geyser's startup when looking for custom blocks. Custom blocks must be registered through this event.
- *
- * This event will not be called if the "add-non-bedrock-items" setting is disabled in the Geyser config.
- */
-public abstract class GeyserDefineCustomBlocksEvent implements Event {
+public interface GeyserRegisterNonVanillaBlocksEvent extends Event {
+    /**
+     * Registers the given {@link CustomBlockState} as an override for the
+     * given {@link JavaBlockState}
+     *
+     * @param javaBlockState the java block state for the non-vanilla block
+     * @param customBlockState the custom block state with which to override java state identifier
+     */
+    public abstract void registerOverride(@NonNull JavaBlockState javaBlockState, @NonNull CustomBlockState customBlockState);
 
     /**
-     * Registers the given {@link CustomBlockData} as a custom block
+     * Registers the given {@link CustomBlockData} as an override for the
+     * given {@link JavaBlockItem }
      *
-     * @param customBlockData the custom block to register
+     * @param javaBlockItem the java block item for the non-vanilla block
+     * @param customBlockData the custom block data with which to override java item identifier
      */
-    public abstract void register(@NonNull CustomBlockData customBlockData);
+    public abstract void registerItemOverride(@NonNull JavaBlockItem javaBlockItem, @NonNull CustomBlockData customBlockData);
 }

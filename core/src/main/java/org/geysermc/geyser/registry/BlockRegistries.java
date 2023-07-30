@@ -139,11 +139,12 @@ public class BlockRegistries {
     static {
         CustomSkullRegistryPopulator.populate();
         BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.PRE_INIT);
-        // We need to split so modded blocks are registered first
-        // CustomBlockRegistryPopulator.populate();
+        CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.BEDROCK);
+        CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.NON_VANILLA);
         BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.INIT_JAVA);
         COLLISIONS = IntMappedRegistry.create(Pair.of("org.geysermc.geyser.translator.collision.CollisionRemapper", "mappings/collision.json"), CollisionRegistryLoader::new);
-        CustomBlockRegistryPopulator.populate();
+        CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.VANILLA);
+        CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.REGISTRATION);
         BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.INIT_BEDROCK);
         BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.POST_INIT);
     }
