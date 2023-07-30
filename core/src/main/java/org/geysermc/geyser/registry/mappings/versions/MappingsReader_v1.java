@@ -42,6 +42,7 @@ import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents.CustomBlockComponentsBuilder;
 import org.geysermc.geyser.level.block.GeyserCustomBlockData.CustomBlockDataBuilder;
+import org.geysermc.geyser.level.block.GeyserMaterialInstance.MaterialInstanceBuilder;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockComponentsMapping;
@@ -591,7 +592,12 @@ public class MappingsReader_v1 extends MappingsReader {
             ambientOcclusion = node.get("ambient_occlusion").asBoolean();
         }
 
-        return new MaterialInstance(texture, renderMethod, faceDimming, ambientOcclusion);
+        return new MaterialInstanceBuilder()
+                .texture(texture)
+                .renderMethod(renderMethod)
+                .faceDimming(faceDimming)
+                .ambientOcclusion(ambientOcclusion)
+                .build();
     }
 
     /**

@@ -31,10 +31,10 @@ import org.geysermc.geyser.api.block.custom.CustomBlockPermutation;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
-import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.component.TransformationComponent;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
 import org.geysermc.geyser.level.block.GeyserCustomBlockData;
+import org.geysermc.geyser.level.block.GeyserMaterialInstance.MaterialInstanceBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +66,12 @@ public class CustomSkull {
 
         CustomBlockComponents components = new GeyserCustomBlockComponents.CustomBlockComponentsBuilder()
                 .destructibleByMining(1.5f)
-                .materialInstance("*", new MaterialInstance("geyser." + skinHash + "_player_skin", "alpha_test", true, true))
+                .materialInstance("*", new MaterialInstanceBuilder()
+                        .texture("geyser." + skinHash + "_player_skin")
+                        .renderMethod("alpha_test")
+                        .faceDimming(true)
+                        .ambientOcclusion(true)
+                        .build())
                 .lightDampening(0)
                 .placeAir(true)
                 .build();

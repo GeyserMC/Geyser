@@ -26,14 +26,59 @@
 package org.geysermc.geyser.api.block.custom.component;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.api.GeyserApi;
 
 /**
- * This class is used to store a material instance for a custom block.
- * 
- * @param texture The texture of the block
- * @param renderMethod The render method of the block
- * @param faceDimming Whether the block should be dimmed on certain faces
- * @param ambientOcclusion Whether the block should have ambient occlusion
+ * This class is used to store data for a material instance.
  */
-public record MaterialInstance(@NonNull String texture, @NonNull String renderMethod, boolean faceDimming, boolean ambientOcclusion) {
+public interface MaterialInstance {
+    /**
+     * Gets the texture of the block
+     *
+     * @return The texture of the block.
+     */
+    @NonNull String texture();
+
+    /**
+     * Gets the render method of the block
+     *
+     * @return The render method of the block.
+     */
+    @Nullable String renderMethod();
+
+    /**
+     * Gets if the block should be dimmed on certain faces
+     * 
+     * @return If the block should be dimmed on certain faces.
+     */
+    @Nullable boolean faceDimming();
+
+    /**
+     * Gets if the block should have ambient occlusion
+     * 
+     * @return If the block should have ambient occlusion.
+     */
+    @Nullable boolean ambientOcclusion();
+
+    /**
+     * Creates a builder for MaterialInstance.
+     *
+     * @return a builder for MaterialInstance
+     */
+    static MaterialInstance.Builder builder() {
+        return GeyserApi.api().provider(MaterialInstance.Builder.class);
+    }
+
+    interface Builder {
+        Builder texture(@NonNull String texture);
+
+        Builder renderMethod(@Nullable String renderMethod);
+
+        Builder faceDimming(@Nullable boolean faceDimming);
+
+        Builder ambientOcclusion(@Nullable boolean ambientOcclusion);
+
+        MaterialInstance build();
+    }
 }

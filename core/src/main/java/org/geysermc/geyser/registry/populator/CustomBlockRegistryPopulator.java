@@ -27,6 +27,7 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBlocksEvent;
 import org.geysermc.geyser.level.block.GeyserCustomBlockState;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents.CustomBlockComponentsBuilder;
 import org.geysermc.geyser.level.block.GeyserCustomBlockData.CustomBlockDataBuilder;
+import org.geysermc.geyser.level.block.GeyserMaterialInstance.MaterialInstanceBuilder;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.CustomSkull;
@@ -448,7 +449,12 @@ public class CustomBlockRegistryPopulator {
                     new CustomBlockComponentsBuilder()
                         .collisionBox(boxComponent)
                         .selectionBox(BoxComponent.emptyBox())
-                        .materialInstance("*", new MaterialInstance("glass", "alpha_test", false, false))
+                        .materialInstance("*", new MaterialInstanceBuilder()
+                            .texture("glass")
+                            .renderMethod("alpha_test")
+                            .faceDimming(false)
+                            .ambientOcclusion(false)
+                            .build())
                         .lightDampening(0)
                         .geometry("geometry.invisible")
                         .build())
