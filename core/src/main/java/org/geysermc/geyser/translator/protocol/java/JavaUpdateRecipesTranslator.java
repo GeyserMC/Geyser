@@ -87,6 +87,8 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         // Get the last known network ID (first used for the pregenerated recipes) and increment from there.
         int netId = InventoryUtils.LAST_RECIPE_NET_ID + 1;
 
+        // temporary boolean to decide whether to send trim recipes
+        boolean sendTrimRecipes = false;
         Map<String, List<String>> recipeIDs = session.getIdentifierToBedrockRecipes();
         Int2ObjectMap<GeyserRecipe> recipeMap = new Int2ObjectOpenHashMap<>(Registries.RECIPES.forVersion(session.getUpstream().getProtocolVersion()));
         Int2ObjectMap<Map<StoneCuttingRecipeData, String>> unsortedStonecutterData = new Int2ObjectOpenHashMap<>();
@@ -190,11 +192,13 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 }
                 case SMITHING_TRIM -> {
                     // ignored currently - see below
+                    sendTrimRecipes = true;
                 }
                 default -> {
                     GeyserImpl.getInstance().getLogger().debug(recipe.getType() + " in default for recipe: " + recipe.getIdentifier());
                     List<RecipeData> craftingData = recipeTypes.get(recipe.getType());
                     if (craftingData != null) {
+                        addIdentifier(session, recipe, craftingData);
                         craftingDataPacket.getCraftingData().addAll(craftingData);
                     }
                 }
@@ -239,24 +243,58 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             }
         }
 
-        // FIXME: if the server/viaversion doesn't send trim recipes then we shouldn't either.
-
         // BDS sends armor trim templates and materials before the CraftingDataPacket
-        TrimDataPacket trimDataPacket = new TrimDataPacket();
-        trimDataPacket.getPatterns().addAll(TrimRecipe.PATTERNS);
-        trimDataPacket.getMaterials().addAll(TrimRecipe.MATERIALS);
-        session.sendUpstreamPacket(trimDataPacket);
+        if (sendTrimRecipes) {
+            TrimDataPacket trimDataPacket = new TrimDataPacket();
+            trimDataPacket.getPatterns().addAll(TrimRecipe.PATTERNS);
+            trimDataPacket.getMaterials().addAll(TrimRecipe.MATERIALS);
+            session.sendUpstreamPacket(trimDataPacket);
 
-        // Identical smithing_trim recipe sent by BDS that uses tag-descriptors, as the client seems to ignore the
-        // approach of using many default-descriptors (which we do for smithing_transform)
-        craftingDataPacket.getCraftingData().add(SmithingTrimRecipeData.of(TrimRecipe.ID,
-                TrimRecipe.BASE, TrimRecipe.ADDITION, TrimRecipe.TEMPLATE, "smithing_table", netId++));
-
+            // Identical smithing_trim recipe sent by BDS that uses tag-descriptors, as the client seems to ignore the
+            // approach of using many default-descriptors (which we do for smithing_transform)
+            craftingDataPacket.getCraftingData().add(SmithingTrimRecipeData.of(TrimRecipe.ID,
+                    TrimRecipe.BASE, TrimRecipe.ADDITION, TrimRecipe.TEMPLATE, "smithing_table", netId++));
+        }
         session.sendUpstreamPacket(craftingDataPacket);
         session.setCraftingRecipes(recipeMap);
         session.setStonecutterRecipes(stonecutterRecipeMap);
         session.getLastRecipeNetId().set(netId);
         session.setIdentifierToBedrockRecipes(recipeIDs);
+    }
+
+    private void addIdentifier(GeyserSession session, Recipe recipe, List<RecipeData> craftingData) {
+        String id = recipe.getIdentifier();
+        // there is no need to add these to our IDs, these are not being unlocked/locked
+        switch (recipe.getType()) {
+            case CRAFTING_SPECIAL_BOOKCLONING,
+                    CRAFTING_SPECIAL_REPAIRITEM,
+                    CRAFTING_SPECIAL_MAPEXTENDING,
+                    CRAFTING_SPECIAL_MAPCLONING:
+                return;
+            case CRAFTING_SPECIAL_SHULKERBOXCOLORING:
+                id = "minecraft:shulker_box";
+                break;
+            case CRAFTING_SPECIAL_TIPPEDARROW:
+                id = "minecraft:arrow";
+                break;
+        }
+        List<String> ids = new ArrayList<>();
+
+        // defined in the recipes.json mappings file: Only tipped arrows use shaped recipes, we need the cast for the identifier
+        if (recipe.getType() == RecipeType.CRAFTING_SPECIAL_TIPPEDARROW) {
+            for (RecipeData data : craftingData) {
+                ids.add(((org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData) data).getId());
+            }
+        } else {
+            for (RecipeData data : craftingData) {
+                ids.add(((org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData) data).getId());
+            }
+        }
+        if (session.getIdentifierToBedrockRecipes().containsKey(id)) {
+            ids.addAll(session.getIdentifierToBedrockRecipes().get(id));
+        } else {
+            session.getIdentifierToBedrockRecipes().put(id, ids);
+        }
     }
 
     //TODO: rewrite
