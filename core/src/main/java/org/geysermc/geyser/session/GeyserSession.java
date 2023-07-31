@@ -570,10 +570,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     /**
      * A cache of IDs from ClientboundKeepAlivePackets that have been sent to the Bedrock client, but haven't been returned to the server.
-     * To preserve chronological order, IDs should be added to the end of the list, and popped from index 0.
-     * Only used if {@link GeyserConfiguration#isForwardPlayerPing()} is enabled.
+      * Only used if {@link GeyserConfiguration#isForwardPlayerPing()} is enabled.
      */
-    private final LongList keepAliveCache = LongLists.synchronize(new LongArrayList(3));
+    private final Queue<Long> keepAliveCache = new ConcurrentLinkedQueue<>();
 
     private MinecraftProtocol protocol;
 
