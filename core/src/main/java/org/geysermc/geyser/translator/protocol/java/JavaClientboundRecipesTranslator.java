@@ -27,7 +27,6 @@ package org.geysermc.geyser.translator.protocol.java;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundRecipePacket;
 import org.cloudburstmc.protocol.bedrock.packet.UnlockedRecipesPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -68,7 +67,8 @@ public class JavaClientboundRecipesTranslator extends PacketTranslator<Clientbou
         List<String> recipes = new ArrayList<>();
         for (String javaIdentifier : javaRecipeIdentifiers) {
             if (!session.getIdentifierToBedrockRecipes().containsKey(javaIdentifier)) {
-                GeyserImpl.getInstance().getLogger().debug("Missing recipe mapping for " + javaIdentifier);
+                // Some recipes are not (un)lockable on Bedrock edition, like furnace or stonecutter recipes.
+                // So we don't store/send these.
                 continue;
             }
             recipes.addAll(session.getIdentifierToBedrockRecipes().get(javaIdentifier));
