@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
+import com.github.steveice10.mc.protocol.data.game.recipe.data.CookedRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.SmithingTransformRecipeData;
@@ -39,6 +40,7 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.FurnaceRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.MultiRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTrimRecipeData;
@@ -46,7 +48,6 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.DefaultDescri
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.TrimDataPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
@@ -111,20 +112,15 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                         continue;
                     }
 
+                    List<String> bedrockRecipeIDs = new ArrayList<>();
                     for (ItemDescriptorWithCount[] inputs : inputCombinations) {
-                        String id = recipe.getIdentifier();
                         UUID uuid = UUID.randomUUID();
-
-                        if (recipeIDs.containsKey(id)) {
-                            recipeIDs.get(id).add(uuid.toString());
-                            id = uuid.toString();
-                        } else {
-                            recipeIDs.put(id, new ArrayList<>(Collections.singletonList(id)));
-                        }
-                        craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData.shapeless(id,
+                        bedrockRecipeIDs.add(uuid.toString());
+                        craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData.shapeless(uuid.toString(),
                                 Arrays.asList(inputs), Collections.singletonList(output), uuid, "crafting_table", 0, netId));
                         recipeMap.put(netId++, new GeyserShapelessRecipe(shapelessRecipeData));
                     }
+                    addRecipeIdentifier(session, recipe.getIdentifier(), bedrockRecipeIDs);
                 }
                 case CRAFTING_SHAPED -> {
                     ShapedRecipeData shapedRecipeData = (ShapedRecipeData) recipe.getData();
@@ -139,21 +135,18 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     if (inputCombinations == null) {
                         continue;
                     }
-                    for (ItemDescriptorWithCount[] inputs : inputCombinations) {
-                        String id = recipe.getIdentifier();
-                        UUID uuid = UUID.randomUUID();
-                        if (recipeIDs.containsKey(id)) {
-                            recipeIDs.get(id).add(uuid.toString());
-                            id = uuid.toString();
-                        } else {
-                            recipeIDs.put(id, new ArrayList<>(Collections.singletonList(id)));
-                        }
 
-                        craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData.shaped(id,
+                    List<String> bedrockRecipeIDs = new ArrayList<>();
+                    for (ItemDescriptorWithCount[] inputs : inputCombinations) {
+                        UUID uuid = UUID.randomUUID();
+                        bedrockRecipeIDs.add(uuid.toString());
+
+                        craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData.shaped(uuid.toString(),
                         shapedRecipeData.getWidth(), shapedRecipeData.getHeight(), Arrays.asList(inputs),
                         Collections.singletonList(output), uuid, "crafting_table", 0, netId));
                         recipeMap.put(netId++, new GeyserShapedRecipe(shapedRecipeData));
                     }
+                    addRecipeIdentifier(session, recipe.getIdentifier(), bedrockRecipeIDs);
                 }
                 case STONECUTTING -> {
                     StoneCuttingRecipeData stoneCuttingData = (StoneCuttingRecipeData) recipe.getData();
@@ -163,9 +156,8 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                         data = new HashMap<>();
                         unsortedStonecutterData.put(ingredient.getId(), data);
                     }
-                    // saving Java recipe identifier for use later.
-                    data.put(stoneCuttingData, recipe.getIdentifier());
                     // Save for processing after all recipes have been received
+                    data.put(stoneCuttingData, recipe.getIdentifier());
                 }
                 case SMITHING_TRANSFORM -> {
                     SmithingTransformRecipeData data = (SmithingTransformRecipeData) recipe.getData();
@@ -194,11 +186,41 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     // ignored currently - see below
                     sendTrimRecipes = true;
                 }
+                case SMELTING, CAMPFIRE_COOKING, BLASTING, SMOKING -> {
+                    CookedRecipeData cookedRecipeData = (CookedRecipeData) recipe.getData();
+                    // Bedrock does not define identifiers for any Furnace recipes; subsequently, they are not locked/unlocked either
+                    String tag;
+                    switch (recipe.getType()) {
+                        case CAMPFIRE_COOKING -> tag = "campfire";
+                        case BLASTING -> tag = "blast_furnace";
+                        case SMOKING -> tag = "smoker";
+                        default -> tag = "furnace";
+                    }
+                    ItemStack javaOutput = cookedRecipeData.getResult();
+                    ItemData output = ItemTranslator.translateToBedrock(session, javaOutput);
+                    if (output.equals(ItemData.AIR)) {
+                        // Probably modded items
+                        continue;
+                    }
+
+                    Ingredient inputs = cookedRecipeData.getIngredient();
+                    for (ItemStack option : inputs.getOptions()) {
+                        ItemData input = ItemTranslator.translateToBedrock(session, option);
+                        if (input.equals(ItemData.AIR)) {
+                            // Probably modded items
+                            continue;
+                        }
+                        craftingDataPacket.getCraftingData().add(FurnaceRecipeData.of(input.getNetId(), output, tag));
+                        if (recipe.getType().equals(RecipeType.CAMPFIRE_COOKING)) {
+                            // Bedrock has another tag specifically for soul campfires, Java does not, so we add both
+                            craftingDataPacket.getCraftingData().add(FurnaceRecipeData.of(input.getNetId(), output, "soul_campfire"));
+                        }
+                    }
+                }
                 default -> {
-                    GeyserImpl.getInstance().getLogger().debug(recipe.getType() + " in default for recipe: " + recipe.getIdentifier());
                     List<RecipeData> craftingData = recipeTypes.get(recipe.getType());
                     if (craftingData != null) {
-                        addIdentifier(session, recipe, craftingData);
+                        addSpecialRecipesIdentifiers(session, recipe, craftingData);
                         craftingDataPacket.getCraftingData().addAll(craftingData);
                     }
                 }
@@ -239,7 +261,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 // Add the net ID as the key and the button required + output for the value
                 stonecutterRecipeMap.put(netId++, new GeyserStonecutterData(buttonId++, javaOutput));
                 // for recipe unlocking
-                recipeIDs.put(id, Collections.singletonList(id));
+                addRecipeIdentifier(session, id, Collections.singletonList(id));
             }
         }
 
@@ -262,39 +284,35 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         session.setIdentifierToBedrockRecipes(recipeIDs);
     }
 
-    private void addIdentifier(GeyserSession session, Recipe recipe, List<RecipeData> craftingData) {
-        String id = recipe.getIdentifier();
-        // there is no need to add these to our IDs, these are not being unlocked/locked
+    private void addSpecialRecipesIdentifiers(GeyserSession session, Recipe recipe, List<RecipeData> craftingData) {
+        String javaRecipeID = recipe.getIdentifier();
+
         switch (recipe.getType()) {
-            case CRAFTING_SPECIAL_BOOKCLONING,
-                    CRAFTING_SPECIAL_REPAIRITEM,
-                    CRAFTING_SPECIAL_MAPEXTENDING,
-                    CRAFTING_SPECIAL_MAPCLONING:
+            case CRAFTING_SPECIAL_BOOKCLONING, CRAFTING_SPECIAL_REPAIRITEM, CRAFTING_SPECIAL_MAPEXTENDING, CRAFTING_SPECIAL_MAPCLONING:
+                // We do not want to (un)lock these, since BDS does not do it for MultiRecipes
                 return;
             case CRAFTING_SPECIAL_SHULKERBOXCOLORING:
-                id = "minecraft:shulker_box";
+                // BDS (un)locks the dyeing with the shulker box recipe, Java never - we want BDS behavior for ease of use
+                javaRecipeID = "minecraft:shulker_box";
                 break;
             case CRAFTING_SPECIAL_TIPPEDARROW:
-                id = "minecraft:arrow";
+                // similar as above
+                javaRecipeID = "minecraft:arrow";
                 break;
         }
-        List<String> ids = new ArrayList<>();
+        List<String> bedrockRecipeIDs = new ArrayList<>();
 
         // defined in the recipes.json mappings file: Only tipped arrows use shaped recipes, we need the cast for the identifier
         if (recipe.getType() == RecipeType.CRAFTING_SPECIAL_TIPPEDARROW) {
             for (RecipeData data : craftingData) {
-                ids.add(((org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData) data).getId());
+                bedrockRecipeIDs.add(((org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData) data).getId());
             }
         } else {
             for (RecipeData data : craftingData) {
-                ids.add(((org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData) data).getId());
+                bedrockRecipeIDs.add(((org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData) data).getId());
             }
         }
-        if (session.getIdentifierToBedrockRecipes().containsKey(id)) {
-            ids.addAll(session.getIdentifierToBedrockRecipes().get(id));
-        } else {
-            session.getIdentifierToBedrockRecipes().put(id, ids);
-        }
+        addRecipeIdentifier(session, javaRecipeID, bedrockRecipeIDs);
     }
 
     //TODO: rewrite
@@ -379,6 +397,14 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             x *= set.size();
         }
         return combinations;
+    }
+
+    private void addRecipeIdentifier(GeyserSession session, String javaIdentifier, List<String> bedrockIdentifiers) {
+        if (session.getIdentifierToBedrockRecipes().containsKey(javaIdentifier)) {
+            session.getIdentifierToBedrockRecipes().get(javaIdentifier).addAll(bedrockIdentifiers);
+        } else {
+            session.getIdentifierToBedrockRecipes().put(javaIdentifier, bedrockIdentifiers);
+        }
     }
 
     @EqualsAndHashCode
