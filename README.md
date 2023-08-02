@@ -38,7 +38,7 @@ Take a look [here](https://wiki.geysermc.org/geyser/setup/) for how to set up Ge
 There are a few things Geyser is unable to support due to various differences between Minecraft Bedrock and Java. For a list of these limitations, see the [Current Limitations](https://wiki.geysermc.org/geyser/current-limitations/) page.
 
 ## Compiling
-1. Clone the repo to your computer
+1. Clone the repo to your computer.
 2. Navigate to the Geyser root directory and run `git submodule update --init --recursive`. This command downloads all the needed submodules for Geyser and is a crucial step in this process.
 3. Run `gradlew build` and locate to `bootstrap/build` folder.
 
