@@ -26,6 +26,7 @@
 package org.geysermc.geyser.network.netty;
 
 import com.github.steveice10.packetlib.helper.TransportHelper;
+import com.github.steveice10.packetlib.tcp.TcpClientSession;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -58,6 +59,7 @@ import org.geysermc.geyser.network.netty.handler.RakPingHandler;
 import org.geysermc.geyser.network.netty.proxy.ProxyServerHandler;
 import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
+import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
@@ -84,8 +86,9 @@ public final class GeyserServer {
     private static final Transport TRANSPORT = compatibleTransport();
 
     private final GeyserImpl geyser;
-    private final EventLoopGroup group;
+    private EventLoopGroup group;
     private final ServerBootstrap bootstrap;
+    private EventLoopGroup playerGroup;
 
     @Getter
     private final ExpiringMap<InetSocketAddress, InetSocketAddress> proxiedAddresses;
@@ -132,7 +135,15 @@ public final class GeyserServer {
     }
 
     public void shutdown() {
-        this.group.shutdownGracefully();
+        try {
+            this.group.shutdownGracefully().sync();
+            this.group = null;
+            this.playerGroup.shutdownGracefully().sync();
+            this.playerGroup = null;
+            SkinProvider.shutdown();
+        } catch (InterruptedException e) {
+           e.printStackTrace();
+        }
         this.future.channel().closeFuture().syncUninterruptibly();
     }
 
@@ -149,11 +160,13 @@ public final class GeyserServer {
             }
         }
 
+        GeyserServerInitializer serverInitializer = new GeyserServerInitializer(this.geyser);
+        playerGroup = serverInitializer.getEventLoopGroup();
         return new ServerBootstrap()
                 .channelFactory(RakChannelFactory.server(TRANSPORT.datagramChannel()))
                 .group(group)
                 .option(RakChannelOption.RAK_HANDLE_PING, true)
-                .childHandler(new GeyserServerInitializer(this.geyser));
+                .childHandler(serverInitializer);
     }
 
     public boolean onConnectionRequest(InetSocketAddress inetSocketAddress) {
