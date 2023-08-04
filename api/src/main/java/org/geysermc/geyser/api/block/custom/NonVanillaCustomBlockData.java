@@ -25,8 +25,13 @@
 
 package org.geysermc.geyser.api.block.custom;
 
-import lombok.NonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
+import org.geysermc.geyser.api.util.CreativeCategory;
+
+import java.util.List;
 
 /**
  * Represents a completely custom block that is not based on an existing vanilla Minecraft block.
@@ -46,6 +51,34 @@ public interface NonVanillaCustomBlockData extends CustomBlockData {
 
         Builder identifier(@NonNull String identifier);
 
+        @Override
+        Builder name(@NonNull String name);
+
+        @Override
+        Builder includedInCreativeInventory(boolean includedInCreativeInventory);
+
+        @Override
+        Builder creativeCategory(@Nullable CreativeCategory creativeCategory);
+
+        @Override
+        Builder creativeGroup(@Nullable String creativeGroup);
+
+        @Override
+        Builder components(@NonNull CustomBlockComponents components);
+
+        @Override
+        Builder booleanProperty(@NonNull String propertyName);
+
+        @Override
+        Builder intProperty(@NonNull String propertyName, List<Integer> values);
+
+        @Override
+        Builder stringProperty(@NonNull String propertyName, List<String> values);
+
+        @Override
+        Builder permutations(@NonNull List<CustomBlockPermutation> permutations);
+
+        @Override
         NonVanillaCustomBlockData build();
     }
 }

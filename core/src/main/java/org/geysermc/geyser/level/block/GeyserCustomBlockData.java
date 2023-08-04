@@ -36,6 +36,7 @@ import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
 import org.geysermc.geyser.api.block.custom.property.PropertyType;
+import org.geysermc.geyser.api.util.CreativeCategory;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -47,7 +48,7 @@ import java.util.Map;
 public class GeyserCustomBlockData implements CustomBlockData {
     private final String name;
     private final boolean includedInCreativeInventory;
-    private final String creativeCategory;
+    private final CreativeCategory creativeCategory;
     private final String creativeGroup;
     private final CustomBlockComponents components;
     private final Map<String, CustomBlockProperty<?>> properties;
@@ -111,7 +112,7 @@ public class GeyserCustomBlockData implements CustomBlockData {
     }
 
     @Override
-    public @Nullable String creativeCategory() {
+    public @Nullable CreativeCategory creativeCategory() {
         return creativeCategory;
     }
 
@@ -148,7 +149,7 @@ public class GeyserCustomBlockData implements CustomBlockData {
     public static class CustomBlockDataBuilder implements Builder {
         private String name;
         private boolean includedInCreativeInventory;
-        private String creativeCategory;
+        private CreativeCategory creativeCategory;
         private String creativeGroup;
         private CustomBlockComponents components;
         private final Object2ObjectMap<String, CustomBlockProperty<?>> properties = new Object2ObjectOpenHashMap<>();
@@ -167,7 +168,7 @@ public class GeyserCustomBlockData implements CustomBlockData {
         }
 
         @Override
-        public Builder creativeCategory(@Nullable String creativeCategory) {
+        public Builder creativeCategory(@Nullable CreativeCategory creativeCategory) {
             this.creativeCategory = creativeCategory;
             return this;
         }

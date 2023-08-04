@@ -24,6 +24,7 @@ import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
 import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
 import org.geysermc.geyser.api.block.custom.property.PropertyType;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBlocksEvent;
+import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.level.block.GeyserCustomBlockState;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents.CustomBlockComponentsBuilder;
 import org.geysermc.geyser.level.block.GeyserCustomBlockData.CustomBlockDataBuilder;
@@ -268,7 +269,7 @@ public class CustomBlockRegistryPopulator {
             properties.add(propertyBuilder.build());
         }
     
-        String creativeCategory = customBlock.creativeCategory() != null ? customBlock.creativeCategory() : "none";
+        CreativeCategory creativeCategory = customBlock.creativeCategory() != null ? customBlock.creativeCategory() : CreativeCategory.NONE;
         String creativeGroup = customBlock.creativeGroup() != null ? customBlock.creativeGroup() : "";
         NbtMap propertyTag = NbtMap.builder()
                 .putCompound("components", CustomBlockRegistryPopulator.convertComponents(customBlock.components(), protocolVersion))
@@ -276,7 +277,7 @@ public class CustomBlockRegistryPopulator {
                 // in the future, this can be used to replace items in the creative inventory
                 // this would require us to map https://wiki.bedrock.dev/documentation/creative-categories.html#for-blocks programatically
                 .putCompound("menu_category", NbtMap.builder()
-                    .putString("category", creativeCategory)
+                    .putString("category", creativeCategory.internalName())
                     .putString("group", creativeGroup)
                     .putBoolean("is_hidden_in_commands", false)
                 .build())

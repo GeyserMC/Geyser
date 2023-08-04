@@ -39,6 +39,7 @@ import org.geysermc.geyser.api.block.custom.component.PlacementConditions.BlockF
 import org.geysermc.geyser.api.block.custom.component.PlacementConditions.Face;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
+import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents.CustomBlockComponentsBuilder;
 import org.geysermc.geyser.level.block.GeyserCustomBlockData.CustomBlockDataBuilder;
@@ -200,9 +201,14 @@ public class MappingsReader_v1 extends MappingsReader {
 
         boolean includedInCreativeInventory = node.has("included_in_creative_inventory") && node.get("included_in_creative_inventory").asBoolean();
 
-        String creativeCategory = "none";
+        CreativeCategory creativeCategory = CreativeCategory.NONE;
         if (node.has("creative_category")) {
-            creativeCategory = node.get("creative_category").asText();
+            String categoryName = node.get("creative_category").asText();
+            try {
+                creativeCategory = CreativeCategory.valueOf(categoryName);
+            } catch (IllegalArgumentException e) {
+                throw new InvalidCustomMappingsFileException("Invalid creative category \"" + categoryName + "\" for block \"" + name + "\"");
+            }
         }
 
         String creativeGroup = "";

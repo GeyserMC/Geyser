@@ -30,6 +30,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
+import org.geysermc.geyser.api.util.CreativeCategory;
 
 import java.util.List;
 import java.util.Map;
@@ -64,7 +65,7 @@ public interface CustomBlockData {
      *
      * @return the item's creative category
      */
-    @Nullable String creativeCategory();
+    @Nullable CreativeCategory creativeCategory();
 
     /**
      * Gets the item's creative group.
@@ -123,7 +124,7 @@ public interface CustomBlockData {
 
         Builder includedInCreativeInventory(boolean includedInCreativeInventory);
 
-        Builder creativeCategory(@Nullable String creativeCategory);
+        Builder creativeCategory(@Nullable CreativeCategory creativeCategory);
 
         Builder creativeGroup(@Nullable String creativeGroup);
 
