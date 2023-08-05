@@ -140,8 +140,8 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                         bedrockRecipeIDs.add(uuid.toString());
 
                         craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData.shaped(uuid.toString(),
-                        shapedRecipeData.getWidth(), shapedRecipeData.getHeight(), Arrays.asList(inputs),
-                        Collections.singletonList(output), uuid, "crafting_table", 0, netId));
+                                shapedRecipeData.getWidth(), shapedRecipeData.getHeight(), Arrays.asList(inputs),
+                                Collections.singletonList(output), uuid, "crafting_table", 0, netId));
                         recipeMap.put(netId++, new GeyserShapedRecipe(shapedRecipeData));
                     }
                     addRecipeIdentifier(session, recipe.getIdentifier(), bedrockRecipeIDs);
@@ -173,7 +173,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                                 String id = recipe.getIdentifier();
                                 // Note: vanilla inputs use aux value of Short.MAX_VALUE
                                 craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData.of(id,
-                                    bedrockTemplate, bedrockBase, bedrockAddition, output, "smithing_table", netId++));
+                                        bedrockTemplate, bedrockBase, bedrockAddition, output, "smithing_table", netId++));
 
                                 recipeIDs.put(id, new ArrayList<>(Collections.singletonList(id)));
                             }
@@ -181,8 +181,13 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     }
                 }
                 case SMITHING_TRIM -> {
-                    // ignored currently - see below
+                    // Just keeping track of whether to send the recipes
                     sendTrimRecipes = true;
+                }
+                case CRAFTING_DECORATED_POT -> {
+                    // Paper 1.20 seems to send only one recipe, which seems to be hardcoded to include all recipes.
+                    // We can send the equivalent Bedrock MultiRecipe! :)
+                    craftingDataPacket.getCraftingData().add(MultiRecipeData.of(UUID.fromString("685a742a-c42e-4a4e-88ea-5eb83fc98e5b"), netId++));
                 }
                 default -> {
                     List<RecipeData> craftingData = recipeTypes.get(recipe.getType());
