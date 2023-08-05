@@ -60,12 +60,6 @@ import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.type.BlockMappings;
-import org.geysermc.geyser.registry.type.GeyserMappingItem;
-import org.geysermc.geyser.registry.type.ItemMapping;
-import org.geysermc.geyser.registry.type.ItemMappings;
-import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
-import org.geysermc.geyser.registry.type.PaletteItem;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.*;
@@ -282,7 +276,7 @@ public class ItemRegistryPopulator {
                         bedrockBlock = blockOverride;
                     } else {
                         // Try to get an example block runtime ID from the creative contents packet, for Bedrock identifier obtaining
-                        int aValidBedrockBlockId = blacklistedIdentifiers.getOrDefault(bedrockIdentifier, -1);
+                        int aValidBedrockBlockId = blacklistedIdentifiers.getOrDefault(bedrockIdentifier, customBlockItemOverride != null ? customBlockItemOverride.getRuntimeId() : -1);
                         if (aValidBedrockBlockId == -1 && customBlockItemOverride == null) {
                             // Fallback
                             bedrockBlock = blockMappings.getBedrockBlock(firstBlockRuntimeId);
