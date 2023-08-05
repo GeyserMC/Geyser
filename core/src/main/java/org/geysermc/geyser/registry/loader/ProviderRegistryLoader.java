@@ -28,6 +28,7 @@ package org.geysermc.geyser.registry.loader;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.NonVanillaCustomBlockData;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
+import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.event.EventRegistrar;
@@ -66,7 +67,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         providers.put(CustomBlockData.Builder.class, args -> new GeyserCustomBlockData.CustomBlockDataBuilder());
         providers.put(JavaBlockState.Builder.class, args -> new GeyserJavaBlockState.JavaBlockStateBuilder());
         providers.put(NonVanillaCustomBlockData.Builder.class, args -> new GeyserNonVanillaCustomBlockData.NonVanillaCustomBlockDataBuilder());
-        providers.put(GeyserMaterialInstance.Builder.class, args -> new GeyserMaterialInstance.MaterialInstanceBuilder());
+        providers.put(MaterialInstance.Builder.class, args -> new GeyserMaterialInstance.MaterialInstanceBuilder());
 
         providers.put(EventRegistrar.class, args -> new GeyserEventRegistrar(args[0]));
         providers.put(PathPackCodec.class, args -> new GeyserPathPackCodec((Path) args[0]));
