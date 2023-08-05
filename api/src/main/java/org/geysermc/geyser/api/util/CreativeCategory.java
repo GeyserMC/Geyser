@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.api.util;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 /**
  * Represents the creative menu categories or tabs.
  */
@@ -46,14 +48,16 @@ public enum CreativeCategory {
 
     /**
      * Gets the internal name of the category.
+     * 
      * @return the name of the category
      */
-    public String internalName() {
+    @NonNull public String internalName() {
         return internalName;
     }
 
     /**
      * Gets the internal ID of the category.
+     * 
      * @return the ID of the category
      */
     public int id() {

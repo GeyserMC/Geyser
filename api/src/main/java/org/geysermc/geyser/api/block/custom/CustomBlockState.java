@@ -54,7 +54,7 @@ public interface CustomBlockState {
      * @param propertyName the property name
      * @return the boolean, int, or string property.
      */
-    @NonNull <T> T property(String propertyName);
+    @NonNull <T> T property(@NonNull String propertyName);
 
     /**
      * Gets a map of the properties for the state

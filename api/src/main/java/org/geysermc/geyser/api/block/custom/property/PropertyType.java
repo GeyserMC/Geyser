@@ -40,7 +40,7 @@ public class PropertyType {
      *
      * @return The property type for a boolean.
      */
-    public static PropertyType booleanProp() {
+    @NonNull public static PropertyType booleanProp() {
         return BOOLEAN;
     }
 
@@ -49,7 +49,7 @@ public class PropertyType {
      *
      * @return The property type for an integer.
      */
-    public static PropertyType integerProp() {
+    @NonNull public static PropertyType integerProp() {
         return INTEGER;
     }
 
@@ -58,18 +58,18 @@ public class PropertyType {
      *
      * @return The property type for a string.
      */
-    public static PropertyType stringProp() {
+    @NonNull public static PropertyType stringProp() {
         return STRING;
     }
 
-    @NonNull private final Class<?> typeClass;
+    private final Class<?> typeClass;
 
     /**
      * Gets the class of the property type
      *
      * @return The class of the property type.
      */
-    public Class<?> typeClass() {
+    @NonNull public Class<?> typeClass() {
         return typeClass;
     }
 
