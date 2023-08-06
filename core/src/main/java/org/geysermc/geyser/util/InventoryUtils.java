@@ -65,6 +65,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.IntFunction;
 
 public class InventoryUtils {
@@ -208,12 +209,17 @@ public class InventoryUtils {
 
     private static ItemDefinition getUnusableSpaceBlockDefinition(int protocolVersion) {
         String unusableSpaceBlock = GeyserImpl.getInstance().getConfig().getUnusableSpaceBlock();
-        ItemMapping unusableSpaceBlockID = Registries.ITEMS.forVersion(protocolVersion).getMapping(unusableSpaceBlock);
-        if (unusableSpaceBlockID != null) {
-            return unusableSpaceBlockID.getBedrockDefinition();
-        } else {
+        AtomicReference<ItemDefinition> itemDefinition = new AtomicReference<>();
+        Registries.ITEMS.forVersion(protocolVersion).getItemDefinitions().values().forEach(definition -> {
+            if (definition.getIdentifier().equals(unusableSpaceBlock)) {
+                itemDefinition.set(definition);
+            }
+        });
+        if (itemDefinition.get() == null) {
             GeyserImpl.getInstance().getLogger().error("Invalid value" + unusableSpaceBlock + ". Resorting to barrier block.");
             return Registries.ITEMS.forVersion(protocolVersion).getStoredItems().barrier().getBedrockDefinition();
+        } else {
+            return itemDefinition.get();
         }
     }
 
