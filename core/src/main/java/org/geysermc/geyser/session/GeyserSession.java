@@ -2008,6 +2008,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     private void softEnumPacket(String name, SoftEnumUpdateType type, String enums) {
+        // There is no need to send command enums if command suggestions are disabled
         if (!this.geyser.getConfig().isCommandSuggestions()) {
             return;
         }
