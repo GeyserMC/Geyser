@@ -2008,6 +2008,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     private void softEnumPacket(String name, SoftEnumUpdateType type, String enums) {
+        if (!this.geyser.getConfig().isCommandSuggestions()) {
+            return;
+        }
         UpdateSoftEnumPacket packet = new UpdateSoftEnumPacket();
         packet.setType(type);
         packet.setSoftEnum(new CommandEnumData(name, Collections.singletonMap(enums, Collections.emptySet()), true));
