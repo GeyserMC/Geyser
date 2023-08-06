@@ -216,7 +216,7 @@ public class InventoryUtils {
             }
         });
         if (itemDefinition.get() == null) {
-            GeyserImpl.getInstance().getLogger().error("Invalid value" + unusableSpaceBlock + ". Resorting to barrier block.");
+            GeyserImpl.getInstance().getLogger().error("Invalid value " + unusableSpaceBlock + ". Resorting to barrier block.");
             return Registries.ITEMS.forVersion(protocolVersion).getStoredItems().barrier().getBedrockDefinition();
         } else {
             return itemDefinition.get();
