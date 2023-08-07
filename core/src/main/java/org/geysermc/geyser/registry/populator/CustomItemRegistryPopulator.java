@@ -271,6 +271,19 @@ public class CustomItemRegistryPopulator {
                 .build());
         componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", customItemData.displayName()).build());
 
+        // Add a geyser tag to the item, allowing molang to be used
+        setItemTag(componentBuilder, "geyser");
+
+        // Add other defined tags to the item
+        Set<String> tags = customItemData.tags();
+        if (tags != null) {
+            for (String tag : tags) {
+                if (!tag.isEmpty()) {
+                    setItemTag(componentBuilder, tag);
+                }
+            }
+        }
+
         itemProperties.putBoolean("allow_off_hand", customItemData.allowOffhand());
         itemProperties.putBoolean("hand_equipped", displayHandheld);
         itemProperties.putInt("max_stack_size", stackSize);

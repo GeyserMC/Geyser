@@ -109,6 +109,12 @@ public class MappingsReader_v1 extends MappingsReader {
             customItemData.icon(node.get("icon").asText());
         }
 
+        if (node.has("tags")) {
+            JsonNode tempNode = node.get("tags");
+
+            customItemData.tags(getTags(tempNode));
+        }
+
         if (node.has("allow_offhand")) {
             customItemData.allowOffhand(node.get("allow_offhand").asBoolean());
         }

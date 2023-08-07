@@ -29,6 +29,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
 
+import java.util.Set;
+
 /**
  * This is used to store data for a custom item.
  */
@@ -60,6 +62,13 @@ public interface CustomItemData {
      * @return the item's icon
      */
     @NonNull String icon();
+
+    /**
+     * Gets the item's tags to use in Molang.
+     *
+     * @return the item's tags, if they exist
+     */
+    @Nullable Set<String> tags();
 
     /**
      * Gets if the item is allowed to be put into the offhand.
@@ -104,6 +113,8 @@ public interface CustomItemData {
         Builder displayName(@NonNull String displayName);
 
         Builder icon(@NonNull String icon);
+
+        Builder tags(@Nullable Set<String> tags);
 
         Builder allowOffhand(boolean allowOffhand);
 

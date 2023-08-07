@@ -28,10 +28,13 @@ package org.geysermc.geyser.item;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Set;
 
 @EqualsAndHashCode
 @ToString
@@ -40,6 +43,7 @@ public class GeyserCustomItemData implements CustomItemData {
     private final CustomItemOptions customItemOptions;
     private final String displayName;
     private final String icon;
+    private final Set<String> tags;
     private final boolean allowOffhand;
     private final boolean displayHandheld;
     private final int textureSize;
@@ -49,6 +53,7 @@ public class GeyserCustomItemData implements CustomItemData {
                                 CustomItemOptions customItemOptions,
                                 String displayName,
                                 String icon,
+                                Set<String> tags,
                                 boolean allowOffhand,
                                 boolean displayHandheld,
                                 int textureSize,
@@ -57,6 +62,7 @@ public class GeyserCustomItemData implements CustomItemData {
         this.customItemOptions = customItemOptions;
         this.displayName = displayName;
         this.icon = icon;
+        this.tags = tags;
         this.allowOffhand = allowOffhand;
         this.displayHandheld = displayHandheld;
         this.textureSize = textureSize;
@@ -81,6 +87,11 @@ public class GeyserCustomItemData implements CustomItemData {
     @Override
     public @NotNull String icon() {
         return icon;
+    }
+
+    @Override
+    public @Nullable Set<String> tags() {
+        return tags;
     }
 
     @Override
@@ -109,6 +120,7 @@ public class GeyserCustomItemData implements CustomItemData {
 
         protected String displayName = null;
         protected String icon = null;
+        protected Set<String> tags = null;
         protected boolean allowOffhand = true; // Bedrock doesn't give items offhand allowance unless they serve gameplay purpose, but we want to be friendly with Java
         protected boolean displayHandheld = false;
         protected int textureSize = 16;
@@ -135,6 +147,12 @@ public class GeyserCustomItemData implements CustomItemData {
         @Override
         public Builder icon(@NonNull String icon) {
             this.icon = icon;
+            return this;
+        }
+
+        @Override
+        public Builder tags(@Nullable Set<String> tags) {
+            this.tags = tags;
             return this;
         }
 
@@ -174,7 +192,7 @@ public class GeyserCustomItemData implements CustomItemData {
             if (this.icon == null) {
                 this.icon = this.name;
             }
-            return new GeyserCustomItemData(this.name, this.customItemOptions, this.displayName, this.icon, this.allowOffhand, this.displayHandheld, this.textureSize, this.renderOffsets);
+            return new GeyserCustomItemData(this.name, this.customItemOptions, this.displayName, this.icon, this.tags, this.allowOffhand, this.displayHandheld, this.textureSize, this.renderOffsets);
         }
     }
 }

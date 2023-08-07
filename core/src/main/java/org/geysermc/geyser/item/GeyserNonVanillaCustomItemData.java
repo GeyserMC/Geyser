@@ -60,7 +60,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     private final boolean isChargeable;
 
     public GeyserNonVanillaCustomItemData(NonVanillaCustomItemDataBuilder builder) {
-        super(builder.name, builder.customItemOptions, builder.displayName, builder.icon, builder.allowOffhand,
+        super(builder.name, builder.customItemOptions, builder.displayName, builder.icon, builder.tags, builder.allowOffhand,
                 builder.displayHandheld, builder.textureSize, builder.renderOffsets);
 
         this.identifier = builder.identifier;
@@ -225,6 +225,11 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         @Override
         public NonVanillaCustomItemData.Builder icon(@NonNull String icon) {
             return (NonVanillaCustomItemData.Builder) super.icon(icon);
+        }
+
+        @Override
+        public NonVanillaCustomItemData.Builder tags(@Nullable Set<String> tags) {
+            return (NonVanillaCustomItemData.Builder) super.tags(tags);
         }
 
         @Override

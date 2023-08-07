@@ -228,6 +228,9 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         Builder icon(@NonNull String icon);
 
         @Override
+        Builder tags(@Nullable Set<String> tags);
+
+        @Override
         Builder allowOffhand(boolean allowOffhand);
 
         @Override

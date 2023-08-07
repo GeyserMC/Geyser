@@ -31,6 +31,8 @@ import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 
 import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.BiConsumer;
 
 public abstract class MappingsReader {
@@ -89,5 +91,21 @@ public abstract class MappingsReader {
                 tmpNode.get("y").floatValue(),
                 tmpNode.get("z").floatValue()
         );
+    }
+
+    protected Set<String> getTags(JsonNode node) {
+        if (node == null || !node.isArray()) {
+            return null;
+        }
+
+        Set<String> temp = new HashSet<>();
+        for (JsonNode tag : node) {
+            if (!tag.isTextual() || tag.asText().isEmpty()) {
+                continue;
+            }
+            temp.add(tag.asText());
+        }
+
+        return temp;
     }
 }
