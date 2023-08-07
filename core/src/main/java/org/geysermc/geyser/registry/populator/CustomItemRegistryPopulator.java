@@ -272,7 +272,7 @@ public class CustomItemRegistryPopulator {
         componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", customItemData.displayName()).build());
 
         // Add a geyser tag to the item, allowing molang to be used
-        setItemTag(componentBuilder, "geyser");
+        setItemTag(componentBuilder, "geyser_custom");
 
         // Add other defined tags to the item
         Set<String> tags = customItemData.tags();
