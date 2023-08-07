@@ -511,11 +511,17 @@ public class CustomItemRegistryPopulator {
 
     @SuppressWarnings("unchecked")
     private static void setItemTag(NbtMapBuilder builder, String tag) {
-        List<String> tagList = builder.get("item_tags") == null ? new ArrayList<>() : new ArrayList<>((List<String>) builder.get("item_tags"));
-        if (!tagList.contains(tag)) {
-            tagList.add(tag);
+        List<String> tagList = (List<String>) builder.get("item_tags");
+        if (tagList == null) {
+            builder.putList("item_tags", NbtType.STRING, tag);
+        } else {
+            // NbtList is immutable
+            if (!tagList.contains(tag)) {
+                tagList = new ArrayList<>(tagList);
+                tagList.add(tag);
+                builder.putList("item_tags", NbtType.STRING, tagList);
+            }
         }
-        builder.putList("item_tags", NbtType.STRING, tagList);
     }
 
     private static NbtMap xyzToScaleList(float x, float y, float z) {
