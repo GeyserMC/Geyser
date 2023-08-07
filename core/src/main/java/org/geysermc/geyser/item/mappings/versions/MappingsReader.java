@@ -98,15 +98,15 @@ public abstract class MappingsReader {
             return null;
         }
 
-        Set<String> temp = new HashSet<>();
+        Set<String> tags = new HashSet<>();
         for (JsonNode tag : node) {
             if (tag != null && tag.isTextual()) {
                 String tagContent = tag.asText();
                 if (!tagContent.isBlank()) {
-                    temp.add(tagContent);
+                    tags.add(tagContent);
                 }
             }
         }
-        return temp;
+        return tags;
     }
 }
