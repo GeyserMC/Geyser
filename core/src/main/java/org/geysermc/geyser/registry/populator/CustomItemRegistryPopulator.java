@@ -278,7 +278,7 @@ public class CustomItemRegistryPopulator {
         Set<String> tags = customItemData.tags();
         if (tags != null) {
             for (String tag : tags) {
-                if (tag != null && !tag.isEmpty()) {
+                if (tag != null && !tag.isBlank()) {
                     setItemTag(componentBuilder, "geyser_custom:is_" + tag);
                 }
             }

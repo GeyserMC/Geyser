@@ -110,9 +110,7 @@ public class MappingsReader_v1 extends MappingsReader {
         }
 
         if (node.has("tags")) {
-            JsonNode tagsNode = node.get("tags");
-
-            customItemData.tags(getTags(tagsNode));
+            customItemData.tags(getTags(node.get("tags")));
         }
 
         if (node.has("allow_offhand")) {

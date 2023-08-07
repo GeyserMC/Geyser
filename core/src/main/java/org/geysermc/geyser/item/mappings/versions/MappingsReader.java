@@ -102,7 +102,7 @@ public abstract class MappingsReader {
         for (JsonNode tag : node) {
             if (tag != null && tag.isTextual()) {
                 String tagContent = tag.asText();
-                if (!tagContent.isEmpty()) {
+                if (!tagContent.isBlank()) {
                     temp.add(tagContent);
                 }
             }
