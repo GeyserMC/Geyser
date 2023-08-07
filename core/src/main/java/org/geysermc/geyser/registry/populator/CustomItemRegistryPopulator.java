@@ -271,15 +271,15 @@ public class CustomItemRegistryPopulator {
                 .build());
         componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", customItemData.displayName()).build());
 
-        // Add a geyser tag to the item, allowing molang to be used
-        setItemTag(componentBuilder, "geyser_custom");
+        // Add a Geyser tag to the item, allowing Molang queries
+        setItemTag(componentBuilder, "geyser_custom:is_custom");
 
         // Add other defined tags to the item
         Set<String> tags = customItemData.tags();
         if (tags != null) {
             for (String tag : tags) {
-                if (!tag.isEmpty()) {
-                    setItemTag(componentBuilder, tag);
+                if (tag != null && !tag.isEmpty()) {
+                    setItemTag(componentBuilder, "geyser_custom:is_" + tag);
                 }
             }
         }
@@ -320,19 +320,19 @@ public class CustomItemRegistryPopulator {
                 }
                 case "pickaxe" -> {
                     componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getPickaxeDigger(toolSpeed, toolTier));
-                    setItemTag(componentBuilder, "pickaxe");
+                    setItemTag(componentBuilder, "minecraft:is_pickaxe");
                 }
                 case "axe" -> {
                     componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getAxeDigger(toolSpeed));
-                    setItemTag(componentBuilder, "axe");
+                    setItemTag(componentBuilder, "minecraft:is_axe");
                 }
                 case "shovel" -> {
                     componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getShovelDigger(toolSpeed));
-                    setItemTag(componentBuilder, "shovel");
+                    setItemTag(componentBuilder, "minecraft:is_shovel");
                 }
                 case "hoe" -> {
                     componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getHoeDigger(toolSpeed));
-                    setItemTag(componentBuilder, "hoe");
+                    setItemTag(componentBuilder, "minecraft:is_hoe");
                 }
             }
         }
@@ -509,8 +509,13 @@ public class CustomItemRegistryPopulator {
         return List.of(xyz.x(), xyz.y(), xyz.z());
     }
 
+    @SuppressWarnings("unchecked")
     private static void setItemTag(NbtMapBuilder builder, String tag) {
-        builder.putList("item_tags", NbtType.STRING, List.of("minecraft:is_" + tag));
+        List<String> tagList = builder.get("item_tags") == null ? new ArrayList<>() : new ArrayList<>((List<String>) builder.get("item_tags"));
+        if (!tagList.contains(tag)) {
+            tagList.add(tag);
+        }
+        builder.putList("item_tags", NbtType.STRING, tagList);
     }
 
     private static NbtMap xyzToScaleList(float x, float y, float z) {
