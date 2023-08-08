@@ -84,7 +84,7 @@ public class VersionCommand extends GeyserCommand {
                         sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.no_updates", sender.locale()));
                     } else {
                         sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.outdated",
-                                sender.locale(), (latestBuildNum - buildNum), "https://ci.geysermc.org/"));
+                                sender.locale(), (latestBuildNum - buildNum), "https://geysermc.org/download"));
                     }
                 } else {
                     throw new AssertionError("buildNumber missing");
