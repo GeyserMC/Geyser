@@ -26,6 +26,7 @@
 package org.geysermc.geyser.command.defaults;
 
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
+import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommand;
@@ -84,7 +85,7 @@ public class VersionCommand extends GeyserCommand {
                         sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.no_updates", sender.locale()));
                     } else {
                         sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.outdated",
-                                sender.locale(), (latestBuildNum - buildNum), "https://geysermc.org/download"));
+                                sender.locale(), (latestBuildNum - buildNum), Constants.GEYSER_DOWNLOAD_LOCATION));
                     }
                 } else {
                     throw new AssertionError("buildNumber missing");
