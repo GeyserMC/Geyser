@@ -161,8 +161,8 @@ public class MinecraftLocale {
         Path localeFile = getPath(bedrockLocale);
         if (Files.exists(localeFile) && Files.isReadable(localeFile)) {
             langMap.putAll(parseLangFile(localeFile, bedrockLocale));
-
         }
+
         // Load the locale overwrites
         localeFile = getPath("overwrites/" + bedrockLocale);
         if (Files.exists(localeFile) && Files.isReadable(localeFile)) {
@@ -178,11 +178,11 @@ public class MinecraftLocale {
     }
 
     /**
-     * Load and parse a lang json file.
+     * Load and parse a json lang file.
      *
      * @param localeFile Path of locale file
      * @param locale Locale to load
-     * @return a Map of the loaded translation keys
+     * @return a Map of the loaded translations
      */
     public static Map<String, String> parseLangFile(Path localeFile, String locale) {
         // Read the localefile
