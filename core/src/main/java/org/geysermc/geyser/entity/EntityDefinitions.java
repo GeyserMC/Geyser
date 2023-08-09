@@ -788,7 +788,7 @@ public final class EntityDefinitions {
                     .build();
             FOX = EntityDefinition.inherited(FoxEntity::new, ageableEntityBase)
                     .type(EntityType.FOX)
-                    .height(0.5f).width(1.25f)
+                    .height(0.7f).width(0.6f)
                     .addTranslator(MetadataType.INT, FoxEntity::setFoxVariant)
                     .addTranslator(MetadataType.BYTE, FoxEntity::setFoxFlags)
                     .addTranslator(null) // Trusted player 1

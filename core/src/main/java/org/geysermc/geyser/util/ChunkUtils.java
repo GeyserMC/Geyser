@@ -63,7 +63,7 @@ public class ChunkUtils {
     static {
         ByteBuf byteBuf = Unpooled.buffer();
         try {
-            new GeyserChunkSection(new BlockStorage[0])
+            new GeyserChunkSection(new BlockStorage[0], 0)
                     .writeToNetwork(byteBuf);
             SERIALIZED_CHUNK_DATA = new byte[byteBuf.readableBytes()];
             byteBuf.readBytes(SERIALIZED_CHUNK_DATA);
