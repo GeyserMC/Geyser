@@ -87,7 +87,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
     @Override
     public void translate(GeyserSession session, ClientboundLevelChunkWithLightPacket packet) {
-        final boolean USE_EXTENDED_COLLISIONS = !session.getBlockMappings().getExtendedCollisionBoxes().isEmpty();
+        final boolean useExtendedCollisions = !session.getBlockMappings().getExtendedCollisionBoxes().isEmpty();
 
         if (session.isSpawned()) {
             ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().getPosition().toInt());
@@ -129,7 +129,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                 int bedrockSectionY = sectionY + (yOffset - (bedrockDimension.minY() >> 4));
                 if (bedrockSectionY < 0 || maxBedrockSectionY < bedrockSectionY) {
                     // Ignore this chunk section since it goes outside the bounds accepted by the Bedrock client
-                    if (USE_EXTENDED_COLLISIONS) {
+                    if (useExtendedCollisions) {
                         EXTENDED_COLLISIONS_STORAGE.get().clear();
                     }
                     extendedCollisionNextSection = false;
@@ -139,7 +139,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                 // No need to encode an empty section...
                 if (javaSection.isBlockCountEmpty()) {
                     // Unless we need to send extended collisions
-                    if (USE_EXTENDED_COLLISIONS) {
+                    if (useExtendedCollisions) {
                         if (extendedCollision) {
                             int blocks = EXTENDED_COLLISIONS_STORAGE.get().bottomLayerCollisions() + 1;
                             BitArray bedrockData = BitArrayVersion.forBitsCeil(Integer.SIZE - Integer.numberOfLeadingZeros(blocks)).createArray(BlockStorage.SIZE);
@@ -179,7 +179,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                         }
 
                         // Extended collision blocks
-                        if (USE_EXTENDED_COLLISIONS) {
+                        if (useExtendedCollisions) {
                             if (EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY) != 0) {
                                 if (javaId == BlockStateValues.JAVA_AIR_ID) {
                                     section.getBlockStorageArray()[0].setFullBlock(xzy, EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY));
@@ -221,7 +221,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     } else {
                         sections[bedrockSectionY] = new GeyserChunkSection(new BlockStorage[] {blockStorage}, bedrockSectionY);
                     }
-                    if (USE_EXTENDED_COLLISIONS) {
+                    if (useExtendedCollisions) {
                         EXTENDED_COLLISIONS_STORAGE.get().clear();
                         extendedCollisionNextSection = false;
                     }
@@ -248,7 +248,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                         airPaletteId = i;
                     }
 
-                    if (USE_EXTENDED_COLLISIONS) {
+                    if (useExtendedCollisions) {
                         if (session.getBlockMappings().getExtendedCollisionBoxes().get(javaId) != null) {
                             extendedCollision = true;
                             extendedCollisionsInPalette++;
@@ -278,7 +278,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
                 // We need to ensure we use enough bits to represent extended collision blocks in the chunk section
                 int sectionCollisionBlocks = 0;
-                if (USE_EXTENDED_COLLISIONS) {
+                if (useExtendedCollisions) {
                     int bottomLayerCollisions = extendedCollision ? EXTENDED_COLLISIONS_STORAGE.get().bottomLayerCollisions() : 0;
                     sectionCollisionBlocks = bottomLayerCollisions + extendedCollisionsInPalette;
                 }
