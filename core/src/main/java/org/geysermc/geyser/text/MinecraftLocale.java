@@ -52,7 +52,7 @@ public class MinecraftLocale {
         try {
             // Create the locales folder
             Files.createDirectories(LOCALE_FOLDER);
-            Files.createDirectories(LOCALE_FOLDER.resolve("overwrites"));
+            Files.createDirectories(LOCALE_FOLDER.resolve("overrides"));
             // FIXME TEMPORARY
             Files.delete(LOCALE_FOLDER.resolve("en_us.hash"));
         } catch (IOException ignored) {
@@ -164,7 +164,7 @@ public class MinecraftLocale {
         }
 
         // Load the locale overwrites
-        localeFile = getPath("overwrites/" + bedrockLocale);
+        localeFile = getPath("overrides/" + bedrockLocale);
         if (Files.exists(localeFile) && Files.isReadable(localeFile)) {
             langMap.putAll(parseLangFile(localeFile, bedrockLocale));
         }
