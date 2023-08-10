@@ -260,7 +260,7 @@ public class MinecraftLocale {
      * @param locale Locale to check
      * @return true if the locale has been loaded
      */
-    public static boolean isLocaleLoaded(String locale){
+    public static boolean isLocaleLoaded(String locale) {
         return LOCALE_MAPPINGS.containsKey(locale.toLowerCase(Locale.ROOT));
     }
 
