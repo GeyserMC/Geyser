@@ -210,7 +210,7 @@ public class MinecraftLocale {
      * @param locale Locale to load
      * @param langMap Map of new translations to add
      */
-    public static void addCustomTranslations(String locale, Map<String,String> langMap){
+    public static void addCustomTranslations(String locale, Map<String,String> langMap) {
         if(isLocalLoaded(locale)){
             LOCALE_MAPPINGS.get(locale.toLowerCase(Locale.ROOT)).putAll(langMap);
         }
