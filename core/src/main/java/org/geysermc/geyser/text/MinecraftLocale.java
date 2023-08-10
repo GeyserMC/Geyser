@@ -82,7 +82,7 @@ public class MinecraftLocale {
             locale = "no_no";
         }
 
-        if (isLocalLoaded(locale)) {
+        if (isLocaleLoaded(locale)) {
             GeyserImpl.getInstance().getLogger().debug("Locale already loaded: " + locale);
             return;
         }
@@ -211,7 +211,7 @@ public class MinecraftLocale {
      * @param langMap Map of new translations to add
      */
     public static void addCustomTranslations(String locale, Map<String,String> langMap) {
-        if(isLocalLoaded(locale)){
+        if(isLocaleLoaded(locale)){
             LOCALE_MAPPINGS.get(locale.toLowerCase(Locale.ROOT)).putAll(langMap);
         }
     }
@@ -260,7 +260,7 @@ public class MinecraftLocale {
      * @param locale Locale to check
      * @return true if the locale has been loaded
      */
-    public static boolean isLocalLoaded(String locale){
+    public static boolean isLocaleLoaded(String locale){
         return LOCALE_MAPPINGS.containsKey(locale.toLowerCase(Locale.ROOT));
     }
 
