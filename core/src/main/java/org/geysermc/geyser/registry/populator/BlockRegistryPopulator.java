@@ -366,8 +366,7 @@ public final class BlockRegistryPopulator {
                     JavaBlockState javaState = entry.getKey();
                     int stateRuntimeId = javaState.javaId();
 
-                    String javaId = javaState.identifier();
-                    boolean waterlogged = javaId.contains("waterlogged=true");
+                    boolean waterlogged = javaState.waterlogged();
 
                     if (waterlogged) {
                         BlockRegistries.WATERLOGGED.register(set -> set.set(stateRuntimeId));
@@ -563,10 +562,9 @@ public final class BlockRegistryPopulator {
 
         if (BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().size() > 0) {
             Set<Integer> usedNonVanillaRuntimeIDs = new HashSet<>();
-            Set<Integer> usedUniqueRuntimeIDs = new HashSet<>();
 
             for (JavaBlockState javaBlockState : BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet()) {
-                if (usedNonVanillaRuntimeIDs.contains(javaBlockState.javaId())) {
+                if (!usedNonVanillaRuntimeIDs.add(javaBlockState.javaId())) {
                     throw new RuntimeException("Duplicate runtime ID " + javaBlockState.javaId() + " for non vanilla Java block state " + javaBlockState.identifier());
                 }
 
@@ -575,6 +573,8 @@ public final class BlockRegistryPopulator {
                 String javaId = javaBlockState.identifier();
                 int stateRuntimeId = javaBlockState.javaId();
                 BlockMapping blockMapping = BlockMapping.builder()
+                    .canBreakWithHand(javaBlockState.canBreakWithHand())
+                    .pickItem(javaBlockState.pickItem())
                     .isNonVanilla(true)
                     .javaIdentifier(javaId)
                     .javaBlockId(javaBlockState.stateGroupId())

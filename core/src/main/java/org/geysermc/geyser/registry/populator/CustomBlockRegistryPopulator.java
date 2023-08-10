@@ -75,7 +75,6 @@ public class CustomBlockRegistryPopulator {
     private static Int2ObjectMap<CustomBlockState> blockStateOverrides;
     private static Map<String, CustomBlockData> customBlockItemOverrides;
     private static Map<JavaBlockState, CustomBlockState> nonVanillaBlockStateOverrides;
-    private static Map<JavaBlockItem, CustomBlockData> nonVanillaCustomItemOverrides;
 
     /**
      * Initializes custom blocks defined by API
@@ -86,7 +85,6 @@ public class CustomBlockRegistryPopulator {
         blockStateOverrides = new Int2ObjectOpenHashMap<>();
         customBlockItemOverrides = new HashMap<>();
         nonVanillaBlockStateOverrides = new HashMap<>();
-        nonVanillaCustomItemOverrides = new HashMap<>();
 
         GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineCustomBlocksEvent() {
             @Override
@@ -133,14 +131,6 @@ public class CustomBlockRegistryPopulator {
                     throw new IllegalArgumentException("Custom block is unregistered. Name: " + customBlockState.name());
                 }
                 nonVanillaBlockStateOverrides.put(javaBlockState, customBlockState);
-            }
-
-            @Override
-            public void registerItemOverride(@NonNull JavaBlockItem javaBlockItem, @NonNull CustomBlockData customBlockData) {
-                if (!customBlocks.contains(customBlockData)) {
-                    throw new IllegalArgumentException("Custom block is unregistered. Name: " + customBlockData.name());
-                }
-                nonVanillaCustomItemOverrides.put(javaBlockItem, customBlockData);
             }
         });
     }
@@ -193,9 +183,6 @@ public class CustomBlockRegistryPopulator {
     private static void populateNonVanilla() {
         BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.set(nonVanillaBlockStateOverrides);
         GeyserImpl.getInstance().getLogger().info("Registered " + nonVanillaBlockStateOverrides.size() + " non-vanilla block overrides.");
-
-        BlockRegistries.NON_VANILLA_CUSTOM_BLOCK_ITEM_OVERRIDES.set(nonVanillaCustomItemOverrides);
-        GeyserImpl.getInstance().getLogger().info("Registered " + nonVanillaCustomItemOverrides.size() + " non-vanilla custom item overrides.");
     }
 
     /**
@@ -364,8 +351,7 @@ public class CustomBlockRegistryPopulator {
                     .putByte("lightLevel", components.lightDampening().byteValue())
                     .build());
         }
-        // TODO: remove this protocol check when 1.19.80 becomes required w/ Java 1.20
-        if (components.transformation() != null && protocolVersion >= Bedrock_v582.CODEC.getProtocolVersion()) {
+        if (components.transformation() != null) {
             builder.putCompound("minecraft:transformation", NbtMap.builder()
                     .putInt("RX", MathUtils.unwrapDegreesToInt(components.transformation().rx()) / 90)
                     .putInt("RY", MathUtils.unwrapDegreesToInt(components.transformation().ry()) / 90)

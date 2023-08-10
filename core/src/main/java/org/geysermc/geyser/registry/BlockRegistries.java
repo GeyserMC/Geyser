@@ -122,11 +122,6 @@ public class BlockRegistries {
     public static final SimpleMappedRegistry<String, CustomBlockData> CUSTOM_BLOCK_ITEM_OVERRIDES = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     /**
-     * A registry which stores non vanilla java block items and the custom block it should be replaced with in the context of items.
-     */
-    public static final SimpleMappedRegistry<JavaBlockItem, CustomBlockData> NON_VANILLA_CUSTOM_BLOCK_ITEM_OVERRIDES = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
-
-    /**
      * A registry which stores Custom Block Data for extended collision boxes and the Java IDs of blocks that will have said extended collision boxes placed above them.
      */
     public static final SimpleMappedRegistry<CustomBlockData, Set<Integer>> EXTENDED_COLLISION_BOXES = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
