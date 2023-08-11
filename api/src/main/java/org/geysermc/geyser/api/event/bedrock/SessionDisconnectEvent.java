@@ -58,3 +58,4 @@ public class SessionDisconnectEvent extends ConnectionEvent {
         this.disconnectReason = disconnectReason;
     }
 }
+
