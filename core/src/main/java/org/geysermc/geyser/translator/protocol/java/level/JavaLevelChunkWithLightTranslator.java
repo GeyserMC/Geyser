@@ -132,7 +132,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
                 if (javaPalette instanceof GlobalPalette) {
                     // As this is the global palette, simply iterate through the whole chunk section once
-                    GeyserChunkSection section = new GeyserChunkSection(session.getBlockMappings().getBedrockAir().getRuntimeId());
+                    GeyserChunkSection section = new GeyserChunkSection(session.getBlockMappings().getBedrockAir().getRuntimeId(), bedrockSectionY);
                     for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
                         int javaId = javaData.get(yzx);
                         int bedrockId = session.getBlockMappings().getBedrockBlockId(javaId);
@@ -163,9 +163,9 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
                     if (BlockRegistries.WATERLOGGED.get().get(javaId)) {
                         BlockStorage waterlogged = new BlockStorage(SingletonBitArray.INSTANCE, IntLists.singleton(session.getBlockMappings().getBedrockWater().getRuntimeId()));
-                        sections[bedrockSectionY] = new GeyserChunkSection(new BlockStorage[] {blockStorage, waterlogged});
+                        sections[bedrockSectionY] = new GeyserChunkSection(new BlockStorage[] {blockStorage, waterlogged}, bedrockSectionY);
                     } else {
-                        sections[bedrockSectionY] = new GeyserChunkSection(new BlockStorage[] {blockStorage});
+                        sections[bedrockSectionY] = new GeyserChunkSection(new BlockStorage[] {blockStorage}, bedrockSectionY);
                     }
                     // If a chunk contains all of the same piston or flower pot then god help us
                     continue;
@@ -240,7 +240,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     layers = new BlockStorage[]{ layer0, new BlockStorage(BitArrayVersion.V1.createArray(BlockStorage.SIZE, layer1Data), layer1Palette) };
                 }
 
-                sections[bedrockSectionY] = new GeyserChunkSection(layers);
+                sections[bedrockSectionY] = new GeyserChunkSection(layers, bedrockSectionY);
             }
 
             if (!session.getErosionHandler().isActive()) {
