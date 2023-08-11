@@ -32,10 +32,10 @@ import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 /**
  * Called when a Geyser session disconnects.
  */
-public class SessionLeaveEvent extends ConnectionEvent {
+public class SessionDisconnectEvent extends ConnectionEvent {
     private String disconnectReason;
 
-    public SessionLeaveEvent(@NonNull GeyserConnection connection, @NonNull String reason) {
+    public SessionDisconnectEvent(@NonNull GeyserConnection connection, @NonNull String reason) {
         super(connection);
         this.disconnectReason = reason;
     }

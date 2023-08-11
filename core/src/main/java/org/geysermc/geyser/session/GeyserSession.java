@@ -99,7 +99,7 @@ import org.geysermc.api.util.BedrockPlatform;
 import org.geysermc.api.util.InputMode;
 import org.geysermc.api.util.UiProfile;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
-import org.geysermc.geyser.api.event.bedrock.SessionLeaveEvent;
+import org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
@@ -1095,21 +1095,21 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     public void disconnect(String reason) {
-        SessionLeaveEvent leaveEvent = new SessionLeaveEvent(this, reason);
-        GeyserImpl.getInstance().eventBus().fire(leaveEvent);
+        SessionDisconnectEvent disconnectEvent = new SessionDisconnectEvent(this, reason);
+        geyser.eventBus().fire(disconnectEvent);
 
         if (!closed) {
             loggedIn = false;
             if (downstream != null) {
-                downstream.disconnect(leaveEvent.disconnectReason());
+                downstream.disconnect(disconnectEvent.disconnectReason());
             } else {
                 // Downstream's disconnect will fire an event that prints a log message
                 // Otherwise, we print a message here
                 String address = geyser.getConfig().isLogPlayerIpAddresses() ? upstream.getAddress().getAddress().toString() : "<IP address withheld>";
-                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.disconnect", address, leaveEvent.disconnectReason()));
+                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.disconnect", address, disconnectEvent.disconnectReason()));
             }
             if (!upstream.isClosed()) {
-                upstream.disconnect(leaveEvent.disconnectReason());
+                upstream.disconnect(disconnectEvent.disconnectReason());
             }
             geyser.getSessionManager().removeSession(this);
             if (authData != null) {
