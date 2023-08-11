@@ -55,6 +55,7 @@ public class MinecraftLocale {
             // FIXME TEMPORARY
             Files.delete(LOCALE_FOLDER.resolve("en_us.hash"));
         } catch (IOException ignored) {
+            //no-op
         }
     }
 
