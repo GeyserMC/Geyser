@@ -99,6 +99,7 @@ import org.geysermc.api.util.BedrockPlatform;
 import org.geysermc.api.util.InputMode;
 import org.geysermc.api.util.UiProfile;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
+import org.geysermc.geyser.api.event.bedrock.SessionLeaveEvent;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
@@ -1094,18 +1095,21 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     public void disconnect(String reason) {
+        SessionLeaveEvent leaveEvent = new SessionLeaveEvent(this, reason);
+        GeyserImpl.getInstance().eventBus().fire(leaveEvent);
+
         if (!closed) {
             loggedIn = false;
             if (downstream != null) {
-                downstream.disconnect(reason);
+                downstream.disconnect(leaveEvent.disconnectReason());
             } else {
                 // Downstream's disconnect will fire an event that prints a log message
                 // Otherwise, we print a message here
                 String address = geyser.getConfig().isLogPlayerIpAddresses() ? upstream.getAddress().getAddress().toString() : "<IP address withheld>";
-                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.disconnect", address, reason));
+                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.disconnect", address, leaveEvent.disconnectReason()));
             }
             if (!upstream.isClosed()) {
-                upstream.disconnect(reason);
+                upstream.disconnect(leaveEvent.disconnectReason());
             }
             geyser.getSessionManager().removeSession(this);
             if (authData != null) {
