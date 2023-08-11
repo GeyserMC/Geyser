@@ -33,7 +33,6 @@ import org.geysermc.geyser.util.WebUtils;
 
 import javax.annotation.Nullable;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -185,9 +184,9 @@ public class MinecraftLocale {
      */
     public static Map<String, String> parseLangFile(Path localeFile, String locale) {
         // Read the localefile
-        try (InputStreamReader reader = new InputStreamReader(Files.newInputStream(localeFile, StandardOpenOption.READ), StandardCharsets.UTF_8)) {
+        try (InputStream localeStream = Files.newInputStream(localeFile, StandardOpenOption.READ)) {
             // Parse the file as json
-            JsonNode localeObj = GeyserImpl.JSON_MAPPER.readTree(reader);
+            JsonNode localeObj = GeyserImpl.JSON_MAPPER.readTree(localeStream);
 
             // Parse all the locale fields
             Iterator<Map.Entry<String, JsonNode>> localeIterator = localeObj.fields();
@@ -198,8 +197,10 @@ public class MinecraftLocale {
             }
 
             return langMap;
-        } catch (IOException e) {
+        } catch (FileNotFoundException e){
             throw new AssertionError(GeyserLocale.getLocaleStringLog("geyser.locale.fail.file", locale, e.getMessage()));
+        } catch (Exception e) {
+            throw new AssertionError(GeyserLocale.getLocaleStringLog("geyser.locale.fail.json", locale), e);
         }
     }
 
