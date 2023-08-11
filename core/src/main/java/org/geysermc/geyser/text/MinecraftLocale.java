@@ -154,7 +154,6 @@ public class MinecraftLocale {
             bedrockLocale = "nb_no";
         }
 
-
         Map<String, String> langMap = new HashMap<>();
 
         // Load the locale
@@ -263,7 +262,6 @@ public class MinecraftLocale {
     public static boolean isLocaleLoaded(String locale) {
         return LOCALE_MAPPINGS.containsKey(locale.toLowerCase(Locale.ROOT));
     }
-
 
     /**
      * Convert a byte array into a hex string
