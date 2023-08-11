@@ -208,12 +208,21 @@ public class InventoryUtils {
 
     private static ItemDefinition getUnusableSpaceBlockDefinition(int protocolVersion) {
         String unusableSpaceBlock = GeyserImpl.getInstance().getConfig().getUnusableSpaceBlock();
-        ItemMapping unusableSpaceBlockID = Registries.ITEMS.forVersion(protocolVersion).getMapping(unusableSpaceBlock);
-        if (unusableSpaceBlockID != null) {
-            return unusableSpaceBlockID.getBedrockDefinition();
-        } else {
-            GeyserImpl.getInstance().getLogger().error("Invalid value" + unusableSpaceBlock + ". Resorting to barrier block.");
+        ItemDefinition itemDefinition = null;
+
+        // looping through all the items to find the one with the specified Bedrock identifier
+        for (ItemDefinition definition : Registries.ITEMS.forVersion(protocolVersion).getItemDefinitions().values()) {
+            if (definition.getIdentifier().equals(unusableSpaceBlock)) {
+                itemDefinition = definition;
+                break;
+            }
+        }
+
+        if (itemDefinition == null) {
+            GeyserImpl.getInstance().getLogger().error("Invalid value " + unusableSpaceBlock + ". Resorting to barrier block.");
             return Registries.ITEMS.forVersion(protocolVersion).getStoredItems().barrier().getBedrockDefinition();
+        } else {
+            return itemDefinition;
         }
     }
 

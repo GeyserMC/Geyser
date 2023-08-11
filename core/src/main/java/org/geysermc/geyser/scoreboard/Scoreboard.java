@@ -52,6 +52,7 @@ import static org.geysermc.geyser.scoreboard.UpdateType.*;
 
 public final class Scoreboard {
     private static final boolean SHOW_SCOREBOARD_LOGS = Boolean.parseBoolean(System.getProperty("Geyser.ShowScoreboardLogs", "true"));
+    private static final boolean ADD_TEAM_SUGGESTIONS = Boolean.parseBoolean(System.getProperty("Geyser.AddTeamSuggestions", "true"));
 
     private final GeyserSession session;
     private final GeyserLogger logger;
@@ -150,8 +151,9 @@ public final class Scoreboard {
         teams.put(teamName, team);
 
         // Update command parameters - is safe to send even if the command enum doesn't exist on the client (as of 1.19.51)
-        session.addCommandEnum("Geyser_Teams", team.getId());
-
+        if (ADD_TEAM_SUGGESTIONS) {
+            session.addCommandEnum("Geyser_Teams", team.getId());
+        }
         return team;
     }
 
