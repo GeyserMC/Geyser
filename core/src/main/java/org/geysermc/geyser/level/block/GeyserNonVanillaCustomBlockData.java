@@ -35,34 +35,43 @@ import org.geysermc.geyser.api.util.CreativeCategory;
 import java.util.List;
 
 public class GeyserNonVanillaCustomBlockData extends GeyserCustomBlockData implements NonVanillaCustomBlockData {
-    private final String identifier;
+    private final String namespace;
+    private final String name;
 
     GeyserNonVanillaCustomBlockData(NonVanillaCustomBlockDataBuilder builder) {
         super(builder);
 
-        this.identifier = builder.identifier;
-        if (identifier == null) {
+        this.namespace = builder.namespace;
+        if (namespace == null) {
             throw new IllegalStateException("Identifier must be set");
         }
+        this.name = builder.name;
     }
 
     @Override
     public @NonNull String identifier() {
-        return this.identifier;
+        return this.namespace + ":" + this.name;
+    }
+
+    @Override
+    public @NonNull String namespace() {
+        return this.namespace;
     }
 
     public static class NonVanillaCustomBlockDataBuilder extends CustomBlockDataBuilder implements NonVanillaCustomBlockData.Builder {
-        private String identifier;
+        private String namespace;
+        private String name;
 
         @Override
-        public NonVanillaCustomBlockDataBuilder identifier(@NonNull String identifier) {
-            this.identifier = identifier;
+        public NonVanillaCustomBlockDataBuilder namespace(@NonNull String namespace) {
+            this.namespace = namespace;
             return this;
         }
 
         @Override
         public NonVanillaCustomBlockDataBuilder name(@NonNull String name) {
-            return (NonVanillaCustomBlockDataBuilder) super.name(name);
+            this.name = name;
+            return this;
         }
 
         @Override

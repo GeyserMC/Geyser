@@ -37,6 +37,13 @@ import java.util.List;
  * Represents a completely custom block that is not based on an existing vanilla Minecraft block.
  */
 public interface NonVanillaCustomBlockData extends CustomBlockData {
+    /**
+     * Gets the namespace of the custom block
+     *
+     * @return The namespace of the custom block.
+     */
+    @NonNull String namespace();
+
 
     /**
      * Create a Builder for NonVanillaCustomBlockData
@@ -49,7 +56,7 @@ public interface NonVanillaCustomBlockData extends CustomBlockData {
 
     interface Builder extends CustomBlockData.Builder {
 
-        Builder identifier(@NonNull String identifier);
+        Builder namespace(@NonNull String namespace);
 
         @Override
         Builder name(@NonNull String name);
