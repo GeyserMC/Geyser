@@ -98,8 +98,6 @@ import org.cloudburstmc.protocol.common.util.OptionalBoolean;
 import org.geysermc.api.util.BedrockPlatform;
 import org.geysermc.api.util.InputMode;
 import org.geysermc.api.util.UiProfile;
-import org.geysermc.geyser.api.bedrock.camera.CameraShake;
-import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
 import org.geysermc.floodgate.crypto.FloodgateCipher;
@@ -112,6 +110,7 @@ import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.api.event.bedrock.SessionLoginEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.RemoteServer;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -1968,6 +1967,21 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         packet.setShakeType(CameraShakeType.POSITIONAL);
         packet.setShakeAction(CameraShakeAction.STOP);
         sendUpstreamPacket(packet);
+    }
+
+    @Override
+    public void sendFadeTransition(CameraFade fade) {
+        // TODO
+    }
+
+    @Override
+    public void sendCameraInstruction(CameraInstruction instruction) {
+        // TODO
+    }
+
+    @Override
+    public void stopCameraInstructions() {
+        // TODO
     }
 
     @Override
