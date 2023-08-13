@@ -2011,6 +2011,21 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
+    public void sendFadeTransition(CameraFade fade) {
+        // TODO
+    }
+
+    @Override
+    public void sendCameraInstruction(CameraInstruction instruction) {
+        // TODO
+    }
+
+    @Override
+    public void stopCameraInstructions() {
+        // TODO
+    }
+
+    @Override
     public void sendFog(String... fogNameSpaces) {
         Collections.addAll(this.appliedFog, fogNameSpaces);
 

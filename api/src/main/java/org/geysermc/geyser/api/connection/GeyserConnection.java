@@ -29,6 +29,8 @@ import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.connection.Connection;
+import org.geysermc.geyser.api.bedrock.camera.CameraFade;
+import org.geysermc.geyser.api.bedrock.camera.CameraInstruction;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
@@ -73,6 +75,27 @@ public interface GeyserConnection extends Connection, CommandSource {
      * Stops all camera shake of any type.
      */
     void stopCameraShake();
+
+    /**
+     * Sends a fade camera transition to the client.
+     * Can be built using {@link CameraFade.Builder}.
+     *
+     * @param fade the CameraFade to send
+     */
+    void sendFadeTransition(CameraFade fade);
+
+    /**
+     * Sends a camera instruction to the client.
+     * Can be built using {@link CameraInstruction.Builder}.
+     *
+     * @param instruction the CameraInstruction to send
+     */
+    void sendCameraInstruction(CameraInstruction instruction);
+
+    /**
+     * Stops all sent camera instructions.
+     */
+    void stopCameraInstructions();
 
     /**
      * Adds the given fog IDs to the fog cache, then sends all fog IDs in the cache to the client.
