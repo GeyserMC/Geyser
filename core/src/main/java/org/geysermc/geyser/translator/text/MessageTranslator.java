@@ -189,10 +189,6 @@ public class MessageTranslator {
         }
     }
 
-    public static String getTranslationKey(Component component) {
-        return ((TranslatableComponent) component).key();
-    }
-
     public static String convertMessage(String message, String locale) {
         return convertMessage(GSON_SERIALIZER.deserialize(message), locale);
     }

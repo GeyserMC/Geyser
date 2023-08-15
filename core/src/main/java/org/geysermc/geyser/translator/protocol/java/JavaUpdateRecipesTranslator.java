@@ -233,6 +233,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
 
         // Only send smithing trim recipes if Java/ViaVersion sends them.
         if (sendTrimRecipes) {
+            session.setOldSmithingTable(false);
             // BDS sends armor trim templates and materials before the CraftingDataPacket
             TrimDataPacket trimDataPacket = new TrimDataPacket();
             trimDataPacket.getPatterns().addAll(TrimRecipe.PATTERNS);
@@ -348,35 +349,23 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         ItemMapping template = session.getItemMappings().getStoredItems().upgradeTemplate();
 
         for (String identifier : NETHERITE_TRANSFORM) {
-            var recipe = org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData.of(identifier + "_smithing",
+            recipes.add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData.of(identifier + "_smithing",
                     getDescriptorFromId(session, template.getBedrockIdentifier()),
                     getDescriptorFromId(session, identifier.replace("netherite", "diamond")),
                     getDescriptorFromId(session, "minecraft:netherite_ingot"),
-                    getItemData(session, identifier),
+                    ItemData.builder().definition(session.getItemMappings().getDefinition(identifier)).count(1).build(),
                     "smithing_table",
-                    session.getLastRecipeNetId().getAndIncrement());
-            recipes.add(recipe);
+                    session.getLastRecipeNetId().getAndIncrement()));
         }
         return recipes;
     }
 
     private ItemDescriptorWithCount getDescriptorFromId(GeyserSession session, String bedrockId) {
-        for (ItemDefinition itemDefinition : session.getItemMappings().getItemDefinitions().values()) {
-            if (itemDefinition.getIdentifier().equals(bedrockId)) {
-                return ItemDescriptorWithCount.fromItem(ItemData.builder().definition(itemDefinition).count(1).build());
-            }
+        ItemDefinition bedrockDefinition = session.getItemMappings().getDefinition(bedrockId);
+        if (bedrockDefinition != null) {
+            return ItemDescriptorWithCount.fromItem(ItemData.builder().definition(bedrockDefinition).count(1).build());
         }
         GeyserImpl.getInstance().getLogger().debug("Unable to find item with identifier " + bedrockId);
         return ItemDescriptorWithCount.EMPTY;
-    }
-
-    private ItemData getItemData(GeyserSession session, String bedrockID) {
-        for (ItemDefinition itemDefinition : session.getItemMappings().getItemDefinitions().values()) {
-            if (itemDefinition.getIdentifier().equals(bedrockID)) {
-                return ItemData.builder().definition(itemDefinition).count(1).build();
-            }
-        }
-        GeyserImpl.getInstance().getLogger().debug("Unable to find item with identifier " + bedrockID);
-        return ItemData.AIR;
     }
 }

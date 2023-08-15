@@ -163,6 +163,12 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
         return this.itemDefinitions.get(bedrockId);
     }
 
+    public ItemDefinition getDefinition(String bedrockIdentifier) {
+        return this.itemDefinitions.values().stream().filter(
+                itemDefinition -> itemDefinition.getIdentifier().equals(bedrockIdentifier))
+                .findFirst().orElse(null);
+    }
+
     @Override
     public boolean isRegistered(ItemDefinition definition) {
         return getDefinition(definition.getRuntimeId()) == definition;
