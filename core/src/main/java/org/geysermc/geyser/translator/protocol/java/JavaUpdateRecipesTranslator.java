@@ -175,7 +175,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
 
                                 // Note: vanilla inputs use aux value of Short.MAX_VALUE
                                 craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData.of(recipe.getIdentifier(),
-                                        bedrockTemplate, bedrockBase, bedrockAddition, output, "smithing_table", netId++));
+                                    bedrockTemplate, bedrockBase, bedrockAddition, output, "smithing_table", netId++));
                             }
                         }
                     }
