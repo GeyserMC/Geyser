@@ -40,10 +40,13 @@ import org.geysermc.geyser.util.InventoryUtils;
 import java.util.function.IntFunction;
 
 /**
- * Translator for smithing tables for pre-1.20 servers. Hacky, but it works around Bedrock client limitations.
+ * Translator for smithing tables for pre-1.20 servers.
+ * This adapts ViaVersion's furnace ui to the 1.20+ smithing table; with the addition of a fake smithing template so Bedrock clients can use it.
  */
 public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator {
+
     private static final IntFunction<ItemData> UPGRADE_TEMPLATE = InventoryUtils.getUpgradeTemplate();
+
     public OldSmithingTableTranslator() {
         super(3, "minecraft:smithing_table", ContainerType.SMITHING_TABLE, UIInventoryUpdater.INSTANCE);
     }
@@ -51,11 +54,8 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
     @Override
     public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
         return switch (slotInfoData.getContainer()) {
-            //case SMITHING_TABLE_TEMPLATE -> not translated
             case SMITHING_TABLE_INPUT -> 0;
             case SMITHING_TABLE_MATERIAL -> 1;
-            // We use the smithing table template slot as the output slot, since the output slot doesn't display on the client without a template.
-            // Also: The client doesn't allow you to move items into the template slot (except templates, but they don't exist pre-1.20).
             case SMITHING_TABLE_RESULT, CREATED_OUTPUT -> 2;
             default -> super.bedrockSlotToJava(slotInfoData);
         };

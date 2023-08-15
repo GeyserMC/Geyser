@@ -229,8 +229,7 @@ public class InventoryUtils {
     public static IntFunction<ItemData> getUpgradeTemplate() {
         return protocolVersion -> ItemData.builder()
                 .definition(Registries.ITEMS.forVersion(protocolVersion).getStoredItems().upgradeTemplate().getBedrockDefinition())
-                .count(1)
-                .build();
+                .count(1).build();
     }
 
     /**
