@@ -86,6 +86,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         Map<RecipeType, List<RecipeData>> recipeTypes = Registries.CRAFTING_DATA.forVersion(session.getUpstream().getProtocolVersion());
         // Get the last known network ID (first used for the pregenerated recipes) and increment from there.
         int netId = InventoryUtils.LAST_RECIPE_NET_ID + 1;
+        boolean sendSmithingTemplates = false;
 
         Int2ObjectMap<GeyserRecipe> recipeMap = new Int2ObjectOpenHashMap<>(Registries.RECIPES.forVersion(session.getUpstream().getProtocolVersion()));
         Int2ObjectMap<List<StoneCuttingRecipeData>> unsortedStonecutterData = new Int2ObjectOpenHashMap<>();
@@ -147,6 +148,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     // Save for processing after all recipes have been received
                 }
                 case SMITHING_TRANSFORM -> {
+                    sendSmithingTemplates = true;
                     SmithingTransformRecipeData data = (SmithingTransformRecipeData) recipe.getData();
                     ItemData output = ItemTranslator.translateToBedrock(session, data.getResult());
 
@@ -168,6 +170,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
 
                 }
                 case SMITHING_TRIM -> {
+                    sendSmithingTemplates = true;
                     // ignored currently - see below
                 }
                 default -> {
@@ -214,19 +217,20 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             }
         }
 
-        // FIXME: if the server/viaversion doesn't send trim recipes then we shouldn't either.
+        if (sendSmithingTemplates) {
+            // BDS sends armor trim templates and materials before the CraftingDataPacket
+            TrimDataPacket trimDataPacket = new TrimDataPacket();
+            trimDataPacket.getPatterns().addAll(TrimRecipe.PATTERNS);
+            trimDataPacket.getMaterials().addAll(TrimRecipe.MATERIALS);
+            session.sendUpstreamPacket(trimDataPacket);
 
-        // BDS sends armor trim templates and materials before the CraftingDataPacket
-        TrimDataPacket trimDataPacket = new TrimDataPacket();
-        trimDataPacket.getPatterns().addAll(TrimRecipe.PATTERNS);
-        trimDataPacket.getMaterials().addAll(TrimRecipe.MATERIALS);
-        session.sendUpstreamPacket(trimDataPacket);
-
-        // Identical smithing_trim recipe sent by BDS that uses tag-descriptors, as the client seems to ignore the
-        // approach of using many default-descriptors (which we do for smithing_transform)
-        craftingDataPacket.getCraftingData().add(SmithingTrimRecipeData.of(TrimRecipe.ID,
-                TrimRecipe.BASE, TrimRecipe.ADDITION, TrimRecipe.TEMPLATE, "smithing_table", netId++));
-
+            // Identical smithing_trim recipe sent by BDS that uses tag-descriptors, as the client seems to ignore the
+            // approach of using many default-descriptors (which we do for smithing_transform)
+            craftingDataPacket.getCraftingData().add(SmithingTrimRecipeData.of(TrimRecipe.ID,
+                    TrimRecipe.BASE, TrimRecipe.ADDITION, TrimRecipe.TEMPLATE, "smithing_table", netId++));
+        } else {
+            session.setOldSmithingTable(true);
+        }
         session.sendUpstreamPacket(craftingDataPacket);
         session.setCraftingRecipes(recipeMap);
         session.setStonecutterRecipes(stonecutterRecipeMap);

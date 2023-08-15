@@ -25,11 +25,13 @@
 
 package org.geysermc.geyser.translator.protocol.java.inventory;
 
+import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.ClientboundOpenScreenPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
+import org.geysermc.geyser.translator.inventory.OldSmithingTableTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -46,6 +48,14 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
 
         InventoryTranslator newTranslator = InventoryTranslator.inventoryTranslator(packet.getType());
         Inventory openInventory = session.getOpenInventory();
+
+        // Hack: ViaVersion translates the old (pre 1.20) smithing table to a furnace. We can detect this and translate it back to a smithing table.
+        if (session.isOldSmithingTable() &&
+            packet.getType() == ContainerType.FURNACE &&
+            MessageTranslator.getTranslationKey(packet.getTitle()).equals("container.upgrade")) {
+            newTranslator = new OldSmithingTableTranslator();
+        }
+
         // No translator exists for this window type. Close all windows and return.
         if (newTranslator == null) {
             if (openInventory != null) {

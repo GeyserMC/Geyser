@@ -424,6 +424,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean emulatePost1_16Logic = true;
     @Setter
     private boolean emulatePost1_18Logic = true;
+    @Setter
+    private boolean oldSmithingTable = false;
 
     /**
      * The current attack speed of the player. Used for sending proper cooldown timings.
