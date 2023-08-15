@@ -85,7 +85,8 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
     public void openInventory(GeyserSession session, Inventory inventory) {
         super.openInventory(session, inventory);
 
-        // send an upgrade template to the client
+        // pre-1.20 server has no concept of templates, but we are working with a 1.20 client
+        // put a fake netherite upgrade template in the template slot otherwise the client doesn't recognize a valid recipe
         InventorySlotPacket slotPacket = new InventorySlotPacket();
         slotPacket.setContainerId(ContainerId.UI);
         slotPacket.setSlot(53);
