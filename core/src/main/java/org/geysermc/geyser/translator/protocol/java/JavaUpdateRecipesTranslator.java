@@ -245,7 +245,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     TrimRecipe.BASE, TrimRecipe.ADDITION, TrimRecipe.TEMPLATE, "smithing_table", session.getLastRecipeNetId().getAndIncrement()));
         } else {
             // manually add recipes for the upgrade template (workaround), since Java pre-1.20 doesn't
-            craftingDataPacket.getCraftingData().addAll(getUpgradeRecipes(session));
+            craftingDataPacket.getCraftingData().addAll(getSmithingTransformRecipes(session));
         }
         session.setOldSmithingTable(!sendTrimRecipes);
         session.sendUpstreamPacket(craftingDataPacket);
@@ -344,7 +344,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         int count;
     }
 
-    private List<RecipeData> getUpgradeRecipes(GeyserSession session) {
+    private List<RecipeData> getSmithingTransformRecipes(GeyserSession session) {
         List<RecipeData> recipes = new ArrayList<>();
         ItemMapping template = session.getItemMappings().getStoredItems().upgradeTemplate();
 
