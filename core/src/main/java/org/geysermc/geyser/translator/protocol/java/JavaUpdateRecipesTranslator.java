@@ -46,6 +46,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.DefaultDescri
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.TrimDataPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
@@ -79,6 +80,18 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             MultiRecipeData.of(UUID.fromString("442d85ed-8272-4543-a6f1-418f90ded05d"), ++LAST_RECIPE_NET_ID), // Map cloning
             MultiRecipeData.of(UUID.fromString("98c84b38-1085-46bd-b1ce-dd38c159e6cc"), ++LAST_RECIPE_NET_ID), // Map upgrading
             MultiRecipeData.of(UUID.fromString("602234e4-cac1-4353-8bb7-b1ebff70024b"), ++LAST_RECIPE_NET_ID) // Map locking
+    );
+
+    private static final List<String> NETHERITE_UPGRADABLE = List.of(
+            "minecraft:diamond_sword",
+            "minecraft:diamond_shovel",
+            "minecraft:diamond_pickaxe",
+            "minecraft:diamond_axe",
+            "minecraft:diamond_hoe",
+            "minecraft:diamond_helmet",
+            "minecraft:diamond_chestplate",
+            "minecraft:diamond_leggings",
+            "minecraft:diamond_boots"
     );
 
     @Override
@@ -148,7 +161,6 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     // Save for processing after all recipes have been received
                 }
                 case SMITHING_TRANSFORM -> {
-                    sendSmithingTemplates = true;
                     SmithingTransformRecipeData data = (SmithingTransformRecipeData) recipe.getData();
                     ItemData output = ItemTranslator.translateToBedrock(session, data.getResult());
 
@@ -218,7 +230,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         }
 
         // Only send smithing templates if Java/ViaVersion sends smithing recipes
-        if (sendSmithingTemplates) {
+        //if (sendSmithingTemplates) {
             // BDS sends armor trim templates and materials before the CraftingDataPacket
             TrimDataPacket trimDataPacket = new TrimDataPacket();
             trimDataPacket.getPatterns().addAll(TrimRecipe.PATTERNS);
@@ -229,10 +241,10 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             // approach of using many default-descriptors (which we do for smithing_transform)
             craftingDataPacket.getCraftingData().add(SmithingTrimRecipeData.of(TrimRecipe.ID,
                     TrimRecipe.BASE, TrimRecipe.ADDITION, TrimRecipe.TEMPLATE, "smithing_table", netId++));
-        } else {
-            // No smithing recipes sent, time to bring back the good ol' smithing table
+        //} else {
             session.setOldSmithingTable(true);
-        }
+            craftingDataPacket.getCraftingData().addAll(getUpgradeRecipes(session));
+        //}
         session.sendUpstreamPacket(craftingDataPacket);
         session.setCraftingRecipes(recipeMap);
         session.setStonecutterRecipes(stonecutterRecipeMap);
@@ -328,5 +340,42 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
     private static class GroupedItem {
         ItemDefinition id;
         int count;
+    }
+
+    private List<RecipeData> getUpgradeRecipes(GeyserSession session) {
+        GeyserImpl.getInstance().getLogger().warning("Generating upgrade recipes");
+        ArrayList<RecipeData> recipes = new ArrayList<>();
+        ItemMapping template = session.getItemMappings().getStoredItems().upgradeTemplate();
+
+        for (String identifier : NETHERITE_UPGRADABLE) {
+            recipes.add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData.of(UUID.randomUUID().toString(),
+                    getDescriptorFromId(session, identifier),
+                    getDescriptorFromId(session, "minecraft:netherite_ingot"),
+                    getDescriptorFromId(session, template.getBedrockIdentifier()),
+                    getItemData(session, identifier.replace("diamond", "netherite")),
+                "smithing_table",
+                    session.getLastRecipeNetId().getAndIncrement()));
+        }
+        return recipes;
+    }
+
+    private ItemDescriptorWithCount getDescriptorFromId(GeyserSession session, String id) {
+        for (ItemDefinition itemDefinition : session.getItemMappings().getItemDefinitions().values()) {
+            if (itemDefinition.getIdentifier().equals(id)) {
+                return ItemDescriptorWithCount.fromItem(ItemData.builder().definition(itemDefinition).count(1).build());
+            }
+        }
+        GeyserImpl.getInstance().getLogger().debug("Unable to find item with identifier " + id);
+        return ItemDescriptorWithCount.EMPTY;
+    }
+
+    private ItemData getItemData(GeyserSession session, String id) {
+        for (ItemDefinition itemDefinition : session.getItemMappings().getItemDefinitions().values()) {
+            if (itemDefinition.getIdentifier().equals(id)) {
+                return ItemData.builder().definition(itemDefinition).count(1).build();
+            }
+        }
+        GeyserImpl.getInstance().getLogger().debug("Unable to find item with identifier " + id);
+        return ItemData.AIR;
     }
 }

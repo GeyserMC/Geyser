@@ -52,6 +52,7 @@ public class StoredItemMappings {
     private final ItemMapping shield;
     private final ItemMapping wheat;
     private final ItemMapping writableBook;
+    private final ItemMapping upgradeTemplate;
 
     public StoredItemMappings(Map<Item, ItemMapping> itemMappings) {
         this.bamboo = load(itemMappings, Items.BAMBOO);
@@ -66,6 +67,7 @@ public class StoredItemMappings {
         this.shield = load(itemMappings, Items.SHIELD);
         this.wheat = load(itemMappings, Items.WHEAT);
         this.writableBook = load(itemMappings, Items.WRITABLE_BOOK);
+        this.upgradeTemplate = load(itemMappings, Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE);
     }
 
     @Nonnull

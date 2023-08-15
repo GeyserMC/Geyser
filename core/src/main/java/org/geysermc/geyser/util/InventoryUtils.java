@@ -226,6 +226,13 @@ public class InventoryUtils {
         }
     }
 
+    public static IntFunction<ItemData> getUpgradeTemplate() {
+        return protocolVersion -> ItemData.builder()
+                .definition(Registries.ITEMS.forVersion(protocolVersion).getStoredItems().upgradeTemplate().getBedrockDefinition())
+                .count(1)
+                .build();
+    }
+
     /**
      * See {@link #findOrCreateItem(GeyserSession, String)}. This is for finding a specified {@link ItemStack}.
      *

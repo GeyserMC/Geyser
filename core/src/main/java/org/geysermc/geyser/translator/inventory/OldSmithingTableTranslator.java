@@ -25,16 +25,25 @@
 
 package org.geysermc.geyser.translator.inventory;
 
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
+import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
+import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.InventoryUtils;
+
+import java.util.function.IntFunction;
 
 /**
  * Translator for smithing tables for pre-1.20 servers. Hacky, but it works around Bedrock client limitations.
  */
 public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator {
+    private static final IntFunction<ItemData> UPGRADE_TEMPLATE = InventoryUtils.getUpgradeTemplate();
     public OldSmithingTableTranslator() {
         super(3, "minecraft:smithing_table", ContainerType.SMITHING_TABLE, UIInventoryUpdater.INSTANCE);
     }
@@ -42,11 +51,12 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
     @Override
     public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
         return switch (slotInfoData.getContainer()) {
+            //case SMITHING_TABLE_TEMPLATE -> not translated
             case SMITHING_TABLE_INPUT -> 0;
             case SMITHING_TABLE_MATERIAL -> 1;
             // We use the smithing table template slot as the output slot, since the output slot doesn't display on the client without a template.
             // Also: The client doesn't allow you to move items into the template slot (except templates, but they don't exist pre-1.20).
-            case SMITHING_TABLE_TEMPLATE -> 2;
+            case SMITHING_TABLE_RESULT, CREATED_OUTPUT -> 2;
             default -> super.bedrockSlotToJava(slotInfoData);
         };
     }
@@ -56,7 +66,7 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
         return switch (slot) {
             case 0 -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_INPUT, 51);
             case 1 -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_MATERIAL, 52);
-            case 2 -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_TEMPLATE, 53);
+            case 2 -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_RESULT, 50);
             default -> super.javaSlotToBedrockContainer(slot);
         };
     }
@@ -66,8 +76,20 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
         return switch (slot) {
             case 0 -> 51;
             case 1 -> 52;
-            case 2 -> 53;
+            case 2 -> 50;
             default -> super.javaSlotToBedrock(slot);
         };
+    }
+
+    @Override
+    public void openInventory(GeyserSession session, Inventory inventory) {
+        super.openInventory(session, inventory);
+
+        // send an upgrade template to the client
+        InventorySlotPacket slotPacket = new InventorySlotPacket();
+        slotPacket.setContainerId(ContainerId.UI);
+        slotPacket.setSlot(53);
+        slotPacket.setItem(UPGRADE_TEMPLATE.apply(session.getUpstream().getProtocolVersion()));
+        session.sendUpstreamPacket(slotPacket);
     }
 }
