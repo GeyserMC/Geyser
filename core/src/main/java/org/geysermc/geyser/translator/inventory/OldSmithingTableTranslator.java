@@ -32,7 +32,7 @@ import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 
 /**
- * Translator for smithing tables for pre-1.20 servers. Hacky af, but it works around client limitations.
+ * Translator for smithing tables for pre-1.20 servers. Hacky, but it works around Bedrock client limitations.
  */
 public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator {
     public OldSmithingTableTranslator() {
