@@ -42,10 +42,11 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
     @Override
     public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
         return switch (slotInfoData.getContainer()) {
-            case SMITHING_TABLE_TEMPLATE -> 2; // Done on purpose, smithing table result will not ouput since the template is missing
             case SMITHING_TABLE_INPUT -> 0;
             case SMITHING_TABLE_MATERIAL -> 1;
-            //case SMITHING_TABLE_RESULT, CREATED_OUTPUT -> 2;
+            // We use the smithing table template slot as the output slot, since the output slot doesn't display on the client without a template.
+            // Also: The client doesn't allow you to move items into the template slot (except templates, but they don't exist pre-1.20).
+            case SMITHING_TABLE_TEMPLATE -> 2;
             default -> super.bedrockSlotToJava(slotInfoData);
         };
     }
@@ -53,10 +54,9 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
     @Override
     public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
         return switch (slot) {
-            case 2 -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_TEMPLATE, 53);
             case 0 -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_INPUT, 51);
             case 1 -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_MATERIAL, 52);
-            //case 2 -> new BedrockContainerSlot(ContainerSlotType.CREATED_OUTPUT, 53);
+            case 2 -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_TEMPLATE, 53);
             default -> super.javaSlotToBedrockContainer(slot);
         };
     }
@@ -64,7 +64,6 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
     @Override
     public int javaSlotToBedrock(int slot) {
         return switch (slot) {
-            //case 0 -> 53;
             case 0 -> 51;
             case 1 -> 52;
             case 2 -> 53;

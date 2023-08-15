@@ -217,6 +217,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             }
         }
 
+        // Only send smithing templates if Java/ViaVersion sends smithing recipes
         if (sendSmithingTemplates) {
             // BDS sends armor trim templates and materials before the CraftingDataPacket
             TrimDataPacket trimDataPacket = new TrimDataPacket();
@@ -229,6 +230,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             craftingDataPacket.getCraftingData().add(SmithingTrimRecipeData.of(TrimRecipe.ID,
                     TrimRecipe.BASE, TrimRecipe.ADDITION, TrimRecipe.TEMPLATE, "smithing_table", netId++));
         } else {
+            // No smithing recipes sent, time to bring back the good ol' smithing table
             session.setOldSmithingTable(true);
         }
         session.sendUpstreamPacket(craftingDataPacket);

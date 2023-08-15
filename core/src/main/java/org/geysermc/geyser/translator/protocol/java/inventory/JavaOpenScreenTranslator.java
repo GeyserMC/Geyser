@@ -49,7 +49,7 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
         InventoryTranslator newTranslator = InventoryTranslator.inventoryTranslator(packet.getType());
         Inventory openInventory = session.getOpenInventory();
 
-        // Hack: ViaVersion translates the old (pre 1.20) smithing table to a furnace. We can detect this and translate it back to a smithing table.
+        // Hack: ViaVersion translates the old (pre 1.20) smithing table to a furnace (does not work for Bedrock). We can detect this and translate it back to a smithing table.
         if (session.isOldSmithingTable() &&
             packet.getType() == ContainerType.FURNACE &&
             MessageTranslator.getTranslationKey(packet.getTitle()).equals("container.upgrade")) {
