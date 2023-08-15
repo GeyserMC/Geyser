@@ -279,6 +279,7 @@ public class CustomBlockRegistryPopulator {
 
     /**
      * Converts the provided custom block components to an {@link NbtMap} to be sent to the client in the StartGame packet
+     * 
      * @param components the custom block components to convert
      * @param protocolVersion the protocol version to use for the conversion
      * @return the NBT representation of the provided custom block components
@@ -324,7 +325,7 @@ public class CustomBlockRegistryPopulator {
                         .putBoolean("ambient_occlusion", materialInstance.faceDimming())
                         .build());
             }
-            
+
             builder.putCompound("minecraft:material_instances", NbtMap.builder()
                     // we could read these, but there is no functional reason to use them at the moment
                     // they only allow you to make aliases for material instances
