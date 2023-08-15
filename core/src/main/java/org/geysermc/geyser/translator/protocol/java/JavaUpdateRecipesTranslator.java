@@ -174,10 +174,8 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                                 ItemDescriptorWithCount bedrockAddition = ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, addition));
 
                                 // Note: vanilla inputs use aux value of Short.MAX_VALUE
-                                var a = org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData.of(recipe.getIdentifier(),
-                                        bedrockTemplate, bedrockBase, bedrockAddition, output, "smithing_table", netId++);
-                                GeyserImpl.getInstance().getLogger().warning("TR: " + a);
-                                craftingDataPacket.getCraftingData().add(a);
+                                craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData.of(recipe.getIdentifier(),
+                                        bedrockTemplate, bedrockBase, bedrockAddition, output, "smithing_table", netId++));
                             }
                         }
                     }
