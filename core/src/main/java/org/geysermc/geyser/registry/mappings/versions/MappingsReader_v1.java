@@ -61,12 +61,23 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+/**
+ * A class responsible for reading custom item and block mappings from a JSON file
+ */
 public class MappingsReader_v1 extends MappingsReader {
     @Override
     public void readItemMappings(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomItemData> consumer) {
         this.readItemMappingsV1(file, mappingsRoot, consumer);
     }
 
+    /**
+     * Read item block from a JSON node
+     * 
+     * @param file The path to the file
+     * @param mappingsRoot The {@link JsonNode} containing the mappings
+     * @param consumer The consumer to accept the mappings
+     * @see #readBlockMappingsV1(Path, JsonNode, BiConsumer)
+     */
     @Override
     public void readBlockMappings(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomBlockMapping> consumer) {
         this.readBlockMappingsV1(file, mappingsRoot, consumer);
@@ -91,6 +102,14 @@ public class MappingsReader_v1 extends MappingsReader {
         }
     }
 
+    /**
+     * Read block mappings from a JSON node
+     * 
+     * @param file The path to the file
+     * @param mappingsRoot The {@link JsonNode} containing the mappings
+     * @param consumer The consumer to accept the mappings
+     * @see #readBlockMappings(Path, JsonNode, BiConsumer)
+     */
     public void readBlockMappingsV1(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomBlockMapping> consumer) {
         JsonNode blocksNode = mappingsRoot.get("blocks");
 
@@ -183,6 +202,7 @@ public class MappingsReader_v1 extends MappingsReader {
 
     /**
      * Read a block mapping entry from a JSON node and Java identifier
+     * 
      * @param identifier The Java identifier of the block
      * @param node The {@link JsonNode} containing the block mapping entry
      * @return The {@link CustomBlockMapping} record to be read by {@link org.geysermc.geyser.registry.populator.CustomBlockRegistryPopulator}
@@ -321,6 +341,7 @@ public class MappingsReader_v1 extends MappingsReader {
 
     /**
      * Creates a {@link CustomBlockComponents} object for the passed state override or base block node, Java block state identifier, and custom block name
+     * 
      * @param node the state override or base block {@link JsonNode}
      * @param stateKey the Java block state identifier
      * @param name the name of the custom block
@@ -470,6 +491,7 @@ public class MappingsReader_v1 extends MappingsReader {
 
     /**
      * Creates a {@link BoxComponent} based on a Java block's collision with provided bounds and offsets
+     * 
      * @param javaId the block's Java ID
      * @param heightTranslation the height translation of the box
      * @return the {@link BoxComponent}
@@ -519,6 +541,7 @@ public class MappingsReader_v1 extends MappingsReader {
 
     /**
      * Creates a {@link BoxComponent} based on a Java block's collision
+     * 
      * @param javaId the block's Java ID
      * @return the {@link BoxComponent}
      */
@@ -528,6 +551,7 @@ public class MappingsReader_v1 extends MappingsReader {
 
     /**
      * Creates the {@link BoxComponent} for an extended collision box based on a Java block's collision
+     * 
      * @param javaId the block's Java ID
      * @return the {@link BoxComponent} or null if the block's collision box would not exceed 16 y units
      */
@@ -547,6 +571,7 @@ public class MappingsReader_v1 extends MappingsReader {
 
     /**
      * Creates a {@link BoxComponent} from a JSON Node
+     * 
      * @param node the JSON node
      * @return the {@link BoxComponent}
      */
@@ -572,6 +597,7 @@ public class MappingsReader_v1 extends MappingsReader {
     /**
      * Creates the {@link MaterialInstance} for the passed material instance node and custom block name
      * The name is used as a fallback if no texture is provided by the node
+     * 
      * @param node the material instance node
      * @param name the custom block name
      * @return the {@link MaterialInstance}
@@ -608,6 +634,7 @@ public class MappingsReader_v1 extends MappingsReader {
 
     /**
      * Creates the list of {@link PlacementConditions} for the passed conditions node
+     * 
      * @param node the conditions node
      * @return the list of {@link PlacementConditions}
      */
@@ -650,6 +677,7 @@ public class MappingsReader_v1 extends MappingsReader {
 
     /**
      * Splits the given java state identifier into an array of property=value pairs
+     * 
      * @param state the java state identifier
      * @return the array of property=value pairs
      */

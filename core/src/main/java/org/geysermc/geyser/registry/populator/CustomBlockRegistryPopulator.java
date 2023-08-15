@@ -7,7 +7,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.protocol.bedrock.codec.v582.Bedrock_v582;
 import org.cloudburstmc.protocol.bedrock.codec.v594.Bedrock_v594;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.geysermc.geyser.GeyserImpl;
@@ -19,7 +18,6 @@ import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.component.PlacementConditions;
 import org.geysermc.geyser.api.block.custom.component.PlacementConditions.Face;
-import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockItem;
 import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
 import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
 import org.geysermc.geyser.api.block.custom.property.PropertyType;
@@ -54,6 +52,7 @@ public class CustomBlockRegistryPopulator {
 
     /**
      * Populates the custom block registries by stage
+     * 
      * @param stage the stage to populate
      */
     public static void populate(Stage stage) {
@@ -196,6 +195,7 @@ public class CustomBlockRegistryPopulator {
     /**
      * Generates and appends all custom block states to the provided list of custom block states
      * Appends the custom block states to the provided list of NBT maps
+     * 
      * @param customBlock the custom block data to generate states for
      * @param blockStates the list of NBT maps to append the custom block states to
      * @param customExtBlockStates the list of custom block states to append the custom block states to 
@@ -227,6 +227,7 @@ public class CustomBlockRegistryPopulator {
 
     /**
      * Generates and returns the block property data for the provided custom block
+     * 
      * @param customBlock the custom block to generate block property data for
      * @param protocolVersion the protocol version to use for the block property data
      * @return the block property data for the provided custom block
@@ -282,22 +283,26 @@ public class CustomBlockRegistryPopulator {
      * @param protocolVersion the protocol version to use for the conversion
      * @return the NBT representation of the provided custom block components
      */
-    static NbtMap convertComponents(CustomBlockComponents components, int protocolVersion) {
+    private static NbtMap convertComponents(CustomBlockComponents components, int protocolVersion) {
         if (components == null) {
             return NbtMap.EMPTY;
         }
+
         NbtMapBuilder builder = NbtMap.builder();
         if (components.displayName() != null) {
             builder.putCompound("minecraft:display_name", NbtMap.builder()
                     .putString("value", components.displayName())
                     .build());
         }
+
         if (components.selectionBox() != null) {
             builder.putCompound("minecraft:selection_box", convertBox(components.selectionBox()));
         }
+
         if (components.collisionBox() != null) {
             builder.putCompound("minecraft:collision_box", convertBox(components.collisionBox()));
         }
+
         if (components.geometry() != null) {
             NbtMapBuilder geometryBuilder = NbtMap.builder();
             if (protocolVersion >= Bedrock_v594.CODEC.getProtocolVersion()) {
@@ -307,6 +312,7 @@ public class CustomBlockRegistryPopulator {
             }
             builder.putCompound("minecraft:geometry", geometryBuilder.build());
         }
+
         if (!components.materialInstances().isEmpty()) {
             NbtMapBuilder materialsBuilder = NbtMap.builder();
             for (Map.Entry<String, MaterialInstance> entry : components.materialInstances().entrySet()) {
@@ -318,6 +324,7 @@ public class CustomBlockRegistryPopulator {
                         .putBoolean("ambient_occlusion", materialInstance.faceDimming())
                         .build());
             }
+            
             builder.putCompound("minecraft:material_instances", NbtMap.builder()
                     // we could read these, but there is no functional reason to use them at the moment
                     // they only allow you to make aliases for material instances
@@ -326,31 +333,37 @@ public class CustomBlockRegistryPopulator {
                     .putCompound("materials", materialsBuilder.build())
                     .build());
         }
+
         if (components.placementFilter() != null) {
             builder.putCompound("minecraft:placement_filter", NbtMap.builder()
                     .putList("conditions", NbtType.COMPOUND, convertPlacementFilter(components.placementFilter()))
                     .build());
         }
+
         if (components.destructibleByMining() != null) {
             builder.putCompound("minecraft:destructible_by_mining", NbtMap.builder()
                     .putFloat("value", components.destructibleByMining())
                     .build());
         }
+
         if (components.friction() != null) {
             builder.putCompound("minecraft:friction", NbtMap.builder()
                     .putFloat("value", components.friction())
                     .build());
         }
+
         if (components.lightEmission() != null) {
             builder.putCompound("minecraft:light_emission", NbtMap.builder()
                     .putByte("emission", components.lightEmission().byteValue())
                     .build());
         }
+
         if (components.lightDampening() != null) {
             builder.putCompound("minecraft:light_dampening", NbtMap.builder()
                     .putByte("lightLevel", components.lightDampening().byteValue())
                     .build());
         }
+
         if (components.transformation() != null) {
             builder.putCompound("minecraft:transformation", NbtMap.builder()
                     .putInt("RX", MathUtils.unwrapDegreesToInt(components.transformation().rx()) / 90)
@@ -364,9 +377,11 @@ public class CustomBlockRegistryPopulator {
                     .putFloat("TZ", components.transformation().tz())
                     .build());
         }
+
         if (components.unitCube()) {
             builder.putCompound("minecraft:unit_cube", NbtMap.EMPTY);
         }
+
         // place_air is not an actual component
         // We just apply a dummy event to prevent the client from trying to place a block
         // This mitigates the issue with the client sometimes double placing blocks
@@ -375,14 +390,17 @@ public class CustomBlockRegistryPopulator {
                     .putString("triggerType", "geyser:place_event")
                     .build());
         }
+
         if (!components.tags().isEmpty()) {
             components.tags().forEach(tag -> builder.putCompound("tag:" + tag, NbtMap.EMPTY));
         }
+
         return builder.build();
     }
 
     /**
      * Converts the provided box component to an {@link NbtMap}
+     * 
      * @param boxComponent the box component to convert
      * @return the NBT representation of the provided box component
      */
@@ -396,6 +414,7 @@ public class CustomBlockRegistryPopulator {
 
     /**
      * Converts the provided placement filter to a list of {@link NbtMap}
+     * 
      * @param placementFilter the placement filter to convert
      * @return the NBT representation of the provided placement filter
      */
