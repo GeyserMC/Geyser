@@ -28,6 +28,7 @@ package org.geysermc.geyser.registry.type;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import lombok.Builder;
+import lombok.NonNull;
 import lombok.Value;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
@@ -40,6 +41,7 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.item.type.PotionItem;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -122,7 +124,7 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
      * @param data the item data
      * @return an item entry from the given item data
      */
-    public ItemMapping getMapping(ItemData data) {
+    public @NonNull ItemMapping getMapping(ItemData data) {
         ItemDefinition definition = data.getDefinition();
         if (ItemDefinition.AIR.equals(definition)) {
             return ItemMapping.AIR;
@@ -159,14 +161,17 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
     }
 
     @Override
-    public ItemDefinition getDefinition(int bedrockId) {
+    public @Nullable ItemDefinition getDefinition(int bedrockId) {
         return this.itemDefinitions.get(bedrockId);
     }
 
-    public ItemDefinition getDefinition(String bedrockIdentifier) {
-        return this.itemDefinitions.values().stream().filter(
-                itemDefinition -> itemDefinition.getIdentifier().equals(bedrockIdentifier))
-                .findFirst().orElse(null);
+    public @Nullable ItemDefinition getDefinition(String bedrockIdentifier) {
+        for (ItemDefinition itemDefinition : this.itemDefinitions.values()) {
+            if (itemDefinition.getIdentifier().equals(bedrockIdentifier)) {
+                return itemDefinition;
+            }
+        }
+        return null;
     }
 
     @Override

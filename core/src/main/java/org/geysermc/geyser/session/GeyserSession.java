@@ -424,6 +424,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean emulatePost1_16Logic = true;
     @Setter
     private boolean emulatePost1_18Logic = true;
+
+    /**
+     * Whether to emulate pre-1.20 smithing table behavior.
+     * Adapts ViaVersion's furnace UI to one Bedrock can use.
+     * See {@link org.geysermc.geyser.translator.inventory.OldSmithingTableTranslator}.
+     */
     @Setter
     private boolean oldSmithingTable = false;
 

@@ -82,7 +82,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             MultiRecipeData.of(UUID.fromString("602234e4-cac1-4353-8bb7-b1ebff70024b"), ++LAST_RECIPE_NET_ID) // Map locking
     );
 
-    private static final List<String> NETHERITE_TRANSFORM = List.of(
+    private static final List<String> NETHERITE_UPGRADES = List.of(
             "minecraft:netherite_sword",
             "minecraft:netherite_shovel",
             "minecraft:netherite_pickaxe",
@@ -233,7 +233,6 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
 
         // Only send smithing trim recipes if Java/ViaVersion sends them.
         if (sendTrimRecipes) {
-            session.setOldSmithingTable(false);
             // BDS sends armor trim templates and materials before the CraftingDataPacket
             TrimDataPacket trimDataPacket = new TrimDataPacket();
             trimDataPacket.getPatterns().addAll(TrimRecipe.PATTERNS);
@@ -245,9 +244,10 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             craftingDataPacket.getCraftingData().add(SmithingTrimRecipeData.of(TrimRecipe.ID,
                     TrimRecipe.BASE, TrimRecipe.ADDITION, TrimRecipe.TEMPLATE, "smithing_table", session.getLastRecipeNetId().getAndIncrement()));
         } else {
-            session.setOldSmithingTable(true);
+            // manually add recipes for the upgrade template (workaround), since Java pre-1.20 doesn't
             craftingDataPacket.getCraftingData().addAll(getUpgradeRecipes(session));
         }
+        session.setOldSmithingTable(!sendTrimRecipes);
         session.sendUpstreamPacket(craftingDataPacket);
         session.setCraftingRecipes(recipeMap);
         session.setStonecutterRecipes(stonecutterRecipeMap);
@@ -345,15 +345,15 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
     }
 
     private List<RecipeData> getUpgradeRecipes(GeyserSession session) {
-        ArrayList<RecipeData> recipes = new ArrayList<>();
+        List<RecipeData> recipes = new ArrayList<>();
         ItemMapping template = session.getItemMappings().getStoredItems().upgradeTemplate();
 
-        for (String identifier : NETHERITE_TRANSFORM) {
+        for (String identifier : NETHERITE_UPGRADES) {
             recipes.add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData.of(identifier + "_smithing",
                     getDescriptorFromId(session, template.getBedrockIdentifier()),
                     getDescriptorFromId(session, identifier.replace("netherite", "diamond")),
                     getDescriptorFromId(session, "minecraft:netherite_ingot"),
-                    ItemData.builder().definition(session.getItemMappings().getDefinition(identifier)).count(1).build(),
+                    ItemData.builder().definition(Objects.requireNonNull(session.getItemMappings().getDefinition(identifier))).count(1).build(),
                     "smithing_table",
                     session.getLastRecipeNetId().getAndIncrement()));
         }
