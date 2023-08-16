@@ -53,6 +53,7 @@ public class StoredItemMappings {
     private final ItemMapping upgradeTemplate;
     private final ItemMapping wheat;
     private final ItemMapping writableBook;
+
     public StoredItemMappings(Map<Item, ItemMapping> itemMappings) {
         this.bamboo = load(itemMappings, Items.BAMBOO);
         this.banner = load(itemMappings, Items.WHITE_BANNER); // As of 1.17.10, all banners have the same Bedrock ID
