@@ -52,9 +52,11 @@ import java.util.function.IntFunction;
  */
 public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator {
 
+    public static final OldSmithingTableTranslator INSTANCE = new OldSmithingTableTranslator();
+
     private static final IntFunction<ItemData> UPGRADE_TEMPLATE = InventoryUtils.getUpgradeTemplate();
 
-    public OldSmithingTableTranslator() {
+    private OldSmithingTableTranslator() {
         super(3, "minecraft:smithing_table", ContainerType.SMITHING_TABLE, UIInventoryUpdater.INSTANCE);
     }
 
