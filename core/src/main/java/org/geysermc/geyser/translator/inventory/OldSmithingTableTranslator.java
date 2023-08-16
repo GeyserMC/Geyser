@@ -29,7 +29,14 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.DropAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.PlaceAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.SwapAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.TakeAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.Inventory;
@@ -79,6 +86,44 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
             case 2 -> 50;
             default -> super.javaSlotToBedrock(slot);
         };
+    }
+
+    @Override
+    public boolean shouldHandleRequestFirst(ItemStackRequestAction action, Inventory inventory) {
+        return true;
+    }
+
+    @Override
+    protected ItemStackResponse translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+        for (var action: request.getActions()) {
+            switch (action.getType()) {
+                case DROP -> {
+                   if (((DropAction) action).getSource().getContainer().equals(ContainerSlotType.SMITHING_TABLE_TEMPLATE)) {
+                       return rejectRequest(request, false);
+                   }
+                }
+                case TAKE -> {
+                    if (((TakeAction) action).getSource().getContainer().equals(ContainerSlotType.SMITHING_TABLE_TEMPLATE)
+                    || ((TakeAction) action).getDestination().getContainer().equals(ContainerSlotType.SMITHING_TABLE_TEMPLATE)) {
+                        return rejectRequest(request, false);
+                    }
+                }
+                case SWAP -> {
+                    if (((SwapAction) action).getSource().getContainer().equals(ContainerSlotType.SMITHING_TABLE_TEMPLATE)
+                    || ((SwapAction) action).getDestination().getContainer().equals(ContainerSlotType.SMITHING_TABLE_TEMPLATE)) {
+                        return rejectRequest(request, false);
+                    }
+                }
+                case PLACE -> {
+                    if (((PlaceAction) action).getSource().getContainer().equals(ContainerSlotType.SMITHING_TABLE_TEMPLATE) ||
+                            ((PlaceAction) action).getDestination().getContainer().equals(ContainerSlotType.SMITHING_TABLE_TEMPLATE)) {
+                        return rejectRequest(request, false);
+                    }
+                }
+            }
+        }
+        // Allow everything else that doesn't involve the fake template
+        return super.translateRequest(session, inventory, request);
     }
 
     @Override
