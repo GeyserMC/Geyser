@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import org.cloudburstmc.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -32,16 +33,33 @@ import org.geysermc.geyser.translator.protocol.Translator;
 
 /**
  * In vanilla Bedrock, if you have operator status, this sets the player's gamemode without confirmation from the server.
- * Since we have a custom server option to request the gamemode, we just reset the gamemode and ignore this.
+ * With operator status, the Gamemode change is sent to the Java server, if it is not present, the gamemode is not changed.
  */
 @Translator(packet = SetPlayerGameTypePacket.class)
 public class BedrockSetPlayerGameTypeTranslator extends PacketTranslator<SetPlayerGameTypePacket> {
 
+    /**
+     * Sets client game mode for the server via the Bedrock client's "world" menu (given sufficient permissions).
+     */
     @Override
     public void translate(GeyserSession session, SetPlayerGameTypePacket packet) {
-        // no
-        SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
-        playerGameTypePacket.setGamemode(session.getGameMode().ordinal());
-        session.sendUpstreamPacket(playerGameTypePacket);
+        // yes, if you are OP
+        if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.server")) {
+            if (packet.getGamemode() != session.getGameMode().ordinal()) {
+                // For some reason, spectator mode is... 6?
+                GameMode gameMode = switch (packet.getGamemode()) {
+                    case 1 -> GameMode.CREATIVE;
+                    case 2 -> GameMode.ADVENTURE;
+                    case 5 -> session.getGeyser().getWorldManager().getDefaultGameMode(session);
+                    case 6 -> GameMode.SPECTATOR;
+                    default -> GameMode.SURVIVAL;
+                };
+                session.getGeyser().getWorldManager().setPlayerGameMode(session, gameMode);
+            }
+        } else {
+            SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
+            playerGameTypePacket.setGamemode(session.getGameMode().ordinal());
+            session.sendUpstreamPacket(playerGameTypePacket);
+        }
     }
 }

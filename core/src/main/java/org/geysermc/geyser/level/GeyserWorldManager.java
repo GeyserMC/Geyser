@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.level;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
@@ -158,6 +159,10 @@ public class GeyserWorldManager extends WorldManager {
         }
 
         return gameRule.getDefaultIntValue();
+    }
+
+    public GameMode getDefaultGameMode(GeyserSession session) {
+        return GameMode.SURVIVAL;
     }
 
     @Override
