@@ -432,6 +432,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean emulatePost1_18Logic = true;
 
     /**
+     * Whether to emulate pre-1.20 smithing table behavior.
+     * Adapts ViaVersion's furnace UI to one Bedrock can use.
+     * See {@link org.geysermc.geyser.translator.inventory.OldSmithingTableTranslator}.
+     */
+    @Setter
+    private boolean oldSmithingTable = false;
+
+    /**
      * The current attack speed of the player. Used for sending proper cooldown timings.
      * Setting a default fixes cooldowns not showing up on a fresh world.
      */
@@ -2019,6 +2027,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     private void softEnumPacket(String name, SoftEnumUpdateType type, String enums) {
+        // There is no need to send command enums if command suggestions are disabled
+        if (!this.geyser.getConfig().isCommandSuggestions()) {
+            return;
+        }
         UpdateSoftEnumPacket packet = new UpdateSoftEnumPacket();
         packet.setType(type);
         packet.setSoftEnum(new CommandEnumData(name, Collections.singletonMap(enums, Collections.emptySet()), true));
