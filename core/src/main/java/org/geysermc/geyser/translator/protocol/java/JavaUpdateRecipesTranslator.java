@@ -34,11 +34,7 @@ import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeDa
 import com.github.steveice10.mc.protocol.data.game.recipe.data.SmithingTransformRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.StoneCuttingRecipeData;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateRecipesPacket;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntIterator;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.*;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
@@ -64,17 +60,7 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.geysermc.geyser.util.InventoryUtils.LAST_RECIPE_NET_ID;
@@ -165,7 +151,6 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     for (ItemDescriptorWithCount[] inputs : inputCombinations) {
                         UUID uuid = UUID.randomUUID();
                         bedrockRecipeIDs.add(uuid.toString());
-
                         craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData.shaped(uuid.toString(),
                                 shapedRecipeData.getWidth(), shapedRecipeData.getHeight(), Arrays.asList(inputs),
                                 Collections.singletonList(output), uuid, "crafting_table", 0, netId));
