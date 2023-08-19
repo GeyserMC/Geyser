@@ -94,6 +94,12 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             "minecraft:netherite_boots"
     );
 
+    private static final Map<String, String> IDENTIFIER_TO_TAG = new HashMap<>() {{
+        put("minecraft:wood", "minecraft:logs");
+        put("minecraft:wooden_slab", "minecraft:wooden_slabs");
+        put("minecraft:planks", "minecraft:planks");
+    }};
+
     @Override
     public void translate(GeyserSession session, ClientboundUpdateRecipesPacket packet) {
         Map<RecipeType, List<RecipeData>> recipeTypes = Registries.CRAFTING_DATA.forVersion(session.getUpstream().getProtocolVersion());
@@ -329,20 +335,10 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 if (entry.getValue().size() > 1) {
                     GroupedItem groupedItem = entry.getKey();
 
-                    switch (groupedItem.id.getIdentifier()) {
-                        case "minecraft:planks" -> {
-                            // Instead of using the planks item descriptor; there is an ItemTagDescriptor for planks, fixing https://github.com/GeyserMC/Geyser/issues/3784
-                            optionSet.add(new ItemDescriptorWithCount(new ItemTagDescriptor("minecraft:planks"), groupedItem.count));
-                            continue;
-                        }
-                        case "minecraft:wooden_slab" -> {
-                            optionSet.add(new ItemDescriptorWithCount(new ItemTagDescriptor("minecraft:wooden_slabs"), groupedItem.count));
-                            continue;
-                        }
-                        case "minecraft:wood" -> {
-                            optionSet.add(new ItemDescriptorWithCount(new ItemTagDescriptor("minecraft:logs"), groupedItem.count));
-                            continue;
-                        }
+                    // Use item tags if possible to fix https://github.com/GeyserMC/Geyser/issues/3784
+                    if (IDENTIFIER_TO_TAG.containsKey(groupedItem.id.getIdentifier())) {
+                        optionSet.add(new ItemDescriptorWithCount(new ItemTagDescriptor(IDENTIFIER_TO_TAG.get(groupedItem.id.getIdentifier())), groupedItem.count));
+                        continue;
                     }
 
                     int idCount = 0;
