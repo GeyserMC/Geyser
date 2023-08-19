@@ -44,6 +44,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeDa
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTrimRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.DefaultDescriptor;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
+import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescriptor;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.TrimDataPacket;
 import org.geysermc.geyser.GeyserImpl;
@@ -327,6 +328,23 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             for (Map.Entry<GroupedItem, List<ItemDescriptorWithCount>> entry : groupedByIds.entrySet()) {
                 if (entry.getValue().size() > 1) {
                     GroupedItem groupedItem = entry.getKey();
+
+                    switch (groupedItem.id.getIdentifier()) {
+                        case "minecraft:planks" -> {
+                            // Instead of using the planks item descriptor; there is an ItemTagDescriptor for planks, fixing https://github.com/GeyserMC/Geyser/issues/3784
+                            optionSet.add(new ItemDescriptorWithCount(new ItemTagDescriptor("minecraft:planks"), groupedItem.count));
+                            continue;
+                        }
+                        case "minecraft:wooden_slab" -> {
+                            optionSet.add(new ItemDescriptorWithCount(new ItemTagDescriptor("minecraft:wooden_slabs"), groupedItem.count));
+                            continue;
+                        }
+                        case "minecraft:wood" -> {
+                            optionSet.add(new ItemDescriptorWithCount(new ItemTagDescriptor("minecraft:logs"), groupedItem.count));
+                            continue;
+                        }
+                    }
+
                     int idCount = 0;
                     //not optimal
                     for (ItemMapping mapping : session.getItemMappings().getItems()) {
