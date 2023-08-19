@@ -46,6 +46,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.DefaultDescri
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.TrimDataPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
@@ -81,11 +82,24 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             MultiRecipeData.of(UUID.fromString("602234e4-cac1-4353-8bb7-b1ebff70024b"), ++LAST_RECIPE_NET_ID) // Map locking
     );
 
+    private static final List<String> NETHERITE_UPGRADES = List.of(
+            "minecraft:netherite_sword",
+            "minecraft:netherite_shovel",
+            "minecraft:netherite_pickaxe",
+            "minecraft:netherite_axe",
+            "minecraft:netherite_hoe",
+            "minecraft:netherite_helmet",
+            "minecraft:netherite_chestplate",
+            "minecraft:netherite_leggings",
+            "minecraft:netherite_boots"
+    );
+
     @Override
     public void translate(GeyserSession session, ClientboundUpdateRecipesPacket packet) {
         Map<RecipeType, List<RecipeData>> recipeTypes = Registries.CRAFTING_DATA.forVersion(session.getUpstream().getProtocolVersion());
         // Get the last known network ID (first used for the pregenerated recipes) and increment from there.
         int netId = InventoryUtils.LAST_RECIPE_NET_ID + 1;
+        boolean sendTrimRecipes = false;
 
         Int2ObjectMap<GeyserRecipe> recipeMap = new Int2ObjectOpenHashMap<>(Registries.RECIPES.forVersion(session.getUpstream().getProtocolVersion()));
         Int2ObjectMap<List<StoneCuttingRecipeData>> unsortedStonecutterData = new Int2ObjectOpenHashMap<>();
@@ -168,6 +182,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
 
                 }
                 case SMITHING_TRIM -> {
+                    sendTrimRecipes = true;
                     // ignored currently - see below
                 }
                 default -> {
@@ -214,23 +229,28 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             }
         }
 
-        // FIXME: if the server/viaversion doesn't send trim recipes then we shouldn't either.
+        session.getLastRecipeNetId().set(netId);
 
-        // BDS sends armor trim templates and materials before the CraftingDataPacket
-        TrimDataPacket trimDataPacket = new TrimDataPacket();
-        trimDataPacket.getPatterns().addAll(TrimRecipe.PATTERNS);
-        trimDataPacket.getMaterials().addAll(TrimRecipe.MATERIALS);
-        session.sendUpstreamPacket(trimDataPacket);
+        // Only send smithing trim recipes if Java/ViaVersion sends them.
+        if (sendTrimRecipes) {
+            // BDS sends armor trim templates and materials before the CraftingDataPacket
+            TrimDataPacket trimDataPacket = new TrimDataPacket();
+            trimDataPacket.getPatterns().addAll(TrimRecipe.PATTERNS);
+            trimDataPacket.getMaterials().addAll(TrimRecipe.MATERIALS);
+            session.sendUpstreamPacket(trimDataPacket);
 
-        // Identical smithing_trim recipe sent by BDS that uses tag-descriptors, as the client seems to ignore the
-        // approach of using many default-descriptors (which we do for smithing_transform)
-        craftingDataPacket.getCraftingData().add(SmithingTrimRecipeData.of(TrimRecipe.ID,
-                TrimRecipe.BASE, TrimRecipe.ADDITION, TrimRecipe.TEMPLATE, "smithing_table", netId++));
-
+            // Identical smithing_trim recipe sent by BDS that uses tag-descriptors, as the client seems to ignore the
+            // approach of using many default-descriptors (which we do for smithing_transform)
+            craftingDataPacket.getCraftingData().add(SmithingTrimRecipeData.of(TrimRecipe.ID,
+                    TrimRecipe.BASE, TrimRecipe.ADDITION, TrimRecipe.TEMPLATE, "smithing_table", session.getLastRecipeNetId().getAndIncrement()));
+        } else {
+            // manually add recipes for the upgrade template (workaround), since Java pre-1.20 doesn't
+            craftingDataPacket.getCraftingData().addAll(getSmithingTransformRecipes(session));
+        }
+        session.setOldSmithingTable(!sendTrimRecipes);
         session.sendUpstreamPacket(craftingDataPacket);
         session.setCraftingRecipes(recipeMap);
         session.setStonecutterRecipes(stonecutterRecipeMap);
-        session.getLastRecipeNetId().set(netId);
     }
 
     //TODO: rewrite
@@ -322,5 +342,30 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
     private static class GroupedItem {
         ItemDefinition id;
         int count;
+    }
+
+    private List<RecipeData> getSmithingTransformRecipes(GeyserSession session) {
+        List<RecipeData> recipes = new ArrayList<>();
+        ItemMapping template = session.getItemMappings().getStoredItems().upgradeTemplate();
+
+        for (String identifier : NETHERITE_UPGRADES) {
+            recipes.add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData.of(identifier + "_smithing",
+                    getDescriptorFromId(session, template.getBedrockIdentifier()),
+                    getDescriptorFromId(session, identifier.replace("netherite", "diamond")),
+                    getDescriptorFromId(session, "minecraft:netherite_ingot"),
+                    ItemData.builder().definition(Objects.requireNonNull(session.getItemMappings().getDefinition(identifier))).count(1).build(),
+                    "smithing_table",
+                    session.getLastRecipeNetId().getAndIncrement()));
+        }
+        return recipes;
+    }
+
+    private ItemDescriptorWithCount getDescriptorFromId(GeyserSession session, String bedrockId) {
+        ItemDefinition bedrockDefinition = session.getItemMappings().getDefinition(bedrockId);
+        if (bedrockDefinition != null) {
+            return ItemDescriptorWithCount.fromItem(ItemData.builder().definition(bedrockDefinition).count(1).build());
+        }
+        GeyserImpl.getInstance().getLogger().debug("Unable to find item with identifier " + bedrockId);
+        return ItemDescriptorWithCount.EMPTY;
     }
 }
