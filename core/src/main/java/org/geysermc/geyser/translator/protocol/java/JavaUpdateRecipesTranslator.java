@@ -105,8 +105,6 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         Map<RecipeType, List<RecipeData>> recipeTypes = Registries.CRAFTING_DATA.forVersion(session.getUpstream().getProtocolVersion());
         // Get the last known network ID (first used for the pregenerated recipes) and increment from there.
         int netId = InventoryUtils.LAST_RECIPE_NET_ID + 1;
-
-        // temporary boolean to decide whether to send trim recipes
         boolean sendTrimRecipes = false;
         Map<String, List<String>> recipeIDs = session.getIdentifierToBedrockRecipes();
         Int2ObjectMap<GeyserRecipe> recipeMap = new Int2ObjectOpenHashMap<>(Registries.RECIPES.forVersion(session.getUpstream().getProtocolVersion()));
