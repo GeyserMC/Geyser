@@ -30,16 +30,19 @@ import org.cloudburstmc.protocol.common.util.Preconditions;
 
 public class GeyserChunkSection {
 
-    private static final int CHUNK_SECTION_VERSION = 8;
+    // As of at least 1.19.80
+    private static final int CHUNK_SECTION_VERSION = 9;
 
     private final BlockStorage[] storage;
+    private final int sectionY;
 
-    public GeyserChunkSection(int airBlockId) {
-        this(new BlockStorage[]{new BlockStorage(airBlockId), new BlockStorage(airBlockId)});
+    public GeyserChunkSection(int airBlockId, int sectionY) {
+        this(new BlockStorage[]{new BlockStorage(airBlockId), new BlockStorage(airBlockId)}, sectionY);
     }
 
-    public GeyserChunkSection(BlockStorage[] storage) {
+    public GeyserChunkSection(BlockStorage[] storage, int sectionY) {
         this.storage = storage;
+        this.sectionY = sectionY;
     }
 
     public int getFullBlock(int x, int y, int z, int layer) {
@@ -57,6 +60,8 @@ public class GeyserChunkSection {
     public void writeToNetwork(ByteBuf buffer) {
         buffer.writeByte(CHUNK_SECTION_VERSION);
         buffer.writeByte(this.storage.length);
+        // Required for chunk version 9+
+        buffer.writeByte(this.sectionY);
         for (BlockStorage blockStorage : this.storage) {
             blockStorage.writeToNetwork(buffer);
         }
@@ -83,12 +88,12 @@ public class GeyserChunkSection {
         return true;
     }
 
-    public GeyserChunkSection copy() {
+    public GeyserChunkSection copy(int sectionY) {
         BlockStorage[] storage = new BlockStorage[this.storage.length];
         for (int i = 0; i < storage.length; i++) {
             storage[i] = this.storage[i].copy();
         }
-        return new GeyserChunkSection(storage);
+        return new GeyserChunkSection(storage, sectionY);
     }
 
     public static int blockPosition(int x, int y, int z) {
