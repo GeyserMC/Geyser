@@ -26,6 +26,7 @@ import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.level.block.GeyserCustomBlockState;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents.CustomBlockComponentsBuilder;
 import org.geysermc.geyser.level.block.GeyserCustomBlockData.CustomBlockDataBuilder;
+import org.geysermc.geyser.level.block.GeyserGeometryComponent.GeometryComponentBuilder;
 import org.geysermc.geyser.level.block.GeyserMaterialInstance.MaterialInstanceBuilder;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
@@ -307,9 +308,15 @@ public class CustomBlockRegistryPopulator {
         if (components.geometry() != null) {
             NbtMapBuilder geometryBuilder = NbtMap.builder();
             if (protocolVersion >= Bedrock_v594.CODEC.getProtocolVersion()) {
-                geometryBuilder.putString("identifier", components.geometry());
+                geometryBuilder.putString("identifier", components.geometry().identifier());
+                if (components.geometry().boneVisibility() != null) {
+                    NbtMapBuilder boneVisibilityBuilder = NbtMap.builder();
+                    components.geometry().boneVisibility().entrySet().forEach(
+                        entry -> boneVisibilityBuilder.putString(entry.getKey(), entry.getValue()));
+                    geometryBuilder.putCompound("bone_visibility", boneVisibilityBuilder.build());
+                }
             } else {
-                geometryBuilder.putString("value", components.geometry());
+                geometryBuilder.putString("value", components.geometry().identifier());
             }
             builder.putCompound("minecraft:geometry", geometryBuilder.build());
         }
@@ -463,7 +470,9 @@ public class CustomBlockRegistryPopulator {
                             .ambientOcclusion(false)
                             .build())
                         .lightDampening(0)
-                        .geometry("geometry.invisible")
+                        .geometry(new GeometryComponentBuilder()
+                            .identifier("geometry.invisible")
+                            .build())
                         .build())
                 .build();
         return customBlockData;

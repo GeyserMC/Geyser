@@ -34,6 +34,7 @@ import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.component.TransformationComponent;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
 import org.geysermc.geyser.level.block.GeyserCustomBlockData;
+import org.geysermc.geyser.level.block.GeyserGeometryComponent.GeometryComponentBuilder;
 import org.geysermc.geyser.level.block.GeyserMaterialInstance.MaterialInstanceBuilder;
 
 import java.util.ArrayList;
@@ -114,7 +115,9 @@ public class CustomSkull {
 
     private void addDefaultPermutation(List<CustomBlockPermutation> permutations) {
         CustomBlockComponents components = new GeyserCustomBlockComponents.CustomBlockComponentsBuilder()
-                .geometry("geometry.geyser.player_skull_hand")
+                .geometry(new GeometryComponentBuilder()
+                        .identifier("geometry.geyser.player_skull_hand")
+                        .build())
                 .transformation(new TransformationComponent(0, 180, 0))
                 .build();
 
@@ -131,7 +134,9 @@ public class CustomSkull {
                 CustomBlockComponents components = new GeyserCustomBlockComponents.CustomBlockComponentsBuilder()
                         .selectionBox(FLOOR_BOX)
                         .collisionBox(FLOOR_BOX)
-                        .geometry("geometry.geyser.player_skull_floor_" + quadrantNames[i])
+                        .geometry(new GeometryComponentBuilder()
+                                .identifier("geometry.geyser.player_skull_floor_" + quadrantNames[i])
+                                .build())
                         .transformation(new TransformationComponent(0, ROTATIONS[quadrant], 0))
                         .build();
 
@@ -148,7 +153,9 @@ public class CustomSkull {
             CustomBlockComponents components = new GeyserCustomBlockComponents.CustomBlockComponentsBuilder()
                     .selectionBox(WALL_BOX)
                     .collisionBox(WALL_BOX)
-                    .geometry("geometry.geyser.player_skull_wall")
+                    .geometry(new GeometryComponentBuilder()
+                            .identifier("geometry.geyser.player_skull_wall")
+                            .build())
                     .transformation(new TransformationComponent(0, ROTATIONS[i], 0))
                     .build();
 

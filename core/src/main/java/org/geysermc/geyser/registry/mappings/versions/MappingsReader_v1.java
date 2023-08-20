@@ -43,6 +43,7 @@ import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents.CustomBlockComponentsBuilder;
 import org.geysermc.geyser.level.block.GeyserCustomBlockData.CustomBlockDataBuilder;
+import org.geysermc.geyser.level.block.GeyserGeometryComponent.GeometryComponentBuilder;
 import org.geysermc.geyser.level.block.GeyserMaterialInstance.MaterialInstanceBuilder;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -225,7 +226,7 @@ public class MappingsReader_v1 extends MappingsReader {
         if (node.has("creative_category")) {
             String categoryName = node.get("creative_category").asText();
             try {
-                creativeCategory = CreativeCategory.valueOf(categoryName);
+                creativeCategory = CreativeCategory.valueOf(categoryName.toUpperCase());
             } catch (IllegalArgumentException e) {
                 throw new InvalidCustomMappingsFileException("Invalid creative category \"" + categoryName + "\" for block \"" + name + "\"");
             }
@@ -383,7 +384,28 @@ public class MappingsReader_v1 extends MappingsReader {
         builder.destructibleByMining(destructibleByMining);
 
         if (node.has("geometry")) {
-            builder.geometry(node.get("geometry").asText());
+            if (node.get("geometry").isTextual()) {
+                builder.geometry(new GeometryComponentBuilder()
+                        .identifier(node.get("geometry").asText())
+                        .build());
+            } else {
+                JsonNode geometry = node.get("geometry");
+                GeometryComponentBuilder geometryBuilder = new GeometryComponentBuilder();
+                if (geometry.has("identifier")) {
+                    geometryBuilder.identifier(geometry.get("identifier").asText());
+                }
+                if (geometry.has("bone_visibility")) {
+                    JsonNode boneVisibility = geometry.get("bone_visibility");
+                    if (boneVisibility.isObject()) {
+                        Map<String, String> boneVisibilityMap = new Object2ObjectOpenHashMap<>();
+                        boneVisibility.fields().forEachRemaining(entry -> {
+                            boneVisibilityMap.put(entry.getKey(), entry.getValue().isBoolean() ? (entry.getValue().asBoolean() ? "1" : "0") : entry.getValue().asText());
+                        });
+                        geometryBuilder.boneVisibility(boneVisibilityMap);
+                    }
+                }
+                builder.geometry(geometryBuilder.build());
+            }
         }
 
         String displayName = name;

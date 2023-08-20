@@ -33,6 +33,7 @@ import lombok.Value;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
+import org.geysermc.geyser.api.block.custom.component.GeometryComponent;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.component.PlacementConditions;
 import org.geysermc.geyser.api.block.custom.component.TransformationComponent;
@@ -48,7 +49,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     BoxComponent selectionBox;
     BoxComponent collisionBox;
     String displayName;
-    String geometry;
+    GeometryComponent geometry;
     Map<String, MaterialInstance> materialInstances;
     List<PlacementConditions> placementFilter;
     Float destructibleByMining;
@@ -101,7 +102,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     }
 
     @Override
-    public String geometry() {
+    public GeometryComponent geometry() {
         return geometry;
     }
 
@@ -159,7 +160,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         protected BoxComponent selectionBox;
         protected BoxComponent collisionBox;
         protected String displayName;
-        protected String geometry;
+        protected GeometryComponent geometry;
         protected final Object2ObjectMap<String, MaterialInstance> materialInstances = new Object2ObjectOpenHashMap<>();
         protected List<PlacementConditions> placementFilter;
         protected Float destructibleByMining;
@@ -210,7 +211,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         }
 
         @Override
-        public Builder geometry(String geometry) {
+        public Builder geometry(GeometryComponent geometry) {
             this.geometry = geometry;
             return this;
         }

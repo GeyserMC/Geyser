@@ -67,7 +67,7 @@ public interface CustomBlockComponents {
      *
      * @return The geometry.
      */
-    @Nullable String geometry();
+    @Nullable GeometryComponent geometry();
 
     /**
      * Gets the material instances component
@@ -165,7 +165,7 @@ public interface CustomBlockComponents {
 
         Builder displayName(String displayName);
 
-        Builder geometry(String geometry);
+        Builder geometry(GeometryComponent geometry);
 
         Builder materialInstance(@NonNull String name, @NonNull MaterialInstance materialInstance);
 
