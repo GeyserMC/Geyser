@@ -426,6 +426,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean emulatePost1_18Logic = true;
 
     /**
+     * Whether to emulate pre-1.20 smithing table behavior.
+     * Adapts ViaVersion's furnace UI to one Bedrock can use.
+     * See {@link org.geysermc.geyser.translator.inventory.OldSmithingTableTranslator}.
+     */
+    @Setter
+    private boolean oldSmithingTable = false;
+
+    /**
      * The current attack speed of the player. Used for sending proper cooldown timings.
      * Setting a default fixes cooldowns not showing up on a fresh world.
      */

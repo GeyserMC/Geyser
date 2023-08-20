@@ -28,7 +28,7 @@ package org.geysermc.geyser.text;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.serializer.gson.LegacyHoverEventSerializer;
+import net.kyori.adventure.text.serializer.json.LegacyHoverEventSerializer;
 import net.kyori.adventure.util.Codec;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,9 +40,9 @@ public final class DummyLegacyHoverEventSerializer implements LegacyHoverEventSe
     private final HoverEvent.ShowItem dummyShowItem;
 
     public DummyLegacyHoverEventSerializer() {
-        dummyShowEntity = HoverEvent.ShowEntity.of(Key.key("geysermc", "dummyshowitem"),
+        dummyShowEntity = HoverEvent.ShowEntity.showEntity(Key.key("geysermc", "dummyshowitem"),
                 UUID.nameUUIDFromBytes("entitiesareprettyneat".getBytes(StandardCharsets.UTF_8)));
-        dummyShowItem = HoverEvent.ShowItem.of(Key.key("geysermc", "dummyshowentity"), 0);
+        dummyShowItem = HoverEvent.ShowItem.showItem(Key.key("geysermc", "dummyshowentity"), 0);
     }
 
     @Override
