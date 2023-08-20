@@ -44,7 +44,7 @@ public class GeyserExtensionClassLoader extends URLClassLoader {
     private final ExtensionDescription description;
     private final Object2ObjectMap<String, Class<?>> classes = new Object2ObjectOpenHashMap<>();
 
-    private boolean warned;
+    private boolean warnedForInternalClassLoad;
 
     public GeyserExtensionClassLoader(GeyserExtensionLoader loader, ClassLoader parent, Path path, ExtensionDescription description) throws MalformedURLException {
         super(new URL[] { path.toUri().toURL() }, parent);
@@ -85,7 +85,7 @@ public class GeyserExtensionClassLoader extends URLClassLoader {
         // Don't let extensions load classes from Geyser or minecraft packages without a warning
         if (name.startsWith("org.geysermc.geyser.") || name.startsWith("net.minecraft.")) {
             if (!warned) {
-                GeyserImpl.getInstance().getLogger().warning("Extension " + this.description.name() + " loads class " + name + " from the Geyser package." +
+                GeyserImpl.getInstance().getLogger().warning("Extension " + this.description.name() + " loads class " + name + " from the Geyser package. " +
                         "This can change at any time and break the extension, additionally to causing unexpected behaviour!");
                 warned = true;
             }
