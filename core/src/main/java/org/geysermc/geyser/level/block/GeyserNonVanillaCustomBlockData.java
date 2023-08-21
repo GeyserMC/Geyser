@@ -36,7 +36,6 @@ import java.util.List;
 
 public class GeyserNonVanillaCustomBlockData extends GeyserCustomBlockData implements NonVanillaCustomBlockData {
     private final String namespace;
-    private final String name;
 
     GeyserNonVanillaCustomBlockData(NonVanillaCustomBlockDataBuilder builder) {
         super(builder);
@@ -45,12 +44,11 @@ public class GeyserNonVanillaCustomBlockData extends GeyserCustomBlockData imple
         if (namespace == null) {
             throw new IllegalStateException("Identifier must be set");
         }
-        this.name = builder.name;
     }
 
     @Override
     public @NonNull String identifier() {
-        return this.namespace + ":" + this.name;
+        return this.namespace + ":" + super.name();
     }
 
     @Override
@@ -60,7 +58,6 @@ public class GeyserNonVanillaCustomBlockData extends GeyserCustomBlockData imple
 
     public static class NonVanillaCustomBlockDataBuilder extends CustomBlockDataBuilder implements NonVanillaCustomBlockData.Builder {
         private String namespace;
-        private String name;
 
         @Override
         public NonVanillaCustomBlockDataBuilder namespace(@NonNull String namespace) {
@@ -70,8 +67,7 @@ public class GeyserNonVanillaCustomBlockData extends GeyserCustomBlockData imple
 
         @Override
         public NonVanillaCustomBlockDataBuilder name(@NonNull String name) {
-            this.name = name;
-            return this;
+            return (NonVanillaCustomBlockDataBuilder) super.name(name);
         }
 
         @Override
