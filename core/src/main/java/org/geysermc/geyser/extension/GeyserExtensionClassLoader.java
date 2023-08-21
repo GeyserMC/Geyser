@@ -84,6 +84,10 @@ public class GeyserExtensionClassLoader extends URLClassLoader {
     protected Class<?> findClass(String name, boolean checkGlobal) throws ClassNotFoundException {
         // Don't let extensions load classes from Geyser or minecraft packages without a warning
         if (name.startsWith("org.geysermc.geyser.") || name.startsWith("net.minecraft.")) {
+            if (!this.description.allowInternalCodeReferences()) {
+                throw new ClassNotFoundException(name);
+            }
+
             if (!warnedForInternalClassLoad) {
                 GeyserImpl.getInstance().getLogger().warning("Extension " + this.description.name() + " loads class " + name + " from the Geyser package. " +
                         "This can change at any time and break the extension, additionally to causing unexpected behaviour!");

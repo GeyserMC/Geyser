@@ -46,6 +46,7 @@ public record GeyserExtensionDescription(@NonNull String id,
                                          int minorApiVersion,
                                          int patchApiVersion,
                                          @NonNull String version,
+                                         boolean allowInternalCodeReferences,
                                          @NonNull List<String> authors) implements ExtensionDescription {
 
     private static final Yaml YAML = new Yaml(new CustomClassLoaderConstructor(Source.class.getClassLoader()));
@@ -85,6 +86,8 @@ public record GeyserExtensionDescription(@NonNull String id,
         int minorApi = Integer.parseUnsignedInt(api[1]);
         int patchApi = Integer.parseUnsignedInt(api[2]);
 
+        boolean allowInternalCodeReferences = source.allowInternalCodeReferences;
+
         List<String> authors = new ArrayList<>();
         if (source.author != null) {
             authors.add(source.author);
@@ -93,7 +96,7 @@ public record GeyserExtensionDescription(@NonNull String id,
             authors.addAll(source.authors);
         }
 
-        return new GeyserExtensionDescription(id, name, main, majorApi, minorApi, patchApi, version, authors);
+        return new GeyserExtensionDescription(id, name, main, majorApi, minorApi, patchApi, version, allowInternalCodeReferences, authors);
     }
 
     @NonNull
@@ -113,6 +116,7 @@ public record GeyserExtensionDescription(@NonNull String id,
         String main;
         String api;
         String version;
+        boolean allowInternalCodeReferences;
         String author;
         List<String> authors;
     }

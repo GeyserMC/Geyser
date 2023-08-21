@@ -97,6 +97,13 @@ public interface ExtensionDescription {
     String version();
 
     /**
+     * Whether to allow unsafe internal references.
+     *
+     * @return whether to allow unsafe internal references
+     */
+    boolean allowInternalCodeReferences();
+
+    /**
      * Gets the extension's authors.
      *
      * @return the extension's authors
