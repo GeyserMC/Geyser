@@ -56,6 +56,7 @@ public class BlockMapping {
     @Nonnull
     PistonBehavior pistonBehavior;
     boolean isBlockEntity;
+    boolean isNonVanilla;
 
     /**
      * @return the identifier without the additional block states
