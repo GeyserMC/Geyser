@@ -27,6 +27,7 @@ package org.geysermc.geyser.registry.type;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import lombok.Builder;
 import lombok.Value;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -36,6 +37,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
@@ -71,6 +73,8 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
 
     List<ComponentItemData> componentItemData;
     Int2ObjectMap<String> customIdMappings;
+
+    Object2ObjectMap<CustomBlockData, ItemDefinition> customBlockItemDefinitions;
 
     /**
      * Gets an {@link ItemMapping} from the given {@link ItemStack}.

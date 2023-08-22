@@ -1,0 +1,7 @@
+skull_resource_pack/animations/disable.animation.json
+skull_resource_pack/animations/player_skull.animation.json
+skull_resource_pack/models/blocks/player_skull.geo.json
+skull_resource_pack/models/blocks/player_skull_hand.geo.json
+skull_resource_pack/models/blocks/player_skull_wall.geo.json
+skull_resource_pack/textures/terrain_texture.json
+skull_resource_pack/manifest.json
