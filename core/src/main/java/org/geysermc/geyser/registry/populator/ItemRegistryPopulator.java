@@ -34,6 +34,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.*;
+import org.geysermc.geyser.Constants;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -49,15 +50,18 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.block.custom.CustomBlockData;
+import org.geysermc.geyser.api.block.custom.CustomBlockState;
+import org.geysermc.geyser.api.block.custom.NonVanillaCustomBlockData;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
-import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.*;
 
 import java.io.InputStream;
@@ -176,6 +180,8 @@ public class ItemRegistryPopulator {
             Object2ObjectMap<String, BlockDefinition> bedrockBlockIdOverrides = new Object2ObjectOpenHashMap<>();
             Object2IntMap<String> blacklistedIdentifiers = new Object2IntOpenHashMap<>();
 
+            Object2ObjectMap<CustomBlockData, ItemDefinition> customBlockItemDefinitions = new Object2ObjectOpenHashMap<>();
+
             List<ItemDefinition> buckets = new ObjectArrayList<>();
             List<ItemData> carpets = new ObjectArrayList<>();
 
@@ -249,15 +255,29 @@ public class ItemRegistryPopulator {
 
                 BlockDefinition bedrockBlock = null;
                 Integer firstBlockRuntimeId = entry.getValue().getFirstBlockRuntimeId();
+                BlockDefinition customBlockItemOverride = null;
                 if (firstBlockRuntimeId != null) {
                     BlockDefinition blockOverride = bedrockBlockIdOverrides.get(bedrockIdentifier);
-                    if (blockOverride != null) {
+
+                    // We'll do this here for custom blocks we want in the creative inventory so we can piggyback off the existing logic to find these
+                    // blocks in creativeItems
+                    CustomBlockData customBlockData = BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.getOrDefault(javaItem.javaIdentifier(), null);
+                    if (customBlockData != null) {
+                        // this block has a custom item override and thus we should use its runtime ID for the ItemMapping
+                        if (customBlockData.includedInCreativeInventory()) {
+                            CustomBlockState customBlockState = customBlockData.defaultBlockState();
+                            customBlockItemOverride = blockMappings.getCustomBlockStateDefinitions().getOrDefault(customBlockState, null);
+                        }
+                    }
+
+                    // If it' s a custom block we can't do this because we need to make sure we find the creative item
+                    if (blockOverride != null && customBlockItemOverride == null) {
                         // Straight from BDS is our best chance of getting an item that doesn't run into issues
                         bedrockBlock = blockOverride;
                     } else {
                         // Try to get an example block runtime ID from the creative contents packet, for Bedrock identifier obtaining
-                        int aValidBedrockBlockId = blacklistedIdentifiers.getOrDefault(bedrockIdentifier, -1);
-                        if (aValidBedrockBlockId == -1) {
+                        int aValidBedrockBlockId = blacklistedIdentifiers.getOrDefault(bedrockIdentifier, customBlockItemOverride != null ? customBlockItemOverride.getRuntimeId() : -1);
+                        if (aValidBedrockBlockId == -1 && customBlockItemOverride == null) {
                             // Fallback
                             bedrockBlock = blockMappings.getBedrockBlock(firstBlockRuntimeId);
                         } else {
@@ -273,7 +293,7 @@ public class ItemRegistryPopulator {
                             // and the last, if relevant. We then iterate over all those values and get their Bedrock equivalents
                             Integer lastBlockRuntimeId = entry.getValue().getLastBlockRuntimeId() == null ? firstBlockRuntimeId : entry.getValue().getLastBlockRuntimeId();
                             for (int i = firstBlockRuntimeId; i <= lastBlockRuntimeId; i++) {
-                                GeyserBedrockBlock bedrockBlockRuntimeId = blockMappings.getBedrockBlock(i);
+                                GeyserBedrockBlock bedrockBlockRuntimeId = blockMappings.getVanillaBedrockBlock(i);
                                 NbtMap blockTag = bedrockBlockRuntimeId.getState();
                                 String bedrockName = blockTag.getString("name");
                                 if (!bedrockName.equals(correctBedrockIdentifier)) {
@@ -339,6 +359,12 @@ public class ItemRegistryPopulator {
 
                             // Because we have replaced the Bedrock block ID, we also need to replace the creative contents block runtime ID
                             // That way, creative items work correctly for these blocks
+
+                            // Set our custom block override now if there is one
+                            if (customBlockItemOverride != null) {
+                                bedrockBlock = customBlockItemOverride;
+                            }
+
                             for (int j = 0; j < creativeItems.size(); j++) {
                                 ItemData itemData = creativeItems.get(j);
                                 if (itemData.getDefinition().equals(definition)) {
@@ -347,16 +373,35 @@ public class ItemRegistryPopulator {
                                     }
 
                                     NbtMap states = ((GeyserBedrockBlock) itemData.getBlockDefinition()).getState().getCompound("states");
+
                                     boolean valid = true;
                                     for (Map.Entry<String, Object> nbtEntry : requiredBlockStates.entrySet()) {
-                                        if (!states.get(nbtEntry.getKey()).equals(nbtEntry.getValue())) {
+                                        if (states.getOrDefault(nbtEntry.getKey(), null) == null || !states.get(nbtEntry.getKey()).equals(nbtEntry.getValue())) {
                                             // A required block state doesn't match - this one is not valid
                                             valid = false;
                                             break;
                                         }
                                     }
                                     if (valid) {
-                                        creativeItems.set(j, itemData.toBuilder().blockDefinition(bedrockBlock).build());
+                                        if (customBlockItemOverride != null && customBlockData != null) {
+                                            // Assuming this is a valid custom block override we'll just register it now while we have the creative item
+                                            int customProtocolId = nextFreeBedrockId++;
+                                            mappingItem.setBedrockData(customProtocolId);
+                                            bedrockIdentifier = customBlockData.identifier();
+                                            definition = new SimpleItemDefinition(bedrockIdentifier, customProtocolId, true);
+                                            registry.put(customProtocolId, definition);
+                                            customBlockItemDefinitions.put(customBlockData, definition);
+                                            customIdMappings.put(customProtocolId, bedrockIdentifier);
+                                            
+                                            creativeItems.set(j, itemData.toBuilder()
+                                                .definition(definition)
+                                                .blockDefinition(bedrockBlock)
+                                                .netId(itemData.getNetId())
+                                                .count(1)
+                                                .build());
+                                        } else {
+                                            creativeItems.set(j, itemData.toBuilder().blockDefinition(bedrockBlock).build());
+                                        }
                                         break;
                                     }
                                 }
@@ -397,10 +442,10 @@ public class ItemRegistryPopulator {
                     for (CustomItemData customItem : customItemsToLoad) {
                         int customProtocolId = nextFreeBedrockId++;
 
-                        String customItemName = "geyser_custom:" + customItem.name();
+                        String customItemName = customItem instanceof NonVanillaCustomItemData nonVanillaItem ? nonVanillaItem.identifier() : Constants.GEYSER_CUSTOM_NAMESPACE + ":" + customItem.name();
                         if (!registeredItemNames.add(customItemName)) {
                             if (firstMappingsPass) {
-                                GeyserImpl.getInstance().getLogger().error("Custom item name '" + customItem.name() + "' already exists and was registered again! Skipping...");
+                                GeyserImpl.getInstance().getLogger().error("Custom item name '" + customItemName + "' already exists and was registered again! Skipping...");
                             }
                             continue;
                         }
@@ -516,6 +561,41 @@ public class ItemRegistryPopulator {
                 }
             }
 
+            // Register the item forms of custom blocks
+            if (BlockRegistries.CUSTOM_BLOCKS.get().length != 0) {
+                for (CustomBlockData customBlock : BlockRegistries.CUSTOM_BLOCKS.get()) {
+                    // We might've registered it already with the vanilla blocks so check first
+                    if (customBlockItemDefinitions.containsKey(customBlock)) {
+                        continue;
+                    }
+
+                    // Non-vanilla custom blocks will be handled in the item
+                    // registry, so we don't need to do anything here.
+                    if (customBlock instanceof NonVanillaCustomBlockData) {
+                        continue;
+                    }
+
+                    int customProtocolId = nextFreeBedrockId++;
+                    String identifier = customBlock.identifier();
+
+                    final ItemDefinition definition = new SimpleItemDefinition(identifier, customProtocolId, true);
+                    registry.put(customProtocolId, definition);
+                    customBlockItemDefinitions.put(customBlock, definition);
+                    customIdMappings.put(customProtocolId, identifier);
+
+                    GeyserBedrockBlock bedrockBlock = blockMappings.getCustomBlockStateDefinitions().getOrDefault(customBlock.defaultBlockState(), null);
+
+                    if (bedrockBlock != null && customBlock.includedInCreativeInventory()) {
+                        creativeItems.add(ItemData.builder()
+                                .definition(definition)
+                                .blockDefinition(bedrockBlock)
+                                .netId(creativeNetId.incrementAndGet())
+                                .count(1)
+                                .build());
+                    }
+                }
+            }
+
             ItemMappings itemMappings = ItemMappings.builder()
                     .items(mappings.toArray(new ItemMapping[0]))
                     .creativeItems(creativeItems.toArray(new ItemData[0]))
@@ -527,6 +607,7 @@ public class ItemRegistryPopulator {
                     .componentItemData(componentItemData)
                     .lodestoneCompass(lodestoneEntry)
                     .customIdMappings(customIdMappings)
+                    .customBlockItemDefinitions(customBlockItemDefinitions)
                     .build();
 
             Registries.ITEMS.register(palette.protocolVersion(), itemMappings);
