@@ -270,13 +270,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
             return authType;
         }
 
-        @Setter
-        @JsonProperty("resolve-srv")
-        private boolean resolveSrv = false;
-
         @Override
         public boolean resolveSrv() {
-            return resolveSrv;
+            return false;
         }
 
         @Getter
