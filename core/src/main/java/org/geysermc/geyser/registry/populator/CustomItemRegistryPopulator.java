@@ -325,7 +325,7 @@ public class CustomItemRegistryPopulator {
                 .putInt("speed", 0)
                 .build()
         ));
-
+        
         componentBuilder.putCompound("minecraft:digger",
             NbtMap.builder()
             .putList("destroy_speeds", NbtType.COMPOUND, speed)
