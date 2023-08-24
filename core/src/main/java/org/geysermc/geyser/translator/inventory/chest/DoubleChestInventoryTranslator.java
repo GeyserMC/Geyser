@@ -57,30 +57,32 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         // See BlockInventoryHolder - same concept there except we're also dealing with a specific block state
         if (session.getLastInteractionPlayerPosition().equals(session.getPlayerEntity().getPosition())) {
             int javaBlockId = session.getGeyser().getWorldManager().getBlockAt(session, session.getLastInteractionBlockPosition());
-            String[] javaBlockString = BlockRegistries.JAVA_BLOCKS.getOrDefault(javaBlockId, BlockMapping.AIR).getJavaIdentifier().split("\\[");
-            if (javaBlockString.length > 1 && (javaBlockString[0].equals("minecraft:chest") || javaBlockString[0].equals("minecraft:trapped_chest"))
-                    && !javaBlockString[1].contains("type=single")) {
-                inventory.setHolderPosition(session.getLastInteractionBlockPosition());
-                ((Container) inventory).setUsingRealBlock(true, javaBlockString[0]);
+            if (!BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get().containsKey(javaBlockId)) {
+                String[] javaBlockString = BlockRegistries.JAVA_BLOCKS.getOrDefault(javaBlockId, BlockMapping.AIR).getJavaIdentifier().split("\\[");
+                if (javaBlockString.length > 1 && (javaBlockString[0].equals("minecraft:chest") || javaBlockString[0].equals("minecraft:trapped_chest"))
+                        && !javaBlockString[1].contains("type=single")) {
+                    inventory.setHolderPosition(session.getLastInteractionBlockPosition());
+                    ((Container) inventory).setUsingRealBlock(true, javaBlockString[0]);
 
-                NbtMapBuilder tag = NbtMap.builder()
-                        .putString("id", "Chest")
-                        .putInt("x", session.getLastInteractionBlockPosition().getX())
-                        .putInt("y", session.getLastInteractionBlockPosition().getY())
-                        .putInt("z", session.getLastInteractionBlockPosition().getZ())
-                        .putString("CustomName", inventory.getTitle())
-                        .putString("id", "Chest");
+                    NbtMapBuilder tag = NbtMap.builder()
+                            .putString("id", "Chest")
+                            .putInt("x", session.getLastInteractionBlockPosition().getX())
+                            .putInt("y", session.getLastInteractionBlockPosition().getY())
+                            .putInt("z", session.getLastInteractionBlockPosition().getZ())
+                            .putString("CustomName", inventory.getTitle())
+                            .putString("id", "Chest");
 
-                DoubleChestValue chestValue = BlockStateValues.getDoubleChestValues().get(javaBlockId);
-                DoubleChestBlockEntityTranslator.translateChestValue(tag, chestValue,
-                        session.getLastInteractionBlockPosition().getX(), session.getLastInteractionBlockPosition().getZ());
+                    DoubleChestValue chestValue = BlockStateValues.getDoubleChestValues().get(javaBlockId);
+                    DoubleChestBlockEntityTranslator.translateChestValue(tag, chestValue,
+                            session.getLastInteractionBlockPosition().getX(), session.getLastInteractionBlockPosition().getZ());
 
-                BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
-                dataPacket.setData(tag.build());
-                dataPacket.setBlockPosition(session.getLastInteractionBlockPosition());
-                session.sendUpstreamPacket(dataPacket);
+                    BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
+                    dataPacket.setData(tag.build());
+                    dataPacket.setBlockPosition(session.getLastInteractionBlockPosition());
+                    session.sendUpstreamPacket(dataPacket);
 
-                return true;
+                    return true;
+                }
             }
         }
 
@@ -90,7 +92,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         }
 
         Vector3i pairPosition = position.add(Vector3i.UNIT_X);
-        BlockDefinition definition = session.getBlockMappings().getBedrockBlock(defaultJavaBlockState);
+        BlockDefinition definition = session.getBlockMappings().getVanillaBedrockBlock(defaultJavaBlockState);
 
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);

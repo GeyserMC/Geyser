@@ -25,11 +25,14 @@
 
 package org.geysermc.geyser.translator.protocol.java.inventory;
 
+import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.ClientboundOpenScreenPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
+import net.kyori.adventure.text.Component;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
+import org.geysermc.geyser.translator.inventory.OldSmithingTableTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -37,6 +40,8 @@ import org.geysermc.geyser.util.InventoryUtils;
 
 @Translator(packet = ClientboundOpenScreenPacket.class)
 public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenScreenPacket> {
+
+    private static final Component SMITHING_TABLE_COMPONENT = Component.translatable("container.upgrade");
 
     @Override
     public void translate(GeyserSession session, ClientboundOpenScreenPacket packet) {
@@ -46,6 +51,12 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
 
         InventoryTranslator newTranslator = InventoryTranslator.inventoryTranslator(packet.getType());
         Inventory openInventory = session.getOpenInventory();
+
+        // Hack: ViaVersion translates the old (pre 1.20) smithing table to a furnace (does not work for Bedrock). We can detect this and translate it back to a smithing table.
+        if (session.isOldSmithingTable() && packet.getType() == ContainerType.FURNACE && packet.getTitle().equals(SMITHING_TABLE_COMPONENT)) {
+            newTranslator = OldSmithingTableTranslator.INSTANCE;
+        }
+
         // No translator exists for this window type. Close all windows and return.
         if (newTranslator == null) {
             if (openInventory != null) {
