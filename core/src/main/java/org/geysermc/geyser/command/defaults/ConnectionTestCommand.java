@@ -36,10 +36,12 @@ import org.geysermc.geyser.util.LoopbackUtil;
 import org.geysermc.geyser.util.WebUtils;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.FileNotFoundException;
+import org.geysermc.geyser.api.util.PlatformType;
 import java.util.concurrent.CompletableFuture;
 
 public class ConnectionTestCommand extends GeyserCommand {
+    public static String CONNECTION_TEST_MOTD = null;
+
     private final GeyserImpl geyser;
 
     public ConnectionTestCommand(GeyserImpl geyser, String name, String description, String permission) {
@@ -133,28 +135,56 @@ public class ConnectionTestCommand extends GeyserCommand {
                             "See here for steps on how to resolve: " + "https://wiki.geysermc.org/geyser/fixing-unable-to-connect-to-world/#using-geyser-on-the-same-computer");
                 }
 
-                // mcsrvstatus will likely be replaced in the future with our own service where we can also test
-                // around the OVH workaround without worrying about caching
-                JsonNode output = WebUtils.getJson("https://api.mcsrvstat.us/bedrock/2/" + args[0]);
+                // Generate some random, unique bits that another server wouldn't provide
+                byte[] random = new byte[2];
+                new Random().nextBytes(random);
+                StringBuilder randomStr = new StringBuilder();
+                for (byte b : random) {
+                    randomStr.append(Integer.toHexString(b));
+                }
+                String connectionTestMotd = "Geyser Connection Test " + randomStr;
+                CONNECTION_TEST_MOTD = connectionTestMotd;
 
-                long cacheTime = output.get("debug").get("cachetime").asLong();
-                String when;
-                if (cacheTime == 0) {
-                    when = "now";
-                } else {
-                    when = ((System.currentTimeMillis() / 1000L) - cacheTime) + " seconds ago";
+                sender.sendMessage("Testing server connection now. Please wait...");
+                JsonNode output;
+                try {
+                    output = WebUtils.getJson("https://checker.geysermc.org/ping?hostname=" + ip + "&port=" + port);
+                } finally {
+                    CONNECTION_TEST_MOTD = null;
                 }
 
-                if (output.get("online").asBoolean()) {
-                    sender.sendMessage("Your server is likely online as of " + when + "!");
+                JsonNode cache = output.get("cache");
+                String when;
+                if (cache.get("fromCache").asBoolean()) {
+                    when = cache.get("secondsSince").asInt() + " seconds ago";
+                } else {
+                    when = "now";
+                }
+
+                if (output.get("success").asBoolean()) {
+                    JsonNode ping = output.get("ping");
+                    JsonNode pong = ping.get("pong");
+                    String remoteMotd = pong.get("motd").asText();
+                    if (!connectionTestMotd.equals(remoteMotd)) {
+                        sender.sendMessage("The MOTD did not match when we pinged the server (we got '" + remoteMotd + "'). " +
+                                "Did you supply the correct IP and port?");
+                        sendLinks(sender);
+                        return;
+                    }
+
+                    if (ping.get("tcpFirst").asBoolean()) {
+                        sender.sendMessage("Your server hardware likely has some sort of firewall preventing people from joining easily. See LINK for more information.");
+                        sendLinks(sender);
+                        return;
+                    }
+
+                    sender.sendMessage("Your server is likely online and working as of " + when + "!");
                     sendLinks(sender);
                     return;
                 }
 
                 sender.sendMessage("Your server is likely unreachable from outside the network as of " + when + ".");
                 sendLinks(sender);
-            } catch (FileNotFoundException e) {
-                sender.sendMessage("Specify a valid IP or domain to check!");
             } catch (Exception e) {
                 sender.sendMessage("An error occurred while trying to check your connection! Check the console for more information.");
                 geyser.getLogger().error("Error while trying to check your connection!", e);
