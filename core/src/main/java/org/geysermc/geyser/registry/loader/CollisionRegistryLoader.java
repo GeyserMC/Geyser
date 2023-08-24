@@ -79,6 +79,11 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
         Map<BlockCollision, BlockCollision> collisionInstances = new Object2ObjectOpenHashMap<>();
         for (int i = 0; i < blockMappings.length; i++) {
             BlockMapping blockMapping = blockMappings[i];
+            if (blockMapping == null) {
+                GeyserImpl.getInstance().getLogger().warning("Missing block mapping for Java block " + i);
+                continue;
+            }
+
             BlockCollision newCollision = instantiateCollision(blockMapping, annotationMap, collisionList);
 
             if (newCollision != null) {

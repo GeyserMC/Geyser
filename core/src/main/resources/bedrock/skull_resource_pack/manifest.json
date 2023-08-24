@@ -1,0 +1,17 @@
+{
+	"format_version": 2,
+	"header": {
+		"name": "Geyser Player Skull Resource Pack",
+		"description": "Auto-generated resource pack to support player skulls as custom blocks",
+		"uuid": "${uuid1}",
+		"version": [1, 0, 0],
+		"min_engine_version": [1, 16, 0]
+	},
+	"modules": [
+		{
+			"type": "resources",
+			"uuid": "${uuid2}",
+			"version": [1, 0, 0]
+		}
+	]
+}
