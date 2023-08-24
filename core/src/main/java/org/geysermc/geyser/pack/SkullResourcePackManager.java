@@ -139,6 +139,11 @@ public class SkullResourcePackManager {
     }
 
     public static void cleanSkullSkinCache() {
+        // No need to clean up if skin cache does not exist
+        if (!Files.exists(SKULL_SKIN_CACHE_PATH)) {
+            return;
+        }
+
         try (Stream<Path> stream = Files.list(SKULL_SKIN_CACHE_PATH)) {
             int removeCount = 0;
             for (Path path : stream.toList()) {
