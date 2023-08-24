@@ -36,7 +36,7 @@ import org.geysermc.geyser.util.LoopbackUtil;
 import org.geysermc.geyser.util.WebUtils;
 import org.jetbrains.annotations.Nullable;
 
-import org.geysermc.geyser.api.util.PlatformType;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
 public class ConnectionTestCommand extends GeyserCommand {
@@ -58,12 +58,14 @@ public class ConnectionTestCommand extends GeyserCommand {
         }
 
         if (args.length == 0) {
-            sender.sendMessage("Provide the Bedrock server IP and port you are trying to connect with. Example: `test.geysermc.org:19132`");
+            sender.sendMessage("Provide the server IP and port you are trying to test Bedrock connections for. Example: `test.geysermc.org:19132`");
             return;
         }
 
+        // Replace "<" and ">" symbols if they are present to avoid the common issue of people including them
+        String[] fullAddress = args[0].replace("<", "").replace(">", "").split(":", 2);
+
         // Still allow people to not supply a port and fallback to 19132
-        String[] fullAddress = args[0].split(":", 2);
         int port;
         if (fullAddress.length == 2) {
             try {
@@ -79,7 +81,7 @@ public class ConnectionTestCommand extends GeyserCommand {
         String ip = fullAddress[0];
 
         // Issue: people commonly checking placeholders
-        if (ip.equals("<ip>")) {
+        if (ip.equals("ip")) {
             sender.sendMessage(ip + " is not a valid IP, and instead a placeholder. Please specify the IP to check.");
             return;
         }
@@ -99,12 +101,17 @@ public class ConnectionTestCommand extends GeyserCommand {
         // Issue: do the ports not line up?
         if (port != geyser.getConfig().getBedrock().port()) {
             if (fullAddress.length == 2) {
-                sender.sendMessage("The port you supplied (" + port + ") does not match the port in your Geyser configuration ("
-                    + geyser.getConfig().getBedrock().port() + "). Re-run the command with the the port in the config, or change it under `bedrock` `port`.");
+                sender.sendMessage("The port you are testing with (" + port + ") is not the same as you set in your Geyser configuration ("
+                    + geyser.getConfig().getBedrock().port() + "). Re-run the command with the port in the config, or change the `bedrock` `port` in the config.");
+                if (geyser.getConfig().getBedrock().isCloneRemotePort()) {
+                    sender.sendMessage("You have `clone-remote-port` enabled. This makes Geyser ignore the port set in `bedrock` `port` and instead use the Java server port.");
+                }
+                return;
             } else {
                 sender.sendMessage("You did not specify the port to check (add it with \":<port>\"), " +
                         "and the default port 19132 does not match the port in your Geyser configuration ("
                         + geyser.getConfig().getBedrock().port() + ")! Re-run the command with the port in the config, or change it under `bedrock` `port`.");
+                return;
             }
         }
 
@@ -167,7 +174,7 @@ public class ConnectionTestCommand extends GeyserCommand {
                     String remoteMotd = pong.get("motd").asText();
                     if (!connectionTestMotd.equals(remoteMotd)) {
                         sender.sendMessage("The MOTD did not match when we pinged the server (we got '" + remoteMotd + "'). " +
-                                "Did you supply the correct IP and port?");
+                                "Did you supply the correct IP and port of your server?");
                         sendLinks(sender);
                         return;
                     }
@@ -193,8 +200,8 @@ public class ConnectionTestCommand extends GeyserCommand {
     }
 
     private void sendLinks(GeyserCommandSource sender) {
-        sender.sendMessage("If you still have issues, check to see if your hosting provider has a specific setup: " +
-                "https://wiki.geysermc.org/geyser/supported-hosting-providers/" + ", see this page: "
+        sender.sendMessage("If you still have issues, check our setup guide for specific setup instructions: " +
+                "https://wiki.geysermc.org/geyser/setup/" + ", see this page: "
                 + "https://wiki.geysermc.org/geyser/fixing-unable-to-connect-to-world/" + ", or contact us on our Discord: " + "https://discord.gg/geysermc");
     }
 
