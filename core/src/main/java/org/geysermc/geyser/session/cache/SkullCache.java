@@ -98,8 +98,6 @@ public class SkullCache {
                 if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
                     e.printStackTrace();
                 }
-            } catch (IllegalArgumentException ignored) {
-                // no-op
             }
         }
         skull.blockState = blockState;
