@@ -339,7 +339,7 @@ public class MappingsReader_v1 extends MappingsReader {
         CustomBlockData customBlockData = customBlockDataBuilder
                 .permutations(permutations)
                 .build();
-        // Build CustomBlockStates for each Java block staFte we wish to override
+        // Build CustomBlockStates for each Java block state we wish to override
         Map<String, CustomBlockStateMapping> states = blockStateBuilders.entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey, e -> new CustomBlockStateMapping(e.getValue().builder().apply(customBlockData.blockStateBuilder()), e.getValue().extendedCollisionBox())));
 
