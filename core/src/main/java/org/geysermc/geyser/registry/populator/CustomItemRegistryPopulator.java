@@ -41,9 +41,7 @@ import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.components.ToolBreakSpeedsUtils;
 import org.geysermc.geyser.item.components.WearableSlot;
-import org.geysermc.geyser.item.mappings.MappingsConfigReader;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
@@ -273,14 +271,14 @@ public class CustomItemRegistryPopulator {
         componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", customItemData.displayName()).build());
 
         // Add a Geyser tag to the item, allowing Molang queries
-        setItemTag(componentBuilder, "geyser_custom:is_custom");
+        addItemTag(componentBuilder, "geyser_custom:is_custom");
 
         // Add other defined tags to the item
         Set<String> tags = customItemData.tags();
         if (tags != null) {
             for (String tag : tags) {
                 if (tag != null && !tag.isBlank()) {
-                    setItemTag(componentBuilder, "geyser_custom:is_" + tag);
+                    addItemTag(componentBuilder, "geyser_custom:is_" + tag);
                 }
             }
         }
@@ -522,7 +520,7 @@ public class CustomItemRegistryPopulator {
     }
 
     @SuppressWarnings("unchecked")
-    private static void setItemTag(NbtMapBuilder builder, String tag) {
+    private static void addItemTag(NbtMapBuilder builder, String tag) {
         List<String> tagList = (List<String>) builder.get("item_tags");
         if (tagList == null) {
             builder.putList("item_tags", NbtType.STRING, tag);

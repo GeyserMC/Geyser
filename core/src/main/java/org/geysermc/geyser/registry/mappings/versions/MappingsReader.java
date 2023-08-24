@@ -32,8 +32,6 @@ import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
 
 import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.function.BiConsumer;
 
 public abstract class MappingsReader {
@@ -94,22 +92,5 @@ public abstract class MappingsReader {
                 tmpNode.get("y").floatValue(),
                 tmpNode.get("z").floatValue()
         );
-    }
-
-    protected Set<String> getTags(JsonNode node) {
-        if (node == null || !node.isArray()) {
-            return null;
-        }
-
-        Set<String> tags = new HashSet<>();
-        for (JsonNode tag : node) {
-            if (tag != null && tag.isTextual()) {
-                String tagContent = tag.asText();
-                if (!tagContent.isBlank()) {
-                    tags.add(tagContent);
-                }
-            }
-        }
-        return tags;
     }
 }

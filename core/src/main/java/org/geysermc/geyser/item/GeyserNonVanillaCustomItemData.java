@@ -60,8 +60,8 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     private final boolean isChargeable;
 
     public GeyserNonVanillaCustomItemData(NonVanillaCustomItemDataBuilder builder) {
-        super(builder.name, builder.customItemOptions, builder.displayName, builder.icon, builder.tags, builder.allowOffhand,
-                builder.displayHandheld, builder.textureSize, builder.renderOffsets);
+        super(builder.name, builder.customItemOptions, builder.displayName, builder.icon, builder.allowOffhand,
+                builder.displayHandheld, builder.textureSize, builder.renderOffsets, builder.tags);
 
         this.identifier = builder.identifier;
         this.javaId = builder.javaId;
@@ -228,11 +228,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder tags(@Nullable Set<String> tags) {
-            return (NonVanillaCustomItemData.Builder) super.tags(tags);
-        }
-
-        @Override
         public NonVanillaCustomItemData.Builder textureSize(int textureSize) {
             return (NonVanillaCustomItemData.Builder) super.textureSize(textureSize);
         }
@@ -240,6 +235,11 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         @Override
         public NonVanillaCustomItemData.Builder renderOffsets(CustomRenderOffsets renderOffsets) {
             return (NonVanillaCustomItemData.Builder) super.renderOffsets(renderOffsets);
+        }
+
+        @Override
+        public NonVanillaCustomItemData.Builder tags(@Nullable Set<String> tags) {
+            return (NonVanillaCustomItemData.Builder) super.tags(tags);
         }
 
         @Override

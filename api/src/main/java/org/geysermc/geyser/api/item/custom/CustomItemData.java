@@ -64,13 +64,6 @@ public interface CustomItemData {
     @NonNull String icon();
 
     /**
-     * Gets the item's tags to use in Molang.
-     *
-     * @return the item's tags, if they exist
-     */
-    @Nullable Set<String> tags();
-
-    /**
      * Gets if the item is allowed to be put into the offhand.
      *
      * @return true if the item is allowed to be used in the offhand, false otherwise
@@ -98,6 +91,13 @@ public interface CustomItemData {
      */
     @Nullable CustomRenderOffsets renderOffsets();
 
+    /**
+     * Gets the item's tags to use in Molang.
+     *
+     * @return the item's tags, if they exist
+     */
+    @Nullable Set<String> tags();
+
     static CustomItemData.Builder builder() {
         return GeyserApi.api().provider(CustomItemData.Builder.class);
     }
@@ -114,8 +114,6 @@ public interface CustomItemData {
 
         Builder icon(@NonNull String icon);
 
-        Builder tags(@Nullable Set<String> tags);
-
         Builder allowOffhand(boolean allowOffhand);
 
         Builder displayHandheld(boolean displayHandheld);
@@ -123,6 +121,8 @@ public interface CustomItemData {
         Builder textureSize(int textureSize);
 
         Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets);
+
+        Builder tags(@Nullable Set<String> tags);
 
         CustomItemData build();
     }
