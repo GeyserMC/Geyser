@@ -102,16 +102,16 @@ public class ConnectionTestCommand extends GeyserCommand {
         if (port != geyser.getConfig().getBedrock().port()) {
             if (fullAddress.length == 2) {
                 sender.sendMessage("The port you are testing with (" + port + ") is not the same as you set in your Geyser configuration ("
-                    + geyser.getConfig().getBedrock().port() + "). Re-run the command with the port in the config, or change the `bedrock` `port` in the config.");
+                    + geyser.getConfig().getBedrock().port() + ")");
+                sender.sendMessage("Re-run the command with the port in the config, or change the `bedrock` `port` in the config.");
                 if (geyser.getConfig().getBedrock().isCloneRemotePort()) {
-                    sender.sendMessage("You have `clone-remote-port` enabled. This makes Geyser ignore the port set in `bedrock` `port` and instead use the Java server port.");
+                    sender.sendMessage("You have `clone-remote-port` enabled. This option ignores the `bedrock` `port` in the config, and uses the Java server port instead.");
                 }
-                return;
             } else {
                 sender.sendMessage("You did not specify the port to check (add it with \":<port>\"), " +
                         "and the default port 19132 does not match the port in your Geyser configuration ("
-                        + geyser.getConfig().getBedrock().port() + ")! Re-run the command with the port in the config, or change it under `bedrock` `port`.");
-                return;
+                        + geyser.getConfig().getBedrock().port() + ")! ");
+                sender.sendMessage("Re-run the command with that port, or change the port in the config under `bedrock` `port`.");
             }
         }
 
@@ -200,9 +200,9 @@ public class ConnectionTestCommand extends GeyserCommand {
     }
 
     private void sendLinks(GeyserCommandSource sender) {
-        sender.sendMessage("If you still have issues, check our setup guide for specific setup instructions: " +
-                "https://wiki.geysermc.org/geyser/setup/" + ", see this page: "
-                + "https://wiki.geysermc.org/geyser/fixing-unable-to-connect-to-world/" + ", or contact us on our Discord: " + "https://discord.gg/geysermc");
+        sender.sendMessage("If you still face issues, check the setup guide for instructions: " +
+                "https://wiki.geysermc.org/geyser/setup/");
+        sender.sendMessage("If that does not work, see " + "https://wiki.geysermc.org/geyser/fixing-unable-to-connect-to-world/" + ", or contact us on Discord: " + "https://discord.gg/geysermc");
     }
 
     @Override
