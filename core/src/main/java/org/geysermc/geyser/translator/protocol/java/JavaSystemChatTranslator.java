@@ -52,7 +52,7 @@ public class JavaSystemChatTranslator extends PacketTranslator<ClientboundSystem
         textPacket.setPlatformChatId("");
         textPacket.setSourceName("");
         textPacket.setXuid(session.getAuthData().xuid());
-        textPacket.setType(packet.isOverlay() ? TextPacket.Type.TIP : TextPacket.Type.SYSTEM);
+        textPacket.setType(packet.isOverlay() ? TextPacket.Type.JUKEBOX_POPUP : TextPacket.Type.SYSTEM);
 
         textPacket.setNeedsTranslation(false);
         textPacket.setMessage(MessageTranslator.convertMessage(packet.getContent(), session.locale()));

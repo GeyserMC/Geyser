@@ -1,0 +1,57 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:attachable": {
+    "description": {
+      "identifier": "${identifier}",
+      "materials": {
+        "default": "entity_alphatest",
+        "enchanted": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/blocks/${texture}",
+        "enchanted": "textures/misc/enchanted_item_glint"
+      },
+      "geometry": {
+        "default": "geometry.geyser.player_skull"
+      },
+      "scripts": {
+        "pre_animation": [
+          "v.main_hand = c.item_slot == 'main_hand';",
+          "v.off_hand = c.item_slot == 'off_hand';",
+          "v.head = c.item_slot == 'head';"
+        ],
+        "animate": [
+          {
+            "thirdperson_main_hand": "v.main_hand && !c.is_first_person"
+          },
+          {
+            "thirdperson_off_hand": "v.off_hand && !c.is_first_person"
+          },
+          {
+            "thirdperson_head": "v.head && !c.is_first_person"
+          },
+          {
+            "firstperson_main_hand": "v.main_hand && c.is_first_person"
+          },
+          {
+            "firstperson_off_hand": "v.off_hand && c.is_first_person"
+          },
+          {
+            "firstperson_head": "v.head && c.is_first_person || query.is_owner_identifier_any('minecraft:player')"
+          }
+        ]
+      },
+      "animations": {
+        "thirdperson_main_hand": "animation.geyser.player_skull.thirdperson_main_hand",
+        "thirdperson_off_hand": "animation.geyser.player_skull.thirdperson_off_hand",
+        "thirdperson_head": "animation.geyser.player_skull.head",
+        "firstperson_main_hand": "animation.geyser.player_skull.firstperson_main_hand",
+        "firstperson_off_hand": "animation.geyser.player_skull.firstperson_off_hand",
+        "firstperson_head": "animation.geyser.disable"
+      },
+      "render_controllers": [
+        "controller.render.item_default"
+      ]
+    }
+  }
+}
