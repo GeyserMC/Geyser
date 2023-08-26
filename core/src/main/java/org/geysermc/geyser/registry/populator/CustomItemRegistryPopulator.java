@@ -271,14 +271,14 @@ public class CustomItemRegistryPopulator {
         componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", customItemData.displayName()).build());
 
         // Add a Geyser tag to the item, allowing Molang queries
-        addItemTag(componentBuilder, "geyser_custom:is_custom");
+        addItemTag(componentBuilder, "geyser:is_custom");
 
         // Add other defined tags to the item
         Set<String> tags = customItemData.tags();
         if (tags != null) {
             for (String tag : tags) {
                 if (tag != null && !tag.isBlank()) {
-                    addItemTag(componentBuilder, "geyser_custom:is_" + tag);
+                    addItemTag(componentBuilder, "geyser:is_" + tag);
                 }
             }
         }
