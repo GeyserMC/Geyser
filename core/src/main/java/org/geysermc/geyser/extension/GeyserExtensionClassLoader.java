@@ -42,6 +42,7 @@ public class GeyserExtensionClassLoader extends URLClassLoader {
     private final GeyserExtensionLoader loader;
 
     private final ExtensionDescription description;
+
     private final Object2ObjectMap<String, Class<?>> classes = new Object2ObjectOpenHashMap<>();
 
     private boolean warnedForInternalClassLoad;
@@ -82,10 +83,11 @@ public class GeyserExtensionClassLoader extends URLClassLoader {
     }
 
     protected Class<?> findClass(String name, boolean checkGlobal) throws ClassNotFoundException {
-        // Don't let extensions load classes from Geyser or minecraft packages without a warning
+        // Don't let extensions load classes from Geyser or Minecraft packages without a warning
         if (name.startsWith("org.geysermc.geyser.") || name.startsWith("net.minecraft.")) {
             if (!this.description.allowInternalCodeReferences()) {
-                throw new ClassNotFoundException(name);
+                throw new ClassNotFoundException("Extension " + this.description.name() + " tried to load class " + name + ". This unsafe classloading is disabled by default, " +
+                        "but can be manually enabled by setting allowInternalCodeReferences to true in the extension.yml.");
             }
 
             if (!warnedForInternalClassLoad) {
