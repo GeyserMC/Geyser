@@ -935,7 +935,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         } else {
             downstream = new TcpClientSession(this.remoteServer.address(), this.remoteServer.port(), this.protocol);
             this.downstream = new DownstreamSession(downstream);
-            disableSrvResolving();
+
+            boolean resolveSrv = false;
+            try {
+                resolveSrv = this.remoteServer.resolveSrv();
+            } catch (AbstractMethodError | NoSuchMethodError ignored) {
+                // Ignore if the method doesn't exist
+                // This will happen with extensions using old APIs
+            }
+            this.downstream.getSession().setFlag(BuiltinFlags.ATTEMPT_SRV_RESOLVE, resolveSrv);
         }
 
         if (geyser.getConfig().getRemote().isUseProxyProtocol()) {
@@ -1417,13 +1425,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         ServerboundPlayerActionPacket swapHandsPacket = new ServerboundPlayerActionPacket(PlayerAction.SWAP_HANDS, Vector3i.ZERO,
                 Direction.DOWN, 0);
         sendDownstreamPacket(swapHandsPacket);
-    }
-
-    /**
-     * Will be overwritten for GeyserConnect.
-     */
-    protected void disableSrvResolving() {
-        this.downstream.getSession().setFlag(BuiltinFlags.ATTEMPT_SRV_RESOLVE, false);
     }
 
     @Override
