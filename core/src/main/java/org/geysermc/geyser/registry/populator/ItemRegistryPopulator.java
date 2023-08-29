@@ -87,27 +87,7 @@ public class ItemRegistryPopulator {
     }
 
     public static void populate() {
-        // Used for the 1.19.80 item palette
-        Map<Item, String> legacyJavaOnly = new HashMap<>();
-        legacyJavaOnly.put(Items.MUSIC_DISC_RELIC, "minecraft:music_disc_wait");
-        legacyJavaOnly.put(Items.PITCHER_PLANT, "minecraft:chorus_flower");
-        legacyJavaOnly.put(Items.PITCHER_POD, "minecraft:beetroot");
-        legacyJavaOnly.put(Items.SNIFFER_EGG, "minecraft:sniffer_spawn_egg"); // the BlockItem of the sniffer egg block
-
         List<PaletteVersion> paletteVersions = new ArrayList<>(2);
-        paletteVersions.add(new PaletteVersion("1_19_80", Bedrock_v582.CODEC.getProtocolVersion(), legacyJavaOnly, (item, mapping) -> {
-            // Backward-map 1.20 mappings to 1.19.80
-            String id = item.javaIdentifier();
-            if (id.endsWith("pottery_sherd")) {
-                return mapping.withBedrockIdentifier(id.replace("sherd", "shard"));
-            } else if (id.endsWith("carpet") && !id.startsWith("minecraft:moss")) {
-                return mapping.withBedrockIdentifier("minecraft:carpet");
-            } else if (id.endsWith("coral")) {
-                return mapping.withBedrockIdentifier("minecraft:coral");
-            }
-
-            return mapping;
-        }));
         paletteVersions.add(new PaletteVersion("1_20_0", Bedrock_v589.CODEC.getProtocolVersion()));
         paletteVersions.add(new PaletteVersion("1_20_10", Bedrock_v594.CODEC.getProtocolVersion(), Collections.emptyMap(), (item, mapping) -> {
             // Forward-map 1.20 mappings to 1.20.10

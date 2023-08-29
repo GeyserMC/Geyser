@@ -60,9 +60,6 @@ public final class GameProtocol {
     private static final PacketCodec DEFAULT_JAVA_CODEC = MinecraftCodec.CODEC;
 
     static {
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v582.CODEC.toBuilder()
-                .minecraftVersion("1.19.80/1.19.81")
-                .build());
         SUPPORTED_BEDROCK_CODECS.add(Bedrock_v589.CODEC);
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
     }
@@ -79,16 +76,6 @@ public final class GameProtocol {
             }
         }
         return null;
-    }
-
-    /* Bedrock convenience methods to gatekeep features and easily remove the check on version removal */
-
-    public static boolean isPre1_20(GeyserSession session) {
-        return session.getUpstream().getProtocolVersion() < Bedrock_v589.CODEC.getProtocolVersion();
-    }
-
-    public static boolean isPre1_20_10(GeyserSession session) {
-        return session.getUpstream().getProtocolVersion() < Bedrock_v594.CODEC.getProtocolVersion();
     }
 
     /**
