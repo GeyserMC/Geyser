@@ -8,7 +8,7 @@ repositories {
 }
 
 dependencies {
-    implementation("net.kyori", "indra-common", "3.0.1")
+    implementation("net.kyori", "indra-common", "3.1.1")
     implementation("com.github.johnrengelman", "shadow", "7.1.3-SNAPSHOT")
 
     // Within the gradle plugin classpath, there is a version conflict between loom and some other

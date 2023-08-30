@@ -29,6 +29,7 @@ import cloud.commandframework.Command;
 import cloud.commandframework.CommandManager;
 import cloud.commandframework.context.CommandContext;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
+import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommand;
@@ -93,7 +94,7 @@ public class VersionCommand extends GeyserCommand {
                         source.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.no_updates", source.locale()));
                     } else {
                         source.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.outdated",
-                                source.locale(), (latestBuildNum - buildNum), "https://ci.geysermc.org/"));
+                                source.locale(), (latestBuildNum - buildNum), Constants.GEYSER_DOWNLOAD_LOCATION));
                     }
                 } else {
                     throw new AssertionError("buildNumber missing");

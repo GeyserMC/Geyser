@@ -4,7 +4,9 @@ dependencies {
         isTransitive = false
     }
 
-    implementation(libs.adapters.spigot)
+    implementation(variantOf(libs.adapters.spigot) {
+        classifier("all") // otherwise the unshaded jar is used without the shaded NMS implementations
+    })
 
     implementation(libs.cloud.paper)
     implementation(libs.commodore)

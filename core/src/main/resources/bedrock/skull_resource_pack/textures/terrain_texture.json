@@ -1,0 +1,8 @@
+{
+  "num_mip_levels": 4,
+  "padding": 8,
+  "resource_pack_name": "Geyser Player Skull Resource Pack",
+  "texture_data": {
+    ${texture_data}
+  }
+}

@@ -65,7 +65,8 @@ public class HelpCommand extends GeyserCommand {
         // todo: pagination
         int page = 1;
         int maxPage = 1;
-        String header = GeyserLocale.getPlayerLocaleString("geyser.commands.help.header", source.locale(), page, maxPage);
+        String translationKey = this.baseCommand.equals("geyser") ? "geyser.commands.help.header" : "geyser.commands.extensions.header";
+        String header = GeyserLocale.getPlayerLocaleString(translationKey, source.locale(), page, maxPage);
         source.sendMessage(header);
 
         this.commands.stream()

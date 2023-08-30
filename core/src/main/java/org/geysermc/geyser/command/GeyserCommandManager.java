@@ -110,7 +110,8 @@ public class GeyserCommandManager {
 
         // Register help commands for all extensions with commands
         for (Map.Entry<Extension, Map<String, Command>> entry : this.extensionCommands.entrySet()) {
-            registerExtensionCommand(entry.getKey(), new HelpCommand(this.geyser, "help", "geyser.commands.exthelp.desc", "geyser.command.exthelp", entry.getKey().description().id(), entry.getValue()));
+            String id = entry.getKey().description().id();
+            registerExtensionCommand(entry.getKey(), new HelpCommand(this.geyser, "help", "geyser.commands.exthelp.desc", "geyser.command.exthelp." + id, id, entry.getValue()));
         }
     }
 

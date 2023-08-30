@@ -38,7 +38,6 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.player.Player;
 import org.apache.logging.log4j.LogManager;
-import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
@@ -212,7 +211,6 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
         return this.server.getServerVersion();
     }
 
-    @SuppressWarnings("ConstantConditions") // IDEA thinks that ip cannot be null
     @NotNull
     @Override
     public String getServerBindAddress() {

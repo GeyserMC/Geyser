@@ -25,11 +25,16 @@
 
 package org.geysermc.geyser.registry.loader;
 
+import org.geysermc.geyser.api.pack.ResourcePack;
 import org.junit.jupiter.api.Test;
 
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
+import java.util.Objects;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -53,5 +58,27 @@ public class ResourcePackLoaderTest {
         assertFalse(matcher.matches(Path.of("resource.pack")));
         assertFalse(matcher.matches(Path.of("pack.7zip")));
         assertFalse(matcher.matches(Path.of("packs")));
+    }
+
+    @Test
+    public void testPack() throws Exception {
+        // this mcpack only contains a folder, which the manifest is in
+        Path path = getResource("empty_pack.mcpack");
+        ResourcePack pack = ResourcePackLoader.readPack(path);
+        assertEquals("", pack.contentKey());
+        // should probably add some more tests here related to the manifest
+    }
+
+    @Test
+    public void testEncryptedPack() throws Exception {
+        // this zip only contains a contents.json and manifest.json at the root
+        Path path = getResource("encrypted_pack.zip");
+        ResourcePack pack = ResourcePackLoader.readPack(path);
+        assertEquals("JAGcSXcXwcODc1YS70GzeWAUKEO172UA", pack.contentKey());
+    }
+
+    private Path getResource(String name) throws URISyntaxException {
+        URL url = Objects.requireNonNull(getClass().getClassLoader().getResource(name), "No resource for name: " + name);
+        return Path.of(url.toURI());
     }
 }
