@@ -163,7 +163,11 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
             builder.then(Commands.literal(command.getKey())
                     .executes(executor)
                     // Could also test for Bedrock but depending on when this is called it may backfire
-                    .requires(executor::testPermission));
+                    .requires(executor::testPermission)
+                    // Allows parsing of arguments; e.g. for /geyser dump logs or the connectiontest command
+                    .then(Commands.argument("args", StringArgumentType.greedyString())
+                            .executes(context -> executor.runWithArgs(context, StringArgumentType.getString(context, "args")))
+                            .requires(executor::testPermission)));
         }
         server.getCommands().getDispatcher().register(builder);
 
