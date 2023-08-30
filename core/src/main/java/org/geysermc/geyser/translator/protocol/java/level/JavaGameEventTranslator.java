@@ -105,12 +105,14 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 GameMode gameMode = (GameMode) packet.getValue();
 
                 SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
-                playerGameTypePacket.setGamemode(gameMode.ordinal());
+                int gamemode = gameMode.ordinal() == 3 ? 6 : gameMode.ordinal();
+                playerGameTypePacket.setGamemode(gamemode);
                 session.sendUpstreamPacket(playerGameTypePacket);
                 session.setGameMode(gameMode);
 
                 session.sendAdventureSettings();
 
+                //TODO CHRIS re-evaluate
                 if (session.getPlayerEntity().isOnGround() && gameMode == GameMode.SPECTATOR) {
                     // Fix a bug where the player has glitched movement and thinks they are still on the ground
                     MovePlayerPacket movePlayerPacket = new MovePlayerPacket();

@@ -113,7 +113,8 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
 
         if (!needsSpawnPacket) {
             SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
-            playerGameTypePacket.setGamemode(packet.getGameMode().ordinal());
+            int gamemode = packet.getGameMode().ordinal() == 3 ? 6 : packet.getGameMode().ordinal();
+            playerGameTypePacket.setGamemode(gamemode);
             session.sendUpstreamPacket(playerGameTypePacket);
         }
 
