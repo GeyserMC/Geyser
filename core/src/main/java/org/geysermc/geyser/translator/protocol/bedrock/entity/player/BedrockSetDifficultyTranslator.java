@@ -44,9 +44,5 @@ public class BedrockSetDifficultyTranslator extends PacketTranslator<SetDifficul
                 session.getGeyser().getWorldManager().setDifficulty(session, Difficulty.from(packet.getDifficulty()));
             }
         }
-        // inform the client
-        SetDifficultyPacket difficultyPacket = new SetDifficultyPacket();
-        difficultyPacket.setDifficulty(session.getWorldCache().getDifficulty().ordinal());
-        session.sendUpstreamPacket(difficultyPacket);
     }
 }
