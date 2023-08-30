@@ -165,6 +165,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
                     // Could also test for Bedrock but depending on when this is called it may backfire
                     .requires(executor::testPermission));
         }
+        server.getCommands().getDispatcher().register(builder);
 
         // Register extension commands
         for (Map.Entry<Extension, Map<String, Command>> extensionMapEntry : geyser.commandManager().extensionCommands().entrySet()) {
@@ -184,13 +185,11 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
                         .executes(executor)
                         .requires(executor::testPermission)
                         .then(Commands.argument("args", StringArgumentType.greedyString())
-                                .executes((context -> executor.runWithArgs(context, StringArgumentType.getString(context, "args"))))
+                                .executes(context -> executor.runWithArgs(context, StringArgumentType.getString(context, "args")))
                                 .requires(executor::testPermission)));
             }
             server.getCommands().getDispatcher().register(extCmdBuilder);
         }
-
-        server.getCommands().getDispatcher().register(builder);
     }
 
     @Override
