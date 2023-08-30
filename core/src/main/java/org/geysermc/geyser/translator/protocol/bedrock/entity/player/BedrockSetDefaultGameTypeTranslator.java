@@ -46,8 +46,7 @@ public class BedrockSetDefaultGameTypeTranslator extends PacketTranslator<SetDef
         // Stop the client from updating their own Gamemode without telling the server
         // Can occur when client Gamemode is set to "default", and default game mode is changed.
         SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
-        int gamemode = session.getGameMode().ordinal() == 3 ? 6 : session.getGameMode().ordinal();
-        playerGameTypePacket.setGamemode(gamemode);
+        playerGameTypePacket.setGamemode(session.getGameMode().ordinal());
         session.sendUpstreamPacket(playerGameTypePacket);
     }
 }
