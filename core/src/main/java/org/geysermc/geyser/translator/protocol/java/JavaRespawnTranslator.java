@@ -60,7 +60,7 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
 
         SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
         int gamemode = packet.getGamemode().ordinal() == 3 ? 6 : packet.getGamemode().ordinal();
-        playerGameTypePacket.setGamemode(packet.getGamemode().ordinal());
+        playerGameTypePacket.setGamemode(gamemode);
         session.sendUpstreamPacket(playerGameTypePacket);
         session.setGameMode(packet.getGamemode());
 
