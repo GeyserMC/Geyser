@@ -30,7 +30,7 @@ import org.apache.logging.log4j.Logger;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
@@ -77,7 +77,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     private GeyserSpongeConfiguration geyserConfig;
     private GeyserSpongeLogger geyserLogger;
     private GeyserImpl geyser;
-    private GeyserCommandManager geyserCommandManager;
+    private CommandRegistry commandRegistry;
 
     // Available after StartedEngine lifecycle
     private IGeyserPingPassthrough geyserSpongePingPassthrough;
@@ -136,11 +136,11 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
         this.geyser = GeyserImpl.load(PlatformType.SPONGE, this);
 
-        this.geyserCommandManager = new GeyserCommandManager(geyser, Objects.requireNonNull(null)); // todo: commands
+        this.commandRegistry = new CommandRegistry(geyser, Objects.requireNonNull(null)); // todo: commands
     }
 
     /**
-     * Construct the {@link GeyserCommandManager} and register the commands
+     * Construct the {@link CommandRegistry} and register the commands
      *
      * @param event required to register the commands
      */
@@ -185,8 +185,8 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     }
 
     @Override
-    public GeyserCommandManager getGeyserCommandManager() {
-        return geyserCommandManager;
+    public CommandRegistry getCommandRegistry() {
+        return commandRegistry;
     }
 
     @Override

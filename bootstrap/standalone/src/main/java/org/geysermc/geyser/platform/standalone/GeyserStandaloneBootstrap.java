@@ -41,7 +41,7 @@ import org.apache.logging.log4j.core.appender.ConsoleAppender;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.configuration.GeyserJacksonConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
@@ -64,7 +64,7 @@ import java.util.stream.Collectors;
 
 public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
-    private GeyserCommandManager geyserCommandManager;
+    private CommandRegistry commandRegistry;
     private GeyserStandaloneConfiguration geyserConfig;
     private GeyserStandaloneLogger geyserLogger;
     private IGeyserPingPassthrough geyserPingPassthrough;
@@ -221,11 +221,11 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         GeyserImpl.start();
 
         GeyserStandaloneCommandManager cloud = new GeyserStandaloneCommandManager(geyser);
-        geyserCommandManager = new GeyserCommandManager(geyser, cloud);
+        commandRegistry = new CommandRegistry(geyser, cloud);
         cloud.gatherPermissions();
 
         if (gui != null) {
-            gui.enableCommands(geyser.getScheduledThread(), geyserCommandManager);
+            gui.enableCommands(geyser.getScheduledThread(), commandRegistry);
         }
 
         geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
@@ -267,8 +267,8 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     }
 
     @Override
-    public GeyserCommandManager getGeyserCommandManager() {
-        return geyserCommandManager;
+    public CommandRegistry getCommandRegistry() {
+        return commandRegistry;
     }
 
     @Override

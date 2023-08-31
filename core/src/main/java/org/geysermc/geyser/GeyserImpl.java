@@ -61,7 +61,7 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserShutdownEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.erosion.UnixSocketClientListener;
@@ -71,7 +71,6 @@ import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.netty.GeyserServer;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
@@ -601,7 +600,7 @@ public class GeyserImpl implements GeyserApi {
             skinUploader.close();
         }
         newsHandler.shutdown();
-        this.commandManager().clear();
+        this.commandRegistry().clear();
 
         if (this.erosionUnixListener != null) {
             this.erosionUnixListener.close();
@@ -640,8 +639,8 @@ public class GeyserImpl implements GeyserApi {
     }
 
     @NonNull
-    public GeyserCommandManager commandManager() {
-        return this.bootstrap.getGeyserCommandManager();
+    public CommandRegistry commandRegistry() {
+        return this.bootstrap.getCommandRegistry();
     }
 
     @Override

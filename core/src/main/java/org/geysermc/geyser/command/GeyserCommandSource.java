@@ -55,6 +55,10 @@ public interface GeyserCommandSource extends CommandSource {
         sendMessage(GeyserLocale.getPlayerLocaleString(key, locale(), values));
     }
 
+    default void sendLocaleString(String key) {
+        sendMessage(GeyserLocale.getPlayerLocaleString(key, locale()));
+    }
+
     @Override
     default Optional<GeyserSession> connection() {
         return playerUuid().map(id -> GeyserImpl.getInstance().connectionByUuid(id));

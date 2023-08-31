@@ -39,7 +39,7 @@ import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandSourceConverter;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
@@ -65,7 +65,7 @@ import java.util.logging.Level;
 
 public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
-    private GeyserCommandManager geyserCommandManager;
+    private CommandRegistry commandRegistry;
     private GeyserBungeeConfiguration geyserConfig;
     private GeyserBungeeInjector geyserInjector;
     private GeyserBungeeLogger geyserLogger;
@@ -184,7 +184,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             BungeeCommandSource::new,
             sourceConverter::convert
         );
-        this.geyserCommandManager = new GeyserCommandManager(geyser, cloud);
+        this.commandRegistry = new CommandRegistry(geyser, cloud);
 
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserBungeePingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
@@ -214,8 +214,8 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     }
 
     @Override
-    public GeyserCommandManager getGeyserCommandManager() {
-        return this.geyserCommandManager;
+    public CommandRegistry getCommandRegistry() {
+        return this.commandRegistry;
     }
 
     @Override

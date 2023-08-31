@@ -41,8 +41,9 @@ import org.apache.logging.log4j.LogManager;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandSourceConverter;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
@@ -73,7 +74,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     private Path dataFolder;
     private MinecraftServer server;
 
-    private GeyserCommandManager geyserCommandManager;
+    private CommandRegistry commandRegistry;
     private GeyserFabricConfiguration geyserConfig;
     private GeyserFabricLogger geyserLogger;
     private IGeyserPingPassthrough geyserPingPassthrough;
@@ -155,7 +156,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
             FabricCommandSource::new,
             sourceConverter::convert
         );
-        this.geyserCommandManager = new GeyserCommandManager(geyser, cloud);
+        this.commandRegistry = new CommandRegistry(geyser, cloud);
 
         this.geyserWorldManager = new GeyserFabricWorldManager(server);
     }
@@ -182,8 +183,8 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     }
 
     @Override
-    public GeyserCommandManager getGeyserCommandManager() {
-        return geyserCommandManager;
+    public CommandRegistry getCommandRegistry() {
+        return commandRegistry;
     }
 
     @Override
@@ -211,6 +212,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
         return this.server.getServerVersion();
     }
 
+    @SuppressWarnings("ConstantConditions") // Certain IDEA installations think that ip cannot be null
     @NotNull
     @Override
     public String getServerBindAddress() {

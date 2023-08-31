@@ -37,7 +37,7 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionCheckersE
 import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 import org.geysermc.geyser.api.permission.PermissionChecker;
 import org.geysermc.geyser.api.util.TriState;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.util.FileUtils;
 
@@ -73,8 +73,9 @@ public class GeyserStandaloneCommandManager extends CommandManager<GeyserCommand
 
     /**
      * Fire a {@link GeyserRegisterPermissionsEvent} to determine any additions or removals to the base list of
-     * permissions. This should be called after any event listeners have been registered, such as that of {@link GeyserCommandManager}.
+     * permissions. This should be called after any event listeners have been registered, such as that of {@link CommandRegistry}.
      */
+    // todo: doesn't seem like CommandRegistry has a listener anymore? should it? i forget.
     public void gatherPermissions() {
         geyser.getEventBus().fire((GeyserRegisterPermissionsEvent) (permission, def) -> {
             if (def == TriState.TRUE) {

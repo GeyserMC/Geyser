@@ -131,7 +131,6 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.physics.CollisionManager;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -1469,7 +1468,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public boolean hasPermission(String permission) {
         // for Geyser-Standalone, standalone's permission system will handle it.
         // for server platforms, the session will be mapped to a server command sender, and the server's api will be used.
-        return geyser.commandManager().cloud().hasPermission(this, permission);
+        return geyser.commandRegistry().cloud().hasPermission(this, permission);
     }
 
     /**

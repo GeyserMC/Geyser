@@ -27,7 +27,7 @@ package org.geysermc.geyser.platform.standalone.gui;
 
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 
@@ -273,12 +273,12 @@ public class GeyserStandaloneGUI {
      * Enable the command input box.
      *
      * @param executor the executor for running commands off the GUI thread
-     * @param commandManager the command manager to delegate commands to
+     * @param registry the command registry to delegate commands to
      */
-    public void enableCommands(ScheduledExecutorService executor, GeyserCommandManager commandManager) {
+    public void enableCommands(ScheduledExecutorService executor, CommandRegistry registry) {
         // we don't want to block the GUI thread with the command execution
-        // todo: once cloud is used, an AsynchronousCommandExecutionCoordinator can be used to avoid this scheduler
-        commandListener.handler = cmd -> executor.schedule(() -> commandManager.cloud().executeCommand(logger, cmd), 0, TimeUnit.SECONDS);
+        // todo: maybe use a AsynchronousCommandExecutionCoordinator (cloud thing)
+        commandListener.handler = cmd -> executor.execute(() -> registry.runCommand(logger, cmd));
         commandInput.setEnabled(true);
         commandInput.requestFocusInWindow();
     }

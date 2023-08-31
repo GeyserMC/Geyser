@@ -44,7 +44,7 @@ import org.cloudburstmc.protocol.bedrock.data.command.*;
 import org.cloudburstmc.protocol.bedrock.packet.AvailableCommandsPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.inventory.item.Enchantment;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -115,7 +115,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             return;
         }
 
-        GeyserCommandManager manager = session.getGeyser().commandManager();
+        CommandRegistry registry = session.getGeyser().commandRegistry();
         CommandNode[] nodes = packet.getNodes();
         List<CommandData> commandData = new ArrayList<>();
         IntSet commandNodes = new IntOpenHashSet();
@@ -144,7 +144,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             CommandOverloadData[] params = getParams(session, nodes[nodeIndex], nodes);
 
             // Insert the alias name into the command list
-            commands.computeIfAbsent(new BedrockCommandInfo(node.getName().toLowerCase(Locale.ROOT), manager.description(node.getName().toLowerCase(Locale.ROOT)), params),
+            commands.computeIfAbsent(new BedrockCommandInfo(node.getName().toLowerCase(Locale.ROOT), registry.description(node.getName().toLowerCase(Locale.ROOT)), params),
                     index -> new HashSet<>()).add(node.getName().toLowerCase());
         }
 

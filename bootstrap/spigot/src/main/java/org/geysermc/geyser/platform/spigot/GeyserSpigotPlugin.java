@@ -50,7 +50,7 @@ import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.command.CommandSourceConverter;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
@@ -83,7 +83,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
      */
     private static boolean INITIALIZED = false;
 
-    private GeyserCommandManager geyserCommandManager;
+    private CommandRegistry commandRegistry;
     private GeyserSpigotConfiguration geyserConfig;
     private GeyserSpigotInjector geyserInjector;
     private GeyserSpigotLogger geyserLogger;
@@ -187,7 +187,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             }
         }
 
-        this.geyserCommandManager = new GeyserCommandManager(geyser, cloud);
+        this.commandRegistry = new CommandRegistry(geyser, cloud);
 
         if (!INITIALIZED) {
             // Needs to be an anonymous inner class otherwise Bukkit complains about missing classes
@@ -277,7 +277,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         if (!INITIALIZED) {
             // Register permissions so they appear in, for example, LuckPerms' UI
             // Re-registering permissions throws an error
-            for (Map.Entry<String, Command> entry : geyserCommandManager.commands().entrySet()) {
+            for (Map.Entry<String, Command> entry : commandRegistry.commands().entrySet()) {
                 Command command = entry.getValue();
                 if (command.aliases().contains(entry.getKey())) {
                     // Don't register aliases
@@ -290,7 +290,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             }
 
             // Register permissions for extension commands
-            for (Map.Entry<Extension, Map<String, Command>> commandEntry : this.geyserCommandManager.extensionCommands().entrySet()) {
+            for (Map.Entry<Extension, Map<String, Command>> commandEntry : this.commandRegistry.extensionCommands().entrySet()) {
                 for (Map.Entry<String, Command> entry : commandEntry.getValue().entrySet()) {
                     Command command = entry.getValue();
                     if (command.aliases().contains(entry.getKey())) {
@@ -353,8 +353,8 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     }
 
     @Override
-    public GeyserCommandManager getGeyserCommandManager() {
-        return this.geyserCommandManager;
+    public CommandRegistry getCommandRegistry() {
+        return this.commandRegistry;
     }
 
     @Override

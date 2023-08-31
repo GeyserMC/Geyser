@@ -25,11 +25,10 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import cloud.commandframework.CommandManager;
 import org.cloudburstmc.protocol.bedrock.packet.CommandRequestPacket;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -50,10 +49,12 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
             if (args.length > 0) {
                 String root = args[0];
 
-                CommandManager<GeyserCommandSource> manager = GeyserImpl.getInstance().commandManager().cloud();
-                if (manager.rootCommands().contains(root)) {
-                    manager.executeCommand(session, strippedCommand);
-                    return;
+                // todo: do we want to pass the command to the server
+                //  if cloud gives a NoSuchCommandException? might be more accurate.
+                CommandRegistry registry = GeyserImpl.getInstance().commandRegistry();
+                if (registry.cloud().rootCommands().contains(root)) {
+                    registry.runCommand(session, strippedCommand);
+                    return; // don't pass the command to the java server
                 }
             }
         }

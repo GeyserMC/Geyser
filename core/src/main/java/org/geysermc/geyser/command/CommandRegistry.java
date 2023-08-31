@@ -26,15 +26,17 @@
 package org.geysermc.geyser.command;
 
 import cloud.commandframework.CommandManager;
-import cloud.commandframework.arguments.standard.StringArgument;
+import cloud.commandframework.exceptions.ArgumentParseException;
+import cloud.commandframework.exceptions.CommandExecutionException;
+import cloud.commandframework.exceptions.InvalidCommandSenderException;
+import cloud.commandframework.exceptions.InvalidSyntaxException;
+import cloud.commandframework.exceptions.NoPermissionException;
+import cloud.commandframework.exceptions.NoSuchCommandException;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
-import org.geysermc.geyser.api.command.CommandExecutor;
-import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCommandsEvent;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.command.defaults.AdvancedTooltipsCommand;
@@ -52,16 +54,15 @@ import org.geysermc.geyser.command.defaults.StopCommand;
 import org.geysermc.geyser.command.defaults.VersionCommand;
 import org.geysermc.geyser.event.type.GeyserDefineCommandsEventImpl;
 import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletionException;
 
-public class GeyserCommandManager {
+public final class CommandRegistry {
 
     private final Map<String, Command> commands = new Object2ObjectOpenHashMap<>(13);
     private final Map<Extension, Map<String, Command>> extensionCommands = new Object2ObjectOpenHashMap<>(0);
@@ -69,7 +70,7 @@ public class GeyserCommandManager {
     private final GeyserImpl geyser;
     private final CommandManager<GeyserCommandSource> cloud;
 
-    public GeyserCommandManager(GeyserImpl geyser, CommandManager<GeyserCommandSource> cloud) {
+    public CommandRegistry(GeyserImpl geyser, CommandManager<GeyserCommandSource> cloud) {
         this.geyser = geyser;
         this.cloud = cloud;
 
@@ -171,131 +172,76 @@ public class GeyserCommandManager {
         return ""; // todo: reimplement
     }
 
-    @RequiredArgsConstructor
-    public static class CommandBuilder<T extends CommandSource> implements Command.Builder<T> {
-        private final Extension extension;
-        private Class<? extends T> sourceType;
-        private String name;
-        private String description = "";
-        private String permission = "";
-        private List<String> aliases;
-        private boolean suggestedOpOnly = false;
-        private boolean executableOnConsole = true;
-        private boolean bedrockOnly;
-        private CommandExecutor<T> executor;
-
-        @Override
-        public Command.Builder<T> source(@NonNull Class<? extends T> sourceType) {
-            this.sourceType = sourceType;
-            return this;
-        }
-
-        public CommandBuilder<T> name(@NonNull String name) {
-            this.name = name;
-            return this;
-        }
-
-        public CommandBuilder<T> description(@NonNull String description) {
-            this.description = description;
-            return this;
-        }
-
-        public CommandBuilder<T> permission(@NonNull String permission) {
-            this.permission = permission;
-            return this;
-        }
-
-        public CommandBuilder<T> aliases(@NonNull List<String> aliases) {
-            this.aliases = aliases;
-            return this;
-        }
-
-        @Override
-        public Command.Builder<T> suggestedOpOnly(boolean suggestedOpOnly) {
-            this.suggestedOpOnly = suggestedOpOnly;
-            return this;
-        }
-
-        public CommandBuilder<T> executableOnConsole(boolean executableOnConsole) {
-            this.executableOnConsole = executableOnConsole;
-            return this;
-        }
-
-        public CommandBuilder<T> bedrockOnly(boolean bedrockOnly) {
-            this.bedrockOnly = bedrockOnly;
-            return this;
-        }
-
-        public CommandBuilder<T> executor(@NonNull CommandExecutor<T> executor) {
-            this.executor = executor;
-            return this;
-        }
-
-        @NonNull
-        public GeyserExtensionCommand build() {
-            if (this.name == null || this.name.isBlank()) {
-                throw new IllegalArgumentException("Command cannot be null or blank!");
+    /**
+     * Dispatches a command into cloud and handles any thrown exceptions.
+     */
+    public void runCommand(@NonNull GeyserCommandSource source, @NonNull String command) {
+        cloud.executeCommand(source, command).whenComplete((result, throwable) -> {
+            if (throwable == null) {
+                return;
             }
 
-            if (this.sourceType == null) {
-                throw new IllegalArgumentException("Source type was not defined for command " + this.name + " in extension " + this.extension.name());
+            if (throwable instanceof CompletionException) {
+                throwable = throwable.getCause();
             }
 
-            return new GeyserExtensionCommand(this.extension, this.name, this.description, this.permission) {
+            handleThrowable(source, throwable);
+        });
+    }
 
-                @SuppressWarnings("unchecked")
-                @Override
-                public cloud.commandframework.Command.Builder<GeyserCommandSource> builder(CommandManager<GeyserCommandSource> manager) {
-                    return super.builder(manager)
-                        .argument(StringArgument.optional("args", StringArgument.StringMode.GREEDY))
-                        .handler(context -> {
-                            GeyserCommandSource source = context.getSender();
-                            String[] args = context.getOrDefault("args", "").split(" ");
+    // todo: full localization
+    private void handleThrowable(@NonNull GeyserCommandSource source, @NonNull Throwable throwable) {
+        // This is modelled after the command executors of each cloud minecraft implementation.
+        if (throwable instanceof InvalidSyntaxException syntaxException) {
+            cloud.handleException(
+                    source,
+                    InvalidSyntaxException.class,
+                    syntaxException,
+                    ($, e) -> source.sendMessage("Invalid Command Syntax. Correct syntax is: " + e.getCorrectSyntax())
+            );
+        } else if (throwable instanceof InvalidCommandSenderException invalidSenderException) {
+            cloud.handleException(
+                    source,
+                    InvalidCommandSenderException.class,
+                    invalidSenderException,
+                    ($, e) -> source.sendMessage(throwable.getMessage())
+            );
+        } else if (throwable instanceof NoPermissionException noPermissionException) {
+            cloud.handleException(
+                    source,
+                    NoPermissionException.class,
+                    noPermissionException,
+                    ($, e) -> source.sendLocaleString("geyser.bootstrap.command.permission_fail")
 
-                            Class<? extends T> sourceType = CommandBuilder.this.sourceType;
-                            CommandExecutor<T> executor = CommandBuilder.this.executor;
-
-                            if (sourceType.isInstance(source)) {
-                                executor.execute((T) source, this, args);
-                                return;
-                            }
-
-                            GeyserSession session = source.connection().orElse(null);
-                            if (sourceType.isInstance(session)) {
-                                executor.execute((T) session, this, args);
-                                return;
-                            }
-
-                            GeyserImpl.getInstance().getLogger().debug("Ignoring command " + this.name + " due to no suitable sender.");
-                        });
-                }
-
-                @NonNull
-                @Override
-                public List<String> aliases() {
-                    return CommandBuilder.this.aliases == null ? Collections.emptyList() : CommandBuilder.this.aliases;
-                }
-
-                @Override
-                public boolean isSuggestedOpOnly() {
-                    return CommandBuilder.this.suggestedOpOnly;
-                }
-
-                @Override
-                public boolean isExecutableOnConsole() {
-                    return CommandBuilder.this.executableOnConsole;
-                }
-
-                @Override
-                public boolean isBedrockOnly() {
-                    return CommandBuilder.this.bedrockOnly;
-                }
-
-                @Override
-                public String rootCommand() {
-                    return extension().rootCommand();
-                }
-            };
+            );
+        } else if (throwable instanceof NoSuchCommandException noCommandException) {
+            cloud.handleException(
+                    source,
+                    NoSuchCommandException.class,
+                    noCommandException,
+                    ($, e) -> source.sendLocaleString("geyser.bootstrap.command.not_found")
+            );
+        } else if (throwable instanceof ArgumentParseException argumentParseException) {
+            cloud.handleException(
+                    source,
+                    ArgumentParseException.class,
+                    argumentParseException,
+                    ($, e) -> source.sendMessage("Invalid Command Argument: " + throwable.getCause().getMessage())
+            );
+        } else if (throwable instanceof CommandExecutionException executionException) {
+            cloud.handleException(
+                    source,
+                    CommandExecutionException.class,
+                    executionException,
+                    ($, e) -> defaultHandler(source, throwable.getCause())
+            );
+        } else {
+            defaultHandler(source, throwable);
         }
+    }
+
+    private void defaultHandler(GeyserCommandSource source, Throwable throwable) {
+        source.sendLocaleString("command.failed"); // java edition translation key
+        GeyserImpl.getInstance().getLogger().error("Exception while executing command handler", throwable);
     }
 }
