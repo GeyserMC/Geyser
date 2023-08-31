@@ -1790,15 +1790,19 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         if (spectator) {
-            abilities.add(Ability.NO_CLIP);
+            AbilityLayer spectatorLayer = new AbilityLayer();
+            spectatorLayer.setLayerType(AbilityLayer.Type.SPECTATOR);
+            Collections.addAll(spectatorLayer.getAbilitiesSet(), USED_ABILITIES);
+
+            Set<Ability> abilityValues = spectatorLayer.getAbilityValues();
+            abilityValues.add(Ability.NO_CLIP);
+            abilityValues.add(Ability.FLYING);
+            abilityValues.add(Ability.INVULNERABLE);
+
+            updateAbilitiesPacket.getAbilityLayers().add(spectatorLayer);
         }
 
-        // https://github.com/GeyserMC/Geyser/issues/3769 Setting Spectator mode ability layer
-        if (spectator) {
-            abilityLayer.setLayerType(AbilityLayer.Type.SPECTATOR);
-        } else {
-            abilityLayer.setLayerType(AbilityLayer.Type.BASE);
-        }
+        abilityLayer.setLayerType(AbilityLayer.Type.BASE);
         abilityLayer.setFlySpeed(flySpeed);
         // https://github.com/GeyserMC/Geyser/issues/3139 as of 1.19.10
         abilityLayer.setWalkSpeed(walkSpeed == 0f ? 0.01f : walkSpeed);
