@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.block.custom.component;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
 
@@ -38,7 +37,7 @@ public interface MaterialInstance {
      *
      * @return The texture of the block.
      */
-    @NonNull String texture();
+    @Nullable String texture();
 
     /**
      * Gets the render method of the block
@@ -52,14 +51,14 @@ public interface MaterialInstance {
      * 
      * @return If the block should be dimmed on certain faces.
      */
-    @Nullable boolean faceDimming();
+    boolean faceDimming();
 
     /**
      * Gets if the block should have ambient occlusion
      * 
      * @return If the block should have ambient occlusion.
      */
-    @Nullable boolean ambientOcclusion();
+    boolean ambientOcclusion();
 
     /**
      * Creates a builder for MaterialInstance.
@@ -71,13 +70,13 @@ public interface MaterialInstance {
     }
 
     interface Builder {
-        Builder texture(@NonNull String texture);
+        Builder texture(@Nullable String texture);
 
         Builder renderMethod(@Nullable String renderMethod);
 
-        Builder faceDimming(@Nullable boolean faceDimming);
+        Builder faceDimming(boolean faceDimming);
 
-        Builder ambientOcclusion(@Nullable boolean ambientOcclusion);
+        Builder ambientOcclusion(boolean ambientOcclusion);
 
         MaterialInstance build();
     }
