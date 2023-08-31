@@ -331,7 +331,7 @@ public class CustomBlockRegistryPopulator {
                         .putBoolean("ambient_occlusion", materialInstance.faceDimming());
                 // Texture can be unspecified when blocks.json is used in RP (https://wiki.bedrock.dev/blocks/blocks-stable.html#minecraft-material-instances)
                 if (materialInstance.texture() != null) {
-                    materialBuilder.putString("texture", materialInstance.texture())
+                    materialBuilder.putString("texture", materialInstance.texture());
                 }
                 materialsBuilder.putCompound(entry.getKey(), materialBuilder.build());
             }
