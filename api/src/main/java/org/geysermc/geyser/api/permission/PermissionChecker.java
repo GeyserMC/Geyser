@@ -29,6 +29,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.util.TriState;
 
+@FunctionalInterface
 public interface PermissionChecker {
 
     @NonNull

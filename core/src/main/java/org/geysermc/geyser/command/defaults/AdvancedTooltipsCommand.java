@@ -29,6 +29,7 @@ import cloud.commandframework.Command;
 import cloud.commandframework.CommandManager;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 
 public class AdvancedTooltipsCommand extends GeyserCommand {
@@ -42,7 +43,10 @@ public class AdvancedTooltipsCommand extends GeyserCommand {
             .handler(context -> context.getSender().connection().ifPresent(session -> {
                 String onOrOff = session.isAdvancedTooltips() ? "off" : "on";
                 session.setAdvancedTooltips(!session.isAdvancedTooltips());
-                session.sendMessage("§l§e" + MinecraftLocale.getLocaleString("debug.prefix", session.locale()) + " §r" + MinecraftLocale.getLocaleString("debug.advanced_tooltips." + onOrOff, session.locale()));
+                session.sendMessage(ChatColor.BOLD + ChatColor.YELLOW
+                    + MinecraftLocale.getLocaleString("debug.prefix", session.locale())
+                    + " " + ChatColor.RESET
+                    + MinecraftLocale.getLocaleString("debug.advanced_tooltips." + onOrOff, session.locale()));
                 session.getInventoryTranslator().updateInventory(session, session.getPlayerInventory());
             }));
     }
