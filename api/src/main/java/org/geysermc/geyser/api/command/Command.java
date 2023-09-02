@@ -89,18 +89,14 @@ public interface Command {
      *
      * @return if this command is executable on console
      */
-    default boolean isExecutableOnConsole() {
-        return true;
-    }
+    boolean isExecutableOnConsole();
 
     /**
      * Used to send a deny-message to Java players if this command can only be used by Bedrock players.
      *
      * @return true if this command can only be used by Bedrock players.
      */
-    default boolean isBedrockOnly() {
-        return false;
-    }
+    boolean isBedrockOnly();
 
     /**
      * Gets the subcommands associated with this

@@ -100,6 +100,10 @@ public class ExtensionCommandBuilder<T extends CommandSource> implements Command
     @Override
     public Command.Builder<T> suggestedOpOnly(boolean suggestedOpOnly) {
         this.suggestedOpOnly = suggestedOpOnly;
+        if (suggestedOpOnly) {
+            // the most amount of legacy/deprecated behaviour I'm willing to support
+            this.permissionDefault = TriState.NOT_SET;
+        }
         return this;
     }
 
