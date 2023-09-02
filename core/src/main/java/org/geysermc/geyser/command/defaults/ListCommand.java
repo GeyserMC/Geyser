@@ -28,6 +28,7 @@ package org.geysermc.geyser.command.defaults;
 import cloud.commandframework.Command;
 import cloud.commandframework.CommandManager;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
@@ -40,7 +41,7 @@ public class ListCommand extends GeyserCommand {
     private final GeyserImpl geyser;
 
     public ListCommand(GeyserImpl geyser, String name, String description, String permission) {
-        super(name, description, permission);
+        super(name, description, permission, TriState.NOT_SET);
 
         this.geyser = geyser;
     }

@@ -29,6 +29,7 @@ import cloud.commandframework.CommandManager;
 import cloud.commandframework.context.CommandContext;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.ChatColor;
@@ -45,7 +46,7 @@ public class HelpCommand extends GeyserCommand {
 
     public HelpCommand(GeyserImpl geyser, String name, String description, String permission,
                        String baseCommand, Map<String, Command> commands) {
-        super(name, description, permission);
+        super(name, description, permission, TriState.TRUE);
         this.baseCommand = baseCommand;
         this.commands = commands.values();
 

@@ -30,13 +30,14 @@ import cloud.commandframework.CommandManager;
 import com.github.steveice10.mc.protocol.data.game.ClientCommand;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundClientCommandPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 
 public class StatisticsCommand extends GeyserCommand {
 
     public StatisticsCommand(GeyserImpl geyser, String name, String description, String permission) {
-        super(name, description, permission, false, true);
+        super(name, description, permission, TriState.TRUE, false, true);
     }
 
     @Override

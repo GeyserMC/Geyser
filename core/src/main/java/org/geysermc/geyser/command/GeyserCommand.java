@@ -109,8 +109,8 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
         this.bedrockOnly = bedrockOnly;
     }
 
-    public GeyserCommand(@NonNull String name, @NonNull String description, @Nullable String permission) {
-        this(name, description, permission, TriState.NOT_SET, true, false);
+    public GeyserCommand(@NonNull String name, @NonNull String description, @Nullable String permission, @NonNull TriState permissionDefault) {
+        this(name, description, permission, permissionDefault, true, false);
     }
 
     @NonNull

@@ -27,13 +27,14 @@ package org.geysermc.geyser.command.defaults;
 
 import cloud.commandframework.Command;
 import cloud.commandframework.CommandManager;
+import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 
 public class AdvancementsCommand extends GeyserCommand {
 
     public AdvancementsCommand(String name, String description, String permission) {
-        super(name, description, permission, false, true);
+        super(name, description, permission, TriState.TRUE, false, true);
     }
 
     @Override

@@ -34,6 +34,7 @@ import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.dump.DumpInfo;
@@ -56,7 +57,7 @@ public class DumpCommand extends GeyserCommand {
     private static final String DUMP_URL = "https://dump.geysermc.org/";
 
     public DumpCommand(GeyserImpl geyser, String name, String description, String permission) {
-        super(name, description, permission);
+        super(name, description, permission, TriState.NOT_SET);
 
         this.geyser = geyser;
     }

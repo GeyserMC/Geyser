@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.network.GameProtocol;
@@ -49,7 +50,7 @@ public class VersionCommand extends GeyserCommand {
     private final GeyserImpl geyser;
 
     public VersionCommand(GeyserImpl geyser, String name, String description, String permission) {
-        super(name, description, permission);
+        super(name, description, permission, TriState.NOT_SET);
 
         this.geyser = geyser;
     }

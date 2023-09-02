@@ -30,6 +30,7 @@ import cloud.commandframework.CommandManager;
 import cloud.commandframework.context.CommandContext;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.ChatColor;
@@ -42,7 +43,7 @@ public class ExtensionsCommand extends GeyserCommand {
     private final GeyserImpl geyser;
 
     public ExtensionsCommand(GeyserImpl geyser, String name, String description, String permission) {
-        super(name, description, permission);
+        super(name, description, permission, TriState.TRUE);
 
         this.geyser = geyser;
     }

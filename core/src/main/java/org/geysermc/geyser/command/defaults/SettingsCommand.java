@@ -28,6 +28,7 @@ package org.geysermc.geyser.command.defaults;
 import cloud.commandframework.Command;
 import cloud.commandframework.CommandManager;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.util.SettingsUtils;
@@ -35,7 +36,7 @@ import org.geysermc.geyser.util.SettingsUtils;
 public class SettingsCommand extends GeyserCommand {
 
     public SettingsCommand(GeyserImpl geyser, String name, String description, String permission) {
-        super(name, description, permission, false, true);
+        super(name, description, permission, TriState.TRUE, false, true);
     }
 
     @Override
