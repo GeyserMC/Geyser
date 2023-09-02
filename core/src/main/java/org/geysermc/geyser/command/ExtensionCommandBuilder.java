@@ -42,7 +42,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public class CommandBuilder<T extends CommandSource> implements Command.Builder<T> {
+public class ExtensionCommandBuilder<T extends CommandSource> implements Command.Builder<T> {
     private final Extension extension;
     private Class<? extends T> sourceType;
     private String name;
@@ -54,7 +54,7 @@ public class CommandBuilder<T extends CommandSource> implements Command.Builder<
     private boolean bedrockOnly = false;
     private CommandExecutor<T> executor;
 
-    public CommandBuilder(Extension extension) {
+    public ExtensionCommandBuilder(Extension extension) {
         this.extension = Objects.requireNonNull(extension);
     }
 
@@ -65,25 +65,25 @@ public class CommandBuilder<T extends CommandSource> implements Command.Builder<
     }
 
     @Override
-    public CommandBuilder<T> name(@NonNull String name) {
+    public ExtensionCommandBuilder<T> name(@NonNull String name) {
         this.name = name;
         return this;
     }
 
     @Override
-    public CommandBuilder<T> description(@Nullable String description) {
+    public ExtensionCommandBuilder<T> description(@Nullable String description) {
         this.description = description;
         return this;
     }
 
     @Override
-    public CommandBuilder<T> permission(@Nullable String permission) {
+    public ExtensionCommandBuilder<T> permission(@Nullable String permission) {
         this.permission = permission;
         return this;
     }
 
     @Override
-    public CommandBuilder<T> aliases(@Nullable List<String> aliases) {
+    public ExtensionCommandBuilder<T> aliases(@Nullable List<String> aliases) {
         this.aliases = aliases;
         return this;
     }
@@ -95,19 +95,19 @@ public class CommandBuilder<T extends CommandSource> implements Command.Builder<
     }
 
     @Override
-    public CommandBuilder<T> executableOnConsole(boolean executableOnConsole) {
+    public ExtensionCommandBuilder<T> executableOnConsole(boolean executableOnConsole) {
         this.executableOnConsole = executableOnConsole;
         return this;
     }
 
     @Override
-    public CommandBuilder<T> bedrockOnly(boolean bedrockOnly) {
+    public ExtensionCommandBuilder<T> bedrockOnly(boolean bedrockOnly) {
         this.bedrockOnly = bedrockOnly;
         return this;
     }
 
     @Override
-    public CommandBuilder<T> executor(@NonNull CommandExecutor<T> executor) {
+    public ExtensionCommandBuilder<T> executor(@NonNull CommandExecutor<T> executor) {
         this.executor = executor;
         return this;
     }
