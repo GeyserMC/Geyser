@@ -152,9 +152,4 @@ public class DumpCommand extends GeyserCommand {
             geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.commands.dump.created", source.name(), uploadedDumpUrl));
         }
     }
-
-    @Override
-    public boolean isSuggestedOpOnly() {
-        return true;
-    }
 }

@@ -35,22 +35,12 @@ import org.geysermc.geyser.session.GeyserSession;
 public class OffhandCommand extends GeyserCommand {
 
     public OffhandCommand(GeyserImpl geyser, String name, String description, String permission) {
-        super(name, description, permission);
+        super(name, description, permission, false, true);
     }
 
     @Override
     public Command.Builder<GeyserCommandSource> builder(CommandManager<GeyserCommandSource> manager) {
         return super.builder(manager)
             .handler(context -> context.getSender().connection().ifPresent(GeyserSession::requestOffhandSwap));
-    }
-
-    @Override
-    public boolean isExecutableOnConsole() {
-        return false;
-    }
-
-    @Override
-    public boolean isBedrockOnly() {
-        return true;
     }
 }

@@ -27,8 +27,8 @@ package org.geysermc.geyser.command;
 
 import cloud.commandframework.CommandManager;
 import cloud.commandframework.arguments.standard.StringArgument;
-import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.command.CommandExecutor;
@@ -37,21 +37,26 @@ import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
 import org.geysermc.geyser.session.GeyserSession;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
-@RequiredArgsConstructor
 public class CommandBuilder<T extends CommandSource> implements Command.Builder<T> {
     private final Extension extension;
     private Class<? extends T> sourceType;
     private String name;
-    private String description = "";
-    private String permission = "";
+    private String description;
+    private String permission;
     private List<String> aliases;
-    private boolean suggestedOpOnly = false;
+    private boolean suggestedOpOnly = false; // deprecated for removal
     private boolean executableOnConsole = true;
-    private boolean bedrockOnly;
+    private boolean bedrockOnly = false;
     private CommandExecutor<T> executor;
+
+    public CommandBuilder(Extension extension) {
+        this.extension = Objects.requireNonNull(extension);
+    }
 
     @Override
     public Command.Builder<T> source(@NonNull Class<? extends T> sourceType) {
@@ -59,22 +64,26 @@ public class CommandBuilder<T extends CommandSource> implements Command.Builder<
         return this;
     }
 
+    @Override
     public CommandBuilder<T> name(@NonNull String name) {
         this.name = name;
         return this;
     }
 
-    public CommandBuilder<T> description(@NonNull String description) {
+    @Override
+    public CommandBuilder<T> description(@Nullable String description) {
         this.description = description;
         return this;
     }
 
-    public CommandBuilder<T> permission(@NonNull String permission) {
+    @Override
+    public CommandBuilder<T> permission(@Nullable String permission) {
         this.permission = permission;
         return this;
     }
 
-    public CommandBuilder<T> aliases(@NonNull List<String> aliases) {
+    @Override
+    public CommandBuilder<T> aliases(@Nullable List<String> aliases) {
         this.aliases = aliases;
         return this;
     }
@@ -85,32 +94,39 @@ public class CommandBuilder<T extends CommandSource> implements Command.Builder<
         return this;
     }
 
+    @Override
     public CommandBuilder<T> executableOnConsole(boolean executableOnConsole) {
         this.executableOnConsole = executableOnConsole;
         return this;
     }
 
+    @Override
     public CommandBuilder<T> bedrockOnly(boolean bedrockOnly) {
         this.bedrockOnly = bedrockOnly;
         return this;
     }
 
+    @Override
     public CommandBuilder<T> executor(@NonNull CommandExecutor<T> executor) {
         this.executor = executor;
         return this;
     }
 
     @NonNull
+    @Override
     public GeyserExtensionCommand build() {
-        if (this.name == null || this.name.isBlank()) {
-            throw new IllegalArgumentException("Command cannot be null or blank!");
+        final Class<? extends T> sourceType = this.sourceType;
+        final boolean suggestedOpOnly = this.suggestedOpOnly;
+        final CommandExecutor<T> executor = this.executor;
+
+        if (sourceType == null) {
+            throw new IllegalArgumentException("Source type was not defined for command " + name + " in extension " + extension.name());
+        }
+        if (executor == null) {
+            throw new IllegalArgumentException("Command executor was not defined for command " + name + " in extension " + extension.name());
         }
 
-        if (this.sourceType == null) {
-            throw new IllegalArgumentException("Source type was not defined for command " + this.name + " in extension " + this.extension.name());
-        }
-
-        return new GeyserExtensionCommand(this.extension, this.name, this.description, this.permission) {
+        GeyserExtensionCommand command = new GeyserExtensionCommand(extension, name, description, permission, executableOnConsole, bedrockOnly) {
 
             @SuppressWarnings("unchecked")
             @Override
@@ -120,9 +136,6 @@ public class CommandBuilder<T extends CommandSource> implements Command.Builder<
                         .handler(context -> {
                             GeyserCommandSource source = context.getSender();
                             String[] args = context.getOrDefault("args", "").split(" ");
-
-                            Class<? extends T> sourceType = CommandBuilder.this.sourceType;
-                            CommandExecutor<T> executor = CommandBuilder.this.executor;
 
                             if (sourceType.isInstance(source)) {
                                 executor.execute((T) source, this, args);
@@ -135,35 +148,18 @@ public class CommandBuilder<T extends CommandSource> implements Command.Builder<
                                 return;
                             }
 
+                            // todo: send sender message instead
                             GeyserImpl.getInstance().getLogger().debug("Ignoring command " + this.name + " due to no suitable sender.");
                         });
             }
 
-            @NonNull
-            @Override
-            public List<String> aliases() {
-                return CommandBuilder.this.aliases == null ? Collections.emptyList() : CommandBuilder.this.aliases;
-            }
-
             @Override
             public boolean isSuggestedOpOnly() {
-                return CommandBuilder.this.suggestedOpOnly;
-            }
-
-            @Override
-            public boolean isExecutableOnConsole() {
-                return CommandBuilder.this.executableOnConsole;
-            }
-
-            @Override
-            public boolean isBedrockOnly() {
-                return CommandBuilder.this.bedrockOnly;
-            }
-
-            @Override
-            public String rootCommand() {
-                return extension().rootCommand();
+                return suggestedOpOnly;
             }
         };
+
+        command.aliases = aliases != null ? new ArrayList<>(aliases) : Collections.emptyList();
+        return command;
     }
 }

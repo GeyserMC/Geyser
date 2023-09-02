@@ -52,9 +52,4 @@ public class ReloadCommand extends GeyserCommand {
                 geyser.reload();
             });
     }
-
-    @Override
-    public boolean isSuggestedOpOnly() {
-        return true;
-    }
 }

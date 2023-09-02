@@ -132,9 +132,4 @@ public class ConnectionTestCommand extends GeyserCommand {
                 "https://wiki.geysermc.org/geyser/supported-hosting-providers/" + ", see this page: "
                 + "https://wiki.geysermc.org/geyser/fixing-unable-to-connect-to-world/" + ", or contact us on our Discord: " + "https://discord.gg/geysermc");
     }
-
-    @Override
-    public boolean isSuggestedOpOnly() {
-        return true;
-    }
 }

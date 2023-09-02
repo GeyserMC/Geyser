@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.command;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.extension.Extension;
@@ -64,9 +65,9 @@ public interface Command {
     String permission();
 
     /**
-     * Gets the aliases for this command.
+     * Gets the aliases for this command, as an unmodifiable list
      *
-     * @return the aliases for this command
+     * @return the aliases for this command as an unmodifiable list
      */
     @NonNull
     List<String> aliases();
@@ -91,7 +92,7 @@ public interface Command {
     }
 
     /**
-     * Used to send a deny message to Java players if this command can only be used by Bedrock players.
+     * Used to send a deny-message to Java players if this command can only be used by Bedrock players.
      *
      * @return true if this command can only be used by Bedrock players.
      */
@@ -152,7 +153,7 @@ public interface Command {
          * @param description the command description
          * @return the builder
          */
-        Builder<T> description(@NonNull String description);
+        Builder<T> description(@Nullable String description);
 
         /**
          * Sets the permission node.
@@ -160,7 +161,7 @@ public interface Command {
          * @param permission the permission node
          * @return the builder
          */
-        Builder<T> permission(@NonNull String permission);
+        Builder<T> permission(@Nullable String permission);
 
         /**
          * Sets the aliases.
@@ -168,7 +169,7 @@ public interface Command {
          * @param aliases the aliases
          * @return the builder
          */
-        Builder<T> aliases(@NonNull List<String> aliases);
+        Builder<T> aliases(@Nullable List<String> aliases);
 
         /**
          * Sets if this command is designed to be used only by server operators.
@@ -176,6 +177,7 @@ public interface Command {
          * @param suggestedOpOnly if this command is designed to be used only by server operators
          * @return the builder
          */
+        @Deprecated(forRemoval = true)
         Builder<T> suggestedOpOnly(boolean suggestedOpOnly);
 
         /**

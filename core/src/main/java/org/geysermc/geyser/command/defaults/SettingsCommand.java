@@ -33,8 +33,9 @@ import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.util.SettingsUtils;
 
 public class SettingsCommand extends GeyserCommand {
+
     public SettingsCommand(GeyserImpl geyser, String name, String description, String permission) {
-        super(name, description, permission);
+        super(name, description, permission, false, true);
     }
 
     @Override
@@ -43,15 +44,5 @@ public class SettingsCommand extends GeyserCommand {
             .handler(context ->
                 context.getSender().connection().ifPresent(session ->
                     session.sendForm(SettingsUtils.buildForm(session))));
-    }
-
-    @Override
-    public boolean isExecutableOnConsole() {
-        return false;
-    }
-
-    @Override
-    public boolean isBedrockOnly() {
-        return true;
     }
 }

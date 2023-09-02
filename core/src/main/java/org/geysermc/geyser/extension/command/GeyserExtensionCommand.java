@@ -25,19 +25,32 @@
 
 package org.geysermc.geyser.extension.command;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.command.GeyserCommand;
 
 public abstract class GeyserExtensionCommand extends GeyserCommand {
+
     private final Extension extension;
+    private final String rootCommand;
 
-    public GeyserExtensionCommand(Extension extension, String name, String description, String permission) {
-        super(name, description, permission);
-
+    public GeyserExtensionCommand(@NonNull Extension extension, @NonNull String name, @Nullable String description, @Nullable String permission, boolean executableOnConsole, boolean bedrockOnly) {
+        super(name, description, permission, executableOnConsole, bedrockOnly);
         this.extension = extension;
+        this.rootCommand = extension.rootCommand();
+
+        if (this.rootCommand == null || this.rootCommand.isBlank()) {
+            throw new IllegalStateException("rootCommand of extension " + extension.name() + " may not be null or blank");
+        }
     }
 
-    public Extension extension() {
+    public final Extension extension() {
         return this.extension;
+    }
+
+    @Override
+    public final String rootCommand() {
+        return this.rootCommand;
     }
 }

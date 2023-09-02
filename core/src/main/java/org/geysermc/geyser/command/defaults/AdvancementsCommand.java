@@ -31,8 +31,9 @@ import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 
 public class AdvancementsCommand extends GeyserCommand {
+
     public AdvancementsCommand(String name, String description, String permission) {
-        super(name, description, permission);
+        super(name, description, permission, false, true);
     }
 
     @Override
@@ -41,15 +42,5 @@ public class AdvancementsCommand extends GeyserCommand {
             .handler(context ->
                 context.getSender().connection().ifPresent(session ->
                     session.getAdvancementsCache().buildAndShowMenuForm()));
-    }
-
-    @Override
-    public boolean isExecutableOnConsole() {
-        return false;
-    }
-
-    @Override
-    public boolean isBedrockOnly() {
-        return true;
     }
 }

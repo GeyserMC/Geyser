@@ -36,7 +36,7 @@ import org.geysermc.geyser.command.GeyserCommandSource;
 public class StatisticsCommand extends GeyserCommand {
 
     public StatisticsCommand(GeyserImpl geyser, String name, String description, String permission) {
-        super(name, description, permission);
+        super(name, description, permission, false, true);
     }
 
     @Override
@@ -47,15 +47,5 @@ public class StatisticsCommand extends GeyserCommand {
                 ServerboundClientCommandPacket packet = new ServerboundClientCommandPacket(ClientCommand.STATS);
                 session.sendDownstreamPacket(packet);
             }));
-    }
-
-    @Override
-    public boolean isExecutableOnConsole() {
-        return false;
-    }
-
-    @Override
-    public boolean isBedrockOnly() {
-        return true;
     }
 }

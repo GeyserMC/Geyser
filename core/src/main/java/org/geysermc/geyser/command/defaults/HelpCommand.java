@@ -49,7 +49,7 @@ public class HelpCommand extends GeyserCommand {
         this.baseCommand = baseCommand;
         this.commands = commands.values();
 
-        this.aliases(Collections.singletonList("?"));
+        this.aliases = Collections.singletonList("?");
     }
 
     @Override

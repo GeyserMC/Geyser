@@ -58,9 +58,4 @@ public class ListCommand extends GeyserCommand {
                 source.sendMessage(message);
             });
     }
-
-    @Override
-    public boolean isSuggestedOpOnly() {
-        return true;
-    }
 }

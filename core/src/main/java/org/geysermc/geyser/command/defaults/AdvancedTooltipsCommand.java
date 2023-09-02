@@ -33,8 +33,9 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 
 public class AdvancedTooltipsCommand extends GeyserCommand {
+
     public AdvancedTooltipsCommand(String name, String description, String permission) {
-        super(name, description, permission);
+        super(name, description, permission, false, true);
     }
 
     @Override
@@ -49,15 +50,5 @@ public class AdvancedTooltipsCommand extends GeyserCommand {
                     + MinecraftLocale.getLocaleString("debug.advanced_tooltips." + onOrOff, session.locale()));
                 session.getInventoryTranslator().updateInventory(session, session.getPlayerInventory());
             }));
-    }
-
-    @Override
-    public boolean isExecutableOnConsole() {
-        return false;
-    }
-
-    @Override
-    public boolean isBedrockOnly() {
-        return true;
     }
 }

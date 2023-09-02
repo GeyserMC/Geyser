@@ -41,17 +41,12 @@ public class StopCommand extends GeyserCommand {
         super(name, description, permission);
         this.geyser = geyser;
 
-        this.aliases(Collections.singletonList("shutdown"));
+        this.aliases = Collections.singletonList("shutdown");
     }
 
     @Override
     public Command.Builder<GeyserCommandSource> builder(CommandManager<GeyserCommandSource> manager) {
         return super.builder(manager)
             .handler(context -> geyser.getBootstrap().onDisable());
-    }
-
-    @Override
-    public boolean isSuggestedOpOnly() {
-        return true;
     }
 }

@@ -28,18 +28,13 @@ package org.geysermc.geyser.command;
 import cloud.commandframework.Command;
 import cloud.commandframework.CommandManager;
 import cloud.commandframework.meta.CommandMeta;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.jetbrains.annotations.Contract;
 
 import java.util.Collections;
 import java.util.List;
 
-@Accessors(fluent = true)
-@Getter
-@RequiredArgsConstructor
 public abstract class GeyserCommand implements org.geysermc.geyser.api.command.Command {
 
     /**
@@ -52,15 +47,77 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
      */
     public static final CommandMeta.Key<Boolean> PLAYER_ONLY = CommandMeta.Key.of(Boolean.class, "player-only", meta -> false);
 
+    @NonNull
     protected final String name;
+
     /**
      * The description of the command - will attempt to be translated.
      */
+    @NonNull
     protected final String description;
+
+    @NonNull
     protected final String permission;
 
-    @Setter
-    private List<String> aliases = Collections.emptyList();
+    protected final boolean executableOnConsole;
+    protected final boolean bedrockOnly;
+
+    protected List<String> aliases = Collections.emptyList();
+
+    public GeyserCommand(@NonNull String name, @Nullable String description, @Nullable String permission, boolean executableOnConsole, boolean bedrockOnly) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Command cannot be null or blank!");
+        }
+
+        this.name = name;
+        this.description = description != null ? description : "";
+        this.permission = permission != null ? permission : "";
+
+        if (bedrockOnly && executableOnConsole) {
+            throw new IllegalArgumentException("Command cannot be both bedrockOnly and executableOnConsole");
+        }
+
+        this.executableOnConsole = executableOnConsole;
+        this.bedrockOnly = bedrockOnly;
+    }
+
+    public GeyserCommand(@NonNull String name, @NonNull String description, @Nullable String permission) {
+        this(name, description, permission, true, false);
+    }
+
+    @NonNull
+    @Override
+    public final String name() {
+        return name;
+    }
+
+    @NonNull
+    @Override
+    public final String description() {
+        return description;
+    }
+
+    @NonNull
+    @Override
+    public final String permission() {
+        return permission;
+    }
+
+    @Override
+    public final boolean isExecutableOnConsole() {
+        return executableOnConsole;
+    }
+
+    @Override
+    public final boolean isBedrockOnly() {
+        return bedrockOnly;
+    }
+
+    @NonNull
+    @Override
+    public final List<String> aliases() {
+        return Collections.unmodifiableList(aliases);
+    }
 
     public String rootCommand() {
         return "geyser";
