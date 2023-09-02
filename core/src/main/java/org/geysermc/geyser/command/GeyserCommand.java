@@ -68,9 +68,10 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
     private final String permission;
 
     /**
-     * The default value of the permission node
+     * The default value of the permission node.
+     * A null value indicates that the permission node should not be registered whatsoever.
      */
-    @NonNull
+    @Nullable
     private final TriState permissionDefault;
 
     /**
@@ -89,7 +90,7 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
     protected List<String> aliases = Collections.emptyList();
 
     public GeyserCommand(@NonNull String name, @Nullable String description,
-                         @Nullable String permission, @NonNull TriState permissionDefault,
+                         @Nullable String permission, @Nullable TriState permissionDefault,
                          boolean executableOnConsole, boolean bedrockOnly) {
 
         if (name == null || name.isBlank()) {
@@ -99,7 +100,7 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
         this.name = name;
         this.description = description != null ? description : "";
         this.permission = permission != null ? permission : "";
-        this.permissionDefault = Objects.requireNonNull(permissionDefault, "permissionDefault");
+        this.permissionDefault = permissionDefault;
 
         if (bedrockOnly && executableOnConsole) {
             throw new IllegalArgumentException("Command cannot be both bedrockOnly and executableOnConsole");
@@ -131,7 +132,7 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
         return permission;
     }
 
-    @NonNull
+    @Nullable
     public final TriState permissionDefault() {
         return permissionDefault;
     }

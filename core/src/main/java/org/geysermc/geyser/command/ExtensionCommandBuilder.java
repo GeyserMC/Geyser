@@ -49,7 +49,7 @@ public class ExtensionCommandBuilder<T extends CommandSource> implements Command
     private String name;
     private String description;
     private String permission;
-    private TriState permissionDefault = TriState.NOT_SET;
+    private TriState permissionDefault;
     private List<String> aliases;
     private boolean suggestedOpOnly = false; // deprecated for removal
     private boolean executableOnConsole = true;

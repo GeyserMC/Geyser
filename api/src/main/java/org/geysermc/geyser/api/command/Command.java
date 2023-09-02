@@ -170,7 +170,7 @@ public interface Command {
          * @param defaultValue the node's default value
          * @return the builder
          */
-        Builder<T> permission(@Nullable String permission, TriState defaultValue);
+        Builder<T> permission(@Nullable String permission, @NonNull TriState defaultValue);
 
         /**
          * Sets the aliases.

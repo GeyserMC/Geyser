@@ -166,7 +166,7 @@ public class CommandRegistry {
             commands.put(alias, command);
         }
 
-        if (!command.permission().isBlank()) {
+        if (!command.permission().isBlank() && command.permissionDefault() != null) {
             permissions.put(command.permission(), command.permissionDefault());
         }
     }

@@ -37,7 +37,7 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
     private final String rootCommand;
 
     public GeyserExtensionCommand(@NonNull Extension extension, @NonNull String name, @Nullable String description,
-                                  @Nullable String permission, @NonNull TriState permissionDefault,
+                                  @Nullable String permission, @Nullable TriState permissionDefault,
                                   boolean executableOnConsole, boolean bedrockOnly) {
 
         super(name, description, permission, permissionDefault, executableOnConsole, bedrockOnly);
