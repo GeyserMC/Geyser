@@ -50,7 +50,7 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
     public static final CommandMeta.Key<Boolean> PLAYER_ONLY = CommandMeta.Key.of(Boolean.class, "player-only", meta -> false);
 
     /**
-     * The second literal of the command. Note: the first literal is {@link GeyserCommand#rootCommand()}.
+     * The second literal of the command. Note: the first literal is {@link #rootCommand()}.
      */
     @NonNull
     private final String name;
@@ -84,7 +84,7 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
     private final boolean bedrockOnly;
 
     /**
-     * The aliases of the command {@link GeyserCommand#name}
+     * The aliases of the command {@link #name}
      */
     protected List<String> aliases = Collections.emptyList();
 

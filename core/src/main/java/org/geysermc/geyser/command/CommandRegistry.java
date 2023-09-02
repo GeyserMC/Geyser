@@ -162,10 +162,6 @@ public class CommandRegistry {
         commands.put(command.name(), command);
         geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.commands.registered", command.name()));
 
-        if (command.aliases().isEmpty()) {
-            return;
-        }
-
         for (String alias : command.aliases()) {
             commands.put(alias, command);
         }
