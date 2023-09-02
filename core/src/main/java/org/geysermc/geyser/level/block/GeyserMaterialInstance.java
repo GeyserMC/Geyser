@@ -26,7 +26,6 @@
 package org.geysermc.geyser.level.block;
 
 import lombok.RequiredArgsConstructor;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 
@@ -45,7 +44,7 @@ public class GeyserMaterialInstance implements MaterialInstance {
     }
 
     @Override
-    public @NonNull String texture() {
+    public @Nullable String texture() {
         return texture;
     }
 
@@ -55,12 +54,12 @@ public class GeyserMaterialInstance implements MaterialInstance {
     }
 
     @Override
-    public @Nullable boolean faceDimming() {
+    public boolean faceDimming() {
         return faceDimming;
     }
 
     @Override
-    public @Nullable boolean ambientOcclusion() {
+    public boolean ambientOcclusion() {
         return ambientOcclusion;
     }
 
@@ -71,7 +70,7 @@ public class GeyserMaterialInstance implements MaterialInstance {
         private boolean ambientOcclusion;
 
         @Override
-        public Builder texture(@NonNull String texture) {
+        public Builder texture(@Nullable String texture) {
             this.texture = texture;
             return this;
         }
@@ -83,13 +82,13 @@ public class GeyserMaterialInstance implements MaterialInstance {
         }
 
         @Override
-        public Builder faceDimming(@Nullable boolean faceDimming) {
+        public Builder faceDimming(boolean faceDimming) {
             this.faceDimming = faceDimming;
             return this;
         }
 
         @Override
-        public Builder ambientOcclusion(@Nullable boolean ambientOcclusion) {
+        public Builder ambientOcclusion(boolean ambientOcclusion) {
             this.ambientOcclusion = ambientOcclusion;
             return this;
         }
