@@ -81,7 +81,7 @@ public class GeyserStandaloneCommandManager extends CommandManager<GeyserCommand
             if (def == TriState.TRUE) {
                 basePermissions.add(permission);
             } else if (def == TriState.FALSE) {
-                basePermissions.remove(permission);
+                basePermissions.remove(permission); // todo: maybe remove this case?
             }
         });
     }

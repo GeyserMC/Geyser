@@ -34,6 +34,7 @@ import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.command.CommandExecutor;
 import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -48,6 +49,7 @@ public class ExtensionCommandBuilder<T extends CommandSource> implements Command
     private String name;
     private String description;
     private String permission;
+    private TriState permissionDefault = TriState.NOT_SET;
     private List<String> aliases;
     private boolean suggestedOpOnly = false; // deprecated for removal
     private boolean executableOnConsole = true;
@@ -79,6 +81,13 @@ public class ExtensionCommandBuilder<T extends CommandSource> implements Command
     @Override
     public ExtensionCommandBuilder<T> permission(@Nullable String permission) {
         this.permission = permission;
+        return this;
+    }
+
+    @Override
+    public Command.Builder<T> permission(@Nullable String permission, @NonNull TriState defaultValue) {
+        this.permission = permission;
+        this.permissionDefault = Objects.requireNonNull(defaultValue, "defaultValue");
         return this;
     }
 
@@ -126,7 +135,7 @@ public class ExtensionCommandBuilder<T extends CommandSource> implements Command
             throw new IllegalArgumentException("Command executor was not defined for command " + name + " in extension " + extension.name());
         }
 
-        GeyserExtensionCommand command = new GeyserExtensionCommand(extension, name, description, permission, executableOnConsole, bedrockOnly) {
+        GeyserExtensionCommand command = new GeyserExtensionCommand(extension, name, description, permission, permissionDefault, executableOnConsole, bedrockOnly) {
 
             @SuppressWarnings("unchecked")
             @Override
@@ -149,7 +158,7 @@ public class ExtensionCommandBuilder<T extends CommandSource> implements Command
                             }
 
                             // todo: send sender message instead
-                            GeyserImpl.getInstance().getLogger().debug("Ignoring command " + this.name + " due to no suitable sender.");
+                            GeyserImpl.getInstance().getLogger().debug("Ignoring command " + name + " due to no suitable sender.");
                         });
             }
 

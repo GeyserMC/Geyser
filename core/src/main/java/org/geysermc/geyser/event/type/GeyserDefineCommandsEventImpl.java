@@ -36,11 +36,11 @@ public abstract class GeyserDefineCommandsEventImpl implements GeyserDefineComma
     private final Map<String, Command> commands;
 
     public GeyserDefineCommandsEventImpl(Map<String, Command> commands) {
-        this.commands = commands;
+        this.commands = Collections.unmodifiableMap(commands);
     }
 
     @Override
     public @NonNull Map<String, Command> commands() {
-        return Collections.unmodifiableMap(this.commands);
+        return this.commands;
     }
 }

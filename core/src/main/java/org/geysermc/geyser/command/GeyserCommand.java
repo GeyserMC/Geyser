@@ -30,10 +30,12 @@ import cloud.commandframework.CommandManager;
 import cloud.commandframework.meta.CommandMeta;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.api.util.TriState;
 import org.jetbrains.annotations.Contract;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public abstract class GeyserCommand implements org.geysermc.geyser.api.command.Command {
 
@@ -47,24 +49,49 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
      */
     public static final CommandMeta.Key<Boolean> PLAYER_ONLY = CommandMeta.Key.of(Boolean.class, "player-only", meta -> false);
 
+    /**
+     * The second literal of the command. Note: the first literal is {@link GeyserCommand#rootCommand()}.
+     */
     @NonNull
-    protected final String name;
+    private final String name;
 
     /**
      * The description of the command - will attempt to be translated.
      */
     @NonNull
-    protected final String description;
+    private final String description;
 
+    /**
+     * The permission node required to run the command, or blank if not required.
+     */
     @NonNull
-    protected final String permission;
+    private final String permission;
 
-    protected final boolean executableOnConsole;
-    protected final boolean bedrockOnly;
+    /**
+     * The default value of the permission node
+     */
+    @NonNull
+    private final TriState permissionDefault;
 
+    /**
+     * True if the command can be executed by non players
+     */
+    private final boolean executableOnConsole;
+
+    /**
+     * True if the command can only be run by bedrock players
+     */
+    private final boolean bedrockOnly;
+
+    /**
+     * The aliases of the command {@link GeyserCommand#name}
+     */
     protected List<String> aliases = Collections.emptyList();
 
-    public GeyserCommand(@NonNull String name, @Nullable String description, @Nullable String permission, boolean executableOnConsole, boolean bedrockOnly) {
+    public GeyserCommand(@NonNull String name, @Nullable String description,
+                         @Nullable String permission, @NonNull TriState permissionDefault,
+                         boolean executableOnConsole, boolean bedrockOnly) {
+
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Command cannot be null or blank!");
         }
@@ -72,6 +99,7 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
         this.name = name;
         this.description = description != null ? description : "";
         this.permission = permission != null ? permission : "";
+        this.permissionDefault = Objects.requireNonNull(permissionDefault, "permissionDefault");
 
         if (bedrockOnly && executableOnConsole) {
             throw new IllegalArgumentException("Command cannot be both bedrockOnly and executableOnConsole");
@@ -82,7 +110,7 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
     }
 
     public GeyserCommand(@NonNull String name, @NonNull String description, @Nullable String permission) {
-        this(name, description, permission, true, false);
+        this(name, description, permission, TriState.NOT_SET, true, false);
     }
 
     @NonNull
@@ -101,6 +129,11 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
     @Override
     public final String permission() {
         return permission;
+    }
+
+    @NonNull
+    public final TriState permissionDefault() {
+        return permissionDefault;
     }
 
     @Override

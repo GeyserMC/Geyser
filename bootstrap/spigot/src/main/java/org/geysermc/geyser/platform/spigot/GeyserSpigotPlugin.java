@@ -41,14 +41,14 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
-import org.geysermc.geyser.api.command.Command;
-import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.GeyserCommandSource;
@@ -187,7 +187,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             }
         }
 
-        this.commandRegistry = new CommandRegistry(geyser, cloud);
+        this.commandRegistry = new CommandRegistry(geyser, cloud); // todo: reimplement subclass for command descriptions
 
         if (!INITIALIZED) {
             // Needs to be an anonymous inner class otherwise Bukkit complains about missing classes
@@ -209,6 +209,8 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     private void postStartup() {
         GeyserImpl.start();
+
+        PluginManager pluginManager = Bukkit.getPluginManager();
 
         // Turn "(MC: 1.16.4)" into 1.16.4.
         this.minecraftVersion = Bukkit.getServer().getVersion().split("\\(MC: ")[1].split("\\)")[0];
@@ -276,54 +278,37 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
         if (!INITIALIZED) {
             // Register permissions so they appear in, for example, LuckPerms' UI
-            // Re-registering permissions throws an error
-            for (Map.Entry<String, Command> entry : commandRegistry.commands().entrySet()) {
-                Command command = entry.getValue();
-                if (command.aliases().contains(entry.getKey())) {
-                    // Don't register aliases
-                    continue;
+            // Re-registering permissions without removing it throws an error
+
+            // todo: this can probably always be run regardless if geyser has been initialized once or not, since we are removing the permission
+            geyser.eventBus().fire((GeyserRegisterPermissionsEvent) (permission, def) -> {
+                PermissionDefault permissionDefault = switch (def) {
+                    case TRUE -> PermissionDefault.TRUE;
+                    case FALSE -> PermissionDefault.FALSE;
+                    case NOT_SET -> PermissionDefault.OP;
+                };
+
+                Permission existingPermission = pluginManager.getPermission(permission);
+                if (existingPermission != null) {
+                    geyserLogger.debug("permission " + permission + " with a default of " +
+                        existingPermission.getDefault() + " is being overriden by " + permissionDefault);
+
+                    pluginManager.removePermission(permission);
                 }
 
-                Bukkit.getPluginManager().addPermission(new Permission(command.permission(),
-                        GeyserLocale.getLocaleStringLog(command.description()),
-                        command.isSuggestedOpOnly() ? PermissionDefault.OP : PermissionDefault.TRUE));
-            }
+                pluginManager.addPermission(new Permission(permission, permissionDefault));
+            });
 
-            // Register permissions for extension commands
-            for (Map.Entry<Extension, Map<String, Command>> commandEntry : this.commandRegistry.extensionCommands().entrySet()) {
-                for (Map.Entry<String, Command> entry : commandEntry.getValue().entrySet()) {
-                    Command command = entry.getValue();
-                    if (command.aliases().contains(entry.getKey())) {
-                        // Don't register aliases
-                        continue;
-                    }
-
-                    if (command.permission().isBlank()) {
-                        continue;
-                    }
-
-                    // Avoid registering the same permission twice, e.g. for the extension help commands
-                    if (Bukkit.getPluginManager().getPermission(command.permission()) != null) {
-                        GeyserImpl.getInstance().getLogger().debug("Skipping permission " + command.permission() + " as it is already registered");
-                        continue;
-                    }
-
-                    Bukkit.getPluginManager().addPermission(new Permission(command.permission(),
-                            GeyserLocale.getLocaleStringLog(command.description()),
-                            command.isSuggestedOpOnly() ? PermissionDefault.OP : PermissionDefault.TRUE));
-                }
-            }
-
-            Bukkit.getPluginManager().addPermission(new Permission(Constants.UPDATE_PERMISSION,
+            pluginManager.addPermission(new Permission(Constants.UPDATE_PERMISSION,
                     "Whether update notifications can be seen", PermissionDefault.OP));
 
             // Events cannot be unregistered - re-registering results in duplicate firings
             GeyserSpigotBlockPlaceListener blockPlaceListener = new GeyserSpigotBlockPlaceListener(geyser, this.geyserWorldManager);
-            Bukkit.getServer().getPluginManager().registerEvents(blockPlaceListener, this);
+            pluginManager.registerEvents(blockPlaceListener, this);
 
-            Bukkit.getServer().getPluginManager().registerEvents(new GeyserPistonListener(geyser, this.geyserWorldManager), this);
+            pluginManager.registerEvents(new GeyserPistonListener(geyser, this.geyserWorldManager), this);
 
-            Bukkit.getServer().getPluginManager().registerEvents(new GeyserSpigotUpdateListener(), this);
+            pluginManager.registerEvents(new GeyserSpigotUpdateListener(), this);
         }
 
         // Check to ensure the current setup can support the protocol version Geyser uses

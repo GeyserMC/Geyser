@@ -33,7 +33,7 @@ import java.util.Map;
 
 /**
  * Called when commands are defined within Geyser.
- *
+ * <br><br>
  * This event allows you to register new commands using the {@link #register(Command)}
  * method and retrieve the default commands defined.
  */
@@ -50,7 +50,7 @@ public interface GeyserDefineCommandsEvent extends Event {
     /**
      * Gets all the registered built-in {@link Command}s.
      *
-     * @return all the registered built-in commands
+     * @return all the registered built-in commands as an unmodifiable map.
      */
     @NonNull
     Map<String, Command> commands();

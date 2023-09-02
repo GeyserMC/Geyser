@@ -29,7 +29,9 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.api.util.TriState;
 
 import java.util.Collections;
 import java.util.List;
@@ -162,6 +164,17 @@ public interface Command {
          * @return the builder
          */
         Builder<T> permission(@Nullable String permission);
+
+        /**
+         * Sets the permission node, and its default value. The usage of the default value is platform dependant
+         * and may or may not be used. Extensions may instead listen for {@link GeyserRegisterPermissionsEvent}
+         * to register permissions.
+         *
+         * @param permission the permission node
+         * @param defaultValue the node's default value
+         * @return the builder
+         */
+        Builder<T> permission(@Nullable String permission, TriState defaultValue);
 
         /**
          * Sets the aliases.

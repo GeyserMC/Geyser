@@ -37,7 +37,7 @@ public interface GeyserRegisterPermissionsEvent extends Event {
      * Registers a permission node with the permission system being used by Geyser's command manager.
      *
      * @param permission the permission node to register
-     * @param def the default value of the node
+     * @param defaultValue the default value of the node
      */
-    void register(String permission, TriState def);
+    void register(String permission, TriState defaultValue);
 }

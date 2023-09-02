@@ -34,11 +34,13 @@ import cloud.commandframework.exceptions.NoPermissionException;
 import cloud.commandframework.exceptions.NoSuchCommandException;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCommandsEvent;
 import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.defaults.AdvancedTooltipsCommand;
 import org.geysermc.geyser.command.defaults.AdvancementsCommand;
 import org.geysermc.geyser.command.defaults.ConnectionTestCommand;
@@ -52,6 +54,7 @@ import org.geysermc.geyser.command.defaults.SettingsCommand;
 import org.geysermc.geyser.command.defaults.StatisticsCommand;
 import org.geysermc.geyser.command.defaults.StopCommand;
 import org.geysermc.geyser.command.defaults.VersionCommand;
+import org.geysermc.geyser.event.GeyserEventRegistrar;
 import org.geysermc.geyser.event.type.GeyserDefineCommandsEventImpl;
 import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -62,13 +65,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletionException;
 
-public final class CommandRegistry {
+public class CommandRegistry {
+
+    private final GeyserImpl geyser;
+    private final CommandManager<GeyserCommandSource> cloud;
 
     private final Map<String, Command> commands = new Object2ObjectOpenHashMap<>(13);
     private final Map<Extension, Map<String, Command>> extensionCommands = new Object2ObjectOpenHashMap<>(0);
 
-    private final GeyserImpl geyser;
-    private final CommandManager<GeyserCommandSource> cloud;
+    private final Map<String, TriState> permissions = new Object2ObjectOpenHashMap<>(0);
 
     public CommandRegistry(GeyserImpl geyser, CommandManager<GeyserCommandSource> cloud) {
         this.geyser = geyser;
@@ -114,6 +119,30 @@ public final class CommandRegistry {
             String id = entry.getKey().description().id();
             registerExtensionCommand(entry.getKey(), new HelpCommand(this.geyser, "help", "geyser.commands.exthelp.desc", "geyser.command.exthelp." + id, id, entry.getValue()));
         }
+
+        // wait for the right moment to register permissions
+        geyser.eventBus().subscribe(new GeyserEventRegistrar(this), GeyserRegisterPermissionsEvent.class, this::onRegisterPermissions);
+    }
+
+    @NotNull
+    public CommandManager<GeyserCommandSource> cloud() {
+        return cloud;
+    }
+
+    @NotNull
+    public Map<String, Command> commands() {
+        return Collections.unmodifiableMap(this.commands);
+    }
+
+    @NotNull
+    public Map<Extension, Map<String, Command>> extensionCommands() {
+        return Collections.unmodifiableMap(this.extensionCommands);
+    }
+
+    public void clear() {
+        this.commands.clear();
+        this.extensionCommands.clear();
+        this.permissions.clear();
     }
 
     /**
@@ -140,26 +169,16 @@ public final class CommandRegistry {
         for (String alias : command.aliases()) {
             commands.put(alias, command);
         }
+
+        if (!command.permission().isBlank()) {
+            permissions.put(command.permission(), command.permissionDefault());
+        }
     }
 
-    public void clear() {
-        this.commands.clear();
-        this.extensionCommands.clear();
-    }
-
-    @NotNull
-    public Map<String, Command> commands() {
-        return Collections.unmodifiableMap(this.commands);
-    }
-
-    @NotNull
-    public Map<Extension, Map<String, Command>> extensionCommands() {
-        return Collections.unmodifiableMap(this.extensionCommands);
-    }
-
-    @NotNull
-    public CommandManager<GeyserCommandSource> cloud() {
-        return cloud;
+    private void onRegisterPermissions(GeyserRegisterPermissionsEvent event) {
+        for (Map.Entry<String, TriState> permission : permissions.entrySet()) {
+            event.register(permission.getKey(), permission.getValue());
+        }
     }
 
     /**
