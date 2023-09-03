@@ -28,6 +28,7 @@ package org.geysermc.geyser.platform.fabric;
 import cloud.commandframework.CommandManager;
 import cloud.commandframework.execution.CommandExecutionCoordinator;
 import cloud.commandframework.fabric.FabricServerCommandManager;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -65,7 +66,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
-    private static GeyserFabricMod instance;
+    private static GeyserFabricMod INSTANCE;
 
     private boolean reloading;
 
@@ -74,6 +75,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     private Path dataFolder;
     private MinecraftServer server;
 
+    private CommandManager<GeyserCommandSource> cloud;
     private CommandRegistry commandRegistry;
     private GeyserFabricConfiguration geyserConfig;
     private GeyserFabricLogger geyserLogger;
@@ -82,7 +84,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
     @Override
     public void onInitialize() {
-        instance = this;
+        INSTANCE = this;
         mod = FabricLoader.getInstance().getModContainer("geyser-fabric").orElseThrow();
 
         this.onEnable();
@@ -119,17 +121,33 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
         this.geyser = GeyserImpl.load(PlatformType.FABRIC, this);
 
-        if (server == null) {
-            // Server has yet to start
-            // Register onDisable so players are properly kicked
-            ServerLifecycleEvents.SERVER_STOPPING.register((server) -> onDisable());
-
-            ServerPlayConnectionEvents.JOIN.register((handler, $, $$) -> GeyserFabricUpdateListener.onPlayReady(handler));
-        } else {
+        if (server != null) {
             // Server has started and this is a reload
             startGeyser(this.server);
             reloading = false;
+            return;
         }
+
+        // Server has yet to start
+        // Register onDisable so players are properly kicked
+        ServerLifecycleEvents.SERVER_STOPPING.register((server) -> onDisable());
+
+        ServerPlayConnectionEvents.JOIN.register((handler, $, $$) -> GeyserFabricUpdateListener.onPlayReady(handler));
+
+        // Cloud requires the command manager itself to be created during mod init
+        var sourceConverter = CommandSourceConverter.layered(
+            CommandSourceStack.class,
+            id -> server.getPlayerList().getPlayer(id),
+            Player::createCommandSourceStack,
+            () -> server.createCommandSourceStack() // note: method reference here will cause NPE
+        );
+        cloud = new FabricServerCommandManager<>(
+            CommandExecutionCoordinator.simpleCoordinator(),
+            FabricCommandSource::new,
+            sourceConverter::convert
+        );
+        // Geyser registers commands after the server has started
+        cloud.setSetting(CommandManager.ManagerSettings.ALLOW_UNSAFE_REGISTRATION, true);
     }
 
     /**
@@ -144,21 +162,23 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
         GeyserImpl.start();
 
         this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
-
-        var sourceConverter = CommandSourceConverter.layered(
-            CommandSourceStack.class,
-            id -> server.getPlayerList().getPlayer(id),
-            Player::createCommandSourceStack,
-            server::createCommandSourceStack
-        );
-        CommandManager<GeyserCommandSource> cloud = new FabricServerCommandManager<>(
-            CommandExecutionCoordinator.simpleCoordinator(),
-            FabricCommandSource::new,
-            sourceConverter::convert
-        );
+        this.geyserWorldManager = new GeyserFabricWorldManager(server);
         this.commandRegistry = new CommandRegistry(geyser, cloud);
 
-        this.geyserWorldManager = new GeyserFabricWorldManager(server);
+        // the minecraft command dispatcher can be rebuilt at any time, at which point CommandRegistrationCallback.EVENT is fired.
+        // the dispatcher is initially created after mod init but before the server starts.
+        // that event is not required to register commands, but cloud uses it so that commands are properly
+        // registered anytime the dispatcher is rebuilt.
+
+        // we just registered commands to cloud, after the server started, meaning we missed the initial registration event.
+        // this means cloud didn't register the commands to the server
+        // hack: we now trigger a resource reload so that the dispatcher is rebuilt, the event is fired, and cloud registers the commands.
+        geyserLogger.info("Reloading resources so that Geyser commands can be successfully registered");
+        try {
+            server.getCommands().getDispatcher().execute("reload", server.createCommandSourceStack());
+        } catch (CommandSyntaxException e) {
+            geyserLogger.error("Failed to reload in order to register commands", e);
+        }
     }
 
     @Override
@@ -258,6 +278,6 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     }
 
     public static GeyserFabricMod getInstance() {
-        return instance;
+        return INSTANCE;
     }
 }
