@@ -218,11 +218,14 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         logger.get().setLevel(geyserConfig.isDebugMode() ? Level.DEBUG : Level.INFO);
 
         geyser = GeyserImpl.load(PlatformType.STANDALONE, this);
-        GeyserImpl.start();
 
+        // fire GeyserDefineCommandsEvent after PreInitEvent, before PostInitEvent, for consistency with other bootstraps
         GeyserStandaloneCommandManager cloud = new GeyserStandaloneCommandManager(geyser);
         commandRegistry = new CommandRegistry(geyser, cloud);
-        cloud.gatherPermissions();
+
+        GeyserImpl.start();
+
+        cloud.gatherPermissions(); // event must be fired after CommandRegistry has subscribed its listener
 
         if (gui != null) {
             gui.enableCommands(geyser.getScheduledThread(), commandRegistry);

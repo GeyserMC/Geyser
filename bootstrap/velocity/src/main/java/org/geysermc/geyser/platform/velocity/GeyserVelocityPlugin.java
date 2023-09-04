@@ -130,20 +130,24 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     }
 
     private void postStartup() {
-        GeyserImpl.start();
-
-        this.geyserInjector = new GeyserVelocityInjector(proxyServer);
-        // Will be initialized after the proxy has been bound
-
-        var sourceConverter = new CommandSourceConverter<>(CommandSource.class, id -> proxyServer.getPlayer(id).orElse(null), proxyServer::getConsoleCommandSource);
+        var sourceConverter = new CommandSourceConverter<>(
+                CommandSource.class,
+                id -> proxyServer.getPlayer(id).orElse(null),
+                proxyServer::getConsoleCommandSource
+        );
         CommandManager<GeyserCommandSource> cloud = new VelocityCommandManager<>(
-            container,
-            proxyServer,
-            CommandExecutionCoordinator.simpleCoordinator(),
-            VelocityCommandSource::new,
-            sourceConverter::convert
+                container,
+                proxyServer,
+                CommandExecutionCoordinator.simpleCoordinator(),
+                VelocityCommandSource::new,
+                sourceConverter::convert
         );
         this.commandRegistry = new CommandRegistry(geyser, cloud);
+
+        GeyserImpl.start();
+
+        // Will be initialized after the proxy has been bound
+        this.geyserInjector = new GeyserVelocityInjector(proxyServer);
 
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);

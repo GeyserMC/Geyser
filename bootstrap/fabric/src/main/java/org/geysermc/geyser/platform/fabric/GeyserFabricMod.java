@@ -134,7 +134,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
             CommandSourceStack.class,
             id -> server.getPlayerList().getPlayer(id),
             Player::createCommandSourceStack,
-            () -> server.createCommandSourceStack() // note: method reference here will cause NPE
+            () -> server.createCommandSourceStack() // NPE if method reference is used, since server is not available yet
         );
         CommandManager<GeyserCommandSource> cloud = new FabricServerCommandManager<>(
             CommandExecutionCoordinator.simpleCoordinator(),

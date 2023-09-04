@@ -120,7 +120,7 @@ public class CommandRegistry {
             registerExtensionCommand(entry.getKey(), new HelpCommand(this.geyser, "help", "geyser.commands.exthelp.desc", "geyser.command.exthelp." + id, id, entry.getValue()));
         }
 
-        // wait for the right moment to register permissions
+        // wait for the right moment (depends on the platform) to register permissions
         geyser.eventBus().subscribe(new GeyserEventRegistrar(this), GeyserRegisterPermissionsEvent.class, this::onRegisterPermissions);
     }
 

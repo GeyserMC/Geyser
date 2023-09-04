@@ -172,19 +172,23 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     }
 
     private void postStartup() {
+        var sourceConverter = new CommandSourceConverter<>(
+                CommandSender.class,
+                id -> getProxy().getPlayer(id),
+                () -> getProxy().getConsole()
+        );
+        CommandManager<GeyserCommandSource> cloud = new BungeeCommandManager<>(
+                this,
+                CommandExecutionCoordinator.simpleCoordinator(),
+                BungeeCommandSource::new,
+                sourceConverter::convert
+        );
+        this.commandRegistry = new CommandRegistry(geyser, cloud);
+
         GeyserImpl.start();
 
         this.geyserInjector = new GeyserBungeeInjector(this);
         this.geyserInjector.initializeLocalChannel(this);
-
-        var sourceConverter = new CommandSourceConverter<>(CommandSender.class, id -> getProxy().getPlayer(id), () -> getProxy().getConsole());
-        CommandManager<GeyserCommandSource> cloud = new BungeeCommandManager<>(
-            this,
-            CommandExecutionCoordinator.simpleCoordinator(),
-            BungeeCommandSource::new,
-            sourceConverter::convert
-        );
-        this.commandRegistry = new CommandRegistry(geyser, cloud);
 
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserBungeePingPassthrough = GeyserLegacyPingPassthrough.init(geyser);

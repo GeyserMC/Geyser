@@ -75,7 +75,6 @@ public class GeyserStandaloneCommandManager extends CommandManager<GeyserCommand
      * Fire a {@link GeyserRegisterPermissionsEvent} to determine any additions or removals to the base list of
      * permissions. This should be called after any event listeners have been registered, such as that of {@link CommandRegistry}.
      */
-    // todo: doesn't seem like CommandRegistry has a listener anymore? should it? i forget.
     public void gatherPermissions() {
         geyser.getEventBus().fire((GeyserRegisterPermissionsEvent) (permission, def) -> {
             if (def == TriState.TRUE) {
