@@ -184,6 +184,7 @@ public class CommandRegistry {
      * @return Command description
      */
     public String description(String command) {
+        // todo: the commands contained in this registry store their descriptions, so those should be checked
         return ""; // todo: reimplement
     }
 

@@ -25,11 +25,24 @@
 
 package org.geysermc.geyser.extension.command;
 
+import cloud.commandframework.CommandManager;
+import cloud.commandframework.arguments.standard.StringArgument;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.api.command.CommandExecutor;
+import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
+import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.session.GeyserSession;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 public abstract class GeyserExtensionCommand extends GeyserCommand {
 
@@ -42,10 +55,10 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
 
         super(name, description, permission, permissionDefault, executableOnConsole, bedrockOnly);
         this.extension = extension;
-        this.rootCommand = extension.rootCommand();
+        this.rootCommand = Objects.requireNonNull(extension.rootCommand());
 
-        if (this.rootCommand == null || this.rootCommand.isBlank()) {
-            throw new IllegalStateException("rootCommand of extension " + extension.name() + " may not be null or blank");
+        if (this.rootCommand.isBlank()) {
+            throw new IllegalStateException("rootCommand of extension " + extension.name() + " may not be blank");
         }
     }
 
@@ -56,5 +69,139 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
     @Override
     public final String rootCommand() {
         return this.rootCommand;
+    }
+
+    public static class Builder<T extends CommandSource> implements Command.Builder<T> {
+        private final Extension extension;
+        private Class<? extends T> sourceType;
+        private String name;
+        private String description;
+        private String permission;
+        private TriState permissionDefault;
+        private List<String> aliases;
+        private boolean suggestedOpOnly = false; // deprecated for removal
+        private boolean executableOnConsole = true;
+        private boolean bedrockOnly = false;
+        private CommandExecutor<T> executor;
+
+        public Builder(Extension extension) {
+            this.extension = Objects.requireNonNull(extension);
+        }
+
+        @Override
+        public Command.Builder<T> source(@NonNull Class<? extends T> sourceType) {
+            this.sourceType = sourceType;
+            return this;
+        }
+
+        @Override
+        public Builder<T> name(@NonNull String name) {
+            this.name = name;
+            return this;
+        }
+
+        @Override
+        public Builder<T> description(@Nullable String description) {
+            this.description = description;
+            return this;
+        }
+
+        @Override
+        public Builder<T> permission(@Nullable String permission) {
+            this.permission = permission;
+            return this;
+        }
+
+        @Override
+        public Builder<T> permission(@Nullable String permission, @NonNull TriState defaultValue) {
+            this.permission = permission;
+            this.permissionDefault = Objects.requireNonNull(defaultValue, "defaultValue");
+            return this;
+        }
+
+        @Override
+        public Builder<T> aliases(@Nullable List<String> aliases) {
+            this.aliases = aliases;
+            return this;
+        }
+
+        @Override
+        public Builder<T> suggestedOpOnly(boolean suggestedOpOnly) {
+            this.suggestedOpOnly = suggestedOpOnly;
+            if (suggestedOpOnly) {
+                // the most amount of legacy/deprecated behaviour I'm willing to support
+                this.permissionDefault = TriState.NOT_SET;
+            }
+            return this;
+        }
+
+        @Override
+        public Builder<T> executableOnConsole(boolean executableOnConsole) {
+            this.executableOnConsole = executableOnConsole;
+            return this;
+        }
+
+        @Override
+        public Builder<T> bedrockOnly(boolean bedrockOnly) {
+            this.bedrockOnly = bedrockOnly;
+            return this;
+        }
+
+        @Override
+        public Builder<T> executor(@NonNull CommandExecutor<T> executor) {
+            this.executor = executor;
+            return this;
+        }
+
+        @NonNull
+        @Override
+        public GeyserExtensionCommand build() {
+            final Class<? extends T> sourceType = this.sourceType;
+            final boolean suggestedOpOnly = this.suggestedOpOnly;
+            final CommandExecutor<T> executor = this.executor;
+
+            if (sourceType == null) {
+                throw new IllegalArgumentException("Source type was not defined for command " + name + " in extension " + extension.name());
+            }
+            if (executor == null) {
+                throw new IllegalArgumentException("Command executor was not defined for command " + name + " in extension " + extension.name());
+            }
+
+            GeyserExtensionCommand command = new GeyserExtensionCommand(extension, name, description, permission, permissionDefault, executableOnConsole, bedrockOnly) {
+
+                @SuppressWarnings("unchecked")
+                @Override
+                public cloud.commandframework.Command.Builder<GeyserCommandSource> builder(CommandManager<GeyserCommandSource> manager) {
+                    return super.builder(manager)
+                            .argument(StringArgument.optional("args", StringArgument.StringMode.GREEDY))
+                            .handler(context -> {
+                                GeyserCommandSource source = context.getSender();
+                                String[] args = context.getOrDefault("args", "").split(" ");
+
+                                if (sourceType.isInstance(source)) {
+                                    executor.execute((T) source, this, args);
+                                    return;
+                                }
+
+                                GeyserSession session = source.connection().orElse(null);
+                                if (sourceType.isInstance(session)) {
+                                    executor.execute((T) session, this, args);
+                                    return;
+                                }
+
+                                // todo: send sender message instead
+                                GeyserImpl.getInstance().getLogger().warning("Ignoring command " + name + " due to no suitable sender.");
+                            });
+                }
+
+                @Override
+                public boolean isSuggestedOpOnly() {
+                    return suggestedOpOnly;
+                }
+            };
+
+            command.aliases = aliases != null ? new ArrayList<>(aliases) : Collections.emptyList();
+            return command;
+        }
     }
 }
