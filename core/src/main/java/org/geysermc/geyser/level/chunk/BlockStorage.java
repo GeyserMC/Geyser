@@ -25,11 +25,11 @@
 
 package org.geysermc.geyser.level.chunk;
 
-import com.nukkitx.network.VarInts;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.Getter;
+import org.cloudburstmc.protocol.common.util.VarInts;
 import org.geysermc.geyser.level.chunk.bitarray.BitArray;
 import org.geysermc.geyser.level.chunk.bitarray.BitArrayVersion;
 

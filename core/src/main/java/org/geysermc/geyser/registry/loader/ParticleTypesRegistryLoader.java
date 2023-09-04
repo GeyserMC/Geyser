@@ -27,8 +27,9 @@ package org.geysermc.geyser.registry.loader;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.protocol.data.game.level.particle.ParticleType;
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
+import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.registry.type.ParticleMapping;
 
@@ -57,8 +58,20 @@ public class ParticleTypesRegistryLoader extends EffectRegistryLoader<Map<Partic
                     GeyserImpl.getInstance().getLogger().debug("Skipping particle mapping " + key + " because no Bedrock equivalent exists.");
                     continue;
                 }
+
+                LevelEventType type = null;
+                if (eventType != null) {
+                    try {
+                        // Check if we have a particle type mapping
+                        type = org.cloudburstmc.protocol.bedrock.data.ParticleType.valueOf(eventType.asText().toUpperCase(Locale.ROOT));
+                    } catch (IllegalArgumentException ex) {
+                        // No particle type; try level event
+                        type = LevelEvent.valueOf(eventType.asText().toUpperCase(Locale.ROOT));
+                    }
+                }
+
                 particles.put(ParticleType.valueOf(key), new ParticleMapping(
-                        eventType == null ? null : LevelEventType.valueOf(eventType.asText().toUpperCase(Locale.ROOT)),
+                        type,
                         bedrockId == null ? null : bedrockId.asText())
                 );
             }

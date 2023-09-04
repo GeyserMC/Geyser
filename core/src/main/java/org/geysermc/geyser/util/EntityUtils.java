@@ -28,16 +28,17 @@ package org.geysermc.geyser.util;
 import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
+import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.item.Items;
 
 import java.util.Locale;
 
@@ -82,19 +83,28 @@ public final class EntityUtils {
         float height = mount.getBoundingBoxHeight();
         float mountedHeightOffset = height * 0.75f;
         switch (mount.getDefinition().entityType()) {
-            case CHICKEN, SPIDER -> mountedHeightOffset = height * 0.5f;
+            case CAMEL -> {
+                boolean isBaby = mount.getFlag(EntityFlag.BABY);
+                mountedHeightOffset = height - (isBaby ? 0.35f : 0.6f);
+            }
+            case CAVE_SPIDER, CHICKEN, SPIDER -> mountedHeightOffset = height * 0.5f;
             case DONKEY, MULE -> mountedHeightOffset -= 0.25f;
             case TRADER_LLAMA, LLAMA -> mountedHeightOffset = height * 0.6f;
             case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
                     COMMAND_BLOCK_MINECART -> mountedHeightOffset = 0;
-            case BOAT, CHEST_BOAT -> mountedHeightOffset = -0.1f;
+            case BOAT, CHEST_BOAT -> {
+                boolean isBamboo = ((BoatEntity) mount).getVariant() == 8;
+                mountedHeightOffset = isBamboo ? 0.25f : -0.1f;
+            }
             case HOGLIN, ZOGLIN -> {
                 boolean isBaby = mount.getFlag(EntityFlag.BABY);
                 mountedHeightOffset = height - (isBaby ? 0.2f : 0.15f);
             }
             case PIGLIN -> mountedHeightOffset = height * 0.92f;
+            case PHANTOM -> mountedHeightOffset = height * 0.35f;
             case RAVAGER -> mountedHeightOffset = 2.1f;
             case SKELETON_HORSE -> mountedHeightOffset -= 0.1875f;
+            case SNIFFER -> mountedHeightOffset = 1.8f;
             case STRIDER -> mountedHeightOffset = height - 0.19f;
         }
         return mountedHeightOffset;
@@ -103,9 +113,9 @@ public final class EntityUtils {
     private static float getHeightOffset(Entity passenger) {
         boolean isBaby;
         switch (passenger.getDefinition().entityType()) {
-            case SKELETON:
-            case STRAY:
-            case WITHER_SKELETON:
+            case ALLAY, VEX:
+                return 0.4f;
+            case SKELETON, STRAY, WITHER_SKELETON:
                 return -0.6f;
             case ARMOR_STAND:
                 if (((ArmorStandEntity) passenger).isMarker()) {
@@ -113,26 +123,23 @@ public final class EntityUtils {
                 } else {
                     return 0.1f;
                 }
-            case ENDERMITE:
-            case SILVERFISH:
+            case ENDERMITE, SILVERFISH:
                 return 0.1f;
-            case PIGLIN:
-            case PIGLIN_BRUTE:
-            case ZOMBIFIED_PIGLIN:
+            case PIGLIN, PIGLIN_BRUTE, ZOMBIFIED_PIGLIN:
                 isBaby = passenger.getFlag(EntityFlag.BABY);
                 return isBaby ? -0.05f : -0.45f;
-            case ZOMBIE:
+            case DROWNED, HUSK, ZOMBIE_VILLAGER, ZOMBIE:
                 isBaby = passenger.getFlag(EntityFlag.BABY);
                 return isBaby ? 0.0f : -0.45f;
-            case EVOKER:
-            case ILLUSIONER:
-            case PILLAGER:
-            case RAVAGER:
-            case VINDICATOR:
-            case WITCH:
+            case EVOKER, ILLUSIONER, PILLAGER, RAVAGER, VINDICATOR, WITCH:
                 return -0.45f;
             case PLAYER:
                 return -0.35f;
+            case SHULKER:
+                Entity vehicle = passenger.getVehicle();
+                if (vehicle instanceof BoatEntity || vehicle.getDefinition() == EntityDefinitions.MINECART) {
+                    return 0.1875f - getMountedHeightOffset(vehicle);
+                }
         }
         if (passenger instanceof AnimalEntity) {
             return 0.14f;
@@ -156,21 +163,38 @@ public final class EntityUtils {
             switch (mount.getDefinition().entityType()) {
                 case BOAT -> {
                     // Without the X offset, more than one entity on a boat is stacked on top of each other
-                    if (rider && moreThanOneEntity) {
-                        xOffset = 0.2f;
-                    } else if (moreThanOneEntity) {
-                        xOffset = -0.6f;
+                    if (moreThanOneEntity) {
+                        if (rider) {
+                            xOffset = 0.2f;
+                        } else {
+                            xOffset = -0.6f;
+                        }
+                        if (passenger instanceof AnimalEntity) {
+                            xOffset += 0.2f;
+                        }
+                    }
+                }
+                case CAMEL -> {
+                    zOffset = 0.5f;
+                    if (moreThanOneEntity) {
+                        if (!rider) {
+                            zOffset = -0.7f;
+                        }
+                        if (passenger instanceof AnimalEntity) {
+                            zOffset += 0.2f;
+                        }
+                    }
+                    if (mount.getFlag(EntityFlag.SITTING)) {
+                        if (mount.getFlag(EntityFlag.BABY)) {
+                            yOffset += CamelEntity.SITTING_HEIGHT_DIFFERENCE * 0.5f;
+                        } else {
+                            yOffset += CamelEntity.SITTING_HEIGHT_DIFFERENCE;
+                        }
                     }
                 }
                 case CHEST_BOAT -> xOffset = 0.15F;
                 case CHICKEN -> zOffset = -0.1f;
                 case TRADER_LLAMA, LLAMA -> zOffset = -0.3f;
-            }
-            if (passenger.getDefinition().entityType() == EntityType.SHULKER) {
-                switch (mount.getDefinition().entityType()) {
-                    case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
-                            COMMAND_BLOCK_MINECART, BOAT, CHEST_BOAT -> yOffset = 0.1875f;
-                }
             }
             /*
              * Bedrock Differences
@@ -178,17 +202,20 @@ public final class EntityUtils {
              * Horses are tinier
              * Players, Minecarts, and Boats have different origins
              */
+            if (mount.getDefinition().entityType() == EntityType.PLAYER) {
+                yOffset -= EntityDefinitions.PLAYER.offset();
+            }
             if (passenger.getDefinition().entityType() == EntityType.PLAYER) {
-                if (mount.getDefinition().entityType() != EntityType.PLAYER && mount.getDefinition().entityType() != EntityType.AREA_EFFECT_CLOUD) {
-                    yOffset += EntityDefinitions.PLAYER.offset();
-                }
+                yOffset += EntityDefinitions.PLAYER.offset();
             }
             switch (mount.getDefinition().entityType()) {
                 case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
                         COMMAND_BLOCK_MINECART, BOAT, CHEST_BOAT -> yOffset -= mount.getDefinition().height() * 0.5f;
             }
-            if (passenger.getDefinition().entityType() == EntityType.FALLING_BLOCK) {
-                yOffset += 0.5f;
+            switch (passenger.getDefinition().entityType()) {
+                case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
+                        COMMAND_BLOCK_MINECART, BOAT, CHEST_BOAT -> yOffset += passenger.getDefinition().height() * 0.5f;
+                case FALLING_BLOCK -> yOffset += 0.5f;
             }
             if (mount instanceof ArmorStandEntity armorStand) {
                 yOffset -= armorStand.getYOffset();
@@ -201,30 +228,30 @@ public final class EntityUtils {
     public static void updateRiderRotationLock(Entity passenger, Entity mount, boolean isRiding) {
         if (isRiding && mount instanceof BoatEntity) {
             // Head rotation is locked while riding in a boat
-            passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 1);
-            passenger.getDirtyMetadata().put(EntityData.RIDER_MAX_ROTATION, 90f);
-            passenger.getDirtyMetadata().put(EntityData.RIDER_MIN_ROTATION, 1f);
-            passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_OFFSET, -90f);
+            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, true);
+            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 90f);
+            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_HAS_ROTATION, true);
+            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, -90f);
         } else {
-            passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 0);
-            passenger.getDirtyMetadata().put(EntityData.RIDER_MAX_ROTATION, 0f);
-            passenger.getDirtyMetadata().put(EntityData.RIDER_MIN_ROTATION, 0f);
-            passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_OFFSET, 0f);
+            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, false);
+            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 0f);
+            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_HAS_ROTATION, false);
+            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, 0f);
         }
     }
 
     /**
      * Determine if an action would result in a successful bucketing of the given entity.
      */
-    public static boolean attemptToBucket(GeyserSession session, GeyserItemStack itemInHand) {
-        return itemInHand.getJavaId() == session.getItemMappings().getStoredItems().waterBucket();
+    public static boolean attemptToBucket(GeyserItemStack itemInHand) {
+        return itemInHand.asItem() == Items.WATER_BUCKET;
     }
 
     /**
      * Attempt to determine the result of saddling the given entity.
      */
-    public static InteractionResult attemptToSaddle(GeyserSession session, Entity entityToSaddle, GeyserItemStack itemInHand) {
-        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().saddle()) {
+    public static InteractionResult attemptToSaddle(Entity entityToSaddle, GeyserItemStack itemInHand) {
+        if (itemInHand.asItem() == Items.SADDLE) {
             if (!entityToSaddle.getFlag(EntityFlag.SADDLED) && !entityToSaddle.getFlag(EntityFlag.BABY)) {
                 // Saddle
                 return InteractionResult.SUCCESS;

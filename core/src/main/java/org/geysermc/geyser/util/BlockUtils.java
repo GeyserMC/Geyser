@@ -26,11 +26,11 @@
 package org.geysermc.geyser.util;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -219,7 +219,7 @@ public final class BlockUtils {
     }
 
     public static BlockCollision getCollision(int blockId) {
-        return Registries.COLLISIONS.get(blockId);
+        return BlockRegistries.COLLISIONS.get(blockId);
     }
 
     public static BlockCollision getCollisionAt(GeyserSession session, Vector3i blockPos) {

@@ -460,7 +460,7 @@ public class SkinProvider {
 
     private static Skin supplySkin(UUID uuid, String textureUrl) {
         try {
-            byte[] skin = requestImage(textureUrl, null);
+            byte[] skin = requestImageData(textureUrl, null);
             return new Skin(uuid, textureUrl, skin, System.currentTimeMillis(), false, false);
         } catch (Exception ignored) {} // just ignore I guess
 
@@ -470,7 +470,7 @@ public class SkinProvider {
     private static Cape supplyCape(String capeUrl, CapeProvider provider) {
         byte[] cape = EMPTY_CAPE.capeData();
         try {
-            cape = requestImage(capeUrl, provider);
+            cape = requestImageData(capeUrl, provider);
         } catch (Exception ignored) {
         } // just ignore I guess
 
@@ -527,7 +527,7 @@ public class SkinProvider {
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    private static byte[] requestImage(String imageUrl, CapeProvider provider) throws Exception {
+    public static BufferedImage requestImage(String imageUrl, CapeProvider provider) throws IOException {
         BufferedImage image = null;
 
         // First see if we have a cached file. We also update the modification stamp so we know when the file was last used
@@ -587,6 +587,11 @@ public class SkinProvider {
             // TODO remove alpha channel
         }
 
+        return image;
+    }
+
+    private static byte[] requestImageData(String imageUrl, CapeProvider provider) throws Exception {
+        BufferedImage image = requestImage(imageUrl, provider);
         byte[] data = bufferedImageToImageData(image);
         image.flush();
         return data;
@@ -808,7 +813,7 @@ public class SkinProvider {
         OPTIFINE("https://optifine.net/capes/%s.png", CapeUrlType.USERNAME),
         LABYMOD("https://dl.labymod.net/capes/%s", CapeUrlType.UUID_DASHED),
         FIVEZIG("https://textures.5zigreborn.eu/profile/%s", CapeUrlType.UUID_DASHED),
-        MINECRAFTCAPES("https://minecraftcapes.net/profile/%s/cape", CapeUrlType.UUID);
+        MINECRAFTCAPES("https://api.minecraftcapes.net/profile/%s/cape", CapeUrlType.UUID);
 
         public static final CapeProvider[] VALUES = Arrays.copyOfRange(values(), 1, 5);
         private String url;
@@ -844,7 +849,7 @@ public class SkinProvider {
     @NoArgsConstructor
     @Getter
     public enum EarsProvider {
-        MINECRAFTCAPES("https://minecraftcapes.net/profile/%s/ears", CapeUrlType.UUID);
+        MINECRAFTCAPES("https://api.minecraftcapes.net/profile/%s/ears", CapeUrlType.UUID);
 
         public static final EarsProvider[] VALUES = values();
         private String url;

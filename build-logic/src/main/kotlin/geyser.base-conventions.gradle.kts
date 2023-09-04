@@ -1,10 +1,23 @@
 plugins {
     `java-library`
-    `maven-publish`
+    id("net.kyori.indra")
 }
 
 dependencies {
     compileOnly("org.checkerframework", "checker-qual", "3.19.0")
+}
+
+indra {
+    github("GeyserMC", "Geyser") {
+        ci(true)
+        issues(true)
+        scm(true)
+    }
+    mitLicense()
+
+    javaVersions {
+        target(16)
+    }
 }
 
 tasks {
@@ -21,14 +34,4 @@ tasks {
             )
         }
     }
-    compileJava {
-        options.encoding = Charsets.UTF_8.name()
-    }
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_16
-    targetCompatibility = JavaVersion.VERSION_16
-
-    withSourcesJar()
 }

@@ -31,14 +31,15 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerState;
 import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
-import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
-import com.nukkitx.protocol.bedrock.packet.InteractPacket;
-import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
+import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
+import org.cloudburstmc.protocol.bedrock.packet.InteractPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -62,7 +63,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
 
         switch (packet.getAction()) {
             case INTERACT:
-                if (session.getPlayerInventory().getItemInHand().getJavaId() == session.getItemMappings().getStoredItems().shield().getJavaId()) {
+                if (session.getPlayerInventory().getItemInHand().asItem() == Items.SHIELD) {
                     break;
                 }
                 ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(entity.getEntityId(),
@@ -79,21 +80,23 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 session.sendDownstreamPacket(sneakPacket);
 
                 Entity currentVehicle = session.getPlayerEntity().getVehicle();
-                session.setMountVehicleScheduledFuture(session.scheduleInEventLoop(() -> {
-                    if (session.getPlayerEntity().getVehicle() == null) {
-                        return;
-                    }
+                if (currentVehicle != null) {
+                    session.setMountVehicleScheduledFuture(session.scheduleInEventLoop(() -> {
+                        if (session.getPlayerEntity().getVehicle() == null) {
+                            return;
+                        }
 
-                    long vehicleBedrockId = currentVehicle.getGeyserId();
-                    if (session.getPlayerEntity().getVehicle().getGeyserId() == vehicleBedrockId) {
-                        // The Bedrock client, as of 1.19.51, dismounts on its end. The server may not agree with this.
-                        // If the server doesn't agree with our dismount (sends a packet saying we dismounted),
-                        // then remount the player.
-                        SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
-                        linkPacket.setEntityLink(new EntityLinkData(vehicleBedrockId, session.getPlayerEntity().getGeyserId(), EntityLinkData.Type.PASSENGER, true, false));
-                        session.sendUpstreamPacket(linkPacket);
-                    }
-                }, 1, TimeUnit.SECONDS));
+                        long vehicleBedrockId = currentVehicle.getGeyserId();
+                        if (session.getPlayerEntity().getVehicle().getGeyserId() == vehicleBedrockId) {
+                            // The Bedrock client, as of 1.19.51, dismounts on its end. The server may not agree with this.
+                            // If the server doesn't agree with our dismount (sends a packet saying we dismounted),
+                            // then remount the player.
+                            SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
+                            linkPacket.setEntityLink(new EntityLinkData(vehicleBedrockId, session.getPlayerEntity().getGeyserId(), EntityLinkData.Type.PASSENGER, true, false));
+                            session.sendUpstreamPacket(linkPacket);
+                        }
+                    }, 1, TimeUnit.SECONDS));
+                }
                 break;
             case MOUSEOVER:
                 // Handle the buttons for mobile - "Mount", etc; and the suggestions for console - "ZL: Mount", etc
@@ -109,7 +112,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                     if (session.getMouseoverEntity() != null) {
                         // No interactive tag should be sent
                         session.setMouseoverEntity(null);
-                        session.getPlayerEntity().getDirtyMetadata().put(EntityData.INTERACTIVE_TAG, "");
+                        session.getPlayerEntity().getDirtyMetadata().put(EntityDataTypes.INTERACT_TEXT, "");
                         session.getPlayerEntity().updateBedrockMetadata();
                     }
                 }

@@ -27,13 +27,13 @@ package org.geysermc.geyser.entity.type.living.animal;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.UUID;
@@ -55,7 +55,7 @@ public class BeeEntity extends AnimalEntity {
             session.sendUpstreamPacket(packet);
         }
         // If the bee has stung
-        dirtyMetadata.put(EntityData.MARK_VARIANT, (xd & 0x04) == 0x04 ? 1 : 0);
+        dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, (xd & 0x04) == 0x04 ? 1 : 0);
         // If the bee has nectar or not
         setFlag(EntityFlag.POWERED, (xd & 0x08) == 0x08);
     }
@@ -66,7 +66,7 @@ public class BeeEntity extends AnimalEntity {
     }
 
     @Override
-    public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
-        return session.getTagCache().isFlower(mapping);
+    public boolean canEat(Item item) {
+        return session.getTagCache().isFlower(item);
     }
 }

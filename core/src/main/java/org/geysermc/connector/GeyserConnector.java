@@ -25,9 +25,8 @@
 
 package org.geysermc.connector;
 
-import com.nukkitx.protocol.bedrock.BedrockServer;
 import org.geysermc.api.Geyser;
-import org.geysermc.common.PlatformType;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.geyser.GeyserImpl;
 
@@ -50,10 +49,6 @@ public class GeyserConnector {
 
     public static GeyserConnector getInstance() {
         return INSTANCE;
-    }
-
-    public BedrockServer getBedrockServer() {
-        return GeyserImpl.getInstance().getBedrockServer();
     }
 
     public  boolean isShuttingDown() {

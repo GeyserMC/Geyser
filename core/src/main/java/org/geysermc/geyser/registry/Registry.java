@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.registry;
 
+import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.registry.loader.RegistryLoader;
 
 import java.util.function.Consumer;
@@ -63,7 +64,7 @@ import java.util.function.Consumer;
  *
  * @param <M> the value being held by the registry
  */
-public abstract class Registry<M> {
+public abstract class Registry<M> implements IRegistry<M> {
     protected M mappings;
 
     /**
@@ -84,6 +85,7 @@ public abstract class Registry<M> {
      *
      * @return the underlying value held by this registry.
      */
+    @Override
     public M get() {
         return this.mappings;
     }
@@ -95,6 +97,7 @@ public abstract class Registry<M> {
      *
      * @param mappings the underlying value held by this registry
      */
+    @Override
     public void set(M mappings) {
         this.mappings = mappings;
     }
@@ -105,6 +108,7 @@ public abstract class Registry<M> {
      *
      * @param consumer the consumer
      */
+    @Override
     public void register(Consumer<M> consumer) {
         consumer.accept(this.mappings);
     }

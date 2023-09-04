@@ -27,6 +27,7 @@ package org.geysermc.geyser.extension.event;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Event;
+import org.geysermc.event.FireResult;
 import org.geysermc.event.PostOrder;
 import org.geysermc.event.subscribe.Subscriber;
 import org.geysermc.geyser.api.event.EventBus;
@@ -47,8 +48,13 @@ public record GeyserExtensionEventBus(EventBus<EventRegistrar> eventBus, Extensi
     }
 
     @Override
-    public boolean fire(@NonNull Event event) {
+    public FireResult fire(@NonNull Event event) {
         return eventBus.fire(event);
+    }
+
+    @Override
+    public FireResult fireSilently(@NonNull Event event) {
+        return eventBus.fireSilently(event);
     }
 
     @Override

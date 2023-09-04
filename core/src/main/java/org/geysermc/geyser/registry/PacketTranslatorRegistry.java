@@ -25,11 +25,10 @@
 
 package org.geysermc.geyser.registry;
 
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundDelimiterPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundTabListPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLightUpdatePacket;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
 import io.netty.channel.EventLoop;
-import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.session.GeyserSession;
@@ -46,6 +45,7 @@ public class PacketTranslatorRegistry<T> extends AbstractMappedRegistry<Class<? 
     static {
         IGNORED_PACKETS.add(ClientboundLightUpdatePacket.class); // Light is handled on Bedrock for us
         IGNORED_PACKETS.add(ClientboundTabListPacket.class); // Cant be implemented in Bedrock
+        IGNORED_PACKETS.add(ClientboundDelimiterPacket.class); // Not implemented, spams logs
     }
 
     protected PacketTranslatorRegistry() {
@@ -68,9 +68,10 @@ public class PacketTranslatorRegistry<T> extends AbstractMappedRegistry<Class<? 
             }
             return true;
         } else {
-            if ((GeyserImpl.getInstance().getPlatformType() != PlatformType.STANDALONE || !(packet instanceof BedrockPacket)) && !IGNORED_PACKETS.contains(clazz)) {
-                // Other debug logs already take care of Bedrock packets for us if on standalone
-                GeyserImpl.getInstance().getLogger().debug("Could not find packet for " + (packet.toString().length() > 25 ? packet.getClass().getSimpleName() : packet));
+            if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
+                if (!IGNORED_PACKETS.contains(clazz)) {
+                    GeyserImpl.getInstance().getLogger().debug("Could not find packet for " + (packet.toString().length() > 25 ? packet.getClass().getSimpleName() : packet));
+                }
             }
 
             return false;

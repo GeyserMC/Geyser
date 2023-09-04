@@ -29,8 +29,8 @@ import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -39,11 +39,12 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 public class CampfireBlockEntityTranslator extends BlockEntityTranslator {
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
-        ListTag items = tag.get("Items");
-        int i = 1;
-        for (Tag itemTag : items.getValue()) {
-            builder.put("Item" + i, getItem((CompoundTag) itemTag));
-            i++;
+        if (tag.get("Items") instanceof ListTag items) {
+            int i = 1;
+            for (Tag itemTag : items.getValue()) {
+                builder.put("Item" + i, getItem((CompoundTag) itemTag));
+                i++;
+            }
         }
     }
 

@@ -8,7 +8,7 @@ plugins {
 
 dependencies {
     api(projects.common)
-    api(libs.geyser.api)
+    api(projects.api)
 
     // Jackson JSON and YAML serialization
     api(libs.bundles.jackson)
@@ -20,9 +20,7 @@ dependencies {
     // Network libraries
     implementation(libs.websocket)
 
-    api(libs.protocol) {
-        exclude("com.nukkitx.network", "raknet")
-    }
+    api(libs.bundles.protocol)
 
     api(libs.mcauthlib)
     api(libs.mcprotocollib) {
@@ -31,12 +29,8 @@ dependencies {
         exclude("com.github.GeyserMC", "mcauthlib")
     }
 
-    api(libs.packetlib) {
-        exclude("io.netty", "netty-all")
-    }
-
     implementation(libs.raknet) {
-        exclude("io.netty", "*");
+        exclude("io.netty", "*")
     }
 
     implementation(libs.netty.resolver.dns)
@@ -53,6 +47,10 @@ dependencies {
     // Adventure text serialization
     api(libs.bundles.adventure)
 
+    api(libs.erosion.common) {
+        isTransitive = false
+    }
+
     // Test
     testImplementation(libs.junit)
 
@@ -60,6 +58,8 @@ dependencies {
     compileOnly(projects.ap)
 
     annotationProcessor(projects.ap)
+
+    api(libs.events)
 }
 
 configurations.api {
@@ -97,7 +97,7 @@ configure<BlossomExtension> {
 }
 
 fun Project.buildNumber(): Int =
-    System.getenv("BUILD_NUMBER")?.let { Integer.parseInt(it) } ?: -1
+    (System.getenv("GITHUB_RUN_NUMBER") ?: jenkinsBuildNumber())?.let { Integer.parseInt(it) } ?: -1
 
 inner class GitInfo {
     val branch: String
@@ -129,3 +129,6 @@ inner class GitInfo {
         repository = git?.repository?.config?.getString("remote", "origin", "url") ?: ""
     }
 }
+
+// todo remove this when we're not using Jenkins anymore
+fun jenkinsBuildNumber(): String? = System.getenv("BUILD_NUMBER")

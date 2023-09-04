@@ -31,19 +31,21 @@ import com.github.steveice10.mc.protocol.data.game.level.event.LevelEvent;
 import com.github.steveice10.mc.protocol.data.game.level.particle.ParticleType;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
 import com.github.steveice10.packetlib.packet.Packet;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
-import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
-import com.nukkitx.protocol.bedrock.data.inventory.PotionMixData;
-import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.item.Enchantment.JavaEnchantment;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.loader.*;
 import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.populator.PacketRegistryPopulator;
@@ -53,7 +55,6 @@ import org.geysermc.geyser.registry.type.EnchantmentData;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.registry.type.ParticleMapping;
 import org.geysermc.geyser.registry.type.SoundMapping;
-import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
 import org.geysermc.geyser.translator.sound.SoundInteractionTranslator;
@@ -65,6 +66,12 @@ import java.util.*;
  * Holds all the common registries in Geyser.
  */
 public final class Registries {
+    /**
+     * A registry holding all the providers.
+     * This has to be initialized first to allow extensions to access providers during other registry events.
+     */
+    public static final SimpleMappedRegistry<Class<?>, ProviderSupplier> PROVIDERS = SimpleMappedRegistry.create(new IdentityHashMap<>(), ProviderRegistryLoader::new);
+
     /**
      * A registry holding a CompoundTag of the known entity identifiers.
      */
@@ -91,14 +98,9 @@ public final class Registries {
     public static final SimpleMappedRegistry<BlockEntityType, BlockEntityTranslator> BLOCK_ENTITIES = SimpleMappedRegistry.create("org.geysermc.geyser.translator.level.block.entity.BlockEntity", BlockEntityRegistryLoader::new);
 
     /**
-     * A mapped registry containing which holds block IDs to its {@link BlockCollision}.
+     * A versioned registry which holds a {@link RecipeType} to a corresponding list of {@link RecipeData}.
      */
-    public static final IntMappedRegistry<BlockCollision> COLLISIONS = IntMappedRegistry.create(Pair.of("org.geysermc.geyser.translator.collision.CollisionRemapper", "mappings/collision.json"), CollisionRegistryLoader::new);
-
-    /**
-     * A versioned registry which holds a {@link RecipeType} to a corresponding list of {@link CraftingData}.
-     */
-    public static final VersionedRegistry<Map<RecipeType, List<CraftingData>>> CRAFTING_DATA = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
+    public static final VersionedRegistry<Map<RecipeType, List<RecipeData>>> CRAFTING_DATA = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
     /**
      * A registry holding data of all the known enchantments.
@@ -120,6 +122,10 @@ public final class Registries {
      */
     public static final PacketTranslatorRegistry<Packet> JAVA_PACKET_TRANSLATORS = PacketTranslatorRegistry.create();
 
+    public static final SimpleRegistry<List<Item>> JAVA_ITEMS = SimpleRegistry.create(RegistryLoaders.empty(ArrayList::new));
+
+    public static final SimpleMappedRegistry<String, Item> JAVA_ITEM_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
+
     /**
      * A versioned registry which holds {@link ItemMappings} for each version. These item mappings contain
      * primarily Bedrock version-specific data.
@@ -135,12 +141,7 @@ public final class Registries {
     /**
      * A registry holding all the potion mixes.
      */
-    public static final SimpleRegistry<Set<PotionMixData>> POTION_MIXES;
-
-    /**
-     * A registry holding all the
-     */
-    public static final SimpleMappedRegistry<Class<?>, ProviderSupplier> PROVIDERS = SimpleMappedRegistry.create(new IdentityHashMap<>(), ProviderRegistryLoader::new);
+    public static final VersionedRegistry<Set<PotionMixData>> POTION_MIXES;
 
     /**
      * A versioned registry holding all the recipes, with the net ID being the key, and {@link GeyserRecipe} as the value.
@@ -148,10 +149,15 @@ public final class Registries {
     public static final VersionedRegistry<Int2ObjectMap<GeyserRecipe>> RECIPES = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
     /**
-     * A mapped registry holding the available records, with the ID of the record being the key, and the {@link com.nukkitx.protocol.bedrock.data.SoundEvent}
+     * A mapped registry holding the available records, with the ID of the record being the key, and the {@link org.cloudburstmc.protocol.bedrock.data.SoundEvent}
      * as the value.
      */
-    public static final IntMappedRegistry<com.nukkitx.protocol.bedrock.data.SoundEvent> RECORDS = IntMappedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
+    public static final IntMappedRegistry<org.cloudburstmc.protocol.bedrock.data.SoundEvent> RECORDS = IntMappedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
+
+    /**
+     * A mapped registry holding {@link ResourcePack}'s with the pack uuid as keys.
+     */
+    public static final DeferredRegistry<Map<String, ResourcePack>> RESOURCE_PACKS = DeferredRegistry.create(GeyserImpl.getInstance().packDirectory(), SimpleMappedRegistry::create, RegistryLoaders.RESOURCE_PACKS);
 
     /**
      * A mapped registry holding sound identifiers to their corresponding {@link SoundMapping}.
@@ -178,7 +184,7 @@ public final class Registries {
         RecipeRegistryPopulator.populate();
 
         // Create registries that require other registries to load first
-        POTION_MIXES = SimpleRegistry.create(PotionMixRegistryLoader::new);
+        POTION_MIXES = VersionedRegistry.create(PotionMixRegistryLoader::new);
         ENCHANTMENTS = SimpleMappedRegistry.create("mappings/enchantments.json", EnchantmentRegistryLoader::new);
 
         // Remove unneeded client generation data from NbtMapBuilder

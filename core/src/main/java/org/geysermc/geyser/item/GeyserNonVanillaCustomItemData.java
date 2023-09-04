@@ -53,11 +53,15 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     private final OptionalInt creativeCategory;
     private final String creativeGroup;
     private final boolean isHat;
+    private final boolean isFoil;
     private final boolean isTool;
+    private final boolean isEdible;
+    private final boolean canAlwaysEat;
+    private final boolean isChargeable;
 
     public GeyserNonVanillaCustomItemData(NonVanillaCustomItemDataBuilder builder) {
         super(builder.name, builder.customItemOptions, builder.displayName, builder.icon, builder.allowOffhand,
-                builder.textureSize, builder.renderOffsets);
+                builder.displayHandheld, builder.textureSize, builder.renderOffsets);
 
         this.identifier = builder.identifier;
         this.javaId = builder.javaId;
@@ -72,7 +76,11 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         this.creativeCategory = builder.creativeCategory;
         this.creativeGroup = builder.creativeGroup;
         this.isHat = builder.hat;
+        this.isFoil = builder.foil;
         this.isTool = builder.tool;
+        this.isEdible = builder.edible;
+        this.canAlwaysEat = builder.canAlwaysEat;
+        this.isChargeable = builder.chargeable;
     }
 
     @Override
@@ -141,8 +149,23 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     }
 
     @Override
-    public boolean isTool() {
-        return isTool;
+    public boolean isFoil() {
+        return isFoil;
+    }
+
+    @Override
+    public boolean isEdible() {
+        return isEdible;
+    }
+
+    @Override
+    public boolean canAlwaysEat() {
+        return canAlwaysEat;
+    }
+
+    @Override
+    public boolean isChargeable() {
+        return isChargeable;
     }
 
     public static class NonVanillaCustomItemDataBuilder extends GeyserCustomItemData.CustomItemDataBuilder implements NonVanillaCustomItemData.Builder {
@@ -167,7 +190,11 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         private String creativeGroup = null;
 
         private boolean hat = false;
+        private boolean foil = false;
         private boolean tool = false;
+        private boolean edible = false;
+        private boolean canAlwaysEat = false;
+        private boolean chargeable = false;
 
         @Override
         public NonVanillaCustomItemData.Builder name(@NonNull String name) {
@@ -183,6 +210,11 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         @Override
         public NonVanillaCustomItemData.Builder allowOffhand(boolean allowOffhand) {
             return (NonVanillaCustomItemData.Builder) super.allowOffhand(allowOffhand);
+        }
+
+        @Override
+        public NonVanillaCustomItemData.Builder displayHandheld(boolean displayHandheld) {
+            return (NonVanillaCustomItemData.Builder) super.displayHandheld(displayHandheld);
         }
 
         @Override
@@ -284,8 +316,26 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder tool(boolean isTool) {
-            this.tool = isTool;
+        public NonVanillaCustomItemData.Builder foil(boolean isFoil) {
+            this.foil = isFoil;
+            return this;
+        }
+
+        @Override
+        public NonVanillaCustomItemData.Builder edible(boolean isEdible) {
+            this.edible = isEdible;
+            return this;
+        }
+
+        @Override
+        public NonVanillaCustomItemData.Builder canAlwaysEat(boolean canAlwaysEat) {
+            this.canAlwaysEat = canAlwaysEat;
+            return this;
+        }
+
+        @Override
+        public NonVanillaCustomItemData.Builder chargeable(boolean isChargeable) {
+            this.chargeable = isChargeable;
             return this;
         }
 

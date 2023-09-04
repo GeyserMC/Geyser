@@ -25,28 +25,41 @@
 
 package org.geysermc.geyser.item.components;
 
+import com.google.common.base.Suppliers;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
 
+import java.util.Collections;
 import java.util.Locale;
+import java.util.Set;
+import java.util.function.Supplier;
 
 public enum ToolTier {
-    WOODEN(2),
-    STONE(4),
-    IRON(6),
-    GOLDEN(12),
-    DIAMOND(8),
-    NETHERITE(9);
+    WOODEN(2, () -> Set.of(Items.OAK_PLANKS, Items.SPRUCE_PLANKS, Items.BIRCH_PLANKS, Items.JUNGLE_PLANKS, Items.ACACIA_PLANKS, Items.DARK_OAK_PLANKS, Items.CRIMSON_PLANKS, Items.WARPED_PLANKS, Items.MANGROVE_PLANKS)), // PLANKS tag // TODO ?
+    STONE(4, () -> Set.of(Items.COBBLESTONE, Items.BLACKSTONE, Items.COBBLED_DEEPSLATE)), // STONE_TOOL_MATERIALS tag
+    IRON(6, () -> Collections.singleton(Items.IRON_INGOT)),
+    GOLDEN(12, () -> Collections.singleton(Items.GOLD_INGOT)),
+    DIAMOND(8, () -> Collections.singleton(Items.DIAMOND)),
+    NETHERITE(9, () -> Collections.singleton(Items.NETHERITE_INGOT));
 
-    public static final ToolTier[] VALUES = values();
+    private static final ToolTier[] VALUES = values();
 
     private final int speed;
+    private final Supplier<Set<Item>> repairIngredients;
 
-    ToolTier(int speed) {
+    ToolTier(int speed, Supplier<Set<Item>> repairIngredients) {
         this.speed = speed;
+        // Lazily initialize as this will likely be called as items are loading
+        this.repairIngredients = Suppliers.memoize(repairIngredients::get);
     }
 
     public int getSpeed() {
         return speed;
+    }
+
+    public Set<Item> getRepairIngredients() {
+        return repairIngredients.get();
     }
 
     @Override

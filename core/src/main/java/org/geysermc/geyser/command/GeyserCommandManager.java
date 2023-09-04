@@ -29,7 +29,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.common.PlatformType;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.command.CommandExecutor;
@@ -107,7 +107,8 @@ public class GeyserCommandManager {
 
         // Register help commands for all extensions with commands
         for (Map.Entry<Extension, Map<String, Command>> entry : this.extensionCommands.entrySet()) {
-            registerExtensionCommand(entry.getKey(), new HelpCommand(this.geyser, "help", "geyser.commands.exthelp.desc", "geyser.command.exthelp", entry.getKey().description().id(), entry.getValue()));
+            String id = entry.getKey().description().id();
+            registerExtensionCommand(entry.getKey(), new HelpCommand(this.geyser, "help", "geyser.commands.exthelp.desc", "geyser.command.exthelp." + id, id, entry.getValue()));
         }
     }
 

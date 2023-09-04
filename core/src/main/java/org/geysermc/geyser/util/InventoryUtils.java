@@ -31,14 +31,15 @@ import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundPickItemPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetCreativeModeSlotPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
-import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
-import com.nukkitx.protocol.bedrock.packet.PlayerHotbarPacket;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerHotbarPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -48,6 +49,7 @@ import org.geysermc.geyser.inventory.click.Click;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -95,6 +97,7 @@ public class InventoryUtils {
                     if (openInv != null && openInv.getJavaId() == inventory.getJavaId()) {
                         translator.openInventory(session, inventory);
                         translator.updateInventory(session, inventory);
+                        openInv.setDisplayed(true);
                     } else if (openInv != null && openInv.isPending()) {
                         // Presumably, this inventory is no longer relevant, and the client doesn't care about it
                         displayInventory(session, openInv);
@@ -103,6 +106,7 @@ public class InventoryUtils {
             } else {
                 translator.openInventory(session, inventory);
                 translator.updateInventory(session, inventory);
+                inventory.setDisplayed(true);
             }
         } else {
             session.setOpenInventory(null);
@@ -117,7 +121,7 @@ public class InventoryUtils {
         if (inventory != null) {
             InventoryTranslator translator = session.getInventoryTranslator();
             translator.closeInventory(session, inventory);
-            if (confirm && !inventory.isPending() && !(translator instanceof LecternInventoryTranslator)) {
+            if (confirm && inventory.isDisplayed() && !inventory.isPending() && !(translator instanceof LecternInventoryTranslator)) {
                 session.setClosingInventory(true);
             }
         }
@@ -177,7 +181,7 @@ public class InventoryUtils {
      * Checks to see if an item stack represents air or has no count.
      */
     public static boolean isEmpty(@Nullable ItemStack itemStack) {
-        return itemStack == null || itemStack.getId() == ItemMapping.AIR.getJavaId() || itemStack.getAmount() <= 0;
+        return itemStack == null || itemStack.getId() == Items.AIR.javaId() || itemStack.getAmount() <= 0;
     }
 
     /**
@@ -197,20 +201,27 @@ public class InventoryUtils {
 
         root.put("display", display.build());
         return protocolVersion -> ItemData.builder()
-                .id(getUnusableSpaceBlockID(protocolVersion))
+                .definition(getUnusableSpaceBlockDefinition(protocolVersion))
                 .count(1)
                 .tag(root.build()).build();
     }
 
-    private static int getUnusableSpaceBlockID(int protocolVersion) {
+    private static ItemDefinition getUnusableSpaceBlockDefinition(int protocolVersion) {
         String unusableSpaceBlock = GeyserImpl.getInstance().getConfig().getUnusableSpaceBlock();
-        ItemMapping unusableSpaceBlockID = Registries.ITEMS.forVersion(protocolVersion).getMapping(unusableSpaceBlock);
-        if (unusableSpaceBlockID != null) {
-            return unusableSpaceBlockID.getBedrockId();
+        ItemDefinition itemDefinition = Registries.ITEMS.forVersion(protocolVersion).getDefinition(unusableSpaceBlock);
+
+        if (itemDefinition == null) {
+            GeyserImpl.getInstance().getLogger().error("Invalid value " + unusableSpaceBlock + ". Resorting to barrier block.");
+            return Registries.ITEMS.forVersion(protocolVersion).getStoredItems().barrier().getBedrockDefinition();
         } else {
-            GeyserImpl.getInstance().getLogger().error("Invalid value" + unusableSpaceBlock + ". Resorting to barrier block.");
-            return Registries.ITEMS.forVersion(protocolVersion).getStoredItems().barrier().getBedrockId();
+            return itemDefinition;
         }
+    }
+
+    public static IntFunction<ItemData> getUpgradeTemplate() {
+        return protocolVersion -> ItemData.builder()
+                .definition(Registries.ITEMS.forVersion(protocolVersion).getStoredItems().upgradeTemplate().getBedrockDefinition())
+                .count(1).build();
     }
 
     /**
@@ -293,7 +304,7 @@ public class InventoryUtils {
                 continue;
             }
             // If this isn't the item we're looking for
-            if (!geyserItem.getMapping(session).getJavaIdentifier().equals(itemName)) {
+            if (!geyserItem.asItem().javaIdentifier().equals(itemName)) {
                 continue;
             }
 
@@ -309,7 +320,7 @@ public class InventoryUtils {
                 continue;
             }
             // If this isn't the item we're looking for
-            if (!geyserItem.getMapping(session).getJavaIdentifier().equals(itemName)) {
+            if (!geyserItem.asItem().javaIdentifier().equals(itemName)) {
                 continue;
             }
 
@@ -322,10 +333,10 @@ public class InventoryUtils {
         if (session.getGameMode() == GameMode.CREATIVE) {
             int slot = findEmptyHotbarSlot(inventory);
 
-            ItemMapping mapping = session.getItemMappings().getMapping(itemName);
+            ItemMapping mapping = session.getItemMappings().getMapping(itemName); // TODO
             if (mapping != null) {
                 ServerboundSetCreativeModeSlotPacket actionPacket = new ServerboundSetCreativeModeSlotPacket(slot,
-                        new ItemStack(mapping.getJavaId()));
+                        new ItemStack(mapping.getJavaItem().javaId()));
                 if ((slot - 36) != inventory.getHeldItemSlot()) {
                     setHotbarItem(session, slot);
                 }

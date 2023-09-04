@@ -28,11 +28,11 @@ package org.geysermc.geyser.translator.protocol.java.entity;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Equipment;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundSetEquipmentPacket;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.FakeHeadProvider;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
@@ -64,10 +64,9 @@ public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetE
                     ItemStack javaItem = equipment.getItem();
                     if (livingEntity instanceof PlayerEntity
                             && javaItem != null
-                            && javaItem.getId() == session.getItemMappings().getStoredItems().playerHead().getJavaId()
-                            && javaItem.getNbt() != null
-                            && javaItem.getNbt().get("SkullOwner") instanceof CompoundTag profile) {
-                        FakeHeadProvider.setHead(session, (PlayerEntity) livingEntity, profile);
+                            && javaItem.getId() == Items.PLAYER_HEAD.javaId()
+                            && javaItem.getNbt() != null) {
+                        FakeHeadProvider.setHead(session, (PlayerEntity) livingEntity, javaItem.getNbt().get("SkullOwner"));
                     } else {
                         FakeHeadProvider.restoreOriginalSkin(session, livingEntity);
                     }

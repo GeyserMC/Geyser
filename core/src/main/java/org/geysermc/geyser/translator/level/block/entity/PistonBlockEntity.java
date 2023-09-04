@@ -26,24 +26,23 @@
 package org.geysermc.geyser.translator.level.block.entity;
 
 import com.github.steveice10.mc.protocol.data.game.level.block.value.PistonValueType;
-import com.nukkitx.math.vector.Vector3d;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
+import org.cloudburstmc.math.vector.Vector3d;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
-import org.geysermc.common.PlatformType;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.level.physics.Direction;
-import org.geysermc.geyser.network.GameProtocol;
-import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.PistonCache;
 import org.geysermc.geyser.translator.collision.BlockCollision;
@@ -96,7 +95,7 @@ public class PistonBlockEntity {
 
     static {
         // Create a ~1 x ~0.5 x ~1 bounding box above the honey block
-        BlockCollision blockCollision = Registries.COLLISIONS.get(BlockStateValues.JAVA_HONEY_BLOCK_ID);
+        BlockCollision blockCollision = BlockRegistries.COLLISIONS.get(BlockStateValues.JAVA_HONEY_BLOCK_ID);
         if (blockCollision == null) {
             throw new RuntimeException("Failed to find honey block collision");
         }
@@ -224,7 +223,7 @@ public class PistonBlockEntity {
         int blockId = session.getGeyser().getWorldManager().getBlockAt(session, blockInFront);
         if (BlockStateValues.isPistonHead(blockId)) {
             ChunkUtils.updateBlock(session, BlockStateValues.JAVA_AIR_ID, blockInFront);
-        } else if (session.getGeyser().getPlatformType() == PlatformType.SPIGOT && blockId == BlockStateValues.JAVA_AIR_ID) {
+        } else if ((session.getGeyser().getPlatformType() == PlatformType.SPIGOT || session.getErosionHandler().isActive()) && blockId == BlockStateValues.JAVA_AIR_ID) {
             // Spigot removes the piston head from the cache, but we need to send the block update ourselves
             ChunkUtils.updateBlock(session, BlockStateValues.JAVA_AIR_ID, blockInFront);
         }
@@ -486,7 +485,7 @@ public class PistonBlockEntity {
             pistonCache.displacePlayer(movement.mul(delta));
         } else {
             // Move the player out of collision
-            BlockCollision blockCollision = Registries.COLLISIONS.get(javaId);
+            BlockCollision blockCollision = BlockRegistries.COLLISIONS.get(javaId);
             if (blockCollision != null) {
                 Vector3d extend = movement.mul(Math.min(1 - blockMovement, 0.5));
                 Direction movementDirection = orientation;
@@ -599,7 +598,7 @@ public class PistonBlockEntity {
             updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
             updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
             updateBlockPacket.setBlockPosition(newPos);
-            updateBlockPacket.setRuntimeId(session.getBlockMappings().getBedrockMovingBlockId());
+            updateBlockPacket.setDefinition(session.getBlockMappings().getBedrockMovingBlock());
             updateBlockPacket.setDataLayer(0);
             session.sendUpstreamPacket(updateBlockPacket);
             // Update moving block with correct details
@@ -622,10 +621,6 @@ public class PistonBlockEntity {
         Vector3i movement = getMovement();
         attachedBlocks.forEach((blockPos, javaId) -> {
             blockPos = blockPos.add(movement);
-            if (!GameProtocol.supports1_19_50(session)) {
-                // Send a final block entity packet to detach blocks for clients older than 1.19.50
-                BlockEntityUtils.updateBlockEntity(session, buildMovingBlockTag(blockPos, javaId, Direction.DOWN.getUnitVector()), blockPos);
-            }
             // Don't place blocks that collide with the player
             if (!SOLID_BOUNDING_BOX.checkIntersection(blockPos.toDouble(), session.getCollisionManager().getPlayerBoundingBox())) {
                 ChunkUtils.updateBlock(session, javaId, blockPos);
@@ -783,7 +778,7 @@ public class PistonBlockEntity {
      */
     private NbtMap buildMovingBlockTag(Vector3i position, int javaId, Vector3i pistonPosition) {
         // Get Bedrock block state data
-        NbtMap movingBlock = session.getBlockMappings().getBedrockBlockStates().get(session.getBlockMappings().getBedrockBlockId(javaId));
+        NbtMap movingBlock = session.getBlockMappings().getBedrockBlock(javaId).getState();
         NbtMapBuilder builder = NbtMap.builder()
                 .putString("id", "MovingBlock")
                 .putBoolean("expanding", action == PistonValueType.PUSHING)

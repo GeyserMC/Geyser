@@ -27,13 +27,13 @@ package org.geysermc.geyser.translator.protocol.java.level;
 
 import com.github.steveice10.mc.protocol.data.game.level.block.value.*;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundBlockEventPacket;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
-import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
+import org.cloudburstmc.protocol.bedrock.packet.BlockEventPacket;
 import it.unimi.dsi.fastutil.objects.Object2IntMaps;
-import org.geysermc.common.PlatformType;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.session.GeyserSession;
@@ -58,15 +58,16 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
             blockEventPacket.setEventType(1);
             session.sendUpstreamPacket(blockEventPacket);
         } else if (packet.getValue() instanceof NoteBlockValue) {
-            int blockState = session.getGeyser().getWorldManager().getBlockAt(session, position);
-            blockEventPacket.setEventData(BlockStateValues.getNoteblockPitch(blockState));
-            session.sendUpstreamPacket(blockEventPacket);
+            session.getGeyser().getWorldManager().getBlockAtAsync(session, position).thenAccept(blockState -> {
+                blockEventPacket.setEventData(BlockStateValues.getNoteblockPitch(blockState));
+                session.sendUpstreamPacket(blockEventPacket);
+            });
         } else if (packet.getValue() instanceof PistonValue pistonValue) {
             PistonValueType action = (PistonValueType) packet.getType();
-            Direction direction = Direction.fromPistonValue(pistonValue);
+            Direction direction = Direction.fromPistonValue(pistonValue.getDirection());
             PistonCache pistonCache = session.getPistonCache();
 
-            if (session.getGeyser().getPlatformType() == PlatformType.SPIGOT) {
+            if (session.getGeyser().getPlatformType() == PlatformType.SPIGOT || session.getErosionHandler().isActive()) {
                 // Mostly handled in the GeyserPistonEvents class
                 // Retracting sticky pistons is an exception, since the event is not called on Spigot from 1.13.2 - 1.17.1
                 // See https://github.com/PaperMC/Paper/blob/6fa1983e9ce177a4a412d5b950fd978620174777/patches/server/0304-Fire-BlockPistonRetractEvent-for-all-empty-pistons.patch
@@ -103,7 +104,7 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
         } else if (packet.getValue() instanceof EndGatewayValue) {
             blockEventPacket.setEventType(1);
             session.sendUpstreamPacket(blockEventPacket);
-        } else if (packet.getValue() instanceof GenericBlockValue bellValue && packet.getBlockId() == BlockStateValues.JAVA_BELL_ID) {
+        } else if (packet.getValue() instanceof BellValue bellValue) {
             // Bells - needed to show ring from other players
             BlockEntityDataPacket blockEntityPacket = new BlockEntityDataPacket();
             blockEntityPacket.setBlockPosition(position);
@@ -113,11 +114,12 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
             builder.putInt("y", position.getY());
             builder.putInt("z", position.getZ());
             builder.putString("id", "Bell");
-            int bedrockRingDirection = switch (bellValue.getValue()) {
-                case 3 -> 0; // north
-                case 4 -> 1; // east
-                case 5 -> 3;// west
-                default -> bellValue.getValue(); // south (2) is identical
+            int bedrockRingDirection = switch (bellValue.getDirection()) {
+                case SOUTH -> 0;
+                case WEST -> 1;
+                case NORTH -> 2;
+                case EAST -> 3;
+                default -> throw new IllegalStateException("Unexpected BellValue Direction: " + bellValue.getDirection());
             };
             builder.putInt("Direction", bedrockRingDirection);
             builder.putByte("Ringing", (byte) 1);

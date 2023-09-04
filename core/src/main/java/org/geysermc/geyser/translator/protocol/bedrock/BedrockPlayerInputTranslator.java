@@ -27,8 +27,8 @@ package org.geysermc.geyser.translator.protocol.bedrock;
 
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundPlayerInputPacket;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.PlayerInputPacket;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerInputPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
@@ -74,7 +74,7 @@ public class BedrockPlayerInputTranslator extends PacketTranslator<PlayerInputPa
             if (timeSinceVehicleMove >= 100) {
                 Vector3f vehiclePosition = vehicle.getPosition();
 
-                if (vehicle instanceof BoatEntity) {
+                if (vehicle instanceof BoatEntity && !vehicle.isOnGround()) {
                     // Remove some Y position to prevents boats flying up
                     vehiclePosition = vehiclePosition.down(EntityDefinitions.BOAT.offset());
                 }

@@ -53,9 +53,6 @@ import java.util.stream.Collectors;
 @SuppressWarnings("FieldMayBeFinal") // Jackson requires that the fields are not final
 public abstract class GeyserJacksonConfiguration implements GeyserConfiguration {
 
-    /**
-     * If the config was originally 'auto' before the values changed
-     */
     @Setter
     private boolean autoconfiguredRemote = false;
 
@@ -111,9 +108,6 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("disable-bedrock-scaffolding")
     private boolean disableBedrockScaffolding = false;
 
-    @JsonProperty("always-quick-change-armor")
-    private boolean alwaysQuickChangeArmor = false;
-
     @JsonDeserialize(using = EmoteOffhandWorkaroundOption.Deserializer.class)
     @JsonProperty("emote-offhand-workaround")
     private EmoteOffhandWorkaroundOption emoteOffhandWorkaround = EmoteOffhandWorkaroundOption.DISABLED;
@@ -166,6 +160,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     public static class BedrockConfiguration implements IBedrockConfiguration {
         @AsteriskSerializer.Asterisk(isIp = true)
         @JsonProperty("address")
+        @Setter
         private String address = "0.0.0.0";
 
         @Override
@@ -273,6 +268,11 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         @Override
         public AuthType authType() {
             return authType;
+        }
+
+        @Override
+        public boolean resolveSrv() {
+            return false;
         }
 
         @Getter

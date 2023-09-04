@@ -38,10 +38,16 @@ import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.text.GeyserLocale;
 
+import javax.annotation.Nonnull;
+import java.util.OptionalInt;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class VersionCheckUtils {
+    private static @Nonnull OptionalInt LATEST_BEDROCK_RELEASE = OptionalInt.empty();
+    private static final int SUPPORTED_JAVA_VERSION = 17;
 
     public static void checkForOutdatedFloodgate(GeyserLogger logger) {
         try {
@@ -54,6 +60,34 @@ public final class VersionCheckUtils {
         }
     }
 
+    public static void checkForOutdatedJava(GeyserLogger logger) {
+        // Taken from Paper
+        String javaVersion = System.getProperty("java.version");
+        Matcher matcher = Pattern.compile("(?:1\\.)?(\\d+)").matcher(javaVersion);
+        if (!matcher.find()) {
+            logger.debug("Could not parse Java version string " + javaVersion);
+            return;
+        }
+
+        String version = matcher.group(1);
+        int majorVersion;
+        try {
+            majorVersion = Integer.parseInt(version);
+        } catch (NumberFormatException e) {
+            logger.debug("Could not format as an int: " + version);
+            return;
+        }
+
+        if (majorVersion < SUPPORTED_JAVA_VERSION) {
+            logger.warning("*********************************************");
+            logger.warning("");
+            logger.warning(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_java.header"));
+            logger.warning(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_java.message", SUPPORTED_JAVA_VERSION, javaVersion));
+            logger.warning("");
+            logger.warning("*********************************************");
+        }
+    }
+
     public static void checkForGeyserUpdate(Supplier<GeyserCommandSource> recipient) {
         CompletableFuture.runAsync(() -> {
             try {
@@ -61,10 +95,12 @@ public final class VersionCheckUtils {
                 JsonNode bedrock = json.get("bedrock").get("protocol");
                 int protocolVersion = bedrock.get("id").asInt();
                 if (GameProtocol.getBedrockCodec(protocolVersion) != null) {
+                    LATEST_BEDROCK_RELEASE = OptionalInt.empty();
                     // We support the latest version! No need to print a message.
                     return;
                 }
 
+                LATEST_BEDROCK_RELEASE = OptionalInt.of(protocolVersion);
                 final String newBedrockVersion = bedrock.get("name").asText();
 
                 // Delayed for two reasons: save unnecessary processing, and wait to load locale if this is on join.
@@ -87,6 +123,10 @@ public final class VersionCheckUtils {
                 GeyserImpl.getInstance().getLogger().error("Error whilst checking for Geyser update!", e);
             }
         });
+    }
+
+    public static @Nonnull OptionalInt getLatestBedrockRelease() {
+        return LATEST_BEDROCK_RELEASE;
     }
 
     private VersionCheckUtils() {

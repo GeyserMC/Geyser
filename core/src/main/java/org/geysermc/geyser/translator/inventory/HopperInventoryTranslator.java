@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.translator.inventory;
 
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.updater.ContainerInventoryUpdater;
 
@@ -41,7 +41,7 @@ public class HopperInventoryTranslator extends AbstractBlockInventoryTranslator 
     @Override
     public BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot) {
         if (javaSlot < this.size) {
-            return new BedrockContainerSlot(ContainerSlotType.CONTAINER, javaSlot);
+            return new BedrockContainerSlot(ContainerSlotType.LEVEL_ENTITY, javaSlot);
         }
         return super.javaSlotToBedrockContainer(javaSlot);
     }

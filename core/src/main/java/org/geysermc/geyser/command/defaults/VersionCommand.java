@@ -25,8 +25,9 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
-import org.geysermc.common.PlatformType;
+import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
+import org.geysermc.geyser.Constants;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
@@ -54,7 +55,7 @@ public class VersionCommand extends GeyserCommand {
     @Override
     public void execute(GeyserSession session, GeyserCommandSource sender, String[] args) {
         String bedrockVersions;
-        List<BedrockPacketCodec> supportedCodecs = GameProtocol.SUPPORTED_BEDROCK_CODECS;
+        List<BedrockCodec> supportedCodecs = GameProtocol.SUPPORTED_BEDROCK_CODECS;
         if (supportedCodecs.size() > 1) {
             bedrockVersions = supportedCodecs.get(0).getMinecraftVersion() + " - " + supportedCodecs.get(supportedCodecs.size() - 1).getMinecraftVersion();
         } else {
@@ -84,7 +85,7 @@ public class VersionCommand extends GeyserCommand {
                         sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.no_updates", sender.locale()));
                     } else {
                         sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.outdated",
-                                sender.locale(), (latestBuildNum - buildNum), "https://ci.geysermc.org/"));
+                                sender.locale(), (latestBuildNum - buildNum), Constants.GEYSER_DOWNLOAD_LOCATION));
                     }
                 } else {
                     throw new AssertionError("buildNumber missing");

@@ -26,12 +26,13 @@
 package org.geysermc.geyser.translator.protocol.java.inventory;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.ClientboundHorseScreenOpenPacket;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
-import com.nukkitx.protocol.bedrock.packet.UpdateEquipPacket;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateEquipPacket;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.ChestedHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.LlamaEntity;
 import org.geysermc.geyser.inventory.Container;
@@ -116,6 +117,10 @@ public class JavaHorseScreenOpenTranslator extends PacketTranslator<ClientboundH
             inventoryTranslator = new LlamaInventoryTranslator(packet.getNumberOfSlots());
             slots.add(CARPET_SLOT);
         } else if (entity instanceof ChestedHorseEntity) {
+            inventoryTranslator = new DonkeyInventoryTranslator(packet.getNumberOfSlots());
+            slots.add(SADDLE_SLOT);
+        } else if (entity instanceof CamelEntity) {
+            // The camel has an invisible armor slot and needs special handling, same as the donkey
             inventoryTranslator = new DonkeyInventoryTranslator(packet.getNumberOfSlots());
             slots.add(SADDLE_SLOT);
         } else {

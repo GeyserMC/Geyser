@@ -1,0 +1,130 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    paths-ignore:
+      - '.github/ISSUE_TEMPLATE/*.yml'
+      - '.github/actions/pullrequest.yml'
+      - '.idea/copyright/*.xml' 
+      - '.gitignore'
+      - 'CONTRIBUTING.md'
+      - 'LICENSE'
+      - 'Jenkinsfile '
+      - 'README.md'
+      - 'licenseheader.txt'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Validate Gradle Wrapper
+        uses: gradle/wrapper-validation-action@v1
+
+      - uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: temurin
+          
+      - name: Build
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: build
+          gradle-home-cache-cleanup: true
+          
+      - name: Archive artifacts (Geyser Fabric)
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: Geyser Fabric
+          path: bootstrap/fabric/build/libs/Geyser-Fabric.jar
+          if-no-files-found: error
+      - name: Archive artifacts (Geyser Standalone)
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: Geyser Standalone
+          path: bootstrap/standalone/build/libs/Geyser-Standalone.jar
+          if-no-files-found: error
+      - name: Archive artifacts (Geyser Spigot)
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: Geyser Spigot
+          path: bootstrap/spigot/build/libs/Geyser-Spigot.jar
+          if-no-files-found: error
+      - name: Archive artifacts (Geyser BungeeCord)
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: Geyser BungeeCord
+          path: bootstrap/bungeecord/build/libs/Geyser-BungeeCord.jar
+          if-no-files-found: error
+      - name: Archive artifacts (Geyser Sponge)
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: Geyser Sponge
+          path: bootstrap/sponge/build/libs/Geyser-Sponge.jar
+          if-no-files-found: error
+      - name: Archive artifacts (Geyser Velocity)
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: Geyser Velocity
+          path: bootstrap/velocity/build/libs/Geyser-Velocity.jar
+          if-no-files-found: error
+
+      - name: Publish to Maven Repository
+        if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
+        uses: gradle/gradle-build-action@v2
+        env:
+          ORG_GRADLE_PROJECT_geysermcUsername: ${{ vars.DEPLOY_USER }}
+          ORG_GRADLE_PROJECT_geysermcPassword: ${{ secrets.DEPLOY_PASS }}
+        with:
+          arguments: publish
+
+      - name: Publish to Downloads API
+        if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
+        shell: bash
+        env:
+          DOWNLOADS_USERNAME: ${{ vars.DOWNLOADS_USERNAME }}
+          DOWNLOADS_PRIVATE_KEY: ${{ secrets.DOWNLOADS_PRIVATE_KEY }}
+          DOWNLOADS_SERVER_IP: ${{ secrets.DOWNLOADS_SERVER_IP }}
+        run: |
+          # Save the private key to a file
+          echo "$DOWNLOADS_PRIVATE_KEY" > id_ecdsa
+          chmod 600 id_ecdsa
+          # Set the project
+          project=geyser
+          # Get the version from gradle.properties
+          version=$(cat gradle.properties | grep -o "version=[0-9\\.]*" | cut -d"=" -f2)
+          # Create the build folder
+          ssh -o StrictHostKeyChecking=no -i id_ecdsa $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP mkdir -p "~/uploads/$project/$GITHUB_RUN_NUMBER/"
+          # Copy over artifacts
+          rsync -P -e "ssh -o StrictHostKeyChecking=no -i id_ecdsa" bootstrap/**/build/libs/Geyser-*.jar $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP:~/uploads/$project/$GITHUB_RUN_NUMBER/
+          # Run the build script
+          # Push the metadata
+          echo "{\"project\": \"$project\", \"version\": \"$version\", \"id\": $GITHUB_RUN_NUMBER, \"commit\": \"$GITHUB_SHA\"}" > metadata.json
+          rsync -P -e "ssh -o StrictHostKeyChecking=no -i id_ecdsa" metadata.json $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP:~/uploads/$project/$GITHUB_RUN_NUMBER/
+
+      - name: Publish to Modrinth
+        uses: gradle/gradle-build-action@v2
+        if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+        with:
+          arguments: fabric:modrinth
+          gradle-home-cache-cleanup: true
+          
+      - name: Notify Discord
+        if: ${{ (success() || failure()) && github.repository == 'GeyserMC/Geyser' }}
+        uses: Tim203/actions-git-discord-webhook@main
+        with:
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
+          status: ${{ job.status }}

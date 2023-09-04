@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.level.block.entity;
 
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.*;
-import com.nukkitx.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
@@ -43,7 +43,7 @@ public class CommandBlockBlockEntityTranslator extends BlockEntityTranslator imp
         // Java and Bedrock values
         builder.put("conditionMet", ((ByteTag) tag.get("conditionMet")).getValue());
         builder.put("auto", ((ByteTag) tag.get("auto")).getValue());
-        builder.put("CustomName", MessageTranslator.convertMessage(((StringTag) tag.get("CustomName")).getValue()));
+        builder.put("CustomName", MessageTranslator.convertJsonMessage(((StringTag) tag.get("CustomName")).getValue()));
         builder.put("powered", ((ByteTag) tag.get("powered")).getValue());
         builder.put("Command", ((StringTag) tag.get("Command")).getValue());
         builder.put("SuccessCount", ((IntTag) tag.get("SuccessCount")).getValue());

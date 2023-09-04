@@ -134,10 +134,6 @@ show-coordinates: true
 # Whether Bedrock players are blocked from performing their scaffolding-style bridging.
 disable-bedrock-scaffolding: false
 
-# Whether Bedrock players can right-click outside of their inventory to replace armor in their inventory, even if the
-# armor slot is already occupied (which Java Edition doesn't allow)
-always-quick-change-armor: false
-
 # If set, when a Bedrock player performs any emote, it will swap the offhand and mainhand items, just like the Java Edition keybind
 # There are three options this can be set to:
 # disabled - the default/fallback, which doesn't apply this workaround
@@ -162,9 +158,10 @@ max-visible-custom-skulls: 128
 # The radius in blocks around the player in which custom skulls are displayed.
 custom-skull-render-distance: 32
 
-# Whether to add (at this time, only) the furnace minecart as a separate item in the game, which normally does not exist in Bedrock Edition.
+# Whether to add any items and blocks which normally does not exist in Bedrock Edition.
 # This should only need to be disabled if using a proxy that does not use the "transfer packet" style of server switching.
 # If this is disabled, furnace minecart items will be mapped to hopper minecart items.
+# Geyser's block, item, and skull mappings systems will also be disabled.
 # This option requires a restart of Geyser in order to change its setting.
 add-non-bedrock-items: true
 

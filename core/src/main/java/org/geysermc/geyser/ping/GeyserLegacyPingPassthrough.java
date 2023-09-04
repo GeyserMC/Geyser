@@ -27,7 +27,7 @@ package org.geysermc.geyser.ping;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.nukkitx.nbt.util.VarInts;
+import org.cloudburstmc.nbt.util.VarInts;
 import io.netty.handler.codec.haproxy.HAProxyCommand;
 import io.netty.handler.codec.haproxy.HAProxyProxiedProtocol;
 import io.netty.util.NetUtil;
@@ -79,7 +79,8 @@ public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runn
         try (Socket socket = new Socket()) {
             String address = geyser.getConfig().getRemote().address();
             int port = geyser.getConfig().getRemote().port();
-            socket.connect(new InetSocketAddress(address, port), 5000);
+            InetSocketAddress endpoint = new InetSocketAddress(address, port);
+            socket.connect(endpoint, 5000);
 
             ByteArrayOutputStream byteArrayStream = new ByteArrayOutputStream();
             try (DataOutputStream handshake = new DataOutputStream(byteArrayStream)) {
@@ -103,7 +104,8 @@ public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runn
                             HAProxyProxiedProtocol.TCP4.byteValue() : HAProxyProxiedProtocol.TCP6.byteValue());
                     byte[] srcAddrBytes = NetUtil.createByteArrayFromIpAddressString(
                             ((InetSocketAddress) socket.getLocalSocketAddress()).getAddress().getHostAddress());
-                    byte[] dstAddrBytes = NetUtil.createByteArrayFromIpAddressString(address);
+                    byte[] dstAddrBytes = NetUtil.createByteArrayFromIpAddressString(
+                            endpoint.getAddress().getHostAddress());
                     dataOutputStream.writeShort(srcAddrBytes.length + dstAddrBytes.length + 4);
                     dataOutputStream.write(srcAddrBytes);
                     dataOutputStream.write(dstAddrBytes);

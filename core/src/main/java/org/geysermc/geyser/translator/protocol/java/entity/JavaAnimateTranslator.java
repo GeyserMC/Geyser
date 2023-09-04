@@ -25,11 +25,12 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.Animation;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundAnimatePacket;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.AnimateEntityPacket;
-import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
-import com.nukkitx.protocol.bedrock.packet.SpawnParticleEffectPacket;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.packet.AnimateEntityPacket;
+import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
+import org.cloudburstmc.protocol.bedrock.packet.SpawnParticleEffectPacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -44,12 +45,17 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
     @Override
     public void translate(GeyserSession session, ClientboundAnimatePacket packet) {
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
-        if (entity == null)
+        if (entity == null) {
             return;
+        }
+        Animation animation = packet.getAnimation();
+        if (animation == null) {
+            return;
+        }
 
         AnimatePacket animatePacket = new AnimatePacket();
         animatePacket.setRuntimeEntityId(entity.getGeyserId());
-        switch (packet.getAnimation()) {
+        switch (animation) {
             case SWING_ARM:
                 animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
                 if (entity.getEntityId() == session.getPlayerEntity().getEntityId()) {
@@ -86,7 +92,7 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
                 animatePacket.setAction(AnimatePacket.Action.WAKE_UP);
                 break;
             default:
-                // Unknown Animation
+                session.getGeyser().getLogger().debug("Unhandled java animation: " + animation);
                 return;
         }
 

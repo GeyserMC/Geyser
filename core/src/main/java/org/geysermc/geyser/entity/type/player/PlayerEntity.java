@@ -33,17 +33,18 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.FloatEnt
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.data.*;
-import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
-import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.bedrock.data.*;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
+import org.cloudburstmc.protocol.bedrock.packet.*;
+import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
@@ -54,6 +55,7 @@ import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.scoreboard.UpdateType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.ChunkUtils;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -63,7 +65,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Getter @Setter
-public class PlayerEntity extends LivingEntity {
+public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
     public static final float SNEAKING_POSE_HEIGHT = 1.5f;
     protected static final List<AbilityLayer> BASE_ABILITY_LAYER;
 
@@ -108,7 +110,7 @@ public class PlayerEntity extends LivingEntity {
     protected void initializeMetadata() {
         super.initializeMetadata();
         // For the OptionalPack, set all bits as invisible by default as this matches Java Edition behavior
-        dirtyMetadata.put(EntityData.MARK_VARIANT, 0xff);
+        dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, 0xff);
     }
 
     @Override
@@ -133,7 +135,7 @@ public class PlayerEntity extends LivingEntity {
         addPlayerPacket.setRotation(getBedrockRotation());
         addPlayerPacket.setMotion(motion);
         addPlayerPacket.setHand(hand);
-        addPlayerPacket.getAdventureSettings().setCommandPermission(CommandPermission.NORMAL);
+        addPlayerPacket.getAdventureSettings().setCommandPermission(CommandPermission.ANY);
         addPlayerPacket.getAdventureSettings().setPlayerPermission(PlayerPermission.MEMBER);
         addPlayerPacket.setDeviceId("");
         addPlayerPacket.setPlatformChatId("");
@@ -239,7 +241,27 @@ public class PlayerEntity extends LivingEntity {
 
     @Override
     public Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
-        return bedPosition = super.setBedPosition(entityMetadata);
+        bedPosition = super.setBedPosition(entityMetadata);
+        if (bedPosition != null) {
+            // Required to sync position of entity to bed
+            // Fixes https://github.com/GeyserMC/Geyser/issues/3595 on vanilla 1.19.3 servers - did not happen on Paper
+            this.setPosition(bedPosition.toFloat());
+
+            // TODO evaluate if needed
+            int bed = session.getGeyser().getWorldManager().getBlockAt(session, bedPosition);
+            // Bed has to be updated, or else player is floating in the air
+            ChunkUtils.updateBlock(session, bed, bedPosition);
+
+            // Indicate that the player should enter the sleep cycle
+            // Has to be a byte or it does not work
+            // (Bed position is what actually triggers sleep - "pose" is only optional)
+            dirtyMetadata.put(EntityDataTypes.PLAYER_FLAGS, (byte) 2);
+        } else {
+            // Player is no longer sleeping
+            dirtyMetadata.put(EntityDataTypes.PLAYER_FLAGS, (byte) 0);
+            return null;
+        }
+        return bedPosition;
     }
 
     public void setAbsorptionHearts(FloatEntityMetadata entityMetadata) {
@@ -257,7 +279,7 @@ public class PlayerEntity extends LivingEntity {
         // In Java Edition, a bit being set means that part should be enabled
         // However, to ensure that the pack still works on other servers, we invert the bit so all values by default
         // are true (0).
-        dirtyMetadata.put(EntityData.MARK_VARIANT, ~entityMetadata.getPrimitiveValue() & 0xff);
+        dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, ~entityMetadata.getPrimitiveValue() & 0xff);
     }
 
     public void setLeftParrot(EntityMetadata<CompoundTag, ?> entityMetadata) {
@@ -282,11 +304,11 @@ public class PlayerEntity extends LivingEntity {
             ParrotEntity parrot = new ParrotEntity(session, 0, session.getEntityCache().getNextEntityId().incrementAndGet(),
                     null, EntityDefinitions.PARROT, position, motion, getYaw(), getPitch(), getHeadYaw());
             parrot.spawnEntity();
-            parrot.getDirtyMetadata().put(EntityData.VARIANT, tag.get("Variant").getValue());
+            parrot.getDirtyMetadata().put(EntityDataTypes.VARIANT, (Integer) tag.get("Variant").getValue());
             // Different position whether the parrot is left or right
             float offset = isLeft ? 0.4f : -0.4f;
-            parrot.getDirtyMetadata().put(EntityData.RIDER_SEAT_POSITION, Vector3f.from(offset, -0.22, -0.1));
-            parrot.getDirtyMetadata().put(EntityData.RIDER_ROTATION_LOCKED, 1);
+            parrot.getDirtyMetadata().put(EntityDataTypes.SEAT_OFFSET, Vector3f.from(offset, -0.22, -0.1));
+            parrot.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, true);
             parrot.updateBedrockMetadata();
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
             EntityLinkData.Type type = isLeft ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER;
@@ -342,7 +364,7 @@ public class PlayerEntity extends LivingEntity {
         }
 
         if (needsUpdate) {
-            dirtyMetadata.put(EntityData.NAMETAG, this.nametag);
+            dirtyMetadata.put(EntityDataTypes.NAME, this.nametag);
         }
     }
 
@@ -393,13 +415,13 @@ public class PlayerEntity extends LivingEntity {
                 // providing the information
                 SetEntityDataPacket packet = new SetEntityDataPacket();
                 packet.setRuntimeEntityId(geyserId);
-                packet.getMetadata().put(EntityData.SCORE_TAG, displayString);
+                packet.getMetadata().put(EntityDataTypes.SCORE, displayString);
                 session.sendUpstreamPacket(packet);
             }
         } else if (valid) {
             SetEntityDataPacket packet = new SetEntityDataPacket();
             packet.setRuntimeEntityId(geyserId);
-            packet.getMetadata().put(EntityData.SCORE_TAG, "");
+            packet.getMetadata().put(EntityDataTypes.SCORE, "");
             session.sendUpstreamPacket(packet);
         }
     }
