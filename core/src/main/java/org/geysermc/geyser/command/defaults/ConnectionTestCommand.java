@@ -40,9 +40,15 @@ import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
 public class ConnectionTestCommand extends GeyserCommand {
+    /*
+     * The MOTD is temporarily changed during the connection test.
+     * This allows us to check if we are pinging the correct Geyser instance
+     */
     public static String CONNECTION_TEST_MOTD = null;
 
     private final GeyserImpl geyser;
+
+    private final Random random = new Random();
 
     public ConnectionTestCommand(GeyserImpl geyser, String name, String description, String permission) {
         super(name, description, permission);
@@ -93,7 +99,7 @@ public class ConnectionTestCommand extends GeyserCommand {
         }
 
         // Issue: people testing local ip
-        if (ip.equals("localhost") || ip.startsWith("127.") || ip.startsWith("10.")) {
+        if (ip.equals("localhost") || ip.startsWith("127.") || ip.startsWith("10.") || ip.startsWith("192.168.")) {
             sender.sendMessage("This tool checks if connections from other networks are possible, so you cannot check a local IP.");
             return;
         }
@@ -143,10 +149,10 @@ public class ConnectionTestCommand extends GeyserCommand {
                 }
 
                 // Generate some random, unique bits that another server wouldn't provide
-                byte[] random = new byte[2];
-                new Random().nextBytes(random);
+                byte[] randomBytes = new byte[2];
+                this.random.nextBytes(randomBytes);
                 StringBuilder randomStr = new StringBuilder();
-                for (byte b : random) {
+                for (byte b : randomBytes) {
                     randomStr.append(Integer.toHexString(b));
                 }
                 String connectionTestMotd = "Geyser Connection Test " + randomStr;
