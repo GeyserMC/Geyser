@@ -25,6 +25,9 @@
 
 package org.geysermc.geyser.command;
 
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.session.GeyserSession;
+
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -41,6 +44,7 @@ public record CommandSourceConverter<S>(Class<S> senderType,
                                            Function<UUID, S> playerLookup,
                                            Supplier<S> consoleProvider) {
 
+    @SuppressWarnings("unchecked")
     public S convert(GeyserCommandSource source) throws IllegalArgumentException {
         Object handle = source.handle();
         if (senderType.isInstance(handle)) {
@@ -49,6 +53,11 @@ public record CommandSourceConverter<S>(Class<S> senderType,
 
         if (source.isConsole()) {
             return consoleProvider.get(); // one of the loggers
+        }
+
+        if (!(source instanceof GeyserSession)) {
+            GeyserImpl.getInstance().getLogger().warning("Falling back to UUID for command sender lookup for a command source that is not a GeyserSession: " + source);
+            Thread.dumpStack();
         }
 
         // Handles GeyserSession
