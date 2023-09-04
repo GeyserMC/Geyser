@@ -46,7 +46,8 @@ public class BedrockSetPlayerGameTypeTranslator extends PacketTranslator<SetPlay
         // yes, if you are OP
         if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.server")) {
             if (packet.getGamemode() != session.getGameMode().ordinal()) {
-                // For some reason, spectator mode is... 6?
+                // Bedrock has more Gamemodes than Java, leading to cases 5 (for "default") and 6 (for "spectator") being sent
+                // https://github.com/CloudburstMC/Protocol/blob/3.0/bedrock-codec/src/main/java/org/cloudburstmc/protocol/bedrock/data/GameType.java
                 GameMode gameMode = switch (packet.getGamemode()) {
                     case 1 -> GameMode.CREATIVE;
                     case 2 -> GameMode.ADVENTURE;
