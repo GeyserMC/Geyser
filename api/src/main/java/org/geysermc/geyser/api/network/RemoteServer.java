@@ -67,4 +67,11 @@ public interface RemoteServer {
      */
     @NonNull
     AuthType authType();
+
+    /**
+     * Gets if we should attempt to resolve the SRV record for this server.
+     *
+     * @return if we should attempt to resolve the SRV record for this server
+     */
+    boolean resolveSrv();
 }
