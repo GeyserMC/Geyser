@@ -399,9 +399,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private Entity mouseoverEntity;
 
     /**
-     * Stores all Java recipes by identifier, and matches them to all possible Bedrock recipe identifiers.
+     * Stores all Java recipes by recipe identifier, and matches them to all possible Bedrock recipe identifiers.
+     * They are not 1:1, since Bedrock can have multiple recipes for the same Java recipe.
      */
-    @Setter @Getter
+    @Setter
     private Map<String, List<String>> identifierToBedrockRecipes;
 
     @Setter

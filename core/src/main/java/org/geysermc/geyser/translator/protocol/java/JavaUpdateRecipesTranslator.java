@@ -94,6 +94,10 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             "minecraft:netherite_boots"
     );
 
+    /**
+     * Fixes https://github.com/GeyserMC/Geyser/issues/3784 by using Item Tags where applicable instead of group IDs
+     * Item Tags allow mixing ingredients, and theoretically, adding item tags to custom items should also include them.
+     */
     private static final Map<String, String> IDENTIFIER_TO_TAG = new HashMap<>() {{
         put("minecraft:wood", "minecraft:logs");
         put("minecraft:wooden_slab", "minecraft:wooden_slabs");
@@ -333,7 +337,6 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 if (entry.getValue().size() > 1) {
                     GroupedItem groupedItem = entry.getKey();
 
-                    // Use item tags if possible to fix https://github.com/GeyserMC/Geyser/issues/3784
                     if (IDENTIFIER_TO_TAG.containsKey(groupedItem.id.getIdentifier())) {
                         optionSet.add(new ItemDescriptorWithCount(new ItemTagDescriptor(IDENTIFIER_TO_TAG.get(groupedItem.id.getIdentifier())), groupedItem.count));
                         continue;
