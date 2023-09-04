@@ -161,6 +161,7 @@ public class GeyserWorldManager extends WorldManager {
         return gameRule.getDefaultIntValue();
     }
 
+    @Override
     public GameMode getDefaultGameMode(GeyserSession session) {
         return GameMode.SURVIVAL;
     }

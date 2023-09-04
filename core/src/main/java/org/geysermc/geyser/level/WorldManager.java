@@ -179,7 +179,7 @@ public abstract class WorldManager {
     public abstract GameMode getDefaultGameMode(GeyserSession session);
 
     /**
-     * Change the default game mode of the server's session
+     * Change the default game mode of the session's server
      *
      * @param session The session of the player making the change
      * @param gameMode The new default game mode
