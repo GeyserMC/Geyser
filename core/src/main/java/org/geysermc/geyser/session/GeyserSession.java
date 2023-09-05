@@ -1817,7 +1817,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         Collections.addAll(abilityLayer.getAbilitiesSet(), USED_ABILITIES);
 
         updateAbilitiesPacket.getAbilityLayers().add(abilityLayer);
-        GeyserImpl.getInstance().getLogger().info("abilities: " + updateAbilitiesPacket.toString());
         sendUpstreamPacket(updateAbilitiesPacket);
     }
 
