@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import cloud.commandframework.Command;
 import cloud.commandframework.CommandManager;
 import cloud.commandframework.arguments.standard.StringArrayArgument;
 import cloud.commandframework.context.CommandContext;
@@ -45,6 +44,7 @@ import org.geysermc.geyser.util.WebUtils;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DumpCommand extends GeyserCommand {
@@ -69,8 +69,21 @@ public class DumpCommand extends GeyserCommand {
     }
 
     private StringArrayArgument<GeyserCommandSource> createArgument() {
-        // todo suggestions might be broken
-        return StringArrayArgument.optional(ARGUMENTS, (context, input) -> SUGGESTIONS);
+        return StringArrayArgument.optional(ARGUMENTS, (context, currentInput) -> {
+            // currentInput only provides the word currently being typed, so it's useless for checking the previous ones
+            List<String> input = context.getRawInput();
+            if (input.size() <= 2) {
+                return SUGGESTIONS; // only `geyser dump` was typed (2 literals)
+            }
+
+            // the rest of the input after `geyser dump` is for this argument
+            input = input.subList(2, input.size());
+
+            // don't suggest any words they have already typed
+            List<String> suggestions = new ArrayList<>(SUGGESTIONS);
+            suggestions.removeAll(input);
+            return suggestions;
+        });
     }
 
     @Override
