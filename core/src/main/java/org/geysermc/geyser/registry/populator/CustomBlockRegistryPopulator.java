@@ -199,10 +199,9 @@ public class CustomBlockRegistryPopulator {
      * 
      * @param customBlock the custom block data to generate states for
      * @param blockStates the list of NBT maps to append the custom block states to
-     * @param customExtBlockStates the list of custom block states to append the custom block states to 
-     * @param stateVersion the state version to use for the custom block states
+     * @param customExtBlockStates the list of custom block states to append the custom block states to
      */
-    static void generateCustomBlockStates(CustomBlockData customBlock, List<NbtMap> blockStates, List<CustomBlockState> customExtBlockStates, int stateVersion) {
+    static void generateCustomBlockStates(CustomBlockData customBlock, List<NbtMap> blockStates, List<CustomBlockState> customExtBlockStates) {
         int totalPermutations = 1;
         for (CustomBlockProperty<?> property : customBlock.properties().values()) {
             totalPermutations *= property.values().size();
@@ -219,7 +218,6 @@ public class CustomBlockRegistryPopulator {
     
             blockStates.add(NbtMap.builder()
                     .putString("name", customBlock.identifier())
-                    .putInt("version", stateVersion)
                     .putCompound("states", states)
                     .build());
             customExtBlockStates.add(new GeyserCustomBlockState(customBlock, states));

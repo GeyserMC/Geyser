@@ -147,7 +147,7 @@ public final class BlockRegistryPopulator {
                 vanillaBlockStates = new ArrayList<>(blockPalette.getList("blocks", NbtType.COMPOUND));
                 for (int i = 0; i < vanillaBlockStates.size(); i++) {
                     NbtMapBuilder builder = vanillaBlockStates.get(i).toBuilder();
-                    builder.remove("version");
+                    builder.remove("version"); // Remove all nbt tags which are not needed for differentiating states
                     builder.remove("name_hash"); // Quick workaround - was added in 1.19.20
                     builder.remove("network_id"); // Added in 1.19.80 - ????
                     builder.putCompound("states", statesInterner.intern((NbtMap) builder.remove("states")));
@@ -166,7 +166,7 @@ public final class BlockRegistryPopulator {
             if (BlockRegistries.CUSTOM_BLOCKS.get().length != 0) {
                 for (CustomBlockData customBlock : BlockRegistries.CUSTOM_BLOCKS.get()) {
                     customBlockProperties.add(CustomBlockRegistryPopulator.generateBlockPropertyData(customBlock, protocolVersion));
-                    CustomBlockRegistryPopulator.generateCustomBlockStates(customBlock, customBlockStates, customExtBlockStates, stateVersion);
+                    CustomBlockRegistryPopulator.generateCustomBlockStates(customBlock, customBlockStates, customExtBlockStates);
                 }
                 blockStates.addAll(customBlockStates);
                 GeyserImpl.getInstance().getLogger().debug("Added " + customBlockStates.size() + " custom block states to v" + protocolVersion + " palette.");
@@ -237,7 +237,7 @@ public final class BlockRegistryPopulator {
                 javaRuntimeId++;
                 Map.Entry<String, JsonNode> entry = blocksIterator.next();
                 String javaId = entry.getKey();
-                GeyserBedrockBlock vanillaBedrockDefinition = blockStateOrderedMap.get(buildBedrockState(entry.getValue(), stateVersion, stateMapper));
+                GeyserBedrockBlock vanillaBedrockDefinition = blockStateOrderedMap.get(buildBedrockState(entry.getValue(), stateMapper));
 
                 GeyserBedrockBlock bedrockDefinition;
                 CustomBlockState blockStateOverride = BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get(javaRuntimeId);
