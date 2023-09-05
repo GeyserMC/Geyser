@@ -52,6 +52,7 @@ public class VersionCommand extends GeyserCommand {
         this.geyser = geyser;
     }
 
+    @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
         GeyserCommandSource source = context.getSender();
 
