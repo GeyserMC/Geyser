@@ -146,6 +146,7 @@ import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.DimensionUtils;
+import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -1515,12 +1516,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         StartGamePacket startGamePacket = new StartGamePacket();
         startGamePacket.setUniqueEntityId(playerEntity.getGeyserId());
         startGamePacket.setRuntimeEntityId(playerEntity.getGeyserId());
-        startGamePacket.setPlayerGameType(switch (gameMode) {
-            case CREATIVE -> GameType.CREATIVE;
-            case ADVENTURE -> GameType.ADVENTURE;
-            case SPECTATOR -> GameType.SPECTATOR;
-            default -> GameType.SURVIVAL;
-        });
+        startGamePacket.setPlayerGameType(EntityUtils.toBedrockGamemode(gameMode));
         startGamePacket.setPlayerPosition(Vector3f.from(0, 69, 0));
         startGamePacket.setRotation(Vector2f.from(1, 1));
 
@@ -1756,7 +1752,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         AbilityLayer abilityLayer = new AbilityLayer();
         Set<Ability> abilities = abilityLayer.getAbilityValues();
-        if (canFly || spectator) {
+        if (canFly) {
             abilities.add(Ability.MAY_FLY);
         }
 
@@ -1792,12 +1788,24 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         if (spectator) {
             AbilityLayer spectatorLayer = new AbilityLayer();
             spectatorLayer.setLayerType(AbilityLayer.Type.SPECTATOR);
-            Collections.addAll(spectatorLayer.getAbilitiesSet(), USED_ABILITIES);
+            // Setting all abilitySet causes the zoom issue... BDS only sends these, so ig we will too
+            Set<Ability> abilitySet = spectatorLayer.getAbilitiesSet();
+            abilitySet.add(Ability.BUILD);
+            abilitySet.add(Ability.MINE);
+            abilitySet.add(Ability.DOORS_AND_SWITCHES);
+            abilitySet.add(Ability.OPEN_CONTAINERS);
+            abilitySet.add(Ability.ATTACK_PLAYERS);
+            abilitySet.add(Ability.ATTACK_MOBS);
+            abilitySet.add(Ability.INVULNERABLE);
+            abilitySet.add(Ability.FLYING);
+            abilitySet.add(Ability.MAY_FLY);
+            abilitySet.add(Ability.INSTABUILD);
+            abilitySet.add(Ability.NO_CLIP);
 
             Set<Ability> abilityValues = spectatorLayer.getAbilityValues();
-            abilityValues.add(Ability.NO_CLIP);
-            abilityValues.add(Ability.FLYING);
             abilityValues.add(Ability.INVULNERABLE);
+            abilityValues.add(Ability.FLYING);
+            abilityValues.add(Ability.NO_CLIP);
 
             updateAbilitiesPacket.getAbilityLayers().add(spectatorLayer);
         }
@@ -1809,6 +1817,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         Collections.addAll(abilityLayer.getAbilitiesSet(), USED_ABILITIES);
 
         updateAbilitiesPacket.getAbilityLayers().add(abilityLayer);
+        GeyserImpl.getInstance().getLogger().info("abilities: " + updateAbilitiesPacket.toString());
         sendUpstreamPacket(updateAbilitiesPacket);
     }
 

@@ -44,6 +44,7 @@ import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.inventory.PlayerInventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.EntityUtils;
 
 @Translator(packet = ClientboundGameEventPacket.class)
 public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEventPacket> {
@@ -105,8 +106,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 GameMode gameMode = (GameMode) packet.getValue();
 
                 SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
-                int gamemode = gameMode.ordinal() == 3 ? 6 : gameMode.ordinal();
-                playerGameTypePacket.setGamemode(gamemode);
+                playerGameTypePacket.setGamemode(EntityUtils.toBedrockGamemode(gameMode).ordinal());
                 session.sendUpstreamPacket(playerGameTypePacket);
                 session.setGameMode(gameMode);
 
