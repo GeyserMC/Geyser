@@ -116,7 +116,7 @@ public class ConnectionTestCommand extends GeyserCommand {
             } else {
                 sender.sendMessage("You did not specify the port to check (add it with \":<port>\"), " +
                         "and the default port 19132 does not match the port in your Geyser configuration ("
-                        + geyser.getConfig().getBedrock().port() + ")! ");
+                        + geyser.getConfig().getBedrock().port() + ")!");
                 sender.sendMessage("Re-run the command with that port, or change the port in the config under `bedrock` `port`.");
             }
         }
