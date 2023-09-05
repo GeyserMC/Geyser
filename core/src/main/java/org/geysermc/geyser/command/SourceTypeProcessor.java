@@ -33,7 +33,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 
-public class SenderTypeProcessor implements CommandPostprocessor<GeyserCommandSource> {
+public class SourceTypeProcessor implements CommandPostprocessor<GeyserCommandSource> {
 
     @Override
     public void accept(@NonNull CommandPostprocessingContext<GeyserCommandSource> processContext) {

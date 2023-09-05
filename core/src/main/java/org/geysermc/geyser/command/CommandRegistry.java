@@ -32,7 +32,9 @@ import cloud.commandframework.exceptions.InvalidCommandSenderException;
 import cloud.commandframework.exceptions.InvalidSyntaxException;
 import cloud.commandframework.exceptions.NoPermissionException;
 import cloud.commandframework.exceptions.NoSuchCommandException;
+import cloud.commandframework.execution.CommandExecutionCoordinator;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import lombok.AllArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 import org.geysermc.geyser.api.util.PlatformType;
@@ -62,8 +64,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletionException;
+import java.util.function.BiConsumer;
 
 public class CommandRegistry {
 
@@ -73,14 +77,35 @@ public class CommandRegistry {
     private final Map<String, Command> commands = new Object2ObjectOpenHashMap<>(13);
     private final Map<Extension, Map<String, Command>> extensionCommands = new Object2ObjectOpenHashMap<>(0);
 
-    private final Map<String, TriState> permissions = new Object2ObjectOpenHashMap<>(0);
+    private final Map<String, TriState> permissions = new Object2ObjectOpenHashMap<>(13);
+
+    /**
+     * The order and behaviour of these exception handlers is designed to mirror the typical cloud implementations.
+     * For example: https://github.com/Incendo/cloud/blob/a4cc749b91564af57bb7bba36dd8011b556c2b3a/cloud-minecraft/cloud-fabric/src/main/java/cloud/commandframework/fabric/FabricExecutor.java#L94-L173
+     */
+    // todo: full localization
+    private final List<ExceptionHandler<?>> exceptionHandlers = List.of(
+        new ExceptionHandler<>(InvalidSyntaxException.class, (src, e) -> src.sendMessage("Invalid Command Syntax. Correct syntax is: " + e.getCorrectSyntax())),
+        new ExceptionHandler<>(InvalidCommandSenderException.class, (src, e) -> src.sendMessage(e.getMessage())),
+        new ExceptionHandler<>(NoPermissionException.class, (src, e) -> src.sendLocaleString("geyser.bootstrap.command.permission_fail")),
+        new ExceptionHandler<>(NoSuchCommandException.class, (src, e) -> src.sendLocaleString("geyser.bootstrap.command.not_found")),
+        new ExceptionHandler<>(ArgumentParseException.class, (src, e) -> src.sendMessage("Invalid Command Argument: " + e.getCause().getMessage())),
+        new ExceptionHandler<>(CommandExecutionException.class, (src, e) -> handleUnexpectedThrowable(src, e.getCause()))
+    );
 
     public CommandRegistry(GeyserImpl geyser, CommandManager<GeyserCommandSource> cloud) {
         this.geyser = geyser;
         this.cloud = cloud;
 
-        cloud.registerCommandPostProcessor(new SenderTypeProcessor());
+        // Restricts command source types from executing commands they don't have access to
+        cloud.registerCommandPostProcessor(new SourceTypeProcessor());
+        // Override the default exception handlers that the typical cloud implementations provide so that we can perform localization.
+        // This is kind of meaningless for our Geyser-Standalone implementation since these handlers are the default exception handlers in that case.
+        for (ExceptionHandler<?> handler : exceptionHandlers) {
+            handler.register(cloud);
+        }
 
+        // begin command registration
         registerBuiltInCommand(new HelpCommand(geyser, "help", "geyser.commands.help.desc", "geyser.command.help", "geyser", this.commands));
         registerBuiltInCommand(new ListCommand(geyser, "list", "geyser.commands.list.desc", "geyser.command.list"));
         registerBuiltInCommand(new ReloadCommand(geyser, "reload", "geyser.commands.reload.desc", "geyser.command.reload"));
@@ -190,6 +215,7 @@ public class CommandRegistry {
 
     /**
      * Dispatches a command into cloud and handles any thrown exceptions.
+     * This method may or may not be blocking, depending on the {@link CommandExecutionCoordinator} in use by cloud.
      */
     public void runCommand(@NonNull GeyserCommandSource source, @NonNull String command) {
         cloud.executeCommand(source, command).whenComplete((result, throwable) -> {
@@ -197,6 +223,7 @@ public class CommandRegistry {
                 return;
             }
 
+            // mirrors typical cloud implementations
             if (throwable instanceof CompletionException) {
                 throwable = throwable.getCause();
             }
@@ -205,59 +232,42 @@ public class CommandRegistry {
         });
     }
 
-    // todo: full localization
     private void handleThrowable(@NonNull GeyserCommandSource source, @NonNull Throwable throwable) {
-        // This is modelled after the command executors of each cloud minecraft implementation.
-        if (throwable instanceof InvalidSyntaxException syntaxException) {
-            cloud.handleException(
-                    source,
-                    InvalidSyntaxException.class,
-                    syntaxException,
-                    ($, e) -> source.sendMessage("Invalid Command Syntax. Correct syntax is: " + e.getCorrectSyntax())
-            );
-        } else if (throwable instanceof InvalidCommandSenderException invalidSenderException) {
-            cloud.handleException(
-                    source,
-                    InvalidCommandSenderException.class,
-                    invalidSenderException,
-                    ($, e) -> source.sendMessage(throwable.getMessage())
-            );
-        } else if (throwable instanceof NoPermissionException noPermissionException) {
-            cloud.handleException(
-                    source,
-                    NoPermissionException.class,
-                    noPermissionException,
-                    ($, e) -> source.sendLocaleString("geyser.bootstrap.command.permission_fail")
-
-            );
-        } else if (throwable instanceof NoSuchCommandException noCommandException) {
-            cloud.handleException(
-                    source,
-                    NoSuchCommandException.class,
-                    noCommandException,
-                    ($, e) -> source.sendLocaleString("geyser.bootstrap.command.not_found")
-            );
-        } else if (throwable instanceof ArgumentParseException argumentParseException) {
-            cloud.handleException(
-                    source,
-                    ArgumentParseException.class,
-                    argumentParseException,
-                    ($, e) -> source.sendMessage("Invalid Command Argument: " + throwable.getCause().getMessage())
-            );
-        } else if (throwable instanceof CommandExecutionException executionException) {
-            cloud.handleException(
-                    source,
-                    CommandExecutionException.class,
-                    executionException,
-                    ($, e) -> defaultHandler(source, throwable.getCause())
-            );
-        } else {
-            defaultHandler(source, throwable);
+        if (throwable instanceof Exception exception) {
+            for (ExceptionHandler<?> handler : exceptionHandlers) {
+                if (handler.handle(source, exception)) {
+                    return;
+                }
+            }
         }
+        handleUnexpectedThrowable(source, throwable);
     }
 
-    private void defaultHandler(GeyserCommandSource source, Throwable throwable) {
+    private void handleUnexpectedThrowable(GeyserCommandSource source, Throwable throwable) {
         source.sendLocaleString("command.failed"); // java edition translation key
         GeyserImpl.getInstance().getLogger().error("Exception while executing command handler", throwable);
+    }
+
+    @AllArgsConstructor
+    private class ExceptionHandler<E extends Exception> {
+
+        private final Class<E> type;
+        private final BiConsumer<GeyserCommandSource, E> handler;
+
+        @SuppressWarnings("unchecked")
+        boolean handle(GeyserCommandSource source, Exception exception) {
+            if (type.isInstance(exception)) {
+                E e = (E) exception;
+                // if cloud has a registered exception handler for this type, use it, otherwise use this handler.
+                // we register all the exception handlers to cloud, so it will likely just be cloud invoking this same handler.
+                cloud.handleException(source, type, e, handler);
+                return true;
+            }
+            return false;
+        }
+
+        void register(CommandManager<GeyserCommandSource> manager) {
+            manager.registerExceptionHandler(type, handler);
+        }
     }
 }
