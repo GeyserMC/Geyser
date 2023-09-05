@@ -25,12 +25,12 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import cloud.commandframework.Command;
-import cloud.commandframework.CommandManager;
+import cloud.commandframework.context.CommandContext;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.SettingsUtils;
 
 public class SettingsCommand extends GeyserCommand {
@@ -40,10 +40,8 @@ public class SettingsCommand extends GeyserCommand {
     }
 
     @Override
-    public Command.Builder<GeyserCommandSource> builder(CommandManager<GeyserCommandSource> manager) {
-        return super.builder(manager)
-            .handler(context ->
-                context.getSender().connection().ifPresent(session ->
-                    session.sendForm(SettingsUtils.buildForm(session))));
+    public void execute(CommandContext<GeyserCommandSource> context) {
+        GeyserSession session = context.getSender().connection().orElseThrow();
+        session.sendForm(SettingsUtils.buildForm(session));
     }
 }

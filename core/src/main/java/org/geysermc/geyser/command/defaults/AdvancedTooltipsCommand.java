@@ -25,11 +25,11 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import cloud.commandframework.Command;
-import cloud.commandframework.CommandManager;
+import cloud.commandframework.context.CommandContext;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 
@@ -40,16 +40,15 @@ public class AdvancedTooltipsCommand extends GeyserCommand {
     }
 
     @Override
-    public Command.Builder<GeyserCommandSource> builder(CommandManager<GeyserCommandSource> manager) {
-        return super.builder(manager)
-            .handler(context -> context.getSender().connection().ifPresent(session -> {
-                String onOrOff = session.isAdvancedTooltips() ? "off" : "on";
-                session.setAdvancedTooltips(!session.isAdvancedTooltips());
-                session.sendMessage(ChatColor.BOLD + ChatColor.YELLOW
-                    + MinecraftLocale.getLocaleString("debug.prefix", session.locale())
-                    + " " + ChatColor.RESET
-                    + MinecraftLocale.getLocaleString("debug.advanced_tooltips." + onOrOff, session.locale()));
-                session.getInventoryTranslator().updateInventory(session, session.getPlayerInventory());
-            }));
+    public void execute(CommandContext<GeyserCommandSource> context) {
+        GeyserSession session = context.getSender().connection().orElseThrow();
+
+        String onOrOff = session.isAdvancedTooltips() ? "off" : "on";
+        session.setAdvancedTooltips(!session.isAdvancedTooltips());
+        session.sendMessage(ChatColor.BOLD + ChatColor.YELLOW
+            + MinecraftLocale.getLocaleString("debug.prefix", session.locale())
+            + " " + ChatColor.RESET
+            + MinecraftLocale.getLocaleString("debug.advanced_tooltips." + onOrOff, session.locale()));
+        session.getInventoryTranslator().updateInventory(session, session.getPlayerInventory());
     }
 }

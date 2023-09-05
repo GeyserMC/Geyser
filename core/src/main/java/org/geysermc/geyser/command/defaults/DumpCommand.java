@@ -58,15 +58,14 @@ public class DumpCommand extends GeyserCommand {
 
     public DumpCommand(GeyserImpl geyser, String name, String description, String permission) {
         super(name, description, permission, TriState.NOT_SET);
-
         this.geyser = geyser;
     }
 
     @Override
-    public Command.Builder<GeyserCommandSource> builder(CommandManager<GeyserCommandSource> manager) {
-        return super.builder(manager)
+    public void register(CommandManager<GeyserCommandSource> manager) {
+        manager.command(baseBuilder(manager)
             .argument(createArgument())
-            .handler(this::execute);
+            .handler(this::execute));
     }
 
     private StringArrayArgument<GeyserCommandSource> createArgument() {
@@ -74,6 +73,7 @@ public class DumpCommand extends GeyserCommand {
         return StringArrayArgument.optional(ARGUMENTS, (context, input) -> SUGGESTIONS);
     }
 
+    @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
         GeyserCommandSource source = context.getSender();
         String[] args = context.getOrDefault(ARGUMENTS, new String[0]);

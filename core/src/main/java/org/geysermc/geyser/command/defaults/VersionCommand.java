@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import cloud.commandframework.Command;
-import cloud.commandframework.CommandManager;
 import cloud.commandframework.context.CommandContext;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.geysermc.geyser.Constants;
@@ -51,14 +49,7 @@ public class VersionCommand extends GeyserCommand {
 
     public VersionCommand(GeyserImpl geyser, String name, String description, String permission) {
         super(name, description, permission, TriState.NOT_SET);
-
         this.geyser = geyser;
-    }
-
-    @Override
-    public Command.Builder<GeyserCommandSource> builder(CommandManager<GeyserCommandSource> manager) {
-        return super.builder(manager)
-            .handler(this::execute);
     }
 
     public void execute(CommandContext<GeyserCommandSource> context) {

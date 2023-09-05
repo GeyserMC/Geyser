@@ -27,12 +27,13 @@ package org.geysermc.geyser.extension.command;
 
 import cloud.commandframework.CommandManager;
 import cloud.commandframework.arguments.standard.StringArgument;
+import cloud.commandframework.context.CommandContext;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.command.CommandExecutor;
 import org.geysermc.geyser.api.command.CommandSource;
+import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
@@ -167,31 +168,42 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
                 throw new IllegalArgumentException("Command executor was not defined for command " + name + " in extension " + extension.name());
             }
 
+            // if the source type is a GeyserConnection then it is inherently bedrockOnly
+            final boolean bedrockOnly = GeyserConnection.class.isAssignableFrom(sourceType) || this.bedrockOnly;
+            // a similar check would exist for executableOnConsole, but there is not a logger type exposed in the api
+
             GeyserExtensionCommand command = new GeyserExtensionCommand(extension, name, description, permission, permissionDefault, executableOnConsole, bedrockOnly) {
+
+                @Override
+                public void register(CommandManager<GeyserCommandSource> manager) {
+                    // todo: if we don't find a way to expose cloud in the api, we should implement a way
+                    //  to not have the [args] if its not necessary for this command. and maybe tab completion.
+                    manager.command(baseBuilder(manager)
+                        .argument(StringArgument.optional("args", StringArgument.StringMode.GREEDY))
+                        .handler(this::execute));
+                }
 
                 @SuppressWarnings("unchecked")
                 @Override
-                public cloud.commandframework.Command.Builder<GeyserCommandSource> builder(CommandManager<GeyserCommandSource> manager) {
-                    return super.builder(manager)
-                            .argument(StringArgument.optional("args", StringArgument.StringMode.GREEDY))
-                            .handler(context -> {
-                                GeyserCommandSource source = context.getSender();
-                                String[] args = context.getOrDefault("args", "").split(" ");
+                public void execute(CommandContext<GeyserCommandSource> context) {
+                    GeyserCommandSource source = context.getSender();
+                    String[] args = context.getOrDefault("args", "").split(" ");
 
-                                if (sourceType.isInstance(source)) {
-                                    executor.execute((T) source, this, args);
-                                    return;
-                                }
+                    if (sourceType.isInstance(source)) {
+                        executor.execute((T) source, this, args);
+                        return;
+                    }
 
-                                GeyserSession session = source.connection().orElse(null);
-                                if (sourceType.isInstance(session)) {
-                                    executor.execute((T) session, this, args);
-                                    return;
-                                }
+                    GeyserSession session = source.connection().orElse(null);
+                    if (sourceType.isInstance(session)) {
+                        executor.execute((T) session, this, args);
+                        return;
+                    }
 
-                                // todo: send sender message instead
-                                GeyserImpl.getInstance().getLogger().warning("Ignoring command " + name + " due to no suitable sender.");
-                            });
+                    // currently, the only subclass of CommandSource exposed in the api is GeyserConnection.
+                    // when this command was registered, we enabled bedrockOnly if the sourceType was a GeyserConnection.
+                    // as a result, SenderTypeProcessor should handle that case and this method shouldn't even be reached.
+                    source.sendMessage("You must be a " + sourceType.getSimpleName() + " to run this command.");
                 }
 
                 @Override

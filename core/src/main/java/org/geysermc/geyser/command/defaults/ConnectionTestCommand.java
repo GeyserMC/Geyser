@@ -53,17 +53,18 @@ public class ConnectionTestCommand extends GeyserCommand {
     }
 
     @Override
-    public Command.Builder<GeyserCommandSource> builder(CommandManager<GeyserCommandSource> manager) {
-        return super.builder(manager)
+    public void register(CommandManager<GeyserCommandSource> manager) {
+        manager.command(baseBuilder(manager)
             .argument(StringArgument.of(ADDRESS))
             .argument(IntegerArgument.<GeyserCommandSource>builder(PORT)
                 .asOptionalWithDefault(19132)
                 .withMax(65535).withMin(0)
                 .build())
-            .handler(this::execute);
+            .handler(this::execute));
     }
 
-    private void execute(CommandContext<GeyserCommandSource> context) {
+    @Override
+    public void execute(CommandContext<GeyserCommandSource> context) {
         GeyserCommandSource source = context.getSender();
         String address = context.get(ADDRESS);
         int port = context.get(PORT);

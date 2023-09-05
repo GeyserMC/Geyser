@@ -27,6 +27,7 @@ package org.geysermc.geyser.command;
 
 import cloud.commandframework.Command;
 import cloud.commandframework.CommandManager;
+import cloud.commandframework.context.CommandContext;
 import cloud.commandframework.meta.CommandMeta;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -35,7 +36,6 @@ import org.jetbrains.annotations.Contract;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 public abstract class GeyserCommand implements org.geysermc.geyser.api.command.Command {
 
@@ -153,20 +153,49 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
         return Collections.unmodifiableList(aliases);
     }
 
+    /**
+     * @return the first (literal) argument of this command, which comes before {@link #name()}.
+     */
     public String rootCommand() {
         return "geyser";
     }
 
+    /**
+     * Creates a new command builder with {@link #rootCommand()}, {@link #name()}, and {@link #aliases()} built on it.
+     * The Applicable from {@link #meta()} is also applied to the builder.
+     */
     @Contract(value = "_ -> new", pure = true)
-    public Command.Builder<GeyserCommandSource> builder(CommandManager<GeyserCommandSource> manager) {
+    public final Command.Builder<GeyserCommandSource> baseBuilder(CommandManager<GeyserCommandSource> manager) {
         return manager.commandBuilder(rootCommand())
             .literal(name, aliases.toArray(new String[0]))
-            .meta(BEDROCK_ONLY, isBedrockOnly())
-            .meta(PLAYER_ONLY, !isExecutableOnConsole())
-            .permission(permission);
+            .permission(permission)
+            .apply(meta());
     }
 
-    public void register(CommandManager<GeyserCommandSource> manager) {
-        manager.command(builder(manager));
+    /**
+     * @return an Applicable that applies {@link #BEDROCK_ONLY} and {@link #PLAYER_ONLY} as meta,
+     * according to {@link #isBedrockOnly()} and {@link #isExecutableOnConsole()} (respectively).
+     */
+    public Command.Builder.Applicable<GeyserCommandSource> meta() {
+        return builder -> builder
+            .meta(BEDROCK_ONLY, isBedrockOnly())
+            .meta(PLAYER_ONLY, !isExecutableOnConsole());
     }
+
+    /**
+     * Registers this command to the given command manager.
+     * This method may be overridden to register more than one command.
+     * <br><br>
+     * The default implementation is that {@link #baseBuilder(CommandManager)} with {@link #execute(CommandContext)}
+     * applied as the handler is registered to the manager.
+     */
+    public void register(CommandManager<GeyserCommandSource> manager) {
+        manager.command(baseBuilder(manager).handler(this::execute));
+    }
+
+    /**
+     * Executes this command
+     * @param context the context with which this command should be executed
+     */
+    public abstract void execute(CommandContext<GeyserCommandSource> context);
 }

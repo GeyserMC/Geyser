@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import cloud.commandframework.Command;
-import cloud.commandframework.CommandManager;
 import cloud.commandframework.context.CommandContext;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.extension.Extension;
@@ -44,16 +42,10 @@ public class ExtensionsCommand extends GeyserCommand {
 
     public ExtensionsCommand(GeyserImpl geyser, String name, String description, String permission) {
         super(name, description, permission, TriState.TRUE);
-
         this.geyser = geyser;
     }
 
     @Override
-    public Command.Builder<GeyserCommandSource> builder(CommandManager<GeyserCommandSource> manager) {
-        return super.builder(manager)
-            .handler(this::execute);
-    }
-
     public void execute(CommandContext<GeyserCommandSource> context) {
         GeyserCommandSource source = context.getSender();
 

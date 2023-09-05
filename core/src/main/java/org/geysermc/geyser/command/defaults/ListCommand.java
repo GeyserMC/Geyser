@@ -25,8 +25,7 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import cloud.commandframework.Command;
-import cloud.commandframework.CommandManager;
+import cloud.commandframework.context.CommandContext;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
@@ -42,21 +41,17 @@ public class ListCommand extends GeyserCommand {
 
     public ListCommand(GeyserImpl geyser, String name, String description, String permission) {
         super(name, description, permission, TriState.NOT_SET);
-
         this.geyser = geyser;
     }
 
     @Override
-    public Command.Builder<GeyserCommandSource> builder(CommandManager<GeyserCommandSource> manager) {
-        return super.builder(manager)
-            .handler(context -> {
-                GeyserCommandSource source = context.getSender();
+    public void execute(CommandContext<GeyserCommandSource> context) {
+        GeyserCommandSource source = context.getSender();
 
-                String message = GeyserLocale.getPlayerLocaleString("geyser.commands.list.message", source.locale(),
-                    geyser.getSessionManager().size(),
-                    geyser.getSessionManager().getAllSessions().stream().map(GeyserSession::bedrockUsername).collect(Collectors.joining(" ")));
+        String message = GeyserLocale.getPlayerLocaleString("geyser.commands.list.message", source.locale(),
+            geyser.getSessionManager().size(),
+            geyser.getSessionManager().getAllSessions().stream().map(GeyserSession::bedrockUsername).collect(Collectors.joining(" ")));
 
-                source.sendMessage(message);
-            });
+        source.sendMessage(message);
     }
 }

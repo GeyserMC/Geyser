@@ -25,8 +25,7 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import cloud.commandframework.Command;
-import cloud.commandframework.CommandManager;
+import cloud.commandframework.context.CommandContext;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
@@ -41,13 +40,11 @@ public class StopCommand extends GeyserCommand {
     public StopCommand(GeyserImpl geyser, String name, String description, String permission) {
         super(name, description, permission, TriState.NOT_SET);
         this.geyser = geyser;
-
         this.aliases = Collections.singletonList("shutdown");
     }
 
     @Override
-    public Command.Builder<GeyserCommandSource> builder(CommandManager<GeyserCommandSource> manager) {
-        return super.builder(manager)
-            .handler(context -> geyser.getBootstrap().onDisable());
+    public void execute(CommandContext<GeyserCommandSource> context) {
+        geyser.getBootstrap().onDisable();
     }
 }

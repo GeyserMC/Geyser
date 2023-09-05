@@ -49,17 +49,22 @@ public class HelpCommand extends GeyserCommand {
         super(name, description, permission, TriState.TRUE);
         this.baseCommand = baseCommand;
         this.commands = commands.values();
-
         this.aliases = Collections.singletonList("?");
     }
 
     @Override
-    public cloud.commandframework.Command.Builder<GeyserCommandSource> builder(CommandManager<GeyserCommandSource> manager) {
-        return super.builder(manager)
-            .handler(this::execute);
+    public void register(CommandManager<GeyserCommandSource> manager) {
+        super.register(manager);
+
+        // Also register just `/geyser`
+        manager.command(manager.commandBuilder(rootCommand())
+            .permission(permission())
+            .apply(meta())
+            .handler(this::execute));
     }
 
-    private void execute(CommandContext<GeyserCommandSource> context) {
+    @Override
+    public void execute(CommandContext<GeyserCommandSource> context) {
         GeyserCommandSource source = context.getSender();
         boolean bedrockPlayer = source.connection().isPresent();
 
