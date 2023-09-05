@@ -186,7 +186,7 @@ public class ConnectionTestCommand extends GeyserCommand {
                     }
 
                     if (ping.get("tcpFirst").asBoolean()) {
-                        sender.sendMessage("Your server hardware likely has some sort of firewall preventing people from joining easily. See LINK for more information.");
+                        sender.sendMessage("Your server hardware likely has some sort of firewall preventing people from joining easily. See https://geysermc.link/ovh-firewall for more information.");
                         sendLinks(sender);
                         return;
                     }
