@@ -85,11 +85,11 @@ public class CommandRegistry {
      */
     // todo: full localization
     private final List<ExceptionHandler<?>> exceptionHandlers = List.of(
-        new ExceptionHandler<>(InvalidSyntaxException.class, (src, e) -> src.sendMessage("Invalid Command Syntax. Correct syntax is: " + e.getCorrectSyntax())),
-        new ExceptionHandler<>(InvalidCommandSenderException.class, (src, e) -> src.sendMessage(e.getMessage())),
-        new ExceptionHandler<>(NoPermissionException.class, (src, e) -> src.sendLocaleString("geyser.bootstrap.command.permission_fail")),
-        new ExceptionHandler<>(NoSuchCommandException.class, (src, e) -> src.sendLocaleString("geyser.bootstrap.command.not_found")),
-        new ExceptionHandler<>(ArgumentParseException.class, (src, e) -> src.sendMessage("Invalid Command Argument: " + e.getCause().getMessage())),
+        new ExceptionHandler<>(InvalidSyntaxException.class, (src, e) -> src.sendLocaleString("geyser.command.invalid_syntax", e.getCorrectSyntax())),
+        new ExceptionHandler<>(InvalidCommandSenderException.class, (src, e) -> src.sendLocaleString("geyser.command.invalid_sender", e.getCommandSender().getClass().getSimpleName(), e.getRequiredSender().getSimpleName())),
+        new ExceptionHandler<>(NoPermissionException.class, (src, e) -> src.sendLocaleString("geyser.command.permission_fail")),
+        new ExceptionHandler<>(NoSuchCommandException.class, (src, e) -> src.sendLocaleString("geyser.command.not_found")),
+        new ExceptionHandler<>(ArgumentParseException.class, (src, e) -> src.sendLocaleString("geyser.command.invalid_argument", e.getCause().getMessage())),
         new ExceptionHandler<>(CommandExecutionException.class, (src, e) -> handleUnexpectedThrowable(src, e.getCause()))
     );
 

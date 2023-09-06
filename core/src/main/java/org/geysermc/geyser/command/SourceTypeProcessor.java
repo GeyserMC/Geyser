@@ -42,7 +42,7 @@ public class SourceTypeProcessor implements CommandPostprocessor<GeyserCommandSo
 
         if (meta.getOrDefault(GeyserCommand.BEDROCK_ONLY, false)) {
             if (source.connection().isEmpty()) {
-                source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.bedrock_only", source.locale()));
+                source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.command.bedrock_only", source.locale()));
                 ConsumerService.interrupt();
             }
         } else if (meta.getOrDefault(GeyserCommand.PLAYER_ONLY, false)) {
@@ -50,7 +50,7 @@ public class SourceTypeProcessor implements CommandPostprocessor<GeyserCommandSo
             // performing the bedrock player check is also inherently a player check
 
             if (source.playerUuid().isEmpty()) {
-                source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.player_only", source.locale()));
+                source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.command.player_only", source.locale()));
                 ConsumerService.interrupt();
             }
         }
