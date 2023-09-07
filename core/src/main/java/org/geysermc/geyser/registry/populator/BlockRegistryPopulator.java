@@ -147,6 +147,7 @@ public final class BlockRegistryPopulator {
                 vanillaBlockStates = new ArrayList<>(blockPalette.getList("blocks", NbtType.COMPOUND));
                 for (int i = 0; i < vanillaBlockStates.size(); i++) {
                     NbtMapBuilder builder = vanillaBlockStates.get(i).toBuilder();
+                    builder.remove("version"); // Remove all nbt tags which are not needed for differentiating states
                     builder.remove("name_hash"); // Quick workaround - was added in 1.19.20
                     builder.remove("network_id"); // Added in 1.19.80 - ????
                     builder.putCompound("states", statesInterner.intern((NbtMap) builder.remove("states")));
@@ -157,7 +158,6 @@ public final class BlockRegistryPopulator {
             } catch (Exception e) {
                 throw new AssertionError("Unable to get blocks from runtime block states", e);
             }
-            int stateVersion = vanillaBlockStates.get(0).getInt("version");
 
             List<BlockPropertyData> customBlockProperties = new ArrayList<>();
             List<NbtMap> customBlockStates = new ArrayList<>();
@@ -166,7 +166,7 @@ public final class BlockRegistryPopulator {
             if (BlockRegistries.CUSTOM_BLOCKS.get().length != 0) {
                 for (CustomBlockData customBlock : BlockRegistries.CUSTOM_BLOCKS.get()) {
                     customBlockProperties.add(CustomBlockRegistryPopulator.generateBlockPropertyData(customBlock, protocolVersion));
-                    CustomBlockRegistryPopulator.generateCustomBlockStates(customBlock, customBlockStates, customExtBlockStates, stateVersion);
+                    CustomBlockRegistryPopulator.generateCustomBlockStates(customBlock, customBlockStates, customExtBlockStates);
                 }
                 blockStates.addAll(customBlockStates);
                 GeyserImpl.getInstance().getLogger().debug("Added " + customBlockStates.size() + " custom block states to v" + protocolVersion + " palette.");
@@ -237,7 +237,7 @@ public final class BlockRegistryPopulator {
                 javaRuntimeId++;
                 Map.Entry<String, JsonNode> entry = blocksIterator.next();
                 String javaId = entry.getKey();
-                GeyserBedrockBlock vanillaBedrockDefinition = blockStateOrderedMap.get(buildBedrockState(entry.getValue(), stateVersion, stateMapper));
+                GeyserBedrockBlock vanillaBedrockDefinition = blockStateOrderedMap.get(buildBedrockState(entry.getValue(), stateMapper));
 
                 GeyserBedrockBlock bedrockDefinition;
                 CustomBlockState blockStateOverride = BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get(javaRuntimeId);
@@ -245,7 +245,7 @@ public final class BlockRegistryPopulator {
                     bedrockDefinition = vanillaBedrockDefinition;
                     if (bedrockDefinition == null) {
                         throw new RuntimeException("Unable to find " + javaId + " Bedrock runtime ID! Built NBT tag: \n" +
-                                palette.getKey().key() + buildBedrockState(entry.getValue(), stateVersion, stateMapper));
+                                palette.getKey().key() + buildBedrockState(entry.getValue(), stateMapper));
                     }
                 } else {
                     bedrockDefinition = customBlockStateDefinitions.get(blockStateOverride);
@@ -341,8 +341,7 @@ public final class BlockRegistryPopulator {
                 }
             });
 
-            BlockRegistries.BLOCKS.register(palette.getKey().valueInt(), builder.blockStateVersion(stateVersion)
-                    .bedrockRuntimeMap(bedrockRuntimeMap)
+            BlockRegistries.BLOCKS.register(palette.getKey().valueInt(), builder.bedrockRuntimeMap(bedrockRuntimeMap)
                     .javaToBedrockBlocks(javaToBedrockBlocks)
                     .javaToVanillaBedrockBlocks(javaToVanillaBedrockBlocks)
                     .stateDefinitionMap(blockStateOrderedMap)
@@ -579,11 +578,10 @@ public final class BlockRegistryPopulator {
         return blockStateSet;
     }
 
-    private static NbtMap buildBedrockState(JsonNode node, int blockStateVersion, BiFunction<String, NbtMapBuilder, String> statesMapper) {
+    private static NbtMap buildBedrockState(JsonNode node, BiFunction<String, NbtMapBuilder, String> statesMapper) {
         NbtMapBuilder tagBuilder = NbtMap.builder();
         String bedrockIdentifier = node.get("bedrock_identifier").textValue();
-        tagBuilder.putString("name", bedrockIdentifier)
-                .putInt("version", blockStateVersion);
+        tagBuilder.putString("name", bedrockIdentifier);
 
         NbtMapBuilder statesBuilder = NbtMap.builder();
 
