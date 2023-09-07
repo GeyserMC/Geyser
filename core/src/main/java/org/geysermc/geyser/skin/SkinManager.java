@@ -278,7 +278,14 @@ public class SkinManager {
         }
 
         public static GameProfileData loadFromJson(String encodedJson) throws IOException, IllegalArgumentException {
-            JsonNode skinObject = GeyserImpl.JSON_MAPPER.readTree(new String(Base64.getDecoder().decode(encodedJson), StandardCharsets.UTF_8));
+            JsonNode skinObject;
+            try {
+                skinObject = GeyserImpl.JSON_MAPPER.readTree(new String(Base64.getDecoder().decode(encodedJson), StandardCharsets.UTF_8));
+            } catch (IllegalArgumentException e) {
+                GeyserImpl.getInstance().getLogger().debug("Invalid base64 encoded skin entry: " + encodedJson);
+                return null;
+            }
+
             JsonNode textures = skinObject.get("textures");
 
             if (textures == null) {

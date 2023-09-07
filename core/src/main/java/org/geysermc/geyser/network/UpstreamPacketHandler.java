@@ -231,11 +231,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     stackPacket.getExperiments().add(new ExperimentData("data_driven_items", true));
                 }
 
-                if (GameProtocol.isPre1_20(session)) {
-                    stackPacket.getExperiments().add(new ExperimentData("next_major_update", true));
-                    stackPacket.getExperiments().add(new ExperimentData("sniffer", true));
-                }
-
                 session.sendUpstreamPacket(stackPacket);
                 break;
 

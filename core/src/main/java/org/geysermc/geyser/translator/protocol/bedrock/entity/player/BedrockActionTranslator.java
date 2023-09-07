@@ -285,7 +285,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 entity.setOnGround(false); // Increase block break time while jumping
                 break;
             case MISSED_SWING:
-                // TODO Re-evaluate after pre-1.20.10 is supported?
+                // TODO Re-evaluate after pre-1.20.10 is no longer supported?
                 if (session.getArmAnimationTicks() == -1) {
                     session.sendDownstreamPacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
                     session.activateArmAnimationTicking();

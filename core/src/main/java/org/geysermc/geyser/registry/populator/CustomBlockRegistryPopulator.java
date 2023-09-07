@@ -325,12 +325,15 @@ public class CustomBlockRegistryPopulator {
             NbtMapBuilder materialsBuilder = NbtMap.builder();
             for (Map.Entry<String, MaterialInstance> entry : components.materialInstances().entrySet()) {
                 MaterialInstance materialInstance = entry.getValue();
-                materialsBuilder.putCompound(entry.getKey(), NbtMap.builder()
-                        .putString("texture", materialInstance.texture())
+                NbtMapBuilder materialBuilder = NbtMap.builder()
                         .putString("render_method", materialInstance.renderMethod())
                         .putBoolean("face_dimming", materialInstance.faceDimming())
-                        .putBoolean("ambient_occlusion", materialInstance.faceDimming())
-                        .build());
+                        .putBoolean("ambient_occlusion", materialInstance.faceDimming());
+                // Texture can be unspecified when blocks.json is used in RP (https://wiki.bedrock.dev/blocks/blocks-stable.html#minecraft-material-instances)
+                if (materialInstance.texture() != null) {
+                    materialBuilder.putString("texture", materialInstance.texture());
+                }
+                materialsBuilder.putCompound(entry.getKey(), materialBuilder.build());
             }
 
             builder.putCompound("minecraft:material_instances", NbtMap.builder()

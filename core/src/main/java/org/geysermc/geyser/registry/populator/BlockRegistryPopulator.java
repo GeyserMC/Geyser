@@ -127,51 +127,7 @@ public final class BlockRegistryPopulator {
             return null;
         };
 
-        // We are using mappings that directly support 1.20, so this maps it back to 1.19.80
-        BiFunction<String, NbtMapBuilder, String> legacyMapper = (bedrockIdentifier, statesBuilder) -> {
-            if (bedrockIdentifier.endsWith("pumpkin")) {
-                String direction = statesBuilder.remove("minecraft:cardinal_direction").toString();
-                statesBuilder.putInt("direction", switch (direction) {
-                    case "north" -> 2;
-                    case "east" -> 3;
-                    case "west" -> 1;
-                    default -> 0; // south
-                });
-            } else if (bedrockIdentifier.endsWith("carpet") && !bedrockIdentifier.startsWith("minecraft:moss")) {
-                String color = bedrockIdentifier.replace("minecraft:", "").replace("_carpet", "");
-                if (color.equals("light_gray")) {
-                    color = "silver";
-                }
-                statesBuilder.putString("color", color);
-                return "minecraft:carpet";
-            } else if (bedrockIdentifier.equals("minecraft:sniffer_egg")) {
-                statesBuilder.remove("cracked_state");
-                return "minecraft:dragon_egg";
-            } else if (bedrockIdentifier.endsWith("coral")) {
-                statesBuilder.putString("coral_color", "blue"); // all blue
-                statesBuilder.putBoolean("dead_bit", bedrockIdentifier.startsWith("minecraft:dead"));
-                return "minecraft:coral";
-            } else if (bedrockIdentifier.endsWith("sculk_sensor")) {
-                int phase = (int) statesBuilder.remove("sculk_sensor_phase");
-                statesBuilder.putBoolean("powered_bit", phase != 0);
-            } else if (bedrockIdentifier.endsWith("pitcher_plant")) {
-                statesBuilder.putString("double_plant_type", "sunflower");
-                return "minecraft:double_plant";
-            } else if (bedrockIdentifier.endsWith("pitcher_crop")) {
-                statesBuilder.remove("growth");
-                if (((byte) statesBuilder.remove("upper_block_bit")) == 1){
-                    statesBuilder.putString("flower_type", "orchid");
-                    return "minecraft:red_flower"; // top
-                }
-                statesBuilder.putBoolean("update_bit", false);
-                return "minecraft:flower_pot"; // bottom
-            }
-
-            return null;
-        };
-
         ImmutableMap<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> blockMappers = ImmutableMap.<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>>builder()
-                .put(ObjectIntPair.of("1_19_80", Bedrock_v582.CODEC.getProtocolVersion()), legacyMapper)
                 .put(ObjectIntPair.of("1_20_0", Bedrock_v589.CODEC.getProtocolVersion()), emptyMapper)
                 .put(ObjectIntPair.of("1_20_10", Bedrock_v594.CODEC.getProtocolVersion()), concreteAndShulkerBoxMapper)
                 .build();
