@@ -50,6 +50,7 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
 
         if (actions.contains(PlayerListEntryAction.ADD_PLAYER)) {
             for (PlayerListEntry entry : packet.getEntries()) {
+                // todo 1.20.2 profile is nullable now (and GameProfile#getId() already was)
                 GameProfile profile = entry.getProfile();
                 PlayerEntity playerEntity;
                 boolean self = profile.getId().equals(session.getPlayerEntity().getUuid());

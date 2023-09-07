@@ -25,31 +25,23 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerSpawnInfo;
+import com.github.steveice10.mc.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundLoginPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundCustomPayloadPacket;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
 import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetPlayerGameTypePacket;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.erosion.GeyserboundHandshakePacketHandler;
-import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.TextDecoration;
-import org.geysermc.geyser.translator.level.BiomeTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.EntityUtils;
-import org.geysermc.geyser.util.JavaCodecUtil;
 import org.geysermc.geyser.util.PluginMessageUtils;
-
-import java.util.Map;
 
 @Translator(packet = ClientboundLoginPacket.class)
 public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket> {
@@ -64,45 +56,29 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             session.setErosionHandler(new GeyserboundHandshakePacketHandler(session));
         }
 
-        Map<String, JavaDimension> dimensions = session.getDimensions();
-        dimensions.clear();
-
-        JavaDimension.load(packet.getRegistry(), dimensions);
-
-        Int2ObjectMap<TextDecoration> chatTypes = session.getChatTypes();
-        chatTypes.clear();
-        for (CompoundTag tag : JavaCodecUtil.iterateAsTag(packet.getRegistry().get("minecraft:chat_type"))) {
-            // The ID is NOT ALWAYS THE SAME! ViaVersion as of 1.19 adds two registry entries that do NOT match vanilla.
-            int id = ((IntTag) tag.get("id")).getValue();
-            CompoundTag element = tag.get("element");
-            CompoundTag chat = element.get("chat");
-            TextDecoration textDecoration = null;
-            if (chat != null) {
-                textDecoration = new TextDecoration(chat);
-            }
-            chatTypes.put(id, textDecoration);
-        }
+        PlayerSpawnInfo spawnInfo = packet.getCommonPlayerSpawnInfo();
 
         // If the player is already initialized and a join game packet is sent, they
         // are swapping servers
         if (session.isSpawned()) {
-            String fakeDim = DimensionUtils.getTemporaryDimension(session.getDimension(), packet.getDimension());
+            String fakeDim = DimensionUtils.getTemporaryDimension(session.getDimension(), spawnInfo.getDimension());
             DimensionUtils.switchDimension(session, fakeDim);
 
             session.getWorldCache().removeScoreboard();
         }
-        session.setWorldName(packet.getWorldName());
+        session.setWorldName(spawnInfo.getWorldName());
         session.setLevels(packet.getWorldNames());
 
-        BiomeTranslator.loadServerBiomes(session, packet.getRegistry());
-        session.getTagCache().clear();
+        session.getTagCache().clear(); // todo 1.20.2 placement??
 
-        session.setGameMode(packet.getGameMode());
+        session.setGameMode(spawnInfo.getGameMode());
 
-        String newDimension = packet.getDimension();
+        String newDimension = spawnInfo.getDimension();
 
         boolean needsSpawnPacket = !session.isSentSpawnPacket();
         if (needsSpawnPacket) {
+            // todo 1.20.2 do we need to wait after configuration??
+
             // The player has yet to spawn so let's do that using some of the information in this Java packet
             session.setDimension(newDimension);
             DimensionUtils.setBedrockDimension(session, newDimension);
@@ -114,11 +90,11 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
 
         if (!needsSpawnPacket) {
             SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
-            playerGameTypePacket.setGamemode(EntityUtils.toBedrockGamemode(packet.getGameMode()).ordinal());
+            playerGameTypePacket.setGamemode(EntityUtils.toBedrockGamemode(spawnInfo.getGameMode()).ordinal());
             session.sendUpstreamPacket(playerGameTypePacket);
         }
 
-        entity.setLastDeathPosition(packet.getLastDeathPos());
+        entity.setLastDeathPosition(spawnInfo.getLastDeathPos());
 
         entity.updateBedrockMetadata();
 
