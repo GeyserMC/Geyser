@@ -30,6 +30,7 @@ import org.cloudburstmc.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.EntityUtils;
 
 /**
  * In vanilla Bedrock, if you have operator status, this sets the player's gamemode without confirmation from the server.
@@ -59,7 +60,7 @@ public class BedrockSetPlayerGameTypeTranslator extends PacketTranslator<SetPlay
             }
         } else {
             SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
-            playerGameTypePacket.setGamemode(session.getGameMode().ordinal());
+            playerGameTypePacket.setGamemode(EntityUtils.toBedrockGamemode(session.getGameMode()).ordinal());
             session.sendUpstreamPacket(playerGameTypePacket);
         }
     }

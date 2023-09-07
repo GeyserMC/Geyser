@@ -156,12 +156,7 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
 
     @Override
     public GameMode getDefaultGameMode(GeyserSession session) {
-        return switch (server.getDefaultGameType()) {
-            case CREATIVE -> GameMode.CREATIVE;
-            case ADVENTURE -> GameMode.ADVENTURE;
-            case SPECTATOR -> GameMode.SPECTATOR;
-            default -> GameMode.SURVIVAL;
-        };
+        return GameMode.byId(server.getDefaultGameType().getId());
     }
 
     @Nonnull
