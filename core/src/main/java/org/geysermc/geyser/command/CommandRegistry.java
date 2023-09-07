@@ -83,7 +83,6 @@ public class CommandRegistry {
      * The order and behaviour of these exception handlers is designed to mirror the typical cloud implementations.
      * For example: https://github.com/Incendo/cloud/blob/a4cc749b91564af57bb7bba36dd8011b556c2b3a/cloud-minecraft/cloud-fabric/src/main/java/cloud/commandframework/fabric/FabricExecutor.java#L94-L173
      */
-    // todo: full localization
     private final List<ExceptionHandler<?>> exceptionHandlers = List.of(
         new ExceptionHandler<>(InvalidSyntaxException.class, (src, e) -> src.sendLocaleString("geyser.command.invalid_syntax", e.getCorrectSyntax())),
         new ExceptionHandler<>(InvalidCommandSenderException.class, (src, e) -> src.sendLocaleString("geyser.command.invalid_sender", e.getCommandSender().getClass().getSimpleName(), e.getRequiredSender().getSimpleName())),

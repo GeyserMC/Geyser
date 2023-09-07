@@ -347,7 +347,8 @@ public class GeyserStandaloneGUI {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            String command = commandInput.getText();
+            // the headless variant of Standalone strips trailing whitespace for us - we need to manually
+            String command = commandInput.getText().stripTrailing();
             appendConsole(command + "\n"); // show what was run in the console
             handler.accept(command); // run the command
             commandInput.setText(""); // clear the input
