@@ -162,13 +162,26 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
 
     /**
      * Creates a new command builder with {@link #rootCommand()}, {@link #name()}, and {@link #aliases()} built on it.
-     * The Applicable from {@link #meta()} is also applied to the builder.
+     * A permission predicate that takes into account {@link #permission()}, {@link #isBedrockOnly()}, and {@link #isExecutableOnConsole()}
+     * is applied. The Applicable from {@link #meta()} is also applied to the builder.
      */
     @Contract(value = "_ -> new", pure = true)
     public final Command.Builder<GeyserCommandSource> baseBuilder(CommandManager<GeyserCommandSource> manager) {
         return manager.commandBuilder(rootCommand())
             .literal(name, aliases.toArray(new String[0]))
-            .permission(permission)
+            .permission(source -> {
+                if (bedrockOnly) {
+                    if (source.connection().isEmpty()) {
+                        return false;
+                    }
+                    // connection is present -> it is a player -> executableOnConsole is irrelevant
+                } else if (!executableOnConsole) {
+                    if (source.isConsole()) {
+                        return false; // not executable on console but is console
+                    }
+                }
+                return manager.hasPermission(source, permission);
+            })
             .apply(meta());
     }
 

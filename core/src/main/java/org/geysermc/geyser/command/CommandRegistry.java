@@ -26,6 +26,7 @@
 package org.geysermc.geyser.command;
 
 import cloud.commandframework.CommandManager;
+import cloud.commandframework.arguments.CommandArgument;
 import cloud.commandframework.exceptions.ArgumentParseException;
 import cloud.commandframework.exceptions.CommandExecutionException;
 import cloud.commandframework.exceptions.InvalidCommandSenderException;
@@ -33,6 +34,7 @@ import cloud.commandframework.exceptions.InvalidSyntaxException;
 import cloud.commandframework.exceptions.NoPermissionException;
 import cloud.commandframework.exceptions.NoSuchCommandException;
 import cloud.commandframework.execution.CommandExecutionCoordinator;
+import cloud.commandframework.meta.CommandMeta;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.AllArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -59,6 +61,7 @@ import org.geysermc.geyser.command.defaults.VersionCommand;
 import org.geysermc.geyser.event.GeyserEventRegistrar;
 import org.geysermc.geyser.event.type.GeyserDefineCommandsEventImpl;
 import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.jetbrains.annotations.NotNull;
 
@@ -66,6 +69,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletionException;
 import java.util.function.BiConsumer;
 
@@ -86,7 +90,7 @@ public class CommandRegistry {
     private final List<ExceptionHandler<?>> exceptionHandlers = List.of(
         new ExceptionHandler<>(InvalidSyntaxException.class, (src, e) -> src.sendLocaleString("geyser.command.invalid_syntax", e.getCorrectSyntax())),
         new ExceptionHandler<>(InvalidCommandSenderException.class, (src, e) -> src.sendLocaleString("geyser.command.invalid_sender", e.getCommandSender().getClass().getSimpleName(), e.getRequiredSender().getSimpleName())),
-        new ExceptionHandler<>(NoPermissionException.class, (src, e) -> src.sendLocaleString("geyser.command.permission_fail")),
+        new ExceptionHandler<>(NoPermissionException.class, this::handleNoPermission),
         new ExceptionHandler<>(NoSuchCommandException.class, (src, e) -> src.sendLocaleString("geyser.command.not_found")),
         new ExceptionHandler<>(ArgumentParseException.class, (src, e) -> src.sendLocaleString("geyser.command.invalid_argument", e.getCause().getMessage())),
         new ExceptionHandler<>(CommandExecutionException.class, (src, e) -> handleUnexpectedThrowable(src, e.getCause()))
@@ -96,8 +100,6 @@ public class CommandRegistry {
         this.geyser = geyser;
         this.cloud = cloud;
 
-        // Restricts command source types from executing commands they don't have access to
-        cloud.registerCommandPostProcessor(new SourceTypeProcessor());
         // Override the default exception handlers that the typical cloud implementations provide so that we can perform localization.
         // This is kind of meaningless for our Geyser-Standalone implementation since these handlers are the default exception handlers in that case.
         for (ExceptionHandler<?> handler : exceptionHandlers) {
@@ -240,6 +242,30 @@ public class CommandRegistry {
             }
         }
         handleUnexpectedThrowable(source, throwable);
+    }
+
+    private void handleNoPermission(GeyserCommandSource source, NoPermissionException exception) {
+        // we basically recheck bedrock-only and player-only to see if they were the cause of this
+
+        // find the Command and its Meta that the source tried executing
+        List<CommandArgument<?, ?>> argumentChain = exception.getCurrentChain();
+        CommandArgument<?, ?> argument = argumentChain.get(argumentChain.size() - 1);
+        CommandMeta meta = Objects.requireNonNull(argument.getOwningCommand()).getCommandMeta();
+
+        // See GeyserCommand#baseBuilder()
+        if (meta.getOrDefault(GeyserCommand.BEDROCK_ONLY, false)) {
+            if (source.connection().isEmpty()) {
+                source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.command.bedrock_only", source.locale()));
+                return;
+            }
+        } else if (meta.getOrDefault(GeyserCommand.PLAYER_ONLY, false)) {
+            if (source.isConsole()) {
+                source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.command.player_only", source.locale()));
+                return;
+            }
+        }
+
+        source.sendLocaleString("geyser.command.permission_fail");
     }
 
     private void handleUnexpectedThrowable(GeyserCommandSource source, Throwable throwable) {
