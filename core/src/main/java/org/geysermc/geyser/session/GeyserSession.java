@@ -292,7 +292,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private Vector2i lastChunkPosition = null;
     @Setter
     private int clientRenderDistance = -1;
-    private int serverRenderDistance;
+    private int serverRenderDistance = -1;
 
     // Exposed for GeyserConnect usage
     protected boolean sentSpawnPacket;
@@ -1824,8 +1824,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         if (clientRenderDistance != -1) {
             // The client has sent a render distance
             return clientRenderDistance;
+        } else if (serverRenderDistance != -1) {
+            // only known once ClientboundLoginPacket is received
+            return serverRenderDistance;
         }
-        return serverRenderDistance;
+        return 2; // unfortunate default until we got more info
     }
 
     // We need to send our skin parts to the server otherwise java sees us with no hat, jacket etc

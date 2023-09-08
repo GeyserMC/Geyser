@@ -41,7 +41,6 @@ import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.EntityUtils;
-import org.geysermc.geyser.util.PluginMessageUtils;
 
 @Translator(packet = ClientboundLoginPacket.class)
 public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket> {
@@ -69,16 +68,12 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         session.setWorldName(spawnInfo.getWorldName());
         session.setLevels(packet.getWorldNames());
 
-        session.getTagCache().clear(); // todo 1.20.2 placement??
-
         session.setGameMode(spawnInfo.getGameMode());
 
         String newDimension = spawnInfo.getDimension();
 
         boolean needsSpawnPacket = !session.isSentSpawnPacket();
         if (needsSpawnPacket) {
-            // todo 1.20.2 do we need to wait after configuration??
-
             // The player has yet to spawn so let's do that using some of the information in this Java packet
             session.setDimension(newDimension);
             DimensionUtils.setBedrockDimension(session, newDimension);
@@ -107,16 +102,10 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
 
         session.setServerRenderDistance(packet.getViewDistance());
 
-        // TODO customize
+        // send this again now that we know the server render distance
+        // as the bedrock client isn't required to send a render distance
         session.sendJavaClientSettings();
 
-        session.sendDownstreamPacket(new ServerboundCustomPayloadPacket("minecraft:brand", PluginMessageUtils.getGeyserBrandData()));
-
-        // TODO don't send two packets
-//        if (true) {
-//            session.sendDownstreamPacket(new ServerboundCustomPayloadPacket("minecraft:register", Constants.PLUGIN_MESSAGE.getBytes(StandardCharsets.UTF_8)));
-//        }
-        // register the plugin messaging channels used in Floodgate
         if (session.remoteServer().authType() == AuthType.FLOODGATE) {
             session.sendDownstreamPacket(new ServerboundCustomPayloadPacket("minecraft:register", PluginMessageChannels.getFloodgateRegisterData()));
         }
