@@ -26,8 +26,6 @@
 package org.geysermc.geyser.registry.populator;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtUtils;
@@ -124,6 +122,7 @@ public class CreativeItemRegistryPopulator {
                 NbtMapBuilder builder = stateTag.toBuilder();
                 builder.remove("name_hash");
                 builder.remove("network_id");
+                builder.remove("version");
 
                 blockDefinition = blockMappings.getDefinition(builder.build());
             } catch (IOException e) {
