@@ -33,10 +33,15 @@ import com.google.common.collect.Interners;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.*;
+import org.cloudburstmc.blockstateupdater.BlockStateUpdater;
+import org.cloudburstmc.blockstateupdater.BlockStateUpdater_1_20_10;
+import org.cloudburstmc.blockstateupdater.BlockStateUpdater_1_20_30;
+import org.cloudburstmc.blockstateupdater.util.tagupdater.CompoundTagUpdaterContext;
 import org.cloudburstmc.nbt.*;
-import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.codec.v589.Bedrock_v589;
 import org.cloudburstmc.protocol.bedrock.codec.v594.Bedrock_v594;
+import org.cloudburstmc.protocol.bedrock.codec.v618.Bedrock_v618;
+import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
@@ -54,7 +59,6 @@ import java.io.DataInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.function.BiFunction;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -69,6 +73,25 @@ public final class BlockRegistryPopulator {
         INIT_JAVA,
         INIT_BEDROCK,
         POST_INIT;
+    }
+
+    @FunctionalInterface
+    private interface Remapper {
+
+        NbtMap remap(NbtMap tag);
+
+        static Remapper of(BlockStateUpdater... updaters) {
+            CompoundTagUpdaterContext context = new CompoundTagUpdaterContext();
+            for (BlockStateUpdater updater : updaters) {
+                updater.registerUpdaters(context);
+            }
+
+            return tag -> {
+                NbtMapBuilder updated = context.update(tag, 0).toBuilder();
+                updated.remove("version"); // we already removed this, but the context adds it. remove it again.
+                return updated.build();
+            };
+        }
     }
 
     public static void populate(Stage stage) {
@@ -92,52 +115,24 @@ public final class BlockRegistryPopulator {
     }
 
     private static void registerBedrockBlocks() {
-        BiFunction<String, NbtMapBuilder, String> emptyMapper = (bedrockIdentifier, statesBuilder) -> null;
+        Remapper mapper594 = Remapper.of(BlockStateUpdater_1_20_10.INSTANCE);
+        Remapper mapper618 = Remapper.of(BlockStateUpdater_1_20_10.INSTANCE, BlockStateUpdater_1_20_30.INSTANCE);
 
-        // adapt 1.20 mappings to 1.20.10+
-        BiFunction<String, NbtMapBuilder, String> concreteAndShulkerBoxMapper = (bedrockIdentifier, statesBuilder) -> {
-            if (bedrockIdentifier.equals("minecraft:concrete")) {
-                String color = (String) statesBuilder.remove("color");
-                if (color.equals("silver")) {
-                    color = "light_gray";
-                }
-                return "minecraft:" + color + "_concrete";
-            }
-            if (bedrockIdentifier.equals("minecraft:shulker_box")) {
-                String color = (String) statesBuilder.remove("color");
-                if (color.equals("silver")) {
-                    color = "light_gray";
-                }
-                return "minecraft:" + color + "_shulker_box";
-            }
-            if (bedrockIdentifier.equals("minecraft:observer")) {
-                int direction = (int) statesBuilder.remove("facing_direction");
-                statesBuilder.putString("minecraft:facing_direction", switch (direction) {
-                    case 0 -> "down";
-                    case 1 -> "up";
-                    case 2 -> "north";
-                    case 3 -> "south";
-                    case 4 -> "west";
-                    default -> "east";
-                });
-            }
-            return null;
-        };
-
-        ImmutableMap<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> blockMappers = ImmutableMap.<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>>builder()
-                .put(ObjectIntPair.of("1_20_0", Bedrock_v589.CODEC.getProtocolVersion()), emptyMapper)
-                .put(ObjectIntPair.of("1_20_10", Bedrock_v594.CODEC.getProtocolVersion()), concreteAndShulkerBoxMapper)
+        var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
+                .put(ObjectIntPair.of("1_20_0", Bedrock_v589.CODEC.getProtocolVersion()), tag -> tag)
+                .put(ObjectIntPair.of("1_20_10", Bedrock_v594.CODEC.getProtocolVersion()), mapper594)
+                .put(ObjectIntPair.of("1_20_30", Bedrock_v618.CODEC.getProtocolVersion()), mapper618)
                 .build();
 
         // We can keep this strong as nothing should be garbage collected
         // Safe to intern since Cloudburst NBT is immutable
         Interner<NbtMap> statesInterner = Interners.newStrongInterner();
 
-        for (Map.Entry<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> palette : blockMappers.entrySet()) {
-            int protocolVersion = palette.getKey().valueInt();
+        for (ObjectIntPair<String> palette : blockMappers.keySet()) {
+            int protocolVersion = palette.valueInt();
             List<NbtMap> vanillaBlockStates;
             List<NbtMap> blockStates;
-            try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource(String.format("bedrock/block_palette.%s.nbt", palette.getKey().key()));
+            try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource(String.format("bedrock/block_palette.%s.nbt", palette.key()));
                 NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(new GZIPInputStream(stream)), true, true)) {
                 NbtMap blockPalette = (NbtMap) nbtInputStream.readTag();
 
@@ -219,7 +214,7 @@ public final class BlockRegistryPopulator {
             BlockDefinition movingBlockDefinition = null;
             Iterator<Map.Entry<String, JsonNode>> blocksIterator = BLOCKS_JSON.fields();
 
-            BiFunction<String, NbtMapBuilder, String> stateMapper = blockMappers.getOrDefault(palette.getKey(), emptyMapper);
+            Remapper stateMapper = blockMappers.get(palette);
 
             GeyserBedrockBlock[] javaToBedrockBlocks = new GeyserBedrockBlock[JAVA_BLOCKS_SIZE];
             GeyserBedrockBlock[] javaToVanillaBedrockBlocks = new GeyserBedrockBlock[JAVA_BLOCKS_SIZE];
@@ -234,15 +229,22 @@ public final class BlockRegistryPopulator {
                 javaRuntimeId++;
                 Map.Entry<String, JsonNode> entry = blocksIterator.next();
                 String javaId = entry.getKey();
-                GeyserBedrockBlock vanillaBedrockDefinition = blockStateOrderedMap.get(buildBedrockState(entry.getValue(), stateMapper));
+
+                NbtMap originalBedrockTag = buildBedrockState(entry.getValue());
+                NbtMap bedrockTag = stateMapper.remap(originalBedrockTag);
+
+                GeyserBedrockBlock vanillaBedrockDefinition = blockStateOrderedMap.get(bedrockTag);
 
                 GeyserBedrockBlock bedrockDefinition;
                 CustomBlockState blockStateOverride = BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get(javaRuntimeId);
                 if (blockStateOverride == null) {
                     bedrockDefinition = vanillaBedrockDefinition;
                     if (bedrockDefinition == null) {
-                        throw new RuntimeException("Unable to find " + javaId + " Bedrock runtime ID! Built NBT tag: \n" +
-                                palette.getKey().key() + buildBedrockState(entry.getValue(), stateMapper));
+                        throw new RuntimeException(("""
+                            Unable to find %s Bedrock runtime ID for %s! Original block tag:
+                            %s
+                            UpdatedBlockTag:
+                            %s""").formatted(javaId, palette.key(), originalBedrockTag, bedrockTag));
                     }
                 } else {
                     bedrockDefinition = customBlockStateDefinitions.get(blockStateOverride);
@@ -338,7 +340,7 @@ public final class BlockRegistryPopulator {
                 }
             });
 
-            BlockRegistries.BLOCKS.register(palette.getKey().valueInt(), builder.bedrockRuntimeMap(bedrockRuntimeMap)
+            BlockRegistries.BLOCKS.register(palette.valueInt(), builder.bedrockRuntimeMap(bedrockRuntimeMap)
                     .javaToBedrockBlocks(javaToBedrockBlocks)
                     .javaToVanillaBedrockBlocks(javaToVanillaBedrockBlocks)
                     .stateDefinitionMap(blockStateOrderedMap)
@@ -575,7 +577,7 @@ public final class BlockRegistryPopulator {
         return blockStateSet;
     }
 
-    private static NbtMap buildBedrockState(JsonNode node, BiFunction<String, NbtMapBuilder, String> statesMapper) {
+    private static NbtMap buildBedrockState(JsonNode node) {
         NbtMapBuilder tagBuilder = NbtMap.builder();
         String bedrockIdentifier = node.get("bedrock_identifier").textValue();
         tagBuilder.putString("name", bedrockIdentifier);
@@ -596,10 +598,6 @@ public final class BlockRegistryPopulator {
                     case NUMBER -> statesBuilder.putInt(stateEntry.getKey(), stateValue.intValue());
                 }
             }
-        }
-        String newIdentifier = statesMapper.apply(bedrockIdentifier, statesBuilder);
-        if (newIdentifier != null) {
-            tagBuilder.putString("name", newIdentifier);
         }
         tagBuilder.put("states", statesBuilder.build());
         return tagBuilder.build();
