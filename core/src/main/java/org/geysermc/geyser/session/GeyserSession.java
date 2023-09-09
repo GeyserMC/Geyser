@@ -1665,7 +1665,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     private void sendDownstreamPacket0(Packet packet) {
-        if (protocol.getState().equals(ProtocolState.GAME) || packet.getClass() == ServerboundCustomQueryAnswerPacket.class) {
+        ProtocolState state = protocol.getState();
+        if (state == ProtocolState.GAME || state == ProtocolState.CONFIGURATION || packet.getClass() == ServerboundCustomQueryAnswerPacket.class) {
             downstream.sendPacket(packet);
         } else {
             geyser.getLogger().debug("Tried to send downstream packet " + packet.getClass().getSimpleName() + " before connected to the server");
