@@ -240,11 +240,11 @@ public final class BlockRegistryPopulator {
                 if (blockStateOverride == null) {
                     bedrockDefinition = vanillaBedrockDefinition;
                     if (bedrockDefinition == null) {
-                        throw new RuntimeException(("""
+                        throw new RuntimeException("""
                             Unable to find %s Bedrock runtime ID for %s! Original block tag:
                             %s
-                            UpdatedBlockTag:
-                            %s""").formatted(javaId, palette.key(), originalBedrockTag, bedrockTag));
+                            Updated block tag:
+                            %s""".formatted(javaId, palette.key(), originalBedrockTag, bedrockTag));
                     }
                 } else {
                     bedrockDefinition = customBlockStateDefinitions.get(blockStateOverride);
