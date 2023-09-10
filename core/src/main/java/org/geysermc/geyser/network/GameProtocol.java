@@ -60,8 +60,12 @@ public final class GameProtocol {
     private static final PacketCodec DEFAULT_JAVA_CODEC = MinecraftCodec.CODEC;
 
     static {
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v589.CODEC);
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v594.CODEC);
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v589.CODEC.toBuilder()
+            .minecraftVersion("1.20.0/1.20.1")
+            .build());
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v594.CODEC.toBuilder()
+            .minecraftVersion("1.20.10/1.20.15")
+            .build());
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
     }
 
