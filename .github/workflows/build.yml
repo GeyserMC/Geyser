@@ -65,13 +65,6 @@ jobs:
           name: Geyser BungeeCord
           path: bootstrap/bungeecord/build/libs/Geyser-BungeeCord.jar
           if-no-files-found: error
-      - name: Archive artifacts (Geyser Sponge)
-        uses: actions/upload-artifact@v3
-        if: success()
-        with:
-          name: Geyser Sponge
-          path: bootstrap/sponge/build/libs/Geyser-Sponge.jar
-          if-no-files-found: error
       - name: Archive artifacts (Geyser Velocity)
         uses: actions/upload-artifact@v3
         if: success()
