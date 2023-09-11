@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.platform.spigot.world.manager;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.bukkit.Bukkit;
@@ -169,6 +170,11 @@ public class GeyserSpigotWorldManager extends WorldManager {
             return Integer.parseInt(value);
         }
         return gameRule.getDefaultIntValue();
+    }
+
+    @Override
+    public GameMode getDefaultGameMode(GeyserSession session) {
+        return GameMode.byId(Bukkit.getDefaultGameMode().ordinal());
     }
 
     @Nonnull

@@ -171,6 +171,24 @@ public abstract class WorldManager {
     }
 
     /**
+     * Get the default game mode of the server
+     *
+     * @param session the player requesting the default game mode
+     * @return the default game mode of the server, or Survival if unknown.
+     */
+    public abstract GameMode getDefaultGameMode(GeyserSession session);
+
+    /**
+     * Change the default game mode of the session's server
+     *
+     * @param session the player making the change
+     * @param gameMode the new default game mode
+     */
+    public void setDefaultGameMode(GeyserSession session, GameMode gameMode) {
+        session.sendCommand("defaultgamemode " + gameMode.name().toLowerCase(Locale.ROOT));
+    }
+
+    /**
      * Change the difficulty of the Java server
      *
      * @param session The session of the user that requested the change

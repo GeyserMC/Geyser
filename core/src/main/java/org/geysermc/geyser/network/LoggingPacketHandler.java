@@ -256,6 +256,11 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
     }
 
     @Override
+    public PacketSignal handle(RequestPermissionsPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
     public PacketSignal handle(ResourcePackChunkRequestPacket packet) {
         return defaultHandler(packet);
     }
