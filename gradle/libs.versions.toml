@@ -28,7 +28,6 @@ adapters = "1.9-SNAPSHOT"
 commodore = "2.2"
 bungeecord = "a7c6ede"
 velocity = "3.1.1"
-sponge = "8.0.0"
 fabric-minecraft = "1.20"
 fabric-loader = "0.14.21"
 fabric-api = "0.83.0+1.20"
@@ -90,7 +89,6 @@ junit = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "ju
 mcauthlib = { group = "com.github.GeyserMC", name = "MCAuthLib", version.ref = "mcauthlib" }
 mcprotocollib = { group = "com.github.steveice10", name = "mcprotocollib", version.ref = "mcprotocollib" }
 raknet = { group = "org.cloudburstmc.netty", name = "netty-transport-raknet", version.ref = "raknet" }
-sponge-api = { group = "org.spongepowered", name = "spongeapi", version.ref = "sponge" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }
 velocity-api = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }
 viaversion = { group = "com.viaversion", name = "viaversion", version.ref = "viaversion" }
