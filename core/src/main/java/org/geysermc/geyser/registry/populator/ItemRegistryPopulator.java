@@ -40,6 +40,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.codec.v589.Bedrock_v589;
 import org.cloudburstmc.protocol.bedrock.codec.v594.Bedrock_v594;
+import org.cloudburstmc.protocol.bedrock.codec.v618.Bedrock_v618;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
@@ -86,10 +87,8 @@ public class ItemRegistryPopulator {
     }
 
     public static void populate() {
-        List<PaletteVersion> paletteVersions = new ArrayList<>(2);
-        paletteVersions.add(new PaletteVersion("1_20_0", Bedrock_v589.CODEC.getProtocolVersion()));
-        paletteVersions.add(new PaletteVersion("1_20_10", Bedrock_v594.CODEC.getProtocolVersion(), Collections.emptyMap(), (item, mapping) -> {
-            // Forward-map 1.20 mappings to 1.20.10
+        // Forward-map 1.20 mappings to 1.20.10
+        Remapper remapper594 = (item, mapping) -> {
             // 1.20.10+ received parity for concrete and shulker boxes
             String id = item.javaIdentifier();
             if (id.endsWith("_concrete") || id.endsWith("_shulker_box")) {
@@ -98,7 +97,25 @@ public class ItemRegistryPopulator {
                 return mapping.withBedrockIdentifier(id);
             }
             return mapping;
-        }));
+        };
+        // 1.20 to 1.20.30
+        Remapper remapper618 = (item, mapping) -> {
+            mapping = remapper594.remap(item, mapping); // apply 1.20.10 remapper first
+
+            String id = item.javaIdentifier();
+            if (id.endsWith("concrete_powder") || id.contains("stained_glass") || (id.endsWith("_terracotta") && !id.contains("glazed"))) {
+                // parity: concrete powder, stained-glass blocks and panes, and coloured terracotta
+                // 1.   'minecraft:terracotta' is still 'minecraft:hardened_clay'
+                // 2.   there were no changes for glazed, but it doesn't have full parity, so ignore it.
+                return mapping.withBedrockIdentifier(id);
+            }
+            return mapping;
+        };
+
+        List<PaletteVersion> paletteVersions = new ArrayList<>(3);
+        paletteVersions.add(new PaletteVersion("1_20_0", Bedrock_v589.CODEC.getProtocolVersion()));
+        paletteVersions.add(new PaletteVersion("1_20_10", Bedrock_v594.CODEC.getProtocolVersion(), Collections.emptyMap(), remapper594));
+        paletteVersions.add(new PaletteVersion("1_20_30", Bedrock_v618.CODEC.getProtocolVersion(), Collections.emptyMap(), remapper618));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
