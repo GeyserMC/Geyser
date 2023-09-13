@@ -3,15 +3,16 @@ base-api = "1.0.0-SNAPSHOT"
 cumulus = "1.1.2"
 erosion = "1.0-20230406.174837-8"
 events = "1.1-SNAPSHOT"
-jackson = "2.14.0"
+jackson = { strictly = "2.14.0" } # Don't let other dependencies override
 fastutil = "8.5.2"
 netty = "4.1.80.Final"
 guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8
 websocket = "1.5.1"
-protocol = "3.0.0.Beta1-20230718.000033-102"
-protocol-connection = "3.0.0.Beta1-20230718.000033-101"
+protocol = "3.0.0.Beta1-20230908.171156-106"
+protocol-connection = "3.0.0.Beta1-20230908.171156-105"
 raknet = "1.0.0.CR1-20230703.195238-9"
+blockstateupdater="1.20.30-20230911.121922-2"
 mcauthlib = "d9d773e"
 mcprotocollib = "1.20-2-20230827.192136-1"
 adventure = "4.14.0"
@@ -102,6 +103,8 @@ websocket = { group = "org.java-websocket", name = "Java-WebSocket", version.ref
 protocol-common = { group = "org.cloudburstmc.protocol", name = "common", version.ref = "protocol-connection" }
 protocol-codec = { group = "org.cloudburstmc.protocol", name = "bedrock-codec", version.ref = "protocol" }
 protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol-connection" }
+
+blockstateupdater = { group = "org.cloudburstmc", name = "block-state-updater", version.ref = "blockstateupdater"}
 
 [bundles]
 jackson = [ "jackson-annotations", "jackson-core", "jackson-dataformat-yaml" ]

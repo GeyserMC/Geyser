@@ -21,6 +21,7 @@ dependencies {
     implementation(libs.websocket)
 
     api(libs.bundles.protocol)
+    implementation(libs.blockstateupdater)
 
     api(libs.mcauthlib)
     api(libs.mcprotocollib) {
