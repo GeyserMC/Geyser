@@ -144,8 +144,10 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             CommandOverloadData[] params = getParams(session, nodes[nodeIndex], nodes);
 
             // Insert the alias name into the command list
-            commands.computeIfAbsent(new BedrockCommandInfo(node.getName().toLowerCase(Locale.ROOT), registry.description(node.getName().toLowerCase(Locale.ROOT)), params),
-                    index -> new HashSet<>()).add(node.getName().toLowerCase());
+            String name = node.getName().toLowerCase(Locale.ROOT);
+            String description = registry.description(name, session.locale());
+            BedrockCommandInfo info = new BedrockCommandInfo(name, description, params);
+            commands.computeIfAbsent(info, $ -> new HashSet<>()).add(name);
         }
 
         var eventBus = session.getGeyser().eventBus();

@@ -58,6 +58,7 @@ import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
+import org.geysermc.geyser.platform.spigot.command.SpigotCommandRegistry;
 import org.geysermc.geyser.platform.spigot.command.SpigotCommandSource;
 import org.geysermc.geyser.platform.spigot.world.GeyserPistonListener;
 import org.geysermc.geyser.platform.spigot.world.GeyserSpigotBlockPlaceListener;
@@ -73,7 +74,6 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -187,7 +187,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             }
         }
 
-        this.commandRegistry = new CommandRegistry(geyser, cloud); // todo: reimplement subclass for command descriptions
+        this.commandRegistry = new SpigotCommandRegistry(geyser, cloud);
 
         if (!INITIALIZED) {
             // Needs to be an anonymous inner class otherwise Bukkit complains about missing classes

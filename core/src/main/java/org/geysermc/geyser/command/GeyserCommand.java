@@ -32,12 +32,15 @@ import cloud.commandframework.meta.CommandMeta;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.util.TriState;
+import org.geysermc.geyser.text.GeyserLocale;
 import org.jetbrains.annotations.Contract;
 
 import java.util.Collections;
 import java.util.List;
 
 public abstract class GeyserCommand implements org.geysermc.geyser.api.command.Command {
+
+    public static final String DEFAULT_ROOT_COMMAND = "geyser";
 
     /**
      * CommandMeta to indicate that the command is only available to bedrock players. default of false.
@@ -157,7 +160,7 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
      * @return the first (literal) argument of this command, which comes before {@link #name()}.
      */
     public String rootCommand() {
-        return "geyser";
+        return DEFAULT_ROOT_COMMAND;
     }
 
     /**
@@ -191,6 +194,7 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
      */
     public Command.Builder.Applicable<GeyserCommandSource> meta() {
         return builder -> builder
+            .meta(CommandMeta.DESCRIPTION, GeyserLocale.getLocaleStringLog(description))
             .meta(BEDROCK_ONLY, isBedrockOnly())
             .meta(PLAYER_ONLY, !isExecutableOnConsole());
     }

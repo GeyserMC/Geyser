@@ -78,9 +78,24 @@ public class CommandRegistry {
     private final GeyserImpl geyser;
     private final CommandManager<GeyserCommandSource> cloud;
 
+    /**
+     * Map of Geyser subcommands to their Commands
+     */
     private final Map<String, Command> commands = new Object2ObjectOpenHashMap<>(13);
+
+    /**
+     * Map of Extensions to Maps of their subcommands
+     */
     private final Map<Extension, Map<String, Command>> extensionCommands = new Object2ObjectOpenHashMap<>(0);
 
+    /**
+     * Map of root commands (that are for extensions) to Extensions
+     */
+    private final Map<String, Extension> extensionRootCommands = new Object2ObjectOpenHashMap<>(0);
+
+    /**
+     * Map of permission nodes to their default values
+     */
     private final Map<String, TriState> permissions = new Object2ObjectOpenHashMap<>(13);
 
     /**
@@ -122,7 +137,7 @@ public class CommandRegistry {
             registerBuiltInCommand(new StopCommand(geyser, "stop", "geyser.commands.stop.desc", "geyser.command.stop"));
         }
 
-        if (this.geyser.extensionManager().extensions().size() > 0) {
+        if (!this.geyser.extensionManager().extensions().isEmpty()) {
             registerBuiltInCommand(new ExtensionsCommand(this.geyser, "extensions", "geyser.commands.extensions.desc", "geyser.command.extensions"));
         }
 
@@ -140,10 +155,21 @@ public class CommandRegistry {
 
         this.geyser.eventBus().fire(defineCommandsEvent);
 
-        // Register help commands for all extensions with commands
         for (Map.Entry<Extension, Map<String, Command>> entry : this.extensionCommands.entrySet()) {
-            String id = entry.getKey().description().id();
-            registerExtensionCommand(entry.getKey(), new HelpCommand(this.geyser, "help", "geyser.commands.exthelp.desc", "geyser.command.exthelp." + id, id, entry.getValue()));
+            Extension extension = entry.getKey();
+
+            // Register this extension's root command
+            extensionRootCommands.put(extension.rootCommand(), extension);
+
+            // Register help commands for all extensions with commands
+            String id = extension.description().id();
+            registerExtensionCommand(extension, new HelpCommand(
+                this.geyser,
+                "help",
+                "geyser.commands.exthelp.desc",
+                "geyser.command.exthelp." + id,
+                extension.rootCommand(),
+                entry.getValue()));
         }
 
         // wait for the right moment (depends on the platform) to register permissions
@@ -206,12 +232,21 @@ public class CommandRegistry {
     /**
      * Returns the description of the given command
      *
-     * @param command Command to get the description for
-     * @return Command description
+     * @param command the root command node
+     * @param locale the ideal locale that the description should be in
+     * @return a description if found, otherwise an empty string. The locale is not guaranteed.
      */
-    public String description(String command) {
-        // todo: the commands contained in this registry store their descriptions, so those should be checked
-        return ""; // todo: reimplement
+    @NonNull
+    public String description(@NonNull String command, @NonNull String locale) {
+        if (command.equals(GeyserCommand.DEFAULT_ROOT_COMMAND)) {
+            return GeyserLocale.getPlayerLocaleString("geyser.command.geyser_desc", locale);
+        }
+
+        Extension extension = extensionRootCommands.get(command);
+        if (extension != null) {
+            return GeyserLocale.getPlayerLocaleString("geyser.command.extension_desc", locale, extension.description().name());
+        }
+        return "";
     }
 
     /**
@@ -276,8 +311,8 @@ public class CommandRegistry {
     @AllArgsConstructor
     private class ExceptionHandler<E extends Exception> {
 
-        private final Class<E> type;
-        private final BiConsumer<GeyserCommandSource, E> handler;
+        final Class<E> type;
+        final BiConsumer<GeyserCommandSource, E> handler;
 
         @SuppressWarnings("unchecked")
         boolean handle(GeyserCommandSource source, Exception exception) {
