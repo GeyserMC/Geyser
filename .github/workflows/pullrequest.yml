@@ -16,10 +16,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Validate Gradle Wrapper
-        # See https://github.com/gradle/wrapper-validation-action/commits
-        uses: gradle/wrapper-validation-action@56b90f209b02bf6d1deae490e9ef18b21a389cd4
-
       - name: Set up JDK 17
         # See https://github.com/actions/setup-java/commits
         uses: actions/setup-java@4075bfc1b51bf22876335ae1cd589602d60d8758
@@ -52,6 +48,10 @@ jobs:
         with:
           submodules: recursive
           path: geyser
+
+      - name: Validate Gradle Wrapper
+        # See https://github.com/gradle/wrapper-validation-action/commits
+        uses: gradle/wrapper-validation-action@56b90f209b02bf6d1deae490e9ef18b21a389cd4
 
       - name: Build Geyser
         # See https://github.com/gradle/gradle-build-action/commits
