@@ -1,7 +1,7 @@
 plugins {
     `java-library`
     id("geyser.build-logic")
-    id("io.freefair.lombok") version "8.3"
+    id("io.freefair.lombok") version "6.6.2" apply false
 }
 
 allprojects {
