@@ -28,7 +28,6 @@ package org.geysermc.geyser.platform.fabric;
 import cloud.commandframework.CommandManager;
 import cloud.commandframework.execution.CommandExecutionCoordinator;
 import cloud.commandframework.fabric.FabricServerCommandManager;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -39,6 +38,8 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.player.Player;
 import org.apache.logging.log4j.LogManager;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
@@ -55,8 +56,6 @@ import org.geysermc.geyser.platform.fabric.command.FabricCommandSource;
 import org.geysermc.geyser.platform.fabric.world.GeyserFabricWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -208,7 +207,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     }
 
     @SuppressWarnings("ConstantConditions") // Certain IDEA installations think that ip cannot be null
-    @NotNull
+    @NonNull
     @Override
     public String getServerBindAddress() {
         String ip = this.server.getLocalIp();

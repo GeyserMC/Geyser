@@ -29,9 +29,21 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.util.TriState;
 
+/**
+ * Something capable of checking if a {@link CommandSource} has a permission
+ */
 @FunctionalInterface
 public interface PermissionChecker {
 
+    /**
+     * Checks if the given source has a permission
+     *
+     * @param source the {@link CommandSource} whose permissions should be queried
+     * @param permission the permission node to check
+     * @return a {@link TriState} as the value of the node. {@link TriState#NOT_SET} generally means that the permission
+     *         node itself was not found, and the source does not have such permission.
+     *         {@link TriState#TRUE} and {@link TriState#FALSE} represent explicitly set values.
+     */
     @NonNull
     TriState hasPermission(@NonNull CommandSource source, @NonNull String permission);
 }

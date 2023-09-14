@@ -94,9 +94,9 @@ public class CommandRegistry {
     private final Map<String, Extension> extensionRootCommands = new Object2ObjectOpenHashMap<>(0);
 
     /**
-     * Map of permission nodes to their default values
+     * Map containing only permissions that have been registered with a default value
      */
-    private final Map<String, TriState> permissions = new Object2ObjectOpenHashMap<>(13);
+    private final Map<String, TriState> permissionDefaults = new Object2ObjectOpenHashMap<>(13);
 
     /**
      * The order and behaviour of these exception handlers is designed to mirror the typical cloud implementations.
@@ -194,7 +194,7 @@ public class CommandRegistry {
     public void clear() {
         this.commands.clear();
         this.extensionCommands.clear();
-        this.permissions.clear();
+        this.permissionDefaults.clear();
     }
 
     /**
@@ -219,12 +219,12 @@ public class CommandRegistry {
         }
 
         if (!command.permission().isBlank() && command.permissionDefault() != null) {
-            permissions.put(command.permission(), command.permissionDefault());
+            permissionDefaults.put(command.permission(), command.permissionDefault());
         }
     }
 
     private void onRegisterPermissions(GeyserRegisterPermissionsEvent event) {
-        for (Map.Entry<String, TriState> permission : permissions.entrySet()) {
+        for (Map.Entry<String, TriState> permission : permissionDefaults.entrySet()) {
             event.register(permission.getKey(), permission.getValue());
         }
     }

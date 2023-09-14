@@ -49,11 +49,21 @@ import java.util.Set;
 public class GeyserStandaloneCommandManager extends CommandManager<GeyserCommandSource> {
 
     private final GeyserImpl geyser;
+
+    /**
+     * The checkers we use to test if a command source has a permission
+     */
     private final List<PermissionChecker> permissionCheckers = new ArrayList<>();
+
+    /**
+     * Any permissions that all connections have
+     */
     private final Set<String> basePermissions = new ObjectOpenHashSet<>();
 
     public GeyserStandaloneCommandManager(GeyserImpl geyser) {
         super(CommandExecutionCoordinator.simpleCoordinator(), CommandRegistrationHandler.nullCommandRegistrationHandler());
+        // simpleCoordinator: execute commands immediately on the calling thread.
+        // nullCommandRegistrationHandler: cloud is not responsible for handling our CommandRegistry, which is fairly decoupled.
         this.geyser = geyser;
 
         // allow any extensions to customize permissions
@@ -66,8 +76,7 @@ public class GeyserStandaloneCommandManager extends CommandManager<GeyserCommand
             PermissionConfiguration config = FileUtils.loadConfig(permissionsFile, PermissionConfiguration.class);
             basePermissions.addAll(config.getDefaultPermissions());
         } catch (Exception e) {
-            geyser.getLogger().warning("Failed to load permissions.yml");
-            e.printStackTrace();
+            geyser.getLogger().error("Failed to load permissions.yml - proceeding without it", e);
         }
     }
 
@@ -79,8 +88,6 @@ public class GeyserStandaloneCommandManager extends CommandManager<GeyserCommand
         geyser.getEventBus().fire((GeyserRegisterPermissionsEvent) (permission, def) -> {
             if (def == TriState.TRUE) {
                 basePermissions.add(permission);
-            } else if (def == TriState.FALSE) {
-                basePermissions.remove(permission); // todo: maybe remove this case?
             }
         });
     }
@@ -101,7 +108,10 @@ public class GeyserStandaloneCommandManager extends CommandManager<GeyserCommand
             if (result != null) {
                 return result;
             }
+            // undefined - try the next checker to see if it has a defined value
         }
+        // fallback to our list of default permissions
+        // note that a PermissionChecker may in fact override any values set here by return FALSE
         return basePermissions.contains(permission);
     }
 

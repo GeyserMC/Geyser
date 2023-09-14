@@ -61,7 +61,7 @@ public interface Command {
      * Gets the permission node associated with
      * this command.
      *
-     * @return the permission node for this command
+     * @return the permission node for this command if defined, otherwise an empty string
      */
     @NonNull
     String permission();
@@ -78,6 +78,7 @@ public interface Command {
      * Gets if this command is designed to be used only by server operators.
      *
      * @return if this command is designated to be used only by server operators.
+     * @deprecated this method is not guaranteed to provide meaningful or expected results.
      */
     @Deprecated(forRemoval = true)
     default boolean isSuggestedOpOnly() {
@@ -99,11 +100,7 @@ public interface Command {
     boolean isBedrockOnly();
 
     /**
-     * Gets the subcommands associated with this
-     * command. Mainly used within the Geyser Standalone
-     * GUI to know what subcommands are supported.
-     *
-     * @return the subcommands associated with this command
+     * @deprecated this method will always return an empty list
      */
     @Deprecated(forRemoval = true)
     @NonNull
@@ -133,7 +130,7 @@ public interface Command {
          * is an instance of this source.
          *
          * @param sourceType the source type
-         * @return the builder
+         * @return this builder
          */
         Builder<T> source(@NonNull Class<? extends T> sourceType);
 
@@ -141,7 +138,7 @@ public interface Command {
          * Sets the command name.
          *
          * @param name the command name
-         * @return the builder
+         * @return this builder
          */
         Builder<T> name(@NonNull String name);
 
@@ -149,26 +146,27 @@ public interface Command {
          * Sets the command description.
          *
          * @param description the command description
-         * @return the builder
+         * @return this builder
          */
         Builder<T> description(@Nullable String description);
 
         /**
-         * Sets the permission node.
+         * Sets the permission node required to run this command. <br>
+         * It will not be registered anywhere, unlike {@link #permission(String, TriState)}.
          *
          * @param permission the permission node
-         * @return the builder
+         * @return this builder
          */
         Builder<T> permission(@Nullable String permission);
 
         /**
-         * Sets the permission node, and its default value. The usage of the default value is platform dependant
-         * and may or may not be used. Extensions may instead listen for {@link GeyserRegisterPermissionsEvent}
-         * to register permissions.
+         * Sets the permission node and its default value. The usage of the default value is platform dependant
+         * and may or may not be used. <br>
+         * Extensions may instead listen for {@link GeyserRegisterPermissionsEvent} to register permissions.
          *
          * @param permission the permission node
          * @param defaultValue the node's default value
-         * @return the builder
+         * @return this builder
          */
         Builder<T> permission(@Nullable String permission, @NonNull TriState defaultValue);
 
@@ -176,7 +174,7 @@ public interface Command {
          * Sets the aliases.
          *
          * @param aliases the aliases
-         * @return the builder
+         * @return this builder
          */
         Builder<T> aliases(@Nullable List<String> aliases);
 
@@ -184,7 +182,8 @@ public interface Command {
          * Sets if this command is designed to be used only by server operators.
          *
          * @param suggestedOpOnly if this command is designed to be used only by server operators
-         * @return the builder
+         * @return this builder
+         * @deprecated this method is not guaranteed to produce meaningful or expected results
          */
         @Deprecated(forRemoval = true)
         Builder<T> suggestedOpOnly(boolean suggestedOpOnly);
@@ -193,7 +192,7 @@ public interface Command {
          * Sets if this command is executable on console.
          *
          * @param executableOnConsole if this command is executable on console
-         * @return the builder
+         * @return this builder
          */
         Builder<T> executableOnConsole(boolean executableOnConsole);
 
@@ -201,7 +200,7 @@ public interface Command {
          * Sets if this command is bedrock only.
          *
          * @param bedrockOnly if this command is bedrock only
-         * @return the builder
+         * @return this builder
          */
         Builder<T> bedrockOnly(boolean bedrockOnly);
 
@@ -209,7 +208,8 @@ public interface Command {
          * Sets the subcommands.
          *
          * @param subCommands the subcommands
-         * @return the builder
+         * @return this builder
+         * @deprecated this method has no effect
          */
         @Deprecated(forRemoval = true)
         default Builder<T> subCommands(@NonNull List<String> subCommands) {
@@ -220,14 +220,14 @@ public interface Command {
          * Sets the {@link CommandExecutor} for this command.
          *
          * @param executor the command executor
-         * @return the builder
+         * @return this builder
          */
         Builder<T> executor(@NonNull CommandExecutor<T> executor);
 
         /**
          * Builds the command.
          *
-         * @return the command
+         * @return a new command from this builder
          */
         @NonNull
         Command build();

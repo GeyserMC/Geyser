@@ -108,7 +108,8 @@ public interface Extension extends EventRegistrar {
     }
 
     /**
-     * todo: commands
+     * @return the root command that all of this extension's commands will stem from.
+     *         By default, this is the extension's id.
      */
     @NonNull
     default String rootCommand() {

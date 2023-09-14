@@ -69,10 +69,14 @@ public interface CommandSource {
     boolean isConsole();
 
     /**
-     * todo: commands
+     * @return an Optional containing a Java UUID if this source represents any player, otherwise empty
      */
     Optional<UUID> playerUuid();
 
+    /**
+     * @return an Optional with a present Connection if this source represents a Bedrock player that is connected
+     * to this Geyser instance. Otherwise, returns an empty optional.
+     */
     Optional<? extends Connection> connection();
 
     /**

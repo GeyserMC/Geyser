@@ -65,7 +65,8 @@ public interface GeyserCommandSource extends CommandSource {
     }
 
     /**
-     * todo: commands
+     * @return the underlying platform handle that this source represents.
+     *         If such handle doesn't exist, this itself is returned.
      */
     default Object handle() {
         return this;

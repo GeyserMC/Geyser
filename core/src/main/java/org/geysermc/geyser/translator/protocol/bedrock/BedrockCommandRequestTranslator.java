@@ -49,11 +49,11 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
             if (args.length > 0) {
                 String root = args[0];
 
-                // todo: do we want to pass the command to the server
+                // todo cloud do we want to pass the command to the server
                 //  if cloud gives a NoSuchCommandException? might be more accurate.
                 CommandRegistry registry = GeyserImpl.getInstance().commandRegistry();
                 if (registry.cloud().rootCommands().contains(root)) {
-                    // todo: cloud might not like the trailing whitespace either
+                    // todo cloud might not like the trailing whitespace either
                     registry.runCommand(session, strippedCommand);
                     return; // don't pass the command to the java server
                 }

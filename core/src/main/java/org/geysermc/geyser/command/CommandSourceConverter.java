@@ -56,6 +56,7 @@ public record CommandSourceConverter<S>(Class<S> senderType,
         }
 
         if (!(source instanceof GeyserSession)) {
+            // todo cloud remove this
             GeyserImpl.getInstance().getLogger().warning("Falling back to UUID for command sender lookup for a command source that is not a GeyserSession: " + source);
             Thread.dumpStack();
         }
@@ -68,7 +69,7 @@ public record CommandSourceConverter<S>(Class<S> senderType,
 
     /**
      * Creates a new CommandSourceConverter for a server platform
-     * in which the player type is not the command sender type, and must be mapped.
+     * in which the player type is not a command sender type, and must be mapped.
      *
      * @param senderType class of the command sender type
      * @param playerLookup function for looking up a player by UUID

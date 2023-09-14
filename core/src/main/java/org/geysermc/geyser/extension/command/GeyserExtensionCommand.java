@@ -202,7 +202,7 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
 
                     // currently, the only subclass of CommandSource exposed in the api is GeyserConnection.
                     // when this command was registered, we enabled bedrockOnly if the sourceType was a GeyserConnection.
-                    // as a result, SenderTypeProcessor should handle that case and this method shouldn't even be reached.
+                    // as a result, the permission checker should handle that case and this method shouldn't even be reached.
                     source.sendMessage("You must be a " + sourceType.getSimpleName() + " to run this command.");
                 }
 

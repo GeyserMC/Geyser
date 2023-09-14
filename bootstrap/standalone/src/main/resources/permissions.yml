@@ -1,9 +1,9 @@
 
-# Add any permissions here that all players should have.
+# Add any permissions here that all connections should have.
 # Permissions for builtin geyser commands do not have to be listed here.
 
-# If an extension/plugin hooks into the permission system of Geyser-Standalone, entries here may be ignored/overridden.
-# If extensions don't register their permissions, they must be added here manually.
+# If an extension/plugin registers their permissions with default values, entries here are typically unnecessary.
+# If extensions don't register their permissions, permissions that everyone should have must be added here manually.
 
 default-permissions:
   - geyser.command.help # this is unnecessary

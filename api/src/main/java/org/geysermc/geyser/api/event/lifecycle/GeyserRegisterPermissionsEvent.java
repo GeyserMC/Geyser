@@ -29,12 +29,13 @@ import org.geysermc.event.Event;
 import org.geysermc.geyser.api.util.TriState;
 
 /**
- * Fired by any implementations that want to gather permission nodes and defaults
+ * Fired by anything that wishes to gather permission nodes and defaults.
+ * This event is not guaranteed to be fired, as certain Geyser platforms do not have a native permission system.
  */
 public interface GeyserRegisterPermissionsEvent extends Event {
 
     /**
-     * Registers a permission node with the permission system being used by Geyser's command manager.
+     * Registers a permission node and its default value with the firer.
      *
      * @param permission the permission node to register
      * @param defaultValue the default value of the node
