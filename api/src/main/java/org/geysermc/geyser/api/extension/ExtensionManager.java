@@ -41,8 +41,18 @@ public abstract class ExtensionManager {
      * @param name the name of the extension
      * @return an extension with the given name
      */
+    @Deprecated
     @Nullable
     public abstract Extension extension(@NonNull String name);
+
+    /**
+     * Gets an extension with the given name.
+     *
+     * @param id the name of the extension
+     * @return an extension with the given name
+     */
+    @Nullable
+    public abstract Extension extensionById(@NonNull String id);
 
     /**
      * Enables the given {@link Extension}.

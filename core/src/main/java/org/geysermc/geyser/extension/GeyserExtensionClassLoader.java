@@ -83,20 +83,6 @@ public class GeyserExtensionClassLoader extends URLClassLoader {
     }
 
     protected Class<?> findClass(String name, boolean checkGlobal) throws ClassNotFoundException {
-        // Don't let extensions load classes from Geyser or Minecraft packages without a warning
-        if (name.startsWith("org.geysermc.geyser.") || name.startsWith("net.minecraft.")) {
-            if (!this.description.allowInternalCodeReferences()) {
-                throw new ClassNotFoundException("Extension " + this.description.name() + " tried to load class " + name + ". This unsafe classloading is disabled by default, " +
-                        "but can be manually enabled by setting allowInternalCodeReferences to true in the extension.yml.");
-            }
-
-            if (!warnedForInternalClassLoad) {
-                GeyserImpl.getInstance().getLogger().warning("Extension " + this.description.name() + " loads class " + name + " from the Geyser package. " +
-                        "This can change at any time and break the extension, additionally to causing unexpected behaviour!");
-                warnedForInternalClassLoad = true;
-            }
-        }
-
         Class<?> result = this.classes.get(name);
         if (result == null) {
             // Try to find class in current extension
@@ -106,6 +92,11 @@ public class GeyserExtensionClassLoader extends URLClassLoader {
                 // If class is not found in current extension, check in the global class loader
                 // This is used for classes that are not in the extension, but are in other extensions
                 if (checkGlobal) {
+                    if (!warnedForInternalClassLoad) {
+                        GeyserImpl.getInstance().getLogger().warning("Extension " + this.description.name() + " loads class " + name + " from an external source. " +
+                                "This can change at any time and break the extension, additionally to potentially causing unexpected behaviour!");
+                        warnedForInternalClassLoad = true;
+                    }
                     result = this.loader.classByName(name);
                 }
             }

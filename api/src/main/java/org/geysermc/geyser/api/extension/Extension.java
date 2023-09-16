@@ -98,6 +98,16 @@ public interface Extension extends EventRegistrar {
     }
 
     /**
+     * Gets the extension's id
+     *
+     * @return the extension's id
+     */
+    @NonNull
+    default String id() {
+        return this.description().id();
+    }
+
+    /**
      * Gets this extension's {@link ExtensionDescription}.
      *
      * @return the extension's description

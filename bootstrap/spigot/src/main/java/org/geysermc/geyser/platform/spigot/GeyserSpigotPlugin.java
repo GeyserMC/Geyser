@@ -201,7 +201,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
                     commandMap.register(extension.description().id(), "geyserext", pluginCommand);
                 } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
-                    this.geyserLogger.error("Failed to construct PluginCommand for extension " + extension.description().name(), ex);
+                    this.geyserLogger.error("Failed to construct PluginCommand for extension " + extension.name(), ex);
                 }
             }
         }
