@@ -45,6 +45,7 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.DimensionUtils;
+import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.JavaCodecUtil;
 import org.geysermc.geyser.util.PluginMessageUtils;
 
@@ -113,7 +114,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
 
         if (!needsSpawnPacket) {
             SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
-            playerGameTypePacket.setGamemode(packet.getGameMode().ordinal());
+            playerGameTypePacket.setGamemode(EntityUtils.toBedrockGamemode(packet.getGameMode()).ordinal());
             session.sendUpstreamPacket(playerGameTypePacket);
         }
 

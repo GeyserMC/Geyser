@@ -98,20 +98,20 @@ import org.cloudburstmc.protocol.common.util.OptionalBoolean;
 import org.geysermc.api.util.BedrockPlatform;
 import org.geysermc.api.util.InputMode;
 import org.geysermc.api.util.UiProfile;
-import org.geysermc.geyser.api.bedrock.camera.CameraShake;
-import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
 import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.api.event.bedrock.SessionLoginEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.RemoteServer;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -131,7 +131,6 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.physics.CollisionManager;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -147,6 +146,7 @@ import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.DimensionUtils;
+import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -1524,11 +1524,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         StartGamePacket startGamePacket = new StartGamePacket();
         startGamePacket.setUniqueEntityId(playerEntity.getGeyserId());
         startGamePacket.setRuntimeEntityId(playerEntity.getGeyserId());
-        startGamePacket.setPlayerGameType(switch (gameMode) {
-            case CREATIVE -> GameType.CREATIVE;
-            case ADVENTURE -> GameType.ADVENTURE;
-            default -> GameType.SURVIVAL;
-        });
+        startGamePacket.setPlayerGameType(EntityUtils.toBedrockGamemode(gameMode));
         startGamePacket.setPlayerPosition(Vector3f.from(0, 69, 0));
         startGamePacket.setRotation(Vector2f.from(1, 1));
 
@@ -1768,7 +1764,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         AbilityLayer abilityLayer = new AbilityLayer();
         Set<Ability> abilities = abilityLayer.getAbilityValues();
-        if (canFly || spectator) {
+        if (canFly) {
             abilities.add(Ability.MAY_FLY);
         }
 
@@ -1802,15 +1798,31 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         if (spectator) {
-            abilities.add(Ability.NO_CLIP);
+            AbilityLayer spectatorLayer = new AbilityLayer();
+            spectatorLayer.setLayerType(AbilityLayer.Type.SPECTATOR);
+            // Setting all abilitySet causes the zoom issue... BDS only sends these, so ig we will too
+            Set<Ability> abilitySet = spectatorLayer.getAbilitiesSet();
+            abilitySet.add(Ability.BUILD);
+            abilitySet.add(Ability.MINE);
+            abilitySet.add(Ability.DOORS_AND_SWITCHES);
+            abilitySet.add(Ability.OPEN_CONTAINERS);
+            abilitySet.add(Ability.ATTACK_PLAYERS);
+            abilitySet.add(Ability.ATTACK_MOBS);
+            abilitySet.add(Ability.INVULNERABLE);
+            abilitySet.add(Ability.FLYING);
+            abilitySet.add(Ability.MAY_FLY);
+            abilitySet.add(Ability.INSTABUILD);
+            abilitySet.add(Ability.NO_CLIP);
+
+            Set<Ability> abilityValues = spectatorLayer.getAbilityValues();
+            abilityValues.add(Ability.INVULNERABLE);
+            abilityValues.add(Ability.FLYING);
+            abilityValues.add(Ability.NO_CLIP);
+
+            updateAbilitiesPacket.getAbilityLayers().add(spectatorLayer);
         }
 
-        // https://github.com/GeyserMC/Geyser/issues/3769 Setting Spectator mode ability layer
-        if (spectator) {
-            abilityLayer.setLayerType(AbilityLayer.Type.SPECTATOR);
-        } else {
-            abilityLayer.setLayerType(AbilityLayer.Type.BASE);
-        }
+        abilityLayer.setLayerType(AbilityLayer.Type.BASE);
         abilityLayer.setFlySpeed(flySpeed);
         // https://github.com/GeyserMC/Geyser/issues/3139 as of 1.19.10
         abilityLayer.setWalkSpeed(walkSpeed == 0f ? 0.01f : walkSpeed);

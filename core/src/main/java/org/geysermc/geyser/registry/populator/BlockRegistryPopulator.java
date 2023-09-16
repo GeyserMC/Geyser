@@ -34,7 +34,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.*;
 import org.cloudburstmc.nbt.*;
-import org.cloudburstmc.protocol.bedrock.codec.v582.Bedrock_v582;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.codec.v589.Bedrock_v589;
 import org.cloudburstmc.protocol.bedrock.codec.v594.Bedrock_v594;
@@ -74,10 +73,9 @@ public final class BlockRegistryPopulator {
 
     public static void populate(Stage stage) {
         switch (stage) {
-            case PRE_INIT -> { nullifyBlocksNode(); }
+            case PRE_INIT, POST_INIT -> { nullifyBlocksNode(); }
             case INIT_JAVA -> { registerJavaBlocks(); }
             case INIT_BEDROCK -> { registerBedrockBlocks(); }
-            case POST_INIT -> { nullifyBlocksNode(); }
             default -> { throw new IllegalArgumentException("Unknown stage: " + stage); }
         }
     }
@@ -86,9 +84,8 @@ public final class BlockRegistryPopulator {
      * Stores the raw blocks JSON until it is no longer needed.
      */
     private static JsonNode BLOCKS_JSON;
-    private static int minCustomRuntimeID = -1;
-    private static int maxCustomRuntimeID = -1;
-    private static int javaBlocksSize = -1;
+    private static int MIN_CUSTOM_RUNTIME_ID = -1;
+    private static int JAVA_BLOCKS_SIZE = -1;
 
     private static void nullifyBlocksNode() {
         BLOCKS_JSON = null;
@@ -147,6 +144,7 @@ public final class BlockRegistryPopulator {
                 vanillaBlockStates = new ArrayList<>(blockPalette.getList("blocks", NbtType.COMPOUND));
                 for (int i = 0; i < vanillaBlockStates.size(); i++) {
                     NbtMapBuilder builder = vanillaBlockStates.get(i).toBuilder();
+                    builder.remove("version"); // Remove all nbt tags which are not needed for differentiating states
                     builder.remove("name_hash"); // Quick workaround - was added in 1.19.20
                     builder.remove("network_id"); // Added in 1.19.80 - ????
                     builder.putCompound("states", statesInterner.intern((NbtMap) builder.remove("states")));
@@ -157,7 +155,6 @@ public final class BlockRegistryPopulator {
             } catch (Exception e) {
                 throw new AssertionError("Unable to get blocks from runtime block states", e);
             }
-            int stateVersion = vanillaBlockStates.get(0).getInt("version");
 
             List<BlockPropertyData> customBlockProperties = new ArrayList<>();
             List<NbtMap> customBlockStates = new ArrayList<>();
@@ -166,7 +163,7 @@ public final class BlockRegistryPopulator {
             if (BlockRegistries.CUSTOM_BLOCKS.get().length != 0) {
                 for (CustomBlockData customBlock : BlockRegistries.CUSTOM_BLOCKS.get()) {
                     customBlockProperties.add(CustomBlockRegistryPopulator.generateBlockPropertyData(customBlock, protocolVersion));
-                    CustomBlockRegistryPopulator.generateCustomBlockStates(customBlock, customBlockStates, customExtBlockStates, stateVersion);
+                    CustomBlockRegistryPopulator.generateCustomBlockStates(customBlock, customBlockStates, customExtBlockStates);
                 }
                 blockStates.addAll(customBlockStates);
                 GeyserImpl.getInstance().getLogger().debug("Added " + customBlockStates.size() + " custom block states to v" + protocolVersion + " palette.");
@@ -224,8 +221,8 @@ public final class BlockRegistryPopulator {
 
             BiFunction<String, NbtMapBuilder, String> stateMapper = blockMappers.getOrDefault(palette.getKey(), emptyMapper);
 
-            GeyserBedrockBlock[] javaToBedrockBlocks = new GeyserBedrockBlock[javaBlocksSize];
-            GeyserBedrockBlock[] javaToVanillaBedrockBlocks = new GeyserBedrockBlock[javaBlocksSize];
+            GeyserBedrockBlock[] javaToBedrockBlocks = new GeyserBedrockBlock[JAVA_BLOCKS_SIZE];
+            GeyserBedrockBlock[] javaToVanillaBedrockBlocks = new GeyserBedrockBlock[JAVA_BLOCKS_SIZE];
 
             Map<String, NbtMap> flowerPotBlocks = new Object2ObjectOpenHashMap<>();
             Map<NbtMap, BlockDefinition> itemFrames = new Object2ObjectOpenHashMap<>();
@@ -237,7 +234,7 @@ public final class BlockRegistryPopulator {
                 javaRuntimeId++;
                 Map.Entry<String, JsonNode> entry = blocksIterator.next();
                 String javaId = entry.getKey();
-                GeyserBedrockBlock vanillaBedrockDefinition = blockStateOrderedMap.get(buildBedrockState(entry.getValue(), stateVersion, stateMapper));
+                GeyserBedrockBlock vanillaBedrockDefinition = blockStateOrderedMap.get(buildBedrockState(entry.getValue(), stateMapper));
 
                 GeyserBedrockBlock bedrockDefinition;
                 CustomBlockState blockStateOverride = BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get(javaRuntimeId);
@@ -245,7 +242,7 @@ public final class BlockRegistryPopulator {
                     bedrockDefinition = vanillaBedrockDefinition;
                     if (bedrockDefinition == null) {
                         throw new RuntimeException("Unable to find " + javaId + " Bedrock runtime ID! Built NBT tag: \n" +
-                                palette.getKey().key() + buildBedrockState(entry.getValue(), stateVersion, stateMapper));
+                                palette.getKey().key() + buildBedrockState(entry.getValue(), stateMapper));
                     }
                 } else {
                     bedrockDefinition = customBlockStateDefinitions.get(blockStateOverride);
@@ -309,8 +306,8 @@ public final class BlockRegistryPopulator {
             Map<JavaBlockState, CustomBlockState> nonVanillaStateOverrides = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get();
             if (nonVanillaStateOverrides.size() > 0) {
                 // First ensure all non vanilla runtime IDs at minimum are air in case they aren't consecutive
-                Arrays.fill(javaToVanillaBedrockBlocks, minCustomRuntimeID, javaToVanillaBedrockBlocks.length, airDefinition);
-                Arrays.fill(javaToBedrockBlocks, minCustomRuntimeID, javaToBedrockBlocks.length, airDefinition);
+                Arrays.fill(javaToVanillaBedrockBlocks, MIN_CUSTOM_RUNTIME_ID, javaToVanillaBedrockBlocks.length, airDefinition);
+                Arrays.fill(javaToBedrockBlocks, MIN_CUSTOM_RUNTIME_ID, javaToBedrockBlocks.length, airDefinition);
 
                 for (Map.Entry<JavaBlockState, CustomBlockState> entry : nonVanillaStateOverrides.entrySet()) {
                     GeyserBedrockBlock bedrockDefinition = customBlockStateDefinitions.get(entry.getValue());
@@ -341,8 +338,7 @@ public final class BlockRegistryPopulator {
                 }
             });
 
-            BlockRegistries.BLOCKS.register(palette.getKey().valueInt(), builder.blockStateVersion(stateVersion)
-                    .bedrockRuntimeMap(bedrockRuntimeMap)
+            BlockRegistries.BLOCKS.register(palette.getKey().valueInt(), builder.bedrockRuntimeMap(bedrockRuntimeMap)
                     .javaToBedrockBlocks(javaToBedrockBlocks)
                     .javaToVanillaBedrockBlocks(javaToVanillaBedrockBlocks)
                     .stateDefinitionMap(blockStateOrderedMap)
@@ -365,20 +361,20 @@ public final class BlockRegistryPopulator {
             throw new AssertionError("Unable to load Java block mappings", e);
         }
 
-        javaBlocksSize = blocksJson.size();
+        JAVA_BLOCKS_SIZE = blocksJson.size();
 
         if (BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().size() > 0) {
-            minCustomRuntimeID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().min(Comparator.comparing(JavaBlockState::javaId)).get().javaId();
-            maxCustomRuntimeID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().max(Comparator.comparing(JavaBlockState::javaId)).get().javaId();
+            MIN_CUSTOM_RUNTIME_ID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().min(Comparator.comparing(JavaBlockState::javaId)).get().javaId();
+            int maxCustomRuntimeID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().max(Comparator.comparing(JavaBlockState::javaId)).get().javaId();
 
-            if (minCustomRuntimeID < blocksJson.size()) {
-                throw new RuntimeException("Non vanilla custom block state overrides runtime ID must start after the last vanilla block state (" + javaBlocksSize + ")");
+            if (MIN_CUSTOM_RUNTIME_ID < blocksJson.size()) {
+                throw new RuntimeException("Non vanilla custom block state overrides runtime ID must start after the last vanilla block state (" + JAVA_BLOCKS_SIZE + ")");
             }
 
-            javaBlocksSize = maxCustomRuntimeID + 1; // Runtime ids start at 0, so we need to add 1
+            JAVA_BLOCKS_SIZE = maxCustomRuntimeID + 1; // Runtime ids start at 0, so we need to add 1
         }
 
-        BlockRegistries.JAVA_BLOCKS.set(new BlockMapping[javaBlocksSize]); // Set array size to number of blockstates
+        BlockRegistries.JAVA_BLOCKS.set(new BlockMapping[JAVA_BLOCKS_SIZE]); // Set array size to number of blockstates
 
         Deque<String> cleanIdentifiers = new ArrayDeque<>();
 
@@ -579,11 +575,10 @@ public final class BlockRegistryPopulator {
         return blockStateSet;
     }
 
-    private static NbtMap buildBedrockState(JsonNode node, int blockStateVersion, BiFunction<String, NbtMapBuilder, String> statesMapper) {
+    private static NbtMap buildBedrockState(JsonNode node, BiFunction<String, NbtMapBuilder, String> statesMapper) {
         NbtMapBuilder tagBuilder = NbtMap.builder();
         String bedrockIdentifier = node.get("bedrock_identifier").textValue();
-        tagBuilder.putString("name", bedrockIdentifier)
-                .putInt("version", blockStateVersion);
+        tagBuilder.putString("name", bedrockIdentifier);
 
         NbtMapBuilder statesBuilder = NbtMap.builder();
 

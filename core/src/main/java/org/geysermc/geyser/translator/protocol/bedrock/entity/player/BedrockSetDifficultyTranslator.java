@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,32 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java.title;
+package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.title.ClientboundSetActionBarTextPacket;
-import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
+import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
+import org.cloudburstmc.protocol.bedrock.packet.SetDifficultyPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 
-@Translator(packet = ClientboundSetActionBarTextPacket.class)
-public class JavaSetActionBarTextTranslator extends PacketTranslator<ClientboundSetActionBarTextPacket> {
+@Translator(packet = SetDifficultyPacket.class)
+public class BedrockSetDifficultyTranslator extends PacketTranslator<SetDifficultyPacket> {
 
+    /**
+     * Sets the Java server's difficulty via the Bedrock client's "world" menu (given sufficient permissions).
+     */
     @Override
-    public void translate(GeyserSession session, ClientboundSetActionBarTextPacket packet) {
-        String text;
-        if (packet.getText() == null) { //TODO 1.17 can this happen?
-            text = " ";
-        } else {
-            text = MessageTranslator.convertMessage(packet.getText(), session.locale());
+    public void translate(GeyserSession session, SetDifficultyPacket packet) {
+        if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.server")) {
+            if (packet.getDifficulty() != session.getWorldCache().getDifficulty().ordinal()) {
+                session.getGeyser().getWorldManager().setDifficulty(session, Difficulty.from(packet.getDifficulty()));
+            }
         }
-
-        SetTitlePacket titlePacket = new SetTitlePacket();
-        titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
-        titlePacket.setText(text);
-        titlePacket.setXuid("");
-        titlePacket.setPlatformOnlineId("");
-        session.sendUpstreamPacket(titlePacket);
     }
 }

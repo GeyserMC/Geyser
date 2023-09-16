@@ -38,6 +38,7 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.DimensionUtils;
+import org.geysermc.geyser.util.EntityUtils;
 
 @Translator(packet = ClientboundRespawnPacket.class)
 public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPacket> {
@@ -59,7 +60,7 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
         entity.updateBedrockMetadata();
 
         SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
-        playerGameTypePacket.setGamemode(packet.getGamemode().ordinal());
+        playerGameTypePacket.setGamemode(EntityUtils.toBedrockGamemode(packet.getGamemode()).ordinal());
         session.sendUpstreamPacket(playerGameTypePacket);
         session.setGameMode(packet.getGamemode());
 
