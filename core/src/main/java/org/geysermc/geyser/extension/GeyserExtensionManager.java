@@ -131,6 +131,6 @@ public class GeyserExtensionManager extends ExtensionManager {
 
     @Override
     public void register(@NonNull Extension extension) {
-        this.extensions.put(extension.id(), extension);
+        this.extensions.put(extension.description().id(), extension);
     }
 }

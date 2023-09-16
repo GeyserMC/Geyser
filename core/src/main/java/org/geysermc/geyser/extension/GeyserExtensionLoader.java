@@ -71,7 +71,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
         Path oldDataFolder = parentFile.resolve(description.name());
         Path dataFolder = parentFile.resolve(description.id());
 
-        if (Files.exists(oldDataFolder) && Files.isDirectory(oldDataFolder)) {
+        if (Files.exists(oldDataFolder) && Files.isDirectory(oldDataFolder) && oldDataFolder != dataFolder) {
             try {
                 Files.move(oldDataFolder, dataFolder, StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException e) {
@@ -165,7 +165,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
 
                         String name = description.name();
                         String id = description.id();
-                        if (extensions.containsKey(id) || extensionManager.extension(id) != null) {
+                        if (extensions.containsKey(id) || extensionManager.extensionById(id) != null) {
                             GeyserImpl.getInstance().getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.extensions.load.duplicate", name, path.toString()));
                             return;
                         }
