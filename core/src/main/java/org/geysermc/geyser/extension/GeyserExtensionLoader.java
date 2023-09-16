@@ -71,7 +71,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
         Path oldDataFolder = parentFile.resolve(description.name());
         Path dataFolder = parentFile.resolve(description.id());
 
-        if (Files.exists(oldDataFolder) && Files.isDirectory(oldDataFolder) && oldDataFolder != dataFolder) {
+        if (Files.exists(oldDataFolder) && Files.isDirectory(oldDataFolder) && !oldDataFolder.equals(dataFolder)) {
             try {
                 Files.move(oldDataFolder, dataFolder, StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException e) {

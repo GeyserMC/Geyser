@@ -40,11 +40,8 @@ import java.nio.file.Path;
 
 public class GeyserExtensionClassLoader extends URLClassLoader {
     private final GeyserExtensionLoader loader;
-
     private final ExtensionDescription description;
-
     private final Object2ObjectMap<String, Class<?>> classes = new Object2ObjectOpenHashMap<>();
-
     private boolean warnedForInternalClassLoad;
 
     public GeyserExtensionClassLoader(GeyserExtensionLoader loader, ClassLoader parent, Path path, ExtensionDescription description) throws MalformedURLException {
