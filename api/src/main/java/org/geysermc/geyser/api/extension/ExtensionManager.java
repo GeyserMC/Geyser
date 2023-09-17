@@ -47,10 +47,10 @@ public abstract class ExtensionManager {
     public abstract Extension extension(@NonNull String name);
 
     /**
-     * Gets an extension with the given name.
+     * Gets an extension with the given ID.
      *
-     * @param id the name of the extension
-     * @return an extension with the given name
+     * @param id the ID of the extension
+     * @return an extension with the given ID
      */
     @Nullable
     public abstract Extension extensionById(@NonNull String id);
