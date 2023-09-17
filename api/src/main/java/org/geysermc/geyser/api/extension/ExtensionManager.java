@@ -36,10 +36,11 @@ import java.util.Collection;
 public abstract class ExtensionManager {
 
     /**
-     * Gets an extension with the given name.
+     * Gets an extension by the given name.
      *
      * @param name the name of the extension
      * @return an extension with the given name
+     * @deprecated use {@link #extensionById(String)} instead.
      */
     @Deprecated
     @Nullable

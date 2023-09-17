@@ -42,7 +42,7 @@ public class GeyserExtensionClassLoader extends URLClassLoader {
     private final GeyserExtensionLoader loader;
     private final ExtensionDescription description;
     private final Object2ObjectMap<String, Class<?>> classes = new Object2ObjectOpenHashMap<>();
-    private boolean warnedForInternalClassLoad;
+    private boolean warnedForExternalClassAccess;
 
     public GeyserExtensionClassLoader(GeyserExtensionLoader loader, ClassLoader parent, Path path, ExtensionDescription description) throws MalformedURLException {
         super(new URL[] { path.toUri().toURL() }, parent);
@@ -89,10 +89,10 @@ public class GeyserExtensionClassLoader extends URLClassLoader {
                 // If class is not found in current extension, check in the global class loader
                 // This is used for classes that are not in the extension, but are in other extensions
                 if (checkGlobal) {
-                    if (!warnedForInternalClassLoad) {
+                    if (!warnedForExternalClassAccess) {
                         GeyserImpl.getInstance().getLogger().warning("Extension " + this.description.name() + " loads class " + name + " from an external source. " +
                                 "This can change at any time and break the extension, additionally to potentially causing unexpected behaviour!");
-                        warnedForInternalClassLoad = true;
+                        warnedForExternalClassAccess = true;
                     }
                     result = this.loader.classByName(name);
                 }
