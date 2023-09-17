@@ -45,6 +45,7 @@ public class UpstreamSession {
     @Getter private final BedrockServerSession session;
     @Getter @Setter
     private boolean initialized = false;
+    private boolean disconnected = false;
     private Queue<BedrockPacket> postStartGamePackets = new ArrayDeque<>();
 
     public void sendPacket(@NonNull BedrockPacket packet) {
@@ -60,8 +61,11 @@ public class UpstreamSession {
     }
 
     public void disconnect(String reason, GeyserSession session) {
+        if (disconnected) {
+            return;
+        }
+        disconnected = true;
         SessionDisconnectEvent disconnectEvent = new SessionDisconnectEvent(session, reason);
-        GeyserImpl.getInstance().getLogger().warning("Disconnecting " + session.getAuthData().name() + ": " + reason);
         GeyserImpl.getInstance().eventBus().fire(disconnectEvent);
         this.session.disconnect(disconnectEvent.disconnectReason());
     }

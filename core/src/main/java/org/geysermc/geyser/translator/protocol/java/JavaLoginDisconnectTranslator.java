@@ -29,7 +29,6 @@ import com.github.steveice10.mc.protocol.packet.login.clientbound.ClientboundLog
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TranslatableComponent;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
@@ -64,7 +63,6 @@ public class JavaLoginDisconnectTranslator extends PacketTranslator<ClientboundL
         }
 
         // The client doesn't manually get disconnected so we have to do it ourselves
-        GeyserImpl.getInstance().getLogger().error("Removing this disconnect call would prevent double disconnect events");
         session.disconnect(disconnectMessage);
     }
 
