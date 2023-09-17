@@ -1576,8 +1576,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setEnchantmentSeed(0);
         startGamePacket.setMultiplayerCorrelationId("");
 
-
-
         startGamePacket.setItemDefinitions(this.itemMappings.getItemDefinitions().values().stream().toList()); // TODO
         // startGamePacket.setBlockPalette(this.blockMappings.getBedrockBlockPalette());
 
