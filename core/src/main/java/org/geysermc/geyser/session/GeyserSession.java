@@ -131,6 +131,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.physics.CollisionManager;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -705,6 +706,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         gamerulePacket.getGameRules().add(new GameRuleData<>("keepinventory", true));
         // Ensure client doesn't try and do anything funky; the server handles this for us
         gamerulePacket.getGameRules().add(new GameRuleData<>("spawnradius", 0));
+        // Recipe unlocking - only needs to be added if 1. it isn't already on via an experiment, or 2. the client is on pre 1.20.10
+        if (!GameProtocol.isPre1_20_10(this) && !GameProtocol.isExperimentalRecipeUnlocking(this)) {
+            gamerulePacket.getGameRules().add(new GameRuleData<>("recipesunlock", true));
+        }
         upstream.sendPacket(gamerulePacket);
     }
 
@@ -1571,6 +1576,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setEnchantmentSeed(0);
         startGamePacket.setMultiplayerCorrelationId("");
 
+
+
         startGamePacket.setItemDefinitions(this.itemMappings.getItemDefinitions().values().stream().toList()); // TODO
         // startGamePacket.setBlockPalette(this.blockMappings.getBedrockBlockPalette());
 
@@ -1598,7 +1605,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setRewindHistorySize(0);
         startGamePacket.setServerAuthoritativeBlockBreaking(false);
 
-        if (!GameProtocol.isPre1_20_10(this)) {
+        if (GameProtocol.isExperimentalRecipeUnlocking(this)) {
             startGamePacket.getExperiments().add(new ExperimentData("recipe_unlocking", true));
         }
 
