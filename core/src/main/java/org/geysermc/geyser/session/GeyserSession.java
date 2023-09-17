@@ -98,21 +98,20 @@ import org.cloudburstmc.protocol.common.util.OptionalBoolean;
 import org.geysermc.api.util.BedrockPlatform;
 import org.geysermc.api.util.InputMode;
 import org.geysermc.api.util.UiProfile;
-import org.geysermc.geyser.api.bedrock.camera.CameraShake;
-import org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent;
-import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
 import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.api.event.bedrock.SessionLoginEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.RemoteServer;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -1070,7 +1069,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                     cause.printStackTrace();
                 }
 
-                upstream.disconnect(disconnectMessage);
+                upstream.disconnect(disconnectMessage, GeyserSession.this);
             }
 
             @Override
@@ -1095,21 +1094,18 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     public void disconnect(String reason) {
-        SessionDisconnectEvent disconnectEvent = new SessionDisconnectEvent(this, reason);
-        geyser.eventBus().fire(disconnectEvent);
-
         if (!closed) {
             loggedIn = false;
             if (downstream != null) {
-                downstream.disconnect(disconnectEvent.disconnectReason());
+                downstream.disconnect(reason);
             } else {
                 // Downstream's disconnect will fire an event that prints a log message
                 // Otherwise, we print a message here
                 String address = geyser.getConfig().isLogPlayerIpAddresses() ? upstream.getAddress().getAddress().toString() : "<IP address withheld>";
-                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.disconnect", address, disconnectEvent.disconnectReason()));
+                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.disconnect", address, reason));
             }
             if (!upstream.isClosed()) {
-                upstream.disconnect(disconnectEvent.disconnectReason());
+                upstream.disconnect(reason, this);
             }
             geyser.getSessionManager().removeSession(this);
             if (authData != null) {
