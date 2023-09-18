@@ -30,6 +30,7 @@ import org.cloudburstmc.netty.handler.codec.raknet.common.RakSessionCodec;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.GeyserLocale;
 
 public class PingCommand extends GeyserCommand {
     public PingCommand(String name, String description, String permission) {
@@ -38,18 +39,19 @@ public class PingCommand extends GeyserCommand {
 
     @Override
     public void execute(GeyserSession session, GeyserCommandSource sender, String[] args) {
-        if (sender.isConsole()) {
-            return;
-        }
-
+        if (session == null) return;
         RakSessionCodec rakSessionCodec = ((RakChildChannel) session.getUpstream().getSession().getPeer().getChannel()).rakPipeline().get(RakSessionCodec.class);
-
-        sender.sendMessage("Your ping is: §7" + (int) Math.floor(rakSessionCodec.getRTT()) + " ms.");
+        sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.ping.message", sender.locale(), (int) Math.floor(rakSessionCodec.getPing())));
     }
 
     @Override
     public boolean isBedrockOnly() {
         return true;
+    }
+
+    @Override
+    public boolean isExecutableOnConsole() {
+        return false;
     }
 }
 
