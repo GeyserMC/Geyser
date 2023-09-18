@@ -39,13 +39,13 @@ public class PingCommand extends GeyserCommand {
 
     @Override
     public void execute(GeyserSession session, GeyserCommandSource sender, String[] args) {
-        if (!sender.isConsole()) {
+        if (sender.isConsole()) {
             return;
         }
 
         RakSessionCodec rakSessionCodec = ((RakChildChannel) session.getUpstream().getSession().getPeer().getChannel()).rakPipeline().get(RakSessionCodec.class);
 
-        //todo lang strings
+        // todo lang strings
         sender.sendMessage("Your ping is: " + ChatColor.BOLD + rakSessionCodec.getPing() + ChatColor.RESET + "ms.");
         sender.sendMessage("Your RTT is: §7" + ChatColor.BOLD + rakSessionCodec.getRTT() + ChatColor.RESET + "ms.");
     }
