@@ -107,6 +107,10 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         CompletableFuture<String> texturesFuture = getTextures(owner, uuid);
         if (texturesFuture.isDone()) {
             try {
+                if (texturesFuture.get() == null) {
+                    session.getGeyser().getLogger().debug("Custom skull with invalid SkullOwner tag: " + blockPosition + " " + tag);
+                    return null;
+                }
                 SkullCache.Skull skull = session.getSkullCache().putSkull(blockPosition, uuid, texturesFuture.get(), blockState);
                 return skull.getBlockDefinition();
             } catch (InterruptedException | ExecutionException e) {
