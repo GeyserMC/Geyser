@@ -41,25 +41,32 @@ import java.util.Comparator;
 import java.util.Map;
 
 public class HelpCommand extends GeyserCommand {
-    private final String baseCommand;
+    private final String rootCommand;
     private final Collection<Command> commands;
 
     public HelpCommand(GeyserImpl geyser, String name, String description, String permission,
-                       String baseCommand, Map<String, Command> commands) {
+                       String rootCommand, Map<String, Command> commands) {
         super(name, description, permission, TriState.TRUE);
-        this.baseCommand = baseCommand;
+        this.rootCommand = rootCommand;
         this.commands = commands.values();
         this.aliases = Collections.singletonList("?");
+    }
+
+    @Override
+    public String rootCommand() {
+        return rootCommand;
     }
 
     @Override
     public void register(CommandManager<GeyserCommandSource> manager) {
         super.register(manager);
 
-        // Also register just `/geyser`
-        manager.command(manager.commandBuilder(rootCommand())
+        // Also register just the root (ie `/geyser` or `/extensionId`)
+        // note: this doesn't do the other permission checks that GeyserCommand#baseBuilder does,
+        // but it's fine because the help command can be executed by non-bedrock players and by the console.
+        manager.command(manager.commandBuilder(rootCommand)
             .permission(permission())
-            .apply(meta())
+            .apply(meta()) // shouldn't be necessary - just for consistency
             .handler(this::execute));
     }
 
@@ -71,16 +78,18 @@ public class HelpCommand extends GeyserCommand {
         // todo: pagination
         int page = 1;
         int maxPage = 1;
-        String translationKey = this.baseCommand.equals("geyser") ? "geyser.commands.help.header" : "geyser.commands.extensions.header";
+        String translationKey = this.rootCommand.equals(GeyserCommand.DEFAULT_ROOT_COMMAND) ? "geyser.commands.help.header" : "geyser.commands.extensions.header";
         String header = GeyserLocale.getPlayerLocaleString(translationKey, source.locale(), page, maxPage);
         source.sendMessage(header);
 
         this.commands.stream()
             .distinct() // remove aliases
-            .sorted(Comparator.comparing(Command::name))
-            .filter(cmd -> source.hasPermission(cmd.permission()))
             .filter(cmd -> !cmd.isBedrockOnly() || bedrockPlayer) // remove bedrock only commands if not a bedrock player
-            .forEach(cmd -> source.sendMessage(ChatColor.YELLOW + "/" + baseCommand + " " + cmd.name() + ChatColor.WHITE + ": " +
-                GeyserLocale.getPlayerLocaleString(cmd.description(), source.locale())));
+            .filter(cmd -> source.hasPermission(cmd.permission()))
+            .sorted(Comparator.comparing(Command::name))
+            .forEach(cmd -> {
+                String description = GeyserLocale.getPlayerLocaleString(cmd.description(), source.locale());
+                source.sendMessage(ChatColor.YELLOW + "/" + rootCommand + " " + cmd.name() + ChatColor.WHITE + ": " + description);
+            });
     }
 }
