@@ -40,12 +40,18 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
     @Override
     public void translate(GeyserSession session, CommandRequestPacket packet) {
         String command = MessageTranslator.convertToPlainText(packet.getCommand());
-        String strippedCommand = command.substring(1);
+
+        // remove the beginning slash
+        command = command.substring(1);
+
+        // running commands via Bedrock's command select menu adds a trailing whitespace which Java doesn't like
+        // https://github.com/GeyserMC/Geyser/issues/3877
+        command = command.stripTrailing();
 
         if (session.getGeyser().getPlatformType() == PlatformType.STANDALONE) {
             // try to handle the command within the standalone command manager
 
-            String[] args = strippedCommand.split(" ");
+            String[] args = command.split(" ");
             if (args.length > 0) {
                 String root = args[0];
 
@@ -54,7 +60,7 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
                 CommandRegistry registry = GeyserImpl.getInstance().commandRegistry();
                 if (registry.cloud().rootCommands().contains(root)) {
                     // todo cloud might not like the trailing whitespace either
-                    registry.runCommand(session, strippedCommand);
+                    registry.runCommand(session, command);
                     return; // don't pass the command to the java server
                 }
             }
@@ -64,8 +70,6 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
             return;
         }
 
-        // running commands via Bedrock's command select menu adds a trailing whitespace which Java doesn't like
-        // https://github.com/GeyserMC/Geyser/issues/3877
-        session.sendCommand(strippedCommand.stripTrailing());
+        session.sendCommand(command);
     }
 }
