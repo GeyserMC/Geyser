@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.platform.fabric.world;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.core.BlockPos;
@@ -151,6 +152,11 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
     public boolean hasPermission(GeyserSession session, String permission) {
         ServerPlayer player = getPlayer(session);
         return Permissions.check(player, permission);
+    }
+
+    @Override
+    public GameMode getDefaultGameMode(GeyserSession session) {
+        return GameMode.byId(server.getDefaultGameType().getId());
     }
 
     @Nonnull

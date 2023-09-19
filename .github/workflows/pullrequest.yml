@@ -17,13 +17,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        # See https://github.com/actions/setup-java/commits
+        uses: actions/setup-java@4075bfc1b51bf22876335ae1cd589602d60d8758
         with:
           java-version: 17
           distribution: temurin
 
       - name: Check if the author has forked the API repo
-        uses: Kas-tle/find-forks-action@v1.0.1
+        # See https://github.com/Kas-tle/find-forks-action/commits
+        uses: Kas-tle/find-forks-action@1b5447d1e3c7a8ed79583dd817cc5399686eed3a
         id: find_forks
         with:
           owner: GeyserMC
@@ -41,54 +43,54 @@ jobs:
           ./gradlew publishToMavenLocal
 
       - name: Checkout repository and submodules
-        uses: actions/checkout@v3
+        # See https://github.com/actions/checkout/commits
+        uses: actions/checkout@72f2cec99f417b1a1c5e2e88945068983b7965f9
         with:
           submodules: recursive
           path: geyser
 
+      - name: Validate Gradle Wrapper
+        # See https://github.com/gradle/wrapper-validation-action/commits
+        uses: gradle/wrapper-validation-action@56b90f209b02bf6d1deae490e9ef18b21a389cd4
+
       - name: Build Geyser
-        uses: gradle/gradle-build-action@v2
+        # See https://github.com/gradle/gradle-build-action/commits
+        uses: gradle/gradle-build-action@3bfe3a46584a206fb8361cdedd0647b0c4204232
         with:
           arguments: build
           build-root-directory: geyser
 
       - name: Archive artifacts (Geyser Fabric)
-        uses: actions/upload-artifact@v3
+        # See https://github.com/actions/upload-artifact/commits
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32
         if: success()
         with:
           name: Geyser Fabric
           path: geyser/bootstrap/fabric/build/libs/Geyser-Fabric.jar
           if-no-files-found: error
       - name: Archive artifacts (Geyser Standalone)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32
         if: success()
         with:
           name: Geyser Standalone
           path: geyser/bootstrap/standalone/build/libs/Geyser-Standalone.jar
           if-no-files-found: error
       - name: Archive artifacts (Geyser Spigot)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32
         if: success()
         with:
           name: Geyser Spigot
           path: geyser/bootstrap/spigot/build/libs/Geyser-Spigot.jar
           if-no-files-found: error
       - name: Archive artifacts (Geyser BungeeCord)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32
         if: success()
         with:
           name: Geyser BungeeCord
           path: geyser/bootstrap/bungeecord/build/libs/Geyser-BungeeCord.jar
           if-no-files-found: error
-      - name: Archive artifacts (Geyser Sponge)
-        uses: actions/upload-artifact@v3
-        if: success()
-        with:
-          name: Geyser Sponge
-          path: geyser/bootstrap/sponge/build/libs/Geyser-Sponge.jar
-          if-no-files-found: error
       - name: Archive artifacts (Geyser Velocity)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32
         if: success()
         with:
           name: Geyser Velocity
