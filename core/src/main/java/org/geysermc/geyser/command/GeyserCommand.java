@@ -43,12 +43,12 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
     public static final String DEFAULT_ROOT_COMMAND = "geyser";
 
     /**
-     * CommandMeta to indicate that the command is only available to bedrock players. default of false.
+     * CommandMeta to indicate that the command is only available to bedrock players. Default of false.
      */
     public static final CommandMeta.Key<Boolean> BEDROCK_ONLY = CommandMeta.Key.of(Boolean.class, "bedrock-only", meta -> false);
 
     /**
-     * CommandMeta to indicate that the command is only available to players. default of false.
+     * CommandMeta to indicate that the command is only available to players. Default of false.
      */
     public static final CommandMeta.Key<Boolean> PLAYER_ONLY = CommandMeta.Key.of(Boolean.class, "player-only", meta -> false);
 
@@ -113,7 +113,7 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
         this.bedrockOnly = bedrockOnly;
     }
 
-    public GeyserCommand(@NonNull String name, @NonNull String description, @Nullable String permission, @NonNull TriState permissionDefault) {
+    public GeyserCommand(@NonNull String name, @NonNull String description, @Nullable String permission, @Nullable TriState permissionDefault) {
         this(name, description, permission, permissionDefault, true, false);
     }
 
