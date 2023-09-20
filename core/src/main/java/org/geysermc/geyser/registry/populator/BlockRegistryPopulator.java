@@ -389,6 +389,7 @@ public final class BlockRegistryPopulator {
         int spawnerRuntimeId = -1;
         int uniqueJavaId = -1;
         int waterRuntimeId = -1;
+        int airBlockRuntimeId = -1;
         Iterator<Map.Entry<String, JsonNode>> blocksIterator = blocksJson.fields();
         while (blocksIterator.hasNext()) {
             javaRuntimeId++;
@@ -476,6 +477,8 @@ public final class BlockRegistryPopulator {
                 honeyBlockRuntimeId = javaRuntimeId;
             } else if (javaId.equals("minecraft:slime_block")) {
                 slimeBlockRuntimeId = javaRuntimeId;
+            } else if (javaId.equals("minecraft:air")) {
+                airBlockRuntimeId = javaRuntimeId;
             }
         }
 
@@ -513,6 +516,11 @@ public final class BlockRegistryPopulator {
             throw new AssertionError("Unable to find Java water in palette");
         }
         BlockStateValues.JAVA_WATER_ID = waterRuntimeId;
+
+        if (airBlockRuntimeId == -1) {
+            throw new AssertionError("Unable to find Java air in palette");
+        }
+        BlockMapping.AIR = BlockRegistries.JAVA_BLOCKS.get(airBlockRuntimeId);
 
         if (BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().size() > 0) {
             Set<Integer> usedNonVanillaRuntimeIDs = new HashSet<>();
