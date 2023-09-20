@@ -36,7 +36,7 @@ import javax.annotation.Nullable;
 @Builder
 @Value
 public class BlockMapping {
-    public static BlockMapping AIR;
+    public static BlockMapping DEFAULT = BlockMapping.builder().javaIdentifier("minecraft:air").pistonBehavior(PistonBehavior.NORMAL).build();;
 
     String javaIdentifier;
     /**
