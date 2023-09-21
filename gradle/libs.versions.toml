@@ -14,7 +14,7 @@ protocol-connection = "3.0.0.Beta1-20230908.171156-105"
 raknet = "1.0.0.CR1-20230703.195238-9"
 blockstateupdater="1.20.30-20230918.203831-4"
 mcauthlib = "d9d773e"
-mcprotocollib = "28bdb2c" # todo 1.20.2 stop using jitpack
+mcprotocollib = "1.20.2-1-20230921.191022-1"
 adventure = "4.14.0"
 adventure-platform = "4.3.0"
 junit = "5.9.2"
@@ -87,7 +87,7 @@ guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 junit = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
 mcauthlib = { group = "com.github.GeyserMC", name = "MCAuthLib", version.ref = "mcauthlib" }
-mcprotocollib = { group = "com.github.GeyserMC", name = "mcprotocollib", version.ref = "mcprotocollib" }
+mcprotocollib = { group = "com.github.steveice10", name = "mcprotocollib", version.ref = "mcprotocollib" }
 raknet = { group = "org.cloudburstmc.netty", name = "netty-transport-raknet", version.ref = "raknet" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }
 velocity-api = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }
