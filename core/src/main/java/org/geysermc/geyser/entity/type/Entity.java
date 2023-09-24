@@ -36,6 +36,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
+import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
@@ -171,7 +172,9 @@ public class Entity implements GeyserEntity {
         addEntityPacket.setUniqueEntityId(geyserId);
         addEntityPacket.setPosition(position);
         addEntityPacket.setMotion(motion);
-        addEntityPacket.setRotation(getBedrockRotation().toVector2(false)); // TODO: Check this
+        addEntityPacket.setRotation(Vector2f.from(pitch, yaw));
+        addEntityPacket.setHeadRotation(headYaw);
+        addEntityPacket.setBodyRotation(yaw); // TODO: This should be bodyYaw
         addEntityPacket.getMetadata().putFlags(flags);
         dirtyMetadata.apply(addEntityPacket.getMetadata());
         addAdditionalSpawnData(addEntityPacket);
@@ -490,9 +493,10 @@ public class Entity implements GeyserEntity {
      * Update the mount offsets of each passenger on this vehicle
      */
     protected void updatePassengerOffsets() {
-        for (Entity passenger : passengers) {
+        for (int i = 0; i < passengers.size(); i++) {
+            Entity passenger = passengers.get(i);
             if (passenger != null) {
-                boolean rider = passengers.get(0) == this;
+                boolean rider = i == 0;
                 EntityUtils.updateMountOffset(passenger, this, rider, true, passengers.size() > 1);
                 passenger.updateBedrockMetadata();
             }

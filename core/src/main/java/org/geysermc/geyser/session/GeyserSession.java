@@ -56,11 +56,14 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.Server
 import com.github.steveice10.mc.protocol.packet.login.serverbound.ServerboundCustomQueryPacket;
 import com.github.steveice10.packetlib.BuiltinFlags;
 import com.github.steveice10.packetlib.Session;
-import com.github.steveice10.packetlib.event.session.*;
+import com.github.steveice10.packetlib.event.session.ConnectedEvent;
+import com.github.steveice10.packetlib.event.session.DisconnectedEvent;
+import com.github.steveice10.packetlib.event.session.PacketErrorEvent;
+import com.github.steveice10.packetlib.event.session.PacketSendingEvent;
+import com.github.steveice10.packetlib.event.session.SessionAdapter;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpClientSession;
 import com.github.steveice10.packetlib.tcp.TcpSession;
-import com.nimbusds.jwt.SignedJWT;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -82,6 +85,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.value.qual.IntRange;
 import org.cloudburstmc.math.vector.*;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.data.*;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
@@ -100,13 +104,17 @@ import org.geysermc.floodgate.core.crypto.FloodgateCipher;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
+import org.geysermc.geyser.api.event.bedrock.SessionLoginEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.RemoteServer;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
+import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.Entity;
@@ -138,7 +146,10 @@ import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.text.TextDecoration;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.util.*;
+import org.geysermc.geyser.util.ChunkUtils;
+import org.geysermc.geyser.util.DimensionUtils;
+import org.geysermc.geyser.util.EntityUtils;
+import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.ConnectException;
@@ -147,6 +158,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -170,7 +182,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Used for Floodgate skin uploading
      */
     @Setter
-    private List<SignedJWT> certChainData;
+    private List<String> certChainData;
 
     @NotNull
     @Setter
@@ -416,6 +428,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean emulatePost1_18Logic = true;
 
     /**
+     * Whether to emulate pre-1.20 smithing table behavior.
+     * Adapts ViaVersion's furnace UI to one Bedrock can use.
+     * See {@link org.geysermc.geyser.translator.inventory.OldSmithingTableTranslator}.
+     */
+    @Setter
+    private boolean oldSmithingTable = false;
+
+    /**
      * The current attack speed of the player. Used for sending proper cooldown timings.
      * Setting a default fixes cooldowns not showing up on a fresh world.
      */
@@ -445,6 +465,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private long lastInteractionTime;
+
+    /**
+     * Stores when the player started to break a block. Used to allow correct break time for custom blocks.
+     */
+    @Setter
+    private long blockBreakStartTime;
 
     /**
      * Stores whether the player intended to place a bucket.
@@ -526,7 +552,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private boolean waitingForStatistics = false;
 
-    private final Set<String> fogNameSpaces = new HashSet<>();
+    /**
+     * All fog effects that are currently applied to the client.
+     */
+    private final Set<String> appliedFog = new HashSet<>();
 
     private final Set<UUID> emotes;
 
@@ -552,6 +581,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private ScheduledFuture<?> mountVehicleScheduledFuture = null;
+
+    /**
+     * A cache of IDs from ClientboundKeepAlivePackets that have been sent to the Bedrock client, but haven't been returned to the server.
+     * Only used if {@link GeyserConfiguration#isForwardPlayerPing()} is enabled.
+     */
+    private final Queue<Long> keepAliveCache = new ConcurrentLinkedQueue<>();
 
     private MinecraftProtocol protocol;
 
@@ -877,6 +912,16 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * After getting whatever credentials needed, we attempt to join the Java server.
      */
     private void connectDownstream() {
+        SessionLoginEvent loginEvent = new SessionLoginEvent(this, remoteServer);
+        GeyserImpl.getInstance().eventBus().fire(loginEvent);
+        if (loginEvent.isCancelled()) {
+            String disconnectReason = loginEvent.disconnectReason() == null ?
+                    BedrockDisconnectReasons.DISCONNECTED : loginEvent.disconnectReason();
+            disconnect(disconnectReason);
+            return;
+        }
+
+        this.remoteServer = loginEvent.remoteServer();
         boolean floodgate = this.remoteServer.authType() == AuthType.FLOODGATE;
 
         // Start ticking
@@ -892,7 +937,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         } else {
             downstream = new TcpClientSession(this.remoteServer.address(), this.remoteServer.port(), this.protocol);
             this.downstream = new DownstreamSession(downstream);
-            disableSrvResolving();
+
+            boolean resolveSrv = false;
+            try {
+                resolveSrv = this.remoteServer.resolveSrv();
+            } catch (AbstractMethodError | NoSuchMethodError ignored) {
+                // Ignore if the method doesn't exist
+                // This will happen with extensions using old APIs
+            }
+            this.downstream.getSession().setFlag(BuiltinFlags.ATTEMPT_SRV_RESOLVE, resolveSrv);
         }
 
         if (geyser.getConfig().getRemote().isUseProxyProtocol()) {
@@ -1377,13 +1430,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         sendDownstreamPacket(swapHandsPacket);
     }
 
-    /**
-     * Will be overwritten for GeyserConnect.
-     */
-    protected void disableSrvResolving() {
-        this.downstream.getSession().setFlag(BuiltinFlags.ATTEMPT_SRV_RESOLVE, false);
-    }
-
     @Override
     public String name() {
         return null;
@@ -1474,11 +1520,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         StartGamePacket startGamePacket = new StartGamePacket();
         startGamePacket.setUniqueEntityId(playerEntity.getGeyserId());
         startGamePacket.setRuntimeEntityId(playerEntity.getGeyserId());
-        startGamePacket.setPlayerGameType(switch (gameMode) {
-            case CREATIVE -> GameType.CREATIVE;
-            case ADVENTURE -> GameType.ADVENTURE;
-            default -> GameType.SURVIVAL;
-        });
+        startGamePacket.setPlayerGameType(EntityUtils.toBedrockGamemode(gameMode));
         startGamePacket.setPlayerPosition(Vector3f.from(0, 69, 0));
         startGamePacket.setRotation(Vector2f.from(1, 1));
 
@@ -1527,6 +1569,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         startGamePacket.setItemDefinitions(this.itemMappings.getItemDefinitions().values().stream().toList()); // TODO
         // startGamePacket.setBlockPalette(this.blockMappings.getBedrockBlockPalette());
+
+        // Needed for custom block mappings and custom skulls system
+        startGamePacket.getBlockProperties().addAll(this.blockMappings.getBlockProperties());
+
+        // See https://learn.microsoft.com/en-us/minecraft/creator/documents/experimentalfeaturestoggle for info on each experiment
+        // data_driven_items (Holiday Creator Features) is needed for blocks and items
+        startGamePacket.getExperiments().add(new ExperimentData("data_driven_items", true));
+        // Needed for block properties for states
+        startGamePacket.getExperiments().add(new ExperimentData("upcoming_creator_features", true));
+        // Needed for certain molang queries used in blocks and items
+        startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
 
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);
@@ -1703,7 +1756,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         AbilityLayer abilityLayer = new AbilityLayer();
         Set<Ability> abilities = abilityLayer.getAbilityValues();
-        if (canFly || spectator) {
+        if (canFly) {
             abilities.add(Ability.MAY_FLY);
         }
 
@@ -1737,7 +1790,28 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         if (spectator) {
-            abilities.add(Ability.NO_CLIP);
+            AbilityLayer spectatorLayer = new AbilityLayer();
+            spectatorLayer.setLayerType(AbilityLayer.Type.SPECTATOR);
+            // Setting all abilitySet causes the zoom issue... BDS only sends these, so ig we will too
+            Set<Ability> abilitySet = spectatorLayer.getAbilitiesSet();
+            abilitySet.add(Ability.BUILD);
+            abilitySet.add(Ability.MINE);
+            abilitySet.add(Ability.DOORS_AND_SWITCHES);
+            abilitySet.add(Ability.OPEN_CONTAINERS);
+            abilitySet.add(Ability.ATTACK_PLAYERS);
+            abilitySet.add(Ability.ATTACK_MOBS);
+            abilitySet.add(Ability.INVULNERABLE);
+            abilitySet.add(Ability.FLYING);
+            abilitySet.add(Ability.MAY_FLY);
+            abilitySet.add(Ability.INSTABUILD);
+            abilitySet.add(Ability.NO_CLIP);
+
+            Set<Ability> abilityValues = spectatorLayer.getAbilityValues();
+            abilityValues.add(Ability.INVULNERABLE);
+            abilityValues.add(Ability.FLYING);
+            abilityValues.add(Ability.NO_CLIP);
+
+            updateAbilitiesPacket.getAbilityLayers().add(spectatorLayer);
         }
 
         abilityLayer.setLayerType(AbilityLayer.Type.BASE);
@@ -1801,38 +1875,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             emoteList.getPieceIds().addAll(pieces);
             player.sendUpstreamPacket(emoteList);
         }
-    }
-
-    /**
-     * Send the following fog IDs, as well as the cached ones, to the client.
-     *
-     * Fog IDs can be found here:
-     * https://wiki.bedrock.dev/documentation/fog-ids.html
-     *
-     * @param fogNameSpaces the fog ids to add
-     */
-    public void sendFog(String... fogNameSpaces) {
-        this.fogNameSpaces.addAll(Arrays.asList(fogNameSpaces));
-
-        PlayerFogPacket packet = new PlayerFogPacket();
-        packet.getFogStack().addAll(this.fogNameSpaces);
-        sendUpstreamPacket(packet);
-    }
-
-    /**
-     * Removes the following fog IDs from the client and the cache.
-     *
-     * @param fogNameSpaces the fog ids to remove
-     */
-    public void removeFog(String... fogNameSpaces) {
-        if (fogNameSpaces.length == 0) {
-            this.fogNameSpaces.clear();
-        } else {
-            this.fogNameSpaces.removeAll(Arrays.asList(fogNameSpaces));
-        }
-        PlayerFogPacket packet = new PlayerFogPacket();
-        packet.getFogStack().addAll(this.fogNameSpaces);
-        sendUpstreamPacket(packet);
     }
 
     public boolean canUseCommandBlocks() {
@@ -1939,9 +1981,59 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         EmotePacket packet = new EmotePacket();
-        packet.setEmoteId(emoteId);
         packet.setRuntimeEntityId(entity.getGeyserId());
+        packet.setXuid("");
+        packet.setPlatformId(""); // BDS sends empty
+        packet.setEmoteId(emoteId);
         sendUpstreamPacket(packet);
+    }
+
+    @Override
+    public void shakeCamera(float intensity, float duration, @NonNull CameraShake type) {
+        CameraShakePacket packet = new CameraShakePacket();
+        packet.setIntensity(intensity);
+        packet.setDuration(duration);
+        packet.setShakeType(type == CameraShake.POSITIONAL ? CameraShakeType.POSITIONAL : CameraShakeType.ROTATIONAL);
+        packet.setShakeAction(CameraShakeAction.ADD);
+        sendUpstreamPacket(packet);
+    }
+
+    @Override
+    public void stopCameraShake() {
+        CameraShakePacket packet = new CameraShakePacket();
+        // CameraShakeAction.STOP removes all types regardless of the given type, but regardless it can't be null
+        packet.setShakeType(CameraShakeType.POSITIONAL);
+        packet.setShakeAction(CameraShakeAction.STOP);
+        sendUpstreamPacket(packet);
+    }
+
+    @Override
+    public void sendFog(String... fogNameSpaces) {
+        Collections.addAll(this.appliedFog, fogNameSpaces);
+
+        PlayerFogPacket packet = new PlayerFogPacket();
+        packet.getFogStack().addAll(this.appliedFog);
+        sendUpstreamPacket(packet);
+    }
+
+    @Override
+    public void removeFog(String... fogNameSpaces) {
+        if (fogNameSpaces.length == 0) {
+            this.appliedFog.clear();
+        } else {
+            for (String id : fogNameSpaces) {
+                this.appliedFog.remove(id);
+            }
+        }
+        PlayerFogPacket packet = new PlayerFogPacket();
+        packet.getFogStack().addAll(this.appliedFog);
+        sendUpstreamPacket(packet);
+    }
+
+    @Override
+    public @NonNull Set<String> fogEffects() {
+        // Use a copy so that sendFog/removeFog can be called while iterating the returned set (avoid CME)
+        return Set.copyOf(this.appliedFog);
     }
 
     public void addCommandEnum(String name, String enums) {
@@ -1953,6 +2045,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     private void softEnumPacket(String name, SoftEnumUpdateType type, String enums) {
+        // There is no need to send command enums if command suggestions are disabled
+        if (!this.geyser.getConfig().isCommandSuggestions()) {
+            return;
+        }
         UpdateSoftEnumPacket packet = new UpdateSoftEnumPacket();
         packet.setType(type);
         packet.setSoftEnum(new CommandEnumData(name, Collections.singletonMap(enums, Collections.emptySet()), true));

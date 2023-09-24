@@ -30,8 +30,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
-import org.cloudburstmc.protocol.bedrock.data.defintions.SimpleItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
@@ -41,10 +41,9 @@ import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.components.ToolBreakSpeedsUtils;
 import org.geysermc.geyser.item.components.WearableSlot;
-import org.geysermc.geyser.item.mappings.MappingsConfigReader;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
@@ -56,7 +55,7 @@ public class CustomItemRegistryPopulator {
     public static void populate(Map<String, GeyserMappingItem> items, Multimap<String, CustomItemData> customItems, List<NonVanillaCustomItemData> nonVanillaCustomItems) {
         MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
         // Load custom items from mappings files
-        mappingsConfigReader.loadMappingsFromJson((key, item) -> {
+        mappingsConfigReader.loadItemMappingsFromJson((key, item) -> {
             if (CustomItemRegistryPopulator.initialCheck(key, item, items)) {
                 customItems.get(key).add(item);
             }
@@ -238,6 +237,14 @@ public class CustomItemRegistryPopulator {
             computeArmorProperties(armorType, customItemData.protectionValue(), componentBuilder);
         }
 
+        if (customItemData.isEdible()) {
+            computeConsumableProperties(itemProperties, componentBuilder, 1, customItemData.canAlwaysEat());
+        }
+
+        if (customItemData.isChargeable()) {
+            computeChargeableProperties(itemProperties, componentBuilder);
+        }
+
         computeRenderOffsets(isHat, customItemData, componentBuilder);
 
         if (creativeGroup != null) {
@@ -245,6 +252,10 @@ public class CustomItemRegistryPopulator {
         }
         if (creativeCategory.isPresent()) {
             itemProperties.putInt("creative_category", creativeCategory.getAsInt());
+        }
+
+        if (customItemData.isFoil()) {
+            itemProperties.putBoolean("foil", true);
         }
 
         componentBuilder.putCompound("item_properties", itemProperties.build());
@@ -282,34 +293,45 @@ public class CustomItemRegistryPopulator {
         boolean canDestroyInCreative = true;
         float miningSpeed = 1.0f;
 
-        if (toolType.equals("shears")) {
-            componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getShearsDigger(15));
-        } else {
-            int toolSpeed = ToolBreakSpeedsUtils.toolTierToSpeed(toolTier);
-            switch (toolType) {
-                case "sword" -> {
-                    miningSpeed = 1.5f;
-                    canDestroyInCreative = false;
-                    componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getSwordDigger(toolSpeed));
-                    componentBuilder.putCompound("minecraft:weapon", NbtMap.EMPTY);
-                }
-                case "pickaxe" -> {
-                    componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getPickaxeDigger(toolSpeed, toolTier));
-                    setItemTag(componentBuilder, "pickaxe");
-                }
-                case "axe" -> {
-                    componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getAxeDigger(toolSpeed));
-                    setItemTag(componentBuilder, "axe");
-                }
-                case "shovel" -> {
-                    componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getShovelDigger(toolSpeed));
-                    setItemTag(componentBuilder, "shovel");
-                }
-                case "hoe" -> {
-                    componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getHoeDigger(toolSpeed));
-                    setItemTag(componentBuilder, "hoe");
-                }
-            }
+        // This means client side the tool can never destroy a block
+        // This works because the molang '1' for tags will be true for all blocks and the speed will be 0
+        // We want this since we calculate break speed server side in BedrockActionTranslator
+        List<NbtMap> speed = new ArrayList<>(List.of(
+            NbtMap.builder()
+                .putCompound("block", NbtMap.builder()
+                        .putString("tags", "1")
+                        .build())
+                .putCompound("on_dig", NbtMap.builder()
+                        .putCompound("condition", NbtMap.builder()
+                                .putString("expression", "")
+                                .putInt("version", -1)
+                                .build())
+                        .putString("event", "tool_durability")
+                        .putString("target", "self")
+                        .build())
+                .putInt("speed", 0)
+                .build()
+        ));
+        
+        componentBuilder.putCompound("minecraft:digger", 
+            NbtMap.builder()
+            .putList("destroy_speeds", NbtType.COMPOUND, speed)
+            .putCompound("on_dig", NbtMap.builder()
+                    .putCompound("condition", NbtMap.builder()
+                            .putString("expression", "")
+                            .putInt("version", -1)
+                            .build())
+                    .putString("event", "tool_durability")
+                    .putString("target", "self")
+                    .build())
+            .putBoolean("use_efficiency", true)
+            .build()
+        );
+
+        if (toolType.equals("sword")) {
+            miningSpeed = 1.5f;
+            canDestroyInCreative = false;
+            componentBuilder.putCompound("minecraft:weapon", NbtMap.EMPTY);
         }
 
         itemProperties.putBoolean("hand_equipped", true);

@@ -26,13 +26,12 @@
 package org.geysermc.geyser.translator.protocol.bedrock;
 
 import org.cloudburstmc.protocol.bedrock.packet.CommandRequestPacket;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.util.PlatformType;
 
 @Translator(packet = CommandRequestPacket.class)
 public class BedrockCommandRequestTranslator extends PacketTranslator<CommandRequestPacket> {
@@ -46,7 +45,9 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
                 return;
             }
 
-            session.sendCommand(command.substring(1));
+            // running commands via Bedrock's command select menu adds a trailing whitespace which Java doesn't like
+            // https://github.com/GeyserMC/Geyser/issues/3877
+            session.sendCommand(command.substring(1).stripTrailing());
         }
     }
 }

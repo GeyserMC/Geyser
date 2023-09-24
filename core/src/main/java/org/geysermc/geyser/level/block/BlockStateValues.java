@@ -47,6 +47,7 @@ public final class BlockStateValues {
     private static final IntSet ALL_CAULDRONS = new IntOpenHashSet();
     private static final Int2IntMap BANNER_COLORS = new FixedInt2IntMap();
     private static final Int2ByteMap BED_COLORS = new FixedInt2ByteMap();
+    private static final Int2IntMap BRUSH_PROGRESS = new Int2IntOpenHashMap();
     private static final Int2ByteMap COMMAND_BLOCK_VALUES = new Int2ByteOpenHashMap();
     private static final Int2ObjectMap<DoubleChestValue> DOUBLE_CHEST_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Int2ObjectMap<String> FLOWER_POT_VALUES = new Int2ObjectOpenHashMap<>();
@@ -96,6 +97,15 @@ public final class BlockStateValues {
         if (bedColor != null) {
             BED_COLORS.put(javaBlockState, (byte) bedColor.intValue());
             return;
+        }
+
+        JsonNode bedrockStates = blockData.get("bedrock_states");
+        if (bedrockStates != null) {
+            JsonNode brushedProgress = bedrockStates.get("brushed_progress");
+            if (brushedProgress != null) {
+                BRUSH_PROGRESS.put(javaBlockState, brushedProgress.intValue());
+                return;
+            }
         }
 
         if (javaId.contains("command_block")) {
@@ -223,6 +233,17 @@ public final class BlockStateValues {
      */
     public static byte getBedColor(int state) {
         return BED_COLORS.getOrDefault(state, (byte) -1);
+    }
+
+    /**
+     * The brush progress of suspicious sand/gravel is not sent by the java server when it updates the block entity.
+     * Although brush progress is part of the bedrock block state, it must be included in the block entity update.
+     *
+     * @param state BlockState of the block
+     * @return brush progress or 0 if the lookup failed
+     */
+    public static int getBrushProgress(int state) {
+        return BRUSH_PROGRESS.getOrDefault(state, 0);
     }
 
     /**
@@ -382,7 +403,7 @@ public final class BlockStateValues {
      * @return true if a piston can break the block
      */
     public static boolean canPistonDestroyBlock(int state)  {
-        return BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.AIR).getPistonBehavior() == PistonBehavior.DESTROY;
+        return BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.DEFAULT).getPistonBehavior() == PistonBehavior.DESTROY;
     }
 
     public static boolean canPistonMoveBlock(int javaId, boolean isPushing) {
@@ -393,7 +414,7 @@ public final class BlockStateValues {
         if (PistonBlockEntityTranslator.isBlock(javaId)) {
             return !PISTON_VALUES.get(javaId);
         }
-        BlockMapping block = BlockRegistries.JAVA_BLOCKS.getOrDefault(javaId, BlockMapping.AIR);
+        BlockMapping block = BlockRegistries.JAVA_BLOCKS.getOrDefault(javaId, BlockMapping.DEFAULT);
         // Bedrock, End portal frames, etc. can't be moved
         if (block.getHardness() == -1.0d) {
             return false;
@@ -490,7 +511,7 @@ public final class BlockStateValues {
      * @return The block's slipperiness
      */
     public static float getSlipperiness(int state) {
-        String blockIdentifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.AIR).getJavaIdentifier();
+        String blockIdentifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.DEFAULT).getJavaIdentifier();
         return switch (blockIdentifier) {
             case "minecraft:slime_block" -> 0.8f;
             case "minecraft:ice", "minecraft:packed_ice" -> 0.98f;

@@ -2,6 +2,7 @@
   "required": true,
   "package": "org.geysermc.geyser.platform.fabric.mixin",
   "compatibilityLevel": "JAVA_16",
+  "refmap": "geyser-fabric-refmap.json",
   "client": [
     "client.IntegratedServerMixin"
   ],

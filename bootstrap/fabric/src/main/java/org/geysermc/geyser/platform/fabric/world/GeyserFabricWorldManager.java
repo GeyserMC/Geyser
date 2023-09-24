@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.platform.fabric.world;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.core.BlockPos;
@@ -72,7 +73,7 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
                 return;
             }
 
-            LevelChunk chunk = player.getLevel().getChunk(x, z);
+            LevelChunk chunk = player.level().getChunk(x, z);
             final int chunkBlockX = x << 4;
             final int chunkBlockZ = z << 4;
             for (int i = 0; i < blockEntityInfos.size(); i++) {
@@ -92,7 +93,7 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
                 return;
             }
 
-            BlockEntity blockEntity = player.level.getBlockEntity(new BlockPos(x, y, z));
+            BlockEntity blockEntity = player.level().getBlockEntity(new BlockPos(x, y, z));
             sendLecternData(session, blockEntity, false);
         });
     }
@@ -153,6 +154,11 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
         return Permissions.check(player, permission);
     }
 
+    @Override
+    public GameMode getDefaultGameMode(GeyserSession session) {
+        return GameMode.byId(server.getDefaultGameType().getId());
+    }
+
     @Nonnull
     @Override
     public CompletableFuture<com.github.steveice10.opennbt.tag.builtin.CompoundTag> getPickItemNbt(GeyserSession session, int x, int y, int z, boolean addNbtData) {
@@ -166,7 +172,7 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
 
             BlockPos pos = new BlockPos(x, y, z);
             // Don't create a new block entity if invalid
-            BlockEntity blockEntity = player.level.getChunkAt(pos).getBlockEntity(pos);
+            BlockEntity blockEntity = player.level().getChunkAt(pos).getBlockEntity(pos);
             if (blockEntity instanceof BannerBlockEntity banner) {
                 // Potentially exposes other NBT data? But we need to get the NBT data for the banner patterns *and*
                 // the banner might have a custom name, both of which a Java client knows and caches

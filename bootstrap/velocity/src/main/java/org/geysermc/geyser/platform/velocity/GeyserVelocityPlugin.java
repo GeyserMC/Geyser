@@ -38,6 +38,7 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
 import net.kyori.adventure.util.Codec;
 import org.geysermc.floodgate.core.FloodgatePlatform;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
@@ -52,7 +53,6 @@ import org.geysermc.geyser.platform.velocity.command.GeyserVelocityCommandExecut
 import org.geysermc.geyser.platform.velocity.floodgate.FloodgateVelocityPlatform;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
-import org.geysermc.geyser.util.PlatformType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;

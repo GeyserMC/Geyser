@@ -1,0 +1,53 @@
+{
+    "format_version": "1.12.0",
+    "minecraft:geometry": [
+        {
+            "description": {
+                "identifier": "geometry.geyser.player_skull_floor_${quadrant}",
+                "texture_width": 48,
+                "texture_height": 16
+            },
+            "bones": [
+                {
+                    "name": "head",
+                    "pivot": [0, 24, 0],
+                    "rotation": [0, ${y_rotation}, 0],
+                    "cubes": [
+                        {
+                            "origin": [-4, 0.5, -4],
+                            "size": [8, 8, 8],
+                            "uv": {
+                                "north": {"uv": [8, 0], "uv_size": [8, 8]},
+                                "east": {"uv": [0, 0], "uv_size": [8, 8]},
+                                "south": {"uv": [24, 0], "uv_size": [8, 8]},
+                                "west": {"uv": [16, 0], "uv_size": [8, 8]},
+                                "up": {"uv": [32, 0], "uv_size": [8, 8]},
+                                "down": {"uv": [40, 8], "uv_size": [8, -8]}
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "hat",
+                    "parent": "head",
+                    "pivot": [0, 24, 0],
+                    "cubes": [
+                        {
+                            "origin": [-4, 0.5, -4],
+                            "size": [8, 8, 8],
+                            "inflate": 0.5,
+                            "uv": {
+                                "north": {"uv": [8, 8], "uv_size": [8, 8]},
+                                "east": {"uv": [0, 8], "uv_size": [8, 8]},
+                                "south": {"uv": [24, 8], "uv_size": [8, 8]},
+                                "west": {"uv": [16, 8], "uv_size": [8, 8]},
+                                "up": {"uv": [32, 8], "uv_size": [8, 8]},
+                                "down": {"uv": [40, 16], "uv_size": [8, -8]}
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

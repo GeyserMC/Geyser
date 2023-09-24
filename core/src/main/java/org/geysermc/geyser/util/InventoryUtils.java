@@ -35,7 +35,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
@@ -208,13 +208,20 @@ public class InventoryUtils {
 
     private static ItemDefinition getUnusableSpaceBlockDefinition(int protocolVersion) {
         String unusableSpaceBlock = GeyserImpl.getInstance().getConfig().getUnusableSpaceBlock();
-        ItemMapping unusableSpaceBlockID = Registries.ITEMS.forVersion(protocolVersion).getMapping(unusableSpaceBlock);
-        if (unusableSpaceBlockID != null) {
-            return unusableSpaceBlockID.getBedrockDefinition();
-        } else {
-            GeyserImpl.getInstance().getLogger().error("Invalid value" + unusableSpaceBlock + ". Resorting to barrier block.");
+        ItemDefinition itemDefinition = Registries.ITEMS.forVersion(protocolVersion).getDefinition(unusableSpaceBlock);
+
+        if (itemDefinition == null) {
+            GeyserImpl.getInstance().getLogger().error("Invalid value " + unusableSpaceBlock + ". Resorting to barrier block.");
             return Registries.ITEMS.forVersion(protocolVersion).getStoredItems().barrier().getBedrockDefinition();
+        } else {
+            return itemDefinition;
         }
+    }
+
+    public static IntFunction<ItemData> getUpgradeTemplate() {
+        return protocolVersion -> ItemData.builder()
+                .definition(Registries.ITEMS.forVersion(protocolVersion).getStoredItems().upgradeTemplate().getBedrockDefinition())
+                .count(1).build();
     }
 
     /**

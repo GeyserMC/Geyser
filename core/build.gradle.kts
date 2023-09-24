@@ -22,6 +22,7 @@ dependencies {
     implementation(libs.websocket)
 
     api(libs.bundles.protocol)
+    implementation(libs.blockstateupdater)
 
     api(libs.mcauthlib)
     api(libs.mcprotocollib) {
@@ -31,7 +32,7 @@ dependencies {
     }
 
     implementation(libs.raknet) {
-        exclude("io.netty", "*");
+        exclude("io.netty", "*")
     }
 
     implementation(libs.netty.resolver.dns)
@@ -98,7 +99,7 @@ configure<BlossomExtension> {
 }
 
 fun Project.buildNumber(): Int =
-    System.getenv("BUILD_NUMBER")?.let { Integer.parseInt(it) } ?: -1
+    (System.getenv("GITHUB_RUN_NUMBER") ?: jenkinsBuildNumber())?.let { Integer.parseInt(it) } ?: -1
 
 inner class GitInfo {
     val branch: String
@@ -130,3 +131,6 @@ inner class GitInfo {
         repository = git?.repository?.config?.getString("remote", "origin", "url") ?: ""
     }
 }
+
+// todo remove this when we're not using Jenkins anymore
+fun jenkinsBuildNumber(): String? = System.getenv("BUILD_NUMBER")

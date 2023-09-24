@@ -44,6 +44,7 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.DimensionUtils;
+import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.JavaCodecUtil;
 import org.geysermc.geyser.util.PluginMessageUtils;
 
@@ -112,7 +113,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
 
         if (!needsSpawnPacket) {
             SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
-            playerGameTypePacket.setGamemode(packet.getGameMode().ordinal());
+            playerGameTypePacket.setGamemode(EntityUtils.toBedrockGamemode(packet.getGameMode()).ordinal());
             session.sendUpstreamPacket(playerGameTypePacket);
         }
 
@@ -148,7 +149,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             DimensionUtils.switchDimension(session, newDimension);
         } else if (DimensionUtils.isCustomBedrockNetherId() && newDimension.equalsIgnoreCase(DimensionUtils.NETHER)) {
             // If the player is spawning into the "fake" nether, send them some fog
-            session.sendFog("minecraft:fog_hell");
+            session.sendFog(DimensionUtils.BEDROCK_FOG_HELL);
         }
 
         ChunkUtils.loadDimension(session);

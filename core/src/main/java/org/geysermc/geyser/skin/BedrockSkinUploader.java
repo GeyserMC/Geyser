@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.nimbusds.jwt.SignedJWT;
 import lombok.Getter;
 import org.geysermc.floodgate.core.util.WebsocketEventType;
 import org.geysermc.geyser.Constants;
@@ -42,6 +41,7 @@ import org.java_websocket.handshake.ServerHandshake;
 
 import javax.net.ssl.SSLException;
 import java.net.ConnectException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -166,6 +166,10 @@ public final class BedrockSkinUploader {
 
             @Override
             public void onError(Exception ex) {
+                if (ex instanceof UnknownHostException) {
+                    logger.error("Unable to resolve the skin api! This can be caused by your connection or the skin api being unreachable. " + ex.getMessage());
+                    return;
+                }
                 if (ex instanceof ConnectException || ex instanceof SSLException) {
                     if (logger.isDebug()) {
                         logger.error("[debug] Got an error", ex);
@@ -177,14 +181,14 @@ public final class BedrockSkinUploader {
         };
     }
 
-    public void uploadSkin(List<SignedJWT> chainData, String clientData) {
+    public void uploadSkin(List<String> chainData, String clientData) {
         if (chainData == null || clientData == null) {
             return;
         }
 
         ObjectNode node = JACKSON.createObjectNode();
         ArrayNode chainDataNode = JACKSON.createArrayNode();
-        chainData.forEach(jwt -> chainDataNode.add(jwt.serialize()));
+        chainData.forEach(chainDataNode::add);
         node.set("chain_data", chainDataNode);
         node.put("client_data", clientData);
 

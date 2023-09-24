@@ -144,7 +144,7 @@ public class Item {
     }
 
     /**
-     * Takes NBT from Java Edition and converts any value that Bedrock parses differently. <br>
+     * Takes NBT from Bedrock Edition and converts any value that Java parses differently. <br>
      * Do note that this method is, these days, only called in three places (as of 2023/~1.19):
      * <ul>
      *     <li>Extra recipe loading</li>

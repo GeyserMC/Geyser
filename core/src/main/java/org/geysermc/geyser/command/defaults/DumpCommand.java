@@ -30,6 +30,7 @@ import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
@@ -38,7 +39,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.util.PlatformType;
 import org.geysermc.geyser.util.WebUtils;
 
 import java.io.FileOutputStream;

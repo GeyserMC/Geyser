@@ -25,9 +25,11 @@
 
 package org.geysermc.geyser.registry;
 
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundDelimiterPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundTabListPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLightUpdatePacket;
 import io.netty.channel.EventLoop;
+import org.cloudburstmc.protocol.bedrock.packet.RequestPermissionsPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.session.GeyserSession;
@@ -45,6 +47,8 @@ public class PacketTranslatorRegistry<T> extends AbstractMappedRegistry<Class<? 
     static {
         IGNORED_PACKETS.add(ClientboundLightUpdatePacket.class); // Light is handled on Bedrock for us
         IGNORED_PACKETS.add(ClientboundTabListPacket.class); // Cant be implemented in Bedrock
+        IGNORED_PACKETS.add(ClientboundDelimiterPacket.class); // Not implemented, spams logs
+        IGNORED_PACKETS.add(RequestPermissionsPacket.class); // Bedrock client asks permission to switch default game mode, but we handle this ourselves
     }
 
     protected PacketTranslatorRegistry() {

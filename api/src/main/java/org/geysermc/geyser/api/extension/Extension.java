@@ -136,4 +136,12 @@ public interface Extension extends EventRegistrar {
     default GeyserApi geyserApi() {
         return GeyserApi.api();
     }
+
+    /**
+     * Disable the extension.
+     */
+    default void disable() {
+        this.setEnabled(false);
+        this.eventBus().unregisterAll();
+    }
 }

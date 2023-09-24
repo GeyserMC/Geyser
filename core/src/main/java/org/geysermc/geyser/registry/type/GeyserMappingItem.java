@@ -26,12 +26,24 @@
 package org.geysermc.geyser.registry.type;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.With;
 
 /**
  * Represents Geyser's own serialized item information before being processed per-version
  */
-@Data
+@ToString
+@EqualsAndHashCode
+@Getter
+@Setter
+@With
+@NoArgsConstructor
+@AllArgsConstructor
 public class GeyserMappingItem {
     @JsonProperty("bedrock_identifier") String bedrockIdentifier;
     @JsonProperty("bedrock_data") int bedrockData;

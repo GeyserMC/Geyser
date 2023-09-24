@@ -62,7 +62,7 @@ public class BookEditCache {
         if ((System.currentTimeMillis() - lastBookUpdate) < 1000) {
             return;
         }
-        // Don't send the update if the player isn't not holding a book, shouldn't happen if we catch all interactions
+        // Don't send the update if the player is not holding a book, shouldn't happen if we catch all interactions
         GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand();
         if (itemStack == null || itemStack.asItem() != Items.WRITABLE_BOOK) {
             packet = null;

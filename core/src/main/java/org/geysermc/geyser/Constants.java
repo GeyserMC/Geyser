@@ -36,17 +36,20 @@ public final class Constants {
 
     public static final String FLOODGATE_DOWNLOAD_LOCATION = "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/";
 
-    public static final String GEYSER_DOWNLOAD_LOCATION = "https://ci.geysermc.org";
+    public static final String GEYSER_DOWNLOAD_LOCATION = "https://geysermc.org/download";
     public static final String UPDATE_PERMISSION = "geyser.update";
 
     static final String SAVED_REFRESH_TOKEN_FILE = "saved-refresh-tokens.json";
+
+    public static final String GEYSER_CUSTOM_NAMESPACE = "geyser_custom";
+
+    public static final String MINECRAFT_SKIN_SERVER_URL = "https://textures.minecraft.net/texture/";
 
     static {
         URI wsUri = null;
         try {
             wsUri = new URI("wss://api.geysermc.org/ws");
         } catch (URISyntaxException e) {
-            GeyserImpl.getInstance().getLogger().error("Unable to resolve api.geysermc.org! Check your internet connection.");
             e.printStackTrace();
         }
         GLOBAL_API_WS_URI = wsUri;

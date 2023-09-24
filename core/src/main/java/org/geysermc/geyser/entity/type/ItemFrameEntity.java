@@ -35,7 +35,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
+import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
@@ -83,8 +83,7 @@ public class ItemFrameEntity extends Entity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
 
         NbtMapBuilder blockBuilder = NbtMap.builder()
-                .putString("name", this.definition.entityType() == EntityType.GLOW_ITEM_FRAME ? "minecraft:glow_frame" : "minecraft:frame")
-                .putInt("version", session.getBlockMappings().getBlockStateVersion());
+                .putString("name", this.definition.entityType() == EntityType.GLOW_ITEM_FRAME ? "minecraft:glow_frame" : "minecraft:frame");
         NbtMapBuilder statesBuilder = NbtMap.builder()
                 .putInt("facing_direction", direction.ordinal())
                 .putByte("item_frame_map_bit", (byte) 0)

@@ -27,9 +27,9 @@ package org.geysermc.geyser.dump;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.text.AsteriskSerializer;
-import org.geysermc.geyser.util.PlatformType;
 
 import java.util.List;
 

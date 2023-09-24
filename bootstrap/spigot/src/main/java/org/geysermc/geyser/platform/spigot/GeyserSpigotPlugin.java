@@ -43,6 +43,7 @@ import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.floodgate.core.skin.SkinApplier;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
@@ -68,7 +69,6 @@ import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotNativeWorld
 import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
-import org.geysermc.geyser.util.PlatformType;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -166,20 +166,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             // We failed to initialize correctly
             Bukkit.getPluginManager().disablePlugin(this);
             return;
-        }
-
-        // By default this should be localhost but may need to be changed in some circumstances
-        if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
-            geyserConfig.setAutoconfiguredRemote(true);
-            // Don't use localhost if not listening on all interfaces
-            if (!Bukkit.getIp().equals("0.0.0.0") && !Bukkit.getIp().equals("")) {
-                geyserConfig.getRemote().setAddress(Bukkit.getIp());
-            }
-            geyserConfig.getRemote().setPort(Bukkit.getPort());
-        }
-
-        if (geyserConfig.getBedrock().isCloneRemotePort()) {
-            geyserConfig.getBedrock().setPort(Bukkit.getPort());
         }
 
         if (Bukkit.getPluginManager().getPlugin("floodgate") != null) {
@@ -334,6 +320,12 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                     }
 
                     if (command.permission().isBlank()) {
+                        continue;
+                    }
+
+                    // Avoid registering the same permission twice, e.g. for the extension help commands
+                    if (Bukkit.getPluginManager().getPermission(command.permission()) != null) {
+                        GeyserImpl.getInstance().getLogger().debug("Skipping permission " + command.permission() + " as it is already registered");
                         continue;
                     }
 

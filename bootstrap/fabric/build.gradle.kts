@@ -1,3 +1,5 @@
+import net.fabricmc.loom.task.RemapJarTask
+
 plugins {
     id("fabric-loom") version "1.0-SNAPSHOT"
     id("com.modrinth.minotaur") version "2.+"
@@ -31,6 +33,10 @@ dependencies {
         exclude(group = "com.nukkitx.fastutil")
         exclude(group = "io.netty.incubator")
     }
+}
+
+loom {
+    mixin.defaultRefmapName.set("geyser-fabric-refmap.json")
 }
 
 repositories {
@@ -89,8 +95,16 @@ tasks {
         dependsOn(shadowJar)
         inputFile.set(shadowJar.get().archiveFile)
         archiveBaseName.set("Geyser-Fabric")
-        archiveClassifier.set("")
         archiveVersion.set("")
+        archiveClassifier.set("")
+    }
+
+    register("remapModrinthJar", RemapJarTask::class) {
+        dependsOn(shadowJar)
+        inputFile.set(shadowJar.get().archiveFile)
+        archiveBaseName.set("geyser-fabric")
+        archiveVersion.set(project.version.toString() + "+build."  + System.getenv("GITHUB_RUN_NUMBER"))
+        archiveClassifier.set("")
     }
 }
 
@@ -103,10 +117,11 @@ modrinth {
 
     syncBodyFrom.set(rootProject.file("README.md").readText())
 
-    uploadFile.set(tasks.getByPath("remapJar"))
-    gameVersions.addAll("1.19", "1.19.1", "1.19.2", "1.19.3", "1.19.4")
+    uploadFile.set(tasks.getByPath("remapModrinthJar"))
+    gameVersions.addAll("1.20", "1.20.1")
 
     loaders.add("fabric")
+    failSilently.set(true)
 
     dependencies {
         required.project("fabric-api")

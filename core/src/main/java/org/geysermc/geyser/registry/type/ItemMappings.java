@@ -27,19 +27,22 @@ package org.geysermc.geyser.registry.type;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import lombok.Builder;
 import lombok.Value;
-import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.item.type.PotionItem;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -71,13 +74,15 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
     List<ComponentItemData> componentItemData;
     Int2ObjectMap<String> customIdMappings;
 
+    Object2ObjectMap<CustomBlockData, ItemDefinition> customBlockItemDefinitions;
+
     /**
      * Gets an {@link ItemMapping} from the given {@link ItemStack}.
      *
      * @param itemStack the itemstack
      * @return an item entry from the given java edition identifier
      */
-    @Nonnull
+    @NonNull
     public ItemMapping getMapping(ItemStack itemStack) {
         return this.getMapping(itemStack.getId());
     }
@@ -89,11 +94,12 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
      * @param javaId the id
      * @return an item entry from the given java edition identifier
      */
-    @Nonnull
+    @NonNull
     public ItemMapping getMapping(int javaId) {
         return javaId >= 0 && javaId < this.items.length ? this.items[javaId] : ItemMapping.AIR;
     }
 
+    @Nullable
     public ItemMapping getMapping(Item javaItem) {
         return getMapping(javaItem.javaIdentifier());
     }
@@ -105,6 +111,7 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
      * @param javaIdentifier the block state identifier
      * @return an item entry from the given java edition identifier
      */
+    @Nullable
     public ItemMapping getMapping(String javaIdentifier) {
         return this.cachedJavaMappings.computeIfAbsent(javaIdentifier, key -> {
             for (ItemMapping mapping : this.items) {
@@ -122,6 +129,7 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
      * @param data the item data
      * @return an item entry from the given item data
      */
+    @NonNull
     public ItemMapping getMapping(ItemData data) {
         ItemDefinition definition = data.getDefinition();
         if (ItemDefinition.AIR.equals(definition)) {
@@ -158,9 +166,20 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
         return ItemMapping.AIR;
     }
 
+    @Nullable
     @Override
     public ItemDefinition getDefinition(int bedrockId) {
         return this.itemDefinitions.get(bedrockId);
+    }
+
+    @Nullable
+    public ItemDefinition getDefinition(String bedrockIdentifier) {
+        for (ItemDefinition itemDefinition : this.itemDefinitions.values()) {
+            if (itemDefinition.getIdentifier().equals(bedrockIdentifier)) {
+                return itemDefinition;
+            }
+        }
+        return null;
     }
 
     @Override

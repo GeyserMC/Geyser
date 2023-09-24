@@ -34,6 +34,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.floodgate.bungee.BungeePlatform;
 import org.geysermc.floodgate.bungee.pluginmessage.BungeeSkinApplier;
 import org.geysermc.floodgate.core.skin.SkinApplier;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
@@ -49,7 +50,6 @@ import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.bungeecord.command.GeyserBungeeCommandExecutor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
-import org.geysermc.geyser.util.PlatformType;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -117,26 +117,6 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     @Override
     public void onEnable() {
-        if (getProxy().getConfig().getListeners().size() == 1) {
-            ListenerInfo listener = getProxy().getConfig().getListeners().toArray(new ListenerInfo[0])[0];
-
-            InetSocketAddress javaAddr = listener.getHost();
-
-            // By default this should be localhost but may need to be changed in some circumstances
-            if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
-                this.geyserConfig.setAutoconfiguredRemote(true);
-                // Don't use localhost if not listening on all interfaces
-                if (!javaAddr.getHostString().equals("0.0.0.0") && !javaAddr.getHostString().equals("")) {
-                    this.geyserConfig.getRemote().setAddress(javaAddr.getHostString());
-                }
-                this.geyserConfig.getRemote().setPort(javaAddr.getPort());
-            }
-
-            if (geyserConfig.getBedrock().isCloneRemotePort()) {
-                geyserConfig.getBedrock().setPort(javaAddr.getPort());
-            }
-        }
-
         // Force-disable query if enabled, or else Geyser won't enable
         for (ListenerInfo info : getProxy().getConfig().getListeners()) {
             if (info.isQueryEnabled() && info.getQueryPort() == geyserConfig.getBedrock().port()) {
