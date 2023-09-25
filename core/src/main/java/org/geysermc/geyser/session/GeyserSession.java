@@ -187,10 +187,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private RemoteServer remoteServer;
 
-    @Deprecated
-    @Setter
-    private boolean microsoftAccount;
-
     private final SessionPlayerEntity playerEntity;
 
     private final AdvancementsCache advancementsCache;
