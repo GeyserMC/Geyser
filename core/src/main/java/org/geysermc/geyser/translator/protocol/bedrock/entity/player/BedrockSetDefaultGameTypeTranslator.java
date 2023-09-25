@@ -41,7 +41,7 @@ public class BedrockSetDefaultGameTypeTranslator extends PacketTranslator<SetDef
      */
     @Override
     public void translate(GeyserSession session, SetDefaultGameTypePacket packet) {
-        if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.server")) {
+        if (session.getOpPermissionLevel() >= 2 && session.hasPermission("geyser.settings.server")) {
             session.getGeyser().getWorldManager().setDefaultGameMode(session, GameMode.byId(packet.getGamemode()));
         }
         // Stop the client from updating their own Gamemode without telling the server

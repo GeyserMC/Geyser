@@ -25,24 +25,19 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
-import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
-import org.cloudburstmc.protocol.bedrock.packet.SetDifficultyPacket;
+import org.cloudburstmc.protocol.bedrock.packet.RequestPermissionsPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
-@Translator(packet = SetDifficultyPacket.class)
-public class BedrockSetDifficultyTranslator extends PacketTranslator<SetDifficultyPacket> {
+/**
+ * Sent occasionally by a BDS client when opening the client side server settings menu.
+ */
+@Translator(packet = RequestPermissionsPacket.class)
+public class BedrockRequestPermissionsPacket extends PacketTranslator<RequestPermissionsPacket> {
 
-    /**
-     * Sets the Java server's difficulty via the Bedrock client's "world" menu (given sufficient permissions).
-     */
     @Override
-    public void translate(GeyserSession session, SetDifficultyPacket packet) {
-        if (session.getOpPermissionLevel() >= 2 && session.hasPermission("geyser.settings.server")) {
-            if (packet.getDifficulty() != session.getWorldCache().getDifficulty().ordinal()) {
-                session.getGeyser().getWorldManager().setDifficulty(session, Difficulty.from(packet.getDifficulty()));
-            }
-        }
+    public void translate(GeyserSession session, RequestPermissionsPacket packet) {
+        session.sendAdventureSettings();
     }
 }
