@@ -148,7 +148,7 @@ public interface Command {
          * @param description the command description
          * @return this builder
          */
-        Builder<T> description(@Nullable String description);
+        Builder<T> description(@NonNull String description);
 
         /**
          * Sets the permission node required to run this command. <br>
@@ -157,7 +157,7 @@ public interface Command {
          * @param permission the permission node
          * @return this builder
          */
-        Builder<T> permission(@Nullable String permission);
+        Builder<T> permission(@NonNull String permission);
 
         /**
          * Sets the permission node and its default value. The usage of the default value is platform dependant
@@ -168,7 +168,7 @@ public interface Command {
          * @param defaultValue the node's default value
          * @return this builder
          */
-        Builder<T> permission(@Nullable String permission, @NonNull TriState defaultValue);
+        Builder<T> permission(@NonNull String permission, @NonNull TriState defaultValue);
 
         /**
          * Sets the aliases.
@@ -176,7 +176,7 @@ public interface Command {
          * @param aliases the aliases
          * @return this builder
          */
-        Builder<T> aliases(@Nullable List<String> aliases);
+        Builder<T> aliases(@NonNull List<String> aliases);
 
         /**
          * Sets if this command is designed to be used only by server operators.

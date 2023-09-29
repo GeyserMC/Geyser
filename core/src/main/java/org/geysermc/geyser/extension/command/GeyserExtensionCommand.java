@@ -102,26 +102,26 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
         }
 
         @Override
-        public Builder<T> description(@Nullable String description) {
+        public Builder<T> description(@NonNull String description) {
             this.description = description;
             return this;
         }
 
         @Override
-        public Builder<T> permission(@Nullable String permission) {
+        public Builder<T> permission(@NonNull String permission) {
             this.permission = permission;
             return this;
         }
 
         @Override
-        public Builder<T> permission(@Nullable String permission, @NonNull TriState defaultValue) {
+        public Builder<T> permission(@NonNull String permission, @NonNull TriState defaultValue) {
             this.permission = permission;
             this.permissionDefault = Objects.requireNonNull(defaultValue, "defaultValue");
             return this;
         }
 
         @Override
-        public Builder<T> aliases(@Nullable List<String> aliases) {
+        public Builder<T> aliases(@NonNull List<String> aliases) {
             this.aliases = aliases;
             return this;
         }
