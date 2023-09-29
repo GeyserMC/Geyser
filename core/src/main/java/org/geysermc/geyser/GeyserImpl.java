@@ -600,7 +600,6 @@ public class GeyserImpl implements GeyserApi {
             skinUploader.close();
         }
         newsHandler.shutdown();
-        this.commandRegistry().clear();
 
         if (this.erosionUnixListener != null) {
             this.erosionUnixListener.close();
@@ -638,6 +637,9 @@ public class GeyserImpl implements GeyserApi {
         return this.extensionManager;
     }
 
+    /**
+     * @return the current CommandRegistry in use. The instance may change over the lifecycle of the Geyser runtime.
+     */
     @NonNull
     public CommandRegistry commandRegistry() {
         return this.bootstrap.getCommandRegistry();

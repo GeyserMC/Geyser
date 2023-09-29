@@ -191,12 +191,6 @@ public class CommandRegistry {
         return Collections.unmodifiableMap(this.extensionCommands);
     }
 
-    public void clear() {
-        this.commands.clear();
-        this.extensionCommands.clear();
-        this.permissionDefaults.clear();
-    }
-
     /**
      * For internal Geyser commands
      */
