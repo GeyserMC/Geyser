@@ -26,6 +26,7 @@
 package org.geysermc.geyser.command;
 
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.UUID;
@@ -56,12 +57,14 @@ public record CommandSourceConverter<S>(Class<S> senderType,
         }
 
         if (!(source instanceof GeyserSession)) {
-            // todo cloud remove this
-            GeyserImpl.getInstance().getLogger().warning("Falling back to UUID for command sender lookup for a command source that is not a GeyserSession: " + source);
-            Thread.dumpStack();
+            GeyserLogger logger = GeyserImpl.getInstance().getLogger();
+            if (logger.isDebug()) {
+                logger.debug("Falling back to UUID for command sender lookup for a command source that is not a GeyserSession: " + source);
+                Thread.dumpStack();
+            }
         }
 
-        // Handles GeyserSession
+        // Ideally this should only handle GeyserSession
         return source.playerUuid()
             .map(playerLookup)
             .orElseThrow(() -> new IllegalArgumentException("failed to find sender for name=%s, uuid=%s".formatted(source.name(), source.playerUuid())));
