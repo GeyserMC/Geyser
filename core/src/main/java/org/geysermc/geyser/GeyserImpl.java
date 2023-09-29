@@ -361,13 +361,17 @@ public class GeyserImpl implements GeyserApi {
             this.geyserServer = new GeyserServer(this, bedrockThreadCount);
             this.geyserServer.bind(new InetSocketAddress(config.getBedrock().address(), config.getBedrock().port()))
                 .whenComplete((avoid, throwable) -> {
+                    String address = config.getBedrock().address();
+                    String port = String.valueOf(config.getBedrock().port());
+
                     if (throwable == null) {
-                        logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start", config.getBedrock().address(),
-                                String.valueOf(config.getBedrock().port())));
+                        if ("0.0.0.0".equals(address)) {
+                            // basically just hide it in the log because some people get confused and try to change it
+                            address = "";
+                        }
+                        logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start", address, port));
                     } else {
-                        String address = config.getBedrock().address();
-                        int port = config.getBedrock().port();
-                        logger.severe(GeyserLocale.getLocaleStringLog("geyser.core.fail", address, String.valueOf(port)));
+                        logger.severe(GeyserLocale.getLocaleStringLog("geyser.core.fail", address, port));
                         if (!"0.0.0.0".equals(address)) {
                             logger.info(Component.text("Suggestion: try setting `address` under `bedrock` in the Geyser config back to 0.0.0.0", NamedTextColor.GREEN));
                             logger.info(Component.text("Then, restart this server.", NamedTextColor.GREEN));
