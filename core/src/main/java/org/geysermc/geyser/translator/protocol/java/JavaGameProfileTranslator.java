@@ -26,6 +26,7 @@
 package org.geysermc.geyser.translator.protocol.java;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
+import com.github.steveice10.mc.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
 import com.github.steveice10.mc.protocol.packet.login.clientbound.ClientboundGameProfilePacket;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
@@ -33,7 +34,11 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.PluginMessageUtils;
 
+/**
+ * ClientboundGameProfilePacket triggers protocol change LOGIN -> CONFIGURATION
+ */
 @Translator(packet = ClientboundGameProfilePacket.class)
 public class JavaGameProfileTranslator extends PacketTranslator<ClientboundGameProfilePacket> {
 
@@ -65,5 +70,9 @@ public class JavaGameProfileTranslator extends PacketTranslator<ClientboundGameP
         // We no longer need these variables; they're just taking up space in memory now
         session.setCertChainData(null);
         session.getClientData().setOriginalString(null);
+
+        // configuration phase stuff that the vanilla client replies with after receiving the GameProfilePacket
+        session.sendDownstreamPacket(new ServerboundCustomPayloadPacket("minecraft:brand", PluginMessageUtils.getGeyserBrandData()));
+        session.sendJavaClientSettings();
     }
 }

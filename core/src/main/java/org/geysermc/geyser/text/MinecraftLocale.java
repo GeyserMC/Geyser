@@ -76,7 +76,7 @@ public class MinecraftLocale {
     public static void downloadAndLoadLocale(String locale) {
         locale = locale.toLowerCase(Locale.ROOT);
         if (locale.equals("nb_no")) {
-            // Different locale code - https://minecraft.fandom.com/wiki/Language
+            // Different locale code - https://minecraft.wiki/w/Language
             locale = "no_no";
         }
 
