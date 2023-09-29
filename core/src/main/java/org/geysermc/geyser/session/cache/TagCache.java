@@ -25,9 +25,10 @@
 
 package org.geysermc.geyser.session.cache;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateTagsPacket;
+import com.github.steveice10.mc.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.Item;
@@ -112,7 +113,7 @@ public class TagCache {
         }
     }
 
-    private IntList load(int[] tags) {
+    private IntList load(int @Nullable[] tags) {
         if (tags == null) {
             return IntLists.EMPTY_LIST;
         }
