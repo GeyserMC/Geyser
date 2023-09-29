@@ -31,7 +31,7 @@ import java.util.Locale;
 
 /**
  * Potion identifiers and their respective Bedrock IDs used with arrows.
- * https://minecraft.gamepedia.com/Arrow#Item_Data
+ * https://minecraft.wiki/w/Arrow#Data_values
  */
 @Getter
 public enum TippedArrowPotion {
