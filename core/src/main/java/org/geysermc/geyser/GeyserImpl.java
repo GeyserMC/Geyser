@@ -362,7 +362,7 @@ public class GeyserImpl implements GeyserApi {
             this.geyserServer.bind(new InetSocketAddress(config.getBedrock().address(), config.getBedrock().port()))
                 .whenComplete((avoid, throwable) -> {
                     String address = config.getBedrock().address();
-                    String port = String.valueOf(config.getBedrock().port());
+                    String port = String.valueOf(config.getBedrock().port()); // otherwise we get commas
 
                     if (throwable == null) {
                         if ("0.0.0.0".equals(address)) {
