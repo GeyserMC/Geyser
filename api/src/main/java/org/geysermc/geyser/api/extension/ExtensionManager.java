@@ -36,7 +36,7 @@ import java.util.Collection;
 public abstract class ExtensionManager {
 
     /**
-     * Gets an extension by the given name.
+     * Gets an extension by the given ID.
      *
      * @param id the ID of the extension
      * @return an extension with the given ID
