@@ -216,7 +216,9 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
                 }
             };
 
-            command.aliases = aliases != null ? new ArrayList<>(aliases) : Collections.emptyList();
+            if (aliases != null) {
+                command.aliases = new ArrayList<>(aliases);
+            }
             return command;
         }
     }
