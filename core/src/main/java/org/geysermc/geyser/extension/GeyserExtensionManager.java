@@ -52,17 +52,7 @@ public class GeyserExtensionManager extends ExtensionManager {
     }
 
     @Override
-    public Extension extension(@NonNull String name) {
-        for (Extension extension : this.extensions.values()) {
-            if (extension.name().equalsIgnoreCase(name)) {
-                return extension;
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public Extension extensionById(@NonNull String id) {
+    public Extension extension(@NonNull String id) {
         return this.extensions.get(id);
     }
 

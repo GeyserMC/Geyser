@@ -38,22 +38,11 @@ public abstract class ExtensionManager {
     /**
      * Gets an extension by the given name.
      *
-     * @param name the name of the extension
-     * @return an extension with the given name
-     * @deprecated use {@link #extensionById(String)} instead.
-     */
-    @Deprecated
-    @Nullable
-    public abstract Extension extension(@NonNull String name);
-
-    /**
-     * Gets an extension with the given ID.
-     *
      * @param id the ID of the extension
      * @return an extension with the given ID
      */
     @Nullable
-    public abstract Extension extensionById(@NonNull String id);
+    public abstract Extension extension(@NonNull String id);
 
     /**
      * Enables the given {@link Extension}.
