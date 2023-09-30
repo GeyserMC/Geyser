@@ -45,8 +45,7 @@ public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslat
 
                 if (session.remoteServer().authType() == AuthType.ONLINE) {
                     if (!session.isLoggedIn()) {
-                        if (session.getGeyser().getConfig().getSavedUserLogins() != null &&
-                                session.getGeyser().getConfig().getSavedUserLogins().contains(session.bedrockUsername())) {
+                        if (session.getGeyser().getConfig().getSavedUserLogins().contains(session.bedrockUsername())) {
                             if (session.getGeyser().refreshTokenFor(session.bedrockUsername()) == null) {
                                 LoginEncryptionUtils.buildAndShowConsentWindow(session);
                             } else {
