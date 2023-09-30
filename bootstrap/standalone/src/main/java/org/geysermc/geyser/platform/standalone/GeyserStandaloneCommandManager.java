@@ -115,8 +115,9 @@ public class GeyserStandaloneCommandManager extends CommandManager<GeyserCommand
         return basePermissions.contains(permission);
     }
 
+    @NonNull
     @Override
-    public @NonNull CommandMeta createDefaultCommandMeta() {
+    public CommandMeta createDefaultCommandMeta() {
         return SimpleCommandMeta.empty();
     }
 }

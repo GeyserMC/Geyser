@@ -50,8 +50,8 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
     private final Extension extension;
     private final String rootCommand;
 
-    public GeyserExtensionCommand(@NonNull Extension extension, @NonNull String name, @Nullable String description,
-                                  @Nullable String permission, @Nullable TriState permissionDefault,
+    public GeyserExtensionCommand(@NonNull Extension extension, @NonNull String name, @NonNull String description,
+                                  @NonNull String permission, @Nullable TriState permissionDefault,
                                   boolean executableOnConsole, boolean bedrockOnly) {
 
         super(name, description, permission, permissionDefault, executableOnConsole, bedrockOnly);
@@ -73,17 +73,17 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
     }
 
     public static class Builder<T extends CommandSource> implements Command.Builder<T> {
-        private final Extension extension;
-        private Class<? extends T> sourceType;
-        private String name;
-        private String description;
-        private String permission;
-        private TriState permissionDefault;
-        private List<String> aliases;
+        @NonNull private final Extension extension;
+        @Nullable private Class<? extends T> sourceType;
+        @Nullable private String name;
+        @NonNull private String description = "";
+        @NonNull private String permission = "";
+        @Nullable private TriState permissionDefault;
+        @Nullable private List<String> aliases;
         private boolean suggestedOpOnly = false; // deprecated for removal
         private boolean executableOnConsole = true;
         private boolean bedrockOnly = false;
-        private CommandExecutor<T> executor;
+        @Nullable private CommandExecutor<T> executor;
 
         public Builder(Extension extension) {
             this.extension = Objects.requireNonNull(extension);
@@ -103,20 +103,20 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
 
         @Override
         public Builder<T> description(@NonNull String description) {
-            this.description = description;
+            this.description = Objects.requireNonNull(description, "command description");
             return this;
         }
 
         @Override
         public Builder<T> permission(@NonNull String permission) {
-            this.permission = permission;
+            this.permission = Objects.requireNonNull(permission, "command permission");
             return this;
         }
 
         @Override
         public Builder<T> permission(@NonNull String permission, @NonNull TriState defaultValue) {
-            this.permission = permission;
-            this.permissionDefault = Objects.requireNonNull(defaultValue, "defaultValue");
+            this.permission = Objects.requireNonNull(permission, "command permission");
+            this.permissionDefault = Objects.requireNonNull(defaultValue, "command permission defaultValue");
             return this;
         }
 
@@ -157,10 +157,14 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
         @NonNull
         @Override
         public GeyserExtensionCommand build() {
+            // These are captured in the anonymous lambda below and shouldn't change even if the builder does
             final Class<? extends T> sourceType = this.sourceType;
             final boolean suggestedOpOnly = this.suggestedOpOnly;
             final CommandExecutor<T> executor = this.executor;
 
+            if (name == null) {
+                throw new IllegalArgumentException("name was not provided for a command in extension " + extension.name());
+            }
             if (sourceType == null) {
                 throw new IllegalArgumentException("Source type was not defined for command " + name + " in extension " + extension.name());
             }

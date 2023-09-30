@@ -92,17 +92,17 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
      */
     protected List<String> aliases = Collections.emptyList();
 
-    public GeyserCommand(@NonNull String name, @Nullable String description,
-                         @Nullable String permission, @Nullable TriState permissionDefault,
+    public GeyserCommand(@NonNull String name, @NonNull String description,
+                         @NonNull String permission, @Nullable TriState permissionDefault,
                          boolean executableOnConsole, boolean bedrockOnly) {
 
-        if (name == null || name.isBlank()) {
+        if (name.isBlank()) {
             throw new IllegalArgumentException("Command cannot be null or blank!");
         }
 
         this.name = name;
-        this.description = description != null ? description : "";
-        this.permission = permission != null ? permission : "";
+        this.description = description;
+        this.permission = permission;
         this.permissionDefault = permissionDefault;
 
         if (bedrockOnly && executableOnConsole) {
@@ -113,7 +113,7 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
         this.bedrockOnly = bedrockOnly;
     }
 
-    public GeyserCommand(@NonNull String name, @NonNull String description, @Nullable String permission, @Nullable TriState permissionDefault) {
+    public GeyserCommand(@NonNull String name, @NonNull String description, @NonNull String permission, @Nullable TriState permissionDefault) {
         this(name, description, permission, permissionDefault, true, false);
     }
 
