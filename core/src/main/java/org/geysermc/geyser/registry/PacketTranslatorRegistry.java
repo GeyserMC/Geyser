@@ -35,7 +35,6 @@ import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.util.PlatformType;
 
 import java.util.Collections;
 import java.util.IdentityHashMap;

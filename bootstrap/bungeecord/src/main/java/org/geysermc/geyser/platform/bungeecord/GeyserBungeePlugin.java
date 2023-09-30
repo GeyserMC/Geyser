@@ -31,8 +31,6 @@ import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.protocol.ProtocolConstants;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.floodgate.bungee.BungeePlatform;
-import org.geysermc.floodgate.bungee.pluginmessage.BungeeSkinApplier;
 import org.geysermc.floodgate.core.skin.SkinApplier;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
@@ -43,8 +41,6 @@ import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
-import org.geysermc.geyser.hybrid.HybridProvider;
-import org.geysermc.geyser.hybrid.ProxyHybridProvider;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.bungeecord.command.GeyserBungeeCommandExecutor;
@@ -278,11 +274,6 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
                 .filter(info -> info.getSocketAddress() instanceof InetSocketAddress)
                 .map(info -> (InetSocketAddress) info.getSocketAddress())
                 .findFirst();
-    }
-
-    @Override
-    public HybridProvider createHybridProvider(GeyserImpl geyser) {
-        return new ProxyHybridProvider(geyser);
     }
 
     @Override

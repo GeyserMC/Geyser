@@ -23,11 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-<<<<<<<< HEAD:core/src/main/java/org/geysermc/geyser/util/PlatformType.java
-package org.geysermc.geyser.util;
-========
 package org.geysermc.geyser.api.bedrock.camera;
->>>>>>>> origin/master:api/src/main/java/org/geysermc/geyser/api/bedrock/camera/CameraShake.java
 
 public enum CameraShake {
     POSITIONAL,

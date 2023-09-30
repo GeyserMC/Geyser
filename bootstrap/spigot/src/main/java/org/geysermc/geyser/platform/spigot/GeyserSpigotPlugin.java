@@ -53,8 +53,6 @@ import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
-import org.geysermc.geyser.hybrid.HybridProvider;
-import org.geysermc.geyser.hybrid.IntegratedHybridProvider;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
@@ -412,11 +410,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     @Override
     public SocketAddress getSocketAddress() {
         return this.geyserInjector.getServerSocketAddress();
-    }
-
-    @Override
-    public HybridProvider createHybridProvider(GeyserImpl geyser) {
-        return new IntegratedHybridProvider(geyser);
     }
 
     @Override

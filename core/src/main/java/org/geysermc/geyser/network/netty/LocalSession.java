@@ -39,7 +39,7 @@ import io.netty.channel.unix.PreferredDirectByteBufAllocator;
 import io.netty.handler.codec.haproxy.*;
 import io.netty.util.Attribute;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.hybrid.IntegratedHybridProvider;
+import org.geysermc.geyser.floodgate.IntegratedFloodgateProvider;
 import org.geysermc.geyser.session.GeyserSession;
 
 import javax.annotation.Nullable;
@@ -98,8 +98,8 @@ public final class LocalSession extends TcpSession {
 
                     addHAProxySupport(pipeline);
 
-                    if (GeyserImpl.getInstance().getHybridProvider() instanceof IntegratedHybridProvider) {
-                        Attribute<GeyserSession> attribute = channel.attr(IntegratedHybridProvider.SESSION_KEY);
+                    if (GeyserImpl.getInstance().getFloodgateProvider() instanceof IntegratedFloodgateProvider) {
+                        Attribute<GeyserSession> attribute = channel.attr(IntegratedFloodgateProvider.SESSION_KEY);
                         attribute.set(session);
                     }
                 }

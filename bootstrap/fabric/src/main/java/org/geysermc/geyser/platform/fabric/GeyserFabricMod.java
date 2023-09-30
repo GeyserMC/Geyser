@@ -54,7 +54,6 @@ import org.geysermc.geyser.platform.fabric.command.GeyserFabricCommandExecutor;
 import org.geysermc.geyser.platform.fabric.world.GeyserFabricWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
-import org.geysermc.geyser.util.PlatformType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

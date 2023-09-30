@@ -8,6 +8,7 @@ plugins {
 
 dependencies {
     api(libs.floodgate.core)
+    api(libs.floodgate.isolation)
     annotationProcessor(libs.floodgate.core)
     api(projects.api)
 

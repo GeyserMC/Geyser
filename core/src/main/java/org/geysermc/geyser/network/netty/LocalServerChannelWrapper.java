@@ -29,7 +29,7 @@ import io.netty.channel.local.LocalChannel;
 import io.netty.channel.local.LocalServerChannel;
 import io.netty.util.Attribute;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.hybrid.IntegratedHybridProvider;
+import org.geysermc.geyser.floodgate.IntegratedFloodgateProvider;
 import org.geysermc.geyser.session.GeyserSession;
 
 /**
@@ -44,12 +44,12 @@ public class LocalServerChannelWrapper extends LocalServerChannel {
             LocalChannelWrapper channel = new LocalChannelWrapper(this, peer);
             channel.wrapper().remoteAddress(((LocalChannelWithRemoteAddress) peer).spoofedRemoteAddress());
 
-            if (GeyserImpl.getInstance().getHybridProvider() instanceof IntegratedHybridProvider) {
-                Attribute<GeyserSession> attribute = peer.attr(IntegratedHybridProvider.SESSION_KEY);
+            if (GeyserImpl.getInstance().getFloodgateProvider() instanceof IntegratedFloodgateProvider) {
+                Attribute<GeyserSession> attribute = peer.attr(IntegratedFloodgateProvider.SESSION_KEY);
                 GeyserSession session = attribute.get();
                 // Garbage collect since it's no longer relevant for the PacketLib side.
                 attribute.set(null);
-                channel.attr(IntegratedHybridProvider.SESSION_KEY).set(session);
+                channel.attr(IntegratedFloodgateProvider.SESSION_KEY).set(session);
             }
             return channel;
         }

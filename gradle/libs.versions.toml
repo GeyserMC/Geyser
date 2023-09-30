@@ -4,7 +4,7 @@ floodgate = "development-2.2.2-SNAPSHOT"
 cumulus = "1.1.2"
 erosion = "1.0-20230406.174837-8"
 events = "1.1-SNAPSHOT"
-jackson = { strictly = "2.14.0" } # Don't let other dependencies override
+jackson = "2.14.2"
 fastutil = "8.5.2"
 netty = "4.1.80.Final"
 guava = "29.0-jre"
@@ -27,7 +27,7 @@ folia = "1.19.4-R0.1-SNAPSHOT"
 viaversion = "4.0.0"
 adapters = "1.9-SNAPSHOT"
 commodore = "2.2"
-bungeecord = "a7c6ede"
+bungeecord = "master-SNAPSHOT"
 velocity = "3.1.1"
 fabric-minecraft = "1.20"
 fabric-loader = "0.14.21"
@@ -39,6 +39,7 @@ cumulus = { group = "org.geysermc.cumulus", name = "cumulus", version.ref = "cum
 events = { group = "org.geysermc.event", name = "events", version.ref = "events" }
 
 floodgate-core = { module = "org.geysermc.floodgate:core", version.ref = "floodgate" }
+floodgate-isolation = { module = "org.geysermc.floodgate:isolation", version.ref = "floodgate" }
 floodgate-bungee = { module = "org.geysermc.floodgate:bungee-base", version.ref = "floodgate" }
 floodgate-spigot = { module = "org.geysermc.floodgate:spigot-base", version.ref = "floodgate" }
 floodgate-velocity = { module = "org.geysermc.floodgate:velocity-base", version.ref = "floodgate" }

@@ -74,6 +74,25 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import java.net.ConnectException;
+import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -83,16 +102,55 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.value.qual.IntRange;
-import org.cloudburstmc.math.vector.*;
+import org.cloudburstmc.math.vector.Vector2f;
+import org.cloudburstmc.math.vector.Vector2i;
+import org.cloudburstmc.math.vector.Vector3d;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
-import org.cloudburstmc.protocol.bedrock.data.*;
+import org.cloudburstmc.protocol.bedrock.data.Ability;
+import org.cloudburstmc.protocol.bedrock.data.AbilityLayer;
+import org.cloudburstmc.protocol.bedrock.data.AttributeData;
+import org.cloudburstmc.protocol.bedrock.data.AuthoritativeMovementMode;
+import org.cloudburstmc.protocol.bedrock.data.CameraShakeAction;
+import org.cloudburstmc.protocol.bedrock.data.CameraShakeType;
+import org.cloudburstmc.protocol.bedrock.data.ChatRestrictionLevel;
+import org.cloudburstmc.protocol.bedrock.data.ExperimentData;
+import org.cloudburstmc.protocol.bedrock.data.GamePublishSetting;
+import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
+import org.cloudburstmc.protocol.bedrock.data.GameType;
+import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.data.SpawnBiomeType;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.protocol.bedrock.packet.*;
+import org.cloudburstmc.protocol.bedrock.packet.AvailableEntityIdentifiersPacket;
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
+import org.cloudburstmc.protocol.bedrock.packet.BiomeDefinitionListPacket;
+import org.cloudburstmc.protocol.bedrock.packet.CameraShakePacket;
+import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ClientboundMapItemDataPacket;
+import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
+import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
+import org.cloudburstmc.protocol.bedrock.packet.EmoteListPacket;
+import org.cloudburstmc.protocol.bedrock.packet.EmotePacket;
+import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ItemComponentPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEvent2Packet;
+import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerFogPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetTimePacket;
+import org.cloudburstmc.protocol.bedrock.packet.StartGamePacket;
+import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
+import org.cloudburstmc.protocol.bedrock.packet.TransferPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAbilitiesPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAdventureSettingsPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateSoftEnumPacket;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.cloudburstmc.protocol.common.util.OptionalBoolean;
 import org.geysermc.api.util.BedrockPlatform;
@@ -100,8 +158,8 @@ import org.geysermc.api.util.InputMode;
 import org.geysermc.api.util.UiProfile;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
-import org.geysermc.floodgate.core.crypto.FloodgateCipher;
-import org.geysermc.floodgate.util.BedrockData;
+import org.geysermc.floodgate.core.connection.FloodgateConnection;
+import org.geysermc.floodgate.util.LinkedPlayer;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
@@ -123,8 +181,7 @@ import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.erosion.AbstractGeyserboundPacketHandler;
 import org.geysermc.geyser.erosion.GeyserboundHandshakePacketHandler;
-import org.geysermc.geyser.hybrid.FloodgateHybridProvider;
-import org.geysermc.geyser.hybrid.HybridProvider;
+import org.geysermc.geyser.floodgate.FloodgateProvider;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
@@ -139,8 +196,20 @@ import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
-import org.geysermc.geyser.session.cache.*;
-import org.geysermc.geyser.skin.BedrockSkinUploader;
+import org.geysermc.geyser.session.cache.AdvancementsCache;
+import org.geysermc.geyser.session.cache.BookEditCache;
+import org.geysermc.geyser.session.cache.ChunkCache;
+import org.geysermc.geyser.session.cache.EntityCache;
+import org.geysermc.geyser.session.cache.EntityEffectCache;
+import org.geysermc.geyser.session.cache.FormCache;
+import org.geysermc.geyser.session.cache.LodestoneCache;
+import org.geysermc.geyser.session.cache.PistonCache;
+import org.geysermc.geyser.session.cache.PreferencesCache;
+import org.geysermc.geyser.session.cache.SkullCache;
+import org.geysermc.geyser.session.cache.TagCache;
+import org.geysermc.geyser.session.cache.TeleportCache;
+import org.geysermc.geyser.session.cache.WorldBorder;
+import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.text.TextDecoration;
@@ -152,19 +221,8 @@ import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.net.ConnectException;
-import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-
 @Getter
-public class GeyserSession implements GeyserConnection, GeyserCommandSource {
+public class GeyserSession extends FloodgateConnection implements GeyserConnection, GeyserCommandSource {
 
     private final GeyserImpl geyser;
     private final UpstreamSession upstream;
@@ -343,7 +401,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     /**
      * Tracks the original speed attribute.
-     *
+     * <p>
      * We need to do this in order to emulate speeds when sneaking under 1.5-blocks-tall areas if the player isn't sneaking,
      * and when crawling.
      */
@@ -961,43 +1019,21 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             public void packetSending(PacketSendingEvent event) {
                 //todo move this somewhere else
                 if (event.getPacket() instanceof ClientIntentionPacket) {
-                    String addressSuffix;
-                    HybridProvider provider;
-                    if (floodgate && (provider = geyser.getHybridProvider()) instanceof FloodgateHybridProvider) {
-                        byte[] encryptedData;
+                    String addedData;
 
-                        try {
-                            BedrockSkinUploader skinUploader = geyser.getSkinUploader();
-                            FloodgateCipher cipher = provider.getCipher();
+                    FloodgateProvider provider = geyser.getFloodgateProvider();
+                    try {
+                        addedData = provider.onClientIntention(GeyserSession.this);
+                    } catch (Exception exception) {
+                        geyser.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), exception);
+                        disconnect(GeyserLocale.getPlayerLocaleString("geyser.auth.floodgate.encryption_fail", getClientData().getLanguageCode()));
+                        return;
+                    }
 
-                            String bedrockAddress = upstream.getAddress().getAddress().getHostAddress();
-                            // both BungeeCord and Velocity remove the IPv6 scope (if there is one) for Spigot
-                            int ipv6ScopeIndex = bedrockAddress.indexOf('%');
-                            if (ipv6ScopeIndex != -1) {
-                                bedrockAddress = bedrockAddress.substring(0, ipv6ScopeIndex);
-                            }
-
-                            encryptedData = cipher.encryptFromString(BedrockData.of(
-                                    clientData.getGameVersion(),
-                                    authData.name(),
-                                    authData.xuid(),
-                                    clientData.getDeviceOs().ordinal(),
-                                    clientData.getLanguageCode(),
-                                    clientData.getUiProfile().ordinal(),
-                                    clientData.getCurrentInputMode().ordinal(),
-                                    bedrockAddress,
-                                    skinUploader.getId(),
-                                    skinUploader.getVerifyCode()
-                            ).toString());
-                        } catch (Exception e) {
-                            geyser.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);
-                            disconnect(GeyserLocale.getPlayerLocaleString("geyser.auth.floodgate.encryption_fail", getClientData().getLanguageCode()));
-                            return;
-                        }
-
-                        addressSuffix = '\0' + new String(encryptedData, StandardCharsets.UTF_8);
+                    if (addedData != null) {
+                        addedData = '\0' + addedData;
                     } else {
-                        addressSuffix = "";
+                        addedData = "";
                     }
 
                     ClientIntentionPacket intentionPacket = event.getPacket();
@@ -1009,7 +1045,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                         address = intentionPacket.getHostname();
                     }
 
-                    event.setPacket(intentionPacket.withHostname(address + addressSuffix));
+                    event.setPacket(intentionPacket.withHostname(address + addedData));
                 }
             }
 
@@ -1481,11 +1517,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
-    public InetSocketAddress socketAddress() {
-        return this.upstream.getAddress();
-    }
-
-    @Override
     public boolean sendForm(@NonNull Form form) {
         formCache.showForm(form);
         return true;
@@ -1495,22 +1526,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public boolean sendForm(@NonNull FormBuilder<?, ?, ?> formBuilder) {
         formCache.showForm(formBuilder.build());
         return true;
-    }
-
-    /**
-     * @deprecated since Cumulus version 1.1, and will be removed when Cumulus 2.0 releases. Please use the new forms instead.
-     */
-    @Deprecated
-    public void sendForm(org.geysermc.cumulus.Form<?> form) {
-        sendForm(form.newForm());
-    }
-
-    /**
-     * @deprecated since Cumulus version 1.1, and will be removed when Cumulus 2.0 releases. Please use the new forms instead.
-     */
-    @Deprecated
-    public void sendForm(org.geysermc.cumulus.util.FormBuilder<?, ?> formBuilder) {
-        sendForm(formBuilder.build());
     }
 
     private void startGame() {
@@ -1947,8 +1962,18 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
-    public boolean isLinked() {
-        return false; //todo
+    public @NonNull UUID identity() {
+        return authData.uuid();
+    }
+
+    @Override
+    public @NonNull InetAddress ip() {
+        return upstream.getAddress().getAddress();
+    }
+
+    @Override
+    public @MonotonicNonNull LinkedPlayer linkedPlayer() {
+        return null; //todo
     }
 
     @SuppressWarnings("ConstantConditions") // Need to enforce the parameter annotations

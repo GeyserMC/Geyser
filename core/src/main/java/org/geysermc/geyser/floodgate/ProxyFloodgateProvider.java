@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,22 +23,31 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.floodgate.news.data;
+package org.geysermc.geyser.floodgate;
 
-import com.google.gson.JsonObject;
+import java.nio.charset.StandardCharsets;
+import org.geysermc.floodgate.core.FloodgatePlatform;
+import org.geysermc.floodgate.core.crypto.FloodgateDataCodec;
+import org.geysermc.geyser.session.GeyserSession;
 
-public final class CheckAfterData implements ItemData {
-    private long checkAfter;
+//todo Floodgate should be responsible for forwarding its messages
+public final class ProxyFloodgateProvider implements FloodgateProvider {
+    private final FloodgateDataCodec dataCodec;
 
-    private CheckAfterData() {}
-
-    public static CheckAfterData read(JsonObject data) {
-        CheckAfterData checkAfterData = new CheckAfterData();
-        checkAfterData.checkAfter = data.get("check_after").getAsLong();
-        return checkAfterData;
+    public ProxyFloodgateProvider(FloodgatePlatform platform) {
+        dataCodec = platform.getBean(FloodgateDataCodec.class);
     }
 
-    public long getCheckAfter() {
-        return checkAfter;
+    @Override
+    public void onSkinUpload(GeyserSession session, String value, String signature) {
+        byte[] bytes = (value + '\0' + signature)
+                .getBytes(StandardCharsets.UTF_8);
+        //todo
+//        PluginMessageUtils.sendMessage(session, PluginMessageChannels.SKIN, bytes);
+    }
+
+    @Override
+    public String onClientIntention(GeyserSession session) throws Exception {
+        return dataCodec.encodeToString(session);
     }
 }

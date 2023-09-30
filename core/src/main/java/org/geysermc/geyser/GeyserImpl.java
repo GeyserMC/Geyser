@@ -64,12 +64,13 @@ import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.erosion.UnixSocketClientListener;
 import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.extension.GeyserExtensionManager;
-import org.geysermc.geyser.hybrid.HybridProvider;
+import org.geysermc.geyser.floodgate.FloodgateProvider;
+import org.geysermc.geyser.floodgate.NoFloodgateProvider;
+import org.geysermc.geyser.floodgate.ProxyFloodgateProvider;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.netty.GeyserServer;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
@@ -131,7 +132,7 @@ public class GeyserImpl implements GeyserApi {
     @Setter
     private static boolean shouldStartListener = true;
 
-    private HybridProvider hybridProvider;
+    private final FloodgateProvider floodgateProvider;
     private BedrockSkinUploader skinUploader;
     private NewsHandler newsHandler;
 
@@ -156,16 +157,18 @@ public class GeyserImpl implements GeyserApi {
 
     private static GeyserImpl instance;
 
-    private final FloodgatePlatform floodgatePlatform;
 
     private GeyserImpl(PlatformType platformType, GeyserBootstrap bootstrap, FloodgatePlatform floodgatePlatform) {
         instance = this;
-        this.floodgatePlatform = floodgatePlatform;
 
         if (floodgatePlatform != null) {
             floodgatePlatform.load();
             floodgatePlatform.enable();
+//            this.floodgatePlatform = floodgatePlatform.isProxy() ? new ProxyFloodgateProvider(floodgatePlatform) : new IntegratedFloodgateProvider(floodgatePlatform);
+//            this.floodgateProvider = new IntegratedFloodgateProvider(floodgatePlatform);
+            this.floodgateProvider = new ProxyFloodgateProvider(floodgatePlatform);
         } else {
+            this.floodgateProvider = new NoFloodgateProvider();
             Geyser.set(this);
         }
 
@@ -314,7 +317,7 @@ public class GeyserImpl implements GeyserApi {
                 }
             }
 
-            boolean floodgatePresent = bootstrap.testFloodgatePluginPresent();
+            boolean floodgatePresent = bootstrap.testFloodgatePluginPresent() || floodgateProvider != null; //todo
             if (config.getRemote().authType() == AuthType.FLOODGATE && !floodgatePresent) {
                 logger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " "
                         + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
@@ -383,7 +386,6 @@ public class GeyserImpl implements GeyserApi {
         }
 
         if (config.getRemote().authType() == AuthType.FLOODGATE) {
-            hybridProvider = bootstrap.createHybridProvider(this);
             try {
                 // Note: this is positioned after the bind so the skin uploader doesn't try to run if Geyser fails
                 // to load successfully. Spigot complains about class loader if the plugin is disabled.

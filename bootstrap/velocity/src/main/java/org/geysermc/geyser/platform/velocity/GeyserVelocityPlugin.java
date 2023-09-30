@@ -38,6 +38,7 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
 import net.kyori.adventure.util.Codec;
 import org.geysermc.floodgate.core.FloodgatePlatform;
+import org.geysermc.floodgate.velocity.VelocityPlatform;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
@@ -50,7 +51,7 @@ import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.velocity.command.GeyserVelocityCommandExecutor;
-import org.geysermc.geyser.platform.velocity.floodgate.FloodgateVelocityPlatform;
+import org.geysermc.geyser.platform.velocity.floodgate.FloodgateModule;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 import org.jetbrains.annotations.NotNull;
@@ -122,7 +123,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
         FloodgatePlatform platform = null;
         if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE) {
-            platform = guice.getInstance(FloodgateVelocityPlatform.class);
+            platform = guice.createChildInjector(new FloodgateModule(configFolder)).getInstance(VelocityPlatform.class);
         }
 
         this.geyser = GeyserImpl.load(PlatformType.VELOCITY, this, platform);

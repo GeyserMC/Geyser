@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,21 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.hybrid;
+package org.geysermc.geyser.floodgate;
 
-import org.geysermc.floodgate.core.crypto.FloodgateCipher;
-import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.session.GeyserSession;
 
-public final class ProxyHybridProvider extends IntegratedHybridProvider {
-    private final FloodgateCipher cipher;
+public final class NoFloodgateProvider implements FloodgateProvider {
+    @Override
+    public void onSkinUpload(GeyserSession session, String value, String signature) {
 
-    public ProxyHybridProvider(GeyserImpl geyser) {
-        super(geyser);
-        this.cipher = geyser.getFloodgatePlatform().getBean(FloodgateCipher.class);
     }
 
     @Override
-    public FloodgateCipher getCipher() {
-        return cipher;
+    public String onClientIntention(GeyserSession session) {
+        return null;
     }
 }

@@ -2,15 +2,21 @@ dependencies {
     annotationProcessor(libs.velocity.api)
     implementation(libs.floodgate.velocity)
     api(projects.core)
+
+    compileOnlyApi(libs.velocity.api) {
+        exclude(module = "org.yaml:snakeyaml")
+    }
 }
 
 platformRelocate("com.fasterxml.jackson")
 platformRelocate("it.unimi.dsi.fastutil")
 platformRelocate("net.kyori.adventure.text.serializer.gson.legacyimpl")
+platformRelocate("org.yaml.snakeyaml")
+platformRelocate("org.bstats") //todo
 
 exclude("com.google.*:*")
 
-// Needed because Velocity provides every dependency except netty-resolver-dns 
+// Needed because Velocity provides every dependency except netty-resolver-dns
 exclude("io.netty:netty-transport-native-epoll:*")
 exclude("io.netty:netty-transport-native-unix-common:*")
 exclude("io.netty:netty-transport-native-kqueue:*")
@@ -24,16 +30,13 @@ exclude("io.netty:netty-codec-haproxy:*")
 exclude("org.slf4j:*")
 exclude("org.ow2.asm:*")
 
-// Exclude all Kyori dependencies except the legacy NBT serializer 
+// Exclude all Kyori dependencies except the legacy NBT serializer
 exclude("net.kyori:adventure-api:*")
 exclude("net.kyori:examination-api:*")
 exclude("net.kyori:examination-string:*")
 exclude("net.kyori:adventure-text-serializer-gson:*")
 exclude("net.kyori:adventure-text-serializer-legacy:*")
 exclude("net.kyori:adventure-nbt:*")
-        
-// These dependencies are already present on the platform
-provided(libs.velocity.api)
 
 application {
     mainClass.set("org.geysermc.geyser.platform.velocity.GeyserVelocityMain")

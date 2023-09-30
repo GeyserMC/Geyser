@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,18 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.floodgate.crypto;
+package org.geysermc.geyser.floodgate;
 
-import java.util.Base64;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.session.GeyserSession;
 
-public final class Base64Topping implements Topping {
-    @Override
-    public byte[] encode(byte[] data) {
-        return Base64.getEncoder().encode(data);
-    }
+public interface FloodgateProvider {
+    void onSkinUpload(GeyserSession session, String value, String signature);
 
-    @Override
-    public byte[] decode(byte[] data) {
-        return Base64.getDecoder().decode(data);
-    }
+    /**
+     * Called before Geyser sends the ClientIntention to the Java server.
+     *
+     * @return data to add to the hostname
+     */
+    @Nullable String onClientIntention(GeyserSession session) throws Exception;
 }

@@ -23,22 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.floodgate.news;
+package org.geysermc.geyser.platform.velocity.floodgate;
 
-public enum NewsItemAction {
-    ON_SERVER_STARTED,
-    ON_OPERATOR_JOIN,
-    BROADCAST_TO_CONSOLE,
-    BROADCAST_TO_OPERATORS;
+import com.google.inject.AbstractModule;
+import java.nio.file.Path;
+import org.geysermc.floodgate.isolation.library.LibraryManager;
 
-    private static final NewsItemAction[] VALUES = values();
+public class FloodgateModule extends AbstractModule {
+    private final Path dataDirectory;
 
-    public static NewsItemAction getByName(String actionName) {
-        for (NewsItemAction type : VALUES) {
-            if (type.name().equalsIgnoreCase(actionName)) {
-                return type;
-            }
-        }
-        return null;
+    public FloodgateModule(Path dataDirectory) {
+        this.dataDirectory = dataDirectory;
+    }
+
+    @Override
+    protected void configure() {
+        var libsDirectory = dataDirectory.resolve("libs");
+        bind(LibraryManager.class).toInstance(new LibraryManager(getClass().getClassLoader(), libsDirectory, true));
     }
 }

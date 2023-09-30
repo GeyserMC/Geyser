@@ -64,7 +64,6 @@ include(":fabric")
 include(":spigot")
 include(":standalone")
 include(":velocity")
-include(":common")
 include(":core")
 
 // Specify project dirs

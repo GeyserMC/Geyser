@@ -118,7 +118,7 @@ public final class BedrockSkinUploader {
                                 String value = data.get("value").asText();
                                 String signature = data.get("signature").asText();
 
-                                geyser.getHybridProvider().onSkinUpload(session, value, signature);
+                                geyser.getFloodgateProvider().onSkinUpload(session, value, signature);
                             }
                             break;
                         case LOG_MESSAGE:

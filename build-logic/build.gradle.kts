@@ -8,8 +8,8 @@ repositories {
 }
 
 dependencies {
-    implementation("net.kyori", "indra-common", "3.1.1")
-    implementation("com.github.johnrengelman", "shadow", "7.1.3-SNAPSHOT")
+    implementation("net.kyori", "indra-common", "3.1.3")
+    implementation("com.github.johnrengelman", "shadow", "8.1.1")
 
     // Within the gradle plugin classpath, there is a version conflict between loom and some other
     // plugin for databind. This fixes it: minimum 2.13.2 is required by loom.
