@@ -165,7 +165,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
 
                         String name = description.name();
                         String id = description.id();
-                        if (extensions.containsKey(id) || extensionManager.extensionById(id) != null) {
+                        if (extensions.containsKey(id) || extensionManager.extension(id) != null) {
                             GeyserImpl.getInstance().getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.extensions.load.duplicate", name, path.toString()));
                             return;
                         }
