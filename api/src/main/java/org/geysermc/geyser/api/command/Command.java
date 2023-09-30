@@ -26,7 +26,6 @@
 package org.geysermc.geyser.api.command;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
@@ -100,7 +99,7 @@ public interface Command {
     boolean isBedrockOnly();
 
     /**
-     * @deprecated this method will always return an empty list
+     * @deprecated this method will always return an immutable list
      */
     @Deprecated(forRemoval = true)
     @NonNull

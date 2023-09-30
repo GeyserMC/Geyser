@@ -88,7 +88,7 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
     private final boolean bedrockOnly;
 
     /**
-     * The aliases of the command {@link #name}
+     * The aliases of the command {@link #name}. This should not be modified after construction.
      */
     protected List<String> aliases = Collections.emptyList();
 
