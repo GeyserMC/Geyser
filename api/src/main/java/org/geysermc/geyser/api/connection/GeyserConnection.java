@@ -95,4 +95,9 @@ public interface GeyserConnection extends Connection, CommandSource {
      */
     @NonNull
     Set<String> fogEffects();
+
+    /**
+     * Returns the current ping of the connection.
+     */
+    int ping();
 }

@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import org.cloudburstmc.netty.channel.raknet.RakChildChannel;
-import org.cloudburstmc.netty.handler.codec.raknet.common.RakSessionCodec;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
@@ -40,8 +38,7 @@ public class PingCommand extends GeyserCommand {
     @Override
     public void execute(GeyserSession session, GeyserCommandSource sender, String[] args) {
         if (session == null) return;
-        RakSessionCodec rakSessionCodec = ((RakChildChannel) session.getUpstream().getSession().getPeer().getChannel()).rakPipeline().get(RakSessionCodec.class);
-        sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.ping.message", sender.locale(), (int) Math.floor(rakSessionCodec.getPing())));
+        sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.ping.message", sender.locale(), session.ping()));
     }
 
     @Override
