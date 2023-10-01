@@ -43,6 +43,7 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.Geyser;
+import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
@@ -68,6 +69,7 @@ import org.geysermc.geyser.erosion.UnixSocketClientListener;
 import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.extension.GeyserExtensionManager;
 import org.geysermc.geyser.level.WorldManager;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.GeyserServer;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -110,8 +112,8 @@ public class GeyserImpl implements GeyserApi {
             .enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
 
     public static final String NAME = "Geyser";
-    public static final String GIT_VERSION = "${gitVersion}"; // A fallback for running in IDEs
-    public static final String VERSION = "${version}"; // A fallback for running in IDEs
+    public static final String GIT_VERSION = "${gitVersion}";
+    public static final String VERSION = "${version}";
 
     public static final String BUILD_NUMBER = "${buildNumber}";
     public static final String BRANCH = "${branch}";
@@ -681,6 +683,31 @@ public class GeyserImpl implements GeyserApi {
     @NonNull
     public PlatformType platformType() {
         return platformType;
+    }
+
+    @Override
+    public @NonNull String getJavaMinecraftVersion() {
+        return GameProtocol.getJavaMinecraftVersion();
+    }
+
+    @Override
+    public int getJavaProtocolVersion() {
+        return GameProtocol.getJavaProtocolVersion();
+    }
+
+    @Override
+    public @NonNull String getBedrockMinecraftVersion() {
+        return GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion();
+    }
+
+    @Override
+    public int getBedrockProtocolVersion() {
+        return GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion();
+    }
+
+    @Override
+    public @NonNull CommandSource getConsoleCommandSource() {
+        return getLogger();
     }
 
     public int buildNumber() {
