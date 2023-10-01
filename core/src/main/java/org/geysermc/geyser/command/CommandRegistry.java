@@ -233,12 +233,12 @@ public class CommandRegistry {
     @NonNull
     public String description(@NonNull String command, @NonNull String locale) {
         if (command.equals(GeyserCommand.DEFAULT_ROOT_COMMAND)) {
-            return GeyserLocale.getPlayerLocaleString("geyser.command.geyser_desc", locale);
+            return GeyserLocale.getPlayerLocaleString("geyser.command.root.geyser", locale);
         }
 
         Extension extension = extensionRootCommands.get(command);
         if (extension != null) {
-            return GeyserLocale.getPlayerLocaleString("geyser.command.extension_desc", locale, extension.description().name());
+            return GeyserLocale.getPlayerLocaleString("geyser.command.root.extension", locale, extension.name());
         }
         return "";
     }
