@@ -26,7 +26,6 @@
 package org.geysermc.geyser.network.netty;
 
 import com.github.steveice10.packetlib.helper.TransportHelper;
-import com.github.steveice10.packetlib.tcp.TcpClientSession;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -85,6 +84,12 @@ public final class GeyserServer {
 
     private static final Transport TRANSPORT = compatibleTransport();
 
+    /**
+     * See {@link EventLoopGroup#shutdownGracefully(long, long, TimeUnit)}
+     */
+    private static final int SHUTDOWN_QUIET_PERIOD_MS = 100;
+    private static final int SHUTDOWN_TIMEOUT_MS = 500;
+
     private final GeyserImpl geyser;
     private EventLoopGroup group;
     private final ServerBootstrap bootstrap;
@@ -93,7 +98,7 @@ public final class GeyserServer {
     @Getter
     private final ExpiringMap<InetSocketAddress, InetSocketAddress> proxiedAddresses;
 
-    private ChannelFuture future;
+    private ChannelFuture bootstrapFuture;
 
     public GeyserServer(GeyserImpl geyser, int threadCount) {
         this.geyser = geyser;
@@ -112,7 +117,7 @@ public final class GeyserServer {
 
     public CompletableFuture<Void> bind(InetSocketAddress address) {
         CompletableFuture<Void> future = new CompletableFuture<>();
-        this.future = this.bootstrap.bind(address).addListener(bindResult -> {
+        this.bootstrapFuture = this.bootstrap.bind(address).addListener(bindResult -> {
             if (bindResult.cause() != null) {
                 future.completeExceptionally(bindResult.cause());
                 return;
@@ -120,7 +125,7 @@ public final class GeyserServer {
             future.complete(null);
         });
 
-        Channel channel = this.future.channel();
+        Channel channel = this.bootstrapFuture.channel();
 
         // Add our ping handler
         channel.pipeline()
@@ -136,15 +141,18 @@ public final class GeyserServer {
 
     public void shutdown() {
         try {
-            this.group.shutdownGracefully().sync();
+            var future1 = this.group.shutdownGracefully(SHUTDOWN_QUIET_PERIOD_MS, SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS);
             this.group = null;
-            this.playerGroup.shutdownGracefully().sync();
+            var future2 = this.playerGroup.shutdownGracefully(SHUTDOWN_QUIET_PERIOD_MS, SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS);
             this.playerGroup = null;
+            future1.sync();
+            future2.sync();
+
             SkinProvider.shutdown();
         } catch (InterruptedException e) {
-           e.printStackTrace();
+            GeyserImpl.getInstance().getLogger().severe("Exception in shutdown process", e);
         }
-        this.future.channel().closeFuture().syncUninterruptibly();
+        this.bootstrapFuture.channel().closeFuture().syncUninterruptibly();
     }
 
     private ServerBootstrap createBootstrap(EventLoopGroup group) {
@@ -230,7 +238,7 @@ public final class GeyserServer {
                 .version(GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()) // Required to not be empty as of 1.16.210.59. Can only contain . and numbers.
                 .ipv4Port(this.geyser.getConfig().getBedrock().port())
                 .ipv6Port(this.geyser.getConfig().getBedrock().port())
-                .serverId(future.channel().config().getOption(RakChannelOption.RAK_GUID));
+                .serverId(bootstrapFuture.channel().config().getOption(RakChannelOption.RAK_GUID));
 
         if (config.isPassthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
             String[] motd = MessageTranslator.convertMessageLenient(pingInfo.getDescription()).split("\n");
