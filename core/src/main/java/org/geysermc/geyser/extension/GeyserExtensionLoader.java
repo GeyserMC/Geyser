@@ -66,26 +66,38 @@ public class GeyserExtensionLoader extends ExtensionLoader {
         }
 
         Path parentFile = path.getParent();
-        Path dataFolder = parentFile.resolve(description.name());
+
+        // Extension folders used to be created by name; this changes them to the ID
+        Path oldDataFolder = parentFile.resolve(description.name());
+        Path dataFolder = parentFile.resolve(description.id());
+
+        if (Files.exists(oldDataFolder) && Files.isDirectory(oldDataFolder) && !oldDataFolder.equals(dataFolder)) {
+            try {
+                Files.move(oldDataFolder, dataFolder, StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                throw new InvalidExtensionException("Failed to move data folder for extension " + description.name(), e);
+            }
+        }
+
         if (Files.exists(dataFolder) && !Files.isDirectory(dataFolder)) {
             throw new InvalidExtensionException("The folder " + dataFolder + " is not a directory and is the data folder for the extension " + description.name() + "!");
         }
 
         final GeyserExtensionClassLoader loader;
         try {
-            loader = new GeyserExtensionClassLoader(this, getClass().getClassLoader(), path);
+            loader = new GeyserExtensionClassLoader(this, getClass().getClassLoader(), path, description);
         } catch (Throwable e) {
             throw new InvalidExtensionException(e);
         }
 
-        this.classLoaders.put(description.name(), loader);
+        this.classLoaders.put(description.id(), loader);
 
-        final Extension extension = loader.load(description);
+        final Extension extension = loader.load();
         return this.setup(extension, description, dataFolder, new GeyserExtensionEventBus(GeyserImpl.getInstance().eventBus(), extension));
     }
 
     private GeyserExtensionContainer setup(Extension extension, GeyserExtensionDescription description, Path dataFolder, ExtensionEventBus eventBus) {
-        GeyserExtensionLogger logger = new GeyserExtensionLogger(GeyserImpl.getInstance().getLogger(), description.name());
+        GeyserExtensionLogger logger = new GeyserExtensionLogger(GeyserImpl.getInstance().getLogger(), description.id());
         return new GeyserExtensionContainer(extension, dataFolder, description, this, logger, eventBus);
     }
 
@@ -152,7 +164,8 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                         GeyserExtensionDescription description = this.extensionDescription(path);
 
                         String name = description.name();
-                        if (extensions.containsKey(name) || extensionManager.extension(name) != null) {
+                        String id = description.id();
+                        if (extensions.containsKey(id) || extensionManager.extension(id) != null) {
                             GeyserImpl.getInstance().getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.extensions.load.duplicate", name, path.toString()));
                             return;
                         }
@@ -169,8 +182,8 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                             return;
                         }
 
-                        extensions.put(name, path);
-                        loadedExtensions.put(name, this.loadExtension(path, description));
+                        extensions.put(id, path);
+                        loadedExtensions.put(id, this.loadExtension(path, description));
                     } catch (Exception e) {
                         GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_with_name", path.getFileName(), path.toAbsolutePath()), e);
                     }
