@@ -151,7 +151,8 @@ public interface Command {
 
         /**
          * Sets the permission node required to run this command. <br>
-         * It will not be registered anywhere, unlike {@link #permission(String, TriState)}.
+         * It will not be registered with any permission registries, such as an underlying server,
+         * or a permissions Extension (unlike {@link #permission(String, TriState)}).
          *
          * @param permission the permission node
          * @return this builder
@@ -160,8 +161,9 @@ public interface Command {
 
         /**
          * Sets the permission node and its default value. The usage of the default value is platform dependant
-         * and may or may not be used. <br>
-         * Extensions may instead listen for {@link GeyserRegisterPermissionsEvent} to register permissions.
+         * and may or may not be used. For example, it may be registered to an underlying server.<br><br>
+         * Extensions may instead listen for {@link GeyserRegisterPermissionsEvent} to register permissions, which
+         * should be used if the same permission is required by multiple commands.
          *
          * @param permission the permission node
          * @param defaultValue the node's default value
