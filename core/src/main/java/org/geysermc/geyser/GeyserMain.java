@@ -28,6 +28,7 @@ package org.geysermc.geyser;
 import javax.swing.*;
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.Scanner;
 
@@ -60,7 +61,7 @@ public class GeyserMain {
             helpStream = GeyserMain.class.getClassLoader().getResourceAsStream("languages/run-help/en_US.txt");
         }
 
-        Scanner help = new Scanner(helpStream).useDelimiter("\\Z");
+        Scanner help = new Scanner(helpStream, StandardCharsets.UTF_8).useDelimiter("\\Z");
         String line = "";
         while (help.hasNext()) {
             line = help.next();
