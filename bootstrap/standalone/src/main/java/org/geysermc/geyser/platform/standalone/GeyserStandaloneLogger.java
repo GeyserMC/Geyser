@@ -44,9 +44,9 @@ public class GeyserStandaloneLogger extends SimpleTerminalConsole implements Gey
 
     @Override
     protected void runCommand(String line) {
-        // seems like terminal console appender invokes this method async off the terminal,
-        // so we can probably invoke the command directly on the current thread
-        GeyserImpl.getInstance().commandRegistry().runCommand(this, line);
+        // don't block the terminal!
+        GeyserImpl geyser = GeyserImpl.getInstance();
+        geyser.getScheduledThread().execute(() -> geyser.commandRegistry().runCommand(this, line));
     }
 
     @Override
