@@ -26,9 +26,9 @@
 package org.geysermc.geyser.api.command;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.connection.Connection;
 
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -69,15 +69,15 @@ public interface CommandSource {
     boolean isConsole();
 
     /**
-     * @return an Optional containing a Java UUID if this source represents any player, otherwise empty
+     * @return a Java UUID if this source represents a player, otherwise null
      */
-    Optional<UUID> playerUuid();
+    @Nullable UUID playerUuid();
 
     /**
-     * @return an Optional with a present Connection if this source represents a Bedrock player that is connected
-     * to this Geyser instance. Otherwise, returns an empty optional.
+     * @return a Connection if this source represents a Bedrock player that is connected
+     * to this Geyser instance, otherwise null
      */
-    Optional<? extends Connection> connection();
+    @Nullable Connection connection();
 
     /**
      * Returns the locale of the command source.

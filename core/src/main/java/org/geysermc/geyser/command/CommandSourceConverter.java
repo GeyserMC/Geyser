@@ -64,10 +64,13 @@ public record CommandSourceConverter<S>(Class<S> senderType,
             }
         }
 
-        // Ideally this should only handle GeyserSession
-        return source.playerUuid()
-            .map(playerLookup)
-            .orElseThrow(() -> new IllegalArgumentException("failed to find sender for name=%s, uuid=%s".formatted(source.name(), source.playerUuid())));
+        // Ideally lookup should only be necessary for GeyserSession
+        UUID uuid = source.playerUuid();
+        if (uuid != null) {
+            return playerLookup.apply(uuid);
+        }
+
+        throw new IllegalArgumentException("failed to find sender for name=%s, uuid=%s".formatted(source.name(), source.playerUuid()));
     }
 
     /**

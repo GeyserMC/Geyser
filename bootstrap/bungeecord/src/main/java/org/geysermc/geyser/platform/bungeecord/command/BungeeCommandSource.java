@@ -31,11 +31,11 @@ import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Locale;
-import java.util.Optional;
 import java.util.UUID;
 
 public class BungeeCommandSource implements GeyserCommandSource {
@@ -76,11 +76,11 @@ public class BungeeCommandSource implements GeyserCommandSource {
     }
 
     @Override
-    public Optional<UUID> playerUuid() {
+    public @Nullable UUID playerUuid() {
         if (handle instanceof ProxiedPlayer player) {
-            return Optional.of(player.getUniqueId());
+            return player.getUniqueId();
         }
-        return Optional.empty();
+        return null;
     }
 
     @Override

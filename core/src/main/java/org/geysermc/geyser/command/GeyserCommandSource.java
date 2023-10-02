@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.command;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.session.GeyserSession;
@@ -32,7 +33,7 @@ import org.geysermc.geyser.text.GeyserLocale;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
-import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Implemented on top of any class that can send a command.
@@ -60,8 +61,12 @@ public interface GeyserCommandSource extends CommandSource {
     }
 
     @Override
-    default Optional<GeyserSession> connection() {
-        return playerUuid().map(id -> GeyserImpl.getInstance().connectionByUuid(id));
+    default @Nullable GeyserSession connection() {
+        UUID uuid = playerUuid();
+        if (uuid == null) {
+            return null;
+        }
+        return GeyserImpl.getInstance().connectionByUuid(uuid);
     }
 
     /**

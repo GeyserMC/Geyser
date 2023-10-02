@@ -31,11 +31,11 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.ChatColor;
 
-import java.util.Optional;
 import java.util.UUID;
 
 public class FabricCommandSource implements GeyserCommandSource {
@@ -76,11 +76,11 @@ public class FabricCommandSource implements GeyserCommandSource {
     }
 
     @Override
-    public Optional<UUID> playerUuid() {
+    public @Nullable UUID playerUuid() {
         if (source.getEntity() instanceof ServerPlayer player) {
-            return Optional.of(player.getUUID());
+            return player.getUUID();
         }
-        return Optional.empty();
+        return null;
     }
 
     @Override

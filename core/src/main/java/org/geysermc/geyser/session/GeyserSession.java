@@ -1451,13 +1451,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
-    public Optional<UUID> playerUuid() {
-        return Optional.of(playerEntity.getUuid());
+    public @NonNull UUID playerUuid() {
+        return playerEntity.getUuid();
     }
 
     @Override
-    public Optional<GeyserSession> connection() {
-        return Optional.of(this);
+    public @NonNull GeyserSession connection() {
+        return this;
     }
 
     @Override
