@@ -92,11 +92,12 @@ public interface CustomItemData {
     @Nullable CustomRenderOffsets renderOffsets();
 
     /**
-     * Gets the item's tags to use in Molang.
+     * Gets the item's set of tags that can be used in Molang.
+     * Equivalent to "tag:some_tag"
      *
      * @return the item's tags, if they exist
      */
-    @Nullable Set<String> tags();
+    @NonNull Set<String> tags();
 
     static CustomItemData.Builder builder() {
         return GeyserApi.api().provider(CustomItemData.Builder.class);
@@ -122,7 +123,7 @@ public interface CustomItemData {
 
         Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets);
 
-        Builder tags(@Nullable Set<String> tags);
+        Builder tags(@NonNull Set<String> tags);
 
         CustomItemData build();
     }

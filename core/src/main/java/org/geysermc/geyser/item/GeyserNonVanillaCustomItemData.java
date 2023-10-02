@@ -238,7 +238,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder tags(@Nullable Set<String> tags) {
+        public NonVanillaCustomItemData.Builder tags(@NonNull Set<String> tags) {
             return (NonVanillaCustomItemData.Builder) super.tags(tags);
         }
 

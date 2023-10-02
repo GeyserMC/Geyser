@@ -37,7 +37,6 @@ import org.geysermc.geyser.api.block.custom.component.GeometryComponent;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.component.PlacementConditions;
 import org.geysermc.geyser.api.block.custom.component.TransformationComponent;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 import java.util.List;
@@ -152,7 +151,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     }
 
     @Override
-    public @NotNull Set<String> tags() {
+    public @NonNull Set<String> tags() {
         return tags;
     }
 
@@ -170,7 +169,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         protected TransformationComponent transformation;
         protected boolean unitCube = false;
         protected boolean placeAir = false;
-        protected final Set<String> tags = new HashSet<>();
+        protected Set<String> tags = new HashSet<>();
 
         private void validateBox(BoxComponent box) {
             if (box == null) {
@@ -217,7 +216,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         }
 
         @Override
-        public Builder materialInstance(@NotNull String name, @NotNull MaterialInstance materialInstance) {
+        public Builder materialInstance(@NonNull String name, @NonNull MaterialInstance materialInstance) {
             this.materialInstances.put(name, materialInstance);
             return this;
         }
@@ -292,8 +291,8 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         }
 
         @Override
-        public Builder tags(Set<String> tags) {
-            this.tags.addAll(tags);
+        public Builder tags(@NonNull Set<String> tags) {
+            this.tags = tags;
             return this;
         }
 

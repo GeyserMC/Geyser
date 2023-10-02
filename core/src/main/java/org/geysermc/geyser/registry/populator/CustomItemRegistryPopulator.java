@@ -275,11 +275,9 @@ public class CustomItemRegistryPopulator {
 
         // Add other defined tags to the item
         Set<String> tags = customItemData.tags();
-        if (tags != null) {
-            for (String tag : tags) {
-                if (tag != null && !tag.isBlank()) {
-                    addItemTag(componentBuilder, tag);
-                }
+        for (String tag : tags) {
+            if (tag != null && !tag.isBlank()) {
+                addItemTag(componentBuilder, tag);
             }
         }
 

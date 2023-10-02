@@ -28,7 +28,6 @@ package org.geysermc.geyser.item;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
@@ -111,7 +110,7 @@ public class GeyserCustomItemData implements CustomItemData {
     }
 
     @Override
-    public @Nullable Set<String> tags() {
+    public @NotNull Set<String> tags() {
         return tags;
     }
 
@@ -176,8 +175,8 @@ public class GeyserCustomItemData implements CustomItemData {
         }
 
         @Override
-        public Builder tags(Set<String> tags) {
-            this.tags.addAll(tags);
+        public Builder tags(@NonNull Set<String> tags) {
+            this.tags = tags;
             return this;
         }
 
