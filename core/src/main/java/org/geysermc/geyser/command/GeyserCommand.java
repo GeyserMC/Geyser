@@ -192,7 +192,7 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
      * @return an Applicable that applies {@link #BEDROCK_ONLY} and {@link #PLAYER_ONLY} as meta,
      * according to {@link #isBedrockOnly()} and {@link #isExecutableOnConsole()} (respectively).
      */
-    public Command.Builder.Applicable<GeyserCommandSource> meta() {
+    protected Command.Builder.Applicable<GeyserCommandSource> meta() {
         return builder -> builder
             .meta(CommandMeta.DESCRIPTION, GeyserLocale.getLocaleStringLog(description))
             .meta(BEDROCK_ONLY, isBedrockOnly())

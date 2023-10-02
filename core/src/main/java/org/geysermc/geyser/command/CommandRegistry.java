@@ -69,7 +69,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.CompletionException;
 import java.util.function.BiConsumer;
 
@@ -258,7 +257,13 @@ public class CommandRegistry {
                 throwable = throwable.getCause();
             }
 
-            handleThrowable(source, throwable);
+            try {
+                handleThrowable(source, throwable);
+            } catch (Throwable secondary) {
+                // otherwise it gets swallowed by whenComplete.
+                // we assume this won't throw.
+                handleUnexpectedThrowable(source, secondary);
+            }
         });
     }
 
@@ -279,18 +284,24 @@ public class CommandRegistry {
         // find the Command and its Meta that the source tried executing
         List<CommandArgument<?, ?>> argumentChain = exception.getCurrentChain();
         CommandArgument<?, ?> argument = argumentChain.get(argumentChain.size() - 1);
-        CommandMeta meta = Objects.requireNonNull(argument.getOwningCommand()).getCommandMeta();
+        cloud.commandframework.Command<?> owner = argument.getOwningCommand();
 
-        // See GeyserCommand#baseBuilder()
-        if (meta.getOrDefault(GeyserCommand.BEDROCK_ONLY, false)) {
-            if (source.connection().isEmpty()) {
-                source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.command.bedrock_only", source.locale()));
-                return;
-            }
-        } else if (meta.getOrDefault(GeyserCommand.PLAYER_ONLY, false)) {
-            if (source.isConsole()) {
-                source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.command.player_only", source.locale()));
-                return;
+        if (owner == null) {
+            GeyserImpl.getInstance().getLogger().debug("Unable to check for command meta because " + argument + " does not have an owning command");
+        } else {
+            CommandMeta meta = owner.getCommandMeta();
+
+            // See GeyserCommand#baseBuilder()
+            if (meta.getOrDefault(GeyserCommand.BEDROCK_ONLY, false)) {
+                if (source.connection().isEmpty()) {
+                    source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.command.bedrock_only", source.locale()));
+                    return;
+                }
+            } else if (meta.getOrDefault(GeyserCommand.PLAYER_ONLY, false)) {
+                if (source.isConsole()) {
+                    source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.command.player_only", source.locale()));
+                    return;
+                }
             }
         }
 
