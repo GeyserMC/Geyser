@@ -73,7 +73,7 @@ public class HelpCommand extends GeyserCommand {
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
         GeyserCommandSource source = context.getSender();
-        boolean bedrockPlayer = source.connection().isPresent();
+        boolean bedrockPlayer = source.connection() != null;
 
         // todo: pagination
         int page = 1;

@@ -31,6 +31,8 @@ import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
 
+import java.util.Objects;
+
 public class AdvancementsCommand extends GeyserCommand {
 
     public AdvancementsCommand(String name, String description, String permission) {
@@ -39,7 +41,7 @@ public class AdvancementsCommand extends GeyserCommand {
 
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
-        GeyserSession session = context.getSender().connection().orElseThrow();
+        GeyserSession session = Objects.requireNonNull(context.getSender().connection());
         session.getAdvancementsCache().buildAndShowMenuForm();
     }
 }

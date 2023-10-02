@@ -198,7 +198,7 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
                         return;
                     }
 
-                    GeyserSession session = source.connection().orElse(null);
+                    @Nullable GeyserSession session = source.connection();
                     if (sourceType.isInstance(session)) {
                         executor.execute((T) session, this, args);
                         return;

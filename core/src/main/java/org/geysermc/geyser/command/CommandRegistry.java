@@ -293,7 +293,7 @@ public class CommandRegistry {
 
             // See GeyserCommand#baseBuilder()
             if (meta.getOrDefault(GeyserCommand.BEDROCK_ONLY, false)) {
-                if (source.connection().isEmpty()) {
+                if (source.connection() == null) {
                     source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.command.bedrock_only", source.locale()));
                     return;
                 }

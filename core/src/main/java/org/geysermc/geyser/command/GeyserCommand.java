@@ -174,7 +174,7 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
             .literal(name, aliases.toArray(new String[0]))
             .permission(source -> {
                 if (bedrockOnly) {
-                    if (source.connection().isEmpty()) {
+                    if (source.connection() == null) {
                         return false;
                     }
                     // connection is present -> it is a player -> executableOnConsole is irrelevant

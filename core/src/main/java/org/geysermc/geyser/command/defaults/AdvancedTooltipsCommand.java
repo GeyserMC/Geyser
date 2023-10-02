@@ -33,6 +33,8 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 
+import java.util.Objects;
+
 public class AdvancedTooltipsCommand extends GeyserCommand {
 
     public AdvancedTooltipsCommand(String name, String description, String permission) {
@@ -41,7 +43,7 @@ public class AdvancedTooltipsCommand extends GeyserCommand {
 
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
-        GeyserSession session = context.getSender().connection().orElseThrow();
+        GeyserSession session = Objects.requireNonNull(context.getSender().connection());
 
         String onOrOff = session.isAdvancedTooltips() ? "off" : "on";
         session.setAdvancedTooltips(!session.isAdvancedTooltips());

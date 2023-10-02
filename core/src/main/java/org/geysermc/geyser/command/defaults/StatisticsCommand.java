@@ -34,6 +34,8 @@ import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
 
+import java.util.Objects;
+
 public class StatisticsCommand extends GeyserCommand {
 
     public StatisticsCommand(GeyserImpl geyser, String name, String description, String permission) {
@@ -42,7 +44,7 @@ public class StatisticsCommand extends GeyserCommand {
 
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
-        GeyserSession session = context.getSender().connection().orElseThrow();
+        GeyserSession session = Objects.requireNonNull(context.getSender().connection());
 
         session.setWaitingForStatistics(true);
         ServerboundClientCommandPacket packet = new ServerboundClientCommandPacket(ClientCommand.STATS);

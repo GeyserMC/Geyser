@@ -32,6 +32,8 @@ import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
 
+import java.util.Objects;
+
 public class OffhandCommand extends GeyserCommand {
 
     public OffhandCommand(GeyserImpl geyser, String name, String description, String permission) {
@@ -40,7 +42,7 @@ public class OffhandCommand extends GeyserCommand {
 
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
-        GeyserSession session = context.getSender().connection().orElseThrow();
+        GeyserSession session = Objects.requireNonNull(context.getSender().connection());
         session.requestOffhandSwap();
     }
 }
