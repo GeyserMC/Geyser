@@ -185,7 +185,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 // Account for fire - the client likes to hit the block behind.
                 Vector3i fireBlockPos = BlockUtils.getBlockPosition(vector, packet.getFace());
                 int blockUp = session.getGeyser().getWorldManager().getBlockAt(session, fireBlockPos);
-                String identifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(blockUp, BlockMapping.AIR).getJavaIdentifier();
+                String identifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(blockUp, BlockMapping.DEFAULT).getJavaIdentifier();
                 if (identifier.startsWith("minecraft:fire") || identifier.startsWith("minecraft:soul_fire")) {
                     ServerboundPlayerActionPacket startBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.START_DIGGING, fireBlockPos,
                             Direction.VALUES[packet.getFace()], session.getWorldCache().nextPredictionSequence());
@@ -285,7 +285,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 entity.setOnGround(false); // Increase block break time while jumping
                 break;
             case MISSED_SWING:
-                // TODO Re-evaluate after pre-1.20.10 is supported?
+                // TODO Re-evaluate after pre-1.20.10 is no longer supported?
                 if (session.getArmAnimationTicks() == -1) {
                     session.sendDownstreamPacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
                     session.activateArmAnimationTicking();

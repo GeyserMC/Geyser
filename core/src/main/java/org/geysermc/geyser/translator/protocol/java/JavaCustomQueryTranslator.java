@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.protocol.java;
 
 import com.github.steveice10.mc.protocol.packet.login.clientbound.ClientboundCustomQueryPacket;
-import com.github.steveice10.mc.protocol.packet.login.serverbound.ServerboundCustomQueryPacket;
+import com.github.steveice10.mc.protocol.packet.login.serverbound.ServerboundCustomQueryAnswerPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -41,7 +41,7 @@ public class JavaCustomQueryTranslator extends PacketTranslator<ClientboundCusto
         // A vanilla client doesn't know any PluginMessage in the Login state, so we don't know any either.
         // Note: Fabric Networking API v1 will not let the client log in without sending this
         session.sendDownstreamPacket(
-                new ServerboundCustomQueryPacket(packet.getMessageId(), null)
+                new ServerboundCustomQueryAnswerPacket(packet.getMessageId(), null)
         );
     }
 }

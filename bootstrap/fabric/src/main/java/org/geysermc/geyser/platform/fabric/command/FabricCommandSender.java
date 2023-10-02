@@ -75,6 +75,6 @@ public class FabricCommandSender implements GeyserCommandSource {
 
     @Override
     public boolean hasPermission(String permission) {
-        return Permissions.check(source, permission);
+        return Permissions.check(source, permission, source.getServer().getOperatorUserPermissionLevel());
     }
 }

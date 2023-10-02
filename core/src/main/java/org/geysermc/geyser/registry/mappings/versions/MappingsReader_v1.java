@@ -632,7 +632,7 @@ public class MappingsReader_v1 extends MappingsReader {
      */
     private MaterialInstance createMaterialInstanceComponent(JsonNode node, String name) {
         // Set default values, and use what the user provides if they have provided something
-        String texture = name;
+        String texture = null;
         if (node.has("texture")) {
             texture = node.get("texture").asText();
         }

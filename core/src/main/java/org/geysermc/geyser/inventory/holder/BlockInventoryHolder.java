@@ -80,7 +80,7 @@ public class BlockInventoryHolder extends InventoryHolder {
             // and the bedrock block is vanilla
             int javaBlockId = session.getGeyser().getWorldManager().getBlockAt(session, session.getLastInteractionBlockPosition());
             if (!BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get().containsKey(javaBlockId)) {
-                String[] javaBlockString = BlockRegistries.JAVA_BLOCKS.getOrDefault(javaBlockId, BlockMapping.AIR).getJavaIdentifier().split("\\[");
+                String[] javaBlockString = BlockRegistries.JAVA_BLOCKS.getOrDefault(javaBlockId, BlockMapping.DEFAULT).getJavaIdentifier().split("\\[");
                 if (isValidBlock(javaBlockString)) {
                     // We can safely use this block
                     inventory.setHolderPosition(session.getLastInteractionBlockPosition());

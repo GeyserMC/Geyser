@@ -64,7 +64,7 @@ public final class BlockUtils {
         if (toolType.equals("shears")) return isShearsEffective ? 5.0 : 15.0;
         if (toolType.equals("")) return 1.0;
         return switch (toolTier) {
-            // https://minecraft.gamepedia.com/Breaking#Speed
+            // https://minecraft.wiki/w/Breaking#Speed
             case "wooden" -> 2.0;
             case "stone" -> 4.0;
             case "iron" -> 6.0;
@@ -100,7 +100,7 @@ public final class BlockUtils {
         return true;
     }
 
-    // https://minecraft.gamepedia.com/Breaking
+    // https://minecraft.wiki/w/Breaking
     private static double calculateBreakTime(double blockHardness, String toolTier, boolean canHarvestWithHand, boolean correctTool, boolean canTierMineBlock,
                                              String toolType, boolean isShearsEffective, int toolEfficiencyLevel, int hasteLevel, int miningFatigueLevel,
                                              boolean insideOfWaterWithoutAquaAffinity, boolean onGround) {
