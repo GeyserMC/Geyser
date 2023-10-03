@@ -23,20 +23,21 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol;
+package org.geysermc.geyser.translator.protocol.java;
 
 import com.github.steveice10.mc.protocol.data.game.ResourcePackStatus;
+import com.github.steveice10.mc.protocol.packet.common.clientbound.ClientboundResourcePackPacket;
 import com.github.steveice10.mc.protocol.packet.common.serverbound.ServerboundResourcePackPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
 
-@Translator(packet = JavaClientBoundResourcePacksPacket.class)
-public class JavaClientBoundResourcePacksPacket extends PacketTranslator<JavaClientBoundResourcePacksPacket> {
+@Translator(packet = ClientboundResourcePackPacket.class)
+public class JavaClientBoundResourcePacksPacket extends PacketTranslator<ClientboundResourcePackPacket> {
 
     @Override
-    public void translate(GeyserSession session, JavaClientBoundResourcePacksPacket packet) {
-        // Can't do much with that atm, so decline
-        GeyserImpl.getInstance().getLogger().debug("Declining resource packs");
+    public void translate(GeyserSession session, ClientboundResourcePackPacket packet) {
+        // We need to "answer" this to avoid timeout issues related to resource packs
         session.sendDownstreamPacket(new ServerboundResourcePackPacket(ResourcePackStatus.DECLINED));
     }
 }
