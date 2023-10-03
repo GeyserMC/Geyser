@@ -43,21 +43,27 @@ import java.util.stream.Collectors;
 @Getter
 public class GeyserFabricDumpInfo extends BootstrapDumpInfo {
 
-    private String platformVersion = null;
+    private final String platformName;
+    private String loaderVersion;
+    private final String minecraftVersion;
     private final EnvType environmentType;
 
     @AsteriskSerializer.Asterisk(isIp = true)
     private final String serverIP;
     private final int serverPort;
+    private final boolean onlineMode;
     private final List<ModInfo> mods;
 
     public GeyserFabricDumpInfo(MinecraftServer server) {
         FabricLoader.getInstance().getModContainer("fabricloader").ifPresent(mod ->
-            this.platformVersion = mod.getMetadata().getVersion().getFriendlyString());
+            this.loaderVersion = mod.getMetadata().getVersion().getFriendlyString());
 
+        this.minecraftVersion = server.getServerVersion();
+        this.platformName = server.getServerModName();
         this.environmentType = FabricLoader.getInstance().getEnvironmentType();
         this.serverIP = server.getLocalIp() == null ? "unknown" : server.getLocalIp();
         this.serverPort = server.getPort();
+        this.onlineMode = server.usesAuthentication();
         this.mods = new ArrayList<>();
 
         for (ModContainer mod : FabricLoader.getInstance().getAllMods()) {
