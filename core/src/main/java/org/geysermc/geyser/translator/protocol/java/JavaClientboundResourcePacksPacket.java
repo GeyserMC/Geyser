@@ -33,7 +33,7 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
 @Translator(packet = ClientboundResourcePackPacket.class)
-public class JavaClientBoundResourcePacksPacket extends PacketTranslator<ClientboundResourcePackPacket> {
+public class JavaClientboundResourcePacksPacket extends PacketTranslator<ClientboundResourcePackPacket> {
 
     @Override
     public void translate(GeyserSession session, ClientboundResourcePackPacket packet) {
