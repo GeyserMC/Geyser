@@ -132,7 +132,7 @@ public class CustomBlockRegistryPopulator {
      * Registers all vanilla custom blocks and skulls defined by API and mappings
      */
     private static void populateVanilla() {
-        Int2ObjectMap<CustomBlockState> BLOCK_STATE_OVERRIDES = new Int2ObjectOpenHashMap<>();
+        Int2ObjectMap<CustomBlockState> blockStateOverrides = new Int2ObjectOpenHashMap<>();
 
         for (CustomSkull customSkull : BlockRegistries.CUSTOM_SKULLS.get().values()) {
             CUSTOM_BLOCKS.add(customSkull.getCustomBlockData());
@@ -146,7 +146,7 @@ public class CustomBlockRegistryPopulator {
                 continue;
             }
 
-            CustomBlockState oldBlockState = BLOCK_STATE_OVERRIDES.put(id, entry.getValue());
+            CustomBlockState oldBlockState = blockStateOverrides.put(id, entry.getValue());
             if (oldBlockState != null) {
                 GeyserImpl.getInstance().getLogger().warning("Duplicate block state override for Java Identifier: " +
                         entry.getKey() + " Old override: " + oldBlockState.name() + " New override: " + entry.getValue().name());
@@ -163,7 +163,7 @@ public class CustomBlockRegistryPopulator {
             }
             block.states().forEach((javaIdentifier, customBlockState) -> {
                 int id = BlockRegistries.JAVA_IDENTIFIER_TO_ID.getOrDefault(javaIdentifier, -1);
-                BLOCK_STATE_OVERRIDES.put(id, customBlockState.state());
+                blockStateOverrides.put(id, customBlockState.state());
                 BoxComponent extendedCollisionBox = customBlockState.extendedCollisionBox();
                 if (extendedCollisionBox != null) {
                     CustomBlockData extendedCollisionBlock = extendedCollisionBoxSet.computeIfAbsent(extendedCollisionBox, box -> {
@@ -177,9 +177,9 @@ public class CustomBlockRegistryPopulator {
             });
         });
     
-        BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.set(BLOCK_STATE_OVERRIDES);
-        if (BLOCK_STATE_OVERRIDES.size() != 0) {
-            GeyserImpl.getInstance().getLogger().info("Registered " + BLOCK_STATE_OVERRIDES.size() + " custom block overrides.");
+        BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.set(blockStateOverrides);
+        if (blockStateOverrides.size() != 0) {
+            GeyserImpl.getInstance().getLogger().info("Registered " + blockStateOverrides.size() + " custom block overrides.");
         }
 
         BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.set(CUSTOM_BLOCK_ITEM_OVERRIDES);
