@@ -152,6 +152,7 @@ public class CustomBlockRegistryPopulator {
                         entry.getKey() + " Old override: " + oldBlockState.name() + " New override: " + entry.getValue().name());
             }
         }
+        BLOCK_STATE_OVERRIDES_QUEUE = null;
 
         Map<CustomBlockData, Set<Integer>> extendedCollisionBoxes = new HashMap<>();
         Map<BoxComponent, CustomBlockData> extendedCollisionBoxSet = new HashMap<>();
