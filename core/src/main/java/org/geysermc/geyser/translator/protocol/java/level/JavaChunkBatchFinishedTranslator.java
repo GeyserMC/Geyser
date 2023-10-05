@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,37 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.sponge.command;
+package org.geysermc.geyser.translator.protocol.java.level;
 
-import lombok.AllArgsConstructor;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.command.GeyserCommandSource;
-import org.spongepowered.api.command.CommandCause;
-import org.spongepowered.api.entity.living.player.server.ServerPlayer;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundChunkBatchFinishedPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundChunkBatchReceivedPacket;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
 
-@AllArgsConstructor
-public class SpongeCommandSource implements GeyserCommandSource {
-
-    private final CommandCause handle;
+@Translator(packet = ClientboundChunkBatchFinishedPacket.class)
+public class JavaChunkBatchFinishedTranslator extends PacketTranslator<ClientboundChunkBatchFinishedPacket> {
 
     @Override
-    public String name() {
-        return handle.friendlyIdentifier().orElse(handle.identifier());
-    }
-
-    @Override
-    public void sendMessage(@NonNull String message) {
-        handle.audience().sendMessage(LegacyComponentSerializer.legacySection().deserialize(message));
-    }
-
-    @Override
-    public boolean isConsole() {
-        return !(handle.cause().root() instanceof ServerPlayer);
-    }
-
-    @Override
-    public boolean hasPermission(String permission) {
-        return handle.hasPermission(permission);
+    public void translate(GeyserSession session, ClientboundChunkBatchFinishedPacket packet) {
+        // server just sent a batch of LevelChunkWithLightPackets
+        // the vanilla client uses a ChunkBatchSizeCalculator to calculate the desiredChunksPerTick,
+        // but currently we just send an arbitrary value. server clamps the value between 0.01 and 64.
+        session.sendDownstreamPacket(new ServerboundChunkBatchReceivedPacket(20));
     }
 }

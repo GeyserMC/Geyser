@@ -120,7 +120,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 if (fishingHook.getBedrockTargetId() == session.getPlayerEntity().getGeyserId()) {
                     Entity hookOwner = session.getEntityCache().getEntityByGeyserId(fishingHook.getBedrockOwnerId());
                     if (hookOwner != null) {
-                        // https://minecraft.gamepedia.com/Fishing_Rod#Hooking_mobs_and_other_entities
+                        // https://minecraft.wiki/w/Fishing_Rod#Hooking_mobs_and_other_entities
                         SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
                         motionPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
                         motionPacket.setMotion(hookOwner.getPosition().sub(session.getPlayerEntity().getPosition()).mul(0.1f));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,54 +23,21 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.sponge;
+package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import org.geysermc.geyser.GeyserLogger;
-import org.apache.logging.log4j.Logger;
+import org.cloudburstmc.protocol.bedrock.packet.RequestPermissionsPacket;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
 
-@AllArgsConstructor
-public class GeyserSpongeLogger implements GeyserLogger {
-    private final Logger logger;
-    @Getter @Setter
-    private boolean debug;
-
-    @Override
-    public void severe(String message) {
-        logger.error(message);
-    }
+/**
+ * Sent occasionally by a BDS client when opening the client side server settings menu.
+ */
+@Translator(packet = RequestPermissionsPacket.class)
+public class BedrockRequestPermissionsPacket extends PacketTranslator<RequestPermissionsPacket> {
 
     @Override
-    public void severe(String message, Throwable error) {
-        logger.error(message, error);
-    }
-
-    @Override
-    public void error(String message) {
-        logger.error(message);
-    }
-
-    @Override
-    public void error(String message, Throwable error) {
-        logger.error(message, error);
-    }
-
-    @Override
-    public void warning(String message) {
-        logger.warn(message);
-    }
-
-    @Override
-    public void info(String message) {
-        logger.info(message);
-    }
-
-    @Override
-    public void debug(String message) {
-        if (debug) {
-            info(message);
-        }
+    public void translate(GeyserSession session, RequestPermissionsPacket packet) {
+        session.sendAdventureSettings();
     }
 }

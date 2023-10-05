@@ -403,7 +403,7 @@ public final class BlockStateValues {
      * @return true if a piston can break the block
      */
     public static boolean canPistonDestroyBlock(int state)  {
-        return BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.AIR).getPistonBehavior() == PistonBehavior.DESTROY;
+        return BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.DEFAULT).getPistonBehavior() == PistonBehavior.DESTROY;
     }
 
     public static boolean canPistonMoveBlock(int javaId, boolean isPushing) {
@@ -414,7 +414,7 @@ public final class BlockStateValues {
         if (PistonBlockEntityTranslator.isBlock(javaId)) {
             return !PISTON_VALUES.get(javaId);
         }
-        BlockMapping block = BlockRegistries.JAVA_BLOCKS.getOrDefault(javaId, BlockMapping.AIR);
+        BlockMapping block = BlockRegistries.JAVA_BLOCKS.getOrDefault(javaId, BlockMapping.DEFAULT);
         // Bedrock, End portal frames, etc. can't be moved
         if (block.getHardness() == -1.0d) {
             return false;
@@ -511,7 +511,7 @@ public final class BlockStateValues {
      * @return The block's slipperiness
      */
     public static float getSlipperiness(int state) {
-        String blockIdentifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.AIR).getJavaIdentifier();
+        String blockIdentifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.DEFAULT).getJavaIdentifier();
         return switch (blockIdentifier) {
             case "minecraft:slime_block" -> 0.8f;
             case "minecraft:ice", "minecraft:packed_ice" -> 0.98f;
