@@ -8,7 +8,7 @@
 # Wiki: https://wiki.geysermc.org/
 #
 # NOTICE: See https://wiki.geysermc.org/geyser/setup/ for the setup guide. Many video tutorials are outdated.
-# In most cases, especially with server hosting providers, further hosting specific configuration is required.
+# In most cases, especially with server hosting providers, further hosting-specific configuration is required.
 # --------------------------------
 
 bedrock:
