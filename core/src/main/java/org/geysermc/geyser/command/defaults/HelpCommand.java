@@ -65,7 +65,7 @@ public class HelpCommand extends GeyserCommand {
         // note: this doesn't do the other permission checks that GeyserCommand#baseBuilder does,
         // but it's fine because the help command can be executed by non-bedrock players and by the console.
         manager.command(manager.commandBuilder(rootCommand)
-            .permission(permission())
+            .permission(commandPermission(manager))
             .apply(meta()) // shouldn't be necessary - just for consistency
             .handler(this::execute));
     }

@@ -26,7 +26,6 @@
 package org.geysermc.geyser.command;
 
 import cloud.commandframework.CommandManager;
-import cloud.commandframework.arguments.CommandArgument;
 import cloud.commandframework.exceptions.ArgumentParseException;
 import cloud.commandframework.exceptions.CommandExecutionException;
 import cloud.commandframework.exceptions.InvalidCommandSenderException;
@@ -34,10 +33,10 @@ import cloud.commandframework.exceptions.InvalidSyntaxException;
 import cloud.commandframework.exceptions.NoPermissionException;
 import cloud.commandframework.exceptions.NoSuchCommandException;
 import cloud.commandframework.execution.CommandExecutionCoordinator;
-import cloud.commandframework.meta.CommandMeta;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.AllArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
@@ -280,31 +279,24 @@ public class CommandRegistry {
 
     private void handleNoPermission(GeyserCommandSource source, NoPermissionException exception) {
         // we basically recheck bedrock-only and player-only to see if they were the cause of this
-
-        // find the Command and its Meta that the source tried executing
-        List<CommandArgument<?, ?>> argumentChain = exception.getCurrentChain();
-        CommandArgument<?, ?> argument = argumentChain.get(argumentChain.size() - 1);
-        cloud.commandframework.Command<?> owner = argument.getOwningCommand();
-
-        if (owner == null) {
-            GeyserImpl.getInstance().getLogger().debug("Unable to check for command meta because " + argument + " does not have an owning command");
+        if (exception.missingPermission() instanceof GeyserPermission permission) {
+            GeyserPermission.Result result = permission.check(source);
+            if (result == GeyserPermission.Result.NOT_BEDROCK) {
+                source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.command.bedrock_only", source.locale()));
+                return;
+            }
+            if (result == GeyserPermission.Result.NOT_PLAYER) {
+                source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.command.player_only", source.locale()));
+                return;
+            }
         } else {
-            CommandMeta meta = owner.getCommandMeta();
-
-            // See GeyserCommand#baseBuilder()
-            if (meta.getOrDefault(GeyserCommand.BEDROCK_ONLY, false)) {
-                if (source.connection() == null) {
-                    source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.command.bedrock_only", source.locale()));
-                    return;
-                }
-            } else if (meta.getOrDefault(GeyserCommand.PLAYER_ONLY, false)) {
-                if (source.isConsole()) {
-                    source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.command.player_only", source.locale()));
-                    return;
-                }
+            GeyserLogger logger = GeyserImpl.getInstance().getLogger();
+            if (logger.isDebug()) {
+                logger.debug("Expected a GeyserPermission for %s but instead got %s".formatted(exception.getCurrentChain(), exception.missingPermission()));
             }
         }
 
+        // Result.NO_PERMISSION, or we're unable to recheck
         source.sendLocaleString("geyser.command.permission_fail");
     }
 

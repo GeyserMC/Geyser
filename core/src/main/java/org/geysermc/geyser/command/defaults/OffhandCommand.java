@@ -37,7 +37,7 @@ import java.util.Objects;
 public class OffhandCommand extends GeyserCommand {
 
     public OffhandCommand(GeyserImpl geyser, String name, String description, String permission) {
-        super(name, description, permission, TriState.TRUE, false, true);
+        super(name, description, permission, TriState.TRUE, true, true);
     }
 
     @Override

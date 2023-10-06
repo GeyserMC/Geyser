@@ -41,7 +41,6 @@ import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -52,9 +51,9 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
 
     public GeyserExtensionCommand(@NonNull Extension extension, @NonNull String name, @NonNull String description,
                                   @NonNull String permission, @Nullable TriState permissionDefault,
-                                  boolean executableOnConsole, boolean bedrockOnly) {
+                                  boolean playerOnly, boolean bedrockOnly) {
 
-        super(name, description, permission, permissionDefault, executableOnConsole, bedrockOnly);
+        super(name, description, permission, permissionDefault, playerOnly, bedrockOnly);
         this.extension = extension;
         this.rootCommand = Objects.requireNonNull(extension.rootCommand());
 
@@ -81,7 +80,7 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
         @Nullable private TriState permissionDefault;
         @Nullable private List<String> aliases;
         private boolean suggestedOpOnly = false; // deprecated for removal
-        private boolean executableOnConsole = true;
+        private boolean playerOnly = false;
         private boolean bedrockOnly = false;
         @Nullable private CommandExecutor<T> executor;
 
@@ -138,7 +137,13 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
 
         @Override
         public Builder<T> executableOnConsole(boolean executableOnConsole) {
-            this.executableOnConsole = executableOnConsole;
+            this.playerOnly = !executableOnConsole;
+            return this;
+        }
+
+        @Override
+        public Command.Builder<T> playerOnly(boolean playerOnly) {
+            this.playerOnly = playerOnly;
             return this;
         }
 
@@ -173,10 +178,10 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
             }
 
             // if the source type is a GeyserConnection then it is inherently bedrockOnly
-            final boolean bedrockOnly = GeyserConnection.class.isAssignableFrom(sourceType) || this.bedrockOnly;
+            final boolean bedrockOnly = this.bedrockOnly || GeyserConnection.class.isAssignableFrom(sourceType);
             // a similar check would exist for executableOnConsole, but there is not a logger type exposed in the api
 
-            GeyserExtensionCommand command = new GeyserExtensionCommand(extension, name, description, permission, permissionDefault, executableOnConsole, bedrockOnly) {
+            GeyserExtensionCommand command = new GeyserExtensionCommand(extension, name, description, permission, permissionDefault, playerOnly, bedrockOnly) {
 
                 @Override
                 public void register(CommandManager<GeyserCommandSource> manager) {

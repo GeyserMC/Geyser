@@ -29,6 +29,7 @@ import cloud.commandframework.Command;
 import cloud.commandframework.CommandManager;
 import cloud.commandframework.context.CommandContext;
 import cloud.commandframework.meta.CommandMeta;
+import cloud.commandframework.permission.CommandPermission;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.util.TriState;
@@ -41,16 +42,6 @@ import java.util.List;
 public abstract class GeyserCommand implements org.geysermc.geyser.api.command.Command {
 
     public static final String DEFAULT_ROOT_COMMAND = "geyser";
-
-    /**
-     * CommandMeta to indicate that the command is only available to bedrock players. Default of false.
-     */
-    public static final CommandMeta.Key<Boolean> BEDROCK_ONLY = CommandMeta.Key.of(Boolean.class, "bedrock-only", meta -> false);
-
-    /**
-     * CommandMeta to indicate that the command is only available to players. Default of false.
-     */
-    public static final CommandMeta.Key<Boolean> PLAYER_ONLY = CommandMeta.Key.of(Boolean.class, "player-only", meta -> false);
 
     /**
      * The second literal of the command. Note: the first literal is {@link #rootCommand()}.
@@ -78,12 +69,12 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
     private final TriState permissionDefault;
 
     /**
-     * True if the command can be executed by non players
+     * True if this command can be executed by players
      */
-    private final boolean executableOnConsole;
+    private final boolean playerOnly;
 
     /**
-     * True if the command can only be run by bedrock players
+     * True if this command can only be run by bedrock players
      */
     private final boolean bedrockOnly;
 
@@ -94,7 +85,7 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
 
     public GeyserCommand(@NonNull String name, @NonNull String description,
                          @NonNull String permission, @Nullable TriState permissionDefault,
-                         boolean executableOnConsole, boolean bedrockOnly) {
+                         boolean playerOnly, boolean bedrockOnly) {
 
         if (name.isBlank()) {
             throw new IllegalArgumentException("Command cannot be null or blank!");
@@ -105,16 +96,16 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
         this.permission = permission;
         this.permissionDefault = permissionDefault;
 
-        if (bedrockOnly && executableOnConsole) {
-            throw new IllegalArgumentException("Command cannot be both bedrockOnly and executableOnConsole");
+        if (bedrockOnly && !playerOnly) {
+            throw new IllegalArgumentException("Command cannot be bedrockOnly if it is not playerOnly");
         }
 
-        this.executableOnConsole = executableOnConsole;
+        this.playerOnly = playerOnly;
         this.bedrockOnly = bedrockOnly;
     }
 
     public GeyserCommand(@NonNull String name, @NonNull String description, @NonNull String permission, @Nullable TriState permissionDefault) {
-        this(name, description, permission, permissionDefault, true, false);
+        this(name, description, permission, permissionDefault, false, false);
     }
 
     @NonNull
@@ -141,8 +132,8 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
     }
 
     @Override
-    public final boolean isExecutableOnConsole() {
-        return executableOnConsole;
+    public final boolean isPlayerOnly() {
+        return playerOnly;
     }
 
     @Override
@@ -164,39 +155,34 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
     }
 
     /**
+     * Returns a {@link CommandPermission} that handles {@link #isBedrockOnly()}, {@link #isPlayerOnly()}, and {@link #permission()}.
+     *
+     * @param manager the manager to be used for permission node checking
+     * @return a permission that will properly restrict usage of this command
+     */
+    public final GeyserPermission commandPermission(CommandManager<GeyserCommandSource> manager) {
+        return new GeyserPermission(bedrockOnly, playerOnly, permission, manager);
+    }
+
+    /**
      * Creates a new command builder with {@link #rootCommand()}, {@link #name()}, and {@link #aliases()} built on it.
-     * A permission predicate that takes into account {@link #permission()}, {@link #isBedrockOnly()}, and {@link #isExecutableOnConsole()}
+     * A permission predicate that takes into account {@link #permission()}, {@link #isBedrockOnly()}, and {@link #isPlayerOnly()}
      * is applied. The Applicable from {@link #meta()} is also applied to the builder.
      */
     @Contract(value = "_ -> new", pure = true)
     public final Command.Builder<GeyserCommandSource> baseBuilder(CommandManager<GeyserCommandSource> manager) {
         return manager.commandBuilder(rootCommand())
             .literal(name, aliases.toArray(new String[0]))
-            .permission(source -> {
-                if (bedrockOnly) {
-                    if (source.connection() == null) {
-                        return false;
-                    }
-                    // connection is present -> it is a player -> executableOnConsole is irrelevant
-                } else if (!executableOnConsole) {
-                    if (source.isConsole()) {
-                        return false; // not executable on console but is console
-                    }
-                }
-                return manager.hasPermission(source, permission);
-            })
+            .permission(commandPermission(manager))
             .apply(meta());
     }
 
     /**
-     * @return an Applicable that applies {@link #BEDROCK_ONLY} and {@link #PLAYER_ONLY} as meta,
-     * according to {@link #isBedrockOnly()} and {@link #isExecutableOnConsole()} (respectively).
+     * @return an Applicable that applies this command's description as {@link CommandMeta#DESCRIPTION}
      */
     protected Command.Builder.Applicable<GeyserCommandSource> meta() {
         return builder -> builder
-            .meta(CommandMeta.DESCRIPTION, GeyserLocale.getLocaleStringLog(description))
-            .meta(BEDROCK_ONLY, isBedrockOnly())
-            .meta(PLAYER_ONLY, !isExecutableOnConsole());
+            .meta(CommandMeta.DESCRIPTION, GeyserLocale.getLocaleStringLog(description)); // used in cloud-bukkit impl
     }
 
     /**

@@ -85,16 +85,21 @@ public interface Command {
     }
 
     /**
-     * Gets if this command is executable on console.
-     *
-     * @return if this command is executable on console
+     * @return true if this command is executable on console
+     * @deprecated use {@link #isPlayerOnly()} instead (inverted)
      */
-    boolean isExecutableOnConsole();
+    @Deprecated(forRemoval = true)
+    default boolean isExecutableOnConsole() {
+        return !isPlayerOnly();
+    }
 
     /**
-     * Used to send a deny-message to Java players if this command can only be used by Bedrock players.
-     *
-     * @return true if this command can only be used by Bedrock players.
+     * @return true if this command can only be used by players
+     */
+    boolean isPlayerOnly();
+
+    /**
+     * @return true if this command can only be used by Bedrock players
      */
     boolean isBedrockOnly();
 
@@ -194,11 +199,21 @@ public interface Command {
          *
          * @param executableOnConsole if this command is executable on console
          * @return this builder
+         * @deprecated use {@link #isPlayerOnly()} instead (inverted)
          */
+        @Deprecated(forRemoval = true)
         Builder<T> executableOnConsole(boolean executableOnConsole);
 
         /**
-         * Sets if this command is bedrock only.
+         * Sets if this command can only be executed by players.
+         *
+         * @param playerOnly if this command is player only
+         * @return this builder
+         */
+        Builder<T> playerOnly(boolean playerOnly);
+
+        /**
+         * Sets if this command can only be executed by bedrock players.
          *
          * @param bedrockOnly if this command is bedrock only
          * @return this builder

@@ -39,7 +39,7 @@ import java.util.Objects;
 public class StatisticsCommand extends GeyserCommand {
 
     public StatisticsCommand(GeyserImpl geyser, String name, String description, String permission) {
-        super(name, description, permission, TriState.TRUE, false, true);
+        super(name, description, permission, TriState.TRUE, true, true);
     }
 
     @Override
