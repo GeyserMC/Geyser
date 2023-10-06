@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,33 +23,21 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.session.auth;
+package org.geysermc.geyser.translator.protocol.java;
 
-import java.util.UUID;
+import com.github.steveice10.mc.protocol.data.game.ResourcePackStatus;
+import com.github.steveice10.mc.protocol.packet.common.clientbound.ClientboundResourcePackPacket;
+import com.github.steveice10.mc.protocol.packet.common.serverbound.ServerboundResourcePackPacket;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
 
-/**
- * Deprecated, legacy code. Serves as a wrapper around
- * the class used now.
- *
- * @deprecated legacy code
- */
-@Deprecated
-public class AuthData {
-    private final org.geysermc.geyser.session.auth.AuthData handle;
+@Translator(packet = ClientboundResourcePackPacket.class)
+public class JavaClientboundResourcePacksPacket extends PacketTranslator<ClientboundResourcePackPacket> {
 
-    public AuthData(org.geysermc.geyser.session.auth.AuthData handle) {
-        this.handle = handle;
-    }
-
-    public String getName() {
-        return this.handle.name();
-    }
-
-    public UUID getUUID() {
-        return this.handle.uuid();
-    }
-
-    public String getXboxUUID() {
-        return this.handle.xuid();
+    @Override
+    public void translate(GeyserSession session, ClientboundResourcePackPacket packet) {
+        // We need to "answer" this to avoid timeout issues related to resource packs
+        session.sendDownstreamPacket(new ServerboundResourcePackPacket(ResourcePackStatus.DECLINED));
     }
 }
