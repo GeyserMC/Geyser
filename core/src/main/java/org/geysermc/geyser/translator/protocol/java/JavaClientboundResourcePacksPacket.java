@@ -38,6 +38,11 @@ public class JavaClientboundResourcePacksPacket extends PacketTranslator<Clientb
     @Override
     public void translate(GeyserSession session, ClientboundResourcePackPacket packet) {
         // We need to "answer" this to avoid timeout issues related to resource packs
-        session.sendDownstreamPacket(new ServerboundResourcePackPacket(ResourcePackStatus.DECLINED));
+        // If packs are required, we need to lie to the server that we accepted them, as we get kicked otherwise.
+        if (packet.isRequired()) {
+            session.sendDownstreamPacket(new ServerboundResourcePackPacket(ResourcePackStatus.SUCCESSFULLY_LOADED));
+        } else {
+            session.sendDownstreamPacket(new ServerboundResourcePackPacket(ResourcePackStatus.DECLINED));
+        }
     }
 }
