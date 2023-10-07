@@ -42,6 +42,7 @@ public class BedrockRequestAbilityTranslator extends PacketTranslator<RequestAbi
 
     @Override
     public void translate(GeyserSession session, RequestAbilityPacket packet) {
+        // TODO: Since 1.20.30, this was replaced by a START_FLYING and STOP_FLYING case in BedrockActionTranslator
         if (packet.getAbility() == Ability.FLYING) {
             boolean isFlying = packet.isBoolValue();
             if (!isFlying && session.getGameMode() == GameMode.SPECTATOR) {
