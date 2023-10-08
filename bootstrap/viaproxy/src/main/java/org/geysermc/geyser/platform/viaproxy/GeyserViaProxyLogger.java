@@ -25,54 +25,64 @@
 package org.geysermc.geyser.platform.viaproxy;
 
 import net.raphimc.viaproxy.cli.ConsoleFormatter;
+import org.apache.logging.log4j.Logger;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.command.GeyserCommandSource;
 
 public class GeyserViaProxyLogger implements GeyserLogger, GeyserCommandSource {
 
+    private final Logger logger;
+    private boolean debug;
+
+    public GeyserViaProxyLogger(Logger logger) {
+        this.logger = logger;
+    }
+
     @Override
     public void severe(String message) {
-        GeyserViaProxyPlugin.LOGGER.fatal(ConsoleFormatter.convert(message));
+        this.logger.fatal(ConsoleFormatter.convert(message));
     }
 
     @Override
     public void severe(String message, Throwable error) {
-        GeyserViaProxyPlugin.LOGGER.fatal(ConsoleFormatter.convert(message), error);
+        this.logger.fatal(ConsoleFormatter.convert(message), error);
     }
 
     @Override
     public void error(String message) {
-        GeyserViaProxyPlugin.LOGGER.error(ConsoleFormatter.convert(message));
+        this.logger.error(ConsoleFormatter.convert(message));
     }
 
     @Override
     public void error(String message, Throwable error) {
-        GeyserViaProxyPlugin.LOGGER.error(ConsoleFormatter.convert(message), error);
+        this.logger.error(ConsoleFormatter.convert(message), error);
     }
 
     @Override
     public void warning(String message) {
-        GeyserViaProxyPlugin.LOGGER.warn(ConsoleFormatter.convert(message));
+        this.logger.warn(ConsoleFormatter.convert(message));
     }
 
     @Override
     public void info(String message) {
-        GeyserViaProxyPlugin.LOGGER.info(ConsoleFormatter.convert(message));
+        this.logger.info(ConsoleFormatter.convert(message));
     }
 
     @Override
     public void debug(String message) {
-        GeyserViaProxyPlugin.LOGGER.debug(ConsoleFormatter.convert(message));
+        if (this.debug) {
+            this.logger.debug(ConsoleFormatter.convert(message));
+        }
     }
 
     @Override
     public void setDebug(boolean debug) {
-        throw new UnsupportedOperationException();
+        this.debug = debug;
     }
 
     @Override
     public boolean isDebug() {
-        return false;
+        return this.debug;
     }
 
 }

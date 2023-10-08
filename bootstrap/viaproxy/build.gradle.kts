@@ -1,3 +1,8 @@
+java {
+    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_17
+}
+
 dependencies {
     api(projects.core)
 }

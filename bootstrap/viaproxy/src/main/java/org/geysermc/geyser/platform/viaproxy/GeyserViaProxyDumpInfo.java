@@ -24,11 +24,39 @@
  */
 package org.geysermc.geyser.platform.viaproxy;
 
+import lombok.Getter;
 import net.raphimc.viaproxy.ViaProxy;
+import net.raphimc.viaproxy.cli.options.Options;
+import net.raphimc.viaproxy.plugins.PluginManager;
+import net.raphimc.viaproxy.plugins.ViaProxyPlugin;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
+import org.geysermc.geyser.text.AsteriskSerializer;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+@Getter
 public class GeyserViaProxyDumpInfo extends BootstrapDumpInfo {
 
-    private final String viaProxyVersion = ViaProxy.VERSION;
+    private final String platformVersion;
+    private final boolean onlineMode;
+
+    @AsteriskSerializer.Asterisk(isIp = true)
+    private final String serverIP;
+    private final int serverPort;
+    private final List<PluginInfo> plugins;
+
+    public GeyserViaProxyDumpInfo() {
+        this.platformVersion = ViaProxy.VERSION;
+        this.onlineMode = Options.ONLINE_MODE;
+        this.serverIP = Options.BIND_ADDRESS;
+        this.serverPort = Options.BIND_PORT;
+        this.plugins = new ArrayList<>();
+
+        for (ViaProxyPlugin plugin : PluginManager.getPlugins()) {
+            this.plugins.add(new PluginInfo(true, plugin.getName(), plugin.getVersion(), "unknown", Collections.singletonList(plugin.getAuthor())));
+        }
+    }
 
 }

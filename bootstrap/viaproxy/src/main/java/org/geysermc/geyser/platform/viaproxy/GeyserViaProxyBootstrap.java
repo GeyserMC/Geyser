@@ -25,6 +25,7 @@
 package org.geysermc.geyser.platform.viaproxy;
 
 import net.raphimc.viaproxy.cli.options.Options;
+import org.apache.logging.log4j.Logger;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
@@ -47,23 +48,29 @@ import java.util.UUID;
 
 public class GeyserViaProxyBootstrap implements GeyserBootstrap {
 
-    private final GeyserViaProxyLogger logger = new GeyserViaProxyLogger();
+    private final File rootFolder;
+    private final GeyserViaProxyLogger logger;
     private GeyserViaProxyConfiguration config;
 
     private GeyserImpl geyser;
     private GeyserCommandManager commandManager;
     private IGeyserPingPassthrough pingPassthrough;
 
+    public GeyserViaProxyBootstrap(final Logger logger, final File rootFolder) {
+        this.logger = new GeyserViaProxyLogger(logger);
+        this.rootFolder = rootFolder;
+    }
+
     @Override
     public void onEnable() {
         LoopbackUtil.checkAndApplyLoopback(this.logger);
 
         try {
-            final File configFile = FileUtils.fileOrCopiedFromResource(new File(GeyserViaProxyPlugin.ROOT_FOLDER, "config.yml"), "config.yml", s -> s.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
+            final File configFile = FileUtils.fileOrCopiedFromResource(new File(this.rootFolder, "config.yml"), "config.yml", s -> s.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
             this.config = FileUtils.loadConfig(configFile, GeyserViaProxyConfiguration.class);
         } catch (IOException e) {
             this.logger.severe(GeyserLocale.getLocaleStringLog("geyser.config.failed"), e);
-            System.exit(-1);
+            return;
         }
 
         config.getRemote().setAuthType(Options.ONLINE_MODE ? AuthType.ONLINE : AuthType.OFFLINE);
@@ -105,7 +112,7 @@ public class GeyserViaProxyBootstrap implements GeyserBootstrap {
 
     @Override
     public Path getConfigFolder() {
-        return GeyserViaProxyPlugin.ROOT_FOLDER.toPath();
+        return this.rootFolder.toPath();
     }
 
     @Override

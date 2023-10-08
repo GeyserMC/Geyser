@@ -49,7 +49,7 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin {
     public void onEnable() {
         ROOT_FOLDER.mkdirs();
 
-        this.bootstrap = new GeyserViaProxyBootstrap();
+        this.bootstrap = new GeyserViaProxyBootstrap(LOGGER, ROOT_FOLDER);
         GeyserLocale.init(this.bootstrap);
         this.bootstrap.onEnable();
         GeyserImpl.getInstance().shutdown();
