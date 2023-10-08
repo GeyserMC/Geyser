@@ -22,23 +22,20 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.platform.viaproxy;
 
-package org.geysermc.geyser.api.util;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.geysermc.geyser.configuration.GeyserJacksonConfiguration;
 
-/**
- * Represents the platform Geyser is running on.
- */
-public record PlatformType(String platformName) {
+import java.io.File;
+import java.nio.file.Path;
 
-    @Deprecated
-    public static final PlatformType ANDROID = new PlatformType("Android");
-    public static final PlatformType BUNGEECORD = new PlatformType("BungeeCord");
-    public static final PlatformType FABRIC = new PlatformType("Fabric");
-    public static final PlatformType SPIGOT = new PlatformType("Spigot");
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class GeyserViaProxyConfiguration extends GeyserJacksonConfiguration {
 
-    @Deprecated
-    public static final PlatformType SPONGE = new PlatformType("Sponge");
-    public static final PlatformType STANDALONE = new PlatformType("Standalone");
-    public static final PlatformType VELOCITY = new PlatformType("Velocity");
-    public static final PlatformType VIAPROXY = new PlatformType("ViaProxy");
+    @Override
+    public Path getFloodgateKeyPath() {
+        return new File(GeyserViaProxyPlugin.ROOT_FOLDER, this.getFloodgateKeyFile()).toPath();
+    }
+
 }

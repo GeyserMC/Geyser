@@ -22,23 +22,13 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.platform.viaproxy;
 
-package org.geysermc.geyser.api.util;
+import net.raphimc.viaproxy.ViaProxy;
+import org.geysermc.geyser.dump.BootstrapDumpInfo;
 
-/**
- * Represents the platform Geyser is running on.
- */
-public record PlatformType(String platformName) {
+public class GeyserViaProxyDumpInfo extends BootstrapDumpInfo {
 
-    @Deprecated
-    public static final PlatformType ANDROID = new PlatformType("Android");
-    public static final PlatformType BUNGEECORD = new PlatformType("BungeeCord");
-    public static final PlatformType FABRIC = new PlatformType("Fabric");
-    public static final PlatformType SPIGOT = new PlatformType("Spigot");
+    private final String viaProxyVersion = ViaProxy.VERSION;
 
-    @Deprecated
-    public static final PlatformType SPONGE = new PlatformType("Sponge");
-    public static final PlatformType STANDALONE = new PlatformType("Standalone");
-    public static final PlatformType VELOCITY = new PlatformType("Velocity");
-    public static final PlatformType VIAPROXY = new PlatformType("ViaProxy");
 }
