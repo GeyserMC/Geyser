@@ -119,7 +119,7 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
     }
 
     private OptionalInt toJava(int effectChoice) {
-        return effectChoice == 0 ? OptionalInt.empty() : OptionalInt.of(effectChoice);
+        return effectChoice == 0 ? OptionalInt.empty() : OptionalInt.of(effectChoice - 1);
     }
 
     @Override
