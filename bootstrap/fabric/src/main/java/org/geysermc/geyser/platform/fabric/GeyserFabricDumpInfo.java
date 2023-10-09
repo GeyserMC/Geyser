@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 public class GeyserFabricDumpInfo extends BootstrapDumpInfo {
 
     private final String platformName;
-    private String loaderVersion;
+    private String platformVersion;
     private final String minecraftVersion;
     private final EnvType environmentType;
 
@@ -56,7 +56,7 @@ public class GeyserFabricDumpInfo extends BootstrapDumpInfo {
 
     public GeyserFabricDumpInfo(MinecraftServer server) {
         FabricLoader.getInstance().getModContainer("fabricloader").ifPresent(mod ->
-            this.loaderVersion = mod.getMetadata().getVersion().getFriendlyString());
+            this.platformVersion = mod.getMetadata().getVersion().getFriendlyString());
 
         this.minecraftVersion = server.getServerVersion();
         this.platformName = server.getServerModName();
