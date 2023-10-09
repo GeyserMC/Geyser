@@ -297,6 +297,40 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                     session.sendUpstreamPacket(animatePacket);
                 }
                 break;
+            case START_FLYING: // Since 1.20.30
+                 if (session.isCanFly()) {
+                     if (session.getGameMode() == GameMode.SPECTATOR) {
+                         // should already be flying
+                         session.sendAdventureSettings();
+                         break;
+                     }
+
+                     if (session.getPlayerEntity().getFlag(EntityFlag.SWIMMING) && session.getCollisionManager().isPlayerInWater()) {
+                         // As of 1.18.1, Java Edition cannot fly while in water, but it can fly while crawling
+                         // If this isn't present, swimming on a 1.13.2 server and then attempting to fly will put you into a flying/swimming state that is invalid on JE
+                         session.sendAdventureSettings();
+                         break;
+                     }
+
+                     session.setFlying(true);
+                     session.sendDownstreamPacket(new ServerboundPlayerAbilitiesPacket(true));
+                 } else {
+                     // update whether we can fly
+                     session.sendAdventureSettings();
+                     // stop flying
+                     PlayerActionPacket stopFlyingPacket = new PlayerActionPacket();
+                     stopFlyingPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+                     stopFlyingPacket.setAction(PlayerActionType.STOP_FLYING);
+                     stopFlyingPacket.setBlockPosition(Vector3i.ZERO);
+                     stopFlyingPacket.setResultPosition(Vector3i.ZERO);
+                     stopFlyingPacket.setFace(0);
+                     session.sendUpstreamPacket(stopFlyingPacket);
+                 }
+                 break;
+            case STOP_FLYING:
+                session.setFlying(false);
+                session.sendDownstreamPacket(new ServerboundPlayerAbilitiesPacket(false));
+                break;
         }
     }
 }
