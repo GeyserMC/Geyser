@@ -32,8 +32,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodecHelper;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent;
 import org.geysermc.geyser.network.GeyserBedrockPeer;
 
 import java.net.InetSocketAddress;
@@ -45,7 +43,6 @@ public class UpstreamSession {
     @Getter private final BedrockServerSession session;
     @Getter @Setter
     private boolean initialized = false;
-    private boolean disconnected = false;
     private Queue<BedrockPacket> postStartGamePackets = new ArrayDeque<>();
 
     public void sendPacket(@NonNull BedrockPacket packet) {
@@ -60,14 +57,8 @@ public class UpstreamSession {
         }
     }
 
-    public void disconnect(String reason, GeyserSession session) {
-        if (disconnected) {
-            return;
-        }
-        disconnected = true;
-        SessionDisconnectEvent disconnectEvent = new SessionDisconnectEvent(session, reason);
-        GeyserImpl.getInstance().eventBus().fire(disconnectEvent);
-        this.session.disconnect(disconnectEvent.disconnectReason());
+    public void disconnect(String reason) {
+        this.session.disconnect(reason);
     }
 
     /**
