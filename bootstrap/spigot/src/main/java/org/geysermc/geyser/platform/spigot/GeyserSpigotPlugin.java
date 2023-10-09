@@ -165,13 +165,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             return;
         }
 
-        // Remove this in like a year
-        if (Bukkit.getPluginManager().getPlugin("floodgate-bukkit") != null) {
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.outdated", Constants.FLOODGATE_DOWNLOAD_LOCATION));
-            this.getPluginLoader().disablePlugin(this);
-            return;
-        }
-
         this.geyserCommandManager = new GeyserSpigotCommandManager(geyser);
         this.geyserCommandManager.init();
 
@@ -201,7 +194,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
                     commandMap.register(extension.description().id(), "geyserext", pluginCommand);
                 } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
-                    this.geyserLogger.error("Failed to construct PluginCommand for extension " + extension.description().name(), ex);
+                    this.geyserLogger.error("Failed to construct PluginCommand for extension " + extension.name(), ex);
                 }
             }
         }
@@ -320,6 +313,12 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                     }
 
                     if (command.permission().isBlank()) {
+                        continue;
+                    }
+
+                    // Avoid registering the same permission twice, e.g. for the extension help commands
+                    if (Bukkit.getPluginManager().getPermission(command.permission()) != null) {
+                        GeyserImpl.getInstance().getLogger().debug("Skipping permission " + command.permission() + " as it is already registered");
                         continue;
                     }
 

@@ -22,8 +22,8 @@ indra {
 
 tasks {
     processResources {
-        // Spigot, BungeeCord, Velocity, Sponge, Fabric
-        filesMatching(listOf("plugin.yml", "bungee.yml", "velocity-plugin.json", "META-INF/sponge_plugins.json", "fabric.mod.json")) {
+        // Spigot, BungeeCord, Velocity, Fabric
+        filesMatching(listOf("plugin.yml", "bungee.yml", "velocity-plugin.json", "fabric.mod.json")) {
             expand(
                 "id" to "geyser",
                 "name" to "Geyser",

@@ -100,7 +100,7 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
                 || lastInteractPos.getZ() != packet.getEntry().getPosition().getZ())) {
             return;
         }
-        String identifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(packet.getEntry().getBlock(), BlockMapping.AIR).getJavaIdentifier();
+        String identifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(packet.getEntry().getBlock(), BlockMapping.DEFAULT).getJavaIdentifier();
         session.setInteracting(false);
         BlockSoundInteractionTranslator.handleBlockInteraction(session, lastInteractPos.toFloat(), identifier);
     }

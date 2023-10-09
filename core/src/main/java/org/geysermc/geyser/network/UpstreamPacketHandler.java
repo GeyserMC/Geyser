@@ -52,7 +52,6 @@ import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.pack.PackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
-import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.event.type.SessionLoadResourcePacksEventImpl;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -231,11 +230,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     stackPacket.getExperiments().add(new ExperimentData("data_driven_items", true));
                 }
 
-                if (GameProtocol.isPre1_20(session)) {
-                    stackPacket.getExperiments().add(new ExperimentData("next_major_update", true));
-                    stackPacket.getExperiments().add(new ExperimentData("sniffer", true));
-                }
-
                 session.sendUpstreamPacket(stackPacket);
                 break;
 
@@ -262,21 +256,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 return true;
             }
         }
-        if (geyser.getConfig().getUserAuths() != null) {
-            GeyserConfiguration.IUserAuthenticationInfo info = geyser.getConfig().getUserAuths().get(bedrockUsername);
-
-            if (info != null) {
-                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.auth.stored_credentials", session.getAuthData().name()));
-                session.setMicrosoftAccount(info.isMicrosoftAccount());
-                session.authenticate(info.getEmail(), info.getPassword());
-                return true;
-            }
-        }
         PendingMicrosoftAuthentication.AuthenticationTask task = geyser.getPendingMicrosoftAuthentication().getTask(session.getAuthData().xuid());
         if (task != null) {
-            if (task.getAuthentication().isDone() && session.onMicrosoftLoginComplete(task)) {
-                return true;
-            }
+            return task.getAuthentication().isDone() && session.onMicrosoftLoginComplete(task);
         }
 
         return false;

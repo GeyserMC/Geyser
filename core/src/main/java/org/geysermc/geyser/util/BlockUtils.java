@@ -30,7 +30,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -64,7 +64,7 @@ public final class BlockUtils {
         if (toolType.equals("shears")) return isShearsEffective ? 5.0 : 15.0;
         if (toolType.equals("")) return 1.0;
         return switch (toolTier) {
-            // https://minecraft.gamepedia.com/Breaking#Speed
+            // https://minecraft.wiki/w/Breaking#Speed
             case "wooden" -> 2.0;
             case "stone" -> 4.0;
             case "iron" -> 6.0;
@@ -100,7 +100,7 @@ public final class BlockUtils {
         return true;
     }
 
-    // https://minecraft.gamepedia.com/Breaking
+    // https://minecraft.wiki/w/Breaking
     private static double calculateBreakTime(double blockHardness, String toolTier, boolean canHarvestWithHand, boolean correctTool, boolean canTierMineBlock,
                                              String toolType, boolean isShearsEffective, int toolEfficiencyLevel, int hasteLevel, int miningFatigueLevel,
                                              boolean insideOfWaterWithoutAquaAffinity, boolean onGround) {
@@ -219,7 +219,7 @@ public final class BlockUtils {
     }
 
     public static BlockCollision getCollision(int blockId) {
-        return Registries.COLLISIONS.get(blockId);
+        return BlockRegistries.COLLISIONS.get(blockId);
     }
 
     public static BlockCollision getCollisionAt(GeyserSession session, Vector3i blockPos) {
