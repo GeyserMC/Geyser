@@ -137,8 +137,8 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("force-resource-packs")
     private boolean forceResourcePacks = true;
 
-    @JsonProperty("cdn-resource-packs")
-    private List<String> cdnResourcePacks = new ArrayList<>();
+    @JsonProperty("resource-pack-urls")
+    private List<String> resourcePackUrls = new ArrayList<>();
 
     @JsonProperty("xbox-achievements-enabled")
     private boolean xboxAchievementsEnabled = false;

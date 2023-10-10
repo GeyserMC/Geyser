@@ -96,7 +96,7 @@ public interface GeyserConfiguration {
 
     boolean isForceResourcePacks();
 
-    List<String> getCdnResourcePacks();
+    List<String> getResourcePackUrls();
 
     boolean isXboxAchievementsEnabled();
 

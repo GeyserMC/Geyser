@@ -39,5 +39,5 @@ import java.util.List;
  */
 
 @Deprecated
-public record GeyserLoadResourcePacksEvent(@Deprecated @NonNull List<Path> resourcePacks) implements Event {
+public record GeyserLoadResourcePacksEvent(@NonNull List<Path> resourcePacks) implements Event {
 }

@@ -62,8 +62,6 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
 
     static final PathMatcher PACK_MATCHER = FileSystems.getDefault().getPathMatcher("glob:**.{zip,mcpack}");
 
-    private static final Path CACHED_CDN_PACKS_DIRECTORY = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("cdn-packs");
-
     private static final boolean SHOW_RESOURCE_PACK_LENGTH_WARNING = Boolean.parseBoolean(System.getProperty("Geyser.ShowResourcePackLengthWarning", "true"));
 
     public static List<ResourcePackCDNEntry> RESOURCE_PACK_CDN_ENTRY_LIST = new ArrayList<>();
@@ -102,19 +100,21 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
             resourcePacks.add(skullResourcePack);
         }
 
+        final Path cachedCdnPacksDirectory = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("cdn-packs");
+
         // Download CDN packs to get the pack uuid's
-        if (!Files.exists(CACHED_CDN_PACKS_DIRECTORY)) {
+        if (!Files.exists(cachedCdnPacksDirectory)) {
             try {
-                Files.createDirectories(CACHED_CDN_PACKS_DIRECTORY);
+                Files.createDirectories(cachedCdnPacksDirectory);
             } catch (IOException e) {
                 GeyserImpl.getInstance().getLogger().error("Could not create cached packs directory", e);
             }
         }
 
-        List<String> cdnPacks = GeyserImpl.getInstance().getConfig().getCdnResourcePacks();
+        List<String> cdnPacks = GeyserImpl.getInstance().getConfig().getResourcePackUrls();
         for (String url: cdnPacks) {
             int packHash = url.hashCode();
-            Path cachedPath = CACHED_CDN_PACKS_DIRECTORY.resolve(packHash + ".zip");
+            Path cachedPath = cachedCdnPacksDirectory.resolve(packHash + ".zip");
             WebUtils.downloadFile(url, cachedPath.toString());
 
             ResourcePack cdnpack = readPack(cachedPath);

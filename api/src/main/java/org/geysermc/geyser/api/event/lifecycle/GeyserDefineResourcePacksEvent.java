@@ -35,7 +35,6 @@ import java.util.UUID;
 
 /**
  * Called when {@link ResourcePack}'s and {@link ResourcePackCDNEntry}'s are loaded within Geyser.
- *
  */
 public abstract class GeyserDefineResourcePacksEvent implements Event {
 
