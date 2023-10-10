@@ -26,23 +26,21 @@
 package org.geysermc.geyser.event.type;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.event.bedrock.SessionLoadResourcePacksEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineResourcePacksEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackCDNEntry;
-import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksEvent {
+public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePacksEvent {
 
     private final Map<String, ResourcePack> packs;
     private final Map<String, ResourcePackCDNEntry> cdnEntries;
 
-    public SessionLoadResourcePacksEventImpl(GeyserSession session, Map<String, ResourcePack> packMap, List<ResourcePackCDNEntry> cdnEntries) {
-        super(session);
+    public GeyserDefineResourcePacksEventImpl(Map<String, ResourcePack> packMap, List<ResourcePackCDNEntry> cdnEntries) {
         this.packs = packMap;
         this.cdnEntries = new HashMap<>();
         cdnEntries.forEach(entry -> this.cdnEntries.put(entry.uuid().toString(), entry));
@@ -75,7 +73,7 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
     @Override
     public boolean register(@NonNull ResourcePackCDNEntry entry) {
         String packID = entry.uuid().toString();
-        if (packs.containsKey(packID) || cdnEntries.containsKey(packID) || cdnEntries.containsValue(entry)) {
+        if (packs.containsKey(packID) || cdnEntries.containsValue(entry) || cdnEntries.containsKey(packID)) {
             return false;
         }
         cdnEntries.put(packID, entry);

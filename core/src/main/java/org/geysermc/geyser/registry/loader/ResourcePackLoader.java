@@ -28,12 +28,15 @@ package org.geysermc.geyser.registry.loader;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserLoadResourcePacksEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
+import org.geysermc.geyser.api.pack.ResourcePackCDNEntry;
+import org.geysermc.geyser.event.type.GeyserDefineResourcePacksEventImpl;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.pack.GeyserResourcePackManifest;
 import org.geysermc.geyser.pack.SkullResourcePackManager;
 import org.geysermc.geyser.pack.path.GeyserPathPackCodec;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.util.WebUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -45,6 +48,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -58,7 +62,11 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
 
     static final PathMatcher PACK_MATCHER = FileSystems.getDefault().getPathMatcher("glob:**.{zip,mcpack}");
 
+    private static final Path CACHED_CDN_PACKS_DIRECTORY = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("cdn-packs");
+
     private static final boolean SHOW_RESOURCE_PACK_LENGTH_WARNING = Boolean.parseBoolean(System.getProperty("Geyser.ShowResourcePackLengthWarning", "true"));
+
+    public static List<ResourcePackCDNEntry> RESOURCE_PACK_CDN_ENTRY_LIST = new ArrayList<>();
 
     /**
      * Loop through the packs directory and locate valid resource pack files
@@ -94,6 +102,33 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
             resourcePacks.add(skullResourcePack);
         }
 
+        // Download CDN packs to get the pack uuid's
+        if (!Files.exists(CACHED_CDN_PACKS_DIRECTORY)) {
+            try {
+                Files.createDirectories(CACHED_CDN_PACKS_DIRECTORY);
+            } catch (IOException e) {
+                GeyserImpl.getInstance().getLogger().error("Could not create cached packs directory", e);
+            }
+        }
+
+        List<String> cdnPacks = GeyserImpl.getInstance().getConfig().getCdnResourcePacks();
+        for (String url: cdnPacks) {
+            int packHash = url.hashCode();
+            Path cachedPath = CACHED_CDN_PACKS_DIRECTORY.resolve(packHash + ".zip");
+            WebUtils.downloadFile(url, cachedPath.toString());
+
+            ResourcePack cdnpack = readPack(cachedPath);
+            UUID uuid = cdnpack.manifest().header().uuid();
+
+            RESOURCE_PACK_CDN_ENTRY_LIST.add(new ResourcePackCDNEntry(url, uuid));
+
+            try {
+                Files.delete(cachedPath);
+            } catch (IOException e) {
+                GeyserImpl.getInstance().getLogger().error("Could not delete cached pack", e);
+            }
+        }
+
         GeyserLoadResourcePacksEvent event = new GeyserLoadResourcePacksEvent(resourcePacks);
         GeyserImpl.getInstance().eventBus().fire(event);
 
@@ -105,6 +140,11 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
                 e.printStackTrace();
             }
         }
+
+        GeyserDefineResourcePacksEventImpl defineEvent = new GeyserDefineResourcePacksEventImpl(packMap, RESOURCE_PACK_CDN_ENTRY_LIST);
+        packMap = defineEvent.getPacks();
+        RESOURCE_PACK_CDN_ENTRY_LIST = defineEvent.cdnEntries();
+
         return packMap;
     }
 

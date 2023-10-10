@@ -23,11 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event.bedrock;
+package org.geysermc.geyser.api.event.lifecycle;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.event.connection.ConnectionEvent;
+import org.geysermc.event.Event;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackCDNEntry;
 
@@ -35,45 +34,43 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Called when Geyser initializes a session for a new Bedrock client and is in the process of sending resource packs.
+ * Called when {@link ResourcePack}'s and {@link ResourcePackCDNEntry}'s are loaded within Geyser.
+ *
  */
-public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
-    public SessionLoadResourcePacksEvent(@NonNull GeyserConnection connection) {
-        super(connection);
-    }
+public abstract class GeyserDefineResourcePacksEvent implements Event {
 
     /**
-     * Gets an unmodifiable list of {@link ResourcePack}s that will be sent to the client.
+     * Gets an unmodifiable list of {@link ResourcePack}s that will be sent to clients.
      *
-     * @return an unmodifiable list of resource packs that will be sent to the client.
+     * @return an unmodifiable list of resource packs that will be sent to clients.
      */
     public abstract @NonNull List<ResourcePack> resourcePacks();
 
     /**
-     * Gets an unmodifiable list of {@link ResourcePackCDNEntry}s that will be sent to the client.
+     * Gets an unmodifiable list of {@link ResourcePackCDNEntry}s that will be sent to clients.
      *
-     * @return an unmodifiable list of resource pack CDN entries that will be sent to the client.
+     * @return an unmodifiable list of resource pack CDN entries that will be sent to clients.
      */
     public abstract @NonNull List<ResourcePackCDNEntry> cdnEntries();
 
     /**
-     * Registers a {@link ResourcePack} to be sent to the client.
+     * Registers a {@link ResourcePack} to be sent to clients.
      *
-     * @param resourcePack a resource pack that will be sent to the client.
+     * @param resourcePack a resource pack that will be sent to clients.
      * @return true if the resource pack was added successfully,
      *         or false if already present
      */
     public abstract boolean register(@NonNull ResourcePack resourcePack);
 
     /**
-     * Registers a {@link ResourcePackCDNEntry} to be sent to the client.
+     * Registers a {@link ResourcePackCDNEntry} to be sent to clients.
      *
-     * @param entry a resource pack CDN entry that will be sent to the client.
+     * @param entry a resource pack CDN entry that will be sent to clients.
      */
     public abstract boolean register(@NonNull ResourcePackCDNEntry entry);
 
     /**
-     * Unregisters a {@link ResourcePack} or {@link ResourcePackCDNEntry} from being sent to the client.
+     * Unregisters a {@link ResourcePack} or {@link ResourcePackCDNEntry} from being sent to clients.
      *
      * @param uuid the UUID of the resource pack/CDN entry to remove.
      * @return true whether the resource pack/CDN entry was removed successfully.

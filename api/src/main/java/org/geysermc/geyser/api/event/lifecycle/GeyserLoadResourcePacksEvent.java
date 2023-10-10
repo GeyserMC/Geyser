@@ -33,8 +33,11 @@ import java.util.List;
 
 /**
  * Called when resource packs are loaded within Geyser.
+ * @deprecated Use {@link GeyserDefineResourcePacksEvent} instead.
  *
  * @param resourcePacks a mutable list of the currently listed resource packs
  */
-public record GeyserLoadResourcePacksEvent(@NonNull List<Path> resourcePacks) implements Event {
+
+@Deprecated(forRemoval = true)
+public record GeyserLoadResourcePacksEvent(@Deprecated @NonNull List<Path> resourcePacks) implements Event {
 }
