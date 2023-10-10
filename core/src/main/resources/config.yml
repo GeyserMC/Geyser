@@ -175,6 +175,15 @@ above-bedrock-nether-building: false
 # want to download the resource packs.
 force-resource-packs: true
 
+# A list of links to send to the client to download resource packs from.
+# These must be direct links, and you need to include the resource pack uuid
+# You can find the uuid in the manifest.json file inside the resource pack zip.
+cdn-resource-packs:
+  # Example: GeyserOptionalPack
+  {
+    e5f5c938-a701-11eb-b2a3-047d7bb283ba : "https://ci.opencollab.dev/job/GeyserMC/job/GeyserOptionalPack/job/master/lastSuccessfulBuild/artifact/GeyserOptionalPack.mcpack"
+  }
+
 # Allows Xbox achievements to be unlocked.
 # THIS DISABLES ALL COMMANDS FROM SUCCESSFULLY RUNNING FOR BEDROCK IN-GAME, as otherwise Bedrock thinks you are cheating.
 xbox-achievements-enabled: false

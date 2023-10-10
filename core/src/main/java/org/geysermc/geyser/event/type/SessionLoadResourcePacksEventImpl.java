@@ -28,6 +28,7 @@ package org.geysermc.geyser.event.type;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.event.bedrock.SessionLoadResourcePacksEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
+import org.geysermc.geyser.api.pack.ResourcePackCDNEntry;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.List;
@@ -38,9 +39,12 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
 
     private final Map<String, ResourcePack> packs;
 
-    public SessionLoadResourcePacksEventImpl(GeyserSession session, Map<String, ResourcePack> packMap) {
+    private final List<ResourcePackCDNEntry> cdnEntries;
+
+    public SessionLoadResourcePacksEventImpl(GeyserSession session, Map<String, ResourcePack> packMap, List<ResourcePackCDNEntry> cdnEntries) {
         super(session);
         this.packs = packMap;
+        this.cdnEntries = cdnEntries;
     }
 
     public @NonNull Map<String, ResourcePack> getPacks() {
@@ -53,9 +57,15 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
     }
 
     @Override
+    public @NonNull List<ResourcePackCDNEntry> cdnEntries() {
+        return List.copyOf(cdnEntries);
+    }
+
+    @Override
     public boolean register(@NonNull ResourcePack resourcePack) {
         String packID = resourcePack.manifest().header().uuid().toString();
-        if (packs.containsValue(resourcePack) || packs.containsKey(packID)) {
+        if (packs.containsValue(resourcePack) || packs.containsKey(packID)
+                || !cdnEntries.isEmpty() && cdnEntries.stream().anyMatch(entry -> entry.uuid().toString().equals(packID))) {
             return false;
         }
         packs.put(resourcePack.manifest().header().uuid().toString(), resourcePack);
@@ -63,7 +73,24 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
     }
 
     @Override
+    public boolean register(@NonNull ResourcePackCDNEntry entry) {
+        UUID packID = entry.uuid();
+        if (packs.containsKey(packID.toString()) || cdnEntries.contains(entry)
+                || !cdnEntries.isEmpty() && cdnEntries.stream().anyMatch(cdnEntry -> cdnEntry.uuid().equals(packID))) {
+            return false;
+        }
+        cdnEntries.add(entry);
+        return true;
+    }
+
+    @Override
     public boolean unregister(@NonNull UUID uuid) {
-        return packs.remove(uuid.toString()) != null;
+        if (packs.containsKey(uuid.toString())) {
+            return packs.remove(uuid.toString()) != null;
+        } else if (!cdnEntries.isEmpty() && cdnEntries.stream().anyMatch(entry -> entry.uuid().equals(uuid))) {
+            return cdnEntries.removeIf(entry -> entry.uuid().equals(uuid));
+        } else {
+            return false;
+        }
     }
 }

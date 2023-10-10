@@ -30,6 +30,7 @@ import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
+import org.geysermc.geyser.api.pack.ResourcePackCDNEntry;
 import org.geysermc.geyser.network.CIDRMatcher;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -95,6 +96,8 @@ public interface GeyserConfiguration {
     boolean isAboveBedrockNetherBuilding();
 
     boolean isForceResourcePacks();
+
+    List<ResourcePackCDNEntry> getCDNResourcePacks();
 
     boolean isXboxAchievementsEnabled();
 

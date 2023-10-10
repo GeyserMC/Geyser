@@ -36,15 +36,14 @@ import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.network.AuthType;
+import org.geysermc.geyser.api.pack.ResourcePackCDNEntry;
 import org.geysermc.geyser.network.CIDRMatcher;
 import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Getter
@@ -135,6 +134,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     @JsonProperty("force-resource-packs")
     private boolean forceResourcePacks = true;
+
+    @JsonProperty("cdn-resource-packs")
+    private Map<UUID, String> cdnResourcePacks = new HashMap<>();
 
     @JsonProperty("xbox-achievements-enabled")
     private boolean xboxAchievementsEnabled = false;
@@ -342,5 +344,14 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         public AuthType deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
             return AuthType.getByName(p.getValueAsString());
         }
+    }
+
+    @Override
+    public List<ResourcePackCDNEntry> getCDNResourcePacks() {
+        List<ResourcePackCDNEntry> entries = new ArrayList<>();
+        for (Map.Entry<UUID, String> entry : cdnResourcePacks.entrySet()) {
+            entries.add(new ResourcePackCDNEntry(entry.getValue(), entry.getKey()));
+        }
+        return entries;
     }
 }
