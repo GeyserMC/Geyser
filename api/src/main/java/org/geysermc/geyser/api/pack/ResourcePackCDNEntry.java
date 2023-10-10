@@ -27,9 +27,14 @@ package org.geysermc.geyser.api.pack;
 
 import java.util.UUID;
 
-public record ResourcePackCDNEntry(
-        String url,
-        UUID uuid
-) {
+/**
+ * Represents a CDN entry for a resource pack.
+ * The URL must be a direct download link to a Bedrock edition resource pack.
+ * The UUID must be the UUID of the resource pack.
+ *
+ * @param url URL from which the pack should be downloaded
+ * @param uuid UUID of the pack
+ */
+public record ResourcePackCDNEntry(String url, UUID uuid) {
 }
 

@@ -31,7 +31,20 @@ import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.cloudburstmc.protocol.bedrock.data.ExperimentData;
 import org.cloudburstmc.protocol.bedrock.data.PacketCompressionAlgorithm;
 import org.cloudburstmc.protocol.bedrock.data.ResourcePackType;
-import org.cloudburstmc.protocol.bedrock.packet.*;
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LoginPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ModalFormResponsePacket;
+import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
+import org.cloudburstmc.protocol.bedrock.packet.NetworkSettingsPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
+import org.cloudburstmc.protocol.bedrock.packet.RequestNetworkSettingsPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ResourcePackChunkDataPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ResourcePackChunkRequestPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ResourcePackClientResponsePacket;
+import org.cloudburstmc.protocol.bedrock.packet.ResourcePackDataInfoPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ResourcePackStackPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ResourcePacksInfoPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
 import org.cloudburstmc.protocol.common.PacketSignal;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
@@ -182,10 +195,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         // Add CDN entries if the client supports it
         if (!GameProtocol.isPre1_20_30(session)) {
             for (ResourcePackCDNEntry entry : this.resourcePackLoadEvent.cdnEntries()) {
-                GeyserImpl.getInstance().getLogger().error("Adding CDN entry: " + entry.url() + " for " + entry.uuid());
                 resourcePacksInfo.getCDNEntries().add(new ResourcePacksInfoPacket.CDNEntry(entry.uuid().toString(), entry.url()));
             }
         }
+
         resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().getConfig().isForceResourcePacks());
         session.sendUpstreamPacket(resourcePacksInfo);
 
