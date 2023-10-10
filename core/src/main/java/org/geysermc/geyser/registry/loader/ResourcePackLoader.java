@@ -64,7 +64,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
 
     private static final boolean SHOW_RESOURCE_PACK_LENGTH_WARNING = Boolean.parseBoolean(System.getProperty("Geyser.ShowResourcePackLengthWarning", "true"));
 
-    public static List<ResourcePackCDNEntry> RESOURCE_PACK_CDN_ENTRY_LIST = new ArrayList<>();
+    public static List<ResourcePackCDNEntry> RESOURCE_PACK_CDN_ENTRIES = new ArrayList<>();
 
     /**
      * Loop through the packs directory and locate valid resource pack files
@@ -120,7 +120,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
             ResourcePack cdnpack = readPack(cachedPath);
             UUID uuid = cdnpack.manifest().header().uuid();
 
-            RESOURCE_PACK_CDN_ENTRY_LIST.add(new ResourcePackCDNEntry(url, uuid));
+            RESOURCE_PACK_CDN_ENTRIES.add(new ResourcePackCDNEntry(url, uuid));
 
             try {
                 Files.delete(cachedPath);
@@ -141,9 +141,9 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
             }
         }
 
-        GeyserDefineResourcePacksEventImpl defineEvent = new GeyserDefineResourcePacksEventImpl(packMap, RESOURCE_PACK_CDN_ENTRY_LIST);
+        GeyserDefineResourcePacksEventImpl defineEvent = new GeyserDefineResourcePacksEventImpl(packMap, RESOURCE_PACK_CDN_ENTRIES);
         packMap = defineEvent.getPacks();
-        RESOURCE_PACK_CDN_ENTRY_LIST = defineEvent.cdnEntries();
+        RESOURCE_PACK_CDN_ENTRIES = defineEvent.cdnEntries();
 
         return packMap;
     }
