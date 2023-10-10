@@ -38,6 +38,6 @@ import java.util.List;
  * @param resourcePacks a mutable list of the currently listed resource packs
  */
 
-@Deprecated(forRemoval = true)
+@Deprecated
 public record GeyserLoadResourcePacksEvent(@Deprecated @NonNull List<Path> resourcePacks) implements Event {
 }

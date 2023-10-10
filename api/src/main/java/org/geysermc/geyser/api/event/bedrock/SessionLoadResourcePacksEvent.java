@@ -68,7 +68,7 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
     /**
      * Registers a {@link ResourcePackCDNEntry} to be sent to the client.
      *
-     * @param entry a resource pack CDN entry that will be sent to the client.
+     * @param entry CDN entry that will be sent to the client to download a resource pack from.
      */
     public abstract boolean register(@NonNull ResourcePackCDNEntry entry);
 

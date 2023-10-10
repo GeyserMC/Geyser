@@ -65,7 +65,7 @@ public abstract class GeyserDefineResourcePacksEvent implements Event {
     /**
      * Registers a {@link ResourcePackCDNEntry} to be sent to clients.
      *
-     * @param entry a resource pack CDN entry that will be sent to clients.
+     * @param entry CDN entry that will be sent to the client to download a resource pack from.
      */
     public abstract boolean register(@NonNull ResourcePackCDNEntry entry);
 
