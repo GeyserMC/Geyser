@@ -69,7 +69,7 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
         if (container.getStonecutterButton() != button) {
             // Getting the index of the item in the Java stonecutter list
             ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(inventory.getJavaId(), button);
-            session.sendDownstreamPacket(packet);
+            session.sendDownstreamGamePacket(packet);
             container.setStonecutterButton(button);
         }
 
