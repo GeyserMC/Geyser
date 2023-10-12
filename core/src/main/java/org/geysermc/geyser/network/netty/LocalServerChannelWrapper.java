@@ -28,9 +28,9 @@ package org.geysermc.geyser.network.netty;
 import io.netty.channel.local.LocalChannel;
 import io.netty.channel.local.LocalServerChannel;
 import io.netty.util.Attribute;
+import org.geysermc.api.connection.Connection;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.floodgate.IntegratedFloodgateProvider;
-import org.geysermc.geyser.session.GeyserSession;
 
 /**
  * If the incoming channel if an instance of LocalChannelWithRemoteAddress, this server creates a LocalChannelWrapper
@@ -45,8 +45,8 @@ public class LocalServerChannelWrapper extends LocalServerChannel {
             channel.wrapper().remoteAddress(((LocalChannelWithRemoteAddress) peer).spoofedRemoteAddress());
 
             if (GeyserImpl.getInstance().getFloodgateProvider() instanceof IntegratedFloodgateProvider) {
-                Attribute<GeyserSession> attribute = peer.attr(IntegratedFloodgateProvider.SESSION_KEY);
-                GeyserSession session = attribute.get();
+                Attribute<Connection> attribute = peer.attr(IntegratedFloodgateProvider.SESSION_KEY);
+                Connection session = attribute.get();
                 // Garbage collect since it's no longer relevant for the PacketLib side.
                 attribute.set(null);
                 channel.attr(IntegratedFloodgateProvider.SESSION_KEY).set(session);

@@ -25,23 +25,30 @@
 
 package org.geysermc.geyser.floodgate;
 
+import io.micronaut.core.type.Argument;
+import io.micronaut.inject.qualifiers.Qualifiers;
 import io.netty.util.AttributeKey;
+import org.geysermc.api.connection.Connection;
 import org.geysermc.floodgate.core.FloodgatePlatform;
-import org.geysermc.floodgate.core.connection.ConnectionManager;
 import org.geysermc.floodgate.core.skin.SkinApplier;
 import org.geysermc.floodgate.core.skin.SkinDataImpl;
 import org.geysermc.geyser.session.GeyserSession;
 
 public class IntegratedFloodgateProvider implements FloodgateProvider {
-    // TODO This will probably end up as its own class.
-    public static final AttributeKey<GeyserSession> SESSION_KEY = AttributeKey.valueOf("geyser-session");
+    public static final AttributeKey<Connection> SESSION_KEY = AttributeKey.valueOf("floodgate-player");
 
     private final SkinApplier skinApplier;
-    private final ConnectionManager connectionManager;
 
     public IntegratedFloodgateProvider(FloodgatePlatform platform) {
         skinApplier = platform.getBean(SkinApplier.class);
-        connectionManager = platform.getBean(ConnectionManager.class);
+
+        var connectionAttribute = platform.getBean(
+                Argument.of(AttributeKey.class, Connection.class),
+                Qualifiers.byName("connectionAttribute")
+        );
+        if (connectionAttribute.id() != SESSION_KEY.id()) {
+            throw new IllegalStateException("Session key doesn't match Floodgate's key!");
+        }
     }
 
     @Override
@@ -51,7 +58,6 @@ public class IntegratedFloodgateProvider implements FloodgateProvider {
 
     @Override
     public String onClientIntention(GeyserSession session) {
-        connectionManager.addConnection(session);
         return null;
     }
 }

@@ -65,8 +65,8 @@ import org.geysermc.geyser.erosion.UnixSocketClientListener;
 import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.extension.GeyserExtensionManager;
 import org.geysermc.geyser.floodgate.FloodgateProvider;
+import org.geysermc.geyser.floodgate.IntegratedFloodgateProvider;
 import org.geysermc.geyser.floodgate.NoFloodgateProvider;
-import org.geysermc.geyser.floodgate.ProxyFloodgateProvider;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.netty.GeyserServer;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -165,8 +165,8 @@ public class GeyserImpl implements GeyserApi {
             floodgatePlatform.load();
             floodgatePlatform.enable();
 //            this.floodgatePlatform = floodgatePlatform.isProxy() ? new ProxyFloodgateProvider(floodgatePlatform) : new IntegratedFloodgateProvider(floodgatePlatform);
-//            this.floodgateProvider = new IntegratedFloodgateProvider(floodgatePlatform);
-            this.floodgateProvider = new ProxyFloodgateProvider(floodgatePlatform);
+            this.floodgateProvider = new IntegratedFloodgateProvider(floodgatePlatform);
+//            this.floodgateProvider = new ProxyFloodgateProvider(floodgatePlatform);
         } else {
             this.floodgateProvider = new NoFloodgateProvider();
             Geyser.set(this);

@@ -101,6 +101,7 @@ import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.common.returnsreceiver.qual.This;
 import org.checkerframework.common.value.qual.IntRange;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector2i;
@@ -241,6 +242,8 @@ public class GeyserSession extends FloodgateConnection implements GeyserConnecti
      */
     @Setter
     private List<String> certChainData;
+
+    private LinkedPlayer linkedPlayer;
 
     @NotNull
     @Setter
@@ -1973,7 +1976,7 @@ public class GeyserSession extends FloodgateConnection implements GeyserConnecti
 
     @Override
     public @MonotonicNonNull LinkedPlayer linkedPlayer() {
-        return null; //todo
+        return linkedPlayer;
     }
 
     @SuppressWarnings("ConstantConditions") // Need to enforce the parameter annotations
@@ -1989,6 +1992,12 @@ public class GeyserSession extends FloodgateConnection implements GeyserConnecti
         transferPacket.setPort(port);
         sendUpstreamPacket(transferPacket);
         return true;
+    }
+
+    @Override
+    public @This FloodgateConnection linkedPlayer(@Nullable LinkedPlayer linkedPlayer) {
+        this.linkedPlayer = linkedPlayer;
+        return this;
     }
 
     @Override

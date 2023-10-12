@@ -29,9 +29,9 @@ import com.mojang.authlib.GameProfile;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import org.geysermc.api.connection.Connection;
 import org.geysermc.floodgate.spigot.util.ClassNames;
 import org.geysermc.geyser.floodgate.IntegratedFloodgateProvider;
-import org.geysermc.geyser.session.GeyserSession;
 
 import javax.annotation.Nonnull;
 
@@ -42,7 +42,7 @@ public final class SpigotHybridChannelHandler extends ChannelInboundHandlerAdapt
 
     @Override
     public void channelRead(@Nonnull ChannelHandlerContext ctx, @Nonnull Object packet) throws Exception {
-        GeyserSession session = ctx.channel().attr(IntegratedFloodgateProvider.SESSION_KEY).get();
+        Connection session = ctx.channel().attr(IntegratedFloodgateProvider.SESSION_KEY).get();
         // TODO generify this code within Floodgate
         if (ClassNames.LOGIN_START_PACKET.isInstance(packet)) {
             Object networkManager = ctx.channel().pipeline().get("packet_handler");
