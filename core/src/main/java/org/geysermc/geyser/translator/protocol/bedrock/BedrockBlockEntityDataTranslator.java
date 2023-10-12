@@ -108,7 +108,7 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
             if (iterator < lines.length) lines[iterator] = newMessage.toString();
             Vector3i pos = Vector3i.from(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
             ServerboundSignUpdatePacket signUpdatePacket = new ServerboundSignUpdatePacket(pos, lines, session.getWorldCache().isEditingSignOnFront());
-            session.sendDownstreamPacket(signUpdatePacket);
+            session.sendDownstreamGamePacket(signUpdatePacket);
 
         } else if (id.equals("JigsawBlock")) {
             // Client has just sent a jigsaw block update
@@ -120,7 +120,7 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
             String joint = tag.getString("joint");
             ServerboundSetJigsawBlockPacket jigsawPacket = new ServerboundSetJigsawBlockPacket(pos, name, target, pool,
                     finalState, joint);
-            session.sendDownstreamPacket(jigsawPacket);
+            session.sendDownstreamGamePacket(jigsawPacket);
         }
 
     }
