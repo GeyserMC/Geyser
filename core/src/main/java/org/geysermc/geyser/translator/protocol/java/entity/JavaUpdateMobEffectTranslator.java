@@ -42,8 +42,9 @@ public class JavaUpdateMobEffectTranslator extends PacketTranslator<ClientboundU
         if (entity == session.getPlayerEntity()) {
             session.getEffectCache().setEffect(packet.getEffect(), packet.getAmplifier());
         }
-        if (entity == null)
+        if (entity == null) {
             return;
+        }
 
         int duration = packet.getDuration();
         if (duration < 0) {

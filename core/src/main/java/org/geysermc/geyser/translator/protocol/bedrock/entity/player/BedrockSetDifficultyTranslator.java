@@ -39,7 +39,7 @@ public class BedrockSetDifficultyTranslator extends PacketTranslator<SetDifficul
      */
     @Override
     public void translate(GeyserSession session, SetDifficultyPacket packet) {
-        if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.server")) {
+        if (session.getOpPermissionLevel() >= 2 && session.hasPermission("geyser.settings.server")) {
             if (packet.getDifficulty() != session.getWorldCache().getDifficulty().ordinal()) {
                 session.getGeyser().getWorldManager().setDifficulty(session, Difficulty.from(packet.getDifficulty()));
             }

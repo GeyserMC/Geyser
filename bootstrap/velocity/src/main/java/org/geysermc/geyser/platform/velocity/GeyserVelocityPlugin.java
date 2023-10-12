@@ -128,16 +128,6 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
         this.geyser = GeyserImpl.load(PlatformType.VELOCITY, this, platform);
 
-        // Remove this in like a year
-        try {
-            // Should only exist on 1.0
-            Class.forName("org.geysermc.floodgate.FloodgateAPI");
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.outdated",
-                    "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/"));
-            return;
-        } catch (ClassNotFoundException ignored) {
-        }
-
 //        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE && proxyServer.getPluginManager().getPlugin("floodgate").isEmpty()) {
 //            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " "
 //                    + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));

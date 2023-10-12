@@ -97,7 +97,7 @@ public class AdvancementsCache {
                 } else {
                     // Send a packet indicating that we intend to open this particular advancement window
                     ServerboundSeenAdvancementsPacket packet = new ServerboundSeenAdvancementsPacket(id);
-                    session.sendDownstreamPacket(packet);
+                    session.sendDownstreamGamePacket(packet);
                     // Wait for a response there
                 }
             }
@@ -137,7 +137,7 @@ public class AdvancementsCache {
 
         builder.closedResultHandler(() -> {
             // Indicate that we have closed the current advancement tab
-            session.sendDownstreamPacket(new ServerboundSeenAdvancementsPacket());
+            session.sendDownstreamGamePacket(new ServerboundSeenAdvancementsPacket());
 
         }).validResultHandler((response) -> {
             if (response.clickedButtonId() < visibleAdvancements.size()) {
@@ -146,7 +146,7 @@ public class AdvancementsCache {
             } else {
                 buildAndShowMenuForm();
                 // Indicate that we have closed the current advancement tab
-                session.sendDownstreamPacket(new ServerboundSeenAdvancementsPacket());
+                session.sendDownstreamGamePacket(new ServerboundSeenAdvancementsPacket());
             }
         });
 

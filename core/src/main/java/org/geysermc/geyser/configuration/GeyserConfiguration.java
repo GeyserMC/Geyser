@@ -36,7 +36,6 @@ import org.geysermc.geyser.text.GeyserLocale;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 
 public interface GeyserConfiguration {
     /**
@@ -54,9 +53,6 @@ public interface GeyserConfiguration {
     HybridInfo getHybridInfo();
 
     List<String> getSavedUserLogins();
-
-    @Deprecated
-    Map<String, ? extends IUserAuthenticationInfo> getUserAuths();
 
     boolean isCommandSuggestions();
 
@@ -149,8 +145,6 @@ public interface GeyserConfiguration {
 
         void setPort(int port);
 
-        boolean isPasswordAuthentication();
-
         boolean isUseProxyProtocol();
 
         boolean isForwardHost();
@@ -171,18 +165,6 @@ public interface GeyserConfiguration {
         String usernamePrefix();
 
         boolean replaceSpaces();
-    }
-
-    interface IUserAuthenticationInfo {
-        String getEmail();
-
-        String getPassword();
-
-        /**
-         * Will be removed after Microsoft accounts are fully migrated
-         */
-        @Deprecated
-        boolean isMicrosoftAccount();
     }
 
     interface IMetricsInfo {

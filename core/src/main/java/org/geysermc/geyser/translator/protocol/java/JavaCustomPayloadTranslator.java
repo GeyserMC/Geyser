@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundCustomPayloadPacket;
+import com.github.steveice10.mc.protocol.packet.common.clientbound.ClientboundCustomPayloadPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.session.GeyserSession;

@@ -83,7 +83,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             entity.setHeadYaw(headYaw);
             entity.setOnGround(packet.isOnGround());
 
-            session.sendDownstreamPacket(playerRotationPacket);
+            session.sendDownstreamGamePacket(playerRotationPacket);
         } else {
             if (session.getWorldBorder().isPassingIntoBorderBoundaries(packet.getPosition(), true)) {
                 return;
@@ -130,7 +130,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                     entity.setOnGround(onGround);
 
                     // Send final movement changes
-                    session.sendDownstreamPacket(movePacket);
+                    session.sendDownstreamGamePacket(movePacket);
 
                     if (teleportThroughVoidFloor) {
                         // Work around there being a floor at the bottom of the world and teleport the player below it

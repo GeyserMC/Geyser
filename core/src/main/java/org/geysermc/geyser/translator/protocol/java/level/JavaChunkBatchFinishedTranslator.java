@@ -23,35 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.level.block.entity;
+package org.geysermc.geyser.translator.protocol.java.level;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundChunkBatchFinishedPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundChunkBatchReceivedPacket;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
 
-import java.util.ArrayList;
-import java.util.List;
-
-@BlockEntity(type = BlockEntityType.DECORATED_POT)
-public class DecoratedPotBlockEntityTranslator extends BlockEntityTranslator {
+@Translator(packet = ClientboundChunkBatchFinishedPacket.class)
+public class JavaChunkBatchFinishedTranslator extends PacketTranslator<ClientboundChunkBatchFinishedPacket> {
 
     @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
-        if (tag == null) {
-            return;
-        }
-
-        // exact same format
-        if (tag.get("sherds") instanceof ListTag sherds) {
-            List<String> translated = new ArrayList<>(4);
-            for (Tag sherd : sherds) {
-                translated.add(((StringTag) sherd).getValue());
-            }
-            builder.putList("sherds", NbtType.STRING, translated);
-        }
+    public void translate(GeyserSession session, ClientboundChunkBatchFinishedPacket packet) {
+        // server just sent a batch of LevelChunkWithLightPackets
+        // the vanilla client uses a ChunkBatchSizeCalculator to calculate the desiredChunksPerTick,
+        // but currently we just send an arbitrary value. server clamps the value between 0.01 and 64.
+        session.sendDownstreamGamePacket(new ServerboundChunkBatchReceivedPacket(20));
     }
 }
