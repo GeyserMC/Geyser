@@ -67,6 +67,7 @@ import org.geysermc.geyser.extension.GeyserExtensionManager;
 import org.geysermc.geyser.floodgate.FloodgateProvider;
 import org.geysermc.geyser.floodgate.IntegratedFloodgateProvider;
 import org.geysermc.geyser.floodgate.NoFloodgateProvider;
+import org.geysermc.geyser.floodgate.ProxyFloodgateProvider;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.netty.GeyserServer;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -168,7 +169,11 @@ public class GeyserImpl implements GeyserApi {
             this.floodgateProvider = new IntegratedFloodgateProvider(floodgatePlatform);
 //            this.floodgateProvider = new ProxyFloodgateProvider(floodgatePlatform);
         } else {
-            this.floodgateProvider = new NoFloodgateProvider();
+            if (bootstrap.getGeyserConfig().getRemote().authType() == AuthType.FLOODGATE) {
+                this.floodgateProvider = new ProxyFloodgateProvider(bootstrap.getConfigFolder());
+            } else {
+                this.floodgateProvider = new NoFloodgateProvider();
+            }
             Geyser.set(this);
         }
 

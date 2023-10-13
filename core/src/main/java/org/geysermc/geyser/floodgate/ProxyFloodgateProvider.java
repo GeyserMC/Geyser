@@ -26,8 +26,14 @@
 package org.geysermc.geyser.floodgate;
 
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import lombok.SneakyThrows;
 import org.geysermc.floodgate.core.FloodgatePlatform;
+import org.geysermc.floodgate.core.connection.standalone.codec.FloodgateConnectionCodec;
+import org.geysermc.floodgate.core.crypto.DataCodecType;
 import org.geysermc.floodgate.core.crypto.FloodgateDataCodec;
+import org.geysermc.floodgate.core.crypto.FloodgateFormatCodec;
+import org.geysermc.floodgate.core.crypto.topping.Base64Topping;
 import org.geysermc.geyser.session.GeyserSession;
 
 //todo Floodgate should be responsible for forwarding its messages
@@ -36,6 +42,15 @@ public final class ProxyFloodgateProvider implements FloodgateProvider {
 
     public ProxyFloodgateProvider(FloodgatePlatform platform) {
         dataCodec = platform.getBean(FloodgateDataCodec.class);
+    }
+
+    @SneakyThrows
+    public ProxyFloodgateProvider(Path dataDirectory) {
+        //todo use what the platform provides without enabling Floodgate
+        dataCodec = new FloodgateDataCodec(
+                new FloodgateFormatCodec(DataCodecType.AES, new Base64Topping(), dataDirectory),
+                new FloodgateConnectionCodec()
+        );
     }
 
     @Override
