@@ -35,7 +35,7 @@ public final class PluginMessageChannels {
     public static final String COMMANDS = "floodgate:commands";
 
     private static final byte[] FLOODGATE_REGISTER_DATA =
-            String.join("\0", SKIN, FORM, TRANSFER, PACKET)
+            String.join("\0", SKIN, FORM, TRANSFER, PACKET, COMMANDS)
                     .getBytes(StandardCharsets.UTF_8);
 
     /**
