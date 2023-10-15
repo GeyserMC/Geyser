@@ -28,6 +28,8 @@ package org.geysermc.geyser.translator.protocol.java;
 import com.github.steveice10.mc.protocol.packet.common.clientbound.ClientboundCustomPayloadPacket;
 import com.github.steveice10.mc.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
 import com.google.common.base.Charsets;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.cloudburstmc.protocol.bedrock.packet.TransferPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UnknownPacket;
 import io.netty.buffer.ByteBuf;
@@ -47,6 +49,7 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 @Translator(packet = ClientboundCustomPayloadPacket.class)
 public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCustomPayloadPacket> {
@@ -137,6 +140,14 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
                 toSend.setPayload(packetData);
 
                 session.sendUpstreamPacket(toSend);
+            });
+        } else if (channel.equals(PluginMessageChannels.COMMANDS)) {
+            session.ensureInEventLoop(() -> {
+                byte[] data = packet.getData();
+                String dataString = new String(data, StandardCharsets.UTF_8);
+
+                Map<String, String> parsedCommandDescriptions = new Gson().fromJson(dataString, new TypeToken<Map<String, String>>(){}.getType());
+                session.getGeyser().commandManager().addCommandDescriptions(parsedCommandDescriptions);
             });
         }
     }
