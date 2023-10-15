@@ -152,11 +152,11 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
         ByteBuf in = Unpooled.wrappedBuffer(data);
 
         Map<String, String> parsedCommandDescriptions = new HashMap<>();
-        int length = in.readInt();
+        int length = in.readUnsignedShort();
         for (int i = 0; i < length; i++) {
-            short commandLength = in.readShort();
+            int commandLength = in.readUnsignedShort();
             String command = in.readBytes(commandLength).toString(StandardCharsets.UTF_8);
-            short commandDescriptionLength = in.readShort();
+            int commandDescriptionLength = in.readUnsignedShort();
             String description = in.readBytes(commandDescriptionLength).toString(StandardCharsets.UTF_8);
             parsedCommandDescriptions.put(command, description);
         }
