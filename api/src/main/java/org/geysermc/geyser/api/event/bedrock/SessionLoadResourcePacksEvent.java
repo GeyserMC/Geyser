@@ -60,8 +60,8 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
     /**
      * Unregisters a {@link ResourcePack} from being sent to the client.
      *
-     * @param uuid the UUID of the resource pack/CDN entry to remove.
-     * @return true whether the resource pack/CDN entry was removed successfully.
+     * @param uuid the UUID of the resource pack to remove.
+     * @return true whether the resource pack was removed successfully.
      */
     public abstract boolean unregister(@NonNull UUID uuid);
 }
