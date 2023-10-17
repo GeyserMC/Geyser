@@ -25,29 +25,22 @@
 
 package org.geysermc.geyser.event.type;
 
+import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineResourcePacksEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
-import org.geysermc.geyser.api.pack.ResourcePackCDNEntry;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePacksEvent {
 
+    @Getter
     private final Map<String, ResourcePack> packs;
-    private final Map<String, ResourcePackCDNEntry> cdnEntries;
 
-    public GeyserDefineResourcePacksEventImpl(Map<String, ResourcePack> packMap, List<ResourcePackCDNEntry> cdnEntries) {
+    public GeyserDefineResourcePacksEventImpl(Map<String, ResourcePack> packMap) {
         this.packs = packMap;
-        this.cdnEntries = new HashMap<>();
-        cdnEntries.forEach(entry -> this.cdnEntries.put(entry.uuid().toString(), entry));
-    }
-
-    public @NonNull Map<String, ResourcePack> getPacks() {
-        return packs;
     }
 
     @Override
@@ -56,14 +49,9 @@ public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePack
     }
 
     @Override
-    public @NonNull List<ResourcePackCDNEntry> cdnEntries() {
-        return List.copyOf(cdnEntries.values());
-    }
-
-    @Override
     public boolean register(@NonNull ResourcePack resourcePack) {
         String packID = resourcePack.manifest().header().uuid().toString();
-        if (packs.containsValue(resourcePack) || packs.containsKey(packID) || cdnEntries.containsKey(packID)) {
+        if (packs.containsValue(resourcePack) || packs.containsKey(packID)) {
             return false;
         }
         packs.put(resourcePack.manifest().header().uuid().toString(), resourcePack);
@@ -71,23 +59,7 @@ public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePack
     }
 
     @Override
-    public boolean register(@NonNull ResourcePackCDNEntry entry) {
-        String packID = entry.uuid().toString();
-        if (packs.containsKey(packID) || cdnEntries.containsValue(entry) || cdnEntries.containsKey(packID)) {
-            return false;
-        }
-        cdnEntries.put(packID, entry);
-        return true;
-    }
-
-    @Override
     public boolean unregister(@NonNull UUID uuid) {
-        if (packs.containsKey(uuid.toString())) {
-            return packs.remove(uuid.toString()) != null;
-        } else if (cdnEntries.containsKey(uuid.toString())) {
-            return cdnEntries.remove(uuid.toString()) != null;
-        } else {
-            return false;
-        }
+        return packs.remove(uuid.toString()) != null;
     }
 }

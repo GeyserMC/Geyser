@@ -25,16 +25,23 @@
 
 package org.geysermc.geyser.api.pack;
 
-import java.util.UUID;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
-/**
- * Represents a CDN entry for a resource pack.
- * The URL must be a direct download link to a Bedrock edition resource pack.
- * The UUID must be the UUID of the resource pack.
- *
- * @param url URL from which the pack should be downloaded
- * @param uuid UUID of the pack
- */
-public record ResourcePackCDNEntry(String url, UUID uuid) {
+public abstract class UrlPackCodec extends PackCodec {
+
+    /**
+     * Gets the URL of the resource pack.
+     *
+     * @return the URL of the resource pack
+     */
+    @NonNull
+    public abstract String url();
+
+    /**
+     * If the remote pack has an encryption key, it must be specified here.
+     * Otherwise, leave empty.
+     *
+     */
+    @NonNull
+    public abstract String contentKey();
 }
-

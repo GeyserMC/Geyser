@@ -79,4 +79,16 @@ public abstract class PackCodec {
     public static PackCodec path(@NonNull Path path) {
         return GeyserApi.api().provider(PathPackCodec.class, path);
     }
+
+    /**
+     * Creates a new pack provider from the given url and content key.
+     *
+     * @param url the url to create the pack provider from
+     * @param contentKey the content key, leave empty if pack is not encrypted
+     * @return the new pack provider
+     */
+    @NonNull
+    public static PackCodec url(@NonNull String url, @NonNull String contentKey) {
+        return GeyserApi.api().provider(UrlPackCodec.class, url, contentKey);
+    }
 }

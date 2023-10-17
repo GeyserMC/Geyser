@@ -28,13 +28,12 @@ package org.geysermc.geyser.api.event.lifecycle;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Event;
 import org.geysermc.geyser.api.pack.ResourcePack;
-import org.geysermc.geyser.api.pack.ResourcePackCDNEntry;
 
 import java.util.List;
 import java.util.UUID;
 
 /**
- * Called when {@link ResourcePack}'s and {@link ResourcePackCDNEntry}'s are loaded within Geyser.
+ * Called when {@link ResourcePack}'s are loaded within Geyser.
  */
 public abstract class GeyserDefineResourcePacksEvent implements Event {
 
@@ -46,13 +45,6 @@ public abstract class GeyserDefineResourcePacksEvent implements Event {
     public abstract @NonNull List<ResourcePack> resourcePacks();
 
     /**
-     * Gets an unmodifiable list of {@link ResourcePackCDNEntry}s that will be sent to clients.
-     *
-     * @return an unmodifiable list of resource pack CDN entries that will be sent to clients.
-     */
-    public abstract @NonNull List<ResourcePackCDNEntry> cdnEntries();
-
-    /**
      * Registers a {@link ResourcePack} to be sent to clients.
      *
      * @param resourcePack a resource pack that will be sent to clients.
@@ -62,14 +54,7 @@ public abstract class GeyserDefineResourcePacksEvent implements Event {
     public abstract boolean register(@NonNull ResourcePack resourcePack);
 
     /**
-     * Registers a {@link ResourcePackCDNEntry} to be sent to clients.
-     *
-     * @param entry CDN entry that will be sent to the client to download a resource pack from.
-     */
-    public abstract boolean register(@NonNull ResourcePackCDNEntry entry);
-
-    /**
-     * Unregisters a {@link ResourcePack} or {@link ResourcePackCDNEntry} from being sent to clients.
+     * Unregisters a {@link ResourcePack} from being sent to clients.
      *
      * @param uuid the UUID of the resource pack/CDN entry to remove.
      * @return true whether the resource pack/CDN entry was removed successfully.

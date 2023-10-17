@@ -29,7 +29,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
-import org.geysermc.geyser.api.pack.ResourcePackCDNEntry;
 
 import java.util.List;
 import java.util.UUID;
@@ -50,13 +49,6 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
     public abstract @NonNull List<ResourcePack> resourcePacks();
 
     /**
-     * Gets an unmodifiable list of {@link ResourcePackCDNEntry}s that will be sent to the client.
-     *
-     * @return an unmodifiable list of resource pack CDN entries that will be sent to the client.
-     */
-    public abstract @NonNull List<ResourcePackCDNEntry> cdnEntries();
-
-    /**
      * Registers a {@link ResourcePack} to be sent to the client.
      *
      * @param resourcePack a resource pack that will be sent to the client.
@@ -66,14 +58,7 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
     public abstract boolean register(@NonNull ResourcePack resourcePack);
 
     /**
-     * Registers a {@link ResourcePackCDNEntry} to be sent to the client.
-     *
-     * @param entry CDN entry that will be sent to the client to download a resource pack from.
-     */
-    public abstract boolean register(@NonNull ResourcePackCDNEntry entry);
-
-    /**
-     * Unregisters a {@link ResourcePack} or {@link ResourcePackCDNEntry} from being sent to the client.
+     * Unregisters a {@link ResourcePack} from being sent to the client.
      *
      * @param uuid the UUID of the resource pack/CDN entry to remove.
      * @return true whether the resource pack/CDN entry was removed successfully.
