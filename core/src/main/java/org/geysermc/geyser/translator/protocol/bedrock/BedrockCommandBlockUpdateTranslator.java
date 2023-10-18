@@ -53,13 +53,13 @@ public class BedrockCommandBlockUpdateTranslator extends PacketTranslator<Comman
             boolean automatic = !packet.isRedstoneMode(); // Automatic = Always Active option in Java
             ServerboundSetCommandBlockPacket commandBlockPacket = new ServerboundSetCommandBlockPacket(
                     packet.getBlockPosition(), command, mode, outputTracked, isConditional, automatic);
-            session.sendDownstreamPacket(commandBlockPacket);
+            session.sendDownstreamGamePacket(commandBlockPacket);
         } else {
             ServerboundSetCommandMinecartPacket commandMinecartPacket = new ServerboundSetCommandMinecartPacket(
                     session.getEntityCache().getEntityByGeyserId(packet.getMinecartRuntimeEntityId()).getEntityId(),
                     command, outputTracked
             );
-            session.sendDownstreamPacket(commandMinecartPacket);
+            session.sendDownstreamGamePacket(commandMinecartPacket);
         }
     }
 }

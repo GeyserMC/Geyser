@@ -39,6 +39,6 @@ public class JavaChunkBatchFinishedTranslator extends PacketTranslator<Clientbou
         // server just sent a batch of LevelChunkWithLightPackets
         // the vanilla client uses a ChunkBatchSizeCalculator to calculate the desiredChunksPerTick,
         // but currently we just send an arbitrary value. server clamps the value between 0.01 and 64.
-        session.sendDownstreamPacket(new ServerboundChunkBatchReceivedPacket(20));
+        session.sendDownstreamGamePacket(new ServerboundChunkBatchReceivedPacket(20));
     }
 }

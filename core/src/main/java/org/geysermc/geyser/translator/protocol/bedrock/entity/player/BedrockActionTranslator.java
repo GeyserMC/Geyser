@@ -26,10 +26,6 @@
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
 import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.InteractAction;
@@ -97,7 +93,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
             case START_SWIMMING:
                 if (!entity.getFlag(EntityFlag.SWIMMING)) {
                     ServerboundPlayerCommandPacket startSwimPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SPRINTING);
-                    session.sendDownstreamPacket(startSwimPacket);
+                    session.sendDownstreamGamePacket(startSwimPacket);
 
                     session.setSwimming(true);
                 }
@@ -106,7 +102,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 // Prevent packet spam when Bedrock players are crawling near the edge of a block
                 if (!session.getCollisionManager().mustPlayerCrawlHere()) {
                     ServerboundPlayerCommandPacket stopSwimPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.STOP_SPRINTING);
-                    session.sendDownstreamPacket(stopSwimPacket);
+                    session.sendDownstreamGamePacket(stopSwimPacket);
 
                     session.setSwimming(false);
                 }
@@ -114,45 +110,45 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
             case START_GLIDE:
                 // Otherwise gliding will not work in creative
                 ServerboundPlayerAbilitiesPacket playerAbilitiesPacket = new ServerboundPlayerAbilitiesPacket(false);
-                session.sendDownstreamPacket(playerAbilitiesPacket);
+                session.sendDownstreamGamePacket(playerAbilitiesPacket);
             case STOP_GLIDE:
                 ServerboundPlayerCommandPacket glidePacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_ELYTRA_FLYING);
-                session.sendDownstreamPacket(glidePacket);
+                session.sendDownstreamGamePacket(glidePacket);
                 break;
             case START_SNEAK:
                 ServerboundPlayerCommandPacket startSneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SNEAKING);
-                session.sendDownstreamPacket(startSneakPacket);
+                session.sendDownstreamGamePacket(startSneakPacket);
 
                 session.startSneaking();
                 break;
             case STOP_SNEAK:
                 ServerboundPlayerCommandPacket stopSneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.STOP_SNEAKING);
-                session.sendDownstreamPacket(stopSneakPacket);
+                session.sendDownstreamGamePacket(stopSneakPacket);
 
                 session.stopSneaking();
                 break;
             case START_SPRINT:
                 if (!entity.getFlag(EntityFlag.SWIMMING)) {
                     ServerboundPlayerCommandPacket startSprintPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SPRINTING);
-                    session.sendDownstreamPacket(startSprintPacket);
+                    session.sendDownstreamGamePacket(startSprintPacket);
                     session.setSprinting(true);
                 }
                 break;
             case STOP_SPRINT:
                 if (!entity.getFlag(EntityFlag.SWIMMING)) {
                     ServerboundPlayerCommandPacket stopSprintPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.STOP_SPRINTING);
-                    session.sendDownstreamPacket(stopSprintPacket);
+                    session.sendDownstreamGamePacket(stopSprintPacket);
                 }
                 session.setSprinting(false);
                 break;
             case DROP_ITEM:
                 ServerboundPlayerActionPacket dropItemPacket = new ServerboundPlayerActionPacket(PlayerAction.DROP_ITEM,
                         vector, Direction.VALUES[packet.getFace()], 0);
-                session.sendDownstreamPacket(dropItemPacket);
+                session.sendDownstreamGamePacket(dropItemPacket);
                 break;
             case STOP_SLEEP:
                 ServerboundPlayerCommandPacket stopSleepingPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.LEAVE_BED);
-                session.sendDownstreamPacket(stopSleepingPacket);
+                session.sendDownstreamGamePacket(stopSleepingPacket);
                 break;
             case START_BREAK: {
                 // Ignore START_BREAK when the player is CREATIVE to avoid Spigot receiving 2 packets it interpets as block breaking. https://github.com/GeyserMC/Geyser/issues/4021 
@@ -189,12 +185,12 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 if (identifier.startsWith("minecraft:fire") || identifier.startsWith("minecraft:soul_fire")) {
                     ServerboundPlayerActionPacket startBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.START_DIGGING, fireBlockPos,
                             Direction.VALUES[packet.getFace()], session.getWorldCache().nextPredictionSequence());
-                    session.sendDownstreamPacket(startBreakingPacket);
+                    session.sendDownstreamGamePacket(startBreakingPacket);
                 }
 
                 ServerboundPlayerActionPacket startBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.START_DIGGING,
                         vector, Direction.VALUES[packet.getFace()], session.getWorldCache().nextPredictionSequence());
-                session.sendDownstreamPacket(startBreakingPacket);
+                session.sendDownstreamGamePacket(startBreakingPacket);
                 break;
             }
             case CONTINUE_BREAK:
@@ -236,7 +232,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                         // Break the block
                         ServerboundPlayerActionPacket finishBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.FINISH_DIGGING,
                                 vector, Direction.VALUES[packet.getFace()], session.getWorldCache().nextPredictionSequence());
-                        session.sendDownstreamPacket(finishBreakingPacket);
+                        session.sendDownstreamGamePacket(finishBreakingPacket);
                         session.setBlockBreakStartTime(0);
                         break;
                     }
@@ -253,13 +249,13 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                     if (itemFrameEntity != null) {
                         ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(itemFrameEntity.getEntityId(),
                                 InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
-                        session.sendDownstreamPacket(interactPacket);
+                        session.sendDownstreamGamePacket(interactPacket);
                         break;
                     }
                 }
 
                 ServerboundPlayerActionPacket abortBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.CANCEL_DIGGING, vector, Direction.DOWN, 0);
-                session.sendDownstreamPacket(abortBreakingPacket);
+                session.sendDownstreamGamePacket(abortBreakingPacket);
                 LevelEventPacket stopBreak = new LevelEventPacket();
                 stopBreak.setType(LevelEvent.BLOCK_STOP_BREAK);
                 stopBreak.setPosition(vector.toFloat());
@@ -287,7 +283,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
             case MISSED_SWING:
                 // TODO Re-evaluate after pre-1.20.10 is no longer supported?
                 if (session.getArmAnimationTicks() == -1) {
-                    session.sendDownstreamPacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
+                    session.sendDownstreamGamePacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
                     session.activateArmAnimationTicking();
 
                     // Send packet to Bedrock so it knows
@@ -296,6 +292,40 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                     animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
                     session.sendUpstreamPacket(animatePacket);
                 }
+                break;
+            case START_FLYING: // Since 1.20.30
+                 if (session.isCanFly()) {
+                     if (session.getGameMode() == GameMode.SPECTATOR) {
+                         // should already be flying
+                         session.sendAdventureSettings();
+                         break;
+                     }
+
+                     if (session.getPlayerEntity().getFlag(EntityFlag.SWIMMING) && session.getCollisionManager().isPlayerInWater()) {
+                         // As of 1.18.1, Java Edition cannot fly while in water, but it can fly while crawling
+                         // If this isn't present, swimming on a 1.13.2 server and then attempting to fly will put you into a flying/swimming state that is invalid on JE
+                         session.sendAdventureSettings();
+                         break;
+                     }
+
+                     session.setFlying(true);
+                     session.sendDownstreamGamePacket(new ServerboundPlayerAbilitiesPacket(true));
+                 } else {
+                     // update whether we can fly
+                     session.sendAdventureSettings();
+                     // stop flying
+                     PlayerActionPacket stopFlyingPacket = new PlayerActionPacket();
+                     stopFlyingPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+                     stopFlyingPacket.setAction(PlayerActionType.STOP_FLYING);
+                     stopFlyingPacket.setBlockPosition(Vector3i.ZERO);
+                     stopFlyingPacket.setResultPosition(Vector3i.ZERO);
+                     stopFlyingPacket.setFace(0);
+                     session.sendUpstreamPacket(stopFlyingPacket);
+                 }
+                 break;
+            case STOP_FLYING:
+                session.setFlying(false);
+                session.sendDownstreamGamePacket(new ServerboundPlayerAbilitiesPacket(false));
                 break;
         }
     }

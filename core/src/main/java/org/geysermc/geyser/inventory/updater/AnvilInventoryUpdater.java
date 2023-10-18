@@ -120,7 +120,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
             // does not result in a FilterTextPacket
             String originalName = MessageTranslator.convertToPlainTextLenient(ItemUtils.getCustomName(input.getNbt()), session.locale());
             ServerboundRenameItemPacket renameItemPacket = new ServerboundRenameItemPacket(originalName);
-            session.sendDownstreamPacket(renameItemPacket);
+            session.sendDownstreamGamePacket(renameItemPacket);
 
             anvilContainer.setNewName(null);
         }
