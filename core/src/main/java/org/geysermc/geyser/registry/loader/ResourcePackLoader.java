@@ -29,7 +29,6 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserLoadResourcePacksEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
-import org.geysermc.geyser.api.pack.ResourcePackManifest;
 import org.geysermc.geyser.event.type.GeyserDefineResourcePacksEventImpl;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.pack.GeyserResourcePackManifest;
@@ -190,26 +189,17 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
 
         for (String url: cdnPacks) {
             GeyserImpl.getInstance().getLogger().info("Loading CDN pack " + url);
-            ResourcePack pack = downloadPack(url, "");
+            ResourcePack pack = new GeyserUrlPackCodec(url).create();
             packMap.put(pack.manifest().header().uuid().toString(), pack);
         }
         return packMap;
     }
 
-    public static ResourcePack downloadPack(String url, String contentKey) throws IllegalArgumentException {
+    public static Path downloadPack(String url) throws IllegalArgumentException {
         int packHash = url.hashCode();
         Path cachedPath = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("cdn-packs").resolve(packHash + ".zip");
         WebUtils.downloadFile(url, cachedPath.toString());
 
-        ResourcePack temp = readPack(cachedPath);
-        ResourcePackManifest manifest = temp.manifest();
-
-        try {
-            Files.delete(cachedPath);
-        } catch (IOException e) {
-            GeyserImpl.getInstance().getLogger().error("Could not delete cached pack", e);
-        }
-
-        return new GeyserResourcePack(new GeyserUrlPackCodec(url, contentKey), manifest, contentKey);
+        return cachedPath;
     }
 }

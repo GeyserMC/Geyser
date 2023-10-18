@@ -25,79 +25,54 @@
 
 package org.geysermc.geyser.pack.url;
 
-import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.UrlPackCodec;
+import org.geysermc.geyser.pack.path.GeyserPathPackCodec;
 import org.geysermc.geyser.registry.loader.ResourcePackLoader;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.channels.Channels;
 import java.nio.channels.SeekableByteChannel;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.nio.file.Path;
 
-@RequiredArgsConstructor
 public class GeyserUrlPackCodec extends UrlPackCodec {
-
     private final String url;
     private final String contentKey;
+    private final GeyserPathPackCodec fallback;
 
     public GeyserUrlPackCodec(String url) {
+        this(url, "");
+    }
+
+    public GeyserUrlPackCodec(String url, String contentKey) {
         this.url = url;
-        this.contentKey = "";
+        this.contentKey = contentKey;
+        this.fallback = new GeyserPathPackCodec(getCachePath(url));
+    }
+
+    private static Path getCachePath(String url) {
+        return ResourcePackLoader.downloadPack(url);
     }
 
     @Override
     public byte @NonNull [] sha256() {
-        try {
-            URL resourcePackURL = new URL(this.url);
-            InputStream inputStream = resourcePackURL.openStream();
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] buffer = new byte[8192];
-            int bytesRead;
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                digest.update(buffer, 0, bytesRead);
-            }
-            return digest.digest();
-        } catch (IOException | NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
+        return fallback.sha256();
     }
 
     @Override
     public long size() {
-        URLConnection conn = null;
-        try {
-            conn = new URL(this.url).openConnection();
-            if(conn instanceof HttpURLConnection) {
-                ((HttpURLConnection)conn).setRequestMethod("HEAD");
-            }
-            conn.getInputStream();
-            return conn.getContentLength();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if(conn instanceof HttpURLConnection) {
-                ((HttpURLConnection)conn).disconnect();
-            }
-        }
+        return fallback.size();
     }
 
     @Override
     public @NonNull SeekableByteChannel serialize(@NonNull ResourcePack resourcePack) throws IOException {
-        URL resourcePackURL = new URL(this.url);
-        URLConnection connection = resourcePackURL.openConnection();
-        return (SeekableByteChannel) Channels.newChannel(connection.getInputStream());
+        return fallback.serialize(resourcePack);
     }
 
     @Override
-    protected @NonNull ResourcePack create() {
-        return ResourcePackLoader.downloadPack(this.url, this.contentKey);
+    @NonNull
+    public ResourcePack create() {
+        return fallback.create();
     }
 
     @Override
