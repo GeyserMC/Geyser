@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserLoadResourcePacksEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
+import org.geysermc.geyser.api.pack.ResourcePackManifest;
 import org.geysermc.geyser.event.type.GeyserDefineResourcePacksEventImpl;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.pack.GeyserResourcePackManifest;
@@ -131,6 +132,35 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
             throw new IllegalArgumentException("Resource pack " + path.getFileName() + " must be a .zip or .mcpack file!");
         }
 
+        ResourcePackManifest manifest = readManifest(path, path.getFileName().toString());
+        String contentKey;
+
+        try {
+            // Check if a file exists with the same name as the resource pack suffixed by .key,
+            // and set this as content key. (e.g. test.zip, key file would be test.zip.key)
+            Path keyFile = path.resolveSibling(path.getFileName().toString() + ".key");
+            contentKey = Files.exists(keyFile) ? Files.readString(keyFile, StandardCharsets.UTF_8) : "";
+        } catch (IOException e) {
+            GeyserImpl.getInstance().getLogger().error("Failed to read content key for resource pack " + path.getFileName(), e);
+            contentKey = "";
+        }
+
+        return new GeyserResourcePack(new GeyserPathPackCodec(path), manifest, contentKey);
+    }
+
+    public static ResourcePack loadDownloadedPack(GeyserUrlPackCodec codec) {
+        Path path = codec.fallback.path();
+        if (!path.getFileName().toString().endsWith(".mcpack") && !path.getFileName().toString().endsWith(".zip")) {
+            throw new IllegalArgumentException("The url " + codec.url() + " did not provide a valid resource pack! Please check the url and try again.");
+        }
+
+        ResourcePackManifest manifest = readManifest(path, path.getFileName().toString());
+        String contentKey = codec.contentKey();
+
+        return new GeyserResourcePack(codec, manifest, contentKey);
+    }
+
+    private static ResourcePackManifest readManifest(Path path, String packLocation) throws IllegalArgumentException {
         AtomicReference<GeyserResourcePackManifest> manifestReference = new AtomicReference<>();
 
         try (ZipFile zip = new ZipFile(path.toFile());
@@ -138,7 +168,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
             stream.forEach(x -> {
                 String name = x.getName();
                 if (SHOW_RESOURCE_PACK_LENGTH_WARNING && name.length() >= 80) {
-                    GeyserImpl.getInstance().getLogger().warning("The resource pack " + path.getFileName()
+                    GeyserImpl.getInstance().getLogger().warning("The resource pack " + packLocation
                             + " has a file in it that meets or exceeds 80 characters in its path (" + name
                             + ", " + name.length() + " characters long). This will cause problems on some Bedrock platforms." +
                             " Please rename it to be shorter, or reduce the amount of folders needed to get to the file.");
@@ -157,20 +187,15 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
 
             GeyserResourcePackManifest manifest = manifestReference.get();
             if (manifest == null) {
-                throw new IllegalArgumentException(path.getFileName() + " does not contain a valid pack_manifest.json or manifest.json");
+                throw new IllegalArgumentException(packLocation + " does not contain a valid pack_manifest.json or manifest.json");
             }
 
-            // Check if a file exists with the same name as the resource pack suffixed by .key,
-            // and set this as content key. (e.g. test.zip, key file would be test.zip.key)
-            Path keyFile = path.resolveSibling(path.getFileName().toString() + ".key");
-            String contentKey = Files.exists(keyFile) ? Files.readString(keyFile, StandardCharsets.UTF_8) : "";
-
-            return new GeyserResourcePack(new GeyserPathPackCodec(path), manifest, contentKey);
+            return manifest;
         } catch (Exception e) {
             throw new IllegalArgumentException(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", path.getFileName()), e);
         }
     }
-
+    
     public Map<String, ResourcePack> loadCdnEntries() {
         final Path cachedCdnPacksDirectory = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("cdn-packs");
 
@@ -199,6 +224,8 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
         int packHash = url.hashCode();
         Path cachedPath = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("cdn-packs").resolve(packHash + ".zip");
         WebUtils.downloadFile(url, cachedPath.toString());
+
+        // TODO: Check downloaded pack for validity regarding manifest file
 
         return cachedPath;
     }

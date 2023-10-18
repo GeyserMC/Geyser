@@ -38,7 +38,7 @@ import java.nio.file.Path;
 public class GeyserUrlPackCodec extends UrlPackCodec {
     private final String url;
     private final String contentKey;
-    private final GeyserPathPackCodec fallback;
+    public final GeyserPathPackCodec fallback;
 
     public GeyserUrlPackCodec(String url) {
         this(url, "");
@@ -72,7 +72,7 @@ public class GeyserUrlPackCodec extends UrlPackCodec {
     @Override
     @NonNull
     public ResourcePack create() {
-        return fallback.create();
+        return ResourcePackLoader.loadDownloadedPack(this);
     }
 
     @Override
