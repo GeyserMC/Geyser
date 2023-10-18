@@ -148,13 +148,13 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
         return new GeyserResourcePack(new GeyserPathPackCodec(path), manifest, contentKey);
     }
 
-    public static ResourcePack loadDownloadedPack(GeyserUrlPackCodec codec) {
+    public static ResourcePack loadDownloadedPack(GeyserUrlPackCodec codec) throws IllegalArgumentException {
         Path path = codec.fallback.path();
         if (!path.getFileName().toString().endsWith(".mcpack") && !path.getFileName().toString().endsWith(".zip")) {
             throw new IllegalArgumentException("The url " + codec.url() + " did not provide a valid resource pack! Please check the url and try again.");
         }
 
-        ResourcePackManifest manifest = readManifest(path, path.getFileName().toString());
+        ResourcePackManifest manifest = readManifest(path, codec.url());
         String contentKey = codec.contentKey();
 
         return new GeyserResourcePack(codec, manifest, contentKey);
@@ -192,40 +192,66 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
 
             return manifest;
         } catch (Exception e) {
-            throw new IllegalArgumentException(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", path.getFileName()), e);
+            throw new IllegalArgumentException(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", packLocation), e);
         }
     }
-    
+
     public Map<String, ResourcePack> loadCdnEntries() {
-        final Path cachedCdnPacksDirectory = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("cdn-packs");
+        final Path cachedCdnPacksDirectory = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs");
 
         // Download CDN packs to get the pack uuid's
         if (!Files.exists(cachedCdnPacksDirectory)) {
             try {
                 Files.createDirectories(cachedCdnPacksDirectory);
             } catch (IOException e) {
-                GeyserImpl.getInstance().getLogger().error("Could not create cached packs directory", e);
+                GeyserImpl.getInstance().getLogger().error("Could not create remote pack cache directory", e);
                 return new Object2ObjectOpenHashMap<>();
             }
         }
 
-        List<String> cdnPacks = GeyserImpl.getInstance().getConfig().getResourcePackUrls();
+        List<String> remotePackUrls = GeyserImpl.getInstance().getConfig().getResourcePackUrls();
         Map<String, ResourcePack> packMap = new Object2ObjectOpenHashMap<>();
 
-        for (String url: cdnPacks) {
-            GeyserImpl.getInstance().getLogger().info("Loading CDN pack " + url);
-            ResourcePack pack = new GeyserUrlPackCodec(url).create();
-            packMap.put(pack.manifest().header().uuid().toString(), pack);
+        for (String url: remotePackUrls) {
+            try {
+                ResourcePack pack = new GeyserUrlPackCodec(url).create();
+                packMap.put(pack.manifest().header().uuid().toString(), pack);
+            } catch (Exception e) {
+                GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", url));
+                GeyserImpl.getInstance().getLogger().error(e.getMessage());
+                if (GeyserImpl.getInstance().getLogger().isDebug()) {
+                    e.printStackTrace();
+                }
+            }
         }
         return packMap;
     }
 
     public static Path downloadPack(String url) throws IllegalArgumentException {
         int packHash = url.hashCode();
-        Path cachedPath = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("cdn-packs").resolve(packHash + ".zip");
+        Path cachedPath = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs").resolve(packHash + ".zip");
         WebUtils.downloadFile(url, cachedPath.toString());
 
-        // TODO: Check downloaded pack for validity regarding manifest file
+        if (!PACK_MATCHER.matches(cachedPath)) {
+            throw new IllegalArgumentException("Invalid pack! Not a .zip or .mcpack file.");
+        }
+
+        try {
+            ZipFile zip = new ZipFile(cachedPath.toFile());
+            if (zip.stream().noneMatch(x -> x.getName().contains("manifest.json"))) {
+                throw new IllegalArgumentException(url + " does not contain a manifest file.");
+            }
+
+            // Check if a "manifest.json" or "pack_manifest.json" file is located directly in the zip... does not work otherwise.
+            // (something like MyZip.zip/manifest.json) will not, but will if it's a subfolder (MyPack.zip/MyPack/manifest.json)
+            if (zip.getEntry("manifest.json") != null || zip.getEntry("pack_manifest.json") != null) {
+                GeyserImpl.getInstance().getLogger().warning("The remote resource pack from " + url + " contains a manifest.json file at the root of the zip file. " +
+                        "This is not supported for remote packs, and will cause Bedrock clients to fall back to request the pack from the server. " +
+                        "Please put the pack file in a subfolder, and provide that zip in the URL.");
+            }
+        } catch (IOException e) {
+            throw new IllegalArgumentException(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", url), e);
+        }
 
         return cachedPath;
     }
