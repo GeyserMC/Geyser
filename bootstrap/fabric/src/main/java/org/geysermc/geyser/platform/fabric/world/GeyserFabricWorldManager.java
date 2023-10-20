@@ -39,6 +39,7 @@ import net.minecraft.world.level.block.entity.BannerBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import net.minecraft.world.level.chunk.LevelChunk;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -48,7 +49,6 @@ import org.geysermc.geyser.level.GeyserWorldManager;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -76,8 +76,7 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
             LevelChunk chunk = player.level().getChunk(x, z);
             final int chunkBlockX = x << 4;
             final int chunkBlockZ = z << 4;
-            for (int i = 0; i < blockEntityInfos.size(); i++) {
-                BlockEntityInfo blockEntityInfo = blockEntityInfos.get(i);
+            for (BlockEntityInfo blockEntityInfo : blockEntityInfos) {
                 BlockEntity blockEntity = chunk.getBlockEntity(new BlockPos(chunkBlockX + blockEntityInfo.getX(),
                         blockEntityInfo.getY(), chunkBlockZ + blockEntityInfo.getZ()));
                 sendLecternData(session, blockEntity, true);
@@ -159,7 +158,7 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
         return GameMode.byId(server.getDefaultGameType().getId());
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public CompletableFuture<com.github.steveice10.opennbt.tag.builtin.CompoundTag> getPickItemNbt(GeyserSession session, int x, int y, int z, boolean addNbtData) {
         CompletableFuture<com.github.steveice10.opennbt.tag.builtin.CompoundTag> future = new CompletableFuture<>();
@@ -263,7 +262,7 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
         }
 
         @Override
-        public void visitCompound(CompoundTag compoundTag) {
+        public void visitCompound(@NonNull CompoundTag compoundTag) {
             currentTag = convert(currentKey, compoundTag);
         }
 
@@ -272,6 +271,7 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
             for (String key : compoundTag.getAllKeys()) {
                 visitor.currentKey = key;
                 Tag tag = compoundTag.get(key);
+                assert tag != null;
                 tag.accept(visitor);
                 visitor.root.put(visitor.currentTag);
             }
@@ -279,7 +279,7 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
         }
 
         @Override
-        public void visitEnd(EndTag endTag) {
+        public void visitEnd(@NonNull EndTag endTag) {
         }
     }
 }

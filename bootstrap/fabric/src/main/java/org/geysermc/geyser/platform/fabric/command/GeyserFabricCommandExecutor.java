@@ -56,6 +56,7 @@ public class GeyserFabricCommandExecutor extends GeyserCommandExecutor implement
         return runWithArgs(context, "");
     }
 
+    @SuppressWarnings("rawtypes")
     public int runWithArgs(CommandContext context, String args) {
         CommandSourceStack source = (CommandSourceStack) context.getSource();
         FabricCommandSender sender = new FabricCommandSender(source);
