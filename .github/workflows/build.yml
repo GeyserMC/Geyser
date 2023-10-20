@@ -77,6 +77,13 @@ jobs:
           name: Geyser Velocity
           path: bootstrap/velocity/build/libs/Geyser-Velocity.jar
           if-no-files-found: error
+      - name: Archive artifacts (Geyser ViaProxy)
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32
+        if: success()
+        with:
+          name: Geyser ViaProxy
+          path: bootstrap/viaproxy/build/libs/Geyser-ViaProxy.jar
+          if-no-files-found: error
 
       - name: Publish to Maven Repository
         if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
