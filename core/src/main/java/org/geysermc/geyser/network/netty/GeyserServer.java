@@ -171,10 +171,12 @@ public final class GeyserServer {
 
         GeyserServerInitializer serverInitializer = new GeyserServerInitializer(this.geyser);
         playerGroup = serverInitializer.getEventLoopGroup();
+        this.geyser.getLogger().debug("Setting MTU to " + this.geyser.getConfig().getMtu());
         return new ServerBootstrap()
                 .channelFactory(RakChannelFactory.server(TRANSPORT.datagramChannel()))
                 .group(group)
                 .option(RakChannelOption.RAK_HANDLE_PING, true)
+                .option(RakChannelOption.RAK_MAX_MTU, this.geyser.getConfig().getMtu())
                 .childHandler(serverInitializer);
     }
 
