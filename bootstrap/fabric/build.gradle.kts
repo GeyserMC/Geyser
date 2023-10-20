@@ -5,11 +5,6 @@ plugins {
     id("com.modrinth.minotaur") version "2.+"
 }
 
-java {
-    targetCompatibility = JavaVersion.VERSION_17
-    sourceCompatibility = JavaVersion.VERSION_17
-}
-
 indra {
     javaVersions {
         target(17)
