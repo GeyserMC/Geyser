@@ -55,6 +55,7 @@ public class GeyserSpigotLegacyNativeWorldManager extends GeyserSpigotNativeWorl
         for (int oldBlockId : allBlockStates) {
             int newBlockId = oldBlockId;
             // protocolList should *not* be null; we checked for that before initializing this class
+            assert protocolList != null;
             for (int i = protocolList.size() - 1; i >= 0; i--) {
                 MappingData mappingData = protocolList.get(i).getProtocol().getMappingData();
                 if (mappingData != null) {

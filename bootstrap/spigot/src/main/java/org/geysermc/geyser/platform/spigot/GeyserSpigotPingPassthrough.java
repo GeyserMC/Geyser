@@ -30,11 +30,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.server.ServerListPingEvent;
 import org.bukkit.util.CachedServerIcon;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 
-import javax.annotation.Nonnull;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Collections;
@@ -45,6 +45,7 @@ public class GeyserSpigotPingPassthrough implements IGeyserPingPassthrough {
 
     private final GeyserSpigotLogger logger;
 
+    @SuppressWarnings("deprecation")
     @Override
     public GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress) {
         try {
@@ -73,7 +74,7 @@ public class GeyserSpigotPingPassthrough implements IGeyserPingPassthrough {
         public void setServerIcon(CachedServerIcon icon) throws IllegalArgumentException, UnsupportedOperationException {
         }
 
-        @Nonnull
+        @NonNull
         @Override
         public Iterator<Player> iterator() throws UnsupportedOperationException {
             return Collections.emptyIterator();

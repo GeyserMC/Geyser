@@ -29,11 +29,11 @@ import com.destroystokyo.paper.event.server.PaperServerListPingEvent;
 import com.destroystokyo.paper.network.StatusClient;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import org.bukkit.Bukkit;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
 import java.net.InetSocketAddress;
@@ -51,6 +51,7 @@ public final class GeyserPaperPingPassthrough implements IGeyserPingPassthrough 
         this.logger = logger;
     }
 
+    @SuppressWarnings("deprecation")
     @Nullable
     @Override
     public GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress) {
@@ -99,7 +100,7 @@ public final class GeyserPaperPingPassthrough implements IGeyserPingPassthrough 
 
     private record GeyserStatusClient(InetSocketAddress address) implements StatusClient {
         @Override
-        public @NotNull InetSocketAddress getAddress() {
+        public @NonNull InetSocketAddress getAddress() {
             return address;
         }
 
