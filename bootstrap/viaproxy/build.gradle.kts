@@ -1,8 +1,3 @@
-java {
-    targetCompatibility = JavaVersion.VERSION_17
-    sourceCompatibility = JavaVersion.VERSION_17
-}
-
 indra {
     javaVersions {
         target(17)
