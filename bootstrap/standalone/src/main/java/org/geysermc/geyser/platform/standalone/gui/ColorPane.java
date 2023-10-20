@@ -30,7 +30,7 @@ import javax.swing.text.*;
 import java.awt.*;
 
 /**
- * This class was based on this code: https://stackoverflow.com/a/6899478/5299903
+ * This class was based on this code: <a href="https://stackoverflow.com/a/6899478/5299903">...</a>
  */
 public class ColorPane extends JTextPane {
     private static Color colorCurrent = ANSIColor.RESET.getColor();
@@ -62,7 +62,7 @@ public class ColorPane extends JTextPane {
         int aPos = 0;   // current char position in addString
         int aIndex; // index of next Escape sequence
         int mIndex; // index of "m" terminating Escape sequence
-        String tmpString = "";
+        String tmpString;
         boolean stillSearching = true; // true until no more Escape sequences
         String addString = remaining + s;
         remaining = "";

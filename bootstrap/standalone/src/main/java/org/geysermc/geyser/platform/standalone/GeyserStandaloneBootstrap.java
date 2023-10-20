@@ -38,6 +38,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
@@ -51,7 +52,6 @@ import org.geysermc.geyser.platform.standalone.gui.GeyserStandaloneGUI;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.LoopbackUtil;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -292,7 +292,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         return new GeyserStandaloneDumpInfo(this);
     }
 
-    @NotNull
+    @NonNull
     @Override
     public String getServerBindAddress() {
         throw new IllegalStateException();
@@ -325,7 +325,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
         // Get the ignored properties
         Set<String> ignoredProperties = OBJECT_MAPPER.getSerializationConfig().getAnnotationIntrospector()
-                .findPropertyIgnorals(beanDescription.getClassInfo()).getIgnored();
+                .findPropertyIgnoralByName(OBJECT_MAPPER.getSerializationConfig() ,beanDescription.getClassInfo()).getIgnored();
 
         // Filter properties removing the ignored ones
         return properties.stream()
@@ -340,7 +340,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
      * @param parentObject The object to alter
      * @param value The new value of the property
      */
-    @SuppressWarnings("unchecked") // Required for enum usage
+    @SuppressWarnings({"unchecked", "rawtypes"}) // Required for enum usage
     private static void setConfigOption(BeanPropertyDefinition property, Object parentObject, Object value) {
         Object parsedValue = value;
 

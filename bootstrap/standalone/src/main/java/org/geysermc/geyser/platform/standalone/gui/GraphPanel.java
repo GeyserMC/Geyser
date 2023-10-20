@@ -35,7 +35,7 @@ import java.util.List;
 
 /**
  * This has been modified to fit Geyser more but is based on
- * https://gist.github.com/roooodcastro/6325153#gistcomment-3107524
+ * <a href="https://gist.github.com/roooodcastro/6325153#gistcomment-3107524">...</a>
  */
 public final class GraphPanel extends JPanel {
     private final static int padding = 10;
@@ -103,7 +103,7 @@ public final class GraphPanel extends JPanel {
                 g.drawLine(padding + labelPadding + 1 + pointWidth, y, width - padding, y);
 
                 g.setColor(Color.BLACK);
-                final int tickValue = (int) (minScore + ((scoreRange * i) / numberYDivisions));
+                final int tickValue = minScore + ((scoreRange * i) / numberYDivisions);
                 final String yLabel = tickValue + "";
                 final int labelWidth = fontMetrics.stringWidth(yLabel);
                 g.drawString(yLabel, x1 - labelWidth - 5, y + (fontHeight / 2) - 3);
