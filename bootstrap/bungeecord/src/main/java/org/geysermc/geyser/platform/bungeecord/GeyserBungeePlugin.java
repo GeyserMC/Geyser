@@ -70,6 +70,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     private GeyserImpl geyser;
 
+    @SuppressWarnings({"JavaReflectionMemberAccess", "ResultOfMethodCallIgnored"})
     @Override
     public void onLoad() {
         GeyserLocale.init(this);
