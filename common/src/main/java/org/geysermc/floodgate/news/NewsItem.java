@@ -105,10 +105,11 @@ public final class NewsItem {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends ItemData> T getDataAs(Class<T> type) {
+    public <T extends ItemData> T getDataAs(Class<T> ignoredType) {
         return (T) data;
     }
 
+    @SuppressWarnings("unused")
     public String getRawMessage() {
         return message;
     }

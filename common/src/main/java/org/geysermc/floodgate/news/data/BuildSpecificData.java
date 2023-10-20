@@ -56,7 +56,7 @@ public final class BuildSpecificData implements ItemData {
                 (allAffected || buildId > affectedGreaterThan && buildId < affectedLessThan);
     }
 
-    public String getBranch() {
+    @SuppressWarnings("unused") public String getBranch() {
         return branch;
     }
 }
