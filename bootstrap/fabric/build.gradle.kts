@@ -10,6 +10,12 @@ java {
     sourceCompatibility = JavaVersion.VERSION_17
 }
 
+indra {
+    javaVersions {
+        target(17)
+    }
+}
+
 dependencies {
     //to change the versions see the gradle.properties file
     minecraft(libs.fabric.minecraft)
