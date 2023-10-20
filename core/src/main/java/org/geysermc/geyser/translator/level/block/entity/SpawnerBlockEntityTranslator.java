@@ -69,8 +69,8 @@ public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
 
         CompoundTag spawnData = tag.get("SpawnData");
         if (spawnData != null) {
-            StringTag idTag = ((CompoundTag) spawnData.get("entity")).get("id");
-            if (idTag != null) {
+            CompoundTag entityTag = (spawnData.get("entity"));
+            if (entityTag.get("id") instanceof StringTag idTag) {
                 // As of 1.19.3, spawners can be empty
                 String entityId = idTag.getValue();
                 builder.put("EntityIdentifier", entityId);
@@ -81,6 +81,9 @@ public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
                     builder.put("DisplayEntityHeight", definition.height());
                     builder.put("DisplayEntityScale", 1.0f);
                 }
+            } else if (entityTag.isEmpty()) {
+                // Fixes https://github.com/GeyserMC/Geyser/issues/4214
+                builder.put("EntityIdentifier", " ");
             }
         }
 
