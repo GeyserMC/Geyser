@@ -89,12 +89,8 @@ public class QueryPacketHandler {
      */
     private void handle() {
         switch (type) {
-            case HANDSHAKE:
-                sendToken();
-                break;
-            case STATISTICS:
-                sendQueryData();
-                break;
+            case HANDSHAKE -> sendToken();
+            case STATISTICS -> sendQueryData();
         }
     }
 

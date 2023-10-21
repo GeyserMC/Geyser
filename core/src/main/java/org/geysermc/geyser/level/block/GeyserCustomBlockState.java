@@ -54,7 +54,7 @@ public class GeyserCustomBlockState implements CustomBlockState {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> @NonNull T property(String propertyName) {
+    public <T> @NonNull T property(@NonNull String propertyName) {
         return (T) properties.get(propertyName);
     }
 

@@ -31,7 +31,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
-import org.jetbrains.annotations.NotNull;
 
 @EqualsAndHashCode
 @ToString
@@ -64,7 +63,7 @@ public class GeyserCustomItemData implements CustomItemData {
     }
 
     @Override
-    public @NotNull String name() {
+    public @NonNull String name() {
         return name;
     }
 
@@ -74,12 +73,12 @@ public class GeyserCustomItemData implements CustomItemData {
     }
 
     @Override
-    public @NotNull String displayName() {
+    public @NonNull String displayName() {
         return displayName;
     }
 
     @Override
-    public @NotNull String icon() {
+    public @NonNull String icon() {
         return icon;
     }
 

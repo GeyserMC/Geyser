@@ -33,7 +33,6 @@ import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.geysermc.floodgate.util.DeviceOs;
@@ -57,12 +56,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Getter
@@ -107,7 +101,8 @@ public class DumpInfo {
             File file = new File(DumpInfo.class.getProtectionDomain().getCodeSource().getLocation().toURI());
             ByteSource byteSource = Files.asByteSource(file);
             // Jenkins uses MD5 for its hash
-            //noinspection UnstableApiUsage
+            // TODO: Remove with Jenkins removal
+            //noinspection UnstableApiUsage, deprecation
             md5Hash = byteSource.hash(Hashing.md5()).toString();
             //noinspection UnstableApiUsage
             sha256Hash = byteSource.hash(Hashing.sha256()).toString();
@@ -118,7 +113,9 @@ public class DumpInfo {
         }
         this.hashInfo = new HashInfo(md5Hash, sha256Hash);
 
-        this.ramInfo = new DumpInfo.RamInfo();
+        this.ramInfo = new DumpInfo.RamInfo(Runtime.getRuntime().freeMemory() / MEGABYTE,
+                Runtime.getRuntime().totalMemory() / MEGABYTE,
+                Runtime.getRuntime().maxMemory() / MEGABYTE);
 
         if (addLog) {
             this.logsInfo = new LogsInfo();
@@ -132,7 +129,7 @@ public class DumpInfo {
 
         this.bootstrapInfo = GeyserImpl.getInstance().getBootstrap().getDumpInfo();
 
-        this.flagsInfo = new FlagsInfo();
+        this.flagsInfo = new FlagsInfo(ManagementFactory.getRuntimeMXBean().getInputArguments());
 
         this.extensionInfo = new ArrayList<>();
         for (Extension extension : GeyserApi.api().extensionManager().extensions()) {
@@ -202,7 +199,7 @@ public class DumpInfo {
         private boolean checkDockerBasic() {
             try {
                 String OS = System.getProperty("os.name").toLowerCase();
-                if (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0) {
+                if (OS.contains("nix") || OS.contains("nux") || OS.indexOf("aix") > 0) {
                     String output = new String(java.nio.file.Files.readAllBytes(Paths.get("/proc/1/cgroup")));
 
                     if (output.contains("docker")) {
@@ -259,60 +256,22 @@ public class DumpInfo {
         }
     }
 
-    @AllArgsConstructor
-    @Getter
-    public static class HashInfo {
-        private final String md5Hash;
-        private final String sha256Hash;
+    public record HashInfo(String md5Hash, String sha256Hash) {
     }
 
-    @Getter
-    public static class RamInfo {
-        private final long free;
-        private final long total;
-        private final long max;
-
-        RamInfo() {
-            this.free = Runtime.getRuntime().freeMemory() / MEGABYTE;
-            this.total = Runtime.getRuntime().totalMemory() / MEGABYTE;
-            this.max = Runtime.getRuntime().maxMemory() / MEGABYTE;
-        }
+    public record RamInfo(long free, long total, long max) {
     }
 
     /**
      * E.G. `-Xmx1024M` - all runtime JVM flags on this machine
      */
-    @Getter
-    public static class FlagsInfo {
-        private final List<String> flags;
-
-        FlagsInfo() {
-            this.flags = ManagementFactory.getRuntimeMXBean().getInputArguments();
-        }
+    public record FlagsInfo(List<String> flags) {
     }
 
-    @Getter
-    @AllArgsConstructor
-    public static class ExtensionInfo {
-        public boolean enabled;
-        public String name;
-        public String version;
-        public String apiVersion;
-        public String main;
-        public List<String> authors;
+    public record ExtensionInfo(boolean enabled, String name, String version, String apiVersion, String main, List<String> authors) {
     }
 
-    @Getter
-    @AllArgsConstructor
-    public static class GitInfo {
-        private final String buildNumber;
-        @JsonProperty("git.commit.id.abbrev")
-        private final String commitHashAbbrev;
-        @JsonProperty("git.commit.id")
-        private final String commitHash;
-        @JsonProperty("git.branch")
-        private final String branchName;
-        @JsonProperty("git.remote.origin.url")
-        private final String originUrl;
+    public record GitInfo(String buildNumber, @JsonProperty("git.commit.id.abbrev") String commitHashAbbrev, @JsonProperty("git.commit.id") String commitHash,
+                              @JsonProperty("git.branch") String branchName, @JsonProperty("git.remote.origin.url") String originUrl) {
     }
 }

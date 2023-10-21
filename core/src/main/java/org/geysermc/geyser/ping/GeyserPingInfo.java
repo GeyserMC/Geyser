@@ -39,15 +39,11 @@ import java.util.Collection;
 public class GeyserPingInfo {
 
     private String description;
-
     private Players players;
     private Version version;
 
     @JsonIgnore
     private Collection<String> playerList = new ArrayList<>();
-
-    public GeyserPingInfo() {
-    }
 
     public GeyserPingInfo(String description, Players players, Version version) {
         this.description = description;

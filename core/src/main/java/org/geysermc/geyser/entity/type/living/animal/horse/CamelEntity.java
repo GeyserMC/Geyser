@@ -111,6 +111,5 @@ public class CamelEntity extends AbstractHorseEntity {
     }
 
     public void setDashing(BooleanEntityMetadata entityMetadata) {
-
     }
 }

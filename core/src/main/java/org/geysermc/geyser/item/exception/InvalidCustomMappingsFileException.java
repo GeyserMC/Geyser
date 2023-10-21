@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.item.exception;
 
+@SuppressWarnings("unused")
 public class InvalidCustomMappingsFileException extends Exception {
     public InvalidCustomMappingsFileException(Throwable cause) {
         super(cause);

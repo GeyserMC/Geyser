@@ -31,6 +31,8 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -39,9 +41,7 @@ import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.erosion.util.LecternUtils;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
-import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -99,8 +99,7 @@ public class GeyserWorldManager extends WorldManager {
             return;
         }
         List<Vector3i> vectors = new ObjectArrayList<>(blockEntityInfos.size());
-        for (int i = 0; i < blockEntityInfos.size(); i++) {
-            BlockEntityInfo info = blockEntityInfos.get(i);
+        for (BlockEntityInfo info : blockEntityInfos) {
             vectors.add(Vector3i.from(info.getX(), info.getY(), info.getZ()));
         }
         erosionHandler.sendPacket(new BackendboundBatchBlockEntityPacket(x, z, vectors));
@@ -171,7 +170,7 @@ public class GeyserWorldManager extends WorldManager {
         return false;
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public CompletableFuture<@Nullable CompoundTag> getPickItemNbt(GeyserSession session, int x, int y, int z, boolean addNbtData) {
         var erosionHandler = session.getErosionHandler().getAsActive();

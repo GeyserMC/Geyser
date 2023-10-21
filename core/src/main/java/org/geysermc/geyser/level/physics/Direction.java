@@ -25,10 +25,9 @@
 
 package org.geysermc.geyser.level.physics;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3i;
 import lombok.Getter;
-
-import javax.annotation.Nonnull;
 
 public enum Direction {
     DOWN(1, Vector3i.from(0, -1, 0), Axis.Y, com.github.steveice10.mc.protocol.data.game.entity.object.Direction.DOWN),
@@ -66,7 +65,7 @@ public enum Direction {
         return axis == Axis.X || axis == Axis.Z;
     }
 
-    @Nonnull
+    @NonNull
     public static Direction fromPistonValue(com.github.steveice10.mc.protocol.data.game.entity.object.Direction pistonValue) {
         for (Direction direction : VALUES) {
             if (direction.pistonValue == pistonValue) {

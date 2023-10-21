@@ -72,6 +72,7 @@ public class PotionItem extends Item {
     public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, ItemMappings mappings) {
         Potion potion = Potion.getByBedrockId(itemData.getDamage());
         ItemStack itemStack = super.translateToJava(itemData, mapping, mappings);
+        assert itemStack != null;
         if (potion != null) {
             StringTag potionTag = new StringTag("Potion", potion.getJavaIdentifier());
             itemStack.getNbt().put(potionTag);

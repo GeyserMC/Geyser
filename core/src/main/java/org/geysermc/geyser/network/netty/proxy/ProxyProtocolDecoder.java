@@ -30,6 +30,7 @@ import io.netty.handler.codec.ProtocolDetectionResult;
 import io.netty.handler.codec.haproxy.*;
 import io.netty.util.ByteProcessor;
 import io.netty.util.CharsetUtil;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Objects;
 
@@ -39,6 +40,7 @@ import java.util.Objects;
  * @see <a href="https://haproxy.1wt.eu/download/1.5/doc/proxy-protocol.txt">Proxy Protocol Specification</a>
  * @see <a href="https://github.com/netty/netty/blob/4.1/codec-haproxy/src/main/java/io/netty/handler/codec/haproxy/HAProxyMessageDecoder.java">Netty implementation</a>
  */
+@SuppressWarnings("unused")
 public final class ProxyProtocolDecoder {
     /**
      * {@link ProtocolDetectionResult} for {@link HAProxyProtocolVersion#V1}.
@@ -87,7 +89,7 @@ public final class ProxyProtocolDecoder {
         this.decodingVersion = version;
     }
 
-    public static HAProxyMessage decode(ByteBuf packet, int version) {
+    public static @Nullable HAProxyMessage decode(ByteBuf packet, int version) {
         if (version == -1) {
             return null;
         }
@@ -95,7 +97,7 @@ public final class ProxyProtocolDecoder {
         return decoder.decodeHeader(packet);
     }
 
-    private HAProxyMessage decodeHeader(ByteBuf in) {
+    private @Nullable HAProxyMessage decodeHeader(ByteBuf in) {
         final ByteBuf decoded = decodingVersion == 1 ? decodeLine(in) : decodeStruct(in);
         if (decoded == null) {
             return null;
@@ -120,6 +122,7 @@ public final class ProxyProtocolDecoder {
      * @return                           {@link HAProxyMessage} instance
      * @throws HAProxyProtocolException  if any portion of the header is invalid
      */
+    @SuppressWarnings("StatementWithEmptyBody")
     static HAProxyMessage decodeHeader0(ByteBuf header) {
         Objects.requireNonNull(header, "header");
 
@@ -234,7 +237,7 @@ public final class ProxyProtocolDecoder {
         }
 
         while (skipNextTLV(header)) {
-
+            // no-op
         }
         return new HAProxyMessage(ver, cmd, protAndFam, srcAddress, dstAddress, srcPort, dstPort);
     }
@@ -435,6 +438,7 @@ public final class ProxyProtocolDecoder {
     /**
      * Returns the {@link ProtocolDetectionResult} for the given {@link ByteBuf}.
      */
+    @SuppressWarnings("unused")
     public static ProtocolDetectionResult<HAProxyProtocolVersion> detectProtocol(ByteBuf buffer) {
         if (buffer.readableBytes() < 12) {
             return ProtocolDetectionResult.needsMoreData();
@@ -479,7 +483,7 @@ public final class ProxyProtocolDecoder {
          * @return frame  the {@link ByteBuf} which represent the frame or {@code null} if no frame could
          *                be created
          */
-        public ByteBuf extract(ByteBuf buffer) {
+        public @Nullable ByteBuf extract(ByteBuf buffer) {
             final int eoh = findEndOfHeader(buffer);
             if (!discarding) {
                 if (eoh >= 0) {

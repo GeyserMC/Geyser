@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Getter;
 import lombok.Setter;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.network.CIDRMatcher;
@@ -161,7 +162,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         private String address = "0.0.0.0";
 
         @Override
-        public String address() {
+        public @NonNull String address() {
             return address;
         }
 
@@ -263,7 +264,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         private AuthType authType = AuthType.ONLINE;
 
         @Override
-        public AuthType authType() {
+        public @NonNull AuthType authType() {
             return authType;
         }
 
