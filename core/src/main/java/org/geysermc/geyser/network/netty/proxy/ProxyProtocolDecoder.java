@@ -77,7 +77,7 @@ public final class ProxyProtocolDecoder {
     /**
      * Protocol specification version
      */
-    private int decodingVersion = -1;
+    private final int decodingVersion;
 
     /**
      * The latest v2 spec (2014/05/18) allows for additional data to be sent in the proxy protocol header beyond the

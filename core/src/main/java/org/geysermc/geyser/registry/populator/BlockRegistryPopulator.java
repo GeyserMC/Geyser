@@ -72,7 +72,7 @@ public final class BlockRegistryPopulator {
         PRE_INIT,
         INIT_JAVA,
         INIT_BEDROCK,
-        POST_INIT;
+        POST_INIT
     }
 
     @FunctionalInterface
@@ -96,10 +96,10 @@ public final class BlockRegistryPopulator {
 
     public static void populate(Stage stage) {
         switch (stage) {
-            case PRE_INIT, POST_INIT -> { nullifyBlocksNode(); }
-            case INIT_JAVA -> { registerJavaBlocks(); }
-            case INIT_BEDROCK -> { registerBedrockBlocks(); }
-            default -> { throw new IllegalArgumentException("Unknown stage: " + stage); }
+            case PRE_INIT, POST_INIT -> nullifyBlocksNode();
+            case INIT_JAVA -> registerJavaBlocks();
+            case INIT_BEDROCK -> registerBedrockBlocks();
+            default -> throw new IllegalArgumentException("Unknown stage: " + stage);
         }
     }
 
@@ -114,6 +114,7 @@ public final class BlockRegistryPopulator {
         BLOCKS_JSON = null;
     }
 
+    @SuppressWarnings("UnstableApiUsage") // Interner is beta
     private static void registerBedrockBlocks() {
         Remapper mapper594 = Remapper.of(BlockStateUpdater_1_20_10.INSTANCE);
         Remapper mapper618 = Remapper.of(BlockStateUpdater_1_20_10.INSTANCE, BlockStateUpdater_1_20_30.INSTANCE);
@@ -533,7 +534,7 @@ public final class BlockRegistryPopulator {
                     .javaIdentifier(javaId)
                     .javaBlockId(javaBlockState.stateGroupId())
                     .hardness(javaBlockState.blockHardness())
-                    .pistonBehavior(javaBlockState.pistonBehavior() == null ? PistonBehavior.NORMAL : PistonBehavior.getByName(javaBlockState.pistonBehavior()))
+                    .pistonBehavior(javaBlockState.pistonBehavior() == null ? PistonBehavior.NORMAL : PistonBehavior.getByName(Objects.requireNonNull(javaBlockState.pistonBehavior())))
                     .isBlockEntity(javaBlockState.hasBlockEntity())
                     .build();
 

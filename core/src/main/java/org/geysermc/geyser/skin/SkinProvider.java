@@ -32,6 +32,8 @@ import it.unimi.dsi.fastutil.bytes.ByteArrays;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
@@ -40,8 +42,6 @@ import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.WebUtils;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -217,7 +217,7 @@ public class SkinProvider {
     /**
      * Used as a fallback if an official Java cape doesn't exist for this user.
      */
-    @Nonnull
+    @NonNull
     private static Cape getCachedBedrockCape(UUID uuid) {
         GeyserSession session = GeyserImpl.getInstance().connectionByUuid(uuid);
         if (session != null) {
@@ -230,8 +230,7 @@ public class SkinProvider {
         return EMPTY_CAPE;
     }
 
-    @Nullable
-    static Cape getCachedCape(String capeUrl) {
+    static @Nullable Cape getCachedCape(String capeUrl) {
         if (capeUrl == null) {
             return null;
         }
@@ -545,7 +544,7 @@ public class SkinProvider {
         BufferedImage image = null;
 
         // First see if we have a cached file. We also update the modification stamp so we know when the file was last used
-        File imageFile = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("images").resolve(UUID.nameUUIDFromBytes(imageUrl.getBytes()).toString() + ".png").toFile();
+        File imageFile = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("images").resolve(UUID.nameUUIDFromBytes(imageUrl.getBytes()) + ".png").toFile();
         if (imageFile.exists()) {
             try {
                 GeyserImpl.getInstance().getLogger().debug("Reading cached image from file " + imageFile.getPath() + " for " + imageUrl);
@@ -617,7 +616,7 @@ public class SkinProvider {
      * @param uuid the player's UUID without any hyphens
      * @return a completable GameProfile with textures included
      */
-    public static CompletableFuture<String> requestTexturesFromUUID(String uuid) {
+    public static CompletableFuture<@Nullable String> requestTexturesFromUUID(String uuid) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 JsonNode node = WebUtils.getJson("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
@@ -643,7 +642,7 @@ public class SkinProvider {
      * @param username the player's username
      * @return a completable GameProfile with textures included
      */
-    public static CompletableFuture<String> requestTexturesFromUsername(String username) {
+    public static CompletableFuture<@Nullable String> requestTexturesFromUsername(String username) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 // Offline skin, or no present UUID
@@ -682,7 +681,7 @@ public class SkinProvider {
         return image;
     }
 
-    private static BufferedImage readFiveZigCape(String url) throws IOException {
+    private static @Nullable BufferedImage readFiveZigCape(String url) throws IOException {
         JsonNode element = GeyserImpl.JSON_MAPPER.readTree(WebUtils.getBody(url));
         if (element != null && element.isObject()) {
             JsonNode capeElement = element.get("d");

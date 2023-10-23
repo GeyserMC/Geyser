@@ -210,8 +210,7 @@ public abstract class WorldManager {
     /**
      * Returns a list of biome identifiers available on the server.
      */
-    @Nullable
-    public String[] getBiomeIdentifiers(boolean withTags) {
+    public String @Nullable [] getBiomeIdentifiers(boolean withTags) {
         return null;
     }
 

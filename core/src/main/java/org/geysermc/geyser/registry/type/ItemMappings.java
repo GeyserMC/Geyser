@@ -166,14 +166,12 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
         return ItemMapping.AIR;
     }
 
-    @Nullable
     @Override
-    public ItemDefinition getDefinition(int bedrockId) {
+    public @Nullable ItemDefinition getDefinition(int bedrockId) {
         return this.itemDefinitions.get(bedrockId);
     }
 
-    @Nullable
-    public ItemDefinition getDefinition(String bedrockIdentifier) {
+    public @Nullable ItemDefinition getDefinition(String bedrockIdentifier) {
         for (ItemDefinition itemDefinition : this.itemDefinitions.values()) {
             if (itemDefinition.getIdentifier().equals(bedrockIdentifier)) {
                 return itemDefinition;

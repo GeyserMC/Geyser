@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.util;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -49,7 +51,7 @@ public final class CpuUtils {
 
     /**
      * Much of the code here was copied from the OSHI project. This is simply stripped down to only get the CPU model.
-     * https://github.com/oshi/oshi/
+     * <a href="https://github.com/oshi/oshi/">...</a>
      */
     private static String getLinuxProcessorName() throws Exception {
         List<String> lines = Files.readAllLines(Paths.get("/proc/cpuinfo"), StandardCharsets.UTF_8);
@@ -64,9 +66,9 @@ public final class CpuUtils {
     }
 
     /**
-     * https://stackoverflow.com/a/6327663
+     * <a href="https://stackoverflow.com/a/6327663">...</a>
      */
-    private static String getWindowsProcessorName() throws Exception {
+    private static @Nullable String getWindowsProcessorName() throws Exception {
         final String cpuNameCmd = "reg query \"HKLM\\HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0\" /v ProcessorNameString";
         final String regstrToken = "REG_SZ";
 

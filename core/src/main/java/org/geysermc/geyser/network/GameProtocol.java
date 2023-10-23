@@ -90,6 +90,7 @@ public final class GameProtocol {
 
     /* Bedrock convenience methods to gatekeep features and easily remove the check on version removal */
 
+     @SuppressWarnings("unused") // will be used in the recipe system
     public static boolean isPre1_20_10(GeyserSession session) {
         return session.getUpstream().getProtocolVersion() < Bedrock_v594.CODEC.getProtocolVersion();
     }

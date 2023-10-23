@@ -26,6 +26,7 @@
 package org.geysermc.geyser.registry.populator;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtUtils;
@@ -78,10 +79,10 @@ public class CreativeItemRegistryPopulator {
         }
     }
 
-    private static ItemData.Builder createItemData(JsonNode itemNode, BlockMappings blockMappings, Map<String, ItemDefinition> definitions) {
+    private static ItemData.@Nullable Builder createItemData(JsonNode itemNode, BlockMappings blockMappings, Map<String, ItemDefinition> definitions) {
         int count = 1;
         int damage = 0;
-        int bedrockBlockRuntimeId = -1;
+        int bedrockBlockRuntimeId;
         NbtMap tag = null;
 
         String identifier = itemNode.get("id").textValue();

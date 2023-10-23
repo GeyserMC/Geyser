@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -48,9 +49,10 @@ import java.util.zip.GZIPOutputStream;
 
 /**
  * bStats collects some data for plugin authors.
- *
- * Check out https://bStats.org/ to learn more about bStats!
+ * <p>
+ * Check out <a href="https://bStats.org/">...</a> to learn more about bStats!
  */
+@SuppressWarnings("unused")
 public class Metrics {
 
     // The version of this bStats class
@@ -140,7 +142,7 @@ public class Metrics {
             }
             customCharts.add(chart);
         }
-        data.put("customCharts", customCharts);
+        data.set("customCharts", customCharts);
 
         return data;
     }
@@ -206,6 +208,11 @@ public class Metrics {
 
         // Compress the data to save bandwidth
         byte[] compressedData = compress(data.toString());
+        if (compressedData == null) {
+            // Something went wrong
+            connection.disconnect();
+            return;
+        }
 
         // Add headers
         connection.setRequestMethod("POST");
@@ -233,7 +240,7 @@ public class Metrics {
      * @return The gzipped String.
      * @throws IOException If the compression failed.
      */
-    private static byte[] compress(final String str) throws IOException {
+    private static byte @Nullable [] compress(final String str) throws IOException {
         if (str == null) {
             return null;
         }
@@ -264,7 +271,7 @@ public class Metrics {
             this.chartId = chartId;
         }
 
-        private ObjectNode getRequestJsonNode() {
+        private @Nullable ObjectNode getRequestJsonNode() {
             ObjectNode chart = new ObjectMapper().createObjectNode();
             chart.put("chartId", chartId);
             try {
@@ -308,7 +315,7 @@ public class Metrics {
         }
 
         @Override
-        protected ObjectNode getChartData() throws Exception {
+        protected @Nullable ObjectNode getChartData() throws Exception {
             ObjectNode data = mapper.createObjectNode();
             String value = callable.call();
             if (value == null || value.isEmpty()) {
@@ -339,7 +346,7 @@ public class Metrics {
         }
 
         @Override
-        protected ObjectNode getChartData() throws Exception {
+        protected @Nullable ObjectNode getChartData() throws Exception {
             ObjectNode data = mapper.createObjectNode();
             ObjectNode values = mapper.createObjectNode();
             Map<String, Integer> map = callable.call();
@@ -383,7 +390,7 @@ public class Metrics {
         }
 
         @Override
-        public ObjectNode getChartData() throws Exception {
+        public @Nullable ObjectNode getChartData() throws Exception {
             ObjectNode data = mapper.createObjectNode();
             ObjectNode values = mapper.createObjectNode();
             Map<String, Map<String, Integer>> map = callable.call();
@@ -432,7 +439,7 @@ public class Metrics {
         }
 
         @Override
-        protected ObjectNode getChartData() throws Exception {
+        protected @Nullable ObjectNode getChartData() throws Exception {
             ObjectNode data = mapper.createObjectNode();
             int value = callable.call();
             if (value == 0) {
@@ -464,7 +471,7 @@ public class Metrics {
         }
 
         @Override
-        protected ObjectNode getChartData() throws Exception {
+        protected @Nullable ObjectNode getChartData() throws Exception {
             ObjectNode data = mapper.createObjectNode();
             ObjectNode values = mapper.createObjectNode();
             Map<String, Integer> map = callable.call();
@@ -509,7 +516,7 @@ public class Metrics {
         }
 
         @Override
-        protected ObjectNode getChartData() throws Exception {
+        protected @Nullable ObjectNode getChartData() throws Exception {
             ObjectNode data = mapper.createObjectNode();
             ObjectNode values = mapper.createObjectNode();
             Map<String, Integer> map = callable.call();
@@ -547,7 +554,7 @@ public class Metrics {
         }
 
         @Override
-        protected ObjectNode getChartData() throws Exception {
+        protected @Nullable ObjectNode getChartData() throws Exception {
             ObjectNode data = mapper.createObjectNode();
             ObjectNode values = mapper.createObjectNode();
             Map<String, int[]> map = callable.call();

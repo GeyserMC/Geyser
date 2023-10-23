@@ -61,8 +61,9 @@ public class GeyserMain {
             helpStream = GeyserMain.class.getClassLoader().getResourceAsStream("languages/run-help/en_US.txt");
         }
 
+        assert helpStream != null;
         Scanner help = new Scanner(helpStream, StandardCharsets.UTF_8).useDelimiter("\\Z");
-        String line = "";
+        String line;
         while (help.hasNext()) {
             line = help.next();
 

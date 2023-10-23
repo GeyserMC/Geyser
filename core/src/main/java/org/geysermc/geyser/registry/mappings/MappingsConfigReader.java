@@ -28,6 +28,7 @@ package org.geysermc.geyser.registry.mappings;
 import com.fasterxml.jackson.databind.JsonNode;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
@@ -57,21 +58,21 @@ public class MappingsConfigReader {
         }
     }
 
-    public boolean ensureMappingsDirectory(Path mappingsDirectory) {
+    public boolean noMappingsDirectoryPresent(Path mappingsDirectory) {
         if (!Files.exists(mappingsDirectory)) {
             try {
                 Files.createDirectories(mappingsDirectory);
-                return true;
+                return false;
             } catch (IOException e) {
                 GeyserImpl.getInstance().getLogger().error("Failed to create mappings directory", e);
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     public void loadItemMappingsFromJson(BiConsumer<String, CustomItemData> consumer) {
-        if (!ensureMappingsDirectory(this.customMappingsDirectory)) {
+        if (noMappingsDirectoryPresent(this.customMappingsDirectory)) {
             return;
         }
 
@@ -82,7 +83,7 @@ public class MappingsConfigReader {
     }
 
     public void loadBlockMappingsFromJson(BiConsumer<String, CustomBlockMapping> consumer) {
-        if (!ensureMappingsDirectory(this.customMappingsDirectory)) {
+        if (noMappingsDirectoryPresent(this.customMappingsDirectory)) {
             return;
         }
 
@@ -92,7 +93,7 @@ public class MappingsConfigReader {
         }
     }
 
-    public JsonNode getMappingsRoot(Path file) {
+    public @Nullable JsonNode getMappingsRoot(Path file) {
         JsonNode mappingsRoot;
         try {
             mappingsRoot = GeyserImpl.JSON_MAPPER.readTree(file.toFile());
@@ -121,9 +122,13 @@ public class MappingsConfigReader {
     public void readItemMappingsFromJson(Path file, BiConsumer<String, CustomItemData> consumer) {
         JsonNode mappingsRoot = getMappingsRoot(file);
 
+        if (mappingsRoot == null) {
+            return;
+        }
+
         int formatVersion = getFormatVersion(mappingsRoot, file);
 
-        if (formatVersion < 0 || mappingsRoot == null) {
+        if (formatVersion < 0) {
             return;
         }
 
@@ -133,9 +138,13 @@ public class MappingsConfigReader {
     public void readBlockMappingsFromJson(Path file, BiConsumer<String, CustomBlockMapping> consumer) {
         JsonNode mappingsRoot = getMappingsRoot(file);
 
+        if (mappingsRoot == null) {
+            return;
+        }
+
         int formatVersion = getFormatVersion(mappingsRoot, file);
 
-        if (formatVersion < 0 || mappingsRoot == null) {
+        if (formatVersion < 0) {
             return;
         }
 

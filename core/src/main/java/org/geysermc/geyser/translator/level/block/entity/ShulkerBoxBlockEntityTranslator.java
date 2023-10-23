@@ -27,11 +27,10 @@ package org.geysermc.geyser.translator.level.block.entity;
 
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.translator.inventory.ShulkerInventoryTranslator;
-
-import javax.annotation.Nullable;
 
 @BlockEntity(type = BlockEntityType.SHULKER_BOX)
 public class ShulkerBoxBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {

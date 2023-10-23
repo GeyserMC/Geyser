@@ -26,7 +26,8 @@
 package org.geysermc.geyser.level;
 
 import com.github.steveice10.mc.protocol.data.game.advancement.Advancement;
-import lombok.NonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.session.cache.AdvancementsCache;
 import org.geysermc.geyser.text.ChatColor;
 
@@ -47,13 +48,11 @@ public class GeyserAdvancement {
         this.advancement = advancement;
     }
 
-    @NonNull
-    public String getId() {
+    public @NonNull String getId() {
         return this.advancement.getId();
     }
 
-    @NonNull
-    public List<List<String>> getRequirements() {
+    public @NonNull List<List<String>> getRequirements() {
         return this.advancement.getRequirements();
     }
 
@@ -73,7 +72,7 @@ public class GeyserAdvancement {
         return displayData != null && displayData.getFrameType() == Advancement.DisplayData.FrameType.CHALLENGE ? ChatColor.LIGHT_PURPLE : ChatColor.GREEN;
     }
 
-    public String getRootId(AdvancementsCache advancementsCache) {
+    public @Nullable String getRootId(AdvancementsCache advancementsCache) {
         if (rootId == null) {
             if (this.advancement.getParentId() == null) {
                 // We are the root ID

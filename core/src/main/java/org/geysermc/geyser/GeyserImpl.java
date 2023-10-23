@@ -620,6 +620,7 @@ public class GeyserImpl implements GeyserApi {
      *
      * @return true if the version number is not 'DEV'.
      */
+    @SuppressWarnings("MismatchedStringCase")
     public boolean isProductionEnvironment() {
         // First is if Blossom runs, second is if Blossom doesn't run
         // noinspection ConstantConditions - changes in production
@@ -638,8 +639,9 @@ public class GeyserImpl implements GeyserApi {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <R extends T, T> @NonNull R provider(@NonNull Class<T> apiClass, @Nullable Object... args) {
-        return (R) Registries.PROVIDERS.get(apiClass).create(args);
+        return (R) Objects.requireNonNull(Registries.PROVIDERS.get(apiClass)).create(args);
     }
 
     @Override
