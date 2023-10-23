@@ -80,6 +80,7 @@ public class DumpInfo {
     private final FlagsInfo flagsInfo;
     private final List<ExtensionInfo> extensionInfo;
 
+    @SuppressWarnings("UnstableApiUsage, deprecation") // TODO: Remove with Jenkins removal; md5 is deprecated
     public DumpInfo(boolean addLog) {
         this.versionInfo = new VersionInfo();
 
@@ -101,8 +102,6 @@ public class DumpInfo {
             File file = new File(DumpInfo.class.getProtectionDomain().getCodeSource().getLocation().toURI());
             ByteSource byteSource = Files.asByteSource(file);
             // Jenkins uses MD5 for its hash
-            // TODO: Remove with Jenkins removal
-            //noinspection UnstableApiUsage, deprecation
             md5Hash = byteSource.hash(Hashing.md5()).toString();
             //noinspection UnstableApiUsage
             sha256Hash = byteSource.hash(Hashing.sha256()).toString();
