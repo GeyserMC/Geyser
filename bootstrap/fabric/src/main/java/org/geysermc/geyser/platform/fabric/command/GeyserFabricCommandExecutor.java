@@ -51,6 +51,7 @@ public class GeyserFabricCommandExecutor extends GeyserCommandExecutor implement
         return Permissions.check(source, command.permission(), command.isSuggestedOpOnly() ? 2 : 0);
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
     public int run(CommandContext context) {
         return runWithArgs(context, "");
