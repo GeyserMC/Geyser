@@ -26,6 +26,7 @@
 package org.geysermc.geyser.registry.loader;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserLoadResourcePacksEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
@@ -49,6 +50,7 @@ import java.nio.file.PathMatcher;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -149,7 +151,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
     }
 
     public static ResourcePack loadDownloadedPack(GeyserUrlPackCodec codec) throws IllegalArgumentException {
-        Path path = codec.fallback.path();
+        Path path = codec.getFallback().path();
         if (!path.getFileName().toString().endsWith(".mcpack") && !path.getFileName().toString().endsWith(".zip")) {
             throw new IllegalArgumentException("The url " + codec.url() + " did not provide a valid resource pack! Please check the url and try again.");
         }
@@ -214,11 +216,11 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
 
         for (String url: remotePackUrls) {
             try {
-                ResourcePack pack = new GeyserUrlPackCodec(url).create();
+                GeyserUrlPackCodec codec = new GeyserUrlPackCodec(url);
+                ResourcePack pack = codec.create();
                 packMap.put(pack.manifest().header().uuid().toString(), pack);
             } catch (Exception e) {
                 GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", url));
-                GeyserImpl.getInstance().getLogger().error(e.getMessage());
                 if (GeyserImpl.getInstance().getLogger().isDebug()) {
                     e.printStackTrace();
                 }
@@ -227,32 +229,39 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
         return packMap;
     }
 
-    public static Path downloadPack(String url) throws IllegalArgumentException {
-        int packHash = url.hashCode();
-        Path cachedPath = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs").resolve(packHash + ".zip");
-        WebUtils.downloadFile(url, cachedPath.toString());
-
-        if (!PACK_MATCHER.matches(cachedPath)) {
-            throw new IllegalArgumentException("Invalid pack! Not a .zip or .mcpack file.");
-        }
-
-        try {
-            ZipFile zip = new ZipFile(cachedPath.toFile());
-            if (zip.stream().noneMatch(x -> x.getName().contains("manifest.json"))) {
-                throw new IllegalArgumentException(url + " does not contain a manifest file.");
+    public static CompletableFuture<@Nullable Path> downloadPack(String url) throws IllegalArgumentException {
+        CompletableFuture<Path> future = WebUtils.checkRemotePackUrl(url);
+        AtomicReference<Path> pathAtomicReference = new AtomicReference<>();
+        future.whenCompleteAsync((cachedPath, throwable) -> {
+            if (cachedPath == null || throwable != null) {
+                return;
             }
 
-            // Check if a "manifest.json" or "pack_manifest.json" file is located directly in the zip... does not work otherwise.
-            // (something like MyZip.zip/manifest.json) will not, but will if it's a subfolder (MyPack.zip/MyPack/manifest.json)
-            if (zip.getEntry("manifest.json") != null || zip.getEntry("pack_manifest.json") != null) {
-                GeyserImpl.getInstance().getLogger().warning("The remote resource pack from " + url + " contains a manifest.json file at the root of the zip file. " +
-                        "This is not supported for remote packs, and will cause Bedrock clients to fall back to request the pack from the server. " +
-                        "Please put the pack file in a subfolder, and provide that zip in the URL.");
+            // Check if the pack is a .zip or .mcpack file
+            if (!PACK_MATCHER.matches(cachedPath)) {
+                throw new IllegalArgumentException("Invalid pack! Not a .zip or .mcpack file.");
             }
-        } catch (IOException e) {
-            throw new IllegalArgumentException(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", url), e);
-        }
 
-        return cachedPath;
+            try {
+                ZipFile zip = new ZipFile(cachedPath.toFile());
+                if (zip.stream().noneMatch(x -> x.getName().contains("manifest.json"))) {
+                    throw new IllegalArgumentException(url + " does not contain a manifest file.");
+                }
+
+                // Check if a "manifest.json" or "pack_manifest.json" file is located directly in the zip... does not work otherwise.
+                // (something like MyZip.zip/manifest.json) will not, but will if it's a subfolder (MyPack.zip/MyPack/manifest.json)
+                if (zip.getEntry("manifest.json") != null || zip.getEntry("pack_manifest.json") != null) {
+                    GeyserImpl.getInstance().getLogger().warning("The remote resource pack from " + url + " contains a manifest.json file at the root of the zip file. " +
+                            "This is not supported for remote packs, and will cause Bedrock clients to fall back to request the pack from the server. " +
+                            "Please put the pack file in a subfolder, and provide that zip in the URL.");
+                }
+            } catch (IOException e) {
+                throw new IllegalArgumentException(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", url), e);
+            }
+
+            pathAtomicReference.set(cachedPath);
+        });
+
+        return future.thenApplyAsync(x -> pathAtomicReference.get());
     }
 }

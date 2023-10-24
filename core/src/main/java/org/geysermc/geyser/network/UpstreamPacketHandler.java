@@ -50,6 +50,7 @@ import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.geyser.util.VersionCheckUtils;
+import org.geysermc.geyser.util.WebUtils;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -280,6 +281,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             if (!GameProtocol.isPre1_20_30(this.session)) {
                 // TODO: Proper pack checking - could be that the remote url is offline, the pack changed, or.. something?
                 GeyserImpl.getInstance().getLogger().warning("Received ResourcePackChunkRequestPacket for URL pack " + urlPackCodec.url());
+
+                WebUtils.checkRemotePackUrl(urlPackCodec.url());
             }
         }
 

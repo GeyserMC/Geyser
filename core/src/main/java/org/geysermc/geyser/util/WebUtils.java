@@ -26,20 +26,23 @@
 package org.geysermc.geyser.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 
-import javax.annotation.Nullable;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
 import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class WebUtils {
 
@@ -94,6 +97,47 @@ public class WebUtils {
             throw new RuntimeException("Unable to download and save file: " + fileLocation + " (" + reqURL + ")", e);
         }
     }
+
+    /**
+     * Checks a remote pack URL to see if it is valid
+     * If it is, it will download the pack file and return a path to it
+     *
+     * @param url The URL to check
+     * @return Path to the downloaded pack file
+     */
+    public static CompletableFuture<@Nullable Path> checkRemotePackUrl(String url) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
+                con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION);
+                int size = con.getContentLength();
+                String type = con.getContentType();
+                InputStream in = con.getInputStream();
+
+                if (size < 1 || !type.equals("application/zip")) {
+                    GeyserImpl.getInstance().getLogger().error("Invalid resource pack: " + url + " (" + type + ", " + size + " bytes)");
+                    //return null;
+                }
+                Path fileLocation = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs").resolve(url.hashCode() + ".zip");
+                Files.copy(in, fileLocation, StandardCopyOption.REPLACE_EXISTING);
+
+                if (Files.size(fileLocation) != size) {
+                    GeyserImpl.getInstance().getLogger().error("Server sent " + Files.size(fileLocation) + " bytes, expected " + size + " bytes");
+                    Files.delete(fileLocation);
+                    return null;
+                }
+
+                return fileLocation;
+            } catch (MalformedURLException e) {
+                GeyserImpl.getInstance().getLogger().error("Malformed URL: " + url);
+                return null;
+            } catch (IOException e) {
+                GeyserImpl.getInstance().getLogger().error("Unable to download and save file: " + url + ")");
+                return null;
+            }
+        });
+    }
+
 
     /**
      * Post a string to the given URL
@@ -169,15 +213,14 @@ public class WebUtils {
         try (OutputStream out = con.getOutputStream()) {
             // Write the form data to the output
             for (Map.Entry<String, String> field : fields.entrySet()) {
-                out.write((field.getKey() + "=" + URLEncoder.encode(field.getValue(), StandardCharsets.UTF_8.toString()) + "&").getBytes(StandardCharsets.UTF_8));
+                out.write((field.getKey() + "=" + URLEncoder.encode(field.getValue(), StandardCharsets.UTF_8) + "&").getBytes(StandardCharsets.UTF_8));
             }
         }
 
         return connectionToString(con);
     }
 
-    @Nullable
-    public static String[] findSrvRecord(GeyserImpl geyser, String remoteAddress) {
+    public static String @Nullable [] findSrvRecord(GeyserImpl geyser, String remoteAddress) {
         try {
             // Searches for a server address and a port from a SRV record of the specified host name
             InitialDirContext ctx = new InitialDirContext();

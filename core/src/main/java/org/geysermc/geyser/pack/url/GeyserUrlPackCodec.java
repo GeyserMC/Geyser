@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.pack.url;
 
+import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.UrlPackCodec;
@@ -33,25 +34,25 @@ import org.geysermc.geyser.registry.loader.ResourcePackLoader;
 
 import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
-import java.nio.file.Path;
 
 public class GeyserUrlPackCodec extends UrlPackCodec {
     private final String url;
     private final String contentKey;
-    public final GeyserPathPackCodec fallback;
+    @Getter
+    private final GeyserPathPackCodec fallback;
 
-    public GeyserUrlPackCodec(String url) {
+    public GeyserUrlPackCodec(String url) throws IllegalArgumentException {
         this(url, "");
     }
 
-    public GeyserUrlPackCodec(String url, String contentKey) {
+    public GeyserUrlPackCodec(String url, String contentKey) throws IllegalArgumentException {
         this.url = url;
         this.contentKey = contentKey;
-        this.fallback = new GeyserPathPackCodec(getCachePath(url));
-    }
-
-    private static Path getCachePath(String url) {
-        return ResourcePackLoader.downloadPack(url);
+        try {
+            this.fallback = new GeyserPathPackCodec(ResourcePackLoader.downloadPack(url).get());
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Unable to download pack from " + url, e);
+        }
     }
 
     @Override
