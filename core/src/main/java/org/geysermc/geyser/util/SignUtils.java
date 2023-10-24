@@ -61,8 +61,8 @@ public class SignUtils {
         };
     }
 
-    public static int getSignWidthMax(int javaBlockState) {
-        if (BlockStateValues.isHangingSign(javaBlockState)) {
+    public static int getSignWidthMax(boolean hanging) {
+        if (hanging) {
             return HANGING_SIGN_WIDTH_MAX;
         }
         return SIGN_WIDTH_MAX;

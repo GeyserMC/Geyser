@@ -1,0 +1,80 @@
+{
+    "format_version": "1.8.0",
+    "animations": {
+        "animation.geyser.player_skull.head": {
+            "loop": true,
+            "bones": {
+                "root_x": {
+                    "position": [0, 15.95, 0],
+                    "scale": [1.1875, 1.1875, 1.1875]
+                }
+            }
+        },
+        "animation.geyser.player_skull.thirdperson_main_hand": {
+            "loop": true,
+            "bones": {
+                "root": {
+                    "scale": [0.5, 0.5, 0.5],
+                    "position": [0, 12, -4]
+                },
+                "root_x": {
+                    "rotation": [45, 0, 0]
+                },
+                "root_y": {
+                    "rotation": [0, 135, 0]
+                }
+            }
+        },
+        "animation.geyser.player_skull.thirdperson_off_hand": {
+            "loop": true,
+            "bones": {
+                "root": {
+                    "scale": [0.5, 0.5, 0.5],
+                    "position": [0, 12, -4]
+                },
+                "root_x": {
+                    "rotation": [45, 0, 0]
+                },
+                "root_y": {
+                    "rotation": [0, -135, 0]
+                }
+            }
+        },
+        "animation.geyser.player_skull.firstperson_main_hand": {
+            "loop": true,
+            "bones": {
+                "root": {
+                    "scale": [0.5, 0.5, 0.5],
+                    "position": [2, 16, 4]
+                },
+                "root_x": {
+                    "rotation": [180, 0, 0]
+                },
+                "root_y": {
+                    "rotation": [0, 135, 0]
+                },
+                "root_z": {
+                    "rotation": [45, 0, 0]
+                }
+            }
+        },
+        "animation.geyser.player_skull.firstperson_off_hand": {
+            "loop": true,
+            "bones": {
+                "root": {
+                    "scale": [0.5, 0.5, 0.5],
+                    "position": [2, 16, 4]
+                },
+                "root_x": {
+                    "rotation": [180, 0, 0]
+                },
+                "root_y": {
+                    "rotation": [0, 135, 0]
+                },
+                "root_z": {
+                    "rotation": [45, 0, 0]
+                }
+            }
+        }
+    }
+}

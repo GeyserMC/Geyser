@@ -35,9 +35,6 @@ dependencyResolutionManagement {
             name = "viaversion"
         }
 
-        // Sponge
-        maven("https://repo.spongepowered.org/repository/maven-public/")
-
         maven("https://jitpack.io") {
             content { includeGroupByRegex("com\\.github\\..*") }
         }
@@ -74,7 +71,6 @@ include(":fabric")
 include(":forge")
 include(":mod")
 include(":spigot")
-include(":sponge")
 include(":standalone")
 include(":velocity")
 include(":common")
@@ -86,6 +82,5 @@ project(":fabric").projectDir = file("bootstrap/mod/fabric")
 project(":forge").projectDir = file("bootstrap/mod/forge")
 project(":mod").projectDir = file("bootstrap/mod")
 project(":spigot").projectDir = file("bootstrap/spigot")
-project(":sponge").projectDir = file("bootstrap/sponge")
 project(":standalone").projectDir = file("bootstrap/standalone")
 project(":velocity").projectDir = file("bootstrap/velocity")

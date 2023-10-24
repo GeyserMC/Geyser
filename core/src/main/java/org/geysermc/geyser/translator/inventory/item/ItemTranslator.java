@@ -28,9 +28,23 @@ package org.geysermc.geyser.translator.inventory.item;
 import com.github.steveice10.mc.protocol.data.game.Identifier;
 import com.github.steveice10.mc.protocol.data.game.entity.attribute.ModifierOperation;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.opennbt.tag.builtin.*;
+import com.github.steveice10.opennbt.tag.builtin.ByteArrayTag;
+import com.github.steveice10.opennbt.tag.builtin.ByteTag;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.DoubleTag;
+import com.github.steveice10.opennbt.tag.builtin.FloatTag;
+import com.github.steveice10.opennbt.tag.builtin.IntArrayTag;
+import com.github.steveice10.opennbt.tag.builtin.IntTag;
+import com.github.steveice10.opennbt.tag.builtin.ListTag;
+import com.github.steveice10.opennbt.tag.builtin.LongArrayTag;
+import com.github.steveice10.opennbt.tag.builtin.LongTag;
+import com.github.steveice10.opennbt.tag.builtin.ShortTag;
+import com.github.steveice10.opennbt.tag.builtin.StringTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
+import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtList;
@@ -41,12 +55,15 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.skin.SkinManager;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -143,8 +160,20 @@ public final class ItemTranslator {
 
         ItemData.Builder builder = javaItem.translateToBedrock(itemStack, bedrockItem, session.getItemMappings());
         if (bedrockItem.isBlock()) {
-            builder.blockDefinition(bedrockItem.getBedrockBlockDefinition());
+            CustomBlockData customBlockData = BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.getOrDefault(
+                    bedrockItem.getJavaItem().javaIdentifier(), null);
+            if (customBlockData != null) {
+                translateCustomBlock(customBlockData, session, builder);
+            } else {
+                builder.blockDefinition(bedrockItem.getBedrockBlockDefinition());
+            }
         }
+
+        if (bedrockItem.getJavaItem().equals(Items.PLAYER_HEAD)) {
+            translatePlayerHead(session, nbt, builder);
+        }
+
+        translateCustomItem(nbt, builder, bedrockItem);
 
         if (nbt != null) {
             // Translate the canDestroy and canPlaceOn Java NBT
@@ -362,10 +391,24 @@ public final class ItemTranslator {
 
         ItemMapping mapping = itemStack.asItem().toBedrockDefinition(itemStack.getNbt(), session.getItemMappings());
 
+        ItemDefinition itemDefinition = mapping.getBedrockDefinition();
+        CustomBlockData customBlockData = BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.getOrDefault(
+                mapping.getJavaItem().javaIdentifier(), null);
+        if (customBlockData != null) {
+            itemDefinition = session.getItemMappings().getCustomBlockItemDefinitions().get(customBlockData);
+        }
+
+        if (mapping.getJavaItem().equals(Items.PLAYER_HEAD)) {
+            CustomSkull customSkull = getCustomSkull(session, itemStack.getNbt());
+            if (customSkull != null) {
+                itemDefinition = session.getItemMappings().getCustomBlockItemDefinitions().get(customSkull.getCustomBlockData());
+            }
+        }
+
         ItemDefinition definition = CustomItemTranslator.getCustomItem(itemStack.getNbt(), mapping);
         if (definition == null) {
             // No custom item
-            return mapping.getBedrockDefinition();
+            return itemDefinition;
         } else {
             return definition;
         }
@@ -553,6 +596,46 @@ public final class ItemTranslator {
         ItemDefinition definition = CustomItemTranslator.getCustomItem(nbt, mapping);
         if (definition != null) {
             builder.definition(definition);
+            builder.blockDefinition(null);
+        }
+    }
+
+    /**
+     * Translates a custom block override
+     */
+    private static void translateCustomBlock(CustomBlockData customBlockData, GeyserSession session, ItemData.Builder builder) {
+        ItemDefinition itemDefinition = session.getItemMappings().getCustomBlockItemDefinitions().get(customBlockData);
+        BlockDefinition blockDefinition = session.getBlockMappings().getCustomBlockStateDefinitions().get(customBlockData.defaultBlockState());
+        builder.definition(itemDefinition);
+        builder.blockDefinition(blockDefinition);
+    }
+
+    private static CustomSkull getCustomSkull(GeyserSession session, CompoundTag nbt) {
+        if (nbt != null && nbt.contains("SkullOwner")) {
+            if (!(nbt.get("SkullOwner") instanceof CompoundTag skullOwner)) {
+                // It's a username give up d:
+                return null;
+            }
+            SkinManager.GameProfileData data = SkinManager.GameProfileData.from(skullOwner);
+            if (data == null) {
+                session.getGeyser().getLogger().debug("Not sure how to handle skull head item display. " + nbt);
+                return null;
+            }
+
+            String skinHash = data.skinUrl().substring(data.skinUrl().lastIndexOf('/') + 1);
+            return BlockRegistries.CUSTOM_SKULLS.get(skinHash);
+        }
+        return null;
+    }
+
+    private static void translatePlayerHead(GeyserSession session, CompoundTag nbt, ItemData.Builder builder) {
+        CustomSkull customSkull = getCustomSkull(session, nbt);
+        if (customSkull != null) {
+            CustomBlockData customBlockData = customSkull.getCustomBlockData();
+            ItemDefinition itemDefinition = session.getItemMappings().getCustomBlockItemDefinitions().get(customBlockData);
+            BlockDefinition blockDefinition = session.getBlockMappings().getCustomBlockStateDefinitions().get(customBlockData.defaultBlockState());
+            builder.definition(itemDefinition);
+            builder.blockDefinition(blockDefinition);
         }
     }
 

@@ -181,13 +181,13 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
             }
         }
 
+        this.geyserLogger = new GeyserStandaloneLogger();
+
         if (useGui && gui == null) {
-            gui = new GeyserStandaloneGUI();
+            gui = new GeyserStandaloneGUI(geyserLogger);
             gui.redirectSystemStreams();
             gui.startUpdateThread();
         }
-
-        geyserLogger = new GeyserStandaloneLogger();
 
         LoopbackUtil.checkAndApplyLoopback(geyserLogger);
         
@@ -224,7 +224,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         geyserCommandManager.init();
 
         if (gui != null) {
-            gui.setupInterface(geyserLogger, geyserCommandManager);
+            gui.enableCommands(geyser.getScheduledThread(), geyserCommandManager);
         }
 
         geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);

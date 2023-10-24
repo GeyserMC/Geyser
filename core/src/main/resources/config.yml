@@ -5,6 +5,10 @@
 #
 # GitHub: https://github.com/GeyserMC/Geyser
 # Discord: https://discord.gg/geysermc
+# Wiki: https://wiki.geysermc.org/
+#
+# NOTICE: See https://wiki.geysermc.org/geyser/setup/ for the setup guide. Many video tutorials are outdated.
+# In most cases, especially with server hosting providers, further hosting-specific configuration is required.
 # --------------------------------
 
 bedrock:
@@ -154,9 +158,10 @@ max-visible-custom-skulls: 128
 # The radius in blocks around the player in which custom skulls are displayed.
 custom-skull-render-distance: 32
 
-# Whether to add (at this time, only) the furnace minecart as a separate item in the game, which normally does not exist in Bedrock Edition.
+# Whether to add any items and blocks which normally does not exist in Bedrock Edition.
 # This should only need to be disabled if using a proxy that does not use the "transfer packet" style of server switching.
 # If this is disabled, furnace minecart items will be mapped to hopper minecart items.
+# Geyser's block, item, and skull mappings systems will also be disabled.
 # This option requires a restart of Geyser in order to change its setting.
 add-non-bedrock-items: true
 

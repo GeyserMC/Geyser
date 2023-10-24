@@ -114,12 +114,12 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
         // Input a beacon payment
         BeaconPaymentAction beaconPayment = (BeaconPaymentAction) request.getActions()[0];
         ServerboundSetBeaconPacket packet = new ServerboundSetBeaconPacket(toJava(beaconPayment.getPrimaryEffect()), toJava(beaconPayment.getSecondaryEffect()));
-        session.sendDownstreamPacket(packet);
+        session.sendDownstreamGamePacket(packet);
         return acceptRequest(request, makeContainerEntries(session, inventory, IntSets.emptySet()));
     }
 
     private OptionalInt toJava(int effectChoice) {
-        return effectChoice == 0 ? OptionalInt.empty() : OptionalInt.of(effectChoice);
+        return effectChoice == 0 ? OptionalInt.empty() : OptionalInt.of(effectChoice - 1);
     }
 
     @Override

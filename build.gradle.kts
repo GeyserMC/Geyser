@@ -5,19 +5,20 @@ plugins {
 }
 
 allprojects {
-    group = "org.geysermc.geyser"
-    version = "2.1.1-SNAPSHOT"
-    description = "Allows for players from Minecraft: Bedrock Edition to join Minecraft: Java Edition servers."
+    group = properties["group"] as String + "." + properties["id"] as String
+    version = properties["version"] as String
+    description = properties["description"] as String
+}
 
-    tasks.withType<JavaCompile> {
-        options.encoding = "UTF-8"
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(16))
     }
 }
 
 val basePlatforms = setOf(
     projects.bungeecord,
     projects.spigot,
-    projects.sponge,
     projects.standalone,
     projects.velocity
 ).map { it.dependencyProject }

@@ -47,6 +47,10 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
         this.geyser = geyser;
     }
 
+    public DefaultEventLoopGroup getEventLoopGroup() {
+        return eventLoopGroup;
+    }
+
     @Override
     public void initSession(@Nonnull BedrockServerSession bedrockServerSession) {
         try {

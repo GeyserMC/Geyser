@@ -44,7 +44,7 @@ public class StatisticsCommand extends GeyserCommand {
 
         session.setWaitingForStatistics(true);
         ServerboundClientCommandPacket ServerboundClientCommandPacket = new ServerboundClientCommandPacket(ClientCommand.STATS);
-        session.sendDownstreamPacket(ServerboundClientCommandPacket);
+        session.sendDownstreamGamePacket(ServerboundClientCommandPacket);
     }
 
     @Override

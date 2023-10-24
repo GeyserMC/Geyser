@@ -1,21 +1,22 @@
 [versions]
 base-api = "1.0.0-SNAPSHOT"
-cumulus = "1.1.1"
+cumulus = "1.1.2"
 erosion = "1.0-20230406.174837-8"
 events = "1.1-SNAPSHOT"
-jackson = "2.14.0"
+jackson = { strictly = "2.14.0" } # Don't let other dependencies override
 fastutil = "8.5.2"
 netty = "4.1.80.Final"
 guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8
 websocket = "1.5.1"
-protocol = "3.0.0.Beta1-20230613.104224-93"
-protocol-connection = "3.0.0.Beta1-20230613.104224-92"
-raknet = "1.0.0.CR1-20230609.174844-8"
+protocol = "3.0.0.Beta1-20230908.171156-106"
+protocol-connection = "3.0.0.Beta1-20230908.171156-105"
+raknet = "1.0.0.CR1-20230703.195238-9"
+blockstateupdater="1.20.30-20230918.203831-4"
 mcauthlib = "d9d773e"
-mcprotocollib = "1.20-1-20230607.135651-6" # Temporary hack - needs to be updated to release once publishing is fixed
-adventure = "4.14.0-20230424.215040-7"
-adventure-platform = "4.1.2"
+mcprotocollib = "1.20.2-1-20231003.141424-6"
+adventure = "4.14.0"
+adventure-platform = "4.3.0"
 junit = "5.9.2"
 checkerframework = "3.19.0"
 log4j = "2.20.0"
@@ -23,15 +24,14 @@ jline = "3.21.0"
 terminalconsoleappender = "1.2.0"
 folia = "1.19.4-R0.1-SNAPSHOT"
 viaversion = "4.0.0"
-adapters = "1.8-SNAPSHOT"
+adapters = "1.10-SNAPSHOT"
 commodore = "2.2"
 bungeecord = "a7c6ede"
-velocity = "3.0.0"
-sponge = "8.0.0"
-fabric-minecraft = "1.20"
+velocity = "3.1.1"
+fabric-minecraft = "1.20.2"
 fabric-loader = "0.14.21"
-fabric-api = "0.83.0+1.20"
-forge-minecraft = "1.20-46.0.10"
+fabric-api = "0.89.0+1.20.2"
+forge-minecraft = "1.20.2 - 48.0.31"
 mixin = "0.8.5"
 
 [libraries]
@@ -95,7 +95,6 @@ junit = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "ju
 mcauthlib = { group = "com.github.GeyserMC", name = "MCAuthLib", version.ref = "mcauthlib" }
 mcprotocollib = { group = "com.github.steveice10", name = "mcprotocollib", version.ref = "mcprotocollib" }
 raknet = { group = "org.cloudburstmc.netty", name = "netty-transport-raknet", version.ref = "raknet" }
-sponge-api = { group = "org.spongepowered", name = "spongeapi", version.ref = "sponge" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }
 velocity-api = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }
 viaversion = { group = "com.viaversion", name = "viaversion", version.ref = "viaversion" }
@@ -104,6 +103,8 @@ websocket = { group = "org.java-websocket", name = "Java-WebSocket", version.ref
 protocol-common = { group = "org.cloudburstmc.protocol", name = "common", version.ref = "protocol-connection" }
 protocol-codec = { group = "org.cloudburstmc.protocol", name = "bedrock-codec", version.ref = "protocol" }
 protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol-connection" }
+
+blockstateupdater = { group = "org.cloudburstmc", name = "block-state-updater", version.ref = "blockstateupdater"}
 
 [bundles]
 jackson = [ "jackson-annotations", "jackson-core", "jackson-dataformat-yaml" ]

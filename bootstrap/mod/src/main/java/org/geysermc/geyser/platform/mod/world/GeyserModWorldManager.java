@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.platform.mod.world;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
@@ -213,6 +214,11 @@ public class GeyserModWorldManager extends GeyserWorldManager {
     public boolean hasPermission(GeyserSession session, String permission) {
         ServerPlayer player = getPlayer(session);
         return GeyserModBootstrap.getInstance().hasPermission(player, permission);
+    }
+
+    @Override
+    public GameMode getDefaultGameMode(GeyserSession session) {
+        return GameMode.byId(server.getDefaultGameType().getId());
     }
 
     @Nonnull

@@ -32,7 +32,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.attribute.ModifierOper
 public class AttributeUtils {
     /**
      * Retrieve the base attribute value with all modifiers applied.
-     * https://minecraft.gamepedia.com/Attribute#Modifiers
+     * https://minecraft.wiki/w/Attribute#Modifiers
      * @param attribute The attribute to calculate the total value.
      * @return The finished attribute with all modifiers applied.
      */
