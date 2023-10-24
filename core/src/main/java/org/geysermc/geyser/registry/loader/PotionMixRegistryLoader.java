@@ -31,7 +31,6 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
@@ -115,7 +114,7 @@ public class PotionMixRegistryLoader implements RegistryLoader<Object, Int2Objec
     }
 
     private static ItemMapping getNonNull(ItemMappings mappings, Item javaItem) {
-        ItemMapping itemMapping = Registries.ITEMS.forVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getMapping(javaItem);
+        ItemMapping itemMapping = mappings.getMapping(javaItem);
         if (itemMapping == null)
             throw new NullPointerException("No item entry exists for java identifier: " + javaItem.javaIdentifier());
 
