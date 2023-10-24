@@ -58,6 +58,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -138,8 +139,7 @@ public class GeyserModWorldManager extends GeyserWorldManager {
             LevelChunk chunk = player.level().getChunk(x, z);
             final int chunkBlockX = x << 4;
             final int chunkBlockZ = z << 4;
-            for (int i = 0; i < blockEntityInfos.size(); i++) {
-                BlockEntityInfo blockEntityInfo = blockEntityInfos.get(i);
+            for (BlockEntityInfo blockEntityInfo : blockEntityInfos) {
                 BlockEntity blockEntity = chunk.getBlockEntity(new BlockPos(chunkBlockX + blockEntityInfo.getX(),
                         blockEntityInfo.getY(), chunkBlockZ + blockEntityInfo.getZ()));
                 sendLecternData(session, blockEntity, true);
@@ -325,7 +325,7 @@ public class GeyserModWorldManager extends GeyserWorldManager {
         }
 
         @Override
-        public void visitCompound(CompoundTag compoundTag) {
+        public void visitCompound(@NonNull CompoundTag compoundTag) {
             currentTag = convert(currentKey, compoundTag);
         }
 
@@ -334,6 +334,7 @@ public class GeyserModWorldManager extends GeyserWorldManager {
             for (String key : compoundTag.getAllKeys()) {
                 visitor.currentKey = key;
                 Tag tag = compoundTag.get(key);
+                assert tag != null;
                 tag.accept(visitor);
                 visitor.root.put(visitor.currentTag);
             }
@@ -341,7 +342,7 @@ public class GeyserModWorldManager extends GeyserWorldManager {
         }
 
         @Override
-        public void visitEnd(EndTag endTag) {
+        public void visitEnd(@NonNull EndTag endTag) {
         }
     }
 }

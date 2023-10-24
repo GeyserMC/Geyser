@@ -35,6 +35,7 @@ import net.minecraftforge.forgespi.language.IModInfo;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.text.AsteriskSerializer;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,7 +62,7 @@ public class GeyserForgeDumpInfo extends BootstrapDumpInfo {
                     ModList.get().isLoaded(mod.getModId()),
                     mod.getModId(),
                     mod.getVersion().toString(),
-                    mod.getModURL().map(url -> url.toString()).orElse("")
+                    mod.getModURL().map(URL::toString).orElse("")
             ));
         }
     }

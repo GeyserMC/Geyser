@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.platform.forge;
 
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -48,6 +49,7 @@ public class GeyserForgePermissionHandler {
 
     static {
         try {
+            @SuppressWarnings("rawtypes")
             Constructor<PermissionNode> constructor = PermissionNode.class.getDeclaredConstructor(
                     String.class,
                     PermissionType.class,
@@ -102,10 +104,14 @@ public class GeyserForgePermissionHandler {
         return PermissionAPI.getPermission((ServerPlayer) source, node);
     }
 
-    public boolean hasPermission(@NotNull Player source, @NotNull String permissionNode, int permissionLevel) {
-        boolean permission = this.hasPermission(source, permissionNode);
+    public boolean hasPermission(@NotNull CommandSourceStack source, @NotNull String permissionNode, int permissionLevel) {
+        if (!source.isPlayer()) {
+            return true;
+        }
+        assert source.getPlayer() != null;
+        boolean permission = this.hasPermission(source.getPlayer(), permissionNode);
         if (!permission) {
-            return source.hasPermissions(permissionLevel);
+            return source.getPlayer().hasPermissions(permissionLevel);
         }
 
         return true;

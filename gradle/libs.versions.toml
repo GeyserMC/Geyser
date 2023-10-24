@@ -31,7 +31,7 @@ velocity = "3.1.1"
 fabric-minecraft = "1.20.2"
 fabric-loader = "0.14.21"
 fabric-api = "0.89.0+1.20.2"
-forge-minecraft = "1.20.2 - 48.0.31"
+forge-minecraft = "1.20.2-48.0.31"
 mixin = "0.8.5"
 
 [libraries]

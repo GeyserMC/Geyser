@@ -47,7 +47,7 @@ public class GeyserModCommandExecutor extends GeyserCommandExecutor implements C
     }
 
     public boolean testPermission(CommandSourceStack source) {
-        return GeyserModBootstrap.getInstance().hasPermission(source.getPlayer(), command.permission(), command.isSuggestedOpOnly() ? 2 : 0);
+        return GeyserModBootstrap.getInstance().hasPermission(source, command.permission(), command.isSuggestedOpOnly() ? 2 : 0);
     }
 
     @Override
@@ -55,6 +55,7 @@ public class GeyserModCommandExecutor extends GeyserCommandExecutor implements C
         return runWithArgs(context, "");
     }
 
+    @SuppressWarnings("rawtypes")
     public int runWithArgs(CommandContext context, String args) {
         CommandSourceStack source = (CommandSourceStack) context.getSource();
         ModCommandSender sender = new ModCommandSender(source);

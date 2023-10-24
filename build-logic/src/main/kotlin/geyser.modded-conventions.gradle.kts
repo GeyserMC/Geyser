@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 import net.fabricmc.loom.task.RemapJarTask
 import org.gradle.kotlin.dsl.dependencies
 

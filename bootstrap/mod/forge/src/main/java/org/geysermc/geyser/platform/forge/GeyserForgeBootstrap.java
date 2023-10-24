@@ -26,6 +26,7 @@
 package org.geysermc.geyser.platform.forge;
 
 import net.minecraft.Util;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
@@ -34,9 +35,9 @@ import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.loading.FMLLoader;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.platform.mod.GeyserModUpdateListener;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.ExecutorService;
 
@@ -77,19 +78,19 @@ public class GeyserForgeBootstrap extends GeyserModBootstrap {
         GeyserModUpdateListener.onPlayReady(event.getEntity());
     }
 
-    @NotNull
+    @NonNull
     @Override
     public ExecutorService platformExecutor() {
         return Util.backgroundExecutor();
     }
 
     @Override
-    public boolean hasPermission(@NotNull Player source, @NotNull String permissionNode) {
+    public boolean hasPermission(@NonNull Player source, @NonNull String permissionNode) {
         return this.permissionHandler.hasPermission(source, permissionNode);
     }
 
     @Override
-    public boolean hasPermission(@NotNull Player source, @NotNull String permissionNode, int permissionLevel) {
+    public boolean hasPermission(@NonNull CommandSourceStack source, @NonNull String permissionNode, int permissionLevel) {
         return this.permissionHandler.hasPermission(source, permissionNode, permissionLevel);
     }
 }

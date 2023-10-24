@@ -31,10 +31,11 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.world.entity.player.Player;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.platform.mod.GeyserModUpdateListener;
-import org.jetbrains.annotations.NotNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInitializer {
 
@@ -61,12 +62,12 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
     }
 
     @Override
-    public boolean hasPermission(@NotNull Player source, @NotNull String permissionNode) {
+    public boolean hasPermission(@NonNull Player source, @NonNull String permissionNode) {
         return Permissions.check(source, permissionNode);
     }
 
     @Override
-    public boolean hasPermission(@NotNull Player source, @NotNull String permissionNode, int permissionLevel) {
+    public boolean hasPermission(@NonNull CommandSourceStack source, @NonNull String permissionNode, int permissionLevel) {
         return Permissions.check(source, permissionNode, permissionLevel);
     }
 }

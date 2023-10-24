@@ -38,7 +38,6 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.extension.Extension;
-import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -51,7 +50,7 @@ import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
 import org.geysermc.geyser.platform.mod.world.GeyserModWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
-import org.jetbrains.annotations.NotNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -171,12 +170,12 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
             }
 
             // Register help command for just "/<extensionId>"
-            GeyserFabricCommandExecutor extensionHelpExecutor = new GeyserFabricCommandExecutor(geyser,
+            GeyserModCommandExecutor extensionHelpExecutor = new GeyserModCommandExecutor(geyser,
                     (GeyserCommand) extensionCommands.get("help"));
             LiteralArgumentBuilder<CommandSourceStack> extCmdBuilder = Commands.literal(extensionMapEntry.getKey().description().id()).executes(extensionHelpExecutor);
 
             for (Map.Entry<String, Command> command : extensionCommands.entrySet()) {
-                GeyserFabricCommandExecutor executor = new GeyserFabricCommandExecutor(geyser, (GeyserCommand) command.getValue());
+                GeyserModCommandExecutor executor = new GeyserModCommandExecutor(geyser, (GeyserCommand) command.getValue());
                 extCmdBuilder.then(Commands.literal(command.getKey())
                         .executes(executor)
                         .requires(executor::testPermission)
@@ -239,7 +238,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         return this.server.getServerVersion();
     }
 
-    @NotNull
+    @NonNull
     @Override
     public String getServerBindAddress() {
         String ip = this.server.getLocalIp();
@@ -266,9 +265,9 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         this.reloading = reloading;
     }
 
-    public abstract boolean hasPermission(@NotNull Player source, @NotNull String permissionNode);
+    public abstract boolean hasPermission(@NonNull Player source, @NonNull String permissionNode);
 
-    public abstract boolean hasPermission(@NotNull Player source, @NotNull String permissionNode, int permissionLevel);
+    public abstract boolean hasPermission(@NonNull CommandSourceStack source, @NonNull String permissionNode, int permissionLevel);
 
     public static GeyserModBootstrap getInstance() {
         return instance;

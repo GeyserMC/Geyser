@@ -6,6 +6,7 @@
   "mixins": [
     "server.ServerConnectionListenerMixin"
   ],
+  "refmap": "geyser-mod-refmap.json",
   "server": [
     "server.DedicatedServerMixin"
   ],
