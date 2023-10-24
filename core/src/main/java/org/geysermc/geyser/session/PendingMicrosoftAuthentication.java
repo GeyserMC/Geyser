@@ -38,6 +38,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 
+import java.io.Serial;
 import java.util.concurrent.*;
 
 /**
@@ -188,6 +189,9 @@ public class PendingMicrosoftAuthentication {
      * @see PendingMicrosoftAuthentication
      */
     public static class TaskTimeoutException extends Exception {
+
+        @Serial
+        private static final long serialVersionUID = 1L;
         TaskTimeoutException() {
             super("It took too long to authorize Geyser to access your Microsoft account. " +
                     "Please request new code and try again.");

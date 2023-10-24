@@ -29,6 +29,7 @@ import lombok.Setter;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -38,6 +39,9 @@ import java.util.List;
  * <a href="https://gist.github.com/roooodcastro/6325153#gistcomment-3107524">...</a>
  */
 public final class GraphPanel extends JPanel {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
     private final static int padding = 10;
     private final static int labelPadding = 25;
     private final static int pointWidth = 4;

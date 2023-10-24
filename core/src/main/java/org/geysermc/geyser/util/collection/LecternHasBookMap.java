@@ -32,10 +32,15 @@ import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
 
+import java.io.Serial;
+
 /**
  * Map that takes advantage of its internals for fast operations on block states to determine if they are lecterns.
  */
 public class LecternHasBookMap extends FixedInt2BooleanMap {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     /**
      * Update a potential lectern within the world. This is a map method so it can use the internal fields to

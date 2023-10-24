@@ -28,11 +28,15 @@ package org.geysermc.geyser.platform.standalone.gui;
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
+import java.io.Serial;
 
 /**
  * This class was based on this code: <a href="https://stackoverflow.com/a/6899478/5299903">...</a>
  */
 public class ColorPane extends JTextPane {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
     private static Color colorCurrent = ANSIColor.RESET.getColor();
     private String remaining = "";
 
