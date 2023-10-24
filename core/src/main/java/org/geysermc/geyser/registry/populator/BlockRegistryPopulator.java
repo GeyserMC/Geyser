@@ -210,6 +210,7 @@ public final class BlockRegistryPopulator {
 
             GeyserBedrockBlock airDefinition = null;
             BlockDefinition commandBlockDefinition = null;
+            BlockDefinition mobSpanerBlockDefinition = null;
             BlockDefinition waterDefinition = null;
             BlockDefinition movingBlockDefinition = null;
             Iterator<Map.Entry<String, JsonNode>> blocksIterator = BLOCKS_JSON.fields();
@@ -258,6 +259,7 @@ public final class BlockRegistryPopulator {
                     case "minecraft:air" -> airDefinition = bedrockDefinition;
                     case "minecraft:water[level=0]" -> waterDefinition = bedrockDefinition;
                     case "minecraft:command_block[conditional=false,facing=north]" -> commandBlockDefinition = bedrockDefinition;
+                    case "minecraft:spawner" -> mobSpanerBlockDefinition = bedrockDefinition;
                     case "minecraft:moving_piston[facing=north,type=normal]" -> movingBlockDefinition = bedrockDefinition;
                 }
 
@@ -289,6 +291,12 @@ public final class BlockRegistryPopulator {
             }
 
             builder.commandBlock(commandBlockDefinition);
+
+            if (mobSpanerBlockDefinition == null) {
+                throw new AssertionError("Unable to find mob spawner block in palette");
+            }
+
+            builder.mobSpawnerBlock(mobSpanerBlockDefinition);
 
             if (waterDefinition  == null) {
                 throw new AssertionError("Unable to find water in palette");
