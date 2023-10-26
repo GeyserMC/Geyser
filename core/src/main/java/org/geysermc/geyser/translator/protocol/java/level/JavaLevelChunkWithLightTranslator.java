@@ -432,7 +432,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                             IntList palette = bedrockSection.getBlockStorageArray()[0].getPalette();
                             if (palette instanceof IntImmutableList || palette instanceof IntLists.Singleton) {
                                 // TODO there has to be a better way to expand the palette .-.
-                                bedrockSection = bedrockSection.copy(bedrockSectionY);
+                                bedrockSection = bedrockSection.copy();
                                 sections[bedrockSectionY] = bedrockSection;
                             }
                             bedrockSection.setFullBlock(x, y & 0xF, z, 0, blockDefinition.getRuntimeId());
