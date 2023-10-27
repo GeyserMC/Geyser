@@ -55,23 +55,13 @@ import static org.geysermc.geyser.level.block.BlockStateValues.JAVA_AIR_ID;
 @UtilityClass
 public class ChunkUtils {
     /**
-     * An empty subchunk.
+     * Empty biome data
      */
-    public static final byte[] SERIALIZED_CHUNK_DATA;
     public static final byte[] EMPTY_BIOME_DATA;
 
     static {
         ByteBuf byteBuf = Unpooled.buffer();
-        try {
-            new GeyserChunkSection(new BlockStorage[0])
-                    .writeToNetwork(byteBuf);
-            SERIALIZED_CHUNK_DATA = new byte[byteBuf.readableBytes()];
-            byteBuf.readBytes(SERIALIZED_CHUNK_DATA);
-        } finally {
-            byteBuf.release();
-        }
 
-        byteBuf = Unpooled.buffer();
         try {
             BlockStorage blockStorage = new BlockStorage(SingletonBitArray.INSTANCE, IntLists.singleton(0));
             blockStorage.writeToNetwork(byteBuf);
