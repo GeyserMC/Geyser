@@ -111,6 +111,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         int maxBedrockSectionY = (bedrockDimension.height() >> 4) - 1;
 
         int sectionCount;
+        int subChunkCount;
         byte[] payload;
         ByteBuf byteBuf = null;
         GeyserChunkSection[] sections = new GeyserChunkSection[javaChunks.length - (yOffset + (bedrockDimension.minY() >> 4))];
@@ -475,6 +476,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                 GeyserChunkSection section = sections[i];
                 if (section != null) {
                     section.writeToNetwork(byteBuf);
+                    subChunkCount++;
                 }
                 // We can ignore empty sections with subchunk v9
             }
@@ -516,7 +518,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         }
 
         LevelChunkPacket levelChunkPacket = new LevelChunkPacket();
-        levelChunkPacket.setSubChunksLength(sectionCount);
+        levelChunkPacket.setSubChunksLength(subChunkCount);
         levelChunkPacket.setCachingEnabled(false);
         levelChunkPacket.setChunkX(packet.getX());
         levelChunkPacket.setChunkZ(packet.getZ());
