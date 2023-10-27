@@ -177,11 +177,6 @@ public class GeyserSpigotWorldManager extends WorldManager {
         return GameMode.byId(Bukkit.getDefaultGameMode().ordinal());
     }
 
-    @Override
-    public boolean hasPermission(GeyserSession session, String permission) {
-        return Bukkit.getPlayer(session.getPlayerEntity().getUsername()).hasPermission(permission);
-    }
-
     @Nonnull
     @Override
     public CompletableFuture<@Nullable CompoundTag> getPickItemNbt(GeyserSession session, int x, int y, int z, boolean addNbtData) {

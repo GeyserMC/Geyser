@@ -28,13 +28,13 @@ package org.geysermc.geyser.platform.fabric;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.geysermc.geyser.Constants;
-import org.geysermc.geyser.platform.fabric.command.FabricCommandSender;
+import org.geysermc.geyser.platform.fabric.command.FabricCommandSource;
 import org.geysermc.geyser.util.VersionCheckUtils;
 
 public final class GeyserFabricUpdateListener {
     public static void onPlayReady(ServerGamePacketListenerImpl handler) {
         if (Permissions.check(handler.player, Constants.UPDATE_PERMISSION, 2)) {
-            VersionCheckUtils.checkForGeyserUpdate(() -> new FabricCommandSender(handler.player.createCommandSourceStack()));
+            VersionCheckUtils.checkForGeyserUpdate(() -> new FabricCommandSource(handler.player.createCommandSourceStack()));
         }
     }
 

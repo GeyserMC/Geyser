@@ -8,17 +8,13 @@ dependencies {
         classifier("all") // otherwise the unshaded jar is used without the shaded NMS implementations
     })
 
+    implementation(libs.cloud.paper)
     implementation(libs.commodore)
 
     implementation(libs.adventure.text.serializer.bungeecord)
     
     // Both folia-api and paper-mojangapi only provide Java 17 versions for 1.19
     compileOnly(libs.folia.api) {
-        attributes {
-            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
-        }
-    }
-    compileOnly(libs.paper.mojangapi) {
         attributes {
             attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
         }
@@ -31,6 +27,7 @@ platformRelocate("com.fasterxml.jackson")
 platformRelocate("net.kyori", "net.kyori.adventure.text.logger.slf4j.ComponentLogger")
 platformRelocate("org.objectweb.asm")
 platformRelocate("me.lucko.commodore")
+platformRelocate("cloud.commandframework")
 platformRelocate("org.yaml") // Broken as of 1.20
 
 // These dependencies are already present on the platform

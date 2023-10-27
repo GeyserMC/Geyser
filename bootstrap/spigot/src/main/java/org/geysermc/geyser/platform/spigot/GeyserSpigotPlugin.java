@@ -25,40 +25,41 @@
 
 package org.geysermc.geyser.platform.spigot;
 
+import cloud.commandframework.bukkit.BukkitCommandManager;
+import cloud.commandframework.execution.CommandExecutionCoordinator;
+import cloud.commandframework.paper.PaperCommandManager;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.data.MappingData;
 import com.viaversion.viaversion.api.protocol.ProtocolPathEntry;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import io.netty.buffer.ByteBuf;
-import me.lucko.commodore.CommodoreProvider;
 import org.bukkit.Bukkit;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.command.CommandMap;
-import org.bukkit.command.PluginCommand;
+import org.bukkit.command.CommandSender;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
-import org.geysermc.geyser.api.command.Command;
-import org.geysermc.geyser.api.extension.Extension;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.CommandSourceConverter;
+import org.geysermc.geyser.command.CommandRegistry;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
-import org.geysermc.geyser.platform.spigot.command.GeyserBrigadierSupport;
-import org.geysermc.geyser.platform.spigot.command.GeyserSpigotCommandExecutor;
-import org.geysermc.geyser.platform.spigot.command.GeyserSpigotCommandManager;
+import org.geysermc.geyser.platform.spigot.command.SpigotCommandRegistry;
+import org.geysermc.geyser.platform.spigot.command.SpigotCommandSource;
 import org.geysermc.geyser.platform.spigot.world.GeyserPistonListener;
 import org.geysermc.geyser.platform.spigot.world.GeyserSpigotBlockPlaceListener;
 import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotLegacyNativeWorldManager;
@@ -70,12 +71,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -85,7 +83,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
      */
     private static boolean INITIALIZED = false;
 
-    private GeyserSpigotCommandManager geyserCommandManager;
+    private CommandRegistry commandRegistry;
     private GeyserSpigotConfiguration geyserConfig;
     private GeyserSpigotInjector geyserInjector;
     private GeyserSpigotLogger geyserLogger;
@@ -165,8 +163,31 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             return;
         }
 
-        this.geyserCommandManager = new GeyserSpigotCommandManager(geyser);
-        this.geyserCommandManager.init();
+        var sourceConverter = new CommandSourceConverter<>(CommandSender.class, Bukkit::getPlayer, Bukkit::getConsoleSender);
+        PaperCommandManager<GeyserCommandSource> cloud;
+        try {
+            cloud = new PaperCommandManager<>(
+                this,
+                CommandExecutionCoordinator.simpleCoordinator(),
+                SpigotCommandSource::new,
+                sourceConverter::convert
+            );
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            // Should always be available on 1.13 and up
+            cloud.registerBrigadier();
+        } catch (BukkitCommandManager.BrigadierFailureException e) {
+            geyserLogger.debug("Failed to initialize Brigadier support: " + e.getMessage());
+            if (e.getReason() == BukkitCommandManager.BrigadierFailureReason.VERSION_TOO_HIGH) {
+                // Commodore brig only supports Spigot 1.13 - 1.18.2
+                geyserLogger.debug("Using Paper instead of Spigot will likely fix this.");
+            }
+        }
+
+        this.commandRegistry = new SpigotCommandRegistry(geyser, cloud);
 
         if (!INITIALIZED) {
             // Needs to be an anonymous inner class otherwise Bukkit complains about missing classes
@@ -178,25 +199,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                     postStartup();
                 }
             }, this);
-
-            // Because Bukkit locks its command map upon startup, we need to
-            // add our plugin commands in onEnable, but populating the executor
-            // can happen at any time
-            CommandMap commandMap = GeyserSpigotCommandManager.getCommandMap();
-            for (Extension extension : this.geyserCommandManager.extensionCommands().keySet()) {
-                // Thanks again, Bukkit
-                try {
-                    Constructor<PluginCommand> constructor = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
-                    constructor.setAccessible(true);
-
-                    PluginCommand pluginCommand = constructor.newInstance(extension.description().id(), this);
-                    pluginCommand.setDescription("The main command for the " + extension.name() + " Geyser extension!");
-
-                    commandMap.register(extension.description().id(), "geyserext", pluginCommand);
-                } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
-                    this.geyserLogger.error("Failed to construct PluginCommand for extension " + extension.name(), ex);
-                }
-            }
         }
 
         if (INITIALIZED) {
@@ -207,6 +209,8 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     private void postStartup() {
         GeyserImpl.start();
+
+        PluginManager pluginManager = Bukkit.getPluginManager();
 
         // Turn "(MC: 1.16.4)" into 1.16.4.
         this.minecraftVersion = Bukkit.getServer().getVersion().split("\\(MC: ")[1].split("\\)")[0];
@@ -271,79 +275,40 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             geyserLogger.debug("Using default world manager.");
         }
 
-        PluginCommand geyserCommand = this.getCommand("geyser");
-        geyserCommand.setExecutor(new GeyserSpigotCommandExecutor(geyser, geyserCommandManager.getCommands()));
-
-        for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
-            Map<String, Command> commands = entry.getValue();
-            if (commands.isEmpty()) {
-                continue;
-            }
-
-            PluginCommand command = this.getCommand(entry.getKey().description().id());
-            if (command == null) {
-                continue;
-            }
-
-            command.setExecutor(new GeyserSpigotCommandExecutor(this.geyser, commands));
-        }
 
         if (!INITIALIZED) {
             // Register permissions so they appear in, for example, LuckPerms' UI
-            // Re-registering permissions throws an error
-            for (Map.Entry<String, Command> entry : geyserCommandManager.commands().entrySet()) {
-                Command command = entry.getValue();
-                if (command.aliases().contains(entry.getKey())) {
-                    // Don't register aliases
-                    continue;
+            // Re-registering permissions without removing it throws an error
+
+            // todo: this can probably always be run regardless if geyser has been initialized once or not, since we are removing the permission
+            geyser.eventBus().fire((GeyserRegisterPermissionsEvent) (permission, def) -> {
+                PermissionDefault permissionDefault = switch (def) {
+                    case TRUE -> PermissionDefault.TRUE;
+                    case FALSE -> PermissionDefault.FALSE;
+                    case NOT_SET -> PermissionDefault.OP;
+                };
+
+                Permission existingPermission = pluginManager.getPermission(permission);
+                if (existingPermission != null) {
+                    geyserLogger.debug("permission " + permission + " with a default of " +
+                        existingPermission.getDefault() + " is being overriden by " + permissionDefault);
+
+                    pluginManager.removePermission(permission);
                 }
 
-                Bukkit.getPluginManager().addPermission(new Permission(command.permission(),
-                        GeyserLocale.getLocaleStringLog(command.description()),
-                        command.isSuggestedOpOnly() ? PermissionDefault.OP : PermissionDefault.TRUE));
-            }
+                pluginManager.addPermission(new Permission(permission, permissionDefault));
+            });
 
-            // Register permissions for extension commands
-            for (Map.Entry<Extension, Map<String, Command>> commandEntry : this.geyserCommandManager.extensionCommands().entrySet()) {
-                for (Map.Entry<String, Command> entry : commandEntry.getValue().entrySet()) {
-                    Command command = entry.getValue();
-                    if (command.aliases().contains(entry.getKey())) {
-                        // Don't register aliases
-                        continue;
-                    }
-
-                    if (command.permission().isBlank()) {
-                        continue;
-                    }
-
-                    // Avoid registering the same permission twice, e.g. for the extension help commands
-                    if (Bukkit.getPluginManager().getPermission(command.permission()) != null) {
-                        GeyserImpl.getInstance().getLogger().debug("Skipping permission " + command.permission() + " as it is already registered");
-                        continue;
-                    }
-
-                    Bukkit.getPluginManager().addPermission(new Permission(command.permission(),
-                            GeyserLocale.getLocaleStringLog(command.description()),
-                            command.isSuggestedOpOnly() ? PermissionDefault.OP : PermissionDefault.TRUE));
-                }
-            }
-
-            Bukkit.getPluginManager().addPermission(new Permission(Constants.UPDATE_PERMISSION,
+            pluginManager.addPermission(new Permission(Constants.UPDATE_PERMISSION,
                     "Whether update notifications can be seen", PermissionDefault.OP));
 
             // Events cannot be unregistered - re-registering results in duplicate firings
             GeyserSpigotBlockPlaceListener blockPlaceListener = new GeyserSpigotBlockPlaceListener(geyser, this.geyserWorldManager);
-            Bukkit.getServer().getPluginManager().registerEvents(blockPlaceListener, this);
+            pluginManager.registerEvents(blockPlaceListener, this);
 
-            Bukkit.getServer().getPluginManager().registerEvents(new GeyserPistonListener(geyser, this.geyserWorldManager), this);
+            pluginManager.registerEvents(new GeyserPistonListener(geyser, this.geyserWorldManager), this);
 
-            Bukkit.getServer().getPluginManager().registerEvents(new GeyserSpigotUpdateListener(), this);
-        }
-
-        boolean brigadierSupported = CommodoreProvider.isSupported();
-        geyserLogger.debug("Brigadier supported? " + brigadierSupported);
-        if (brigadierSupported) {
-            GeyserBrigadierSupport.loadBrigadier(this, geyserCommand);
+            pluginManager.registerEvents(new GeyserSpigotUpdateListener(), this);
         }
 
         // Check to ensure the current setup can support the protocol version Geyser uses
@@ -373,8 +338,8 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     }
 
     @Override
-    public GeyserCommandManager getGeyserCommandManager() {
-        return this.geyserCommandManager;
+    public CommandRegistry getCommandRegistry() {
+        return this.commandRegistry;
     }
 
     @Override

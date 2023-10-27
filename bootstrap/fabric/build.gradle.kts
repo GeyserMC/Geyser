@@ -1,7 +1,7 @@
 import net.fabricmc.loom.task.RemapJarTask
 
 plugins {
-    id("fabric-loom") version "1.0-SNAPSHOT"
+    id("fabric-loom") version "1.4-SNAPSHOT"
     id("com.modrinth.minotaur") version "2.+"
 }
 
@@ -19,6 +19,9 @@ dependencies {
 
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation(libs.fabric.api)
+
+    modImplementation(libs.cloud.fabric)
+    include(libs.cloud.fabric)
 
     // This should be in the libs TOML, but something about modImplementation AND include just doesn't work
     include(modImplementation("me.lucko", "fabric-permissions-api", "0.2-SNAPSHOT"))

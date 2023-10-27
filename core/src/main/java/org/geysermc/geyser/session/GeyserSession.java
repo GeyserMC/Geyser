@@ -1366,11 +1366,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public String name() {
-        return null;
+        return playerEntity.getUsername();
     }
 
     @Override
-    public void sendMessage(String message) {
+    public void sendMessage(@NonNull String message) {
         TextPacket textPacket = new TextPacket();
         textPacket.setPlatformChatId("");
         textPacket.setSourceName("");
@@ -1388,8 +1388,25 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
+    public @NonNull UUID playerUuid() {
+        return playerEntity.getUuid();
+    }
+
+    @Override
+    public @NonNull GeyserSession connection() {
+        return this;
+    }
+
+    @Override
     public String locale() {
         return clientData.getLanguageCode();
+    }
+
+    @Override
+    public boolean hasPermission(String permission) {
+        // for Geyser-Standalone, standalone's permission system will handle it.
+        // for server platforms, the session will be mapped to a server command sender, and the server's api will be used.
+        return geyser.commandRegistry().cloud().hasPermission(this, permission);
     }
 
     /**
@@ -1677,17 +1694,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         GameRulesChangedPacket gameRulesChangedPacket = new GameRulesChangedPacket();
         gameRulesChangedPacket.getGameRules().add(new GameRuleData<>(gameRule, value));
         upstream.sendPacket(gameRulesChangedPacket);
-    }
-
-    /**
-     * Checks if the given session's player has a permission
-     *
-     * @param permission The permission node to check
-     * @return true if the player has the requested permission, false if not
-     */
-    @Override
-    public boolean hasPermission(String permission) {
-        return geyser.getWorldManager().hasPermission(this, permission);
     }
 
     private static final Ability[] USED_ABILITIES = Ability.values();

@@ -149,12 +149,6 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
     }
 
     @Override
-    public boolean hasPermission(GeyserSession session, String permission) {
-        ServerPlayer player = getPlayer(session);
-        return Permissions.check(player, permission);
-    }
-
-    @Override
     public GameMode getDefaultGameMode(GeyserSession session) {
         return GameMode.byId(server.getDefaultGameType().getId());
     }

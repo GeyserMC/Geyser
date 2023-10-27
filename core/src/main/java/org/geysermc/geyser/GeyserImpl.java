@@ -61,7 +61,7 @@ import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.erosion.UnixSocketClientListener;
@@ -594,7 +594,6 @@ public class GeyserImpl implements GeyserApi {
             skinUploader.close();
         }
         newsHandler.shutdown();
-        this.commandManager().getCommands().clear();
 
         if (this.erosionUnixListener != null) {
             this.erosionUnixListener.close();
@@ -632,9 +631,12 @@ public class GeyserImpl implements GeyserApi {
         return this.extensionManager;
     }
 
+    /**
+     * @return the current CommandRegistry in use. The instance may change over the lifecycle of the Geyser runtime.
+     */
     @NonNull
-    public GeyserCommandManager commandManager() {
-        return this.bootstrap.getGeyserCommandManager();
+    public CommandRegistry commandRegistry() {
+        return this.bootstrap.getCommandRegistry();
     }
 
     @Override

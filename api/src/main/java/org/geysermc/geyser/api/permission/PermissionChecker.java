@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,27 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.command.defaults;
+package org.geysermc.geyser.api.permission;
 
-import cloud.commandframework.context.CommandContext;
-import org.geysermc.geyser.GeyserImpl;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.util.TriState;
-import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.util.SettingsUtils;
 
-import java.util.Objects;
+/**
+ * Something capable of checking if a {@link CommandSource} has a permission
+ */
+@FunctionalInterface
+public interface PermissionChecker {
 
-public class SettingsCommand extends GeyserCommand {
-
-    public SettingsCommand(GeyserImpl geyser, String name, String description, String permission) {
-        super(name, description, permission, TriState.TRUE, true, true);
-    }
-
-    @Override
-    public void execute(CommandContext<GeyserCommandSource> context) {
-        GeyserSession session = Objects.requireNonNull(context.getSender().connection());
-        session.sendForm(SettingsUtils.buildForm(session));
-    }
+    /**
+     * Checks if the given source has a permission
+     *
+     * @param source the {@link CommandSource} whose permissions should be queried
+     * @param permission the permission node to check
+     * @return a {@link TriState} as the value of the node. {@link TriState#NOT_SET} generally means that the permission
+     *         node itself was not found, and the source does not have such permission.
+     *         {@link TriState#TRUE} and {@link TriState#FALSE} represent explicitly set values.
+     */
+    @NonNull
+    TriState hasPermission(@NonNull CommandSource source, @NonNull String permission);
 }

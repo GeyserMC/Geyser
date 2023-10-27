@@ -27,7 +27,7 @@ package org.geysermc.geyser.platform.standalone.gui;
 
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 
@@ -270,15 +270,14 @@ public class GeyserStandaloneGUI {
     }
 
     /**
-     * Enable the command input box.
+     * Enables the command input box.
      *
-     * @param executor the executor for running commands off the GUI thread
-     * @param commandManager the command manager to delegate commands to
+     * @param executor the executor that commands will be run on
+     * @param registry the command registry containing all current commands
      */
-    public void enableCommands(ScheduledExecutorService executor, GeyserCommandManager commandManager) {
+    public void enableCommands(ScheduledExecutorService executor, CommandRegistry registry) {
         // we don't want to block the GUI thread with the command execution
-        // todo: once cloud is used, an AsynchronousCommandExecutionCoordinator can be used to avoid this scheduler
-        commandListener.handler = cmd -> executor.schedule(() -> commandManager.runCommand(logger, cmd), 0, TimeUnit.SECONDS);
+        commandListener.dispatcher = cmd -> executor.execute(() -> registry.runCommand(logger, cmd));
         commandInput.setEnabled(true);
         commandInput.requestFocusInWindow();
     }
@@ -343,13 +342,14 @@ public class GeyserStandaloneGUI {
 
     private class CommandListener implements ActionListener {
 
-        private Consumer<String> handler;
+        private Consumer<String> dispatcher;
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            String command = commandInput.getText();
+            // the headless variant of Standalone strips trailing whitespace for us - we need to manually
+            String command = commandInput.getText().stripTrailing();
             appendConsole(command + "\n"); // show what was run in the console
-            handler.accept(command); // run the command
+            dispatcher.accept(command); // run the command
             commandInput.setText(""); // clear the input
         }
     }

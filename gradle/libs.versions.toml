@@ -25,6 +25,7 @@ terminalconsoleappender = "1.2.0"
 folia = "1.19.4-R0.1-SNAPSHOT"
 viaversion = "4.0.0"
 adapters = "1.10-SNAPSHOT"
+cloud = "1.9.0-SNAPSHOT" # 1.9.0-20231006.162445-16 move to release once 1.9.0 is released
 commodore = "2.2"
 bungeecord = "a7c6ede"
 velocity = "3.1.1"
@@ -71,8 +72,13 @@ jline-terminal = { group = "org.jline", name = "jline-terminal", version.ref = "
 jline-terminal-jna = { group = "org.jline", name = "jline-terminal-jna", version.ref = "jline" }
 jline-reader = { group = "org.jline", name = "jline-reader", version.ref = "jline" }
 
+cloud-core = { group = "cloud.commandframework", name = "cloud-core", version.ref = "cloud" }
+cloud-paper = { group = "cloud.commandframework", name = "cloud-paper", version.ref = "cloud" }
+cloud-velocity = { group = "cloud.commandframework", name = "cloud-velocity", version.ref = "cloud" }
+cloud-bungee = { group = "cloud.commandframework", name = "cloud-bungee", version.ref = "cloud" }
+cloud-fabric = { group = "cloud.commandframework", name = "cloud-fabric", version.ref = "cloud" }
+
 folia-api = { group = "dev.folia", name = "folia-api", version.ref = "folia" }
-paper-mojangapi = { group = "io.papermc.paper", name = "paper-mojangapi", version.ref = "folia" }
 
 # check these on https://modmuss50.me/fabric.html
 fabric-minecraft = { group = "com.mojang", name = "minecraft", version.ref = "fabric-minecraft" }

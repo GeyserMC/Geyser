@@ -30,17 +30,19 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.ChatColor;
 
-import javax.annotation.Nonnull;
+import java.util.UUID;
 
-public class FabricCommandSender implements GeyserCommandSource {
+public class FabricCommandSource implements GeyserCommandSource {
 
     private final CommandSourceStack source;
 
-    public FabricCommandSender(CommandSourceStack source) {
+    public FabricCommandSource(CommandSourceStack source) {
         this.source = source;
     }
 
@@ -50,7 +52,7 @@ public class FabricCommandSender implements GeyserCommandSource {
     }
 
     @Override
-    public void sendMessage(@Nonnull String message) {
+    public void sendMessage(@NonNull String message) {
         if (source.getEntity() instanceof ServerPlayer) {
             ((ServerPlayer) source.getEntity()).displayClientMessage(Component.literal(message), false);
         } else {
@@ -74,7 +76,20 @@ public class FabricCommandSender implements GeyserCommandSource {
     }
 
     @Override
+    public @Nullable UUID playerUuid() {
+        if (source.getEntity() instanceof ServerPlayer player) {
+            return player.getUUID();
+        }
+        return null;
+    }
+
+    @Override
     public boolean hasPermission(String permission) {
         return Permissions.check(source, permission, source.getServer().getOperatorUserPermissionLevel());
+    }
+
+    @Override
+    public Object handle() {
+        return source;
     }
 }

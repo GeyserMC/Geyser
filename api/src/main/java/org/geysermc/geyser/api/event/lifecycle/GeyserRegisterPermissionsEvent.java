@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,27 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.command.defaults;
+package org.geysermc.geyser.api.event.lifecycle;
 
-import cloud.commandframework.context.CommandContext;
-import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.event.Event;
 import org.geysermc.geyser.api.util.TriState;
-import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.util.SettingsUtils;
 
-import java.util.Objects;
+/**
+ * Fired by anything that wishes to gather permission nodes and defaults.
+ * <br><br>
+ * This event is not guaranteed to be fired, as certain Geyser platforms do not have a native permission system.
+ * It can be expected to fire on Geyser-Spigot and Geyser-Standalone.
+ * It may still be fired on other platforms due to a 3rd party.
+ */
+public interface GeyserRegisterPermissionsEvent extends Event {
 
-public class SettingsCommand extends GeyserCommand {
-
-    public SettingsCommand(GeyserImpl geyser, String name, String description, String permission) {
-        super(name, description, permission, TriState.TRUE, true, true);
-    }
-
-    @Override
-    public void execute(CommandContext<GeyserCommandSource> context) {
-        GeyserSession session = Objects.requireNonNull(context.getSender().connection());
-        session.sendForm(SettingsUtils.buildForm(session));
-    }
+    /**
+     * Registers a permission node and its default value with the firer.
+     *
+     * @param permission the permission node to register
+     * @param defaultValue the default value of the node
+     */
+    void register(String permission, TriState defaultValue);
 }

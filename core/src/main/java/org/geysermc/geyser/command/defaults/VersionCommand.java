@@ -25,14 +25,15 @@
 
 package org.geysermc.geyser.command.defaults;
 
+import cloud.commandframework.context.CommandContext;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.network.GameProtocol;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.WebUtils;
@@ -47,13 +48,14 @@ public class VersionCommand extends GeyserCommand {
     private final GeyserImpl geyser;
 
     public VersionCommand(GeyserImpl geyser, String name, String description, String permission) {
-        super(name, description, permission);
-
+        super(name, description, permission, TriState.NOT_SET);
         this.geyser = geyser;
     }
 
     @Override
-    public void execute(GeyserSession session, GeyserCommandSource sender, String[] args) {
+    public void execute(CommandContext<GeyserCommandSource> context) {
+        GeyserCommandSource source = context.getSender();
+
         String bedrockVersions;
         List<BedrockCodec> supportedCodecs = GameProtocol.SUPPORTED_BEDROCK_CODECS;
         if (supportedCodecs.size() > 1) {
@@ -69,12 +71,12 @@ public class VersionCommand extends GeyserCommand {
             javaVersions = supportedJavaVersions.get(0);
         }
 
-        sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.version", sender.locale(),
+        source.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.version", source.locale(),
                 GeyserImpl.NAME, GeyserImpl.VERSION, javaVersions, bedrockVersions));
 
         // Disable update checking in dev mode and for players in Geyser Standalone
-        if (GeyserImpl.getInstance().isProductionEnvironment() && !(!sender.isConsole() && geyser.getPlatformType() == PlatformType.STANDALONE)) {
-            sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.checking", sender.locale()));
+        if (GeyserImpl.getInstance().isProductionEnvironment() && !(!source.isConsole() && geyser.getPlatformType() == PlatformType.STANDALONE)) {
+            source.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.checking", source.locale()));
             try {
                 String buildXML = WebUtils.getBody("https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/" +
                         URLEncoder.encode(GeyserImpl.BRANCH, StandardCharsets.UTF_8.toString()) + "/lastSuccessfulBuild/api/xml?xpath=//buildNumber");
@@ -82,23 +84,18 @@ public class VersionCommand extends GeyserCommand {
                     int latestBuildNum = Integer.parseInt(buildXML.replaceAll("<(\\\\)?(/)?buildNumber>", "").trim());
                     int buildNum = this.geyser.buildNumber();
                     if (latestBuildNum == buildNum) {
-                        sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.no_updates", sender.locale()));
+                        source.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.no_updates", source.locale()));
                     } else {
-                        sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.outdated",
-                                sender.locale(), (latestBuildNum - buildNum), Constants.GEYSER_DOWNLOAD_LOCATION));
+                        source.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.outdated",
+                                source.locale(), (latestBuildNum - buildNum), Constants.GEYSER_DOWNLOAD_LOCATION));
                     }
                 } else {
                     throw new AssertionError("buildNumber missing");
                 }
             } catch (IOException e) {
                 GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.commands.version.failed"), e);
-                sender.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.commands.version.failed", sender.locale()));
+                source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.commands.version.failed", source.locale()));
             }
         }
-    }
-
-    @Override
-    public boolean isSuggestedOpOnly() {
-        return true;
     }
 }
