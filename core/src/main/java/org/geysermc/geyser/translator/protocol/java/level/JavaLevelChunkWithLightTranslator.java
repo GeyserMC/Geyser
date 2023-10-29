@@ -63,6 +63,7 @@ import org.geysermc.geyser.level.chunk.bitarray.BitArray;
 import org.geysermc.geyser.level.chunk.bitarray.BitArrayVersion;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.BiomeTranslator;
 import org.geysermc.geyser.translator.level.block.entity.BedrockOnlyBlockEntity;
@@ -78,6 +79,7 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
 
+import static org.geysermc.geyser.util.ChunkUtils.EMPTY_BLOCK_STORAGE;
 import static org.geysermc.geyser.util.ChunkUtils.indexYZXtoXZY;
 
 @Translator(packet = ClientboundLevelChunkWithLightPacket.class)
@@ -106,12 +108,12 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
         BitSet waterloggedPaletteIds = new BitSet();
         BitSet bedrockOnlyBlockEntityIds = new BitSet();
+        BitSet blockEntityPaletteIds = new BitSet();
 
         BedrockDimension bedrockDimension = session.getChunkCache().getBedrockDimension();
         int maxBedrockSectionY = (bedrockDimension.height() >> 4) - 1;
 
         int sectionCount;
-        int subChunkCount = 0;
         byte[] payload;
         ByteBuf byteBuf = null;
         GeyserChunkSection[] sections = new GeyserChunkSection[javaChunks.length - (yOffset + (bedrockDimension.minY() >> 4))];
@@ -139,9 +141,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     continue;
                 }
 
-                // No need to encode an empty section...
                 if (javaSection.isBlockCountEmpty()) {
-                    // Unless we need to send extended collisions
                     if (useExtendedCollisions) {
                         if (extendedCollision) {
                             int blocks = EXTENDED_COLLISIONS_STORAGE.get().bottomLayerCollisions() + 1;
@@ -161,6 +161,8 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                         }
                         EXTENDED_COLLISIONS_STORAGE.get().clear();
                         extendedCollisionNextSection = false;
+                    } else {
+                        sections[bedrockSectionY] = new GeyserChunkSection(EMPTY_BLOCK_STORAGE, subChunkIndex);
                     }
                     continue;
                 }
@@ -206,6 +208,10 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                                     javaId
                             ));
                         }
+
+                        if (BlockRegistries.JAVA_BLOCKS.getOrDefault(javaId, BlockMapping.DEFAULT).isBlockEntity()) {
+                            // Deal with detected block entities
+                        }
                     }
                     sections[bedrockSectionY] = section;
                     extendedCollisionNextSection = thisExtendedCollisionNextSection;
@@ -235,6 +241,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                 IntList bedrockPalette = new IntArrayList(javaPalette.size());
                 int airPaletteId = -1;
                 waterloggedPaletteIds.clear();
+                blockEntityPaletteIds.clear();
                 bedrockOnlyBlockEntityIds.clear();
 
                 // Iterate through palette and convert state IDs to Bedrock, doing some additional checks as we go
@@ -262,12 +269,16 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId) || BlockStateValues.isNonWaterCauldron(javaId)) {
                         bedrockOnlyBlockEntityIds.set(i);
                     }
+
+                    if (BlockRegistries.JAVA_BLOCKS.getOrDefault(javaId, BlockMapping.DEFAULT).isBlockEntity()) {
+                        blockEntityPaletteIds.set(i);
+                    }
                 }
 
                 // Add Bedrock-exclusive block entities
                 // We only if the palette contained any blocks that are Bedrock-exclusive block entities to avoid iterating through the whole block data
                 // for no reason, as most sections will not contain any pistons or flower pots
-                if (!bedrockOnlyBlockEntityIds.isEmpty()) {
+                if (!bedrockOnlyBlockEntityIds.isEmpty() || !blockEntityPaletteIds.isEmpty()) {
                     for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
                         int paletteId = javaData.get(yzx);
                         if (bedrockOnlyBlockEntityIds.get(paletteId)) {
@@ -275,6 +286,9 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                                     Vector3i.from((packet.getX() << 4) + (yzx & 0xF), ((sectionY + yOffset) << 4) + ((yzx >> 8) & 0xF), (packet.getZ() << 4) + ((yzx >> 4) & 0xF)),
                                     javaPalette.idToState(paletteId)
                             ));
+                        }
+                        if (blockEntityPaletteIds.get(paletteId)) {
+                            // deal with detected block entities
                         }
                     }
                 }
@@ -462,23 +476,17 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             int size = 0;
             for (int i = 0; i < sectionCount; i++) {
                 GeyserChunkSection section = sections[i];
-                if (section != null) {
-                    size += section.estimateNetworkSize();
-                }
+                size += section.estimateNetworkSize();
             }
             size += ChunkUtils.EMPTY_BIOME_DATA.length * biomeCount;
             size += 1; // Border blocks
-            size += bedrockBlockEntities.size() * 64; // Conservative estimate of 64 bytes per tile entity
+            //size += bedrockBlockEntities.size() * 64; // Conservative estimate of 64 bytes per tile entity
 
             // Allocate output buffer
             byteBuf = ByteBufAllocator.DEFAULT.ioBuffer(size);
             for (int i = 0; i < sectionCount; i++) {
                 GeyserChunkSection section = sections[i];
-                if (section != null) {
-                    section.writeToNetwork(byteBuf);
-                    subChunkCount++;
-                }
-                // We can ignore empty sections with subchunk v9
+                section.writeToNetwork(byteBuf);
             }
 
             int dimensionOffset = bedrockDimension.minY() >> 4;
@@ -506,6 +514,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             for (NbtMap blockEntity : bedrockBlockEntities) {
                 nbtStream.writeTag(blockEntity);
             }
+
             payload = new byte[byteBuf.readableBytes()];
             byteBuf.readBytes(payload);
         } catch (IOException e) {
@@ -518,7 +527,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         }
 
         LevelChunkPacket levelChunkPacket = new LevelChunkPacket();
-        levelChunkPacket.setSubChunksLength(subChunkCount);
+        levelChunkPacket.setSubChunksLength(sectionCount);
         levelChunkPacket.setCachingEnabled(false);
         levelChunkPacket.setChunkX(packet.getX());
         levelChunkPacket.setChunkZ(packet.getZ());

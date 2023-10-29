@@ -42,7 +42,6 @@ import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.chunk.BlockStorage;
-import org.geysermc.geyser.level.chunk.GeyserChunkSection;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
@@ -59,7 +58,11 @@ public class ChunkUtils {
      */
     public static final byte[] EMPTY_BIOME_DATA;
 
+    public static final BlockStorage[] EMPTY_BLOCK_STORAGE;
+
     static {
+        EMPTY_BLOCK_STORAGE = new BlockStorage[0];
+
         ByteBuf byteBuf = Unpooled.buffer();
 
         try {
