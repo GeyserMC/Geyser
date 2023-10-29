@@ -254,7 +254,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     if (useExtendedCollisions) {
                         if (session.getBlockMappings().getExtendedCollisionBoxes().get(javaId) != null) {
                             extendedCollision = true;
-                            extendedCollisionsInPalette++;
+                            extendedCollisionsInPalette += 1;
                         }
                     }
 
