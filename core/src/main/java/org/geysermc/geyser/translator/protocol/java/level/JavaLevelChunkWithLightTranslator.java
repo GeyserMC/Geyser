@@ -111,7 +111,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         int maxBedrockSectionY = (bedrockDimension.height() >> 4) - 1;
 
         int sectionCount;
-        int subChunkCount;
+        int subChunkCount = 0;
         byte[] payload;
         ByteBuf byteBuf = null;
         GeyserChunkSection[] sections = new GeyserChunkSection[javaChunks.length - (yOffset + (bedrockDimension.minY() >> 4))];
@@ -254,7 +254,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     if (useExtendedCollisions) {
                         if (session.getBlockMappings().getExtendedCollisionBoxes().get(javaId) != null) {
                             extendedCollision = true;
-                            extendedCollisionsInPalette += 1;
+                            extendedCollisionsInPalette++;
                         }
                     }
 
