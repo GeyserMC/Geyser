@@ -33,11 +33,12 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.session.GeyserSession;
 
 @BlockEntity(type = "Campfire")
 public class CampfireBlockEntityTranslator extends BlockEntityTranslator {
     @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+    public void translateTag(GeyserSession session, NbtMapBuilder builder, CompoundTag tag, int blockState) {
         if (tag.get("Items") instanceof ListTag items) {
             int i = 1;
             for (Tag itemTag : items.getValue()) {

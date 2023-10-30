@@ -44,7 +44,7 @@ public class FlowerPotBlockEntityTranslator extends BlockEntityTranslator implem
      * @return Bedrock tag of flower pot.
      */
     public static NbtMap getTag(GeyserSession session, int blockState, Vector3i position) {
-        NbtMapBuilder tagBuilder = NbtMap.builder()
+        NbtMapBuilder builder = NbtMap.builder()
                 .putInt("x", position.getX())
                 .putInt("y", position.getY())
                 .putInt("z", position.getZ())
@@ -57,10 +57,10 @@ public class FlowerPotBlockEntityTranslator extends BlockEntityTranslator implem
             // This is where we need to store the *Java* name because Bedrock has six minecraft:sapling blocks with different block states.
             NbtMap plant = session.getBlockMappings().getFlowerPotBlocks().get(name);
             if (plant != null) {
-                tagBuilder.put("PlantBlock", plant.toBuilder().build());
+                builder.put("PlantBlock", plant.toBuilder().build());
             }
         }
-        return tagBuilder.build();
+        return builder.build();
     }
 
     @Override
@@ -79,12 +79,15 @@ public class FlowerPotBlockEntityTranslator extends BlockEntityTranslator implem
     }
 
     @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+    public void translateTag(GeyserSession session, NbtMapBuilder builder, CompoundTag tag, int blockState) {
         builder.putByte("isMovable", (byte) 1);
 
         String name = BlockStateValues.getFlowerPotValues().get(blockState);
         if (name != null) {
-            // Add the plant
+            NbtMap plant = session.getBlockMappings().getFlowerPotBlocks().get(name);
+            if (plant != null) {
+                builder.put("PlantBlock", plant.toBuilder().build());
+            }
         }
     }
 }

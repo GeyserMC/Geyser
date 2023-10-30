@@ -31,11 +31,12 @@ import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.item.type.BannerItem;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.session.GeyserSession;
 
 @BlockEntity(type = "Banner")
 public class BannerBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
     @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+    public void translateTag(GeyserSession session, NbtMapBuilder builder, CompoundTag tag, int blockState) {
         int bannerColor = BlockStateValues.getBannerColor(blockState);
         if (bannerColor != -1) {
             builder.put("Base", 15 - bannerColor);

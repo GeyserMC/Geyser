@@ -66,7 +66,7 @@ public class PistonBlockEntityTranslator extends BlockEntityTranslator implement
     }
 
     @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+    public void translateTag(GeyserSession session, NbtMapBuilder builder, CompoundTag tag, int blockState) {
         
     }
 }

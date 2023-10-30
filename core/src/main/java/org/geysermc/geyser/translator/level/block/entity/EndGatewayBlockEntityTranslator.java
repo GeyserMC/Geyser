@@ -32,6 +32,7 @@ import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.geysermc.geyser.session.GeyserSession;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
@@ -40,7 +41,7 @@ import java.util.LinkedHashMap;
 @BlockEntity(type = "EndGateway")
 public class EndGatewayBlockEntityTranslator extends BlockEntityTranslator {
     @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+    public void translateTag(GeyserSession session, NbtMapBuilder builder, CompoundTag tag, int blockState) {
         Tag ageTag = tag.get("Age");
         if (ageTag instanceof LongTag) {
             builder.put("Age", (int) ((long) ageTag.getValue()));

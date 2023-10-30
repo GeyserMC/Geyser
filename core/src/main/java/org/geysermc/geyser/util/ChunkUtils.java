@@ -48,6 +48,8 @@ import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.translator.level.block.entity.BedrockOnlyBlockEntity;
+import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 
 import static org.geysermc.geyser.level.block.BlockStateValues.JAVA_AIR_ID;
 
@@ -191,9 +193,13 @@ public class ChunkUtils {
 
         BlockStateValues.getLecternBookStates().handleBlockChange(session, blockState, position);
 
-        if (BlockRegistries.JAVA_BLOCKS.getOrDefault(blockState, BlockMapping.DEFAULT).isBedrockOnlyBlockEntity()) {
-            // update the block for the correct translator...
-
+        if (BlockRegistries.JAVA_BLOCKS.getOrDefault(blockState, BlockMapping.DEFAULT).isBedrockBlockEntity()) {
+            String blockEntity = BlockRegistries.JAVA_BLOCKS.getOrDefault(blockState, BlockMapping.DEFAULT).getBedrockBlockEntity();
+            
+            BedrockOnlyBlockEntity blockEntityTranslator = (BedrockOnlyBlockEntity) BlockEntityUtils.getBlockEntityTranslator(blockEntity);
+            if (blockEntityTranslator != null) {
+                blockEntityTranslator.updateBlock(session, blockState, position);
+            }
         }
     }
 

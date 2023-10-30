@@ -31,7 +31,7 @@ public class CauldronBlockEntityTranslator extends BlockEntityTranslator impleme
     }
 
     @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+    public void translateTag(GeyserSession session, NbtMapBuilder builder, CompoundTag tag, int blockState) {
         builder.putByte("isMovable", (byte) 0)
             .putShort("PotionId", (short) -1)
             .putShort("PotionType", (short) -1)

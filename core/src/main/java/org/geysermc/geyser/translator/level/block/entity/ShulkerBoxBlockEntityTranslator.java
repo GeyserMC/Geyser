@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.level.block.entity;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.ShulkerInventoryTranslator;
 
 import javax.annotation.Nullable;
@@ -39,7 +40,7 @@ public class ShulkerBoxBlockEntityTranslator extends BlockEntityTranslator imple
      * where {@code tag} is passed as null.
      */
     @Override
-    public void translateTag(NbtMapBuilder builder, @Nullable CompoundTag tag, int blockState) {
+    public void translateTag(GeyserSession session, NbtMapBuilder builder, @Nullable CompoundTag tag, int blockState) {
         byte direction = BlockStateValues.getShulkerBoxDirection(blockState);
         // Just in case...
         if (direction == -1) {

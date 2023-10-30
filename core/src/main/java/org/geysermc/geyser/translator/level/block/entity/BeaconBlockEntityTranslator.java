@@ -27,11 +27,12 @@ package org.geysermc.geyser.translator.level.block.entity;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.geysermc.geyser.session.GeyserSession;
 
 @BlockEntity(type = "Beacon")
 public class BeaconBlockEntityTranslator extends BlockEntityTranslator {
     @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+    public void translateTag(GeyserSession session, NbtMapBuilder builder, CompoundTag tag, int blockState) {
         int primary = getOrDefault(tag.get("Primary"), 0);
         // The effects here generally map one-to-one Java <-> Bedrock. Only the newer ones get more complicated
         builder.putInt("primary", primary == -1 ? 0 : primary);

@@ -35,12 +35,13 @@ import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.session.GeyserSession;
 
 @BlockEntity(type = "BrushableBlock")
 public class BrushableBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
 
     @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+    public void translateTag(GeyserSession session, NbtMapBuilder builder, CompoundTag tag, int blockState) {
         if (!(tag.remove("item") instanceof CompoundTag itemTag)) {
             return;
         }

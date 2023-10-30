@@ -29,6 +29,7 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.geysermc.geyser.session.GeyserSession;
 
 /**
  * The class that all block entities (on both Java and Bedrock) should translate with
@@ -37,11 +38,11 @@ public abstract class BlockEntityTranslator {
     protected BlockEntityTranslator() {
     }
 
-    public abstract void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState);
+    public abstract void translateTag(GeyserSession session, NbtMapBuilder builder, CompoundTag tag, int blockState);
 
-    public NbtMap getBlockEntityTag(String type, int x, int y, int z, CompoundTag tag, int blockState) {
+    public NbtMap getBlockEntityTag(GeyserSession session, String type, int x, int y, int z, CompoundTag tag, int blockState) {
         NbtMapBuilder tagBuilder = getConstantBedrockTag(type, x, y, z);
-        translateTag(tagBuilder, tag, blockState);
+        translateTag(session, tagBuilder, tag, blockState);
         return tagBuilder.build();
     }
 

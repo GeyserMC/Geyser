@@ -28,12 +28,13 @@ package org.geysermc.geyser.translator.level.block.entity;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
 @BlockEntity(type = "CommandBlock")
 public class CommandBlockBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
     @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+    public void translateTag(GeyserSession session, NbtMapBuilder builder, CompoundTag tag, int blockState) {
         if (tag == null || tag.size() < 5) {
             return; // These values aren't here
         }

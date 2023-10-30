@@ -432,7 +432,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                 }
 
                 BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(entity.type);
-                bedrockBlockEntities.add(blockEntityTranslator.getBlockEntityTag(entity.type, pos.getX(), pos.getY(), pos.getZ(), tag, entity.javaId));
+                bedrockBlockEntities.add(blockEntityTranslator.getBlockEntityTag(session, entity.type, pos.getX(), pos.getY(), pos.getZ(), tag, entity.javaId));
 
                 // Check for custom skulls
                 if (session.getPreferencesCache().showCustomSkulls() && entity.type == "Skull" && tag != null && tag.contains("SkullOwner")) {

@@ -28,11 +28,12 @@ package org.geysermc.geyser.translator.level.block.entity;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.session.GeyserSession;
 
 @BlockEntity(type = "Bed")
 public class BedBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
     @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+    public void translateTag(GeyserSession session, NbtMapBuilder builder, CompoundTag tag, int blockState) {
         byte bedcolor = BlockStateValues.getBedColor(blockState);
         // Just in case...
         if (bedcolor == -1) {

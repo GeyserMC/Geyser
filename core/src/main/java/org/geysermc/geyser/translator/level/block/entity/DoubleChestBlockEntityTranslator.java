@@ -42,12 +42,12 @@ public class DoubleChestBlockEntityTranslator extends BlockEntityTranslator impl
     @Override
     public void updateBlock(GeyserSession session, int blockState, Vector3i position) {
         NbtMapBuilder tagBuilder = getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(BlockEntityType.CHEST), position.getX(), position.getY(), position.getZ());
-        translateTag(tagBuilder, null, blockState);
+        translateTag(session, tagBuilder, null, blockState);
         BlockEntityUtils.updateBlockEntity(session, tagBuilder.build(), position);
     }
 
     @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+    public void translateTag(GeyserSession session, NbtMapBuilder builder, CompoundTag tag, int blockState) {
         DoubleChestValue chestValues = BlockStateValues.getDoubleChestValues().get(blockState);
         if (chestValues != null) {
             int x = (int) builder.get("x");
