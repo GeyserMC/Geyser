@@ -25,14 +25,18 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.session.GeyserSession;
 
 /**
  * Pistons are a special case where they are only a block entity on Bedrock.
  */
-public class PistonBlockEntityTranslator {
+@BlockEntity(type = "PistonArm")
+public class PistonBlockEntityTranslator extends BlockEntityTranslator implements BedrockOnlyBlockEntity {
     /**
      * Used in ChunkUtils to determine if the block is a piston.
      *
@@ -54,5 +58,15 @@ public class PistonBlockEntityTranslator {
         boolean extended = BlockStateValues.getPistonValues().get(blockState);
         boolean sticky = BlockStateValues.isStickyPiston(blockState);
         return PistonBlockEntity.buildStaticPistonTag(position, extended, sticky);
+    }
+
+    @Override
+    public void updateBlock(GeyserSession session, int blockState, Vector3i position) {
+        
+    }
+
+    @Override
+    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+        
     }
 }

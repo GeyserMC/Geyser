@@ -32,7 +32,6 @@ import com.github.steveice10.mc.protocol.data.game.chunk.palette.GlobalPalette;
 import com.github.steveice10.mc.protocol.data.game.chunk.palette.Palette;
 import com.github.steveice10.mc.protocol.data.game.chunk.palette.SingletonPalette;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelChunkWithLightPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import io.netty.buffer.ByteBuf;
@@ -45,7 +44,11 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import it.unimi.dsi.fastutil.objects.ObjectList;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NBTOutputStream;
 import org.cloudburstmc.nbt.NbtMap;
@@ -66,7 +69,6 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.BiomeTranslator;
-import org.geysermc.geyser.translator.level.block.entity.BedrockOnlyBlockEntity;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.geyser.translator.level.block.entity.SkullBlockEntityTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -102,12 +104,13 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         DataPalette[] javaChunks = new DataPalette[chunkSize];
         DataPalette[] javaBiomes = new DataPalette[chunkSize];
 
-        final BlockEntityInfo[] blockEntities = packet.getBlockEntities();
-        final List<NbtMap> bedrockBlockEntities = new ObjectArrayList<>(blockEntities.length);
-        final List<BlockEntityInfo> lecterns = new ObjectArrayList<>();
+        final List<NbtMap> bedrockBlockEntities = new ObjectArrayList<>();
+        final ObjectList<Vector3i> lecternPositions = new ObjectArrayList<>();
+
+        final Object2ObjectMap<Vector3i, CompoundTag> javaBlockEntities = new Object2ObjectOpenHashMap<>();
+        final Object2ObjectMap<Vector3i, BedrockBlockEntity> detectedBlockEntities = new Object2ObjectOpenHashMap<>();
 
         BitSet waterloggedPaletteIds = new BitSet();
-        BitSet bedrockOnlyBlockEntityIds = new BitSet();
         BitSet blockEntityPaletteIds = new BitSet();
 
         BedrockDimension bedrockDimension = session.getChunkCache().getBedrockDimension();
@@ -201,16 +204,12 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                             }
                         }
 
-                        // Check if block is piston or flower to see if we'll need to create additional block entities, as they're only block entities in Bedrock
-                        if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId) || BlockStateValues.isNonWaterCauldron(javaId)) {
-                            bedrockBlockEntities.add(BedrockOnlyBlockEntity.getTag(session,
-                                    Vector3i.from((packet.getX() << 4) + (yzx & 0xF), ((sectionY + yOffset) << 4) + ((yzx >> 8) & 0xF), (packet.getZ() << 4) + ((yzx >> 4) & 0xF)),
-                                    javaId
-                            ));
-                        }
-
-                        if (BlockRegistries.JAVA_BLOCKS.getOrDefault(javaId, BlockMapping.DEFAULT).isBlockEntity()) {
+                        if (BlockRegistries.JAVA_BLOCKS.getOrDefault(javaId, BlockMapping.DEFAULT).isBedrockBlockEntity()) {
                             // Deal with detected block entities
+                            detectedBlockEntities.put(
+                                    Vector3i.from((packet.getX() << 4) + (yzx & 0xF), ((sectionY + yOffset) << 4) + ((yzx >> 8) & 0xF), (packet.getZ() << 4) + ((yzx >> 4) & 0xF)),
+                                    new BedrockBlockEntity(BlockRegistries.JAVA_BLOCKS.getOrDefault(javaId, BlockMapping.DEFAULT).getBedrockBlockEntity(), javaId)
+                            );
                         }
                     }
                     sections[bedrockSectionY] = section;
@@ -234,7 +233,17 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                         EXTENDED_COLLISIONS_STORAGE.get().clear();
                         extendedCollisionNextSection = false;
                     }
-                    // If a chunk contains all of the same piston or flower pot then god help us
+
+                    if (BlockRegistries.JAVA_BLOCKS.getOrDefault(javaId, BlockMapping.DEFAULT).isBedrockBlockEntity()) {
+                        // We need to do this for all coordinates in the chunk...
+                        String blockEntity = BlockRegistries.JAVA_BLOCKS.getOrDefault(javaId, BlockMapping.DEFAULT).getBedrockBlockEntity();
+                        for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
+                            detectedBlockEntities.put(
+                                    Vector3i.from((packet.getX() << 4) + (yzx & 0xF), ((sectionY + yOffset) << 4) + ((yzx >> 8) & 0xF), (packet.getZ() << 4) + ((yzx >> 4) & 0xF)),
+                                    new BedrockBlockEntity(blockEntity, javaId)
+                            );
+                        }
+                    }
                     continue;
                 }
 
@@ -242,7 +251,6 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                 int airPaletteId = -1;
                 waterloggedPaletteIds.clear();
                 blockEntityPaletteIds.clear();
-                bedrockOnlyBlockEntityIds.clear();
 
                 // Iterate through palette and convert state IDs to Bedrock, doing some additional checks as we go
                 int extendedCollisionsInPalette = 0;
@@ -265,30 +273,21 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                         }
                     }
 
-                    // Check if block is piston, flower or cauldron to see if we'll need to create additional block entities, as they're only block entities in Bedrock
-                    if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId) || BlockStateValues.isNonWaterCauldron(javaId)) {
-                        bedrockOnlyBlockEntityIds.set(i);
-                    }
-
-                    if (BlockRegistries.JAVA_BLOCKS.getOrDefault(javaId, BlockMapping.DEFAULT).isBlockEntity()) {
+                    if (BlockRegistries.JAVA_BLOCKS.getOrDefault(javaId, BlockMapping.DEFAULT).isJavaBlockEntity()) {
                         blockEntityPaletteIds.set(i);
                     }
                 }
 
-                // Add Bedrock-exclusive block entities
-                // We only if the palette contained any blocks that are Bedrock-exclusive block entities to avoid iterating through the whole block data
-                // for no reason, as most sections will not contain any pistons or flower pots
-                if (!bedrockOnlyBlockEntityIds.isEmpty() || !blockEntityPaletteIds.isEmpty()) {
+                // Detect block entities
+                if (!blockEntityPaletteIds.isEmpty()) {
                     for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
                         int paletteId = javaData.get(yzx);
-                        if (bedrockOnlyBlockEntityIds.get(paletteId)) {
-                            bedrockBlockEntities.add(BedrockOnlyBlockEntity.getTag(session,
-                                    Vector3i.from((packet.getX() << 4) + (yzx & 0xF), ((sectionY + yOffset) << 4) + ((yzx >> 8) & 0xF), (packet.getZ() << 4) + ((yzx >> 4) & 0xF)),
-                                    javaPalette.idToState(paletteId)
-                            ));
-                        }
                         if (blockEntityPaletteIds.get(paletteId)) {
-                            // deal with detected block entities
+                            int javaId = javaPalette.idToState(paletteId);
+                            detectedBlockEntities.put(
+                                    Vector3i.from((packet.getX() << 4) + (yzx & 0xF), ((sectionY + yOffset) << 4) + ((yzx >> 8) & 0xF), (packet.getZ() << 4) + ((yzx >> 4) & 0xF)),
+                                    new BedrockBlockEntity(BlockRegistries.JAVA_BLOCKS.getOrDefault(javaPalette.idToState(paletteId), BlockMapping.DEFAULT).getBedrockBlockEntity(), javaId)
+                            );
                         }
                     }
                 }
@@ -403,50 +402,44 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                 session.getChunkCache().addToCache(packet.getX(), packet.getZ(), javaChunks);
             }
 
+            // Get passed java block entities in map we can index by Vec3i
             final int chunkBlockX = packet.getX() << 4;
             final int chunkBlockZ = packet.getZ() << 4;
-            for (BlockEntityInfo blockEntity : blockEntities) {
-                BlockEntityType type = blockEntity.getType();
-                if (type == null) {
-                    // As an example: ViaVersion will send -1 if it cannot find the block entity type
-                    // Vanilla Minecraft gracefully handles this
-                    continue;
-                }
-                CompoundTag tag = blockEntity.getNbt();
-                int x = blockEntity.getX(); // Relative to chunk
-                int y = blockEntity.getY();
-                int z = blockEntity.getZ(); // Relative to chunk
+            for (BlockEntityInfo blockEntity : packet.getBlockEntities()) {
+                javaBlockEntities.put(Vector3i.from(blockEntity.getX() + chunkBlockX, blockEntity.getY(), blockEntity.getZ() + chunkBlockZ), blockEntity.getNbt());
+            }
 
-                // chunk index 0-15 from y
+            // Get nbt for detected block entities
+            for (ObjectIterator<Object2ObjectMap.Entry<Vector3i, BedrockBlockEntity>> iterator = detectedBlockEntities.object2ObjectEntrySet().iterator(); iterator.hasNext(); ) {
+                Object2ObjectMap.Entry<Vector3i, BedrockBlockEntity> entry = iterator.next();
+                Vector3i pos = entry.getKey();
+                BedrockBlockEntity entity = entry.getValue();
+                
+                CompoundTag tag = javaBlockEntities.get(pos);
 
-
-                // Get the Java block state ID from block entity position
-                DataPalette section = javaChunks[(y >> 4) - yOffset];
-                int blockState = section.get(x, y & 0xF, z);
-
-                if (type == BlockEntityType.LECTERN && BlockStateValues.getLecternBookStates().get(blockState)) {
+                if (entity.type == "Lectern" && BlockStateValues.getLecternBookStates().get(entity.javaId)) {
                     // If getLecternBookStates is false, let's just treat it like a normal block entity
                     // Fill in tag with a default value
-                    NbtMapBuilder lecternTag = LecternUtils.getBaseLecternTag(x + chunkBlockX, y, z + chunkBlockZ, 1);
+                    NbtMapBuilder lecternTag = LecternUtils.getBaseLecternTag(pos.getX(), pos.getY(), pos.getZ(), 1);
                     lecternTag.putCompound("book", NbtMap.builder()
                                     .putByte("Count", (byte) 1)
                                     .putShort("Damage", (short) 0)
                                     .putString("Name", "minecraft:written_book").build());
                     lecternTag.putInt("page", -1);
                     bedrockBlockEntities.add(lecternTag.build());
-                    lecterns.add(blockEntity);
+                    lecternPositions.add(pos);
                     continue;
                 }
 
-                BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(type);
-                bedrockBlockEntities.add(blockEntityTranslator.getBlockEntityTag(type, x + chunkBlockX, y, z + chunkBlockZ, tag, blockState));
+                BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(entity.type);
+                bedrockBlockEntities.add(blockEntityTranslator.getBlockEntityTag(entity.type, pos.getX(), pos.getY(), pos.getZ(), tag, entity.javaId));
 
                 // Check for custom skulls
-                if (session.getPreferencesCache().showCustomSkulls() && type == BlockEntityType.SKULL && tag != null && tag.contains("SkullOwner")) {
-                    BlockDefinition blockDefinition = SkullBlockEntityTranslator.translateSkull(session, tag, Vector3i.from(x + chunkBlockX, y, z + chunkBlockZ), blockState);
+                if (session.getPreferencesCache().showCustomSkulls() && entity.type == "Skull" && tag != null && tag.contains("SkullOwner")) {
+                    BlockDefinition blockDefinition = SkullBlockEntityTranslator.translateSkull(session, tag, pos, entity.javaId);
                     if (blockDefinition != null) {
-                        int bedrockSectionY = (y >> 4) - (bedrockDimension.minY() >> 4);
-                        int subChunkIndex = (y >> 4) + (bedrockDimension.minY() >> 4);
+                        int bedrockSectionY = (pos.getY() >> 4) - (bedrockDimension.minY() >> 4);
+                        int subChunkIndex = (pos.getY() >> 4) + (bedrockDimension.minY() >> 4);
                         if (0 <= bedrockSectionY && bedrockSectionY < maxBedrockSectionY) {
                             // Custom skull is in a section accepted by Bedrock
                             GeyserChunkSection bedrockSection = sections[bedrockSectionY];
@@ -456,7 +449,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                                 bedrockSection = bedrockSection.copy(subChunkIndex);
                                 sections[bedrockSectionY] = bedrockSection;
                             }
-                            bedrockSection.setFullBlock(x, y & 0xF, z, 0, blockDefinition.getRuntimeId());
+                            bedrockSection.setFullBlock(pos.getX() & 0xF, pos.getY() & 0xF, pos.getZ() & 0xF, 0, blockDefinition.getRuntimeId());
                         }
                     }
                 }
@@ -480,7 +473,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             }
             size += ChunkUtils.EMPTY_BIOME_DATA.length * biomeCount;
             size += 1; // Border blocks
-            //size += bedrockBlockEntities.size() * 64; // Conservative estimate of 64 bytes per tile entity
+            size += bedrockBlockEntities.size() * 64; // Conservative estimate of 64 bytes per tile entity
 
             // Allocate output buffer
             byteBuf = ByteBufAllocator.DEFAULT.ioBuffer(size);
@@ -534,8 +527,8 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         levelChunkPacket.setData(Unpooled.wrappedBuffer(payload));
         session.sendUpstreamPacket(levelChunkPacket);
 
-        if (!lecterns.isEmpty()) {
-            session.getGeyser().getWorldManager().sendLecternData(session, packet.getX(), packet.getZ(), lecterns);
+        if (!lecternPositions.isEmpty()) {
+            session.getGeyser().getWorldManager().sendLecternData(session, packet.getX(), packet.getZ(), lecternPositions);
         }
 
         for (Map.Entry<Vector3i, ItemFrameEntity> entry : session.getItemFrameCache().entrySet()) {
@@ -592,5 +585,8 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                 data = new int[BlockStorage.SIZE];
             }
         }
+    }
+
+    record BedrockBlockEntity(String type, int javaId) {
     }
 }

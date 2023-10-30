@@ -26,10 +26,6 @@
 package org.geysermc.geyser.translator.level.block.entity;
 
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtList;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtType;
-import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
 
 /**
@@ -37,44 +33,10 @@ import org.geysermc.geyser.session.GeyserSession;
  */
 public interface BedrockOnlyBlockEntity extends RequiresBlockState {
     /**
-     * Determines if block is part of class
-     * @param blockState BlockState to be compared
-     * @return true if part of the class
-     */
-    boolean isBlock(int blockState);
-
-    /**
      * Update the block on Bedrock Edition.
      * @param session GeyserConnection.
      * @param blockState The Java block state.
      * @param position The Bedrock block position.
      */
     void updateBlock(GeyserSession session, int blockState, Vector3i position);
-
-    /**
-     * Get the tag of the Bedrock-only block entity
-     * @param position Bedrock position of block.
-     * @param blockState Java BlockState of block.
-     * @return Bedrock tag, or null if not a Bedrock-only Block Entity
-     */
-    static NbtMap getTag(GeyserSession session, Vector3i position, int blockState) {
-        if (FlowerPotBlockEntityTranslator.isFlowerBlock(blockState)) {
-            return FlowerPotBlockEntityTranslator.getTag(session, blockState, position);
-        } else if (PistonBlockEntityTranslator.isBlock(blockState)) {
-            return PistonBlockEntityTranslator.getTag(blockState, position);
-        } else if (BlockStateValues.isNonWaterCauldron(blockState)) {
-            // As of 1.18.30: this is required to make rendering not look weird on chunk load (lava and snow cauldrons look dim)
-            return NbtMap.builder()
-                    .putString("id", "Cauldron")
-                    .putByte("isMovable", (byte) 0)
-                    .putShort("PotionId", (short) -1)
-                    .putShort("PotionType", (short) -1)
-                    .putList("Items", NbtType.END, NbtList.EMPTY)
-                    .putInt("x", position.getX())
-                    .putInt("y", position.getY())
-                    .putInt("z", position.getZ())
-                    .build();
-        }
-        return null;
-    }
 }

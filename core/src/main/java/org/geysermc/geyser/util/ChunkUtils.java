@@ -44,10 +44,10 @@ import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.chunk.BlockStorage;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.translator.level.block.entity.BedrockOnlyBlockEntity;
 
 import static org.geysermc.geyser.level.block.BlockStateValues.JAVA_AIR_ID;
 
@@ -191,14 +191,9 @@ public class ChunkUtils {
 
         BlockStateValues.getLecternBookStates().handleBlockChange(session, blockState, position);
 
-        // Iterates through all Bedrock-only block entity translators and determines if a manual block entity packet
-        // needs to be sent
-        for (BedrockOnlyBlockEntity bedrockOnlyBlockEntity : BlockEntityUtils.BEDROCK_ONLY_BLOCK_ENTITIES) {
-            if (bedrockOnlyBlockEntity.isBlock(blockState)) {
-                // Flower pots are block entities only in Bedrock and are not updated anywhere else like note blocks
-                bedrockOnlyBlockEntity.updateBlock(session, blockState, position);
-                break; //No block will be a part of two classes
-            }
+        if (BlockRegistries.JAVA_BLOCKS.getOrDefault(blockState, BlockMapping.DEFAULT).isBedrockOnlyBlockEntity()) {
+            // update the block for the correct translator...
+
         }
     }
 

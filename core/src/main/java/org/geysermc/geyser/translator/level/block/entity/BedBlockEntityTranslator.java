@@ -25,12 +25,11 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.level.block.BlockStateValues;
 
-@BlockEntity(type = BlockEntityType.BED)
+@BlockEntity(type = "Bed")
 public class BedBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {

@@ -51,7 +51,14 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
         if (type == null) {
             return;
         }
-        BlockEntityTranslator translator = BlockEntityUtils.getBlockEntityTranslator(type);
+
+        String bedrockType = BlockEntityUtils.getBedrockBlockEntityId(type);
+
+        if (bedrockType == null) {
+            return;
+        }
+
+        BlockEntityTranslator translator = BlockEntityUtils.getBlockEntityTranslator(bedrockType);
         // The Java block state is used in BlockEntityTranslator.translateTag() to make up for some inconsistencies
         // between Java block states and Bedrock block entity data
         int blockState;
@@ -62,7 +69,7 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
         }
 
         Vector3i position = packet.getPosition();
-        BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(type, position.getX(), position.getY(), position.getZ(),
+        BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(bedrockType, position.getX(), position.getY(), position.getZ(),
                 packet.getNbt(), blockState), packet.getPosition());
         // Check for custom skulls.
         boolean hasCustomHeadBlock = false;
@@ -80,7 +87,7 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
             }
         }
         if (!hasCustomHeadBlock) {
-            BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(type, position.getX(), position.getY(), position.getZ(),
+            BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(bedrockType, position.getX(), position.getY(), position.getZ(),
                     packet.getNbt(), blockState), packet.getPosition());
         }
 

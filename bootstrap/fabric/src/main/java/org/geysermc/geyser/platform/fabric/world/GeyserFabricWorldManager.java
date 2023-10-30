@@ -66,7 +66,7 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
     }
 
     @Override
-    public void sendLecternData(GeyserSession session, int x, int z, List<BlockEntityInfo> blockEntityInfos) {
+    public void sendLecternData(GeyserSession session, int x, int z, List<Vector3i> vectors) {
         server.execute(() -> {
             ServerPlayer player = getPlayer(session);
             if (player == null) {
@@ -76,10 +76,9 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
             LevelChunk chunk = player.level().getChunk(x, z);
             final int chunkBlockX = x << 4;
             final int chunkBlockZ = z << 4;
-            for (int i = 0; i < blockEntityInfos.size(); i++) {
-                BlockEntityInfo blockEntityInfo = blockEntityInfos.get(i);
-                BlockEntity blockEntity = chunk.getBlockEntity(new BlockPos(chunkBlockX + blockEntityInfo.getX(),
-                        blockEntityInfo.getY(), chunkBlockZ + blockEntityInfo.getZ()));
+            for (Vector3i vector : vectors) {
+                BlockEntity blockEntity = chunk.getBlockEntity(new BlockPos(chunkBlockX + vector.getX(),
+                        vector.getY(), chunkBlockZ + vector.getZ()));
                 sendLecternData(session, blockEntity, true);
             }
         });

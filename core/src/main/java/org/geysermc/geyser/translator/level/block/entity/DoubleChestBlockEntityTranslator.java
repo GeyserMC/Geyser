@@ -37,13 +37,8 @@ import org.geysermc.geyser.util.BlockEntityUtils;
 /**
  * Chests have more block entity properties in Bedrock, which is solved by implementing the BedrockOnlyBlockEntity
  */
-@BlockEntity(type = { BlockEntityType.CHEST, BlockEntityType.TRAPPED_CHEST })
+@BlockEntity(type = "Chest")
 public class DoubleChestBlockEntityTranslator extends BlockEntityTranslator implements BedrockOnlyBlockEntity {
-    @Override
-    public boolean isBlock(int blockState) {
-        return BlockStateValues.getDoubleChestValues().containsKey(blockState);
-    }
-
     @Override
     public void updateBlock(GeyserSession session, int blockState, Vector3i position) {
         NbtMapBuilder tagBuilder = getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(BlockEntityType.CHEST), position.getX(), position.getY(), position.getZ());

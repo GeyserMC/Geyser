@@ -25,12 +25,10 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.geysermc.geyser.util.BlockEntityUtils;
 
 /**
  * The class that all block entities (on both Java and Bedrock) should translate with
@@ -41,8 +39,8 @@ public abstract class BlockEntityTranslator {
 
     public abstract void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState);
 
-    public NbtMap getBlockEntityTag(BlockEntityType type, int x, int y, int z, CompoundTag tag, int blockState) {
-        NbtMapBuilder tagBuilder = getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(type), x, y, z);
+    public NbtMap getBlockEntityTag(String type, int x, int y, int z, CompoundTag tag, int blockState) {
+        NbtMapBuilder tagBuilder = getConstantBedrockTag(type, x, y, z);
         translateTag(tagBuilder, tag, blockState);
         return tagBuilder.build();
     }

@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -34,8 +32,8 @@ import java.lang.annotation.RetentionPolicy;
 public @interface BlockEntity {
 
     /**
-     * The Java block entity type
+     * The Bedrock block entity type
      * @return the type of the block entity
      */
-    BlockEntityType[] type();
+    String[] type();
 }

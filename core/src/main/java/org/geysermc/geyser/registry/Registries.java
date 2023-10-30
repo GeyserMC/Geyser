@@ -95,7 +95,7 @@ public final class Registries {
     /**
      * A mapped registry which stores a block entity identifier to its {@link BlockEntityTranslator}.
      */
-    public static final SimpleMappedRegistry<BlockEntityType, BlockEntityTranslator> BLOCK_ENTITIES = SimpleMappedRegistry.create("org.geysermc.geyser.translator.level.block.entity.BlockEntity", BlockEntityRegistryLoader::new);
+    public static final SimpleMappedRegistry<String, BlockEntityTranslator> BLOCK_ENTITIES = SimpleMappedRegistry.create("org.geysermc.geyser.translator.level.block.entity.BlockEntity", BlockEntityRegistryLoader::new);
 
     /**
      * A versioned registry which holds a {@link RecipeType} to a corresponding list of {@link RecipeData}.

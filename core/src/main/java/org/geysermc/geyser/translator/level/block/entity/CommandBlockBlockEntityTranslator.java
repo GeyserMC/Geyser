@@ -25,13 +25,12 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
-@BlockEntity(type = BlockEntityType.COMMAND_BLOCK)
+@BlockEntity(type = "CommandBlock")
 public class CommandBlockBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {

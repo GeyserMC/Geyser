@@ -124,7 +124,7 @@ public abstract class WorldManager {
      * @param z chunk z
      * @param blockEntityInfos a list of coordinates (chunk local) to grab lecterns from.
      */
-    public abstract void sendLecternData(GeyserSession session, int x, int z, List<BlockEntityInfo> blockEntityInfos);
+    public abstract void sendLecternData(GeyserSession session, int x, int z, List<Vector3i> blockEntityInfos);
 
     /**
      * @return whether we should expect lectern data to update, or if we have to fall back on a workaround.

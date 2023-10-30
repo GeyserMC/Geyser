@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -33,15 +34,8 @@ import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
 
-public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity {
-    /**
-     * @param blockState the Java block state of a potential flower pot block
-     * @return true if the block is a flower pot
-     */
-    public static boolean isFlowerBlock(int blockState) {
-        return BlockStateValues.getFlowerPotValues().containsKey(blockState);
-    }
-
+@BlockEntity(type = "FlowerPot")
+public class FlowerPotBlockEntityTranslator extends BlockEntityTranslator implements BedrockOnlyBlockEntity {
     /**
      * Get the Nukkit CompoundTag of the flower pot.
      *
@@ -70,11 +64,6 @@ public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity {
     }
 
     @Override
-    public boolean isBlock(int blockState) {
-        return isFlowerBlock(blockState);
-    }
-
-    @Override
     public void updateBlock(GeyserSession session, int blockState, Vector3i position) {
         NbtMap tag = getTag(session, blockState, position);
         BlockEntityUtils.updateBlockEntity(session, tag, position);
@@ -87,5 +76,15 @@ public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity {
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         session.sendUpstreamPacket(updateBlockPacket);
         BlockEntityUtils.updateBlockEntity(session, tag, position);
+    }
+
+    @Override
+    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+        builder.putByte("isMovable", (byte) 1);
+
+        String name = BlockStateValues.getFlowerPotValues().get(blockState);
+        if (name != null) {
+            // Add the plant
+        }
     }
 }

@@ -68,7 +68,7 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
         }
 
         BlockMapping blockMapping = BlockRegistries.JAVA_BLOCKS.getOrDefault(blockToPick, BlockMapping.DEFAULT);
-        boolean addNbtData = packet.isAddUserData() && blockMapping.isBlockEntity(); // Holding down CTRL
+        boolean addNbtData = packet.isAddUserData() && blockMapping.isJavaBlockEntity(); // Holding down CTRL
         if (BlockStateValues.getBannerColor(blockToPick) != -1 || addNbtData) {
             session.getGeyser().getWorldManager().getPickItemNbt(session, vector.getX(), vector.getY(), vector.getZ(), addNbtData)
                     .whenComplete((tag, ex) -> session.ensureInEventLoop(() -> {

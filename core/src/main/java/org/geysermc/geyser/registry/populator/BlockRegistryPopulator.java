@@ -434,11 +434,29 @@ public final class BlockRegistryPopulator {
                 }
             }
 
-            JsonNode hasBlockEntityNode = entry.getValue().get("has_block_entity");
-            if (hasBlockEntityNode != null) {
-                builder.isBlockEntity(hasBlockEntityNode.booleanValue());
+            boolean isJavaBlockEntity;
+            JsonNode hasJavaBlockEntityNode = entry.getValue().get("has_block_entity");
+            if (hasJavaBlockEntityNode != null) {
+                isJavaBlockEntity = hasJavaBlockEntityNode.booleanValue();
             } else {
-                builder.isBlockEntity(false);
+                isJavaBlockEntity = false;
+            }
+            builder.isJavaBlockEntity(isJavaBlockEntity);
+
+            boolean isBedrockBlockEntity;
+            JsonNode bedrockBlockEntityNode = entry.getValue().get("bedrock_block_entity");
+            if (bedrockBlockEntityNode != null) {
+                builder.bedrockBlockEntity(bedrockBlockEntityNode.textValue().intern());
+                isBedrockBlockEntity = true;
+            } else {
+                isBedrockBlockEntity = false;
+            }
+            builder.isBedrockBlockEntity(isBedrockBlockEntity);
+
+            if (!isJavaBlockEntity && isBedrockBlockEntity) {
+                builder.isBedrockOnlyBlockEntity(true);
+            } else {
+                builder.isBedrockOnlyBlockEntity(false);
             }
 
             BlockStateValues.storeBlockStateValues(entry.getKey(), javaRuntimeId, entry.getValue());
@@ -538,7 +556,7 @@ public final class BlockRegistryPopulator {
                     .javaBlockId(javaBlockState.stateGroupId())
                     .hardness(javaBlockState.blockHardness())
                     .pistonBehavior(javaBlockState.pistonBehavior() == null ? PistonBehavior.NORMAL : PistonBehavior.getByName(javaBlockState.pistonBehavior()))
-                    .isBlockEntity(javaBlockState.hasBlockEntity())
+                    .isJavaBlockEntity(javaBlockState.hasBlockEntity())
                     .build();
 
                 String cleanJavaIdentifier = BlockUtils.getCleanIdentifier(javaBlockState.identifier());

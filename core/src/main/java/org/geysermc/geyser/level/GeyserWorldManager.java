@@ -92,17 +92,13 @@ public class GeyserWorldManager extends WorldManager {
     }
 
     @Override
-    public void sendLecternData(GeyserSession session, int x, int z, List<BlockEntityInfo> blockEntityInfos) {
+    public void sendLecternData(GeyserSession session, int x, int z, List<Vector3i> vectors) {
         var erosionHandler = session.getErosionHandler().getAsActive();
         if (erosionHandler == null) {
             // No-op - don't send any additional information other than what the chunk has already sent
             return;
         }
-        List<Vector3i> vectors = new ObjectArrayList<>(blockEntityInfos.size());
-        for (int i = 0; i < blockEntityInfos.size(); i++) {
-            BlockEntityInfo info = blockEntityInfos.get(i);
-            vectors.add(Vector3i.from(info.getX(), info.getY(), info.getZ()));
-        }
+
         erosionHandler.sendPacket(new BackendboundBatchBlockEntityPacket(x, z, vectors));
     }
 

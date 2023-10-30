@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
@@ -36,7 +35,7 @@ import org.cloudburstmc.nbt.NbtType;
 import java.util.ArrayList;
 import java.util.List;
 
-@BlockEntity(type = BlockEntityType.DECORATED_POT)
+@BlockEntity(type = "DecoratedPot")
 public class DecoratedPotBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override

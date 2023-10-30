@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.LongTag;
@@ -38,7 +37,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
 
 import java.util.LinkedHashMap;
 
-@BlockEntity(type = BlockEntityType.END_GATEWAY)
+@BlockEntity(type = "EndGateway")
 public class EndGatewayBlockEntityTranslator extends BlockEntityTranslator {
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {

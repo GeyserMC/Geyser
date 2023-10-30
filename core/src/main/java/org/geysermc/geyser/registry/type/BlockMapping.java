@@ -27,11 +27,10 @@ package org.geysermc.geyser.registry.type;
 
 import lombok.Builder;
 import lombok.Value;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.util.BlockUtils;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 @Builder
 @Value
@@ -53,10 +52,17 @@ public class BlockMapping {
     int collisionIndex;
     @Nullable String pickItem;
 
-    @Nonnull
+    @NonNull
     PistonBehavior pistonBehavior;
-    boolean isBlockEntity;
+    boolean isJavaBlockEntity;
+    boolean isBedrockBlockEntity;
+    boolean isBedrockOnlyBlockEntity;
     boolean isNonVanilla;
+
+    /**
+     * The name of the Bedrock block entity that corresponds to this block state, if any.
+     */
+    @Nullable String bedrockBlockEntity;
 
     /**
      * @return the identifier without the additional block states

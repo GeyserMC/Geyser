@@ -422,7 +422,7 @@ public final class BlockStateValues {
         return switch (block.getPistonBehavior()) {
             case BLOCK, DESTROY -> false;
             case PUSH_ONLY -> isPushing; // Glazed terracotta can only be pushed
-            default -> !block.isBlockEntity(); // Pistons can't move block entities
+            default -> !block.isJavaBlockEntity(); // Pistons can't move block entities
         };
     }
 

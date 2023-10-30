@@ -31,25 +31,13 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.level.block.entity.BedrockOnlyBlockEntity;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
-import org.geysermc.geyser.translator.level.block.entity.FlowerPotBlockEntityTranslator;
 
 import javax.annotation.Nonnull;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 public class BlockEntityUtils {
-    /**
-     * A list of all block entities that require the Java block state in order to fill out their block entity information.
-     * This list will be smaller with cache sections on as we don't need to double-cache data
-     */
-    public static final List<BedrockOnlyBlockEntity> BEDROCK_ONLY_BLOCK_ENTITIES = List.of(
-            (BedrockOnlyBlockEntity) Registries.BLOCK_ENTITIES.get().get(BlockEntityType.CHEST),
-            new FlowerPotBlockEntityTranslator()
-    );
-
     /**
      * Contains a list of irregular block entity name translations that can't be fit into the regex
      */
@@ -63,6 +51,12 @@ public class BlockEntityUtils {
     );
 
     public static String getBedrockBlockEntityId(BlockEntityType type) {
+        // Return null if it isn't a tile entity on Bedrock
+        switch (type) {
+            case DAYLIGHT_DETECTOR, END_PORTAL, END_GATEWAY -> { return null; }
+            default -> { break; }
+        }
+
         // These are the only exceptions when it comes to block entity ids
         String value = BLOCK_ENTITY_TRANSLATIONS.get(type);
         if (value != null) {
@@ -79,7 +73,7 @@ public class BlockEntityUtils {
         return String.join("", words);
     }
 
-    public static BlockEntityTranslator getBlockEntityTranslator(BlockEntityType type) {
+    public static BlockEntityTranslator getBlockEntityTranslator(String type) {
          return Registries.BLOCK_ENTITIES.get(type);
     }
 

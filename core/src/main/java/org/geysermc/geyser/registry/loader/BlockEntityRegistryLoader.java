@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.registry.loader;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntity;
@@ -39,18 +38,18 @@ import java.util.Map;
 /**
  * Loads block entities from the given classpath.
  */
-public class BlockEntityRegistryLoader implements RegistryLoader<String, Map<BlockEntityType, BlockEntityTranslator>> {
+public class BlockEntityRegistryLoader implements RegistryLoader<String, Map<String, BlockEntityTranslator>> {
 
     @Override
-    public Map<BlockEntityType, BlockEntityTranslator> load(String input) {
+    public Map<String, BlockEntityTranslator> load(String input) {
         // Overridden so one translator can be applied to multiple block entity types
-        Object2ObjectMap<BlockEntityType, BlockEntityTranslator> entries = new Object2ObjectOpenHashMap<>();
+        Object2ObjectMap<String, BlockEntityTranslator> entries = new Object2ObjectOpenHashMap<>();
         entries.defaultReturnValue(new EmptyBlockEntityTranslator());
         for (Class<?> clazz : FileUtils.getGeneratedClassesForAnnotation(input)) {
             try {
                 BlockEntity annotation = clazz.getAnnotation(BlockEntity.class);
                 BlockEntityTranslator translator = (BlockEntityTranslator) clazz.getConstructor().newInstance();
-                for (BlockEntityType type : annotation.type()) {
+                for (String type : annotation.type()) {
                     entries.put(type, translator);
                 }
             } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException ex) {

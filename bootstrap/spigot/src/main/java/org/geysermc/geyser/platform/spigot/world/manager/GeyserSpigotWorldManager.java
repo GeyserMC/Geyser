@@ -34,6 +34,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.erosion.bukkit.BukkitLecterns;
 import org.geysermc.erosion.bukkit.BukkitUtils;
@@ -105,7 +106,8 @@ public class GeyserSpigotWorldManager extends WorldManager {
         SchedulerUtils.runTask(this.plugin, () -> sendLecternData(session, block, false), block);
     }
 
-    public void sendLecternData(GeyserSession session, int x, int z, List<BlockEntityInfo> blockEntityInfos) {
+    @Override
+    public void sendLecternData(GeyserSession session, int x, int z, List<Vector3i> vectors) {
         Player bukkitPlayer;
         if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
             return;
@@ -116,14 +118,14 @@ public class GeyserSpigotWorldManager extends WorldManager {
                 return;
             }
             Bukkit.getRegionScheduler().execute(this.plugin, bukkitPlayer.getWorld(), x, z, () ->
-                sendLecternData(session, chunk, blockEntityInfos));
+                sendLecternData(session, chunk, vectors));
         } else {
             Bukkit.getScheduler().runTask(this.plugin, () -> {
                 Chunk chunk = getChunk(bukkitPlayer.getWorld(), x, z);
                 if (chunk == null) {
                     return;
                 }
-                sendLecternData(session, chunk, blockEntityInfos);
+                sendLecternData(session, chunk, vectors);
             });
         }
     }
@@ -135,10 +137,9 @@ public class GeyserSpigotWorldManager extends WorldManager {
         return world.getChunkAt(x, z);
     }
 
-    private void sendLecternData(GeyserSession session, Chunk chunk, List<BlockEntityInfo> blockEntityInfos) {
-        for (int i = 0; i < blockEntityInfos.size(); i++) {
-            BlockEntityInfo info = blockEntityInfos.get(i);
-            Block block = chunk.getBlock(info.getX(), info.getY(), info.getZ());
+    private void sendLecternData(GeyserSession session, Chunk chunk, List<Vector3i> vectors) {
+        for (Vector3i vector : vectors) {
+            Block block = chunk.getBlock(vector.getX(), vector.getY(), vector.getZ());
             sendLecternData(session, block, true);
         }
     }

@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
@@ -33,7 +32,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.registry.Registries;
 
-@BlockEntity(type = BlockEntityType.MOB_SPAWNER)
+@BlockEntity(type = "MobSpawner")
 public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
