@@ -75,7 +75,10 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
                         event.getPing().getVersion().getProtocol()
                 )
         );
-        event.getPing().getPlayers().get().getSample().stream().map(ServerPing.SamplePlayer::getName).forEach(geyserPingInfo.getPlayerList()::add);
+
+        if (event.getPing().getPlayers().isPresent()) {
+            event.getPing().getPlayers().get().getSample().stream().map(ServerPing.SamplePlayer::getName).forEach(geyserPingInfo.getPlayerList()::add);
+        }
         return geyserPingInfo;
     }
 
