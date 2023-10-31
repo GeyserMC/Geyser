@@ -32,6 +32,7 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.ServerPing;
 import lombok.AllArgsConstructor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 
@@ -54,12 +55,21 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
         } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }
+
+        // Apparently, plugins such as MiniMOTD can just yeet all players
+        int maxPlayers;
+        int onlinePlayers;
+        if (event.getPing().getPlayers().isPresent()) {
+            maxPlayers = event.getPing().getPlayers().get().getMax();
+            onlinePlayers = event.getPing().getPlayers().get().getOnline();
+        } else {
+            maxPlayers = GeyserImpl.getInstance().getConfig().getMaxPlayers(); // Gotta fallback to something
+            onlinePlayers = GeyserImpl.getInstance().getSessionManager().size();
+        }
+
         GeyserPingInfo geyserPingInfo = new GeyserPingInfo(
                 LegacyComponentSerializer.legacy('§').serialize(event.getPing().getDescriptionComponent()),
-                new GeyserPingInfo.Players(
-                        event.getPing().getPlayers().orElseThrow(IllegalStateException::new).getMax(),
-                        event.getPing().getPlayers().orElseThrow(IllegalStateException::new).getOnline()
-                ),
+                new GeyserPingInfo.Players(maxPlayers, onlinePlayers),
                 new GeyserPingInfo.Version(
                         event.getPing().getVersion().getName(),
                         event.getPing().getVersion().getProtocol()
