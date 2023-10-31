@@ -397,7 +397,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * They are not 1:1, since Bedrock can have multiple recipes for the same Java recipe.
      */
     @Setter
-    private Map<String, List<String>> identifierToBedrockRecipes;
+    private Map<String, List<String>> javaToBedrockRecipeIds;
 
     @Setter
     private Int2ObjectMap<GeyserRecipe> craftingRecipes;
@@ -619,7 +619,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.playerInventory = new PlayerInventory();
         this.openInventory = null;
         this.craftingRecipes = new Int2ObjectOpenHashMap<>();
-        this.identifierToBedrockRecipes = new HashMap<>();
+        this.javaToBedrockRecipeIds = new Object2ObjectOpenHashMap<>();
         this.lastRecipeNetId = new AtomicInteger(1);
 
         this.spawned = false;
@@ -700,7 +700,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Ensure client doesn't try and do anything funky; the server handles this for us
         gamerulePacket.getGameRules().add(new GameRuleData<>("spawnradius", 0));
         // Recipe unlocking - only needs to be added if 1. it isn't already on via an experiment, or 2. the client is on pre 1.20.10
-        if (!GameProtocol.isPre1_20_10(this) && !GameProtocol.isExperimentalRecipeUnlocking(this)) {
+        if (!GameProtocol.isPre1_20_10(this) && !GameProtocol.isUsingExperimentalRecipeUnlocking(this)) {
             gamerulePacket.getGameRules().add(new GameRuleData<>("recipesunlock", true));
         }
         upstream.sendPacket(gamerulePacket);
@@ -1540,7 +1540,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setRewindHistorySize(0);
         startGamePacket.setServerAuthoritativeBlockBreaking(false);
 
-        if (GameProtocol.isExperimentalRecipeUnlocking(this)) {
+        if (GameProtocol.isUsingExperimentalRecipeUnlocking(this)) {
             startGamePacket.getExperiments().add(new ExperimentData("recipe_unlocking", true));
         }
 

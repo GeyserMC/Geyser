@@ -35,6 +35,7 @@ import com.github.steveice10.mc.protocol.data.game.recipe.data.SmithingTransform
 import com.github.steveice10.mc.protocol.data.game.recipe.data.StoneCuttingRecipeData;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateRecipesPacket;
 import it.unimi.dsi.fastutil.ints.*;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
@@ -95,10 +96,10 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
     );
 
     /**
-     * Fixes https://github.com/GeyserMC/Geyser/issues/3784 by using Item Tags where applicable instead of group IDs
+     * Fixes https://github.com/GeyserMC/Geyser/issues/3784 by using item tags where applicable instead of group IDs
      * Item Tags allow mixing ingredients, and theoretically, adding item tags to custom items should also include them.
      */
-    private static final Map<String, String> IDENTIFIER_TO_TAG = new HashMap<>() {{
+    private static final Map<String, String> RECIPE_TAGS = new Object2ObjectOpenHashMap<>() {{
         put("minecraft:wood", "minecraft:logs");
         put("minecraft:wooden_slab", "minecraft:wooden_slabs");
         put("minecraft:planks", "minecraft:planks");
@@ -110,7 +111,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         // Get the last known network ID (first used for the pregenerated recipes) and increment from there.
         int netId = InventoryUtils.LAST_RECIPE_NET_ID + 1;
         boolean sendTrimRecipes = false;
-        Map<String, List<String>> recipeIDs = session.getIdentifierToBedrockRecipes();
+        Map<String, List<String>> recipeIDs = session.getJavaToBedrockRecipeIds();
         Int2ObjectMap<GeyserRecipe> recipeMap = new Int2ObjectOpenHashMap<>(Registries.RECIPES.forVersion(session.getUpstream().getProtocolVersion()));
         Int2ObjectMap<List<StoneCuttingRecipeData>> unsortedStonecutterData = new Int2ObjectOpenHashMap<>();
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
@@ -278,7 +279,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         session.sendUpstreamPacket(craftingDataPacket);
         session.setCraftingRecipes(recipeMap);
         session.setStonecutterRecipes(stonecutterRecipeMap);
-        session.setIdentifierToBedrockRecipes(recipeIDs);
+        session.setJavaToBedrockRecipeIds(recipeIDs);
     }
 
     private void addSpecialRecipesIdentifiers(GeyserSession session, Recipe recipe, List<RecipeData> craftingData) {
@@ -337,8 +338,8 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 if (entry.getValue().size() > 1) {
                     GroupedItem groupedItem = entry.getKey();
 
-                    if (IDENTIFIER_TO_TAG.containsKey(groupedItem.id.getIdentifier())) {
-                        optionSet.add(new ItemDescriptorWithCount(new ItemTagDescriptor(IDENTIFIER_TO_TAG.get(groupedItem.id.getIdentifier())), groupedItem.count));
+                    if (RECIPE_TAGS.containsKey(groupedItem.id.getIdentifier())) {
+                        optionSet.add(new ItemDescriptorWithCount(new ItemTagDescriptor(RECIPE_TAGS.get(groupedItem.id.getIdentifier())), groupedItem.count));
                         continue;
                     }
 
@@ -403,10 +404,10 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
     }
 
     private void addRecipeIdentifier(GeyserSession session, String javaIdentifier, List<String> bedrockIdentifiers) {
-        if (session.getIdentifierToBedrockRecipes().containsKey(javaIdentifier)) {
-            session.getIdentifierToBedrockRecipes().get(javaIdentifier).addAll(bedrockIdentifiers);
+        if (session.getJavaToBedrockRecipeIds().containsKey(javaIdentifier)) {
+            session.getJavaToBedrockRecipeIds().get(javaIdentifier).addAll(bedrockIdentifiers);
         } else {
-            session.getIdentifierToBedrockRecipes().put(javaIdentifier, bedrockIdentifiers);
+            session.getJavaToBedrockRecipeIds().put(javaIdentifier, bedrockIdentifiers);
         }
     }
 
