@@ -212,7 +212,7 @@ public class GeyserImpl implements GeyserApi {
 
             ProvidedSkins.init();
 
-            CompletableFuture.runAsync(AssetUtils::downloadAndRunClientJarTasks);
+            CompletableFuture.runAsync(AssetUtils::downloadAndRunClientJarTasks, GeyserImpl.getInstance().platformExecutor());
         });
 
         startInstance();

@@ -22,7 +22,7 @@ dependencies {
     }
     shadow(projects.core) {
         exclude(group = "com.google.guava", module = "guava")
-        //exclude(group = "com.google.code.gson", module = "gson")
+        exclude(group = "com.google.code.gson", module = "gson")
         exclude(group = "org.slf4j")
         exclude(group = "io.netty.incubator")
     }
@@ -36,7 +36,6 @@ application {
 tasks {
     shadowJar {
         relocate("it.unimi.dsi.fastutil", "org.geysermc.relocate.fastutil")
-        relocate("com.google.gson", "org.geysermc.relocate.gson")
     }
 
     remapJar {
