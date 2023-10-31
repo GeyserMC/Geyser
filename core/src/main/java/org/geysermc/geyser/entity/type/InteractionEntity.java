@@ -68,7 +68,7 @@ public class InteractionEntity extends Entity {
             animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
             session.sendUpstreamPacket(animatePacket);
 
-            session.sendDownstreamPacket(new ServerboundSwingPacket(hand));
+            session.sendDownstreamGamePacket(new ServerboundSwingPacket(hand));
             return InteractionResult.SUCCESS;
         }
 

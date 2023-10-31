@@ -102,7 +102,7 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
         if (session.isDroppingLecternBook()) {
             // We have to enter the inventory GUI to eject the book
             ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(inventory.getJavaId(), 3);
-            session.sendDownstreamPacket(packet);
+            session.sendDownstreamGamePacket(packet);
             session.setDroppingLecternBook(false);
             InventoryUtils.closeInventory(session, inventory.getJavaId(), false);
         } else if (lecternContainer.getBlockEntityTag() == null) {
@@ -153,7 +153,7 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
                 session.getLecternCache().add(position);
                 // Close the window - we will reopen it once the client has this data synced
                 ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(lecternContainer.getJavaId());
-                session.sendDownstreamPacket(closeWindowPacket);
+                session.sendDownstreamGamePacket(closeWindowPacket);
                 InventoryUtils.closeInventory(session, inventory.getJavaId(), false);
             }
         }

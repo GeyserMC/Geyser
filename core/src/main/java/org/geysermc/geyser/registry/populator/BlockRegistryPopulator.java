@@ -36,11 +36,13 @@ import it.unimi.dsi.fastutil.objects.*;
 import org.cloudburstmc.blockstateupdater.BlockStateUpdater;
 import org.cloudburstmc.blockstateupdater.BlockStateUpdater_1_20_10;
 import org.cloudburstmc.blockstateupdater.BlockStateUpdater_1_20_30;
+import org.cloudburstmc.blockstateupdater.BlockStateUpdater_1_20_40;
 import org.cloudburstmc.blockstateupdater.util.tagupdater.CompoundTagUpdaterContext;
 import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.protocol.bedrock.codec.v589.Bedrock_v589;
 import org.cloudburstmc.protocol.bedrock.codec.v594.Bedrock_v594;
 import org.cloudburstmc.protocol.bedrock.codec.v618.Bedrock_v618;
+import org.cloudburstmc.protocol.bedrock.codec.v622.Bedrock_v622;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
@@ -117,11 +119,13 @@ public final class BlockRegistryPopulator {
     private static void registerBedrockBlocks() {
         Remapper mapper594 = Remapper.of(BlockStateUpdater_1_20_10.INSTANCE);
         Remapper mapper618 = Remapper.of(BlockStateUpdater_1_20_10.INSTANCE, BlockStateUpdater_1_20_30.INSTANCE);
+        Remapper mapper622 = Remapper.of(BlockStateUpdater_1_20_10.INSTANCE, BlockStateUpdater_1_20_30.INSTANCE, BlockStateUpdater_1_20_40.INSTANCE);
 
         var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
                 .put(ObjectIntPair.of("1_20_0", Bedrock_v589.CODEC.getProtocolVersion()), tag -> tag)
                 .put(ObjectIntPair.of("1_20_10", Bedrock_v594.CODEC.getProtocolVersion()), mapper594)
                 .put(ObjectIntPair.of("1_20_30", Bedrock_v618.CODEC.getProtocolVersion()), mapper618)
+                .put(ObjectIntPair.of("1_20_40", Bedrock_v622.CODEC.getProtocolVersion()), mapper622)
                 .build();
 
         // We can keep this strong as nothing should be garbage collected
