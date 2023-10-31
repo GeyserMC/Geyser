@@ -64,6 +64,11 @@ import java.util.UUID;
 @Plugin(id = "geyser", name = GeyserImpl.NAME + "-Velocity", version = GeyserImpl.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
 public class GeyserVelocityPlugin implements GeyserBootstrap {
 
+    /**
+     * Determines if the plugin has been ran once before, including before /geyser reload.
+     */
+    private static boolean INITIALIZED = false;
+
     @Inject
     private Logger logger;
 
@@ -114,6 +119,16 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
         this.geyser = GeyserImpl.load(PlatformType.VELOCITY, this);
+
+        // Hack: Normally triggered by ListenerBoundEvent, but that doesn't fire on /geyser reload
+        if (INITIALIZED) {
+            this.postStartup();
+
+            if (geyserInjector != null) {
+                // After this bound, we know that the channel initializer cannot change without it being ineffective for Velocity, too
+                geyserInjector.initializeLocalChannel(this);
+            }
+        }
     }
 
     private void postStartup() {
@@ -195,6 +210,8 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
                 geyserInjector.initializeLocalChannel(this);
             }
         }
+
+        INITIALIZED = true;
     }
 
     @Override
