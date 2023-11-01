@@ -139,7 +139,7 @@ public class GeyserSpigotWorldManager extends WorldManager {
 
     private void sendLecternData(GeyserSession session, Chunk chunk, List<Vector3i> vectors) {
         for (Vector3i vector : vectors) {
-            Block block = chunk.getBlock(vector.getX(), vector.getY(), vector.getZ());
+            Block block = chunk.getBlock(vector.getX() >> 4, vector.getY(), vector.getZ() >> 4);
             sendLecternData(session, block, true);
         }
     }
