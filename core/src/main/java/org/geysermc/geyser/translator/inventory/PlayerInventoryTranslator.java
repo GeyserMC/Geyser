@@ -359,7 +359,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     }
 
                     ServerboundSetCreativeModeSlotPacket creativeDropPacket = new ServerboundSetCreativeModeSlotPacket(-1, sourceItem.getItemStack(dropAction.getCount()));
-                    session.sendDownstreamPacket(creativeDropPacket);
+                    session.sendDownstreamGamePacket(creativeDropPacket);
 
                     sourceItem.sub(dropAction.getCount());
                 }
@@ -494,7 +494,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         dropStack = new ItemStack(javaCreativeItem.getId(), dropAction.getCount(), javaCreativeItem.getNbt());
                     }
                     ServerboundSetCreativeModeSlotPacket creativeDropPacket = new ServerboundSetCreativeModeSlotPacket(-1, dropStack);
-                    session.sendDownstreamPacket(creativeDropPacket);
+                    session.sendDownstreamGamePacket(creativeDropPacket);
                     break;
                 }
                 default:
@@ -515,7 +515,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         ItemStack itemStack = item.isEmpty() ? new ItemStack(-1, 0, null) : item.getItemStack();
 
         ServerboundSetCreativeModeSlotPacket creativePacket = new ServerboundSetCreativeModeSlotPacket(slot, itemStack);
-        session.sendDownstreamPacket(creativePacket);
+        session.sendDownstreamGamePacket(creativePacket);
     }
 
     private static boolean isCraftingGrid(ItemStackRequestSlotData slotInfoData) {

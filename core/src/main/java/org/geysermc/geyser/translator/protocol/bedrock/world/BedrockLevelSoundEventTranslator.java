@@ -57,7 +57,7 @@ public class BedrockLevelSoundEventTranslator extends PacketTranslator<LevelSoun
             // ATTACK_NODAMAGE = player clicked air
             // This should only be revisited if Bedrock packets get full Java parity, or Bedrock starts sending arm
             // animation packets after ATTACK_NODAMAGE, OR ATTACK_NODAMAGE gets removed/isn't sent in the same spot
-            session.sendDownstreamPacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
+            session.sendDownstreamGamePacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
             session.activateArmAnimationTicking();
 
             // Send packet to Bedrock so it knows

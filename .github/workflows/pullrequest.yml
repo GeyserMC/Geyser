@@ -2,15 +2,6 @@ name: Build Pull Request
 
 on: 
   pull_request:
-    paths-ignore:
-      - '.github/ISSUE_TEMPLATE/*.yml'
-      - '.idea/copyright/*.xml' 
-      - '.gitignore'
-      - 'CONTRIBUTING.md'
-      - 'LICENSE'
-      - 'Jenkinsfile '
-      - 'README.md'
-      - 'licenseheader.txt'
 
 jobs:
   build:

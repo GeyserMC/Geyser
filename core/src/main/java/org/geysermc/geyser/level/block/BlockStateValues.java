@@ -173,8 +173,8 @@ public final class BlockStateValues {
         }
 
         if (javaId.contains("wall_skull") || javaId.contains("wall_head")) {
-            String direction = javaId.substring(javaId.lastIndexOf("facing=") + 7);
-            int rotation = switch (direction.substring(0, direction.length() - 1)) {
+            String direction = javaId.substring(javaId.lastIndexOf("facing=") + 7, javaId.lastIndexOf("powered=") - 1);
+            int rotation = switch (direction) {
                 case "north" -> 180;
                 case "west" -> 90;
                 case "east" -> 270;

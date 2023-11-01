@@ -23,22 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java.level;
+package org.geysermc.geyser.translator.protocol.java;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundChunkBatchFinishedPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundChunkBatchReceivedPacket;
+import com.github.steveice10.mc.protocol.data.game.ResourcePackStatus;
+import com.github.steveice10.mc.protocol.packet.common.clientbound.ClientboundResourcePackPacket;
+import com.github.steveice10.mc.protocol.packet.common.serverbound.ServerboundResourcePackPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
-@Translator(packet = ClientboundChunkBatchFinishedPacket.class)
-public class JavaChunkBatchFinishedTranslator extends PacketTranslator<ClientboundChunkBatchFinishedPacket> {
+@Translator(packet = ClientboundResourcePackPacket.class)
+public class JavaClientboundResourcePacksPacket extends PacketTranslator<ClientboundResourcePackPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundChunkBatchFinishedPacket packet) {
-        // server just sent a batch of LevelChunkWithLightPackets
-        // the vanilla client uses a ChunkBatchSizeCalculator to calculate the desiredChunksPerTick,
-        // but currently we just send an arbitrary value. server clamps the value between 0.01 and 64.
-        session.sendDownstreamGamePacket(new ServerboundChunkBatchReceivedPacket(20));
+    public void translate(GeyserSession session, ClientboundResourcePackPacket packet) {
+        // We need to "answer" this to avoid timeout issues related to resource packs
+        // If packs are required, we need to lie to the server that we accepted them, as we get kicked otherwise.
+        if (packet.isRequired()) {
+            session.sendDownstreamPacket(new ServerboundResourcePackPacket(ResourcePackStatus.SUCCESSFULLY_LOADED));
+        } else {
+            session.sendDownstreamPacket(new ServerboundResourcePackPacket(ResourcePackStatus.DECLINED));
+        }
     }
 }

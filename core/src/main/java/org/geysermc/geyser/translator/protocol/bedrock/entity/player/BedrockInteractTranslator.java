@@ -68,16 +68,16 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 }
                 ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(entity.getEntityId(),
                         InteractAction.INTERACT, Hand.MAIN_HAND, session.isSneaking());
-                session.sendDownstreamPacket(interactPacket);
+                session.sendDownstreamGamePacket(interactPacket);
                 break;
             case DAMAGE:
                 ServerboundInteractPacket attackPacket = new ServerboundInteractPacket(entity.getEntityId(),
                         InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
-                session.sendDownstreamPacket(attackPacket);
+                session.sendDownstreamGamePacket(attackPacket);
                 break;
             case LEAVE_VEHICLE:
                 ServerboundPlayerCommandPacket sneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SNEAKING);
-                session.sendDownstreamPacket(sneakPacket);
+                session.sendDownstreamGamePacket(sneakPacket);
 
                 Entity currentVehicle = session.getPlayerEntity().getVehicle();
                 if (currentVehicle != null) {
@@ -123,7 +123,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                     if (ridingEntity instanceof AbstractHorseEntity || (ridingEntity != null && ridingEntity.getDefinition().entityType() == EntityType.CHEST_BOAT)) {
                         // This mob has an inventory of its own that we should open instead.
                         ServerboundPlayerCommandPacket openVehicleWindowPacket = new ServerboundPlayerCommandPacket(session.getPlayerEntity().getEntityId(), PlayerState.OPEN_VEHICLE_INVENTORY);
-                        session.sendDownstreamPacket(openVehicleWindowPacket);
+                        session.sendDownstreamGamePacket(openVehicleWindowPacket);
                     } else {
                         session.setOpenInventory(session.getPlayerInventory());
 
