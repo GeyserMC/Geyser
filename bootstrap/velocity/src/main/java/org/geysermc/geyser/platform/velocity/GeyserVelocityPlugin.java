@@ -123,19 +123,16 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         // Hack: Normally triggered by ListenerBoundEvent, but that doesn't fire on /geyser reload
         if (INITIALIZED) {
             this.postStartup();
-
-            if (geyserInjector != null) {
-                // After this bound, we know that the channel initializer cannot change without it being ineffective for Velocity, too
-                geyserInjector.initializeLocalChannel(this);
-            }
         }
     }
 
     private void postStartup() {
         GeyserImpl.start();
 
-        this.geyserInjector = new GeyserVelocityInjector(proxyServer);
-        // Will be initialized after the proxy has been bound
+        if (!INITIALIZED) {
+            this.geyserInjector = new GeyserVelocityInjector(proxyServer);
+            // Will be initialized after the proxy has been bound
+        }
 
         this.geyserCommandManager = new GeyserCommandManager(geyser);
         this.geyserCommandManager.init();
