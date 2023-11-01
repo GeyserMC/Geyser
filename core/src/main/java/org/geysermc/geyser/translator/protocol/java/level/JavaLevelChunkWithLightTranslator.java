@@ -431,9 +431,6 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     continue;
                 }
 
-                BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(entity.type);
-                bedrockBlockEntities.add(blockEntityTranslator.getBlockEntityTag(session, entity.type, pos.getX(), pos.getY(), pos.getZ(), tag, entity.javaId));
-
                 // Check for custom skulls
                 if (session.getPreferencesCache().showCustomSkulls() && entity.type == "Skull" && tag != null && tag.contains("SkullOwner")) {
                     BlockDefinition blockDefinition = SkullBlockEntityTranslator.translateSkull(session, tag, pos, entity.javaId);
@@ -450,9 +447,13 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                                 sections[bedrockSectionY] = bedrockSection;
                             }
                             bedrockSection.setFullBlock(pos.getX() & 0xF, pos.getY() & 0xF, pos.getZ() & 0xF, 0, blockDefinition.getRuntimeId());
+                            continue;
                         }
                     }
                 }
+
+                BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(entity.type);
+                bedrockBlockEntities.add(blockEntityTranslator.getBlockEntityTag(session, entity.type, pos.getX(), pos.getY(), pos.getZ(), tag, entity.javaId));
             }
 
             // Find highest section
