@@ -30,6 +30,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.minecraft.network.Connection;
+import net.minecraft.network.PacketSendListener;
+import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.status.ClientboundStatusResponsePacket;
 import net.minecraft.network.protocol.status.ServerStatus;
@@ -63,15 +65,12 @@ public class ModPingPassthrough implements IGeyserPingPassthrough {
         }
 
         try {
-            Connection connection = new Connection(PacketFlow.SERVERBOUND);
+            StatusInterceptor connection = new StatusInterceptor();
             ServerStatusPacketListener statusPacketListener = new ServerStatusPacketListenerImpl(status, connection);
 
             statusPacketListener.handleStatusRequest(new ServerboundStatusRequestPacket());
-            // ClientboundStatusResponsePacket should now be in the packet queue of the fake connection
-
-            Connection.PacketHolder holder = connection.queue.remove();
-            ClientboundStatusResponsePacket response = (ClientboundStatusResponsePacket) holder.packet;
-            status = Objects.requireNonNull(response.status(), "status response");
+            // mods like MiniMOTD (that inject into the above method) have now processed the response
+            status = Objects.requireNonNull(connection.status, "status response");
         } catch (Exception e) {
             if (logger.isDebug()) {
                 logger.debug("Failed to listen for modified ServerStatus: " + e.getMessage());
@@ -87,5 +86,25 @@ public class ModPingPassthrough implements IGeyserPingPassthrough {
             status.players().map(ServerStatus.Players::max).orElse(1),
             status.players().map(ServerStatus.Players::online).orElse(0)
         );
+    }
+
+    /**
+     * Custom Connection that intercepts the status response right before it is sent
+     */
+    private static class StatusInterceptor extends Connection {
+
+        ServerStatus status;
+
+        public StatusInterceptor() {
+            super(PacketFlow.SERVERBOUND); // we are the server.
+        }
+
+        @Override
+        public void send(Packet<?> packet, @Nullable PacketSendListener packetSendListener, boolean bl) {
+            if (packet instanceof ClientboundStatusResponsePacket statusResponse) {
+                status = statusResponse.status();
+            }
+            super.send(packet, packetSendListener, bl);
+        }
     }
 }
