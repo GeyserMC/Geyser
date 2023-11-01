@@ -273,7 +273,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                         }
                     }
 
-                    if (BlockRegistries.JAVA_BLOCKS.getOrDefault(javaId, BlockMapping.DEFAULT).isJavaBlockEntity()) {
+                    if (BlockRegistries.JAVA_BLOCKS.getOrDefault(javaId, BlockMapping.DEFAULT).isBedrockBlockEntity()) {
                         blockEntityPaletteIds.set(i);
                     }
                 }

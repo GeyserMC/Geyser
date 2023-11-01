@@ -52,6 +52,7 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
             return;
         }
 
+        // Only translate block entities that are supported by bedrock
         String bedrockType = BlockEntityUtils.getBedrockBlockEntityId(type);
 
         if (bedrockType == null) {

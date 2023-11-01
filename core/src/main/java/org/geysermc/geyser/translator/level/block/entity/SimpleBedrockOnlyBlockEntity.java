@@ -31,7 +31,7 @@ import org.geysermc.geyser.session.GeyserSession;
 /**
  * Implemented only if a block is a block entity in Bedrock and not Java Edition.
  */
-public interface BedrockOnlyBlockEntity extends RequiresBlockState {
+public interface SimpleBedrockOnlyBlockEntity extends RequiresBlockState {
     /**
      * Update the block on Bedrock Edition.
      * @param session GeyserConnection.

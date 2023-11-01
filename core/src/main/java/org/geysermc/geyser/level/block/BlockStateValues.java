@@ -58,7 +58,9 @@ public final class BlockStateValues {
     private static final Int2BooleanMap PISTON_VALUES = new Int2BooleanOpenHashMap();
     private static final IntSet STICKY_PISTONS = new IntOpenHashSet();
     private static final Object2IntMap<Direction> PISTON_HEADS = new Object2IntOpenHashMap<>();
+    private static final Object2IntMap<Direction> ALL_STICKY_PISTON_HEADS = new Object2IntOpenHashMap<>();
     private static final Int2ObjectMap<Direction> PISTON_ORIENTATION = new Int2ObjectOpenHashMap<>();
+    private static final Int2ObjectMap<Direction> PISTON_HEAD_ORIENTATION = new Int2ObjectOpenHashMap<>();
     private static final IntSet ALL_PISTON_HEADS = new IntOpenHashSet();
     private static final IntSet MOVING_PISTONS = new IntOpenHashSet();
     private static final Int2ByteMap SKULL_VARIANTS = new FixedInt2ByteMap();
@@ -156,6 +158,10 @@ public final class BlockStateValues {
             return;
         } else if (javaId.startsWith("minecraft:piston_head")) {
             ALL_PISTON_HEADS.add(javaBlockState);
+            PISTON_HEAD_ORIENTATION.put(javaBlockState, getBlockDirection(javaId));
+            if (javaId.contains("sticky")) {
+                    ALL_STICKY_PISTON_HEADS.put(getBlockDirection(javaId), javaBlockState);
+            }
             if (javaId.contains("short=false")) {
                 PISTON_HEADS.put(getBlockDirection(javaId), javaBlockState);
             }
@@ -335,6 +341,10 @@ public final class BlockStateValues {
         return ALL_PISTON_HEADS.contains(state);
     }
 
+    public static boolean isStickyPistonHead(int state) {
+        return ALL_STICKY_PISTON_HEADS.containsValue(state);
+    }
+
     /**
      * Get the Java Block State for a piston head for a specific direction
      * This is used in PistonBlockEntity to get the BlockCollision for the piston head.
@@ -367,6 +377,16 @@ public final class BlockStateValues {
      */
     public static Direction getPistonOrientation(int state) {
         return PISTON_ORIENTATION.get(state);
+    }
+
+    /**
+     * This is used in PistonBlockEntityTranslator.java and accepts minecraft:piston_head
+     *
+     * @param state The block state of the piston head
+     * @return The direction in which the piston head faces
+     */
+    public static Direction getPistonHeadOrientation(int state) {
+        return PISTON_HEAD_ORIENTATION.get(state);
     }
 
     /**

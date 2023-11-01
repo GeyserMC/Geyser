@@ -73,6 +73,10 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder builder, CompoundTag tag, int blockState) {
+        if (tag == null) {
+            return;
+        }
+        
         builder.putCompound("FrontText", translateSide(tag.get("front_text")));
         builder.putCompound("BackText", translateSide(tag.get("back_text")));
         var waxed = tag.get("is_waxed");

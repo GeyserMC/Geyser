@@ -35,37 +35,12 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
 
 @BlockEntity(type = "FlowerPot")
-public class FlowerPotBlockEntityTranslator extends BlockEntityTranslator implements BedrockOnlyBlockEntity {
-    /**
-     * Get the Nukkit CompoundTag of the flower pot.
-     *
-     * @param blockState Java block state of flower pot.
-     * @param position   Bedrock position of flower pot.
-     * @return Bedrock tag of flower pot.
-     */
-    public static NbtMap getTag(GeyserSession session, int blockState, Vector3i position) {
-        NbtMapBuilder builder = NbtMap.builder()
-                .putInt("x", position.getX())
-                .putInt("y", position.getY())
-                .putInt("z", position.getZ())
-                .putByte("isMovable", (byte) 1)
-                .putString("id", "FlowerPot");
-        // Get the Java name of the plant inside. e.g. minecraft:oak_sapling
-        String name = BlockStateValues.getFlowerPotValues().get(blockState);
-        if (name != null) {
-            // Get the Bedrock CompoundTag of the block.
-            // This is where we need to store the *Java* name because Bedrock has six minecraft:sapling blocks with different block states.
-            NbtMap plant = session.getBlockMappings().getFlowerPotBlocks().get(name);
-            if (plant != null) {
-                builder.put("PlantBlock", plant.toBuilder().build());
-            }
-        }
-        return builder.build();
-    }
-
+public class FlowerPotBlockEntityTranslator extends BlockEntityTranslator implements SimpleBedrockOnlyBlockEntity {
     @Override
     public void updateBlock(GeyserSession session, int blockState, Vector3i position) {
-        NbtMap tag = getTag(session, blockState, position);
+        NbtMapBuilder builder = getConstantBedrockTag("FlowerPot", position.getX(), position.getY(), position.getZ());
+        translateTag(session, builder, null, blockState);
+        NbtMap tag = builder.build();
         BlockEntityUtils.updateBlockEntity(session, tag, position);
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
