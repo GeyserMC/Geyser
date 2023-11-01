@@ -72,6 +72,6 @@ public class BedrockMoveEntityAbsoluteTranslator extends PacketTranslator<MoveEn
                 packet.getPosition().getX(), y, packet.getPosition().getZ(),
                 packet.getRotation().getY() - 90, packet.getRotation().getX()
         );
-        session.sendDownstreamPacket(ServerboundMoveVehiclePacket);
+        session.sendDownstreamGamePacket(ServerboundMoveVehiclePacket);
     }
 }

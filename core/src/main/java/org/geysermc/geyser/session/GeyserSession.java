@@ -1153,7 +1153,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 if (position != null) {
                     ServerboundMovePlayerPosPacket packet = new ServerboundMovePlayerPosPacket(playerEntity.isOnGround(),
                             position.getX(), position.getY(), position.getZ());
-                    sendDownstreamPacket(packet);
+                    sendDownstreamGamePacket(packet);
                 }
                 lastMovementTimestamp = System.currentTimeMillis();
             }
@@ -1335,7 +1335,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             return false;
         }
 
-        sendDownstreamPacket(useItemPacket);
+        sendDownstreamGamePacket(useItemPacket);
         playerEntity.setFlag(EntityFlag.BLOCKING, true);
         // Metadata should be updated later
         return true;
@@ -1369,7 +1369,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         if (playerEntity.getFlag(EntityFlag.BLOCKING)) {
             ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM,
                     Vector3i.ZERO, Direction.DOWN, 0);
-            sendDownstreamPacket(releaseItemPacket);
+            sendDownstreamGamePacket(releaseItemPacket);
             playerEntity.setFlag(EntityFlag.BLOCKING, false);
             return true;
         }
@@ -1379,7 +1379,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public void requestOffhandSwap() {
         ServerboundPlayerActionPacket swapHandsPacket = new ServerboundPlayerActionPacket(PlayerAction.SWAP_HANDS, Vector3i.ZERO,
                 Direction.DOWN, 0);
-        sendDownstreamPacket(swapHandsPacket);
+        sendDownstreamGamePacket(swapHandsPacket);
     }
 
     @Override
@@ -1414,14 +1414,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Sends a chat message to the Java server.
      */
     public void sendChat(String message) {
-        sendDownstreamPacket(new ServerboundChatPacket(message, Instant.now().toEpochMilli(), 0L, null, 0, new BitSet()));
+        sendDownstreamGamePacket(new ServerboundChatPacket(message, Instant.now().toEpochMilli(), 0L, null, 0, new BitSet()));
     }
 
     /**
      * Sends a command to the Java server.
      */
     public void sendCommand(String command) {
-        sendDownstreamPacket(new ServerboundChatCommandPacket(command, Instant.now().toEpochMilli(), 0L, Collections.emptyList(), 0, new BitSet()));
+        sendDownstreamGamePacket(new ServerboundChatCommandPacket(command, Instant.now().toEpochMilli(), 0L, Collections.emptyList(), 0, new BitSet()));
     }
 
     public void setServerRenderDistance(int renderDistance) {
@@ -1594,6 +1594,39 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     /**
+     * Send a packet to the remote server if in the game state.
+     *
+     * @param packet the java edition packet from MCProtocolLib
+     */
+    public void sendDownstreamGamePacket(Packet packet) {
+        sendDownstreamPacket(packet, ProtocolState.GAME);
+    }
+
+    /**
+     * Send a packet to the remote server if in the login state.
+     *
+     * @param packet the java edition packet from MCProtocolLib
+     */
+    public void sendDownstreamLoginPacket(Packet packet) {
+        sendDownstreamPacket(packet, ProtocolState.LOGIN);
+    }
+
+    /**
+     * Send a packet to the remote server if in the specified state.
+     *
+     * @param packet the java edition packet from MCProtocolLib
+     * @param intendedState the state the client should be in
+     */
+    public void sendDownstreamPacket(Packet packet, ProtocolState intendedState) {
+        if (protocol.getState() != intendedState) {
+            geyser.getLogger().debug("Tried to send " + packet.getClass().getSimpleName() + " packet while not in " + intendedState.name() + " state");
+            return;
+        }
+
+        sendDownstreamPacket(packet);
+    }
+
+    /**
      * Send a packet to the remote server.
      *
      * @param packet the java edition packet from MCProtocolLib
@@ -1736,7 +1769,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 // We're "flying locked" in this gamemode
                 flying = true;
                 ServerboundPlayerAbilitiesPacket abilitiesPacket = new ServerboundPlayerAbilitiesPacket(true);
-                sendDownstreamPacket(abilitiesPacket);
+                sendDownstreamGamePacket(abilitiesPacket);
             }
             abilities.add(Ability.FLYING);
         }
