@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,37 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.sponge.command;
+package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
-import lombok.AllArgsConstructor;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.command.GeyserCommandSource;
-import org.spongepowered.api.command.CommandCause;
-import org.spongepowered.api.entity.living.player.server.ServerPlayer;
+import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
+import org.cloudburstmc.protocol.bedrock.packet.SetDifficultyPacket;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
 
-@AllArgsConstructor
-public class SpongeCommandSource implements GeyserCommandSource {
+@Translator(packet = SetDifficultyPacket.class)
+public class BedrockSetDifficultyTranslator extends PacketTranslator<SetDifficultyPacket> {
 
-    private final CommandCause handle;
-
+    /**
+     * Sets the Java server's difficulty via the Bedrock client's "world" menu (given sufficient permissions).
+     */
     @Override
-    public String name() {
-        return handle.friendlyIdentifier().orElse(handle.identifier());
-    }
-
-    @Override
-    public void sendMessage(@NonNull String message) {
-        handle.audience().sendMessage(LegacyComponentSerializer.legacySection().deserialize(message));
-    }
-
-    @Override
-    public boolean isConsole() {
-        return !(handle.cause().root() instanceof ServerPlayer);
-    }
-
-    @Override
-    public boolean hasPermission(String permission) {
-        return handle.hasPermission(permission);
+    public void translate(GeyserSession session, SetDifficultyPacket packet) {
+        if (session.getOpPermissionLevel() >= 2 && session.hasPermission("geyser.settings.server")) {
+            if (packet.getDifficulty() != session.getWorldCache().getDifficulty().ordinal()) {
+                session.getGeyser().getWorldManager().setDifficulty(session, Difficulty.from(packet.getDifficulty()));
+            }
+        }
     }
 }

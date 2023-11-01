@@ -82,14 +82,14 @@ public class AnvilContainer extends Container {
             correctRename = plainNewName;
             // Java Edition sends a packet every time an item is renamed even slightly in GUI. Fortunately, this works out for us now
             ServerboundRenameItemPacket renameItemPacket = new ServerboundRenameItemPacket(plainNewName);
-            session.sendDownstreamPacket(renameItemPacket);
+            session.sendDownstreamGamePacket(renameItemPacket);
         } else {
             // Restore formatting for item since we're not renaming
             correctRename = MessageTranslator.convertMessageLenient(originalName);
             // Java Edition sends the original custom name when not renaming,
             // if there isn't a custom name an empty string is sent
             ServerboundRenameItemPacket renameItemPacket = new ServerboundRenameItemPacket(plainOriginalName);
-            session.sendDownstreamPacket(renameItemPacket);
+            session.sendDownstreamGamePacket(renameItemPacket);
         }
 
         useJavaLevelCost = false;

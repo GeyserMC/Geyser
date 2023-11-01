@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.util;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import org.geysermc.cumulus.component.DropdownComponent;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.geyser.GeyserImpl;
@@ -77,23 +75,6 @@ public class SettingsUtils {
             }
         }
 
-        boolean canModifyServer = session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.server");
-        if (canModifyServer) {
-            builder.label("geyser.settings.title.server");
-
-            DropdownComponent.Builder gamemodeDropdown = DropdownComponent.builder("%createWorldScreen.gameMode.personal");
-            for (GameMode gamemode : GameMode.values()) {
-                gamemodeDropdown.option("selectWorld.gameMode." + gamemode.name().toLowerCase(), session.getGameMode() == gamemode);
-            }
-            builder.dropdown(gamemodeDropdown);
-
-            DropdownComponent.Builder difficultyDropdown = DropdownComponent.builder("%options.difficulty");
-            for (Difficulty difficulty : Difficulty.values()) {
-                difficultyDropdown.option("%options.difficulty." + difficulty.name().toLowerCase(), session.getWorldCache().getDifficulty() == difficulty);
-            }
-            builder.dropdown(difficultyDropdown);
-        }
-
         boolean showGamerules = session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.gamerules");
         if (showGamerules) {
             builder.label("geyser.settings.title.game_rules")
@@ -125,18 +106,6 @@ public class SettingsUtils {
 
                 if (session.getGeyser().getConfig().isAllowCustomSkulls()) {
                     session.getPreferencesCache().setPrefersCustomSkulls(response.next());
-                }
-            }
-
-            if (canModifyServer) {
-                GameMode gameMode = GameMode.values()[(int) response.next()];
-                if (gameMode != null && gameMode != session.getGameMode()) {
-                    session.getGeyser().getWorldManager().setPlayerGameMode(session, gameMode);
-                }
-
-                Difficulty difficulty = Difficulty.values()[(int) response.next()];
-                if (difficulty != null && difficulty != session.getWorldCache().getDifficulty()) {
-                    session.getGeyser().getWorldManager().setDifficulty(session, difficulty);
                 }
             }
 

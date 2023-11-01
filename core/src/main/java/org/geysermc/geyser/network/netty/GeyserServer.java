@@ -39,6 +39,7 @@ import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import io.netty.util.concurrent.Future;
 import lombok.Getter;
 import net.jodah.expiringmap.ExpirationPolicy;
 import net.jodah.expiringmap.ExpiringMap;
@@ -47,6 +48,7 @@ import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
 import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerOfflineHandler;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.command.defaults.ConnectionTestCommand;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.event.type.GeyserBedrockPingEventImpl;
 import org.geysermc.geyser.network.CIDRMatcher;
@@ -57,6 +59,7 @@ import org.geysermc.geyser.network.netty.handler.RakPingHandler;
 import org.geysermc.geyser.network.netty.proxy.ProxyServerHandler;
 import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
+import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
@@ -83,14 +86,21 @@ public final class GeyserServer {
 
     private static final Transport TRANSPORT = compatibleTransport();
 
+    /**
+     * See {@link EventLoopGroup#shutdownGracefully(long, long, TimeUnit)}
+     */
+    private static final int SHUTDOWN_QUIET_PERIOD_MS = 100;
+    private static final int SHUTDOWN_TIMEOUT_MS = 500;
+
     private final GeyserImpl geyser;
-    private final EventLoopGroup group;
+    private EventLoopGroup group;
     private final ServerBootstrap bootstrap;
+    private EventLoopGroup playerGroup;
 
     @Getter
     private final ExpiringMap<InetSocketAddress, InetSocketAddress> proxiedAddresses;
 
-    private ChannelFuture future;
+    private ChannelFuture bootstrapFuture;
 
     public GeyserServer(GeyserImpl geyser, int threadCount) {
         this.geyser = geyser;
@@ -109,7 +119,7 @@ public final class GeyserServer {
 
     public CompletableFuture<Void> bind(InetSocketAddress address) {
         CompletableFuture<Void> future = new CompletableFuture<>();
-        this.future = this.bootstrap.bind(address).addListener(bindResult -> {
+        this.bootstrapFuture = this.bootstrap.bind(address).addListener(bindResult -> {
             if (bindResult.cause() != null) {
                 future.completeExceptionally(bindResult.cause());
                 return;
@@ -117,7 +127,7 @@ public final class GeyserServer {
             future.complete(null);
         });
 
-        Channel channel = this.future.channel();
+        Channel channel = this.bootstrapFuture.channel();
 
         // Add our ping handler
         channel.pipeline()
@@ -132,8 +142,19 @@ public final class GeyserServer {
     }
 
     public void shutdown() {
-        this.group.shutdownGracefully();
-        this.future.channel().closeFuture().syncUninterruptibly();
+        try {
+            Future<?> future1 = this.group.shutdownGracefully(SHUTDOWN_QUIET_PERIOD_MS, SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+            this.group = null;
+            Future<?> future2 = this.playerGroup.shutdownGracefully(SHUTDOWN_QUIET_PERIOD_MS, SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+            this.playerGroup = null;
+            future1.sync();
+            future2.sync();
+
+            SkinProvider.shutdown();
+        } catch (InterruptedException e) {
+            GeyserImpl.getInstance().getLogger().severe("Exception in shutdown process", e);
+        }
+        this.bootstrapFuture.channel().closeFuture().syncUninterruptibly();
     }
 
     private ServerBootstrap createBootstrap(EventLoopGroup group) {
@@ -150,11 +171,15 @@ public final class GeyserServer {
             }
         }
 
+        GeyserServerInitializer serverInitializer = new GeyserServerInitializer(this.geyser);
+        playerGroup = serverInitializer.getEventLoopGroup();
+        this.geyser.getLogger().debug("Setting MTU to " + this.geyser.getConfig().getMtu());
         return new ServerBootstrap()
                 .channelFactory(RakChannelFactory.server(TRANSPORT.datagramChannel()))
                 .group(group)
                 .option(RakChannelOption.RAK_HANDLE_PING, true)
-                .childHandler(new GeyserServerInitializer(this.geyser));
+                .option(RakChannelOption.RAK_MAX_MTU, this.geyser.getConfig().getMtu())
+                .childHandler(serverInitializer);
     }
 
     public boolean onConnectionRequest(InetSocketAddress inetSocketAddress) {
@@ -220,7 +245,7 @@ public final class GeyserServer {
                 .version(GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()) // Required to not be empty as of 1.16.210.59. Can only contain . and numbers.
                 .ipv4Port(this.geyser.getConfig().getBedrock().port())
                 .ipv6Port(this.geyser.getConfig().getBedrock().port())
-                .serverId(future.channel().config().getOption(RakChannelOption.RAK_GUID));
+                .serverId(bootstrapFuture.channel().config().getOption(RakChannelOption.RAK_GUID));
 
         if (config.isPassthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
             String[] motd = MessageTranslator.convertMessageLenient(pingInfo.getDescription()).split("\n");
@@ -255,6 +280,12 @@ public final class GeyserServer {
         }
         if (pong.subMotd() == null || pong.subMotd().isBlank()) {
             // Sub-MOTD cannot be empty as of 1.16.210.59
+            pong.subMotd(GeyserImpl.NAME);
+        }
+
+        if (ConnectionTestCommand.CONNECTION_TEST_MOTD != null) {
+            // Force-override as we are testing the connection and want to verify we are connecting to the right server through the MOTD
+            pong.motd(ConnectionTestCommand.CONNECTION_TEST_MOTD);
             pong.subMotd(GeyserImpl.NAME);
         }
 

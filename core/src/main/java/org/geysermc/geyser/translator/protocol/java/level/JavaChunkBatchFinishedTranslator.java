@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,54 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.sponge;
+package org.geysermc.geyser.translator.protocol.java.level;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import org.geysermc.geyser.GeyserLogger;
-import org.apache.logging.log4j.Logger;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundChunkBatchFinishedPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundChunkBatchReceivedPacket;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
 
-@AllArgsConstructor
-public class GeyserSpongeLogger implements GeyserLogger {
-    private final Logger logger;
-    @Getter @Setter
-    private boolean debug;
+@Translator(packet = ClientboundChunkBatchFinishedPacket.class)
+public class JavaChunkBatchFinishedTranslator extends PacketTranslator<ClientboundChunkBatchFinishedPacket> {
 
     @Override
-    public void severe(String message) {
-        logger.error(message);
-    }
-
-    @Override
-    public void severe(String message, Throwable error) {
-        logger.error(message, error);
-    }
-
-    @Override
-    public void error(String message) {
-        logger.error(message);
-    }
-
-    @Override
-    public void error(String message, Throwable error) {
-        logger.error(message, error);
-    }
-
-    @Override
-    public void warning(String message) {
-        logger.warn(message);
-    }
-
-    @Override
-    public void info(String message) {
-        logger.info(message);
-    }
-
-    @Override
-    public void debug(String message) {
-        if (debug) {
-            info(message);
-        }
+    public void translate(GeyserSession session, ClientboundChunkBatchFinishedPacket packet) {
+        // server just sent a batch of LevelChunkWithLightPackets
+        // the vanilla client uses a ChunkBatchSizeCalculator to calculate the desiredChunksPerTick,
+        // but currently we just send an arbitrary value. server clamps the value between 0.01 and 64.
+        session.sendDownstreamGamePacket(new ServerboundChunkBatchReceivedPacket(20));
     }
 }

@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.util;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.geysermc.geyser.GeyserBootstrap;
@@ -53,7 +55,8 @@ public class FileUtils {
      * @throws IOException if the config could not be loaded
      */
     public static <T> T loadConfig(File src, Class<T> valueType) throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
+        ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory())
+                .setDefaultSetterInfo(JsonSetter.Value.forValueNulls(Nulls.AS_EMPTY));
         return objectMapper.readValue(src, valueType);
     }
 

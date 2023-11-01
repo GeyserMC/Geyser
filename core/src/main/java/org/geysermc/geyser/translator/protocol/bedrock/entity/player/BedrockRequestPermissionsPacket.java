@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,15 +23,21 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.sponge;
+package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
-import org.geysermc.geyser.configuration.GeyserJacksonConfiguration;
+import org.cloudburstmc.protocol.bedrock.packet.RequestPermissionsPacket;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
 
-import java.nio.file.Path;
+/**
+ * Sent occasionally by a BDS client when opening the client side server settings menu.
+ */
+@Translator(packet = RequestPermissionsPacket.class)
+public class BedrockRequestPermissionsPacket extends PacketTranslator<RequestPermissionsPacket> {
 
-public final class GeyserSpongeConfiguration extends GeyserJacksonConfiguration {
     @Override
-    public Path getFloodgateKeyPath() {
-        return null; //floodgate isn't available for Sponge
+    public void translate(GeyserSession session, RequestPermissionsPacket packet) {
+        session.sendAdventureSettings();
     }
 }
