@@ -47,11 +47,16 @@ public class GeyserModCommandExecutor extends GeyserCommandExecutor implements C
     }
 
     public boolean testPermission(CommandSourceStack source) {
-        return GeyserModBootstrap.getInstance().hasPermission(source.getPlayer(), command.permission(), command.isSuggestedOpOnly() ? 2 : 0);
+        return GeyserModBootstrap.getInstance().hasPermission(source, command.permission(), command.isSuggestedOpOnly() ? 2 : 0);
     }
 
     @Override
     public int run(CommandContext context) {
+        return runWithArgs(context, "");
+    }
+
+    @SuppressWarnings("rawtypes")
+    public int runWithArgs(CommandContext context, String args) {
         CommandSourceStack source = (CommandSourceStack) context.getSource();
         ModCommandSender sender = new ModCommandSender(source);
         GeyserSession session = getGeyserSession(sender);
@@ -67,7 +72,8 @@ public class GeyserModCommandExecutor extends GeyserCommandExecutor implements C
             sender.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.bedrock_only", sender.locale()));
             return 0;
         }
-        command.execute(session, sender, new String[0]);
+
+        command.execute(session, sender, args.split(" "));
         return 0;
     }
 }

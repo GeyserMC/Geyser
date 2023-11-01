@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 import net.fabricmc.loom.task.RemapJarTask
 import org.gradle.kotlin.dsl.dependencies
 
@@ -9,11 +11,12 @@ plugins {
 }
 
 architectury {
-    minecraft = "1.20"
+    minecraft = "1.20.2"
 }
 
 loom {
     silentMojangMappingsLicense()
+    mixin.defaultRefmapName.set("geyser-mod-refmap.json")
 }
 
 tasks {
@@ -71,7 +74,7 @@ tasks {
 }
 
 dependencies {
-    minecraft("com.mojang:minecraft:1.20")
+    minecraft("com.mojang:minecraft:1.20.2")
     mappings(loom.officialMojangMappings())
 }
 
@@ -93,6 +96,6 @@ modrinth {
     syncBodyFrom.set(rootProject.file("README.md").readText())
 
     uploadFile.set(tasks.getByPath("remapModrinthJar"))
-    gameVersions.addAll("1.20")
+    gameVersions.addAll("1.20.2")
     failSilently.set(true)
 }

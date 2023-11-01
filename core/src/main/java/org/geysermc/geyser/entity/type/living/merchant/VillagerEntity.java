@@ -118,7 +118,7 @@ public class VillagerEntity extends AbstractMerchantEntity {
         
         // The bed block
         int blockId = session.getGeyser().getWorldManager().getBlockAt(session, bedPosition);
-        String fullIdentifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(blockId, BlockMapping.AIR).getJavaIdentifier();
+        String fullIdentifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(blockId, BlockMapping.DEFAULT).getJavaIdentifier();
 
         // Set the correct position offset and rotation when sleeping
         int bedRotation = 0;

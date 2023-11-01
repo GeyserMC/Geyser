@@ -24,9 +24,9 @@ dependencies {
         exclude(group = "com.google.guava", module = "guava")
         exclude(group = "com.google.code.gson", module = "gson")
         exclude(group = "org.slf4j")
-        exclude(group = "com.nukkitx.fastutil")
         exclude(group = "io.netty.incubator")
     }
+    implementation(libs.gson)
 }
 
 application {
@@ -34,6 +34,10 @@ application {
 }
 
 tasks {
+    shadowJar {
+        relocate("it.unimi.dsi.fastutil", "org.geysermc.relocate.fastutil")
+    }
+
     remapJar {
         archiveBaseName.set("Geyser-Forge")
     }

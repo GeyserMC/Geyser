@@ -155,7 +155,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
 
     private ItemStackResponse handleTrade(GeyserSession session, Inventory inventory, ItemStackRequest request, int tradeChoice) {
         ServerboundSelectTradePacket packet = new ServerboundSelectTradePacket(tradeChoice);
-        session.sendDownstreamPacket(packet);
+        session.sendDownstreamGamePacket(packet);
 
         if (session.isEmulatePost1_13Logic()) {
             // 1.18 Java cooperates nicer than older versions

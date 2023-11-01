@@ -75,6 +75,6 @@ public class ModCommandSender implements GeyserCommandSource {
 
     @Override
     public boolean hasPermission(String permission) {
-        return GeyserModBootstrap.getInstance().hasPermission(source.getPlayer(), permission);
+        return GeyserModBootstrap.getInstance().hasPermission(source, permission, source.getServer().getOperatorUserPermissionLevel());
     }
 }

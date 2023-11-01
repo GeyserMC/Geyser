@@ -58,7 +58,7 @@ import java.util.function.Predicate;
 
 public class SkinProvider {
     private static final boolean ALLOW_THIRD_PARTY_CAPES = GeyserImpl.getInstance().getConfig().isAllowThirdPartyCapes();
-    static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(ALLOW_THIRD_PARTY_CAPES ? 21 : 14);
+    static ExecutorService EXECUTOR_SERVICE;
 
     static final Skin EMPTY_SKIN;
     static final Cape EMPTY_CAPE = new Cape("", "no-cape", ByteArrays.EMPTY_ARRAY, -1, true);
@@ -131,6 +131,20 @@ public class SkinProvider {
         WEARING_CUSTOM_SKULL = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.wearingCustomSkull\"}}", wearingCustomSkull, false);
         String wearingCustomSkullSlim = new String(FileUtils.readAllBytes("bedrock/skin/geometry.humanoid.wearingCustomSkullSlim.json"), StandardCharsets.UTF_8);
         WEARING_CUSTOM_SKULL_SLIM = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.wearingCustomSkullSlim\"}}", wearingCustomSkullSlim, false);
+    }
+
+    private static ExecutorService getExecutorService() {
+        if (EXECUTOR_SERVICE == null) {
+            EXECUTOR_SERVICE = Executors.newFixedThreadPool(ALLOW_THIRD_PARTY_CAPES ? 21 : 14);
+        }
+        return EXECUTOR_SERVICE;
+    }
+
+    public static void shutdown() {
+        if (EXECUTOR_SERVICE != null) {
+            EXECUTOR_SERVICE.shutdown();
+            EXECUTOR_SERVICE = null;
+        }
     }
 
     public static void registerCacheImageTask(GeyserImpl geyser) {
@@ -302,7 +316,7 @@ public class SkinProvider {
 
             GeyserImpl.getInstance().getLogger().debug("Took " + (System.currentTimeMillis() - time) + "ms for " + playerId);
             return skinAndCape;
-        }, EXECUTOR_SERVICE);
+        }, getExecutorService());
     }
 
     static CompletableFuture<Skin> requestSkin(UUID playerId, String textureUrl, boolean newThread) {
@@ -320,7 +334,7 @@ public class SkinProvider {
 
         CompletableFuture<Skin> future;
         if (newThread) {
-            future = CompletableFuture.supplyAsync(() -> supplySkin(playerId, textureUrl), EXECUTOR_SERVICE)
+            future = CompletableFuture.supplyAsync(() -> supplySkin(playerId, textureUrl), getExecutorService())
                     .whenCompleteAsync((skin, throwable) -> {
                         skin.updated = true;
                         CACHED_JAVA_SKINS.put(textureUrl, skin);
@@ -349,7 +363,7 @@ public class SkinProvider {
 
         CompletableFuture<Cape> future;
         if (newThread) {
-            future = CompletableFuture.supplyAsync(() -> supplyCape(capeUrl, provider), EXECUTOR_SERVICE)
+            future = CompletableFuture.supplyAsync(() -> supplyCape(capeUrl, provider), getExecutorService())
                     .whenCompleteAsync((cape, throwable) -> {
                         CACHED_JAVA_CAPES.put(capeUrl, cape);
                         requestedCapes.remove(capeUrl);
@@ -388,7 +402,7 @@ public class SkinProvider {
 
         CompletableFuture<Skin> future;
         if (newThread) {
-            future = CompletableFuture.supplyAsync(() -> supplyEars(skin, earsUrl), EXECUTOR_SERVICE)
+            future = CompletableFuture.supplyAsync(() -> supplyEars(skin, earsUrl), getExecutorService())
                     .whenCompleteAsync((outSkin, throwable) -> { });
         } else {
             Skin ears = supplyEars(skin, earsUrl); // blocking
@@ -460,7 +474,7 @@ public class SkinProvider {
 
     private static Skin supplySkin(UUID uuid, String textureUrl) {
         try {
-            byte[] skin = requestImage(textureUrl, null);
+            byte[] skin = requestImageData(textureUrl, null);
             return new Skin(uuid, textureUrl, skin, System.currentTimeMillis(), false, false);
         } catch (Exception ignored) {} // just ignore I guess
 
@@ -470,7 +484,7 @@ public class SkinProvider {
     private static Cape supplyCape(String capeUrl, CapeProvider provider) {
         byte[] cape = EMPTY_CAPE.capeData();
         try {
-            cape = requestImage(capeUrl, provider);
+            cape = requestImageData(capeUrl, provider);
         } catch (Exception ignored) {
         } // just ignore I guess
 
@@ -527,7 +541,7 @@ public class SkinProvider {
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    private static byte[] requestImage(String imageUrl, CapeProvider provider) throws Exception {
+    public static BufferedImage requestImage(String imageUrl, CapeProvider provider) throws IOException {
         BufferedImage image = null;
 
         // First see if we have a cached file. We also update the modification stamp so we know when the file was last used
@@ -587,6 +601,11 @@ public class SkinProvider {
             // TODO remove alpha channel
         }
 
+        return image;
+    }
+
+    private static byte[] requestImageData(String imageUrl, CapeProvider provider) throws Exception {
+        BufferedImage image = requestImage(imageUrl, provider);
         byte[] data = bufferedImageToImageData(image);
         image.flush();
         return data;
@@ -615,7 +634,7 @@ public class SkinProvider {
                 }
                 return null;
             }
-        }, EXECUTOR_SERVICE);
+        }, getExecutorService());
     }
 
     /**
@@ -641,7 +660,7 @@ public class SkinProvider {
                 }
                 return null;
             }
-        }, EXECUTOR_SERVICE).thenCompose(uuid -> {
+        }, getExecutorService()).thenCompose(uuid -> {
             if (uuid == null) {
                 return CompletableFuture.completedFuture(null);
             }

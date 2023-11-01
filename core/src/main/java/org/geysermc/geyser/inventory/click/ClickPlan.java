@@ -152,7 +152,7 @@ public final class ClickPlan {
                     changedItems
             );
 
-            session.sendDownstreamPacket(clickPacket);
+            session.sendDownstreamGamePacket(clickPacket);
         }
 
         session.getPlayerInventory().setCursor(simulatedCursor, session);

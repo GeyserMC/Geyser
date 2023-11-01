@@ -26,7 +26,6 @@
 package org.geysermc.geyser.platform.mod;
 
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.entity.player.Player;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.platform.mod.command.ModCommandSender;
@@ -35,7 +34,7 @@ import org.geysermc.geyser.util.VersionCheckUtils;
 public final class GeyserModUpdateListener {
     public static void onPlayReady(Player player) {
         CommandSourceStack stack = player.createCommandSourceStack();
-        if (GeyserModBootstrap.getInstance().hasPermission(player, Constants.UPDATE_PERMISSION, 2)) {
+        if (GeyserModBootstrap.getInstance().hasPermission(stack, Constants.UPDATE_PERMISSION, 2)) {
             VersionCheckUtils.checkForGeyserUpdate(() -> new ModCommandSender(stack));
         }
     }

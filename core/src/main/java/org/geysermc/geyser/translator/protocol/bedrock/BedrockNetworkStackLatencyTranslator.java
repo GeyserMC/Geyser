@@ -25,11 +25,10 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundKeepAlivePacket;
+import com.github.steveice10.mc.protocol.packet.common.serverbound.ServerboundKeepAlivePacket;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
-import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -46,37 +45,43 @@ public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<Netwo
 
     @Override
     public void translate(GeyserSession session, NetworkStackLatencyPacket packet) {
-        long pingId;
-        // so apparently, as of 1.16.200
-        // PS4 divides the network stack latency timestamp FOR US!!!
-        // WTF
-        if (session.getClientData().getDeviceOs().equals(DeviceOs.PS4)) {
-            pingId = packet.getTimestamp();
-        } else {
-            pingId = packet.getTimestamp() / 1000;
-        }
-
         // negative timestamps are used as hack to fix the url image loading bug
-        if (packet.getTimestamp() > 0) {
+        if (packet.getTimestamp() >= 0) {
             if (session.getGeyser().getConfig().isForwardPlayerPing()) {
-                ServerboundKeepAlivePacket keepAlivePacket = new ServerboundKeepAlivePacket(pingId);
+                // use our cached value because
+                // a) bedrock can be inaccurate with the value returned
+                // b) playstation replies with a different magnitude than other platforms
+                // c) 1.20.10 and later reply with a different magnitude
+                Long keepAliveId = session.getKeepAliveCache().poll();
+                if (keepAliveId == null) {
+                    session.getGeyser().getLogger().debug("Received a latency packet that we don't have a KeepAlive for: " + packet);
+                    return;
+                }
+
+                ServerboundKeepAlivePacket keepAlivePacket = new ServerboundKeepAlivePacket(keepAliveId);
                 session.sendDownstreamPacket(keepAlivePacket);
             }
             return;
         }
 
-        // Hack to fix the url image loading bug
-        UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
-        attributesPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+        session.scheduleInEventLoop(() -> {
+            // Hack to fix the url image loading bug
+            UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+            attributesPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
 
-        AttributeData attribute = session.getPlayerEntity().getAttributes().get(GeyserAttributeType.EXPERIENCE_LEVEL);
-        if (attribute != null) {
-            attributesPacket.setAttributes(Collections.singletonList(attribute));
-        } else {
-            attributesPacket.setAttributes(Collections.singletonList(GeyserAttributeType.EXPERIENCE_LEVEL.getAttribute(0)));
-        }
+            AttributeData attribute = session.getPlayerEntity().getAttributes().get(GeyserAttributeType.EXPERIENCE_LEVEL);
+            if (attribute != null) {
+                attributesPacket.setAttributes(Collections.singletonList(attribute));
+            } else {
+                attributesPacket.setAttributes(Collections.singletonList(GeyserAttributeType.EXPERIENCE_LEVEL.getAttribute(0)));
+            }
 
-        session.scheduleInEventLoop(() -> session.sendUpstreamPacket(attributesPacket),
-                500, TimeUnit.MILLISECONDS);
+            session.sendUpstreamPacket(attributesPacket);
+        }, 500, TimeUnit.MILLISECONDS);
+    }
+
+    @Override
+    public boolean shouldExecuteInEventLoop() {
+        return false;
     }
 }

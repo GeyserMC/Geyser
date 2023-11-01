@@ -125,7 +125,7 @@ public class FakeHeadProvider {
                 } catch (IOException e) {
                     GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid(), e.getMessage()));
                 }
-            });
+            }, GeyserImpl.getInstance().platformExecutor());
         }
     }
 

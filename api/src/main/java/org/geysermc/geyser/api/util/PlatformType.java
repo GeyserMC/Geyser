@@ -29,12 +29,16 @@ package org.geysermc.geyser.api.util;
  * Represents the platform Geyser is running on.
  */
 public record PlatformType(String platformName) {
-    public static PlatformType ANDROID = new PlatformType("Android");
-    public static PlatformType BUNGEECORD = new PlatformType("BungeeCord");
-    public static PlatformType FABRIC = new PlatformType("Fabric");
-    public static PlatformType FORGE = new PlatformType("Forge");
-    public static PlatformType SPIGOT = new PlatformType("Spigot");
-    public static PlatformType SPONGE = new PlatformType("Sponge");
-    public static PlatformType STANDALONE = new PlatformType("Standalone");
-    public static PlatformType VELOCITY = new PlatformType("Velocity");
+
+    @Deprecated
+    public static final PlatformType ANDROID = new PlatformType("Android");
+    public static final PlatformType BUNGEECORD = new PlatformType("BungeeCord");
+    public static final PlatformType FABRIC = new PlatformType("Fabric");
+    public static final PlatformType FORGE = new PlatformType("Forge");
+    public static final PlatformType SPIGOT = new PlatformType("Spigot");
+
+    @Deprecated
+    public static final PlatformType SPONGE = new PlatformType("Sponge");
+    public static final PlatformType STANDALONE = new PlatformType("Standalone");
+    public static final PlatformType VELOCITY = new PlatformType("Velocity");
 }
