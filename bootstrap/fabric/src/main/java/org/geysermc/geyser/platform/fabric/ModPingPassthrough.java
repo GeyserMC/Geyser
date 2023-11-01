@@ -95,7 +95,7 @@ public class ModPingPassthrough implements IGeyserPingPassthrough {
 
         ServerStatus status;
 
-        public StatusInterceptor() {
+        StatusInterceptor() {
             super(PacketFlow.SERVERBOUND); // we are the server.
         }
 
