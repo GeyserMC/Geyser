@@ -37,49 +37,51 @@ import org.geysermc.geyser.session.GeyserSession;
 public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder builder, CompoundTag tag, int blockState) {
-        Tag current;
+        if (tag != null) {
+            Tag current;
 
-        if ((current = tag.get("MaxNearbyEntities")) != null) {
-            builder.put("MaxNearbyEntities", current.getValue());
-        }
+            if ((current = tag.get("MaxNearbyEntities")) != null) {
+                builder.put("MaxNearbyEntities", current.getValue());
+            }
 
-        if ((current = tag.get("RequiredPlayerRange")) != null) {
-            builder.put("RequiredPlayerRange", current.getValue());
-        }
+            if ((current = tag.get("RequiredPlayerRange")) != null) {
+                builder.put("RequiredPlayerRange", current.getValue());
+            }
 
-        if ((current = tag.get("SpawnCount")) != null) {
-            builder.put("SpawnCount", current.getValue());
-        }
+            if ((current = tag.get("SpawnCount")) != null) {
+                builder.put("SpawnCount", current.getValue());
+            }
 
-        if ((current = tag.get("MaxSpawnDelay")) != null) {
-            builder.put("MaxSpawnDelay", current.getValue());
-        }
+            if ((current = tag.get("MaxSpawnDelay")) != null) {
+                builder.put("MaxSpawnDelay", current.getValue());
+            }
 
-        if ((current = tag.get("Delay")) != null) {
-            builder.put("Delay", current.getValue());
-        }
+            if ((current = tag.get("Delay")) != null) {
+                builder.put("Delay", current.getValue());
+            }
 
-        if ((current = tag.get("SpawnRange")) != null) {
-            builder.put("SpawnRange", current.getValue());
-        }
+            if ((current = tag.get("SpawnRange")) != null) {
+                builder.put("SpawnRange", current.getValue());
+            }
 
-        if ((current = tag.get("MinSpawnDelay")) != null) {
-            builder.put("MinSpawnDelay", current.getValue());
-        }
+            if ((current = tag.get("MinSpawnDelay")) != null) {
+                builder.put("MinSpawnDelay", current.getValue());
+            }
 
-        CompoundTag spawnData = tag.get("SpawnData");
-        if (spawnData != null) {
-            StringTag idTag = ((CompoundTag) spawnData.get("entity")).get("id");
-            if (idTag != null) {
-                // As of 1.19.3, spawners can be empty
-                String entityId = idTag.getValue();
-                builder.put("EntityIdentifier", entityId);
+            CompoundTag spawnData = tag.get("SpawnData");
+            if (spawnData != null) {
+                StringTag idTag = ((CompoundTag) spawnData.get("entity")).get("id");
+                if (idTag != null) {
+                    // As of 1.19.3, spawners can be empty
+                    String entityId = idTag.getValue();
+                    builder.put("EntityIdentifier", entityId);
 
-                EntityDefinition<?> definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityId);
-                if (definition != null) {
-                    builder.put("DisplayEntityWidth", definition.width());
-                    builder.put("DisplayEntityHeight", definition.height());
-                    builder.put("DisplayEntityScale", 1.0f);
+                    EntityDefinition<?> definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityId);
+                    if (definition != null) {
+                        builder.put("DisplayEntityWidth", definition.width());
+                        builder.put("DisplayEntityHeight", definition.height());
+                        builder.put("DisplayEntityScale", 1.0f);
+                    }
                 }
             }
         }

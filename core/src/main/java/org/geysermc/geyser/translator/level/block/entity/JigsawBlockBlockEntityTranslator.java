@@ -36,6 +36,9 @@ import org.geysermc.geyser.session.GeyserSession;
 public class JigsawBlockBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder builder, CompoundTag tag, int blockState) {
+        if (tag == null) {
+            return;
+        }
         Tag jointTag = tag.get("joint");
         if (jointTag instanceof StringTag) {
             builder.put("joint", ((StringTag) jointTag).getValue());

@@ -42,6 +42,9 @@ public class BrushableBlockEntityTranslator extends BlockEntityTranslator implem
 
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder builder, CompoundTag tag, int blockState) {
+        if (tag == null) {
+            return;
+        }
         if (!(tag.remove("item") instanceof CompoundTag itemTag)) {
             return;
         }

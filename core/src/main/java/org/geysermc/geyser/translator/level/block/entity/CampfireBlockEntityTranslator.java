@@ -39,6 +39,9 @@ import org.geysermc.geyser.session.GeyserSession;
 public class CampfireBlockEntityTranslator extends BlockEntityTranslator {
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder builder, CompoundTag tag, int blockState) {
+        if (tag == null) {
+            return;
+        }
         if (tag.get("Items") instanceof ListTag items) {
             int i = 1;
             for (Tag itemTag : items.getValue()) {

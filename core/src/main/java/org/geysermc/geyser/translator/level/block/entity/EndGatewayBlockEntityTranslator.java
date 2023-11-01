@@ -42,6 +42,10 @@ import java.util.LinkedHashMap;
 public class EndGatewayBlockEntityTranslator extends BlockEntityTranslator {
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder builder, CompoundTag tag, int blockState) {
+        if (tag == null) {
+            return;
+        }
+        
         Tag ageTag = tag.get("Age");
         if (ageTag instanceof LongTag) {
             builder.put("Age", (int) ((long) ageTag.getValue()));

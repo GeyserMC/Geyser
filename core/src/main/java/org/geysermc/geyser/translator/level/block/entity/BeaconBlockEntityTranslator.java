@@ -33,6 +33,12 @@ import org.geysermc.geyser.session.GeyserSession;
 public class BeaconBlockEntityTranslator extends BlockEntityTranslator {
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder builder, CompoundTag tag, int blockState) {
+        if (tag == null) {
+            builder.putInt("primary", 0);
+            builder.putInt("secondary", 0);
+            return;
+        }
+        
         int primary = getOrDefault(tag.get("Primary"), 0);
         // The effects here generally map one-to-one Java <-> Bedrock. Only the newer ones get more complicated
         builder.putInt("primary", primary == -1 ? 0 : primary);
