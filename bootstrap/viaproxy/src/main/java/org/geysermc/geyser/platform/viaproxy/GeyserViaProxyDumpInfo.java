@@ -27,7 +27,6 @@ package org.geysermc.geyser.platform.viaproxy;
 import lombok.Getter;
 import net.raphimc.viaproxy.ViaProxy;
 import net.raphimc.viaproxy.cli.options.Options;
-import net.raphimc.viaproxy.plugins.PluginManager;
 import net.raphimc.viaproxy.plugins.ViaProxyPlugin;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.text.AsteriskSerializer;
@@ -54,7 +53,7 @@ public class GeyserViaProxyDumpInfo extends BootstrapDumpInfo {
         this.serverPort = Options.BIND_PORT;
         this.plugins = new ArrayList<>();
 
-        for (ViaProxyPlugin plugin : PluginManager.getPlugins()) {
+        for (ViaProxyPlugin plugin : ViaProxy.getPluginManager().getPlugins()) {
             this.plugins.add(new PluginInfo(true, plugin.getName(), plugin.getVersion(), "unknown", Collections.singletonList(plugin.getAuthor())));
         }
     }

@@ -26,17 +26,20 @@
 package org.geysermc.geyser.platform.viaproxy;
 
 import net.lenni0451.lambdaevents.EventHandler;
+import net.raphimc.viaproxy.ViaProxy;
 import net.raphimc.viaproxy.plugins.PluginManager;
 import net.raphimc.viaproxy.plugins.ViaProxyPlugin;
 import net.raphimc.viaproxy.plugins.events.ConsoleCommandEvent;
 import net.raphimc.viaproxy.plugins.events.ProxyStartEvent;
-import net.raphimc.viaproxy.plugins.events.ProxyStopEvent;
+import net.raphimc.viaproxy.plugins.events.ShouldVerifyOnlineModeEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.io.File;
+import java.util.UUID;
 
 public class GeyserViaProxyPlugin extends ViaProxyPlugin {
 
@@ -52,13 +55,12 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin {
         this.bootstrap = new GeyserViaProxyBootstrap(LOGGER, ROOT_FOLDER);
         GeyserLocale.init(this.bootstrap);
         this.bootstrap.onEnable();
-        GeyserImpl.getInstance().shutdown();
 
-        PluginManager.EVENT_MANAGER.register(this);
+        ViaProxy.EVENT_MANAGER.register(this);
     }
 
     @EventHandler
-    public void onConsoleCommand(final ConsoleCommandEvent event) {
+    private void onConsoleCommand(final ConsoleCommandEvent event) {
         if (event.getCommand().equals("geyser") || event.getCommand().equals("/geyser")) {
             event.setCancelled(true);
 
@@ -66,17 +68,23 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin {
         }
     }
 
-    // Code below split apart from GeyserImpl.getInstance().reload();
-
     @EventHandler
-    public void onProxyStart(final ProxyStartEvent event) {
-        GeyserImpl.getInstance().extensionManager().enableExtensions();
-        this.bootstrap.onEnable();
+    private void onShouldVerifyOnlineModeEvent(final ShouldVerifyOnlineModeEvent event) {
+        final UUID uuid = event.getProxyConnection().getGameProfile().getId();
+        if (uuid == null) return;
+
+        final GeyserSession connection = GeyserImpl.getInstance().onlineConnections().stream().filter(s -> s.javaUuid().equals(uuid)).findAny().orElse(null);
+        if (connection == null) return;
+
+        if (connection.javaUsername().equals(event.getProxyConnection().getGameProfile().getName())) {
+            event.setCancelled(true);
+        }
     }
 
     @EventHandler
-    public void onProxyStop(final ProxyStopEvent event) {
-        GeyserImpl.getInstance().shutdown();
+    private void onProxyStart(final ProxyStartEvent event) {
+        GeyserImpl.getInstance().getSessionManager().disconnectAll("geyser.commands.reload.kick");
+        GeyserImpl.getInstance().reload();
     }
 
 }

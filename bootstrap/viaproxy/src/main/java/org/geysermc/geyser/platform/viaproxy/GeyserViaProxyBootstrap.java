@@ -73,7 +73,7 @@ public class GeyserViaProxyBootstrap implements GeyserBootstrap {
             return;
         }
 
-        config.getRemote().setAuthType(Options.ONLINE_MODE ? AuthType.ONLINE : AuthType.OFFLINE);
+        config.getRemote().setAuthType(AuthType.OFFLINE);
         GeyserConfiguration.checkGeyserConfiguration(this.config, this.logger);
 
         this.geyser = GeyserImpl.load(PlatformType.VIAPROXY, this);
