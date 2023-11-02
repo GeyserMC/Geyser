@@ -492,7 +492,6 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                 } else {
                     // deal with empty sections for worlds with higher java min y
                     int subChunkIndex = (i + (bedrockDimension.minY() >> 4));
-                    session.getGeyser().getLogger().info("NULL subChunkIndex " + subChunkIndex + " i " + i);
                     new GeyserChunkSection(EMPTY_BLOCK_STORAGE, subChunkIndex).writeToNetwork(byteBuf);
                 }
             }
