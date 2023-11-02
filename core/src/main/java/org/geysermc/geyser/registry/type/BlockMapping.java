@@ -56,7 +56,6 @@ public class BlockMapping {
     PistonBehavior pistonBehavior;
     boolean isJavaBlockEntity;
     boolean isBedrockBlockEntity;
-    boolean isBedrockOnlyBlockEntity;
     boolean isNonVanilla;
 
     /**

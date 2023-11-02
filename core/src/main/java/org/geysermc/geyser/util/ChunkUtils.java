@@ -211,7 +211,7 @@ public class ChunkUtils {
 
         BlockStateValues.getLecternBookStates().handleBlockChange(session, blockState, position);
 
-        if (BlockRegistries.JAVA_BLOCKS.getOrDefault(blockState, BlockMapping.DEFAULT).isBedrockOnlyBlockEntity()) {
+        if (BlockRegistries.JAVA_BLOCKS.getOrDefault(blockState, BlockMapping.DEFAULT).isBedrockBlockEntity()) {
             String blockEntity = BlockRegistries.JAVA_BLOCKS.getOrDefault(blockState, BlockMapping.DEFAULT).getBedrockBlockEntity();
             
             BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(blockEntity);

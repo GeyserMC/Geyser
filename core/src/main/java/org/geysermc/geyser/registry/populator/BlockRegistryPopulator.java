@@ -434,29 +434,19 @@ public final class BlockRegistryPopulator {
                 }
             }
 
-            boolean isJavaBlockEntity;
             JsonNode hasJavaBlockEntityNode = entry.getValue().get("has_block_entity");
             if (hasJavaBlockEntityNode != null) {
-                isJavaBlockEntity = hasJavaBlockEntityNode.booleanValue();
+                builder.isJavaBlockEntity(hasJavaBlockEntityNode.booleanValue());
             } else {
-                isJavaBlockEntity = false;
+                builder.isJavaBlockEntity(false);
             }
-            builder.isJavaBlockEntity(isJavaBlockEntity);
 
-            boolean isBedrockBlockEntity;
             JsonNode bedrockBlockEntityNode = entry.getValue().get("bedrock_block_entity");
             if (bedrockBlockEntityNode != null) {
                 builder.bedrockBlockEntity(bedrockBlockEntityNode.textValue().intern());
-                isBedrockBlockEntity = true;
+                builder.isBedrockBlockEntity(true);
             } else {
-                isBedrockBlockEntity = false;
-            }
-            builder.isBedrockBlockEntity(isBedrockBlockEntity);
-
-            if (!isJavaBlockEntity && isBedrockBlockEntity) {
-                builder.isBedrockOnlyBlockEntity(true);
-            } else {
-                builder.isBedrockOnlyBlockEntity(false);
+                builder.isBedrockBlockEntity(false);
             }
 
             BlockStateValues.storeBlockStateValues(entry.getKey(), javaRuntimeId, entry.getValue());
