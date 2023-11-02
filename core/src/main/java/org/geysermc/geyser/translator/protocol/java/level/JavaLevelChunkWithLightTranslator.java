@@ -82,6 +82,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.geysermc.geyser.util.ChunkUtils.EMPTY_BLOCK_STORAGE;
+import static org.geysermc.geyser.util.ChunkUtils.EMPTY_CHUNK_SECTION_SIZE;
 import static org.geysermc.geyser.util.ChunkUtils.indexYZXtoXZY;
 
 @Translator(packet = ClientboundLevelChunkWithLightPacket.class)
@@ -133,7 +134,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                 boolean thisExtendedCollisionNextSection = false;
 
                 int bedrockSectionY = sectionY + (yOffset - (bedrockDimension.minY() >> 4));
-                int subChunkIndex = sectionY + (bedrockDimension.minY() >> 4);
+                int subChunkIndex = sectionY + yOffset;
 
                 if (bedrockSectionY < 0 || maxBedrockSectionY < bedrockSectionY) {
                     // Ignore this chunk section since it goes outside the bounds accepted by the Bedrock client
@@ -161,6 +162,8 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
     
                             BlockStorage[] layers = new BlockStorage[]{ layer0 };
                             sections[bedrockSectionY] = new GeyserChunkSection(layers, subChunkIndex);
+                        } else {
+                            sections[bedrockSectionY] = new GeyserChunkSection(EMPTY_BLOCK_STORAGE, subChunkIndex);
                         }
                         EXTENDED_COLLISIONS_STORAGE.get().clear();
                         extendedCollisionNextSection = false;
@@ -470,7 +473,11 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             int size = 0;
             for (int i = 0; i < sectionCount; i++) {
                 GeyserChunkSection section = sections[i];
-                size += section.estimateNetworkSize();
+                if (section != null) {
+                    size += section.estimateNetworkSize();
+                } else {
+                    size += EMPTY_CHUNK_SECTION_SIZE;
+                }
             }
             size += ChunkUtils.EMPTY_BIOME_DATA.length * biomeCount;
             size += 1; // Border blocks
@@ -480,7 +487,14 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             byteBuf = ByteBufAllocator.DEFAULT.ioBuffer(size);
             for (int i = 0; i < sectionCount; i++) {
                 GeyserChunkSection section = sections[i];
-                section.writeToNetwork(byteBuf);
+                if (section != null) {
+                    section.writeToNetwork(byteBuf);
+                } else {
+                    // deal with empty sections for worlds with higher java min y
+                    int subChunkIndex = (i + (bedrockDimension.minY() >> 4));
+                    session.getGeyser().getLogger().info("NULL subChunkIndex " + subChunkIndex + " i " + i);
+                    new GeyserChunkSection(EMPTY_BLOCK_STORAGE, subChunkIndex).writeToNetwork(byteBuf);
+                }
             }
 
             int dimensionOffset = bedrockDimension.minY() >> 4;

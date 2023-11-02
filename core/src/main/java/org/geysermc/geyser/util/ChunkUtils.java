@@ -42,6 +42,7 @@ import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.chunk.BlockStorage;
+import org.geysermc.geyser.level.chunk.GeyserChunkSection;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
@@ -62,10 +63,27 @@ public class ChunkUtils {
 
     public static final BlockStorage[] EMPTY_BLOCK_STORAGE;
 
+    public static final int EMPTY_CHUNK_SECTION_SIZE;
+
     static {
         EMPTY_BLOCK_STORAGE = new BlockStorage[0];
 
         ByteBuf byteBuf = Unpooled.buffer();
+
+        try {
+            new GeyserChunkSection(EMPTY_BLOCK_STORAGE, 0)
+                    .writeToNetwork(byteBuf);
+            byte[] emptyChunkData = new byte[byteBuf.readableBytes()];
+            byteBuf.readBytes(emptyChunkData);
+
+            EMPTY_CHUNK_SECTION_SIZE = emptyChunkData.length;
+
+            emptyChunkData = null;
+        } finally {
+            byteBuf.release();
+        }
+
+        byteBuf = Unpooled.buffer();
 
         try {
             BlockStorage blockStorage = new BlockStorage(SingletonBitArray.INSTANCE, IntLists.singleton(0));
