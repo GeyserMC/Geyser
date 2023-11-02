@@ -110,6 +110,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             } else if (protocolVersion < GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.client", supportedVersions));
                 return false;
+            } else {
+                throw new IllegalStateException("Default codec of protocol version " + protocolVersion + " should have been found");
             }
         }
 

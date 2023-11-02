@@ -129,7 +129,7 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
             return rejectRequest(request);
         }
         ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(inventory.getJavaId(), javaSlot);
-        session.sendDownstreamPacket(packet);
+        session.sendDownstreamGamePacket(packet);
         return acceptRequest(request, makeContainerEntries(session, inventory, IntSets.emptySet()));
     }
 
