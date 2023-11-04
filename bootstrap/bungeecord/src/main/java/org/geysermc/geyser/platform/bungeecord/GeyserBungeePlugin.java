@@ -70,6 +70,8 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     private GeyserImpl geyser;
 
+    private static boolean INITIALIZED = false;
+
     @SuppressWarnings({"JavaReflectionMemberAccess", "ResultOfMethodCallIgnored"})
     @Override
     public void onLoad() {
@@ -134,7 +136,12 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         // Big hack - Bungee does not provide us an event to listen to, so schedule a repeating
         // task that waits for a field to be filled which is set after the plugin enable
         // process is complete
-        this.awaitStartupCompletion(0);
+        if (!INITIALIZED) {
+            this.awaitStartupCompletion(0);
+        } else {
+            // No need to "wait" for startup completion, just start Geyser - we're reloading.
+            this.postStartup();
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -167,8 +174,10 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     private void postStartup() {
         GeyserImpl.start();
 
-        this.geyserInjector = new GeyserBungeeInjector(this);
-        this.geyserInjector.initializeLocalChannel(this);
+        if (!INITIALIZED) {
+            this.geyserInjector = new GeyserBungeeInjector(this);
+            this.geyserInjector.initializeLocalChannel(this);
+        }
 
         this.geyserCommandManager = new GeyserCommandManager(geyser);
         this.geyserCommandManager.init();
@@ -188,6 +197,8 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         } else {
             this.geyserBungeePingPassthrough = new GeyserBungeePingPassthrough(getProxy());
         }
+
+        INITIALIZED = true;
     }
 
     @Override
