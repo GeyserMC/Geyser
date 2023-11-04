@@ -99,9 +99,9 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
      * Item Tags allow mixing ingredients, and theoretically, adding item tags to custom items should also include them.
      */
     private static final Map<String, String> RECIPE_TAGS = Map.of(
-    "minecraft:wood", "minecraft:logs",
-    "minecraft:wooden_slab", "minecraft:wooden_slabs",
-    "minecraft:planks", "minecraft:planks");
+        "minecraft:wood", "minecraft:logs",
+        "minecraft:wooden_slab", "minecraft:wooden_slabs",
+        "minecraft:planks", "minecraft:planks");
 
     @Override
     public void translate(GeyserSession session, ClientboundUpdateRecipesPacket packet) {
