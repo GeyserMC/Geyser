@@ -308,15 +308,17 @@ public class GeyserImpl implements GeyserApi {
                 }
             }
 
-            boolean floodgatePresent = bootstrap.testFloodgatePluginPresent();
-            if (config.getRemote().authType() == AuthType.FLOODGATE && !floodgatePresent) {
-                logger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " "
-                        + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
-                return;
-            } else if (config.isAutoconfiguredRemote() && floodgatePresent) {
-                // Floodgate installed means that the user wants Floodgate authentication
-                logger.debug("Auto-setting to Floodgate authentication.");
-                config.getRemote().setAuthType(AuthType.FLOODGATE);
+            if (platformType != PlatformType.VIAPROXY) {
+                boolean floodgatePresent = bootstrap.testFloodgatePluginPresent();
+                if (config.getRemote().authType() == AuthType.FLOODGATE && !floodgatePresent) {
+                    logger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " "
+                            + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
+                    return;
+                } else if (config.isAutoconfiguredRemote() && floodgatePresent) {
+                    // Floodgate installed means that the user wants Floodgate authentication
+                    logger.debug("Auto-setting to Floodgate authentication.");
+                    config.getRemote().setAuthType(AuthType.FLOODGATE);
+                }
             }
         }
 

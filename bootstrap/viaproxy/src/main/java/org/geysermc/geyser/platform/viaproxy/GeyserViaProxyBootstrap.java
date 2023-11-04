@@ -43,6 +43,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
 
@@ -73,7 +74,7 @@ public class GeyserViaProxyBootstrap implements GeyserBootstrap {
             return;
         }
 
-        config.getRemote().setAuthType(AuthType.OFFLINE);
+        config.getRemote().setAuthType(Files.isRegularFile(this.config.getFloodgateKeyPath()) ? AuthType.FLOODGATE : AuthType.OFFLINE);
         GeyserConfiguration.checkGeyserConfiguration(this.config, this.logger);
 
         this.geyser = GeyserImpl.load(PlatformType.VIAPROXY, this);
