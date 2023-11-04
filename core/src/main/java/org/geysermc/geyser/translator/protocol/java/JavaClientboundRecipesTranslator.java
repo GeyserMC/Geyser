@@ -66,12 +66,12 @@ public class JavaClientboundRecipesTranslator extends PacketTranslator<Clientbou
     private List<String> getBedrockRecipes(GeyserSession session, String[] javaRecipeIdentifiers) {
         List<String> recipes = new ArrayList<>();
         for (String javaIdentifier : javaRecipeIdentifiers) {
-            if (!session.getJavaToBedrockRecipeIds().containsKey(javaIdentifier)) {
-                // Some recipes are not (un)lockable on Bedrock edition, like furnace or stonecutter recipes.
-                // So we don't store/send these.
-                continue;
+            List<String> bedrockRecipes = session.getJavaToBedrockRecipeIds().get(javaIdentifier);
+            // Some recipes are not (un)lockable on Bedrock edition, like furnace or stonecutter recipes.
+            // So we don't store/send these.
+            if (bedrockRecipes != null) {
+                recipes.addAll(bedrockRecipes);
             }
-            recipes.addAll(session.getJavaToBedrockRecipeIds().get(javaIdentifier));
         }
         return recipes;
     }

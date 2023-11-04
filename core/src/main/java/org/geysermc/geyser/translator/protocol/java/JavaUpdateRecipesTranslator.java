@@ -35,7 +35,6 @@ import com.github.steveice10.mc.protocol.data.game.recipe.data.SmithingTransform
 import com.github.steveice10.mc.protocol.data.game.recipe.data.StoneCuttingRecipeData;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateRecipesPacket;
 import it.unimi.dsi.fastutil.ints.*;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
@@ -99,11 +98,10 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
      * Fixes https://github.com/GeyserMC/Geyser/issues/3784 by using item tags where applicable instead of group IDs
      * Item Tags allow mixing ingredients, and theoretically, adding item tags to custom items should also include them.
      */
-    private static final Map<String, String> RECIPE_TAGS = new Object2ObjectOpenHashMap<>() {{
-        put("minecraft:wood", "minecraft:logs");
-        put("minecraft:wooden_slab", "minecraft:wooden_slabs");
-        put("minecraft:planks", "minecraft:planks");
-    }};
+    private static final Map<String, String> RECIPE_TAGS = Map.of(
+    "minecraft:wood", "minecraft:logs",
+    "minecraft:wooden_slab", "minecraft:wooden_slabs",
+    "minecraft:planks", "minecraft:planks");
 
     @Override
     public void translate(GeyserSession session, ClientboundUpdateRecipesPacket packet) {
@@ -338,8 +336,9 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 if (entry.getValue().size() > 1) {
                     GroupedItem groupedItem = entry.getKey();
 
-                    if (RECIPE_TAGS.containsKey(groupedItem.id.getIdentifier())) {
-                        optionSet.add(new ItemDescriptorWithCount(new ItemTagDescriptor(RECIPE_TAGS.get(groupedItem.id.getIdentifier())), groupedItem.count));
+                    String recipeTag = RECIPE_TAGS.get(groupedItem.id.getIdentifier());
+                    if (recipeTag != null) {
+                        optionSet.add(new ItemDescriptorWithCount(new ItemTagDescriptor(recipeTag), groupedItem.count));
                         continue;
                     }
 
@@ -404,11 +403,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
     }
 
     private void addRecipeIdentifier(GeyserSession session, String javaIdentifier, List<String> bedrockIdentifiers) {
-        if (session.getJavaToBedrockRecipeIds().containsKey(javaIdentifier)) {
-            session.getJavaToBedrockRecipeIds().get(javaIdentifier).addAll(bedrockIdentifiers);
-        } else {
-            session.getJavaToBedrockRecipeIds().put(javaIdentifier, bedrockIdentifiers);
-        }
+        session.getJavaToBedrockRecipeIds().computeIfAbsent(javaIdentifier, k -> new ArrayList<>()).addAll(bedrockIdentifiers);
     }
 
     @EqualsAndHashCode
