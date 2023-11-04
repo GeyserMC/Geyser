@@ -299,8 +299,9 @@ public final class EntityDefinitions {
                     .build();
 
             EntityDefinition<Entity> displayBase = EntityDefinition.inherited(entityBase.factory(), entityBase)
-                    .addTranslator(null) // Interpolation start ticks
-                    .addTranslator(null) // Interpolation duration ID
+                    .addTranslator(null) // Interpolation delay
+                    .addTranslator(null) // Transformation interpolation duration
+                    .addTranslator(null) // Position/Rotation interpolation duration
                     .addTranslator(null) // Translation
                     .addTranslator(null) // Scale
                     .addTranslator(null) // Left rotation
@@ -318,6 +319,10 @@ public final class EntityDefinitions {
                     .type(EntityType.TEXT_DISPLAY)
                     .identifier("minecraft:armor_stand")
                     .addTranslator(MetadataType.CHAT, TextDisplayEntity::setText)
+                    .addTranslator(null) // Line width
+                    .addTranslator(null) // Background color
+                    .addTranslator(null) // Text opacity
+                    .addTranslator(null) // Bit mask
                     .build();
 
             INTERACTION = EntityDefinition.inherited(InteractionEntity::new, entityBase)
