@@ -31,6 +31,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Value;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.component.GeometryComponent;
@@ -42,6 +43,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Objects;
 
 @Value
 public class GeyserCustomBlockComponents implements CustomBlockComponents {
@@ -291,8 +293,8 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         }
 
         @Override
-        public Builder tags(@NonNull Set<String> tags) {
-            this.tags = tags;
+        public Builder tags(@Nullable Set<String> tags) {
+            this.tags = Objects.requireNonNullElseGet(tags, Set::of);
             return this;
         }
 
