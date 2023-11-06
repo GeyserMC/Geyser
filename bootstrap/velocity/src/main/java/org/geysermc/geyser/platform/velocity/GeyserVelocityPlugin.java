@@ -154,6 +154,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         }
 
         proxyServer.getEventManager().register(this, new GeyserVelocityUpdateListener());
+        INITIALIZED = true;
     }
 
     @Override
@@ -207,8 +208,6 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
                 geyserInjector.initializeLocalChannel(this);
             }
         }
-
-        INITIALIZED = true;
     }
 
     @Override
