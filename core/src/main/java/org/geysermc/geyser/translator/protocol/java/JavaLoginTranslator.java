@@ -64,6 +64,10 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             DimensionUtils.switchDimension(session, fakeDim);
 
             session.getWorldCache().removeScoreboard();
+
+            // Remove all bossbars
+            session.getEntityCache().removeAllBossBars();
+            session.getEntityCache().removeAllEntities();
         }
         session.setWorldName(spawnInfo.getWorldName());
         session.setLevels(packet.getWorldNames());
