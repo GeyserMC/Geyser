@@ -154,7 +154,6 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         }
 
         proxyServer.getEventManager().register(this, new GeyserVelocityUpdateListener());
-        INITIALIZED = true;
     }
 
     @Override
@@ -207,6 +206,8 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
                 // After this bound, we know that the channel initializer cannot change without it being ineffective for Velocity, too
                 geyserInjector.initializeLocalChannel(this);
             }
+
+            INITIALIZED = true;
         }
     }
 
