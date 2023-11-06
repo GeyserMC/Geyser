@@ -206,9 +206,9 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
                 // After this bound, we know that the channel initializer cannot change without it being ineffective for Velocity, too
                 geyserInjector.initializeLocalChannel(this);
             }
-        }
 
-        INITIALIZED = true;
+            INITIALIZED = true;
+        }
     }
 
     @Override
