@@ -67,13 +67,14 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
 
             // Remove all bossbars
             session.getEntityCache().removeAllBossBars();
-            session.getEntityCache().removeAllEntities();
+            // Remove extra hearts, hunger, etc.
+            entity.getAttributes().clear();
+            entity.resetMetadata();
         }
+
         session.setWorldName(spawnInfo.getWorldName());
         session.setLevels(packet.getWorldNames());
-
         session.setGameMode(spawnInfo.getGameMode());
-
         String newDimension = spawnInfo.getDimension();
 
         boolean needsSpawnPacket = !session.isSentSpawnPacket();
@@ -85,9 +86,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
 
             // It is now safe to send these packets
             session.getUpstream().sendPostStartGamePackets();
-        }
-
-        if (!needsSpawnPacket) {
+        } else {
             SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
             playerGameTypePacket.setGamemode(EntityUtils.toBedrockGamemode(spawnInfo.getGameMode()).ordinal());
             session.sendUpstreamPacket(playerGameTypePacket);
