@@ -27,6 +27,7 @@ package org.geysermc.geyser.pack.url;
 
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.UrlPackCodec;
 import org.geysermc.geyser.pack.path.GeyserPathPackCodec;
@@ -39,7 +40,7 @@ public class GeyserUrlPackCodec extends UrlPackCodec {
     private final String url;
     private final String contentKey;
     @Getter
-    private final GeyserPathPackCodec fallback;
+    private GeyserPathPackCodec fallback;
 
     public GeyserUrlPackCodec(String url) throws IllegalArgumentException {
         this(url, "");
@@ -48,31 +49,49 @@ public class GeyserUrlPackCodec extends UrlPackCodec {
     public GeyserUrlPackCodec(String url, String contentKey) throws IllegalArgumentException {
         this.url = url;
         this.contentKey = contentKey;
-        try {
-            this.fallback = new GeyserPathPackCodec(ResourcePackLoader.downloadPack(url).get());
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Unable to download pack from " + url, e);
-        }
     }
 
     @Override
     public byte @NonNull [] sha256() {
+        if (this.fallback == null) {
+            throw new IllegalStateException("Fallback pack not initialized! Needs to be created first.");
+        }
         return fallback.sha256();
     }
 
     @Override
     public long size() {
+        if (this.fallback == null) {
+            throw new IllegalStateException("Fallback pack not initialized! Needs to be created first.");
+        }
         return fallback.size();
     }
 
     @Override
     public @NonNull SeekableByteChannel serialize(@NonNull ResourcePack resourcePack) throws IOException {
+        if (this.fallback == null) {
+            throw new IllegalStateException("Fallback pack not initialized! Needs to be created first.");
+        }
         return fallback.serialize(resourcePack);
     }
 
     @Override
     @NonNull
     public ResourcePack create() {
+        if (this.fallback == null) {
+            try {
+                this.fallback = new GeyserPathPackCodec(ResourcePackLoader.downloadPack(url).whenComplete((pack, throwable) -> {
+                    if (throwable != null) {
+                        GeyserImpl.getInstance().getLogger().error("Failed to download pack from " + url, throwable);
+                        if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
+                            throwable.printStackTrace();
+                        }
+                    }
+                }).join());
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Unable to download pack from " + url, e);
+            }
+        }
         return ResourcePackLoader.loadDownloadedPack(this);
     }
 

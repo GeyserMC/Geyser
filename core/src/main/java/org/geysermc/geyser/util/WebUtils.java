@@ -105,19 +105,25 @@ public class WebUtils {
      * @param url The URL to check
      * @return Path to the downloaded pack file
      */
-    public static CompletableFuture<@Nullable Path> checkRemotePackUrl(String url) {
+    public static CompletableFuture<@Nullable Path> checkUrlAndDownloadRemotePack(String url) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
                 con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION);
                 int size = con.getContentLength();
                 String type = con.getContentType();
-                InputStream in = con.getInputStream();
 
-                if (size < 1 || !type.equals("application/zip")) {
-                    GeyserImpl.getInstance().getLogger().error("Invalid resource pack: " + url + " (" + type + ", " + size + " bytes)");
-                    //return null;
+                if (size <= 0) {
+                    GeyserImpl.getInstance().getLogger().error(String.format("Invalid size from remote pack URL: %s (size: %d)", url, size));
+                    return null;
                 }
+
+                if (type == null || !type.equals("application/zip")) {
+                    GeyserImpl.getInstance().getLogger().error(String.format("Invalid application type from remote pack URL: %s (type: %s)", url, type));
+                    return null;
+                }
+
+                InputStream in = con.getInputStream();
                 Path fileLocation = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs").resolve(url.hashCode() + ".zip");
                 Files.copy(in, fileLocation, StandardCopyOption.REPLACE_EXISTING);
 

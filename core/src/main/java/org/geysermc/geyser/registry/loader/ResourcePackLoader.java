@@ -230,16 +230,20 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
     }
 
     public static CompletableFuture<@Nullable Path> downloadPack(String url) throws IllegalArgumentException {
-        CompletableFuture<Path> future = WebUtils.checkRemotePackUrl(url);
-        AtomicReference<Path> pathAtomicReference = new AtomicReference<>();
+        CompletableFuture<Path> future = WebUtils.checkUrlAndDownloadRemotePack(url);
         future.whenCompleteAsync((cachedPath, throwable) -> {
-            if (cachedPath == null || throwable != null) {
+            if (cachedPath == null) {
+                return;
+            }
+
+            if (throwable != null) {
+                GeyserImpl.getInstance().getLogger().error("Failed to download resource pack " + url, throwable);
                 return;
             }
 
             // Check if the pack is a .zip or .mcpack file
             if (!PACK_MATCHER.matches(cachedPath)) {
-                throw new IllegalArgumentException("Invalid pack! Not a .zip or .mcpack file.");
+                throw new IllegalArgumentException("Invalid pack format! Not a .zip or .mcpack file.");
             }
 
             try {
@@ -258,10 +262,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
             } catch (IOException e) {
                 throw new IllegalArgumentException(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", url), e);
             }
-
-            pathAtomicReference.set(cachedPath);
         });
-
-        return future.thenApplyAsync(x -> pathAtomicReference.get());
+        return future;
     }
 }

@@ -282,7 +282,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 // TODO: Proper pack checking - could be that the remote url is offline, the pack changed, or.. something?
                 GeyserImpl.getInstance().getLogger().warning("Received ResourcePackChunkRequestPacket for URL pack " + urlPackCodec.url());
 
-                WebUtils.checkRemotePackUrl(urlPackCodec.url());
+                WebUtils.checkUrlAndDownloadRemotePack(urlPackCodec.url());
             }
         }
 
