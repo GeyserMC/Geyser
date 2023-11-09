@@ -115,12 +115,12 @@ public class WebUtils {
 
                 if (size <= 0) {
                     GeyserImpl.getInstance().getLogger().error(String.format("Invalid size from remote pack URL: %s (size: %d)", url, size));
-                    return null;
+                    //return null;
                 }
 
                 if (type == null || !type.equals("application/zip")) {
                     GeyserImpl.getInstance().getLogger().error(String.format("Invalid application type from remote pack URL: %s (type: %s)", url, type));
-                    return null;
+                    //return null;
                 }
 
                 InputStream in = con.getInputStream();
@@ -128,9 +128,9 @@ public class WebUtils {
                 Files.copy(in, fileLocation, StandardCopyOption.REPLACE_EXISTING);
 
                 if (Files.size(fileLocation) != size) {
-                    GeyserImpl.getInstance().getLogger().error("Server sent " + Files.size(fileLocation) + " bytes, expected " + size + " bytes");
-                    Files.delete(fileLocation);
-                    return null;
+                    GeyserImpl.getInstance().getLogger().error("Downloaded pack has " + Files.size(fileLocation) + " bytes, expected " + size + " bytes");
+                    //Files.delete(fileLocation);
+                    //return null;
                 }
 
                 return fileLocation;

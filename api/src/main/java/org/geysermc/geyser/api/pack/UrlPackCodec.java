@@ -27,10 +27,22 @@ package org.geysermc.geyser.api.pack;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
+/**
+ * Represents a pack codec that creates a resource
+ * pack from a URL.
+ * <p>
+ * Due to Bedrock limitations, the URL must:
+ * <ul>
+ *     <li>be a direct download link to a .zip or .mcpack resource pack</li>
+ *     <li>Use application type `application/zip` and set a correct content length</li>
+ * </ul>
+ *
+ * Additionally, the ResourcePack must be zipped in a folder enclosing the resource pack, instead of the resource pack being at the root of the zip.
+ */
 public abstract class UrlPackCodec extends PackCodec {
 
     /**
-     * Gets the URL of the resource pack.
+     * Gets the URL to the resource pack location.
      *
      * @return the URL of the resource pack
      */
@@ -40,7 +52,7 @@ public abstract class UrlPackCodec extends PackCodec {
     /**
      * If the remote pack has an encryption key, it must be specified here.
      * Otherwise, leave empty.
-     *
+     * @return the encryption key of the resource pack
      */
     @NonNull
     public abstract String contentKey();

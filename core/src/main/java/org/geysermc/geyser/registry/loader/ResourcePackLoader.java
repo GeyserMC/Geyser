@@ -113,7 +113,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
         }
 
         // Load CDN entries
-        packMap.putAll(loadCdnEntries());
+        packMap.putAll(loadRemotePacks());
 
         GeyserDefineResourcePacksEventImpl defineEvent = new GeyserDefineResourcePacksEventImpl(packMap);
         packMap = defineEvent.getPacks();
@@ -130,7 +130,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
      * @throws IllegalArgumentException if the pack manifest was invalid or there was any processing exception
      */
     public static GeyserResourcePack readPack(Path path) throws IllegalArgumentException {
-        if (!path.getFileName().toString().endsWith(".mcpack") && !path.getFileName().toString().endsWith(".zip")) {
+        if (!PACK_MATCHER.matches(path)) {
             throw new IllegalArgumentException("Resource pack " + path.getFileName() + " must be a .zip or .mcpack file!");
         }
 
@@ -150,9 +150,9 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
         return new GeyserResourcePack(new GeyserPathPackCodec(path), manifest, contentKey);
     }
 
-    public static ResourcePack loadDownloadedPack(GeyserUrlPackCodec codec) throws IllegalArgumentException {
+    public static GeyserResourcePack readPack(GeyserUrlPackCodec codec) throws IllegalArgumentException {
         Path path = codec.getFallback().path();
-        if (!path.getFileName().toString().endsWith(".mcpack") && !path.getFileName().toString().endsWith(".zip")) {
+        if (!PACK_MATCHER.matches(path)) {
             throw new IllegalArgumentException("The url " + codec.url() + " did not provide a valid resource pack! Please check the url and try again.");
         }
 
@@ -198,7 +198,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
         }
     }
 
-    public Map<String, ResourcePack> loadCdnEntries() {
+    public Map<String, ResourcePack> loadRemotePacks() {
         final Path cachedCdnPacksDirectory = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs");
 
         // Download CDN packs to get the pack uuid's
@@ -230,8 +230,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
     }
 
     public static CompletableFuture<@Nullable Path> downloadPack(String url) throws IllegalArgumentException {
-        CompletableFuture<Path> future = WebUtils.checkUrlAndDownloadRemotePack(url);
-        future.whenCompleteAsync((cachedPath, throwable) -> {
+        return WebUtils.checkUrlAndDownloadRemotePack(url).whenCompleteAsync((cachedPath, throwable) -> {
             if (cachedPath == null) {
                 return;
             }
@@ -263,6 +262,5 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
                 throw new IllegalArgumentException(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", url), e);
             }
         });
-        return future;
     }
 }

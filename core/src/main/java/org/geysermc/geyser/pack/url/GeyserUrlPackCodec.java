@@ -92,7 +92,7 @@ public class GeyserUrlPackCodec extends UrlPackCodec {
                 throw new IllegalArgumentException("Unable to download pack from " + url, e);
             }
         }
-        return ResourcePackLoader.loadDownloadedPack(this);
+        return ResourcePackLoader.readPack(this);
     }
 
     @Override

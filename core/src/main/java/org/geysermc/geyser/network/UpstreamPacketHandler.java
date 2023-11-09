@@ -279,9 +279,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         // Check for packs that the client should normally download on its own. If the client cannot find the pack, we provide it instead.
         if (codec instanceof UrlPackCodec urlPackCodec) {
             if (!GameProtocol.isPre1_20_30(this.session)) {
-                // TODO: Proper pack checking - could be that the remote url is offline, the pack changed, or.. something?
-                GeyserImpl.getInstance().getLogger().warning("Received ResourcePackChunkRequestPacket for URL pack " + urlPackCodec.url());
-
+                GeyserImpl.getInstance().getLogger().warning("Received a request for a remote pack that the client should have already downloaded!" +
+                        "Is the pack at the URL " + urlPackCodec.url() + " still available?");
                 WebUtils.checkUrlAndDownloadRemotePack(urlPackCodec.url());
             }
         }
