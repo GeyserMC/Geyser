@@ -35,6 +35,7 @@ import org.geysermc.geyser.registry.loader.ResourcePackLoader;
 
 import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
+import java.nio.file.Path;
 
 public class GeyserUrlPackCodec extends UrlPackCodec {
     private final String url;
@@ -80,16 +81,17 @@ public class GeyserUrlPackCodec extends UrlPackCodec {
     public ResourcePack create() {
         if (this.fallback == null) {
             try {
-                this.fallback = new GeyserPathPackCodec(ResourcePackLoader.downloadPack(url).whenComplete((pack, throwable) -> {
+                final Path downloadedPack = ResourcePackLoader.downloadPack(url).whenComplete((pack, throwable) -> {
                     if (throwable != null) {
                         GeyserImpl.getInstance().getLogger().error("Failed to download pack from " + url, throwable);
                         if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
                             throwable.printStackTrace();
                         }
                     }
-                }).join());
+                }).join();
+                this.fallback = new GeyserPathPackCodec(downloadedPack);
             } catch (Exception e) {
-                throw new IllegalArgumentException("Unable to download pack from " + url, e);
+                throw new IllegalArgumentException("Failed to download pack from " + url, e);
             }
         }
         return ResourcePackLoader.readPack(this);

@@ -55,15 +55,13 @@ import org.geysermc.geyser.util.WebUtils;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.OptionalInt;
+import java.util.*;
 
 public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     private boolean networkSettingsRequested = false;
     private final Deque<String> packsToSent = new ArrayDeque<>();
+    private final List<UUID> brokenResourcePacks = new ArrayList<>();
 
     private SessionLoadResourcePacksEventImpl resourcePackLoadEvent;
 
@@ -281,9 +279,13 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         // Check for packs that the client should normally download on its own. If the client cannot find the pack, we provide it instead.
         if (codec instanceof UrlPackCodec urlPackCodec) {
             if (!GameProtocol.isPre1_20_30(this.session)) {
-                GeyserImpl.getInstance().getLogger().warning("Received a request for a remote pack that the client should have already downloaded!" +
-                        "Is the pack at the URL " + urlPackCodec.url() + " still available?");
-                WebUtils.checkUrlAndDownloadRemotePack(urlPackCodec.url());
+                // Ensure we don't a. spam console, and b. spam download/check requests
+                if (!brokenResourcePacks.contains(packet.getPackId())) {
+                    brokenResourcePacks.add(packet.getPackId());
+                    GeyserImpl.getInstance().getLogger().warning("Received a request for a remote pack that the client should have already downloaded!" +
+                            "Is the pack at the URL " + urlPackCodec.url() + " still available?");
+                    WebUtils.checkUrlAndDownloadRemotePack(urlPackCodec.url());
+                }
             }
         }
 

@@ -254,7 +254,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
                 // Check if a "manifest.json" or "pack_manifest.json" file is located directly in the zip... does not work otherwise.
                 // (something like MyZip.zip/manifest.json) will not, but will if it's a subfolder (MyPack.zip/MyPack/manifest.json)
                 if (zip.getEntry("manifest.json") != null || zip.getEntry("pack_manifest.json") != null) {
-                    GeyserImpl.getInstance().getLogger().warning("The remote resource pack from " + url + " contains a manifest.json file at the root of the zip file. " +
+                    throw new IllegalArgumentException("The remote resource pack from " + url + " contains a manifest.json file at the root of the zip file. " +
                             "This is not supported for remote packs, and will cause Bedrock clients to fall back to request the pack from the server. " +
                             "Please put the pack file in a subfolder, and provide that zip in the URL.");
                 }
