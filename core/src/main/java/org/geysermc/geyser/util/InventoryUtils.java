@@ -260,7 +260,7 @@ public class InventoryUtils {
             // If this is the item we're looking for
             if (geyserItem.getJavaId() == itemStack.getId() && Objects.equals(geyserItem.getNbt(), itemStack.getNbt())) {
                 ServerboundPickItemPacket packetToSend = new ServerboundPickItemPacket(i); // https://wiki.vg/Protocol#Pick_Item
-                session.sendDownstreamPacket(packetToSend);
+                session.sendDownstreamGamePacket(packetToSend);
                 return;
             }
         }
@@ -274,7 +274,7 @@ public class InventoryUtils {
             if ((slot - 36) != inventory.getHeldItemSlot()) {
                 setHotbarItem(session, slot);
             }
-            session.sendDownstreamPacket(actionPacket);
+            session.sendDownstreamGamePacket(actionPacket);
         }
     }
 
@@ -325,7 +325,7 @@ public class InventoryUtils {
             }
 
             ServerboundPickItemPacket packetToSend = new ServerboundPickItemPacket(i); // https://wiki.vg/Protocol#Pick_Item
-            session.sendDownstreamPacket(packetToSend);
+            session.sendDownstreamGamePacket(packetToSend);
             return;
         }
 
@@ -340,7 +340,7 @@ public class InventoryUtils {
                 if ((slot - 36) != inventory.getHeldItemSlot()) {
                     setHotbarItem(session, slot);
                 }
-                session.sendDownstreamPacket(actionPacket);
+                session.sendDownstreamGamePacket(actionPacket);
             } else {
                 session.getGeyser().getLogger().debug("Cannot find item for block " + itemName);
             }

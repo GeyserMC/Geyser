@@ -49,7 +49,7 @@ public class BedrockEntityEventTranslator extends PacketTranslator<EntityEventPa
             case COMPLETE_TRADE -> {
                 // Not sent as of 1.18.10
                 ServerboundSelectTradePacket selectTradePacket = new ServerboundSelectTradePacket(packet.getData());
-                session.sendDownstreamPacket(selectTradePacket);
+                session.sendDownstreamGamePacket(selectTradePacket);
 
                 session.scheduleInEventLoop(() -> {
                     Inventory openInventory = session.getOpenInventory();

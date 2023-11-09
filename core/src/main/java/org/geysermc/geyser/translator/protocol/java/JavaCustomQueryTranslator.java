@@ -40,7 +40,7 @@ public class JavaCustomQueryTranslator extends PacketTranslator<ClientboundCusto
     public void translate(GeyserSession session, ClientboundCustomQueryPacket packet) {
         // A vanilla client doesn't know any PluginMessage in the Login state, so we don't know any either.
         // Note: Fabric Networking API v1 will not let the client log in without sending this
-        session.sendDownstreamPacket(
+        session.sendDownstreamLoginPacket(
                 new ServerboundCustomQueryAnswerPacket(packet.getMessageId(), null)
         );
     }

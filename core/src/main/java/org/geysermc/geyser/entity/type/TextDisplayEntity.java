@@ -26,6 +26,7 @@
 package org.geysermc.geyser.entity.type;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
@@ -47,6 +48,12 @@ public class TextDisplayEntity extends Entity {
         // Remove armor stand body
         this.dirtyMetadata.put(EntityDataTypes.SCALE, 0f);
         this.dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
+    }
+
+    @Override
+    public void setDisplayNameVisible(BooleanEntityMetadata entityMetadata) {
+        // Don't allow the display name to be hidden - messes with our armor stand.
+        // On JE: Hiding the display name still shows the display entity text.
     }
 
     public void setText(EntityMetadata<Component, ?> entityMetadata) {

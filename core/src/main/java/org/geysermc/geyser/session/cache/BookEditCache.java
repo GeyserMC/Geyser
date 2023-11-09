@@ -68,7 +68,7 @@ public class BookEditCache {
             packet = null;
             return;
         }
-        session.sendDownstreamPacket(packet);
+        session.sendDownstreamGamePacket(packet);
         packet = null;
         lastBookUpdate = System.currentTimeMillis();
     }
