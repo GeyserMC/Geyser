@@ -123,7 +123,7 @@ public interface CustomItemData {
 
         Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets);
 
-        Builder tags(@NonNull Set<String> tags);
+        Builder tags(@Nullable Set<String> tags);
 
         CustomItemData build();
     }

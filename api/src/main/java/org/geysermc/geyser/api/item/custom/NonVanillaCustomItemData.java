@@ -240,7 +240,7 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets);
 
         @Override
-        Builder tags(@NonNull Set<String> tags);
+        Builder tags(@Nullable Set<String> tags);
 
         NonVanillaCustomItemData build();
     }
