@@ -115,12 +115,12 @@ public class WebUtils {
 
                 if (size <= 0) {
                     GeyserImpl.getInstance().getLogger().error(String.format("Invalid size from remote pack URL: %s (size: %d)", url, size));
-                    return null;
+                    //return null;
                 }
 
                 if (type == null || !type.equals("application/zip")) {
                     GeyserImpl.getInstance().getLogger().error(String.format("Invalid application type from remote pack URL: %s (type: %s)", url, type));
-                    return null;
+                    //return null;
                 }
 
                 InputStream in = con.getInputStream();
