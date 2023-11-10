@@ -198,6 +198,12 @@ public class MappingsReader_v1 extends MappingsReader {
             customItemData.renderOffsets(fromJsonNode(tmpNode));
         }
 
+        if (node.get("tags") instanceof ArrayNode tags) {
+            Set<String> tagsSet = new ObjectOpenHashSet<>();
+            tags.forEach(tag -> tagsSet.add(tag.asText()));
+            customItemData.tags(tagsSet);
+        }
+
         return customItemData.build();
     }
 
