@@ -28,8 +28,11 @@ package org.geysermc.geyser.translator.protocol.java;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerSpawnInfo;
 import com.github.steveice10.mc.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundLoginPacket;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
+import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.api.network.AuthType;
@@ -70,6 +73,25 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             // Remove extra hearts, hunger, etc.
             entity.getAttributes().clear();
             entity.resetMetadata();
+
+            // Reset weather
+            if (session.isRaining()) {
+                LevelEventPacket stopRainPacket = new LevelEventPacket();
+                stopRainPacket.setType(LevelEvent.STOP_RAINING);
+                stopRainPacket.setData(0);
+                stopRainPacket.setPosition(Vector3f.ZERO);
+                session.sendUpstreamPacket(stopRainPacket);
+                session.setRaining(false);
+            }
+
+            if (session.isThunder()) {
+                LevelEventPacket stopThunderPacket = new LevelEventPacket();
+                stopThunderPacket.setType(LevelEvent.STOP_THUNDERSTORM);
+                stopThunderPacket.setData(0);
+                stopThunderPacket.setPosition(Vector3f.ZERO);
+                session.sendUpstreamPacket(stopThunderPacket);
+                session.setThunder(false);
+            }
         }
 
         session.setWorldName(spawnInfo.getWorldName());
