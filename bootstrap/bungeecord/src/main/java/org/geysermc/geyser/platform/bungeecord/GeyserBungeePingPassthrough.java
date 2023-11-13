@@ -40,7 +40,6 @@ import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -61,16 +60,11 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
         }));
         ProxyPingEvent event = future.join();
         ServerPing response = event.getResponse();
-        GeyserPingInfo geyserPingInfo = new GeyserPingInfo(
+        return new GeyserPingInfo(
                 response.getDescriptionComponent().toLegacyText(),
-                new GeyserPingInfo.Players(response.getPlayers().getMax(), response.getPlayers().getOnline()),
-                new GeyserPingInfo.Version(response.getVersion().getName(), response.getVersion().getProtocol())
+                response.getPlayers().getMax(),
+                response.getPlayers().getOnline()
         );
-        if (event.getResponse().getPlayers().getSample() != null) {
-            Arrays.stream(event.getResponse().getPlayers().getSample()).forEach(proxiedPlayer ->
-                    geyserPingInfo.getPlayerList().add(proxiedPlayer.getName()));
-        }
-        return geyserPingInfo;
     }
 
     // This is static so pending connection can use it
