@@ -249,8 +249,8 @@ public final class GeyserServer {
 
         if (config.isPassthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
             String[] motd = MessageTranslator.convertMessageLenient(pingInfo.getDescription()).split("\n");
-            String mainMotd = motd[0]; // First line of the motd.
-            String subMotd = (motd.length != 1) ? motd[1] : GeyserImpl.NAME; // Second line of the motd if present, otherwise default.
+            String mainMotd = (motd.length > 0) ? motd[0] : config.getBedrock().primaryMotd(); // First line of the motd.
+            String subMotd = (motd.length > 1) ? motd[1] : config.getBedrock().secondaryMotd(); // Second line of the motd if present, otherwise default.
 
             pong.motd(mainMotd.trim());
             pong.subMotd(subMotd.trim()); // Trimmed to shift it to the left, prevents the universe from collapsing on us just because we went 2 characters over the text box's limit.
