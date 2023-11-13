@@ -28,10 +28,14 @@ package org.geysermc.geyser.item;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
-import org.jetbrains.annotations.NotNull;
+
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 @EqualsAndHashCode
 @ToString
@@ -44,6 +48,7 @@ public class GeyserCustomItemData implements CustomItemData {
     private final boolean displayHandheld;
     private final int textureSize;
     private final CustomRenderOffsets renderOffsets;
+    private final Set<String> tags;
 
     public GeyserCustomItemData(String name,
                                 CustomItemOptions customItemOptions,
@@ -52,7 +57,8 @@ public class GeyserCustomItemData implements CustomItemData {
                                 boolean allowOffhand,
                                 boolean displayHandheld,
                                 int textureSize,
-                                CustomRenderOffsets renderOffsets) {
+                                CustomRenderOffsets renderOffsets,
+                                Set<String> tags) {
         this.name = name;
         this.customItemOptions = customItemOptions;
         this.displayName = displayName;
@@ -61,10 +67,11 @@ public class GeyserCustomItemData implements CustomItemData {
         this.displayHandheld = displayHandheld;
         this.textureSize = textureSize;
         this.renderOffsets = renderOffsets;
+        this.tags = tags;
     }
 
     @Override
-    public @NotNull String name() {
+    public @NonNull String name() {
         return name;
     }
 
@@ -74,12 +81,12 @@ public class GeyserCustomItemData implements CustomItemData {
     }
 
     @Override
-    public @NotNull String displayName() {
+    public @NonNull String displayName() {
         return displayName;
     }
 
     @Override
-    public @NotNull String icon() {
+    public @NonNull String icon() {
         return icon;
     }
 
@@ -103,6 +110,11 @@ public class GeyserCustomItemData implements CustomItemData {
         return renderOffsets;
     }
 
+    @Override
+    public @NonNull Set<String> tags() {
+        return tags;
+    }
+
     public static class CustomItemDataBuilder implements Builder {
         protected String name = null;
         protected CustomItemOptions customItemOptions = null;
@@ -113,6 +125,7 @@ public class GeyserCustomItemData implements CustomItemData {
         protected boolean displayHandheld = false;
         protected int textureSize = 16;
         protected CustomRenderOffsets renderOffsets = null;
+        protected Set<String> tags = new HashSet<>();
 
         @Override
         public Builder name(@NonNull String name) {
@@ -163,6 +176,12 @@ public class GeyserCustomItemData implements CustomItemData {
         }
 
         @Override
+        public Builder tags(@Nullable Set<String> tags) {
+            this.tags = Objects.requireNonNullElseGet(tags, Set::of);
+            return this;
+        }
+
+        @Override
         public CustomItemData build() {
             if (this.name == null || this.customItemOptions == null) {
                 throw new IllegalArgumentException("Name and custom item options must be set");
@@ -174,7 +193,7 @@ public class GeyserCustomItemData implements CustomItemData {
             if (this.icon == null) {
                 this.icon = this.name;
             }
-            return new GeyserCustomItemData(this.name, this.customItemOptions, this.displayName, this.icon, this.allowOffhand, this.displayHandheld, this.textureSize, this.renderOffsets);
+            return new GeyserCustomItemData(this.name, this.customItemOptions, this.displayName, this.icon, this.allowOffhand, this.displayHandheld, this.textureSize, this.renderOffsets, this.tags);
         }
     }
 }

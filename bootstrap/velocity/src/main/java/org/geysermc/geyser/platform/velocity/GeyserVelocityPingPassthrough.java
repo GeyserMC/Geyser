@@ -54,31 +54,11 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
         } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }
-
-        // Apparently, plugins such as MiniMOTD can just yeet all players
-        int maxPlayers;
-        int onlinePlayers;
-        if (event.getPing().getPlayers().isPresent()) {
-            maxPlayers = event.getPing().getPlayers().get().getMax();
-            onlinePlayers = event.getPing().getPlayers().get().getOnline();
-        } else {
-            maxPlayers = 1; // Gotta fallback to something
-            onlinePlayers = 0;
-        }
-
-        GeyserPingInfo geyserPingInfo = new GeyserPingInfo(
+        return new GeyserPingInfo(
                 LegacyComponentSerializer.legacy('§').serialize(event.getPing().getDescriptionComponent()),
-                new GeyserPingInfo.Players(maxPlayers, onlinePlayers),
-                new GeyserPingInfo.Version(
-                        event.getPing().getVersion().getName(),
-                        event.getPing().getVersion().getProtocol()
-                )
+                event.getPing().getPlayers().map(ServerPing.Players::getMax).orElse(1),
+                event.getPing().getPlayers().map(ServerPing.Players::getOnline).orElse(0)
         );
-
-        if (event.getPing().getPlayers().isPresent()) {
-            event.getPing().getPlayers().get().getSample().stream().map(ServerPing.SamplePlayer::getName).forEach(geyserPingInfo.getPlayerList()::add);
-        }
-        return geyserPingInfo;
     }
 
     private static class GeyserInboundConnection implements InboundConnection {

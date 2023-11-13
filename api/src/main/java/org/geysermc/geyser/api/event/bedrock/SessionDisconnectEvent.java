@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,23 +23,39 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.ping;
+package org.geysermc.geyser.api.event.bedrock;
 
-import javax.annotation.Nullable;
-import java.net.InetSocketAddress;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 
 /**
- * Interface that retrieves ping passthrough information from the Java server
+ * Called when a Geyser session disconnects.
  */
-public interface IGeyserPingPassthrough {
+public class SessionDisconnectEvent extends ConnectionEvent {
+    private String disconnectReason;
+
+    public SessionDisconnectEvent(@NonNull GeyserConnection connection, @NonNull String reason) {
+        super(connection);
+        this.disconnectReason = reason;
+    }
 
     /**
-     * Get the MOTD of the server displayed on the multiplayer screen
+     * Gets the disconnect reason.
      *
-     * @param inetSocketAddress the ip address of the client pinging the server
-     * @return string of the MOTD
+     * @return the reason for the disconnect
      */
-    @Nullable
-    GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress);
+    public @NonNull String disconnectReason() {
+        return disconnectReason;
+    }
 
+    /**
+     * Sets the disconnect reason, thereby overriding th original reason.
+     *
+     * @param disconnectReason the reason for the disconnect
+     */
+    public void disconnectReason(@NonNull String disconnectReason) {
+        this.disconnectReason = disconnectReason;
+    }
 }
+

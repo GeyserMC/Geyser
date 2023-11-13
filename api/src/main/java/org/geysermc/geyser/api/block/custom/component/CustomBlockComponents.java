@@ -185,7 +185,7 @@ public interface CustomBlockComponents {
 
         Builder placeAir(boolean placeAir);
 
-        Builder tags(Set<String> tags);
+        Builder tags(@Nullable Set<String> tags);
 
         CustomBlockComponents build();
     }
