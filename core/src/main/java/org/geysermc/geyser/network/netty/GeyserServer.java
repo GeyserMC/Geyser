@@ -102,6 +102,11 @@ public final class GeyserServer {
 
     private ChannelFuture bootstrapFuture;
 
+    /**
+     * The port to broadcast in the pong. This can be different from the port the server is bound to, e.g. due to port forwarding.
+     */
+    private final int broadCastPort;
+
     public GeyserServer(GeyserImpl geyser, int threadCount) {
         this.geyser = geyser;
         this.group = TRANSPORT.eventLoopGroupFactory().apply(threadCount);
@@ -114,6 +119,23 @@ public final class GeyserServer {
                     .expirationPolicy(ExpirationPolicy.ACCESSED).build();
         } else {
             this.proxiedAddresses = null;
+        }
+
+        String pongPort = System.getProperty("Geyser.PongPort", "");
+        if (pongPort.isEmpty()) {
+            broadCastPort = geyser.getConfig().getBedrock().port();
+        } else {
+            int parsedPort;
+            try {
+                parsedPort = Integer.parseInt(pongPort);
+                if (parsedPort < 1 || parsedPort > 65535) {
+                    throw new NumberFormatException("The port must be between 1 and 65535 inclusive!");
+                }
+            } catch (NumberFormatException e) {
+                GeyserImpl.getInstance().getLogger().error(String.format("Invalid pong port: %s! Defaulting to configured port.", pongPort));
+                parsedPort = geyser.getConfig().getBedrock().port();
+            }
+            broadCastPort = parsedPort;
         }
     }
 
@@ -243,8 +265,8 @@ public final class GeyserServer {
                 .nintendoLimited(false)
                 .protocolVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
                 .version(GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()) // Required to not be empty as of 1.16.210.59. Can only contain . and numbers.
-                .ipv4Port(this.geyser.getConfig().getBedrock().port())
-                .ipv6Port(this.geyser.getConfig().getBedrock().port())
+                .ipv4Port(this.broadCastPort)
+                .ipv6Port(this.broadCastPort)
                 .serverId(bootstrapFuture.channel().config().getOption(RakChannelOption.RAK_GUID));
 
         if (config.isPassthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
