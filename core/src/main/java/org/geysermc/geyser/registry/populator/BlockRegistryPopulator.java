@@ -125,7 +125,7 @@ public final class BlockRegistryPopulator {
         Remapper mapper594 = Remapper.of(BlockStateUpdater_1_20_10.INSTANCE);
         Remapper mapper618 = Remapper.of(BlockStateUpdater_1_20_10.INSTANCE, BlockStateUpdater_1_20_30.INSTANCE);
         Remapper mapper622 = Remapper.of(BlockStateUpdater_1_20_10.INSTANCE, BlockStateUpdater_1_20_30.INSTANCE, BlockStateUpdater_1_20_40.INSTANCE);
-        Remapper mapper630 = Remapper.of(BlockStateUpdater_1_20_50.INSTANCE);
+        Remapper mapper630 = Remapper.of(BlockStateUpdater_1_20_10.INSTANCE, BlockStateUpdater_1_20_30.INSTANCE, BlockStateUpdater_1_20_40.INSTANCE, BlockStateUpdater_1_20_50.INSTANCE);
 
         var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
                 .put(ObjectIntPair.of("1_20_0", Bedrock_v589.CODEC.getProtocolVersion()), tag -> tag)
