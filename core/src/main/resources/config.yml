@@ -5,6 +5,10 @@
 #
 # GitHub: https://github.com/GeyserMC/Geyser
 # Discord: https://discord.gg/geysermc
+# Wiki: https://wiki.geysermc.org/
+#
+# NOTICE: See https://wiki.geysermc.org/geyser/setup/ for the setup guide. Many video tutorials are outdated.
+# In most cases, especially with server hosting providers, further hosting-specific configuration is required.
 # --------------------------------
 
 bedrock:
@@ -87,9 +91,6 @@ command-suggestions: true
 # The following three options enable "ping passthrough" - the MOTD, player count and/or protocol name gets retrieved from the Java server.
 # Relay the MOTD from the remote server to Bedrock players.
 passthrough-motd: false
-# Relay the protocol name (e.g. BungeeCord [X.X], Paper 1.X) - only really useful when using a custom protocol name!
-# This will also show up on sites like MCSrvStatus. <mcsrvstat.us>
-passthrough-protocol-name: false
 # Relay the player count and max players from the remote server to Bedrock players.
 passthrough-player-counts: false
 # Enable LEGACY ping passthrough. There is no need to enable this unless your MOTD or player count does not appear properly.
@@ -154,9 +155,10 @@ max-visible-custom-skulls: 128
 # The radius in blocks around the player in which custom skulls are displayed.
 custom-skull-render-distance: 32
 
-# Whether to add (at this time, only) the furnace minecart as a separate item in the game, which normally does not exist in Bedrock Edition.
+# Whether to add any items and blocks which normally does not exist in Bedrock Edition.
 # This should only need to be disabled if using a proxy that does not use the "transfer packet" style of server switching.
 # If this is disabled, furnace minecart items will be mapped to hopper minecart items.
+# Geyser's block, item, and skull mappings systems will also be disabled.
 # This option requires a restart of Geyser in order to change its setting.
 add-non-bedrock-items: true
 

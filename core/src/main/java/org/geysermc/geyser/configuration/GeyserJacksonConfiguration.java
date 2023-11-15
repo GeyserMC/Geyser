@@ -44,7 +44,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -67,8 +66,6 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     public abstract Path getFloodgateKeyPath();
 
-    private Map<String, UserAuthenticationInfo> userAuths;
-
     @JsonProperty("command-suggestions")
     private boolean commandSuggestions = true;
 
@@ -77,9 +74,6 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     @JsonProperty("passthrough-player-counts")
     private boolean isPassthroughPlayerCounts = false;
-
-    @JsonProperty("passthrough-protocol-name")
-    private boolean isPassthroughProtocolName = false;
 
     @JsonProperty("legacy-ping-passthrough")
     private boolean isLegacyPingPassthrough = false;
@@ -270,9 +264,10 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
             return authType;
         }
 
-        @Getter
-        @JsonProperty("allow-password-authentication")
-        private boolean passwordAuthentication = true;
+        @Override
+        public boolean resolveSrv() {
+            return false;
+        }
 
         @Getter
         @JsonProperty("use-proxy-protocol")
@@ -281,19 +276,6 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         @Getter
         @JsonProperty("forward-hostname")
         private boolean forwardHost = false;
-    }
-
-    @Getter
-    @JsonIgnoreProperties(ignoreUnknown = true) // DO NOT REMOVE THIS! Otherwise, after we remove microsoft-account configs will not load
-    public static class UserAuthenticationInfo implements IUserAuthenticationInfo {
-        @AsteriskSerializer.Asterisk()
-        private String email;
-
-        @AsteriskSerializer.Asterisk()
-        private String password;
-
-        @JsonProperty("microsoft-account")
-        private boolean microsoftAccount = false;
     }
 
     @Getter

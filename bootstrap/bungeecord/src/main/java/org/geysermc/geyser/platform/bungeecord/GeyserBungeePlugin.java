@@ -70,6 +70,8 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     private GeyserImpl geyser;
 
+    private static boolean INITIALIZED = false;
+
     @Override
     public void onLoad() {
         GeyserLocale.init(this);
@@ -77,7 +79,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         // Copied from ViaVersion.
         // https://github.com/ViaVersion/ViaVersion/blob/b8072aad86695cc8ec6f5e4103e43baf3abf6cc5/bungee/src/main/java/us/myles/ViaVersion/BungeePlugin.java#L43
         try {
-            ProtocolConstants.class.getField("MINECRAFT_1_19_3");
+            ProtocolConstants.class.getField("MINECRAFT_1_20_2");
         } catch (NoSuchFieldException e) {
             getLogger().warning("      / \\");
             getLogger().warning("     /   \\");
@@ -111,11 +113,6 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     @Override
     public void onEnable() {
-        // Remove this in like a year
-        if (getProxy().getPluginManager().getPlugin("floodgate-bungee") != null) {
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.outdated", "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/"));
-            return;
-        }
 
         // Force-disable query if enabled, or else Geyser won't enable
         for (ListenerInfo info : getProxy().getConfig().getListeners()) {
@@ -138,7 +135,12 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         // Big hack - Bungee does not provide us an event to listen to, so schedule a repeating
         // task that waits for a field to be filled which is set after the plugin enable
         // process is complete
-        this.awaitStartupCompletion(0);
+        if (!INITIALIZED) {
+            this.awaitStartupCompletion(0);
+        } else {
+            // No need to "wait" for startup completion, just start Geyser - we're reloading.
+            this.postStartup();
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -171,8 +173,10 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     private void postStartup() {
         GeyserImpl.start();
 
-        this.geyserInjector = new GeyserBungeeInjector(this);
-        this.geyserInjector.initializeLocalChannel(this);
+        if (!INITIALIZED) {
+            this.geyserInjector = new GeyserBungeeInjector(this);
+            this.geyserInjector.initializeLocalChannel(this);
+        }
 
         this.geyserCommandManager = new GeyserCommandManager(geyser);
         this.geyserCommandManager.init();
@@ -192,6 +196,8 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         } else {
             this.geyserBungeePingPassthrough = new GeyserBungeePingPassthrough(getProxy());
         }
+
+        INITIALIZED = true;
     }
 
     @Override

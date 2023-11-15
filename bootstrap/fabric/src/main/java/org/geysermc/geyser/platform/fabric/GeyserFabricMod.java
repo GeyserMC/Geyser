@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.platform.fabric;
 
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
@@ -36,11 +37,12 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.MinecraftServer;
 import org.apache.logging.log4j.LogManager;
-import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -142,7 +144,11 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
         GeyserImpl.start();
 
-        this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
+        if (geyserConfig.isLegacyPingPassthrough()) {
+            this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
+        } else {
+            this.geyserPingPassthrough = new ModPingPassthrough(server, geyserLogger);
+        }
 
         this.geyserCommandManager = new GeyserCommandManager(geyser);
         this.geyserCommandManager.init();
@@ -161,9 +167,37 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
             builder.then(Commands.literal(command.getKey())
                     .executes(executor)
                     // Could also test for Bedrock but depending on when this is called it may backfire
-                    .requires(executor::testPermission));
+                    .requires(executor::testPermission)
+                    // Allows parsing of arguments; e.g. for /geyser dump logs or the connectiontest command
+                    .then(Commands.argument("args", StringArgumentType.greedyString())
+                            .executes(context -> executor.runWithArgs(context, StringArgumentType.getString(context, "args")))
+                            .requires(executor::testPermission)));
         }
         server.getCommands().getDispatcher().register(builder);
+
+        // Register extension commands
+        for (Map.Entry<Extension, Map<String, Command>> extensionMapEntry : geyser.commandManager().extensionCommands().entrySet()) {
+            Map<String, Command> extensionCommands = extensionMapEntry.getValue();
+            if (extensionCommands.isEmpty()) {
+                continue;
+            }
+
+            // Register help command for just "/<extensionId>"
+            GeyserFabricCommandExecutor extensionHelpExecutor = new GeyserFabricCommandExecutor(geyser,
+                    (GeyserCommand) extensionCommands.get("help"));
+            LiteralArgumentBuilder<CommandSourceStack> extCmdBuilder = Commands.literal(extensionMapEntry.getKey().description().id()).executes(extensionHelpExecutor);
+
+            for (Map.Entry<String, Command> command : extensionCommands.entrySet()) {
+                GeyserFabricCommandExecutor executor = new GeyserFabricCommandExecutor(geyser, (GeyserCommand) command.getValue());
+                extCmdBuilder.then(Commands.literal(command.getKey())
+                        .executes(executor)
+                        .requires(executor::testPermission)
+                        .then(Commands.argument("args", StringArgumentType.greedyString())
+                                .executes(context -> executor.runWithArgs(context, StringArgumentType.getString(context, "args")))
+                                .requires(executor::testPermission)));
+            }
+            server.getCommands().getDispatcher().register(extCmdBuilder);
+        }
     }
 
     @Override
@@ -217,7 +251,6 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
         return this.server.getServerVersion();
     }
 
-    @SuppressWarnings("ConstantConditions") // IDEA thinks that ip cannot be null
     @NotNull
     @Override
     public String getServerBindAddress() {

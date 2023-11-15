@@ -5,9 +5,10 @@ plugins {
     id("com.modrinth.minotaur") version "2.+"
 }
 
-java {
-    targetCompatibility = JavaVersion.VERSION_17
-    sourceCompatibility = JavaVersion.VERSION_17
+indra {
+    javaVersions {
+        target(17)
+    }
 }
 
 dependencies {
@@ -118,7 +119,7 @@ modrinth {
     syncBodyFrom.set(rootProject.file("README.md").readText())
 
     uploadFile.set(tasks.getByPath("remapModrinthJar"))
-    gameVersions.addAll("1.20", "1.20.1")
+    gameVersions.addAll("1.20.2")
 
     loaders.add("fabric")
     failSilently.set(true)

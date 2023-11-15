@@ -26,10 +26,7 @@
 package org.geysermc.geyser.session;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
-import com.github.steveice10.mc.auth.exception.request.InvalidCredentialsException;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
-import com.github.steveice10.mc.auth.service.AuthenticationService;
-import com.github.steveice10.mc.auth.service.MojangAuthenticationService;
 import com.github.steveice10.mc.auth.service.MsaAuthenticationService;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
@@ -45,15 +42,15 @@ import com.github.steveice10.mc.protocol.data.game.setting.ChatVisibility;
 import com.github.steveice10.mc.protocol.data.game.setting.SkinPart;
 import com.github.steveice10.mc.protocol.data.game.statistic.CustomStatistic;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
+import com.github.steveice10.mc.protocol.packet.common.serverbound.ServerboundClientInformationPacket;
 import com.github.steveice10.mc.protocol.packet.handshake.serverbound.ClientIntentionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundChatCommandPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundChatPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundClientInformationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundUseItemPacket;
-import com.github.steveice10.mc.protocol.packet.login.serverbound.ServerboundCustomQueryPacket;
+import com.github.steveice10.mc.protocol.packet.login.serverbound.ServerboundCustomQueryAnswerPacket;
 import com.github.steveice10.packetlib.BuiltinFlags;
 import com.github.steveice10.packetlib.Session;
 import com.github.steveice10.packetlib.event.session.ConnectedEvent;
@@ -104,9 +101,11 @@ import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
+import org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent;
 import org.geysermc.geyser.api.event.bedrock.SessionLoginEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.RemoteServer;
@@ -146,6 +145,7 @@ import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.DimensionUtils;
+import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -188,10 +188,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Accessors(fluent = true)
     @Setter
     private RemoteServer remoteServer;
-
-    @Deprecated
-    @Setter
-    private boolean microsoftAccount;
 
     private final SessionPlayerEntity playerEntity;
 
@@ -291,7 +287,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private Vector2i lastChunkPosition = null;
     @Setter
     private int clientRenderDistance = -1;
-    private int serverRenderDistance;
+    private int serverRenderDistance = -1;
 
     // Exposed for GeyserConnect usage
     protected boolean sentSpawnPacket;
@@ -397,6 +393,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private Entity mouseoverEntity;
 
+    /**
+     * Stores all Java recipes by recipe identifier, and matches them to all possible Bedrock recipe identifiers.
+     * They are not 1:1, since Bedrock can have multiple recipes for the same Java recipe.
+     */
+    @Setter
+    private Map<String, List<String>> javaToBedrockRecipeIds;
+
     @Setter
     private Int2ObjectMap<GeyserRecipe> craftingRecipes;
     private final AtomicInteger lastRecipeNetId;
@@ -423,6 +426,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean emulatePost1_16Logic = true;
     @Setter
     private boolean emulatePost1_18Logic = true;
+
+    /**
+     * Whether to emulate pre-1.20 smithing table behavior.
+     * Adapts ViaVersion's furnace UI to one Bedrock can use.
+     * See {@link org.geysermc.geyser.translator.inventory.OldSmithingTableTranslator}.
+     */
+    @Setter
+    private boolean oldSmithingTable = false;
 
     /**
      * The current attack speed of the player. Used for sending proper cooldown timings.
@@ -454,6 +465,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private long lastInteractionTime;
+
+    /**
+     * Stores when the player started to break a block. Used to allow correct break time for custom blocks.
+     */
+    @Setter
+    private long blockBreakStartTime;
 
     /**
      * Stores whether the player intended to place a bucket.
@@ -603,6 +620,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.playerInventory = new PlayerInventory();
         this.openInventory = null;
         this.craftingRecipes = new Int2ObjectOpenHashMap<>();
+        this.javaToBedrockRecipeIds = new Object2ObjectOpenHashMap<>();
         this.lastRecipeNetId = new AtomicInteger(1);
 
         this.spawned = false;
@@ -682,80 +700,28 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         gamerulePacket.getGameRules().add(new GameRuleData<>("keepinventory", true));
         // Ensure client doesn't try and do anything funky; the server handles this for us
         gamerulePacket.getGameRules().add(new GameRuleData<>("spawnradius", 0));
+        // Recipe unlocking - only needs to be added if 1. it isn't already on via an experiment, or 2. the client is on pre 1.20.10
+        if (!GameProtocol.isPre1_20_10(this) && !GameProtocol.isUsingExperimentalRecipeUnlocking(this)) {
+            gamerulePacket.getGameRules().add(new GameRuleData<>("recipesunlock", true));
+        }
         upstream.sendPacket(gamerulePacket);
     }
 
     public void authenticate(String username) {
-        authenticate(username, "");
-    }
-
-    public void authenticate(String username, String password) {
         if (loggedIn) {
             geyser.getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", username));
             return;
         }
 
         loggingIn = true;
+        // Always replace spaces with underscores to avoid illegal nicknames, e.g. with GeyserConnect
+        protocol = new MinecraftProtocol(username.replace(' ', '_'));
 
-        // Use a future to prevent timeouts as all the authentication is handled sync
-        CompletableFuture.supplyAsync(() -> {
-            try {
-                if (password != null && !password.isEmpty()) {
-                    AuthenticationService authenticationService;
-                    if (microsoftAccount) {
-                        authenticationService = new MsaAuthenticationService(GeyserImpl.OAUTH_CLIENT_ID);
-                    } else {
-                        authenticationService = new MojangAuthenticationService();
-                    }
-                    authenticationService.setUsername(username);
-                    authenticationService.setPassword(password);
-                    authenticationService.login();
-
-                    GameProfile profile = authenticationService.getSelectedProfile();
-                    if (profile == null) {
-                        // Java account is offline
-                        disconnect(GeyserLocale.getPlayerLocaleString("geyser.network.remote.invalid_account", clientData.getLanguageCode()));
-                        return null;
-                    }
-
-                    protocol = new MinecraftProtocol(profile, authenticationService.getAccessToken());
-                } else {
-                    // always replace spaces when using Floodgate,
-                    // as usernames with spaces cause issues with Bungeecord's login cycle.
-                    // However, this doesn't affect the final username as Floodgate is still in charge of that.
-                    // So if you have (for example) replace spaces enabled on Floodgate the spaces will re-appear.
-                    String validUsername = username;
-                    if (this.remoteServer.authType() == AuthType.FLOODGATE) {
-                        validUsername = username.replace(' ', '_');
-                    }
-
-                    protocol = new MinecraftProtocol(validUsername);
-                }
-            } catch (InvalidCredentialsException | IllegalArgumentException e) {
-                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.auth.login.invalid", username));
-                disconnect(GeyserLocale.getPlayerLocaleString("geyser.auth.login.invalid.kick", getClientData().getLanguageCode()));
-            } catch (RequestException ex) {
-                disconnect(ex.getMessage());
-            }
-            return null;
-        }).whenComplete((aVoid, ex) -> {
-            if (ex != null) {
-                disconnect(ex.toString());
-            }
-            if (this.closed) {
-                if (ex != null) {
-                    geyser.getLogger().error("", ex);
-                }
-                // Client disconnected during the authentication attempt
-                return;
-            }
-
-            try {
-                connectDownstream();
-            } catch (Throwable t) {
-                t.printStackTrace();
-            }
-        });
+        try {
+            connectDownstream();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
     }
 
     public void authenticateWithRefreshToken(String refreshToken) {
@@ -920,7 +886,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         } else {
             downstream = new TcpClientSession(this.remoteServer.address(), this.remoteServer.port(), this.protocol);
             this.downstream = new DownstreamSession(downstream);
-            disableSrvResolving();
+
+            boolean resolveSrv = false;
+            try {
+                resolveSrv = this.remoteServer.resolveSrv();
+            } catch (AbstractMethodError | NoSuchMethodError ignored) {
+                // Ignore if the method doesn't exist
+                // This will happen with extensions using old APIs
+            }
+            this.downstream.getSession().setFlag(BuiltinFlags.ATTEMPT_SRV_RESOLVE, resolveSrv);
         }
 
         if (geyser.getConfig().getRemote().isUseProxyProtocol()) {
@@ -1065,10 +1039,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                     geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.remote.disconnect", authData.name(), remoteServer.address(), disconnectMessage));
                 }
                 if (cause != null) {
-                    cause.printStackTrace();
+                    GeyserImpl.getInstance().getLogger().error(cause.getMessage());
+                    // GeyserSession is disconnected via session.disconnect() called indirectly be the server
+                    // This only needs to be "initiated" here when there is an exception, hence the cause clause
+                    GeyserSession.this.disconnect(disconnectMessage);
+                    if (geyser.getConfig().isDebugMode()) {
+                        cause.printStackTrace();
+                    }
                 }
-
-                upstream.disconnect(disconnectMessage);
             }
 
             @Override
@@ -1095,17 +1073,30 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public void disconnect(String reason) {
         if (!closed) {
             loggedIn = false;
+
+            // Fire SessionDisconnectEvent
+            SessionDisconnectEvent disconnectEvent = new SessionDisconnectEvent(this, reason);
+            geyser.getEventBus().fire(disconnectEvent);
+
+            // Disconnect downstream if necessary
             if (downstream != null) {
-                downstream.disconnect(reason);
+                // No need to disconnect if already closed
+                if (!downstream.isClosed()) {
+                    downstream.disconnect(reason);
+                }
             } else {
                 // Downstream's disconnect will fire an event that prints a log message
                 // Otherwise, we print a message here
                 String address = geyser.getConfig().isLogPlayerIpAddresses() ? upstream.getAddress().getAddress().toString() : "<IP address withheld>";
                 geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.disconnect", address, reason));
             }
+
+            // Disconnect upstream if necessary
             if (!upstream.isClosed()) {
-                upstream.disconnect(reason);
+                upstream.disconnect(disconnectEvent.disconnectReason());
             }
+
+            // Remove from session manager
             geyser.getSessionManager().removeSession(this);
             if (authData != null) {
                 PendingMicrosoftAuthentication.AuthenticationTask task = geyser.getPendingMicrosoftAuthentication().getTask(authData.xuid());
@@ -1175,7 +1166,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 if (position != null) {
                     ServerboundMovePlayerPosPacket packet = new ServerboundMovePlayerPosPacket(playerEntity.isOnGround(),
                             position.getX(), position.getY(), position.getZ());
-                    sendDownstreamPacket(packet);
+                    sendDownstreamGamePacket(packet);
                 }
                 lastMovementTimestamp = System.currentTimeMillis();
             }
@@ -1357,7 +1348,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             return false;
         }
 
-        sendDownstreamPacket(useItemPacket);
+        sendDownstreamGamePacket(useItemPacket);
         playerEntity.setFlag(EntityFlag.BLOCKING, true);
         // Metadata should be updated later
         return true;
@@ -1391,7 +1382,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         if (playerEntity.getFlag(EntityFlag.BLOCKING)) {
             ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM,
                     Vector3i.ZERO, Direction.DOWN, 0);
-            sendDownstreamPacket(releaseItemPacket);
+            sendDownstreamGamePacket(releaseItemPacket);
             playerEntity.setFlag(EntityFlag.BLOCKING, false);
             return true;
         }
@@ -1401,14 +1392,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public void requestOffhandSwap() {
         ServerboundPlayerActionPacket swapHandsPacket = new ServerboundPlayerActionPacket(PlayerAction.SWAP_HANDS, Vector3i.ZERO,
                 Direction.DOWN, 0);
-        sendDownstreamPacket(swapHandsPacket);
-    }
-
-    /**
-     * Will be overwritten for GeyserConnect.
-     */
-    protected void disableSrvResolving() {
-        this.downstream.getSession().setFlag(BuiltinFlags.ATTEMPT_SRV_RESOLVE, false);
+        sendDownstreamGamePacket(swapHandsPacket);
     }
 
     @Override
@@ -1443,14 +1427,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Sends a chat message to the Java server.
      */
     public void sendChat(String message) {
-        sendDownstreamPacket(new ServerboundChatPacket(message, Instant.now().toEpochMilli(), 0L, null, 0, new BitSet()));
+        sendDownstreamGamePacket(new ServerboundChatPacket(message, Instant.now().toEpochMilli(), 0L, null, 0, new BitSet()));
     }
 
     /**
      * Sends a command to the Java server.
      */
     public void sendCommand(String command) {
-        sendDownstreamPacket(new ServerboundChatCommandPacket(command, Instant.now().toEpochMilli(), 0L, Collections.emptyList(), 0, new BitSet()));
+        sendDownstreamGamePacket(new ServerboundChatCommandPacket(command, Instant.now().toEpochMilli(), 0L, Collections.emptyList(), 0, new BitSet()));
     }
 
     public void setServerRenderDistance(int renderDistance) {
@@ -1500,11 +1484,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         StartGamePacket startGamePacket = new StartGamePacket();
         startGamePacket.setUniqueEntityId(playerEntity.getGeyserId());
         startGamePacket.setRuntimeEntityId(playerEntity.getGeyserId());
-        startGamePacket.setPlayerGameType(switch (gameMode) {
-            case CREATIVE -> GameType.CREATIVE;
-            case ADVENTURE -> GameType.ADVENTURE;
-            default -> GameType.SURVIVAL;
-        });
+        startGamePacket.setPlayerGameType(EntityUtils.toBedrockGamemode(gameMode));
         startGamePacket.setPlayerPosition(Vector3f.from(0, 69, 0));
         startGamePacket.setRotation(Vector2f.from(1, 1));
 
@@ -1554,6 +1534,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setItemDefinitions(this.itemMappings.getItemDefinitions().values().stream().toList()); // TODO
         // startGamePacket.setBlockPalette(this.blockMappings.getBedrockBlockPalette());
 
+        // Needed for custom block mappings and custom skulls system
+        startGamePacket.getBlockProperties().addAll(this.blockMappings.getBlockProperties());
+
+        // See https://learn.microsoft.com/en-us/minecraft/creator/documents/experimentalfeaturestoggle for info on each experiment
+        // data_driven_items (Holiday Creator Features) is needed for blocks and items
+        startGamePacket.getExperiments().add(new ExperimentData("data_driven_items", true));
+        // Needed for block properties for states
+        startGamePacket.getExperiments().add(new ExperimentData("upcoming_creator_features", true));
+        // Needed for certain molang queries used in blocks and items
+        startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
+
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);
         startGamePacket.setServerEngine(""); // Do we want to fill this in?
@@ -1567,9 +1558,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setRewindHistorySize(0);
         startGamePacket.setServerAuthoritativeBlockBreaking(false);
 
-        if (GameProtocol.isPre1_20(this)) {
-            startGamePacket.getExperiments().add(new ExperimentData("next_major_update", true));
-            startGamePacket.getExperiments().add(new ExperimentData("sniffer", true));
+        if (GameProtocol.isUsingExperimentalRecipeUnlocking(this)) {
+            startGamePacket.getExperiments().add(new ExperimentData("recipe_unlocking", true));
         }
 
         upstream.sendPacket(startGamePacket);
@@ -1621,6 +1611,39 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     /**
+     * Send a packet to the remote server if in the game state.
+     *
+     * @param packet the java edition packet from MCProtocolLib
+     */
+    public void sendDownstreamGamePacket(Packet packet) {
+        sendDownstreamPacket(packet, ProtocolState.GAME);
+    }
+
+    /**
+     * Send a packet to the remote server if in the login state.
+     *
+     * @param packet the java edition packet from MCProtocolLib
+     */
+    public void sendDownstreamLoginPacket(Packet packet) {
+        sendDownstreamPacket(packet, ProtocolState.LOGIN);
+    }
+
+    /**
+     * Send a packet to the remote server if in the specified state.
+     *
+     * @param packet the java edition packet from MCProtocolLib
+     * @param intendedState the state the client should be in
+     */
+    public void sendDownstreamPacket(Packet packet, ProtocolState intendedState) {
+        if (protocol.getState() != intendedState) {
+            geyser.getLogger().debug("Tried to send " + packet.getClass().getSimpleName() + " packet while not in " + intendedState.name() + " state");
+            return;
+        }
+
+        sendDownstreamPacket(packet);
+    }
+
+    /**
      * Send a packet to the remote server.
      *
      * @param packet the java edition packet from MCProtocolLib
@@ -1647,7 +1670,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     private void sendDownstreamPacket0(Packet packet) {
-        if (protocol.getState().equals(ProtocolState.GAME) || packet.getClass() == ServerboundCustomQueryPacket.class) {
+        ProtocolState state = protocol.getState();
+        if (state == ProtocolState.GAME || state == ProtocolState.CONFIGURATION || packet.getClass() == ServerboundCustomQueryAnswerPacket.class) {
             downstream.sendPacket(packet);
         } else {
             geyser.getLogger().debug("Tried to send downstream packet " + packet.getClass().getSimpleName() + " before connected to the server");
@@ -1734,7 +1758,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         AbilityLayer abilityLayer = new AbilityLayer();
         Set<Ability> abilities = abilityLayer.getAbilityValues();
-        if (canFly || spectator) {
+        if (canFly) {
             abilities.add(Ability.MAY_FLY);
         }
 
@@ -1762,21 +1786,37 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 // We're "flying locked" in this gamemode
                 flying = true;
                 ServerboundPlayerAbilitiesPacket abilitiesPacket = new ServerboundPlayerAbilitiesPacket(true);
-                sendDownstreamPacket(abilitiesPacket);
+                sendDownstreamGamePacket(abilitiesPacket);
             }
             abilities.add(Ability.FLYING);
         }
 
         if (spectator) {
-            abilities.add(Ability.NO_CLIP);
+            AbilityLayer spectatorLayer = new AbilityLayer();
+            spectatorLayer.setLayerType(AbilityLayer.Type.SPECTATOR);
+            // Setting all abilitySet causes the zoom issue... BDS only sends these, so ig we will too
+            Set<Ability> abilitySet = spectatorLayer.getAbilitiesSet();
+            abilitySet.add(Ability.BUILD);
+            abilitySet.add(Ability.MINE);
+            abilitySet.add(Ability.DOORS_AND_SWITCHES);
+            abilitySet.add(Ability.OPEN_CONTAINERS);
+            abilitySet.add(Ability.ATTACK_PLAYERS);
+            abilitySet.add(Ability.ATTACK_MOBS);
+            abilitySet.add(Ability.INVULNERABLE);
+            abilitySet.add(Ability.FLYING);
+            abilitySet.add(Ability.MAY_FLY);
+            abilitySet.add(Ability.INSTABUILD);
+            abilitySet.add(Ability.NO_CLIP);
+
+            Set<Ability> abilityValues = spectatorLayer.getAbilityValues();
+            abilityValues.add(Ability.INVULNERABLE);
+            abilityValues.add(Ability.FLYING);
+            abilityValues.add(Ability.NO_CLIP);
+
+            updateAbilitiesPacket.getAbilityLayers().add(spectatorLayer);
         }
 
-        // https://github.com/GeyserMC/Geyser/issues/3769 Setting Spectator mode ability layer
-        if (spectator) {
-            abilityLayer.setLayerType(AbilityLayer.Type.SPECTATOR);
-        } else {
-            abilityLayer.setLayerType(AbilityLayer.Type.BASE);
-        }
+        abilityLayer.setLayerType(AbilityLayer.Type.BASE);
         abilityLayer.setFlySpeed(flySpeed);
         // https://github.com/GeyserMC/Geyser/issues/3139 as of 1.19.10
         abilityLayer.setWalkSpeed(walkSpeed == 0f ? 0.01f : walkSpeed);
@@ -1790,8 +1830,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         if (clientRenderDistance != -1) {
             // The client has sent a render distance
             return clientRenderDistance;
+        } else if (serverRenderDistance != -1) {
+            // only known once ClientboundLoginPacket is received
+            return serverRenderDistance;
         }
-        return serverRenderDistance;
+        return 2; // unfortunate default until we got more info
     }
 
     // We need to send our skin parts to the server otherwise java sees us with no hat, jacket etc

@@ -208,15 +208,7 @@ public class InventoryUtils {
 
     private static ItemDefinition getUnusableSpaceBlockDefinition(int protocolVersion) {
         String unusableSpaceBlock = GeyserImpl.getInstance().getConfig().getUnusableSpaceBlock();
-        ItemDefinition itemDefinition = null;
-
-        // looping through all the items to find the one with the specified Bedrock identifier
-        for (ItemDefinition definition : Registries.ITEMS.forVersion(protocolVersion).getItemDefinitions().values()) {
-            if (definition.getIdentifier().equals(unusableSpaceBlock)) {
-                itemDefinition = definition;
-                break;
-            }
-        }
+        ItemDefinition itemDefinition = Registries.ITEMS.forVersion(protocolVersion).getDefinition(unusableSpaceBlock);
 
         if (itemDefinition == null) {
             GeyserImpl.getInstance().getLogger().error("Invalid value " + unusableSpaceBlock + ". Resorting to barrier block.");
@@ -224,6 +216,12 @@ public class InventoryUtils {
         } else {
             return itemDefinition;
         }
+    }
+
+    public static IntFunction<ItemData> getUpgradeTemplate() {
+        return protocolVersion -> ItemData.builder()
+                .definition(Registries.ITEMS.forVersion(protocolVersion).getStoredItems().upgradeTemplate().getBedrockDefinition())
+                .count(1).build();
     }
 
     /**
@@ -262,7 +260,7 @@ public class InventoryUtils {
             // If this is the item we're looking for
             if (geyserItem.getJavaId() == itemStack.getId() && Objects.equals(geyserItem.getNbt(), itemStack.getNbt())) {
                 ServerboundPickItemPacket packetToSend = new ServerboundPickItemPacket(i); // https://wiki.vg/Protocol#Pick_Item
-                session.sendDownstreamPacket(packetToSend);
+                session.sendDownstreamGamePacket(packetToSend);
                 return;
             }
         }
@@ -276,7 +274,7 @@ public class InventoryUtils {
             if ((slot - 36) != inventory.getHeldItemSlot()) {
                 setHotbarItem(session, slot);
             }
-            session.sendDownstreamPacket(actionPacket);
+            session.sendDownstreamGamePacket(actionPacket);
         }
     }
 
@@ -327,7 +325,7 @@ public class InventoryUtils {
             }
 
             ServerboundPickItemPacket packetToSend = new ServerboundPickItemPacket(i); // https://wiki.vg/Protocol#Pick_Item
-            session.sendDownstreamPacket(packetToSend);
+            session.sendDownstreamGamePacket(packetToSend);
             return;
         }
 
@@ -342,7 +340,7 @@ public class InventoryUtils {
                 if ((slot - 36) != inventory.getHeldItemSlot()) {
                     setHotbarItem(session, slot);
                 }
-                session.sendDownstreamPacket(actionPacket);
+                session.sendDownstreamGamePacket(actionPacket);
             } else {
                 session.getGeyser().getLogger().debug("Cannot find item for block " + itemName);
             }

@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeTyp
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.GlobalPos;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -109,10 +110,17 @@ public class SessionPlayerEntity extends PlayerEntity {
         this.position = position;
     }
 
+    /**
+     * Sending any updated flags (sprinting, onFire, etc.) to the client while in spectator is not needed
+     * Also "fixes" https://github.com/GeyserMC/Geyser/issues/3318
+     */
     @Override
     public void setFlags(ByteEntityMetadata entityMetadata) {
-        super.setFlags(entityMetadata);
-        session.setSwimmingInWater((entityMetadata.getPrimitiveValue() & 0x10) == 0x10 && getFlag(EntityFlag.SPRINTING));
+        // TODO: proper fix, BDS somehow does it? https://paste.gg/p/anonymous/3adfb7612f1540be80fa03a2281f93dc (BDS 1.20.13)
+        if (!this.session.getGameMode().equals(GameMode.SPECTATOR)) {
+            super.setFlags(entityMetadata);
+            session.setSwimmingInWater((entityMetadata.getPrimitiveValue() & 0x10) == 0x10 && getFlag(EntityFlag.SPRINTING));
+        }
         refreshSpeed = true;
     }
 
@@ -245,5 +253,18 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Override
     public UUID getTabListUuid() {
         return session.getAuthData().uuid();
+    }
+
+    public void resetMetadata() {
+        // Reset all metadata to their default values
+        // This is used when a player respawns
+        this.initializeMetadata();
+
+        // Reset air
+        this.resetAir();
+    }
+
+    public void resetAir() {
+        this.setAirSupply(getMaxAir());
     }
 }

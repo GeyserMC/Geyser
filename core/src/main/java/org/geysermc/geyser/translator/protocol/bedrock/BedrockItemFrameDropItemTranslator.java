@@ -49,7 +49,7 @@ public class BedrockItemFrameDropItemTranslator extends PacketTranslator<ItemFra
         if (entity != null) {
             ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(entity.getEntityId(),
                     InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
-            session.sendDownstreamPacket(interactPacket);
+            session.sendDownstreamGamePacket(interactPacket);
         }
     }
 }

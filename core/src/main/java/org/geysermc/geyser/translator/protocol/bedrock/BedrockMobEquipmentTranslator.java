@@ -58,7 +58,7 @@ public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipment
         session.getPlayerInventory().setHeldItemSlot(newSlot);
 
         ServerboundSetCarriedItemPacket setCarriedItemPacket = new ServerboundSetCarriedItemPacket(newSlot);
-        session.sendDownstreamPacket(setCarriedItemPacket);
+        session.sendDownstreamGamePacket(setCarriedItemPacket);
 
         GeyserItemStack newItem = session.getPlayerInventory().getItemInHand();
 
@@ -66,7 +66,7 @@ public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipment
             // Activate shield since we are already sneaking
             // (No need to send a release item packet - Java doesn't do this when swapping items)
             // Required to do it a tick later or else it doesn't register
-            session.scheduleInEventLoop(() -> session.sendDownstreamPacket(new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getWorldCache().nextPredictionSequence())),
+            session.scheduleInEventLoop(() -> session.sendDownstreamGamePacket(new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getWorldCache().nextPredictionSequence())),
                     50, TimeUnit.MILLISECONDS);
         }
 

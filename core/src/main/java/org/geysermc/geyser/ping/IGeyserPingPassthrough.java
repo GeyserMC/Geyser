@@ -26,23 +26,12 @@
 package org.geysermc.geyser.ping;
 
 import javax.annotation.Nullable;
-import java.net.Inet4Address;
 import java.net.InetSocketAddress;
 
 /**
  * Interface that retrieves ping passthrough information from the Java server
  */
 public interface IGeyserPingPassthrough {
-
-    /**
-     * Get the MOTD of the server displayed on the multiplayer screen. It uses a fake remote, as the remote isn't important in this context.
-     *
-     * @return string of the MOTD
-     */
-    @Nullable
-    default GeyserPingInfo getPingInformation() {
-        return this.getPingInformation(new InetSocketAddress(Inet4Address.getLoopbackAddress(), 69));
-    }
 
     /**
      * Get the MOTD of the server displayed on the multiplayer screen

@@ -41,10 +41,9 @@ import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.components.ToolBreakSpeedsUtils;
 import org.geysermc.geyser.item.components.WearableSlot;
-import org.geysermc.geyser.item.mappings.MappingsConfigReader;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
@@ -56,7 +55,7 @@ public class CustomItemRegistryPopulator {
     public static void populate(Map<String, GeyserMappingItem> items, Multimap<String, CustomItemData> customItems, List<NonVanillaCustomItemData> nonVanillaCustomItems) {
         MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
         // Load custom items from mappings files
-        mappingsConfigReader.loadMappingsFromJson((key, item) -> {
+        mappingsConfigReader.loadItemMappingsFromJson((key, item) -> {
             if (CustomItemRegistryPopulator.initialCheck(key, item, items)) {
                 customItems.get(key).add(item);
             }
@@ -271,6 +270,17 @@ public class CustomItemRegistryPopulator {
                 .build());
         componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", customItemData.displayName()).build());
 
+        // Add a Geyser tag to the item, allowing Molang queries
+        addItemTag(componentBuilder, "geyser:is_custom");
+
+        // Add other defined tags to the item
+        Set<String> tags = customItemData.tags();
+        for (String tag : tags) {
+            if (tag != null && !tag.isBlank()) {
+                addItemTag(componentBuilder, tag);
+            }
+        }
+
         itemProperties.putBoolean("allow_off_hand", customItemData.allowOffhand());
         itemProperties.putBoolean("hand_equipped", displayHandheld);
         itemProperties.putInt("max_stack_size", stackSize);
@@ -294,34 +304,45 @@ public class CustomItemRegistryPopulator {
         boolean canDestroyInCreative = true;
         float miningSpeed = 1.0f;
 
-        if (toolType.equals("shears")) {
-            componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getShearsDigger(15));
-        } else {
-            int toolSpeed = ToolBreakSpeedsUtils.toolTierToSpeed(toolTier);
-            switch (toolType) {
-                case "sword" -> {
-                    miningSpeed = 1.5f;
-                    canDestroyInCreative = false;
-                    componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getSwordDigger(toolSpeed));
-                    componentBuilder.putCompound("minecraft:weapon", NbtMap.EMPTY);
-                }
-                case "pickaxe" -> {
-                    componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getPickaxeDigger(toolSpeed, toolTier));
-                    setItemTag(componentBuilder, "pickaxe");
-                }
-                case "axe" -> {
-                    componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getAxeDigger(toolSpeed));
-                    setItemTag(componentBuilder, "axe");
-                }
-                case "shovel" -> {
-                    componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getShovelDigger(toolSpeed));
-                    setItemTag(componentBuilder, "shovel");
-                }
-                case "hoe" -> {
-                    componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getHoeDigger(toolSpeed));
-                    setItemTag(componentBuilder, "hoe");
-                }
-            }
+        // This means client side the tool can never destroy a block
+        // This works because the molang '1' for tags will be true for all blocks and the speed will be 0
+        // We want this since we calculate break speed server side in BedrockActionTranslator
+        List<NbtMap> speed = new ArrayList<>(List.of(
+            NbtMap.builder()
+                .putCompound("block", NbtMap.builder()
+                        .putString("tags", "1")
+                        .build())
+                .putCompound("on_dig", NbtMap.builder()
+                        .putCompound("condition", NbtMap.builder()
+                                .putString("expression", "")
+                                .putInt("version", -1)
+                                .build())
+                        .putString("event", "tool_durability")
+                        .putString("target", "self")
+                        .build())
+                .putInt("speed", 0)
+                .build()
+        ));
+        
+        componentBuilder.putCompound("minecraft:digger",
+            NbtMap.builder()
+            .putList("destroy_speeds", NbtType.COMPOUND, speed)
+            .putCompound("on_dig", NbtMap.builder()
+                    .putCompound("condition", NbtMap.builder()
+                            .putString("expression", "")
+                            .putInt("version", -1)
+                            .build())
+                    .putString("event", "tool_durability")
+                    .putString("target", "self")
+                    .build())
+            .putBoolean("use_efficiency", true)
+            .build()
+        );
+
+        if (toolType.equals("sword")) {
+            miningSpeed = 1.5f;
+            canDestroyInCreative = false;
+            componentBuilder.putCompound("minecraft:weapon", NbtMap.EMPTY);
         }
 
         itemProperties.putBoolean("hand_equipped", true);
@@ -496,8 +517,19 @@ public class CustomItemRegistryPopulator {
         return List.of(xyz.x(), xyz.y(), xyz.z());
     }
 
-    private static void setItemTag(NbtMapBuilder builder, String tag) {
-        builder.putList("item_tags", NbtType.STRING, List.of("minecraft:is_" + tag));
+    @SuppressWarnings("unchecked")
+    private static void addItemTag(NbtMapBuilder builder, String tag) {
+        List<String> tagList = (List<String>) builder.get("item_tags");
+        if (tagList == null) {
+            builder.putList("item_tags", NbtType.STRING, tag);
+        } else {
+            // NbtList is immutable
+            if (!tagList.contains(tag)) {
+                tagList = new ArrayList<>(tagList);
+                tagList.add(tag);
+                builder.putList("item_tags", NbtType.STRING, tagList);
+            }
+        }
     }
 
     private static NbtMap xyzToScaleList(float x, float y, float z) {
