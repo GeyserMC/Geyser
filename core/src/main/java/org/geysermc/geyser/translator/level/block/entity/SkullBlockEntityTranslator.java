@@ -61,6 +61,9 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         }
         builder.put("Rotation", rotation);
         builder.put("SkullType", skullVariant);
+        if (BlockStateValues.isSkullPowered(blockState)) {
+            builder.putBoolean("MouthMoving", true);
+        }
     }
 
     private static UUID getUUID(CompoundTag owner) {

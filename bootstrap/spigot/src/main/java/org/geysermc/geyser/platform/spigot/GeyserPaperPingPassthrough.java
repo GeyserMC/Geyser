@@ -27,7 +27,6 @@ package org.geysermc.geyser.platform.spigot;
 
 import com.destroystokyo.paper.event.server.PaperServerListPingEvent;
 import com.destroystokyo.paper.network.StatusClient;
-import com.destroystokyo.paper.profile.PlayerProfile;
 import org.bukkit.Bukkit;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -82,16 +81,7 @@ public final class GeyserPaperPingPassthrough implements IGeyserPingPassthrough 
                 players = new GeyserPingInfo.Players(event.getMaxPlayers(), event.getNumPlayers());
             }
 
-            GeyserPingInfo geyserPingInfo = new GeyserPingInfo(event.getMotd(), players,
-                    new GeyserPingInfo.Version(Bukkit.getVersion(), GameProtocol.getJavaProtocolVersion()));
-
-            if (!event.shouldHidePlayers()) {
-                for (PlayerProfile profile : event.getPlayerSample()) {
-                    geyserPingInfo.getPlayerList().add(profile.getName());
-                }
-            }
-
-            return geyserPingInfo;
+            return new GeyserPingInfo(event.getMotd(), players);
         } catch (Exception | LinkageError e) { // LinkageError in the event that method/constructor signatures change
             logger.debug("Error while getting Paper ping passthrough: " + e);
             return null;

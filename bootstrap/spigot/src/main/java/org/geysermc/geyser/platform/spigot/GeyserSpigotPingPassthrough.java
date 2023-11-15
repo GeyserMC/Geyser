@@ -52,12 +52,7 @@ public class GeyserSpigotPingPassthrough implements IGeyserPingPassthrough {
         try {
             ServerListPingEvent event = new GeyserPingEvent(inetSocketAddress.getAddress(), Bukkit.getMotd(), Bukkit.getOnlinePlayers().size(), Bukkit.getMaxPlayers());
             Bukkit.getPluginManager().callEvent(event);
-            GeyserPingInfo geyserPingInfo = new GeyserPingInfo(event.getMotd(),
-                    new GeyserPingInfo.Players(event.getMaxPlayers(), event.getNumPlayers()),
-                    new GeyserPingInfo.Version(Bukkit.getVersion(), GameProtocol.getJavaProtocolVersion()) // thanks Spigot for not exposing this, just default to latest
-            );
-            Bukkit.getOnlinePlayers().stream().map(Player::getName).forEach(geyserPingInfo.getPlayerList()::add);
-            return geyserPingInfo;
+            return new GeyserPingInfo(event.getMotd(), event.getMaxPlayers(), event.getNumPlayers());
         } catch (Exception | LinkageError e) { // LinkageError in the event that method/constructor signatures change
             logger.debug("Error while getting Bukkit ping passthrough: " + e);
             return null;

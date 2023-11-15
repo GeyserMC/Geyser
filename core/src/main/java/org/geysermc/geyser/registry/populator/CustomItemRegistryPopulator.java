@@ -264,6 +264,17 @@ public class CustomItemRegistryPopulator {
                 .build());
         componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", customItemData.displayName()).build());
 
+        // Add a Geyser tag to the item, allowing Molang queries
+        addItemTag(componentBuilder, "geyser:is_custom");
+
+        // Add other defined tags to the item
+        Set<String> tags = customItemData.tags();
+        for (String tag : tags) {
+            if (tag != null && !tag.isBlank()) {
+                addItemTag(componentBuilder, tag);
+            }
+        }
+
         itemProperties.putBoolean("allow_off_hand", customItemData.allowOffhand());
         itemProperties.putBoolean("hand_equipped", displayHandheld);
         itemProperties.putInt("max_stack_size", stackSize);
@@ -307,7 +318,7 @@ public class CustomItemRegistryPopulator {
                 .build()
         ));
         
-        componentBuilder.putCompound("minecraft:digger", 
+        componentBuilder.putCompound("minecraft:digger",
             NbtMap.builder()
             .putList("destroy_speeds", NbtType.COMPOUND, speed)
             .putCompound("on_dig", NbtMap.builder()
@@ -450,7 +461,7 @@ public class CustomItemRegistryPopulator {
         return builder.build();
     }
 
-    private static @org.checkerframework.checker.nullness.qual.Nullable NbtMap toNbtMap(CustomRenderOffsets.Hand hand) {
+    private static @Nullable NbtMap toNbtMap(CustomRenderOffsets.Hand hand) {
         NbtMap firstPerson = toNbtMap(hand.firstPerson());
         NbtMap thirdPerson = toNbtMap(hand.thirdPerson());
 
@@ -498,6 +509,21 @@ public class CustomItemRegistryPopulator {
 
     private static List<Float> toList(CustomRenderOffsets.OffsetXYZ xyz) {
         return List.of(xyz.x(), xyz.y(), xyz.z());
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void addItemTag(NbtMapBuilder builder, String tag) {
+        List<String> tagList = (List<String>) builder.get("item_tags");
+        if (tagList == null) {
+            builder.putList("item_tags", NbtType.STRING, tag);
+        } else {
+            // NbtList is immutable
+            if (!tagList.contains(tag)) {
+                tagList = new ArrayList<>(tagList);
+                tagList.add(tag);
+                builder.putList("item_tags", NbtType.STRING, tagList);
+            }
+        }
     }
 
     private static NbtMap xyzToScaleList(float x, float y, float z) {

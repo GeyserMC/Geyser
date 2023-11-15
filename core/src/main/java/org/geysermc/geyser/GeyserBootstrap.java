@@ -79,6 +79,7 @@ public interface GeyserBootstrap {
      *
      * @return The current PingPassthrough manager
      */
+    @Nullable
     IGeyserPingPassthrough getGeyserPingPassthrough();
 
     /**

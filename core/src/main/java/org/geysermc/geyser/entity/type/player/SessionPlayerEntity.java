@@ -254,4 +254,17 @@ public class SessionPlayerEntity extends PlayerEntity {
     public UUID getTabListUuid() {
         return session.getAuthData().uuid();
     }
+
+    public void resetMetadata() {
+        // Reset all metadata to their default values
+        // This is used when a player respawns
+        this.initializeMetadata();
+
+        // Reset air
+        this.resetAir();
+    }
+
+    public void resetAir() {
+        this.setAirSupply(getMaxAir());
+    }
 }

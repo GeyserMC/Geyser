@@ -162,4 +162,9 @@ public class EntityCache {
     public List<Tickable> getTickableEntities() {
         return tickableEntities;
     }
+
+    public void removeAllBossBars() {
+        bossBars.values().forEach(BossBar::removeBossBar);
+        bossBars.clear();
+    }
 }

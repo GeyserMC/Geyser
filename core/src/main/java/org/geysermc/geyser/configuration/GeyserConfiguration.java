@@ -59,9 +59,6 @@ public interface GeyserConfiguration {
     boolean isPassthroughMotd();
 
     @JsonIgnore
-    boolean isPassthroughProtocolName();
-
-    @JsonIgnore
     boolean isPassthroughPlayerCounts();
 
     @JsonIgnore
