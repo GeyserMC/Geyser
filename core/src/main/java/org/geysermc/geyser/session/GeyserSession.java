@@ -53,11 +53,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.Server
 import com.github.steveice10.mc.protocol.packet.login.serverbound.ServerboundCustomQueryAnswerPacket;
 import com.github.steveice10.packetlib.BuiltinFlags;
 import com.github.steveice10.packetlib.Session;
-import com.github.steveice10.packetlib.event.session.ConnectedEvent;
-import com.github.steveice10.packetlib.event.session.DisconnectedEvent;
-import com.github.steveice10.packetlib.event.session.PacketErrorEvent;
-import com.github.steveice10.packetlib.event.session.PacketSendingEvent;
-import com.github.steveice10.packetlib.event.session.SessionAdapter;
+import com.github.steveice10.packetlib.event.session.*;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpClientSession;
 import com.github.steveice10.packetlib.tcp.TcpSession;
@@ -85,6 +81,8 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.data.*;
+import org.cloudburstmc.protocol.bedrock.data.camera.CameraFadeInstruction;
+import org.cloudburstmc.protocol.bedrock.data.camera.CameraSetInstruction;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
@@ -101,6 +99,8 @@ import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.bedrock.camera.CameraFade;
+import org.geysermc.geyser.api.bedrock.camera.CameraInstruction;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
@@ -149,11 +149,13 @@ import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledFuture;
@@ -2015,16 +2017,30 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Override
     public void sendFadeTransition(CameraFade fade) {
         // TODO
+        CameraFadeInstruction instruction = new CameraFadeInstruction();
+        instruction.setColor(new Color(fade.red(), fade.green(), fade.blue()));
+        instruction.setTimeData(new CameraFadeInstruction.TimeData(fade.fadeInSeconds(), fade.fadeOutSeconds(), fade.holdSeconds()));
+
+        CameraInstructionPacket packet = new CameraInstructionPacket();
+        packet.setFadeInstruction(instruction);
     }
 
     @Override
     public void sendCameraInstruction(CameraInstruction instruction) {
         // TODO
+        CameraSetInstruction setInstruction = new CameraSetInstruction();
+        setInstruction.setPos(Vector3f.from(instruction.pos_x(), instruction.pos_y(), instruction.pos_z()));
+        setInstruction.setRot(Vector2f.from(instruction.rot_x(), instruction.rot_y()));a
+
+        CameraInstructionPacket packet = new CameraInstructionPacket();
+
     }
 
     @Override
     public void stopCameraInstructions() {
-        // TODO
+        CameraInstructionPacket packet = new CameraInstructionPacket();
+        packet.setClear(true);
+        sendUpstreamPacket(packet);
     }
 
     @Override
