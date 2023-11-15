@@ -49,6 +49,10 @@ public class DownstreamSession {
         this.session.disconnect(reason, throwable);
     }
 
+    public boolean isClosed() {
+        return !this.session.isConnected();
+    }
+
     /**
      * Gets the codec helper for this session.
      *
