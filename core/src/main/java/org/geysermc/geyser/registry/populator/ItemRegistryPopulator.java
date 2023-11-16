@@ -117,15 +117,11 @@ public class ItemRegistryPopulator {
         Remapper remapper630 = (item, mapping) -> {
             mapping = remapper618.remap(item, mapping); // apply 1.20.30 remapper first
 
-            // 1.20.50 replaced stone to individual stone types
-            // E.g.: granite, diorite, andesite, polished variants
-            if (mapping.getBedrockIdentifier().equals("stone")) {
-                mapping.setBedrockIdentifier(item.javaIdentifier());
-            }
-
-            // Planks (exluding crimson, warped, bamboo, mangrove cherry, those already were) are also split up
-            if (mapping.getBedrockIdentifier().equals("planks")) {
-                mapping.setBedrockIdentifier(item.javaIdentifier());
+            String id = item.javaIdentifier();
+            // 1.20.50 replaced stone & planks to individual stone types
+            // E.g.: granite, diorite, andesite, polished variants, dark_oak_planks etc
+            if (mapping.getBedrockIdentifier().equals("minecraft:stone") || mapping.getBedrockIdentifier().equals("minecraft:planks")) {
+                return mapping.withBedrockIdentifier(id);
             }
 
             return mapping;
