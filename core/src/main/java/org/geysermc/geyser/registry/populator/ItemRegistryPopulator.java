@@ -114,10 +114,19 @@ public class ItemRegistryPopulator {
             return mapping;
         };
 
-        Remapper remapper622 = (item, mapping) -> {
+        Remapper remapper630 = (item, mapping) -> {
             mapping = remapper618.remap(item, mapping); // apply 1.20.30 remapper first
 
-            // TODO 1.20.50: Stone, planks?
+            // 1.20.50 replaced stone to individual stone types
+            // E.g.: granite, diorite, andesite, polished variants
+            if (mapping.getBedrockIdentifier().equals("stone")) {
+                mapping.setBedrockIdentifier(item.javaIdentifier());
+            }
+
+            // Planks (exluding crimson, warped, bamboo, mangrove cherry, those already were) are also split up
+            if (mapping.getBedrockIdentifier().equals("planks")) {
+                mapping.setBedrockIdentifier(item.javaIdentifier());
+            }
 
             return mapping;
         };
@@ -127,7 +136,7 @@ public class ItemRegistryPopulator {
         paletteVersions.add(new PaletteVersion("1_20_10", Bedrock_v594.CODEC.getProtocolVersion(), Collections.emptyMap(), remapper594));
         paletteVersions.add(new PaletteVersion("1_20_30", Bedrock_v618.CODEC.getProtocolVersion(), Collections.emptyMap(), remapper618));
         paletteVersions.add(new PaletteVersion("1_20_40", Bedrock_v622.CODEC.getProtocolVersion(), Collections.emptyMap(), remapper618)); // NO item changes between 1.20.30 and 1.20.40
-        paletteVersions.add(new PaletteVersion("1_20_50", Bedrock_v630.CODEC.getProtocolVersion(), Collections.emptyMap(), remapper622));
+        paletteVersions.add(new PaletteVersion("1_20_50", Bedrock_v630.CODEC.getProtocolVersion(), Collections.emptyMap(), remapper630));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
