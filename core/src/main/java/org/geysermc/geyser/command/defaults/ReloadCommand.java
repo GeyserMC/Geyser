@@ -32,6 +32,8 @@ import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 
+import java.util.concurrent.TimeUnit;
+
 public class ReloadCommand extends GeyserCommand {
 
     private final GeyserImpl geyser;
@@ -52,7 +54,8 @@ public class ReloadCommand extends GeyserCommand {
         sender.sendMessage(message);
 
         geyser.getSessionManager().disconnectAll("geyser.commands.reload.kick");
-        geyser.reload();
+        //FIXME Without the tiny wait, players do not get kicked - same happens when Geyser tries to disconnect all sessions on shutdown
+        geyser.getScheduledThread().schedule(geyser::reload, 10, TimeUnit.MILLISECONDS);
     }
 
     @Override

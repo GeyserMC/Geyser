@@ -29,6 +29,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
 
+import java.util.Set;
+
 /**
  * This is used to store data for a custom item.
  */
@@ -89,6 +91,14 @@ public interface CustomItemData {
      */
     @Nullable CustomRenderOffsets renderOffsets();
 
+    /**
+     * Gets the item's set of tags that can be used in Molang.
+     * Equivalent to "tag:some_tag"
+     *
+     * @return the item's tags, if they exist
+     */
+    @NonNull Set<String> tags();
+
     static CustomItemData.Builder builder() {
         return GeyserApi.api().provider(CustomItemData.Builder.class);
     }
@@ -112,6 +122,8 @@ public interface CustomItemData {
         Builder textureSize(int textureSize);
 
         Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets);
+
+        Builder tags(@Nullable Set<String> tags);
 
         CustomItemData build();
     }

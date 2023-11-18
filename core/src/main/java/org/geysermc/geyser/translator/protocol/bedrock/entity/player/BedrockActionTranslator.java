@@ -55,6 +55,7 @@ import org.geysermc.geyser.translator.inventory.item.CustomItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.BlockUtils;
+import org.geysermc.geyser.util.CooldownUtils;
 
 @Translator(packet = PlayerActionPacket.class)
 public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket> {
@@ -281,6 +282,10 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 entity.setOnGround(false); // Increase block break time while jumping
                 break;
             case MISSED_SWING:
+                // Java edition sends a cooldown when hitting air.
+                // Normally handled by BedrockLevelSoundEventTranslator, but there is no sound on Java for this.
+                CooldownUtils.sendCooldown(session);
+
                 // TODO Re-evaluate after pre-1.20.10 is no longer supported?
                 if (session.getArmAnimationTicks() == -1) {
                     session.sendDownstreamGamePacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
