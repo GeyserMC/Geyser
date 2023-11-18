@@ -188,7 +188,7 @@ public interface GeyserBootstrap {
      *
      * @return the platform executor
      */
-    @Nonnull
+    @NonNull
     default ExecutorService platformExecutor() {
         return ForkJoinPool.commonPool();
     }
