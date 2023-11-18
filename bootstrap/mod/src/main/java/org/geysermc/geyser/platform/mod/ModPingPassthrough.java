@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.fabric;
+package org.geysermc.geyser.platform.mod;
 
 import lombok.AllArgsConstructor;
 import net.kyori.adventure.text.Component;
@@ -39,6 +39,7 @@ import net.minecraft.network.protocol.status.ServerStatusPacketListener;
 import net.minecraft.network.protocol.status.ServerboundStatusRequestPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerStatusPacketListenerImpl;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
@@ -100,7 +101,7 @@ public class ModPingPassthrough implements IGeyserPingPassthrough {
         }
 
         @Override
-        public void send(Packet<?> packet, @Nullable PacketSendListener packetSendListener, boolean bl) {
+        public void send(@NonNull Packet<?> packet, @Nullable PacketSendListener packetSendListener, boolean bl) {
             if (packet instanceof ClientboundStatusResponsePacket statusResponse) {
                 status = statusResponse.status();
             }
