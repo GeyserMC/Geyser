@@ -94,6 +94,14 @@ public final class GameProtocol {
     }
 
     /**
+     * @param session the session to check
+     * @return true if the session needs an experiment for recipe unlocking
+     */
+    public static boolean isUsingExperimentalRecipeUnlocking(GeyserSession session) {
+        return session.getUpstream().getProtocolVersion() == Bedrock_v594.CODEC.getProtocolVersion();
+    }
+
+    /**
      * Gets the {@link PacketCodec} for Minecraft: Java Edition.
      *
      * @return the packet codec for Minecraft: Java Edition
