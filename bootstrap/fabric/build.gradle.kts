@@ -119,7 +119,7 @@ modrinth {
     syncBodyFrom.set(rootProject.file("README.md").readText())
 
     uploadFile.set(tasks.getByPath("remapModrinthJar"))
-    gameVersions.addAll("1.20.2")
+    gameVersions.addAll("1.20.3")
 
     loaders.add("fabric")
     failSilently.set(true)
