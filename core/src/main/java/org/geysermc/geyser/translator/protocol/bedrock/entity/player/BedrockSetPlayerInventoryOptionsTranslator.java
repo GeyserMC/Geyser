@@ -25,9 +25,11 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.inventory.CraftingBookStateType;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundRecipeBookChangeSettingsPacket;
 import org.cloudburstmc.protocol.bedrock.data.inventory.InventoryTabLeft;
+import org.cloudburstmc.protocol.bedrock.data.inventory.InventoryTabRight;
 import org.cloudburstmc.protocol.bedrock.packet.SetPlayerInventoryOptionsPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -39,10 +41,23 @@ public class BedrockSetPlayerInventoryOptionsTranslator extends PacketTranslator
     @Override
     public void translate(GeyserSession session, SetPlayerInventoryOptionsPacket packet) {
         // Sent by 1.20.50+ - we can pass it through to the java server
-        CraftingBookStateType type = CraftingBookStateType.CRAFTING; // There is no furnace recipe book in bedrock
-        boolean bookOpen = packet.getLeftTab() != InventoryTabLeft.NONE && packet.getLeftTab() != InventoryTabLeft.SURVIVAL;
-        boolean filtered = packet.isFiltering();
 
-        session.sendDownstreamPacket(new ServerboundRecipeBookChangeSettingsPacket(type, bookOpen, filtered));
+        // This should ensure that we never send these packets when the player inventory is opened while in creative
+        // Java edition can't craft in the 2x2 grid in creative, and subsequently doesn't have a recipe book
+        if (session.getGameMode() == GameMode.CREATIVE && session.getPlayerInventory() == session.getOpenInventory()) {
+            return;
+        }
+
+        boolean filtered = packet.isFiltering();
+        boolean bookOpen = isBookOpen(packet.getLeftTab(), packet.getRightTab());
+
+        // Hardcoded to crafting; bedrock does not have any furnace recipe books
+        session.sendDownstreamPacket(new ServerboundRecipeBookChangeSettingsPacket(CraftingBookStateType.CRAFTING, bookOpen, filtered));
+    }
+
+    private boolean isBookOpen(InventoryTabLeft leftTab, InventoryTabRight rightTab) {
+        boolean leftOpen = (leftTab != InventoryTabLeft.NONE && leftTab != InventoryTabLeft.SURVIVAL);
+        boolean rightOpen = rightTab == InventoryTabRight.CRAFTING;
+        return leftOpen || rightOpen;
     }
 }
