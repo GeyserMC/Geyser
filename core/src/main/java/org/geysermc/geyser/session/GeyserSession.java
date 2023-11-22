@@ -1039,7 +1039,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                     geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.remote.disconnect", authData.name(), remoteServer.address(), disconnectMessage));
                 }
                 if (cause != null) {
-                    GeyserImpl.getInstance().getLogger().error(cause.getMessage());
+                    if (cause.getMessage() != null) {
+                        GeyserImpl.getInstance().getLogger().error(cause.getMessage());
+                    } else {
+                        GeyserImpl.getInstance().getLogger().error("An exception occurred: ", cause);
+                    }
                     // GeyserSession is disconnected via session.disconnect() called indirectly be the server
                     // This only needs to be "initiated" here when there is an exception, hence the cause clause
                     GeyserSession.this.disconnect(disconnectMessage);
