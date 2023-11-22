@@ -37,8 +37,14 @@ public class GlassPaneCollision extends BlockCollision {
      * 2 = east
      * 3 = south
      * 4 = west
+     * b1 = north, east
+     * b2 = east, south
+     * b3 = south, west
+     * b4 = west, north
      */
     private int facing;
+    private int facingB;
+
 
     public GlassPaneCollision(String params, BoundingBox[] defaultBoxes) {
         super(defaultBoxes);
@@ -52,6 +58,15 @@ public class GlassPaneCollision extends BlockCollision {
         } else if (params.contains("west=true") && params.contains("north=false") && params.contains("east=false") && params.contains("south=false")) {
             facing = 4;
         }
+        if (params.contains("north=true") && params.contains("east=true") && params.contains("south=false") && params.contains("west=false")) {
+            facingB = 1;
+        } else if (params.contains("east=true") && params.contains("north=false") && params.contains("south=true") && params.contains("west=false")) {
+            facingB = 2;
+        } else if (params.contains("south=true") && params.contains("north=false") && params.contains("east=false") && params.contains("west=true")) {
+            facingB = 3;
+        } else if (params.contains("west=true") && params.contains("north=true") && params.contains("east=false") && params.contains("south=false")) {
+            facingB = 4;
+        }
     }
 
     @Override
@@ -62,13 +77,19 @@ public class GlassPaneCollision extends BlockCollision {
         playerCollision.setSizeY(playerCollision.getSizeY() - 0.0001);
         playerCollision.setSizeZ(playerCollision.getSizeZ() - 0.0001);
 
-        // Check for glass_pane bug (glass_pane are 0.5625 wide on Java but 0.5 blocks wide on Bedrock when only one side connect)
+        // Check for glass_pane bug (glass_pane are 0.5625 wide thick on Java but 0.5 blocks wide on Bedrock)
         if (this.checkIntersection(x, y, z, playerCollision)) {
             switch (facing) {
                 case 1 -> playerCollision.setMiddleZ(z + 0.8625); // North
                 case 2 -> playerCollision.setMiddleX(x + 0.1375); // East
                 case 3 -> playerCollision.setMiddleZ(z + 0.1375); // South
                 case 4 -> playerCollision.setMiddleX(x + 0.8625); // West
+            }
+            switch (facingB) {
+                case 1 -> playerCollision.setMiddleX(x + 0.1375); // East
+                case 2 -> playerCollision.setMiddleZ(z + 0.1375); // South
+                case 3 -> playerCollision.setMiddleX(x + 0.8625); // West
+                case 4 -> playerCollision.setMiddleZ(z + 0.8625); // North
             }
         }
 
