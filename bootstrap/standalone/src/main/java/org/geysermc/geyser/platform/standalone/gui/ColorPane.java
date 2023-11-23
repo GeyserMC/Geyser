@@ -37,6 +37,7 @@ public class ColorPane extends JTextPane {
 
     @Serial
     private static final long serialVersionUID = 1L;
+
     private static Color colorCurrent = ANSIColor.RESET.getColor();
     private String remaining = "";
 

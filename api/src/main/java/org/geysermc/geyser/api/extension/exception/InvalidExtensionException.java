@@ -34,6 +34,7 @@ public class InvalidExtensionException extends Exception {
 
     @Serial
     private static final long serialVersionUID = 1L;
+
     public InvalidExtensionException(Throwable cause) {
         super(cause);
     }

@@ -42,6 +42,7 @@ public final class GraphPanel extends JPanel {
 
     @Serial
     private static final long serialVersionUID = 1L;
+
     private final static int padding = 10;
     private final static int labelPadding = 25;
     private final static int pointWidth = 4;
