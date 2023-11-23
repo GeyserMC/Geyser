@@ -31,7 +31,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 
 /**
- * Bare-bones implementation of BedrockPacketHandler suitable for extension.
+ * Bare bones implementation of BedrockPacketHandler suitable for extension.
  * <p>
  * Logs and ignores all packets presented. Allows subclasses to override/implement only
  * packets of interest and limit boilerplate code.
@@ -547,6 +547,11 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
 
     @Override
     public PacketSignal handle(SetLastHurtByPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public PacketSignal handle(SetPlayerInventoryOptionsPacket packet) {
         return defaultHandler(packet);
     }
 
