@@ -37,6 +37,8 @@ import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.translator.inventory.item.CustomItemTranslator;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 
+import java.util.Objects;
+
 public class PotionItem extends Item {
     public PotionItem(String javaIdentifier, Builder builder) {
         super(javaIdentifier, builder);
@@ -72,10 +74,9 @@ public class PotionItem extends Item {
     public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, ItemMappings mappings) {
         Potion potion = Potion.getByBedrockId(itemData.getDamage());
         ItemStack itemStack = super.translateToJava(itemData, mapping, mappings);
-        assert itemStack != null;
         if (potion != null) {
             StringTag potionTag = new StringTag("Potion", potion.getJavaIdentifier());
-            itemStack.getNbt().put(potionTag);
+            Objects.requireNonNull(itemStack).getNbt().put(potionTag);
         }
         return itemStack;
     }

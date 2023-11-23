@@ -51,6 +51,7 @@ import org.geysermc.geyser.util.BlockEntityUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 public class GeyserFabricWorldManager extends GeyserWorldManager {
@@ -271,8 +272,7 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
             for (String key : compoundTag.getAllKeys()) {
                 visitor.currentKey = key;
                 Tag tag = compoundTag.get(key);
-                assert tag != null;
-                tag.accept(visitor);
+                Objects.requireNonNull(tag).accept(visitor);
                 visitor.root.put(visitor.currentTag);
             }
             return visitor.root;

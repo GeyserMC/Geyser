@@ -70,16 +70,17 @@ import org.geysermc.geyser.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Level;
 
-@SuppressWarnings("NullableProblems") // getResource() from JavaPlugin can return null
 public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     /**
      * Determines if the plugin has been ran once before, including before /geyser reload.
@@ -274,7 +275,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         }
 
         PluginCommand geyserCommand = this.getCommand("geyser");
-        assert geyserCommand != null;
+        Objects.requireNonNull(geyserCommand, "base command cannot be null");
         geyserCommand.setExecutor(new GeyserSpigotCommandExecutor(geyser, geyserCommandManager.getCommands()));
 
         for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
@@ -458,5 +459,15 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             return true;
         }
         return false;
+    }
+
+    @Override
+    @SuppressWarnings("NullableProblems") // getResource() from JavaPlugin can return null
+    public @NonNull InputStream getResource(@NonNull String filename) {
+        InputStream stream = super.getResource(filename);
+        if (stream == null) {
+            throw new AssertionError("Unable to find resource: " + filename);
+        }
+        return stream;
     }
 }
