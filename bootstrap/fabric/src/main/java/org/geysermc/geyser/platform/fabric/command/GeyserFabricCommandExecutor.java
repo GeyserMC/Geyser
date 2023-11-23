@@ -51,16 +51,13 @@ public class GeyserFabricCommandExecutor extends GeyserCommandExecutor implement
         return Permissions.check(source, command.permission(), command.isSuggestedOpOnly() ? 2 : 0);
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
-    public int run(CommandContext context) {
+    public int run(CommandContext<CommandSourceStack> context) {
         return runWithArgs(context, "");
     }
 
-    @SuppressWarnings("rawtypes")
-    public int runWithArgs(CommandContext context, String args) {
-        CommandSourceStack source = (CommandSourceStack) context.getSource();
-        FabricCommandSender sender = new FabricCommandSender(source);
+    public int runWithArgs(CommandContext<CommandSourceStack> context, String args) {
+        CommandSourceStack source = context.getSource();
         GeyserSession session = getGeyserSession(sender);
         if (!testPermission(source)) {
             sender.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", sender.locale()));
