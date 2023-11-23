@@ -70,7 +70,6 @@ import org.geysermc.geyser.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.SocketAddress;
@@ -459,15 +458,5 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             return true;
         }
         return false;
-    }
-
-    @Override
-    @SuppressWarnings("NullableProblems") // getResource() from JavaPlugin can return null
-    public @NonNull InputStream getResource(@NonNull String filename) {
-        InputStream stream = super.getResource(filename);
-        if (stream == null) {
-            throw new AssertionError("Unable to find resource: " + filename);
-        }
-        return stream;
     }
 }
