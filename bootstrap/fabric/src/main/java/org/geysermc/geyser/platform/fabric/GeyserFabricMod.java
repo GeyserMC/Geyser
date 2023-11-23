@@ -201,13 +201,16 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     }
 
     @Override
+    public void onShutdown() {
+        onDisable();
+        this.server = null;
+    }
+
+    @Override
     public void onDisable() {
         if (geyser != null) {
             geyser.shutdown();
             geyser = null;
-        }
-        if (!reloading) {
-            this.server = null;
         }
     }
 

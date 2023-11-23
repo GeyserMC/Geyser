@@ -158,6 +158,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     }
 
     @Override
+    public void onInitialize() {
+
+    }
+
+    @Override
     public void onEnable() {
         if (this.geyserConfig == null) {
             // We failed to initialize correctly
@@ -360,6 +365,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         if (geyserInjector != null) {
             geyserInjector.shutdown();
         }
+    }
+
+    @Override
+    public void onShutdown() {
+
     }
 
     @Override

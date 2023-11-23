@@ -63,12 +63,6 @@ import java.util.UUID;
 
 @Plugin(id = "geyser", name = GeyserImpl.NAME + "-Velocity", version = GeyserImpl.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
 public class GeyserVelocityPlugin implements GeyserBootstrap {
-
-    /**
-     * Determines if the plugin has been ran once before, including before /geyser reload.
-     */
-    private static boolean INITIALIZED = false;
-
     @Inject
     private Logger logger;
 
@@ -90,7 +84,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     private final Path configFolder = Paths.get("plugins/" + GeyserImpl.NAME + "-Velocity/");
 
     @Override
-    public void onEnable() {
+    public void onInitialize() {
         try {
             Codec.class.getMethod("codec", Codec.Decoder.class, Codec.Encoder.class);
         } catch (NoSuchMethodException e) {
@@ -102,6 +96,11 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
         GeyserLocale.init(this);
 
+        this.geyser = GeyserImpl.load(PlatformType.VELOCITY, this);
+    }
+
+    @Override
+    public void onEnable() {
         try {
             if (!configFolder.toFile().exists())
                 //noinspection ResultOfMethodCallIgnored
@@ -118,20 +117,11 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         this.geyserLogger = new GeyserVelocityLogger(logger, geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
-        this.geyser = GeyserImpl.load(PlatformType.VELOCITY, this);
-
-        // Hack: Normally triggered by ListenerBoundEvent, but that doesn't fire on /geyser reload
-        if (INITIALIZED) {
-            this.postStartup();
-        }
-    }
-
-    private void postStartup() {
         GeyserImpl.start();
 
-        if (!INITIALIZED) {
-            this.geyserInjector = new GeyserVelocityInjector(proxyServer);
+        if (!GeyserImpl.isReloading) {
             // Will be initialized after the proxy has been bound
+            this.geyserInjector = new GeyserVelocityInjector(proxyServer);
         }
 
         this.geyserCommandManager = new GeyserCommandManager(geyser);
@@ -161,6 +151,11 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         if (geyser != null) {
             geyser.shutdown();
         }
+    }
+
+    @Override
+    public void onShutdown() {
+        onDisable();
         if (geyserInjector != null) {
             geyserInjector.shutdown();
         }
@@ -200,15 +195,20 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     public void onProxyBound(ListenerBoundEvent event) {
         if (event.getListenerType() == ListenerType.MINECRAFT) {
             // Once listener is bound, do our startup process
-            this.postStartup();
+            this.onEnable();
 
             if (geyserInjector != null) {
                 // After this bound, we know that the channel initializer cannot change without it being ineffective for Velocity, too
                 geyserInjector.initializeLocalChannel(this);
             }
 
-            INITIALIZED = true;
+            GeyserImpl.isReloading = false;
         }
+    }
+
+    @Subscribe
+    public void onProxyShutdown(ProxyShutdownEvent event) {
+        onShutdown();
     }
 
     @Override

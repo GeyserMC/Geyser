@@ -44,7 +44,12 @@ public interface GeyserBootstrap {
     GeyserWorldManager DEFAULT_CHUNK_MANAGER = new GeyserWorldManager();
 
     /**
-     * Called when the GeyserBootstrap is enabled
+     * Called when the GeyserBootstrap is initialized
+     */
+    void onInitialize();
+
+    /**
+     * Called when the GeyserBootstrap is enabled/reloaded
      */
     void onEnable();
 
@@ -52,6 +57,11 @@ public interface GeyserBootstrap {
      * Called when the GeyserBootstrap is disabled
      */
     void onDisable();
+
+    /**
+     * Called when the GeyserBootstrap is shutting down.
+     */
+    void onShutdown();
 
     /**
      * Returns the current GeyserConfiguration
@@ -152,7 +162,7 @@ public interface GeyserBootstrap {
      * @param resource Resource to get
      * @return InputStream of the given resource
      */
-    default @NonNull InputStream getResource(String resource) {
+    default @NonNull InputStream getResourceNonNull(String resource) {
         InputStream stream = getResourceOrNull(resource);
         if (stream == null) {
             throw new AssertionError("Unable to find resource: " + resource);

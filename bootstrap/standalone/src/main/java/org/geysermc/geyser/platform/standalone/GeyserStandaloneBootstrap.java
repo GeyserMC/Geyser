@@ -73,6 +73,8 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
     @Getter
     private boolean useGui = System.console() == null && !isHeadless();
+
+    private Logger log4jLogger;
     private String configFilename = "config.yml";
 
     private GeyserImpl geyser;
@@ -167,17 +169,17 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     public void onEnable(boolean useGui, String configFilename) {
         this.configFilename = configFilename;
         this.useGui = useGui;
-        this.onEnable();
+        this.onInitialize();
     }
 
     @Override
-    public void onEnable() {
-        Logger logger = (Logger) LogManager.getRootLogger();
-        for (Appender appender : logger.getAppenders().values()) {
+    public void onInitialize() {
+        log4jLogger = (Logger) LogManager.getRootLogger();
+        for (Appender appender : log4jLogger.getAppenders().values()) {
             // Remove the appender that is not in use
             // Prevents multiple appenders/double logging and removes harmless errors
             if ((useGui && appender instanceof TerminalConsoleAppender) || (!useGui && appender instanceof ConsoleAppender)) {
-                logger.removeAppender(appender);
+                log4jLogger.removeAppender(appender);
             }
         }
 
@@ -190,7 +192,12 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         }
 
         LoopbackUtil.checkAndApplyLoopback(geyserLogger);
-        
+
+        this.onEnable();
+    }
+
+    @Override
+    public void onEnable() {
         try {
             File configFile = FileUtils.fileOrCopiedFromResource(new File(configFilename), "config.yml",
                     (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
@@ -215,7 +222,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
         // Allow libraries like Protocol to have their debug information passthrough
-        logger.get().setLevel(geyserConfig.isDebugMode() ? Level.DEBUG : Level.INFO);
+        log4jLogger.get().setLevel(geyserConfig.isDebugMode() ? Level.DEBUG : Level.INFO);
 
         geyser = GeyserImpl.load(PlatformType.STANDALONE, this);
         GeyserImpl.start();
@@ -251,6 +258,11 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
     @Override
     public void onDisable() {
+        geyser.shutdown();
+    }
+
+    @Override
+    public void onShutdown() {
         geyser.shutdown();
         System.exit(0);
     }

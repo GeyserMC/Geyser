@@ -61,7 +61,7 @@ public class CreativeItemRegistryPopulator {
 
         // Load creative items
         JsonNode creativeItemEntries;
-        try (InputStream stream = bootstrap.getResource(String.format("bedrock/creative_items.%s.json", palette.version()))) {
+        try (InputStream stream = bootstrap.getResourceNonNull(String.format("bedrock/creative_items.%s.json", palette.version()))) {
             creativeItemEntries = GeyserImpl.JSON_MAPPER.readTree(stream).get("items");
         } catch (Exception e) {
             throw new AssertionError("Unable to load creative items", e);

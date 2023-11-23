@@ -158,6 +158,8 @@ public class GeyserImpl implements GeyserApi {
 
     private static GeyserImpl instance;
 
+    public static boolean isReloading;
+
     private GeyserImpl(PlatformType platformType, GeyserBootstrap bootstrap) {
         instance = this;
 
@@ -609,8 +611,8 @@ public class GeyserImpl implements GeyserApi {
     }
 
     public void reload() {
-        shutdown();
-        this.extensionManager.enableExtensions();
+        isReloading = true;
+        bootstrap.onDisable();
         bootstrap.onEnable();
     }
 

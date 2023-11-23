@@ -165,7 +165,7 @@ public class SkullResourcePackManager {
     }
 
     private static void addBaseResources(ZipOutputStream zipOS) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(GeyserImpl.getInstance().getBootstrap().getResource("bedrock/skull_resource_pack_files.txt")))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(GeyserImpl.getInstance().getBootstrap().getResourceNonNull("bedrock/skull_resource_pack_files.txt")))) {
             List<String> lines = reader.lines().toList();
             for (String path : lines) {
                 ZipEntry entry = new ZipEntry(path);
