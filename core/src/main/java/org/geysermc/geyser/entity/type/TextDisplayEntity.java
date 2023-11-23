@@ -59,7 +59,8 @@ public class TextDisplayEntity extends Entity {
 
     @Override
     public void setDisplayName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
-        // Don't allow the display name to be set - messes with our armor stand.
+        // This would usually set EntityDataTypes.NAME, but we are instead using NAME for the text display.
+        // On JE: custom name does not override text display.
     }
 
     public void setText(EntityMetadata<Component, ?> entityMetadata) {
