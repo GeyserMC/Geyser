@@ -44,6 +44,7 @@ public class DecoratedPotBlockEntityTranslator extends BlockEntityTranslator {
         if (tag == null) {
             return;
         }
+        // todo 1.20.3 maybe
 
         // exact same format
         if (tag.get("sherds") instanceof ListTag sherds) {
