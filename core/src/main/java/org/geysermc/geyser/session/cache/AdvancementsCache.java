@@ -231,7 +231,7 @@ public class AdvancementsCache {
     }
 
     public String getColorFromAdvancementFrameType(GeyserAdvancement advancement) {
-        if (advancement.getDisplayData().getFrameType() == Advancement.DisplayData.FrameType.CHALLENGE) {
+        if (advancement.getDisplayData().getAdvancementType() == Advancement.DisplayData.AdvancementType.CHALLENGE) {
             return ChatColor.DARK_PURPLE;
         }
         return ChatColor.GREEN; // Used for types TASK and GOAL

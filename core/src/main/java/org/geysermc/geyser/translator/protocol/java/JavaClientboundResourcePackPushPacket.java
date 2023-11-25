@@ -26,23 +26,23 @@
 package org.geysermc.geyser.translator.protocol.java;
 
 import com.github.steveice10.mc.protocol.data.game.ResourcePackStatus;
-import com.github.steveice10.mc.protocol.packet.common.clientbound.ClientboundResourcePackPacket;
+import com.github.steveice10.mc.protocol.packet.common.clientbound.ClientboundResourcePackPushPacket;
 import com.github.steveice10.mc.protocol.packet.common.serverbound.ServerboundResourcePackPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
-@Translator(packet = ClientboundResourcePackPacket.class)
-public class JavaClientboundResourcePacksPacket extends PacketTranslator<ClientboundResourcePackPacket> {
+@Translator(packet = ClientboundResourcePackPushPacket.class)
+public class JavaClientboundResourcePackPushPacket extends PacketTranslator<ClientboundResourcePackPushPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundResourcePackPacket packet) {
+    public void translate(GeyserSession session, ClientboundResourcePackPushPacket packet) {
         // We need to "answer" this to avoid timeout issues related to resource packs
         // If packs are required, we need to lie to the server that we accepted them, as we get kicked otherwise.
         if (packet.isRequired()) {
-            session.sendDownstreamPacket(new ServerboundResourcePackPacket(ResourcePackStatus.SUCCESSFULLY_LOADED));
+            session.sendDownstreamPacket(new ServerboundResourcePackPacket(packet.getId(), ResourcePackStatus.SUCCESSFULLY_LOADED));
         } else {
-            session.sendDownstreamPacket(new ServerboundResourcePackPacket(ResourcePackStatus.DECLINED));
+            session.sendDownstreamPacket(new ServerboundResourcePackPacket(packet.getId(), ResourcePackStatus.DECLINED));
         }
     }
 }
