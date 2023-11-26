@@ -455,6 +455,7 @@ public class InventoryUtils {
                             for (int col = firstCol; col < width + firstCol; col++) {
                                 GeyserItemStack geyserItemStack = inventoryGetter.apply(col + (row * gridDimensions) + 1);
                                 if (geyserItemStack.isEmpty()) {
+                                    //noinspection ConstantValue
                                     inventoryHasItem = itemStack == null || itemStack.getId() == 0;
                                     if (inventoryHasItem) {
                                         break crafting;
@@ -476,6 +477,7 @@ public class InventoryUtils {
         return null;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private static boolean testShapedRecipe(final Ingredient[] ingredients, final IntFunction<GeyserItemStack> inventoryGetter,
                                             final int gridDimensions, final int firstRow, final int height, final int firstCol, final int width) {
         int ingredientIndex = 0;
