@@ -34,7 +34,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.WeakHashMap;
 
 /**
@@ -55,7 +54,10 @@ public final class LodestoneCache {
 
     public void cacheInventoryItem(GeyserItemStack itemStack) {
         CompoundTag tag = itemStack.getNbt();
-        Objects.requireNonNull(tag);
+        if (tag == null) {
+            // invalid
+            return;
+        }
         CompoundTag lodestonePos = tag.get("LodestonePos");
         if (lodestonePos == null) {
             // invalid

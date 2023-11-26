@@ -121,7 +121,6 @@ public final class BlockRegistryPopulator {
         BLOCKS_JSON = null;
     }
 
-    @SuppressWarnings("UnstableApiUsage") // Interner is beta
     private static void registerBedrockBlocks() {
         Remapper mapper594 = Remapper.of(BlockStateUpdater_1_20_10.INSTANCE);
         Remapper mapper618 = Remapper.of(BlockStateUpdater_1_20_10.INSTANCE, BlockStateUpdater_1_20_30.INSTANCE);
@@ -138,6 +137,7 @@ public final class BlockRegistryPopulator {
 
         // We can keep this strong as nothing should be garbage collected
         // Safe to intern since Cloudburst NBT is immutable
+        //noinspection UnstableApiUsage
         Interner<NbtMap> statesInterner = Interners.newStrongInterner();
 
         for (ObjectIntPair<String> palette : blockMappers.keySet()) {
@@ -154,6 +154,7 @@ public final class BlockRegistryPopulator {
                     builder.remove("version"); // Remove all nbt tags which are not needed for differentiating states
                     builder.remove("name_hash"); // Quick workaround - was added in 1.19.20
                     builder.remove("network_id"); // Added in 1.19.80 - ????
+                    //noinspection UnstableApiUsage
                     builder.putCompound("states", statesInterner.intern((NbtMap) builder.remove("states")));
                     vanillaBlockStates.set(i, builder.build());
                 }
@@ -318,7 +319,7 @@ public final class BlockRegistryPopulator {
             builder.bedrockMovingBlock(movingBlockDefinition);
 
             Map<JavaBlockState, CustomBlockState> nonVanillaStateOverrides = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get();
-            if (nonVanillaStateOverrides.size() > 0) {
+            if (!nonVanillaStateOverrides.isEmpty()) {
                 // First ensure all non vanilla runtime IDs at minimum are air in case they aren't consecutive
                 Arrays.fill(javaToVanillaBedrockBlocks, MIN_CUSTOM_RUNTIME_ID, javaToVanillaBedrockBlocks.length, airDefinition);
                 Arrays.fill(javaToBedrockBlocks, MIN_CUSTOM_RUNTIME_ID, javaToBedrockBlocks.length, airDefinition);
@@ -377,7 +378,7 @@ public final class BlockRegistryPopulator {
 
         JAVA_BLOCKS_SIZE = blocksJson.size();
 
-        if (BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().size() > 0) {
+        if (!BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().isEmpty()) {
             MIN_CUSTOM_RUNTIME_ID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().min(Comparator.comparing(JavaBlockState::javaId)).get().javaId();
             int maxCustomRuntimeID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().max(Comparator.comparing(JavaBlockState::javaId)).get().javaId();
 
@@ -526,7 +527,7 @@ public final class BlockRegistryPopulator {
         }
         BlockStateValues.JAVA_WATER_ID = waterRuntimeId;
 
-        if (BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().size() > 0) {
+        if (!BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().isEmpty()) {
             Set<Integer> usedNonVanillaRuntimeIDs = new HashSet<>();
 
             for (JavaBlockState javaBlockState : BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet()) {

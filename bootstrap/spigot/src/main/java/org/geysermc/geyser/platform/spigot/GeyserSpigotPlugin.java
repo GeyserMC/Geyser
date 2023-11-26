@@ -100,7 +100,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
      */
     private String minecraftVersion;
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
     public void onLoad() {
         GeyserLocale.init(this);
@@ -139,6 +138,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         // This is manually done instead of using Bukkit methods to save the config because otherwise comments get removed
         try {
             if (!getDataFolder().exists()) {
+                //noinspection ResultOfMethodCallIgnored
                 getDataFolder().mkdir();
             }
             File configFile = FileUtils.fileOrCopiedFromResource(new File(getDataFolder(), "config.yml"), "config.yml",

@@ -100,8 +100,7 @@ public class Item {
         return builder;
     }
 
-    public @Nullable ItemStack translateToJava(ItemData itemData, ItemMapping mapping, ItemMappings mappings) {
-        if (itemData == null) return null;
+    public @NonNull ItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
         if (itemData.getTag() == null) {
             return new ItemStack(javaId, itemData.getCount(), new CompoundTag(""));
         }

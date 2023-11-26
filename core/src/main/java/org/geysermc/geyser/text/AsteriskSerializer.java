@@ -79,7 +79,7 @@ public class AsteriskSerializer extends StdSerializer<Object> implements Context
         Optional<Asterisk> anno = Optional.ofNullable(property)
                 .map(prop -> prop.getAnnotation(Asterisk.class));
 
-        return new AsteriskSerializer(anno.map(Asterisk::value).orElse(null), Boolean.TRUE.equals(anno.map(Asterisk::isIp).orElse(null)));
+        return new AsteriskSerializer(anno.map(Asterisk::value).orElse(null), anno.map(Asterisk::isIp).orElse(false));
     }
 
     @Override

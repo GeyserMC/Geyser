@@ -73,16 +73,6 @@ public abstract class GeyserCommand implements Command {
         return Collections.emptyList();
     }
 
-    /**
-     * Shortcut to {@link #subCommands()} ()}{@code .isEmpty()}.
-     *
-     * @return true if there are subcommand present for this command.
-     */
-    @SuppressWarnings("unused")
-    public boolean hasSubCommands() {
-        return !this.subCommands().isEmpty();
-    }
-
     public void setAliases(List<String> aliases) {
         this.aliases = aliases;
     }

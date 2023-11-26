@@ -162,7 +162,9 @@ public class GeyserSpigotWorldManager extends WorldManager {
             GeyserImpl.getInstance().getLogger().debug("Unknown game rule " + gameRule.getJavaID());
             return gameRule.getDefaultBooleanValue();
         }
-        var value = Objects.requireNonNull(Bukkit.getPlayer(session.getPlayerEntity().getUsername())).getWorld().getGameRuleValue(bukkitGameRule);
+
+        Player bukkitPlayer = Objects.requireNonNull(Bukkit.getPlayer(session.getPlayerEntity().getUuid()));
+        Object value = bukkitPlayer.getWorld().getGameRuleValue(bukkitGameRule);
         if (value instanceof Boolean booleanValue) {
             return booleanValue;
         }
@@ -176,7 +178,8 @@ public class GeyserSpigotWorldManager extends WorldManager {
             GeyserImpl.getInstance().getLogger().debug("Unknown game rule " + gameRule.getJavaID());
             return gameRule.getDefaultIntValue();
         }
-        var value = Objects.requireNonNull(Bukkit.getPlayer(session.getPlayerEntity().getUsername())).getWorld().getGameRuleValue(bukkitGameRule);
+        Player bukkitPlayer = Objects.requireNonNull(Bukkit.getPlayer(session.getPlayerEntity().getUuid()));
+        Object value = bukkitPlayer.getWorld().getGameRuleValue(bukkitGameRule);
         if (value instanceof Integer intValue) {
             return intValue;
         }

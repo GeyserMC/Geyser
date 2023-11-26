@@ -56,7 +56,12 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 @Getter
@@ -80,7 +85,6 @@ public class DumpInfo {
     private final FlagsInfo flagsInfo;
     private final List<ExtensionInfo> extensionInfo;
 
-    @SuppressWarnings("UnstableApiUsage, deprecation") // TODO: Remove with Jenkins removal; md5 is deprecated
     public DumpInfo(boolean addLog) {
         this.versionInfo = new VersionInfo();
 
@@ -101,7 +105,8 @@ public class DumpInfo {
             // https://stackoverflow.com/questions/304268/getting-a-files-md5-checksum-in-java
             File file = new File(DumpInfo.class.getProtectionDomain().getCodeSource().getLocation().toURI());
             ByteSource byteSource = Files.asByteSource(file);
-            // Jenkins uses MD5 for its hash
+            // Jenkins uses MD5 for its hash - TODO remove
+            //noinspection UnstableApiUsage,deprecation
             md5Hash = byteSource.hash(Hashing.md5()).toString();
             //noinspection UnstableApiUsage
             sha256Hash = byteSource.hash(Hashing.sha256()).toString();
@@ -112,9 +117,7 @@ public class DumpInfo {
         }
         this.hashInfo = new HashInfo(md5Hash, sha256Hash);
 
-        this.ramInfo = new DumpInfo.RamInfo(Runtime.getRuntime().freeMemory() / MEGABYTE,
-                Runtime.getRuntime().totalMemory() / MEGABYTE,
-                Runtime.getRuntime().maxMemory() / MEGABYTE);
+        this.ramInfo = new RamInfo();
 
         if (addLog) {
             this.logsInfo = new LogsInfo();
@@ -128,7 +131,7 @@ public class DumpInfo {
 
         this.bootstrapInfo = GeyserImpl.getInstance().getBootstrap().getDumpInfo();
 
-        this.flagsInfo = new FlagsInfo(ManagementFactory.getRuntimeMXBean().getInputArguments());
+        this.flagsInfo = new FlagsInfo();
 
         this.extensionInfo = new ArrayList<>();
         for (Extension extension : GeyserApi.api().extensionManager().extensions()) {
@@ -259,12 +262,20 @@ public class DumpInfo {
     }
 
     public record RamInfo(long free, long total, long max) {
+        public RamInfo() {
+            this(Runtime.getRuntime().freeMemory() / MEGABYTE,
+                    Runtime.getRuntime().totalMemory() / MEGABYTE,
+                    Runtime.getRuntime().maxMemory() / MEGABYTE);
+        }
     }
 
     /**
      * E.G. `-Xmx1024M` - all runtime JVM flags on this machine
      */
     public record FlagsInfo(List<String> flags) {
+        public FlagsInfo() {
+            this(ManagementFactory.getRuntimeMXBean().getInputArguments());
+        }
     }
 
     public record ExtensionInfo(boolean enabled, String name, String version, String apiVersion, String main, List<String> authors) {

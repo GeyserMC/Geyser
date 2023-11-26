@@ -405,7 +405,11 @@ public class MappingsReader_v1 extends MappingsReader {
                     JsonNode boneVisibility = geometry.get("bone_visibility");
                     if (boneVisibility.isObject()) {
                         Map<String, String> boneVisibilityMap = new Object2ObjectOpenHashMap<>();
-                        boneVisibility.fields().forEachRemaining(entry -> boneVisibilityMap.put(entry.getKey(), entry.getValue().isBoolean() ? (entry.getValue().asBoolean() ? "1" : "0") : entry.getValue().asText()));
+                        boneVisibility.fields().forEachRemaining(entry -> {
+                            String key = entry.getKey();
+                            String value = entry.getValue().isBoolean() ? (entry.getValue().asBoolean() ? "1" : "0") : entry.getValue().asText();
+                            boneVisibilityMap.put(key, value);
+                        });
                         geometryBuilder.boneVisibility(boneVisibilityMap);
                     }
                 }

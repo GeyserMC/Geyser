@@ -78,7 +78,7 @@ public class CompassItem extends Item {
     }
 
     @Override
-    public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, ItemMappings mappings) {
+    public @NonNull ItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
         if (mapping.getBedrockIdentifier().equals("minecraft:lodestone_compass")) {
             // Revert the entry back to the compass
             mapping = mappings.getStoredItems().compass();

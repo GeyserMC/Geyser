@@ -25,9 +25,8 @@
 
 package org.geysermc.geyser.registry.type;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
 
-public record ParticleMapping(@Nullable LevelEventType levelEventType, @NonNull String identifier) {
+public record ParticleMapping(@Nullable LevelEventType levelEventType, @Nullable String identifier) {
 }

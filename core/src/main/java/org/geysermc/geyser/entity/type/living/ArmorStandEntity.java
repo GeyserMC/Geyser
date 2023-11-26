@@ -207,8 +207,7 @@ public class ArmorStandEntity extends LivingEntity {
      * @param negativeZToggle the flag to set true if the Z value of rotation is negative
      * @param rotation the Java rotation value
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private void onRotationUpdate(EntityDataType dataLeech, EntityFlag negativeXToggle, EntityFlag negativeYToggle, EntityFlag negativeZToggle, Vector3f rotation) {
+    private void onRotationUpdate(EntityDataType<Integer> dataLeech, EntityFlag negativeXToggle, EntityFlag negativeYToggle, EntityFlag negativeZToggle, Vector3f rotation) {
         // Indicate that rotation should be checked
         setFlag(EntityFlag.BRIBED, true);
 

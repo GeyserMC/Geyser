@@ -28,6 +28,7 @@ package org.geysermc.geyser.item.type;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserImpl;
@@ -36,8 +37,6 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.translator.inventory.item.CustomItemTranslator;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
-
-import java.util.Objects;
 
 public class PotionItem extends Item {
     public PotionItem(String javaIdentifier, Builder builder) {
@@ -71,12 +70,12 @@ public class PotionItem extends Item {
     }
 
     @Override
-    public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, ItemMappings mappings) {
+    public @NonNull ItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
         Potion potion = Potion.getByBedrockId(itemData.getDamage());
         ItemStack itemStack = super.translateToJava(itemData, mapping, mappings);
         if (potion != null) {
             StringTag potionTag = new StringTag("Potion", potion.getJavaIdentifier());
-            Objects.requireNonNull(itemStack).getNbt().put(potionTag);
+            itemStack.getNbt().put(potionTag);
         }
         return itemStack;
     }

@@ -252,7 +252,7 @@ public class CustomBlockRegistryPopulator {
      * @param protocolVersion the protocol version to use for the block property data
      * @return the block property data for the provided custom block
      */
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings("unchecked")
     static BlockPropertyData generateBlockPropertyData(CustomBlockData customBlock, int protocolVersion) {
         List<NbtMap> permutations = new ArrayList<>();
         for (CustomBlockPermutation permutation : customBlock.permutations()) {

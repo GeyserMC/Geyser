@@ -97,7 +97,7 @@ public final class ItemTranslator {
 
         ItemStack itemStack = javaItem.translateToJava(data, bedrockItem, mappings);
 
-        if (itemStack != null && itemStack.getNbt() != null) {
+        if (itemStack.getNbt() != null) {
             javaItem.translateNbtToJava(itemStack.getNbt(), bedrockItem);
             if (itemStack.getNbt().isEmpty()) {
                 // Otherwise, seems to cause issues with villagers accepting books, and I don't see how this will break anything else. - Camotoy
@@ -426,7 +426,6 @@ public final class ItemTranslator {
         return NbtMap.EMPTY;
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     private static @Nullable Object translateToBedrockNBT(Tag tag) {
         if (tag instanceof CompoundTag compoundTag) {
             return translateNbtToBedrock(compoundTag);
@@ -441,6 +440,7 @@ public final class ItemTranslator {
             if (!tagList.isEmpty()) {
                 type = NbtType.byClass(tagList.get(0).getClass());
             }
+            //noinspection unchecked,rawtypes
             return new NbtList(type, tagList);
         }
 

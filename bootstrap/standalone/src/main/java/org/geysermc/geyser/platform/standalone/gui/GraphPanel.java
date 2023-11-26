@@ -36,7 +36,7 @@ import java.util.List;
 
 /**
  * This has been modified to fit Geyser more but is based on
- * <a href="https://gist.github.com/roooodcastro/6325153#gistcomment-3107524">...</a>
+ * <a href="https://gist.github.com/roooodcastro/6325153#gistcomment-3107524">this Github gist</a>
  */
 public final class GraphPanel extends JPanel {
 

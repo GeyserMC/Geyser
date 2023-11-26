@@ -48,11 +48,13 @@ public class GeyserAdvancement {
         this.advancement = advancement;
     }
 
-    public @NonNull String getId() {
+    @NonNull
+    public String getId() {
         return this.advancement.getId();
     }
 
-    public @NonNull List<List<String>> getRequirements() {
+    @NonNull
+    public List<List<String>> getRequirements() {
         return this.advancement.getRequirements();
     }
 

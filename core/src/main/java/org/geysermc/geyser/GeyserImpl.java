@@ -71,6 +71,7 @@ import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.netty.GeyserServer;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.provider.ProviderSupplier;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
@@ -641,7 +642,11 @@ public class GeyserImpl implements GeyserApi {
     @Override
     @SuppressWarnings("unchecked")
     public <R extends T, T> @NonNull R provider(@NonNull Class<T> apiClass, @Nullable Object... args) {
-        return (R) Objects.requireNonNull(Registries.PROVIDERS.get(apiClass)).create(args);
+        ProviderSupplier provider = Registries.PROVIDERS.get(apiClass);
+        if (provider == null) {
+            throw new IllegalArgumentException("No provider found for " + apiClass);
+        }
+        return (R) provider.create(args);
     }
 
     @Override

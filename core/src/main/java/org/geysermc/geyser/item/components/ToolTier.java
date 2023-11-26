@@ -26,8 +26,6 @@
 package org.geysermc.geyser.item.components;
 
 import com.google.common.base.Suppliers;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 
@@ -51,7 +49,7 @@ public enum ToolTier {
 
     ToolTier(int speed, Supplier<Set<Item>> repairIngredients) {
         this.speed = speed;
-        // Lazily initialize as this will likely be called as items are loading
+        // Lazily initialize as this will likely be called as items ar  e loading
         this.repairIngredients = Suppliers.memoize(repairIngredients::get);
     }
 
@@ -66,16 +64,5 @@ public enum ToolTier {
     @Override
     public String toString() {
         return this.name().toLowerCase(Locale.ROOT);
-    }
-
-    @SuppressWarnings("unused")
-    public static @Nullable ToolTier getByName(@NonNull String name) {
-        String upperCase = name.toUpperCase(Locale.ROOT);
-        for (ToolTier tier : VALUES) {
-            if (tier.name().equals(upperCase)) {
-                return tier;
-            }
-        }
-        return null;
     }
 }

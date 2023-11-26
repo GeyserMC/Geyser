@@ -189,7 +189,7 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
                         packet.setPosition(position);
                         return packet;
                     };
-                } else {
+                } else if (particleMapping.identifier() != null) {
                     int dimensionId = DimensionUtils.javaToBedrock(session.getDimension());
                     return (position) -> {
                         SpawnParticleEffectPacket stringPacket = new SpawnParticleEffectPacket();

@@ -65,7 +65,6 @@ public class AreaEffectCloudEntity extends Entity {
         dirtyMetadata.put(EntityDataTypes.WIDTH, 2.0f * value);
     }
 
-    @SuppressWarnings("ReturnOfNull")
     public void setParticle(EntityMetadata<Particle, ?> entityMetadata) {
         Particle particle = entityMetadata.getValue();
         Registries.PARTICLES.map(particle.getType(), p -> p.levelEventType() instanceof ParticleType particleType ? particleType : null).ifPresent(type ->

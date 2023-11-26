@@ -105,7 +105,7 @@ public final class NewsItem {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends ItemData> T getDataAs(Class<T> ignoredType) {
+    public <T extends ItemData> T getDataAs(Class<T> type) {
         return (T) data;
     }
 

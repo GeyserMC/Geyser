@@ -58,21 +58,23 @@ public class MappingsConfigReader {
         }
     }
 
-    public boolean noMappingsDirectoryPresent(Path mappingsDirectory) {
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public boolean ensureMappingsDirectory(Path mappingsDirectory) {
         if (!Files.exists(mappingsDirectory)) {
             try {
                 Files.createDirectories(mappingsDirectory);
-                return false;
+                return true;
             } catch (IOException e) {
                 GeyserImpl.getInstance().getLogger().error("Failed to create mappings directory", e);
-                return true;
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     public void loadItemMappingsFromJson(BiConsumer<String, CustomItemData> consumer) {
-        if (noMappingsDirectoryPresent(this.customMappingsDirectory)) {
+        if (!ensureMappingsDirectory(this.customMappingsDirectory)) {
             return;
         }
 
@@ -83,7 +85,7 @@ public class MappingsConfigReader {
     }
 
     public void loadBlockMappingsFromJson(BiConsumer<String, CustomBlockMapping> consumer) {
-        if (noMappingsDirectoryPresent(this.customMappingsDirectory)) {
+        if (!ensureMappingsDirectory(this.customMappingsDirectory)) {
             return;
         }
 

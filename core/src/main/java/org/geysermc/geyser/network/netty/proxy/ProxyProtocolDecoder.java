@@ -40,7 +40,6 @@ import java.util.Objects;
  * @see <a href="https://haproxy.1wt.eu/download/1.5/doc/proxy-protocol.txt">Proxy Protocol Specification</a>
  * @see <a href="https://github.com/netty/netty/blob/4.1/codec-haproxy/src/main/java/io/netty/handler/codec/haproxy/HAProxyMessageDecoder.java">Netty implementation</a>
  */
-@SuppressWarnings("unused")
 public final class ProxyProtocolDecoder {
     /**
      * {@link ProtocolDetectionResult} for {@link HAProxyProtocolVersion#V1}.
@@ -122,7 +121,6 @@ public final class ProxyProtocolDecoder {
      * @return                           {@link HAProxyMessage} instance
      * @throws HAProxyProtocolException  if any portion of the header is invalid
      */
-    @SuppressWarnings("StatementWithEmptyBody")
     static HAProxyMessage decodeHeader0(ByteBuf header) {
         Objects.requireNonNull(header, "header");
 
@@ -236,8 +234,8 @@ public final class ProxyProtocolDecoder {
             dstPort = header.readUnsignedShort();
         }
 
+        //noinspection StatementWithEmptyBody
         while (skipNextTLV(header)) {
-            // no-op
         }
         return new HAProxyMessage(ver, cmd, protAndFam, srcAddress, dstAddress, srcPort, dstPort);
     }
