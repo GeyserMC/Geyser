@@ -199,6 +199,8 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
                         stringPacket.setMolangVariablesJson(Optional.empty());
                         return stringPacket;
                     };
+                } else {
+                    return null;
                 }
             }
         }
