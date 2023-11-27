@@ -89,34 +89,8 @@ public class ItemRegistryPopulator {
     }
 
     public static void populate() {
-        // Forward-map 1.20 mappings to 1.20.10
-        Remapper remapper594 = (item, mapping) -> {
-            // 1.20.10+ received parity for concrete and shulker boxes
-            String id = item.javaIdentifier();
-            if (id.endsWith("_concrete") || id.endsWith("_shulker_box")) {
-                // the first underscore in "_shulker_box" accounts for ignoring "minecraft:shulker_box"
-                // which is mapped to "minecraft:undyed_shulker_box"
-                return mapping.withBedrockIdentifier(id);
-            }
-            return mapping;
-        };
-        // 1.20 to 1.20.30
-        Remapper remapper618 = (item, mapping) -> {
-            mapping = remapper594.remap(item, mapping); // apply 1.20.10 remapper first
-
-            String id = item.javaIdentifier();
-            if (id.endsWith("concrete_powder") || id.contains("stained_glass") || (id.endsWith("_terracotta") && !id.contains("glazed"))) {
-                // parity: concrete powder, stained-glass blocks and panes, and coloured terracotta
-                // 1.   'minecraft:terracotta' is still 'minecraft:hardened_clay'
-                // 2.   there were no changes for glazed, but it doesn't have full parity, so ignore it.
-                return mapping.withBedrockIdentifier(id);
-            }
-            return mapping;
-        };
-
+        /*
         Remapper remapper630 = (item, mapping) -> {
-            mapping = remapper618.remap(item, mapping); // apply 1.20.30 remapper first
-
             String id = item.javaIdentifier();
             // 1.20.50 replaced stone & planks to individual stone types
             // E.g.: granite, diorite, andesite, polished variants, dark_oak_planks etc
@@ -126,13 +100,11 @@ public class ItemRegistryPopulator {
 
             return mapping;
         };
+         */
 
         List<PaletteVersion> paletteVersions = new ArrayList<>(3);
-        paletteVersions.add(new PaletteVersion("1_20_0", Bedrock_v589.CODEC.getProtocolVersion()));
-        paletteVersions.add(new PaletteVersion("1_20_10", Bedrock_v594.CODEC.getProtocolVersion(), Collections.emptyMap(), remapper594));
-        paletteVersions.add(new PaletteVersion("1_20_30", Bedrock_v618.CODEC.getProtocolVersion(), Collections.emptyMap(), remapper618));
-        paletteVersions.add(new PaletteVersion("1_20_40", Bedrock_v622.CODEC.getProtocolVersion(), Collections.emptyMap(), remapper618)); // NO item changes between 1.20.30 and 1.20.40
-        paletteVersions.add(new PaletteVersion("1_20_50", Bedrock_v630.CODEC.getProtocolVersion(), Collections.emptyMap(), remapper630));
+        //paletteVersions.add(new PaletteVersion("1_20_40", Bedrock_v622.CODEC.getProtocolVersion(), Collections.emptyMap(), remapper618)); // NO item changes between 1.20.30 and 1.20.40
+        paletteVersions.add(new PaletteVersion("1_20_50", Bedrock_v630.CODEC.getProtocolVersion()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
