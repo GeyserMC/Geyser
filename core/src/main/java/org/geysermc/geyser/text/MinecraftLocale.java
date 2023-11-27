@@ -77,14 +77,15 @@ public class MinecraftLocale {
      */
     public static void downloadAndLoadLocale(String locale) {
         locale = locale.toLowerCase(Locale.ROOT);
-        if (locale.equals("nb_no")) {
-            // Different locale code - https://minecraft.fandom.com/wiki/Language
-            locale = "no_no";
-        }
 
         if (isLocaleLoaded(locale)) {
             GeyserImpl.getInstance().getLogger().debug("Locale already loaded: " + locale);
             return;
+        }
+
+        if (locale.equals("nb_no")) {
+            // Different locale code - https://minecraft.fandom.com/wiki/Language
+            locale = "no_no";
         }
 
         // Check the locale isn't already loaded
@@ -149,15 +150,16 @@ public class MinecraftLocale {
      */
     private static boolean loadLocale(String locale) {
         String bedrockLocale = locale.toLowerCase(Locale.ROOT);
+
+        // Need to grab this before we change the locale - downloaded locales are stored under the Java Bedrock locale
+        Path localeFile = getPath(bedrockLocale);
+
         if (bedrockLocale.equals("no_no")) {
             // Store this locale under the Bedrock locale so we don't need to do this check over and over
             bedrockLocale = "nb_no";
         }
 
         Map<String, String> langMap = new HashMap<>();
-
-        // Load the locale
-        Path localeFile = getPath(bedrockLocale);
         if (Files.exists(localeFile) && Files.isReadable(localeFile)) {
             langMap.putAll(parseLangFile(localeFile, bedrockLocale));
         }
@@ -168,7 +170,7 @@ public class MinecraftLocale {
             langMap.putAll(parseLangFile(localeFile, bedrockLocale));
         }
 
-        if (langMap.size() > 0) {
+        if (!langMap.isEmpty()) {
             LOCALE_MAPPINGS.put(bedrockLocale, langMap);
             return true;
         } else {
@@ -196,24 +198,12 @@ public class MinecraftLocale {
                 Map.Entry<String, JsonNode> entry = localeIterator.next();
                 langMap.put(entry.getKey(), entry.getValue().asText());
             }
-
+            localeStream.close();
             return langMap;
         } catch (FileNotFoundException e){
             throw new AssertionError(GeyserLocale.getLocaleStringLog("geyser.locale.fail.file", locale, e.getMessage()));
         } catch (Exception e) {
             throw new AssertionError(GeyserLocale.getLocaleStringLog("geyser.locale.fail.json", locale), e);
-        }
-    }
-
-    /**
-     * Add more translations to a locale if it's loaded.
-     *
-     * @param locale Locale to load
-     * @param langMap Map of new translations to add
-     */
-    public static void addCustomTranslations(String locale, Map<String,String> langMap) {
-        if(isLocaleLoaded(locale)){
-            LOCALE_MAPPINGS.get(locale.toLowerCase(Locale.ROOT)).putAll(langMap);
         }
     }
 
