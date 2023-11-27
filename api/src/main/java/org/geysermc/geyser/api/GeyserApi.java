@@ -73,11 +73,11 @@ public interface GeyserApi extends GeyserApiBase {
 
     /**
      * Provides an implementation for the specified API type.
-     * Throws an {@link IllegalArgumentException} if there is no provider for the specified API class.
      *
      * @param apiClass the builder class
      * @param <R> the implementation type
      * @param <T> the API type
+     * @throws IllegalArgumentException if there is no provider for the specified API class
      * @return the builder instance
      */
     @NonNull
