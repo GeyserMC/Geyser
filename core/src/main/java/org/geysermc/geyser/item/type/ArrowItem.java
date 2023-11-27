@@ -39,6 +39,7 @@ public class ArrowItem extends Item {
         super(javaIdentifier, builder);
     }
 
+    @Override
     public @NonNull ItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
         TippedArrowPotion tippedArrowPotion = TippedArrowPotion.getByBedrockId(itemData.getDamage());
         ItemStack itemStack = super.translateToJava(itemData, mapping, mappings);

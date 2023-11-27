@@ -49,7 +49,7 @@ public enum ToolTier {
 
     ToolTier(int speed, Supplier<Set<Item>> repairIngredients) {
         this.speed = speed;
-        // Lazily initialize as this will likely be called as items ar  e loading
+        // Lazily initialize as this will likely be called as items are loading
         this.repairIngredients = Suppliers.memoize(repairIngredients::get);
     }
 

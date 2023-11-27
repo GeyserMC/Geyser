@@ -436,7 +436,6 @@ public final class ProxyProtocolDecoder {
     /**
      * Returns the {@link ProtocolDetectionResult} for the given {@link ByteBuf}.
      */
-    @SuppressWarnings("unused")
     public static ProtocolDetectionResult<HAProxyProtocolVersion> detectProtocol(ByteBuf buffer) {
         if (buffer.readableBytes() < 12) {
             return ProtocolDetectionResult.needsMoreData();
