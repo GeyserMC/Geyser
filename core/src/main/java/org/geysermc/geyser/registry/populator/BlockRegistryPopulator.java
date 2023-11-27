@@ -122,17 +122,9 @@ public final class BlockRegistryPopulator {
     }
 
     private static void registerBedrockBlocks() {
-        Remapper mapper594 = Remapper.of(BlockStateUpdater_1_20_10.INSTANCE);
-        Remapper mapper618 = Remapper.of(BlockStateUpdater_1_20_10.INSTANCE, BlockStateUpdater_1_20_30.INSTANCE);
-        Remapper mapper622 = Remapper.of(BlockStateUpdater_1_20_10.INSTANCE, BlockStateUpdater_1_20_30.INSTANCE, BlockStateUpdater_1_20_40.INSTANCE);
-        Remapper mapper630 = Remapper.of(BlockStateUpdater_1_20_10.INSTANCE, BlockStateUpdater_1_20_30.INSTANCE, BlockStateUpdater_1_20_40.INSTANCE, BlockStateUpdater_1_20_50.INSTANCE);
-
         var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
-                .put(ObjectIntPair.of("1_20_0", Bedrock_v589.CODEC.getProtocolVersion()), tag -> tag)
-                .put(ObjectIntPair.of("1_20_10", Bedrock_v594.CODEC.getProtocolVersion()), mapper594)
-                .put(ObjectIntPair.of("1_20_30", Bedrock_v618.CODEC.getProtocolVersion()), mapper618)
-                .put(ObjectIntPair.of("1_20_40", Bedrock_v622.CODEC.getProtocolVersion()), mapper622)
-                .put(ObjectIntPair.of("1_20_50", Bedrock_v630.CODEC.getProtocolVersion()), mapper630)
+                //.put(ObjectIntPair.of("1_20_40", Bedrock_v622.CODEC.getProtocolVersion()), mapper622)
+                .put(ObjectIntPair.of("1_20_50", Bedrock_v630.CODEC.getProtocolVersion()), tag -> tag)
                 .build();
 
         // We can keep this strong as nothing should be garbage collected
