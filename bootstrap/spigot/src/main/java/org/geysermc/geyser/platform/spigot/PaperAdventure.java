@@ -40,7 +40,7 @@ import java.lang.reflect.Method;
 /**
  * Utility class for converting our shaded Adventure into the Adventure bundled in Paper.
  * <p>
- * Code mostly taken from <a href="https://github.com/KyoriPowered/adventure-platform/blob/94d5821f2e755170f42bd8a5fe1d5bf6f66d04ad/platform-bukkit/src/main/java/net/kyori/adventure/platform/bukkit/PaperFacet.java#L46">...</a>
+ * Code mostly taken from <a href="https://github.com/KyoriPowered/adventure-platform/blob/94d5821f2e755170f42bd8a5fe1d5bf6f66d04ad/platform-bukkit/src/main/java/net/kyori/adventure/platform/bukkit/PaperFacet.java#L46">here</a>
  * and the MinecraftReflection class.
  */
 public final class PaperAdventure {

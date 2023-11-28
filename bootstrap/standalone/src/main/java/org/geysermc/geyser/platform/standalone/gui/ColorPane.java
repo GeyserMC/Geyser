@@ -31,7 +31,7 @@ import java.awt.*;
 import java.io.Serial;
 
 /**
- * This class was based on this code: <a href="https://stackoverflow.com/a/6899478/5299903">...</a>
+ * This class was based on this <a href="https://stackoverflow.com/a/6899478/5299903">code</a>
  */
 public class ColorPane extends JTextPane {
 

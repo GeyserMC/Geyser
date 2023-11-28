@@ -112,7 +112,7 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     /**
      * Sending any updated flags (sprinting, onFire, etc.) to the client while in spectator is not needed
-     * Also "fixes" <a href="https://github.com/GeyserMC/Geyser/issues/3318">...</a>
+     * Also "fixes" <a href="https://github.com/GeyserMC/Geyser/issues/3318">issue 3318</a>
      */
     @Override
     public void setFlags(ByteEntityMetadata entityMetadata) {
@@ -126,7 +126,7 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     /**
      * Since 1.19.40, the client must be re-informed of its bounding box on respawn
-     * See <a href="https://github.com/GeyserMC/Geyser/issues/3370">...</a>
+     * See <a href="https://github.com/GeyserMC/Geyser/issues/3370">issue 3370</a>
      */
     public void updateBoundingBox() {
         dirtyMetadata.put(EntityDataTypes.HEIGHT, getBoundingBoxHeight());

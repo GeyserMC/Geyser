@@ -51,7 +51,7 @@ public final class CpuUtils {
 
     /**
      * Much of the code here was copied from the OSHI project. This is simply stripped down to only get the CPU model.
-     * <a href="https://github.com/oshi/oshi/">...</a>
+     * <a href="https://github.com/oshi/oshi/">See here</a>
      */
     private static String getLinuxProcessorName() throws Exception {
         List<String> lines = Files.readAllLines(Paths.get("/proc/cpuinfo"), StandardCharsets.UTF_8);
@@ -66,7 +66,7 @@ public final class CpuUtils {
     }
 
     /**
-     * <a href="https://stackoverflow.com/a/6327663">...</a>
+     * <a href="https://stackoverflow.com/a/6327663">See here</a>
      */
     private static @Nullable String getWindowsProcessorName() throws Exception {
         final String cpuNameCmd = "reg query \"HKLM\\HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0\" /v ProcessorNameString";

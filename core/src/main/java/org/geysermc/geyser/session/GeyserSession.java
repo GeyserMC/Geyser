@@ -460,7 +460,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     /**
      * Store the last time the player interacted. Used to fix a right-click spam bug.
-     * See <a href="https://github.com/GeyserMC/Geyser/issues/503">...</a> for context.
+     * See <a href="https://github.com/GeyserMC/Geyser/issues/503">this</a> for context.
      */
     @Setter
     private long lastInteractionTime;
@@ -1369,7 +1369,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     /**
-     * For <a href="https://github.com/GeyserMC/Geyser/issues/2113">...</a> and combating arm ticking activating being delayed in
+     * For <a href="https://github.com/GeyserMC/Geyser/issues/2113">issue 2113</a> and combating arm ticking activating being delayed in
      * BedrockAnimateTranslator.
      */
     public void armSwingPending() {

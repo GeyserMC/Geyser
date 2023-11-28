@@ -47,8 +47,8 @@ public abstract class GeyserDefineCustomBlocksEvent implements Event {
     /**
      * Registers the given {@link CustomBlockState} as an override for the
      * given java state identifier
-     * Java state identifiers are listed in
-     * <a href="https://raw.githubusercontent.com/GeyserMC/mappings/master/blocks.json">...</a>
+     * Java state identifiers are listed
+     * <a href="https://raw.githubusercontent.com/GeyserMC/mappings/master/blocks.json">here</a>
      *
      * @param javaIdentifier the java state identifier to override
      * @param customBlockState the custom block state with which to override java state identifier
