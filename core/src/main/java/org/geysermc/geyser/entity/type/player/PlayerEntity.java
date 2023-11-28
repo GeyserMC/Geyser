@@ -86,6 +86,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
     @Nullable
     private String texturesProperty;
 
+    @Nullable
     private Vector3i bedPosition;
 
     /**

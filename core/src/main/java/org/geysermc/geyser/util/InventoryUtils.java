@@ -54,6 +54,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -207,12 +208,13 @@ public class InventoryUtils {
     }
 
     private static ItemDefinition getUnusableSpaceBlockDefinition(int protocolVersion) {
+        ItemMappings mappings = Objects.requireNonNull(Registries.ITEMS.forVersion(protocolVersion));
         String unusableSpaceBlock = GeyserImpl.getInstance().getConfig().getUnusableSpaceBlock();
-        ItemDefinition itemDefinition = Objects.requireNonNull(Registries.ITEMS.forVersion(protocolVersion)).getDefinition(unusableSpaceBlock);
+        ItemDefinition itemDefinition = mappings.getDefinition(unusableSpaceBlock);
 
         if (itemDefinition == null) {
             GeyserImpl.getInstance().getLogger().error("Invalid value " + unusableSpaceBlock + ". Resorting to barrier block.");
-            return Objects.requireNonNull(Registries.ITEMS.forVersion(protocolVersion)).getStoredItems().barrier().getBedrockDefinition();
+            return mappings.getStoredItems().barrier().getBedrockDefinition();
         } else {
             return itemDefinition;
         }

@@ -1399,7 +1399,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
-    public @Nullable String name() {
+    public String name() {
         return null;
     }
 

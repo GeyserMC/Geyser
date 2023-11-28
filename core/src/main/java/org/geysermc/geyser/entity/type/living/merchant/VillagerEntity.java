@@ -28,6 +28,7 @@ package org.geysermc.geyser.entity.type.living.merchant;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.VillagerData;
 import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
@@ -78,6 +79,7 @@ public class VillagerEntity extends AbstractMerchantEntity {
         VILLAGER_REGIONS[6] = 6;
     }
 
+    @Nullable
     private Vector3i bedPosition;
     /**
      * Used in the interactive tag manager
@@ -103,7 +105,7 @@ public class VillagerEntity extends AbstractMerchantEntity {
     }
 
     @Override
-    public Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
+    public @Nullable Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
         return bedPosition = super.setBedPosition(entityMetadata);
     }
 

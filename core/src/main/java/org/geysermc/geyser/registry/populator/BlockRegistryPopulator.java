@@ -379,8 +379,8 @@ public final class BlockRegistryPopulator {
         JAVA_BLOCKS_SIZE = blocksJson.size();
 
         if (!BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().isEmpty()) {
-            MIN_CUSTOM_RUNTIME_ID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().min(Comparator.comparing(JavaBlockState::javaId)).get().javaId();
-            int maxCustomRuntimeID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().max(Comparator.comparing(JavaBlockState::javaId)).get().javaId();
+            MIN_CUSTOM_RUNTIME_ID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().min(Comparator.comparing(JavaBlockState::javaId)).orElseThrow().javaId();
+            int maxCustomRuntimeID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().max(Comparator.comparing(JavaBlockState::javaId)).orElseThrow().javaId();
 
             if (MIN_CUSTOM_RUNTIME_ID < blocksJson.size()) {
                 throw new RuntimeException("Non vanilla custom block state overrides runtime ID must start after the last vanilla block state (" + JAVA_BLOCKS_SIZE + ")");
@@ -539,6 +539,7 @@ public final class BlockRegistryPopulator {
 
                 String javaId = javaBlockState.identifier();
                 int stateRuntimeId = javaBlockState.javaId();
+                String pistonBehavior = javaBlockState.pistonBehavior();
                 BlockMapping blockMapping = BlockMapping.builder()
                     .canBreakWithHand(javaBlockState.canBreakWithHand())
                     .pickItem(javaBlockState.pickItem())
@@ -546,7 +547,7 @@ public final class BlockRegistryPopulator {
                     .javaIdentifier(javaId)
                     .javaBlockId(javaBlockState.stateGroupId())
                     .hardness(javaBlockState.blockHardness())
-                    .pistonBehavior(javaBlockState.pistonBehavior() == null ? PistonBehavior.NORMAL : PistonBehavior.getByName(Objects.requireNonNull(javaBlockState.pistonBehavior())))
+                    .pistonBehavior(pistonBehavior == null ? PistonBehavior.NORMAL : PistonBehavior.getByName(pistonBehavior))
                     .isBlockEntity(javaBlockState.hasBlockEntity())
                     .build();
 

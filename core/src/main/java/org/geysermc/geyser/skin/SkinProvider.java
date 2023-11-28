@@ -230,7 +230,8 @@ public class SkinProvider {
         return EMPTY_CAPE;
     }
 
-    static @Nullable Cape getCachedCape(String capeUrl) {
+    @Nullable
+    static Cape getCachedCape(String capeUrl) {
         if (capeUrl == null) {
             return null;
         }
@@ -668,16 +669,21 @@ public class SkinProvider {
     }
 
     private static BufferedImage downloadImage(String imageUrl, CapeProvider provider) throws IOException {
-        if (provider == CapeProvider.FIVEZIG)
-            return readFiveZigCape(imageUrl);
+        BufferedImage image;
+        if (provider == CapeProvider.FIVEZIG) {
+            image = readFiveZigCape(imageUrl);
+        } else {
+            HttpURLConnection con = (HttpURLConnection) new URL(imageUrl).openConnection();
+            con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION);
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(10000);
 
-        HttpURLConnection con = (HttpURLConnection) new URL(imageUrl).openConnection();
-        con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION);
-        con.setConnectTimeout(10000);
-        con.setReadTimeout(10000);
+            image = ImageIO.read(con.getInputStream());
+        }
 
-        BufferedImage image = ImageIO.read(con.getInputStream());
-        if (image == null) throw new NullPointerException();
+        if (image == null) {
+            throw new IllegalArgumentException("Failed to read image from: %s (cape provider=%s)".formatted(imageUrl, provider));
+        }
         return image;
     }
 

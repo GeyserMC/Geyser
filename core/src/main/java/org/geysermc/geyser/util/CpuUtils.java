@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.util;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
-
 import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -68,7 +66,7 @@ public final class CpuUtils {
     /**
      * <a href="https://stackoverflow.com/a/6327663">See here</a>
      */
-    private static @Nullable String getWindowsProcessorName() throws Exception {
+    private static String getWindowsProcessorName() throws Exception {
         final String cpuNameCmd = "reg query \"HKLM\\HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0\" /v ProcessorNameString";
         final String regstrToken = "REG_SZ";
 
@@ -85,7 +83,7 @@ public final class CpuUtils {
         int p = result.indexOf(regstrToken);
 
         if (p == -1) {
-            return null;
+            return "unknown";
         }
 
         return result.substring(p + regstrToken.length()).trim();

@@ -63,7 +63,6 @@ public final class RegistryLoaders {
      * @param <V> the value
      * @return a RegistryLoader that is yet to contain a value.
      */
-    @SuppressWarnings("ReturnOfNull")
     public static <I, V> RegistryLoader<I, V> uninitialized() {
         return input -> null;
     }
