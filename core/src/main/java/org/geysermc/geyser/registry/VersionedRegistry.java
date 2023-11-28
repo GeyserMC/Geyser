@@ -26,7 +26,7 @@
 package org.geysermc.geyser.registry;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.registry.loader.RegistryLoader;
 
 import java.util.Map;
@@ -54,8 +54,10 @@ public class VersionedRegistry<V> extends AbstractMappedRegistry<Integer, V, Int
      *
      * @param version the version
      * @return the closest value for the specified version
+     * @throws IllegalArgumentException if no values exist at or above the given version
      */
-    public @Nullable V forVersion(int version) {
+    @NonNull
+    public V forVersion(int version) {
         Int2ObjectMap.Entry<V> current = null;
         for (Int2ObjectMap.Entry<V> entry : this.mappings.int2ObjectEntrySet()) {
             int currentVersion = entry.getIntKey();
@@ -70,7 +72,10 @@ public class VersionedRegistry<V> extends AbstractMappedRegistry<Integer, V, Int
                 current = entry;
             }
         }
-        return current == null ? null : current.getValue();
+        if (current == null) {
+            throw new IllegalArgumentException("No appropriate value for version: " + version);
+        }
+        return current.getValue();
     }
 
     /**

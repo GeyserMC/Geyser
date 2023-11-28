@@ -208,7 +208,7 @@ public class InventoryUtils {
     }
 
     private static ItemDefinition getUnusableSpaceBlockDefinition(int protocolVersion) {
-        ItemMappings mappings = Objects.requireNonNull(Registries.ITEMS.forVersion(protocolVersion));
+        ItemMappings mappings = Registries.ITEMS.forVersion(protocolVersion);
         String unusableSpaceBlock = GeyserImpl.getInstance().getConfig().getUnusableSpaceBlock();
         ItemDefinition itemDefinition = mappings.getDefinition(unusableSpaceBlock);
 
@@ -222,7 +222,7 @@ public class InventoryUtils {
 
     public static IntFunction<ItemData> getUpgradeTemplate() {
         return protocolVersion -> ItemData.builder()
-                .definition(Objects.requireNonNull(Registries.ITEMS.forVersion(protocolVersion)).getStoredItems().upgradeTemplate().getBedrockDefinition())
+                .definition(Registries.ITEMS.forVersion(protocolVersion).getStoredItems().upgradeTemplate().getBedrockDefinition())
                 .count(1).build();
     }
 
