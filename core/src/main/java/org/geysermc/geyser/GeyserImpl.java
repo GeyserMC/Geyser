@@ -43,6 +43,7 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.Geyser;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
 import org.geysermc.erosion.packet.Packets;
@@ -478,6 +479,11 @@ public class GeyserImpl implements GeyserApi {
         }
 
         if (config.getRemote().authType() == AuthType.ONLINE) {
+            if (config.getUserAuths() != null && !config.getUserAuths().isEmpty()) {
+                getLogger().warning("The 'userAuths' config section is now deprecated, and will be removed in the near future! " +
+                        "Please migrate to the new 'saved-user-logins' config option: " +
+                        "https://wiki.geysermc.org/geyser/understanding-the-config/");
+            }
             // May be written/read to on multiple threads from each GeyserSession as well as writing the config
             savedRefreshTokens = new ConcurrentHashMap<>();
 

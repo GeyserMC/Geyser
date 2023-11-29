@@ -8,6 +8,18 @@ Geyser is a bridge between Minecraft: Bedrock Edition and Minecraft: Java Editio
 
 Geyser is an open collaboration project by [CubeCraft Games](https://cubecraft.net).
 
+## 更新与修复
+
+应用于部分服务器，使用第三方验证登录，可使用mojang继续登录第三方服务器。本分支更新缓慢，仅按需更新或按BE版本更新。
+修改内容：
+ - 恢复mojang登录
+ - 关闭自动更新(禁用函数checkForGeyserUpdate)
+ - 更新至分支 [#d931b0e](https://github.com/yanhy2000/GeyserWithMojang/commit/d931b0e46012648671bff232695d977dc7b03426)
+
+如遇到bug可以提issue，但不一定及时修复。本项目主要为自己的服务器所使用，无法满足定制化需求，可自行fork后修改。
+
+<img src="img/loginwithmojang.jpg" alt="GeyserWithMojang" width="600"/>
+
 ## What is Geyser?
 Geyser is a proxy, bridging the gap between Minecraft: Bedrock Edition and Minecraft: Java Edition servers.
 The ultimate goal of this project is to allow Minecraft: Bedrock Edition users to join Minecraft: Java Edition servers as seamlessly as possible. However, due to the nature of Geyser translating packets over the network of two different games, *do not expect everything to work perfectly!*

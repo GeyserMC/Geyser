@@ -34,12 +34,14 @@ import org.cloudburstmc.protocol.bedrock.packet.ServerToClientHandshakePacket;
 import org.cloudburstmc.protocol.bedrock.util.ChainValidationResult;
 import org.cloudburstmc.protocol.bedrock.util.ChainValidationResult.IdentityData;
 import org.cloudburstmc.protocol.bedrock.util.EncryptionUtils;
+import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.ModalForm;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.response.SimpleFormResponse;
 import org.geysermc.cumulus.response.result.FormResponseResult;
 import org.geysermc.cumulus.response.result.ValidFormResponseResult;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
@@ -135,16 +137,26 @@ public class LoginEncryptionUtils {
         // Set DoDaylightCycle to false so the time doesn't accelerate while we're here
         session.setDaylightCycle(false);
 
+        GeyserConfiguration config = session.getGeyser().getConfig();
+        boolean isPasswordAuthEnabled = config.getRemote().isPasswordAuthentication();
+
         session.sendForm(
                 SimpleForm.builder()
                         .translator(GeyserLocale::getPlayerLocaleString, session.locale())
                         .title("geyser.auth.login.form.notice.title")
                         .content("geyser.auth.login.form.notice.desc")
+                        .optionalButton("geyser.auth.login.form.notice.btn_login.mojang", isPasswordAuthEnabled)
                         .button("geyser.auth.login.form.notice.btn_login.microsoft")
                         .button("geyser.auth.login.form.notice.btn_disconnect")
                         .closedOrInvalidResultHandler(() -> buildAndShowLoginWindow(session))
                         .validResultHandler((response) -> {
                             if (response.clickedButtonId() == 0) {
+                                session.setMicrosoftAccount(false);
+                                buildAndShowLoginDetailsWindow(session);
+                                return;
+                            }
+
+                            if (response.clickedButtonId() == 1) {
                                 session.authenticateWithMicrosoftCode();
                                 return;
                             }
@@ -198,6 +210,19 @@ public class LoginEncryptionUtils {
                 session.disconnect("%disconnect.quitting");
             }
         };
+    }
+
+    public static void buildAndShowLoginDetailsWindow(GeyserSession session) {
+        session.sendForm(
+                CustomForm.builder()
+                        .translator(GeyserLocale::getPlayerLocaleString, session.locale())
+                        .title("geyser.auth.login.form.details.title")
+                        .label("geyser.auth.login.form.details.desc")
+                        .input("geyser.auth.login.form.details.email", "account Or email", "")
+                        .input("geyser.auth.login.form.details.pass", "123456", "")
+                        .invalidResultHandler(() -> buildAndShowLoginDetailsWindow(session))
+                        .closedResultHandler(() -> buildAndShowLoginWindow(session))
+                        .validResultHandler((response) -> session.authenticate(response.next(), response.next())));
     }
 
     /**
