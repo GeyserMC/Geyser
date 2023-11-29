@@ -10,6 +10,7 @@ Geyser is an open collaboration project by [CubeCraft Games](https://cubecraft.n
 
 ## 更新与修复
 
+***泉镜岛(Mirrorland)特供定制修改版本***
 应用于部分服务器，使用第三方验证登录，可使用mojang继续登录第三方服务器。本分支更新缓慢，仅按需更新或按BE版本更新。
 修改内容：
  - 恢复mojang登录
