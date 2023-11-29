@@ -126,7 +126,7 @@ public class LoginEncryptionUtils {
             geyser.getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.encryption.line_2", "https://geysermc.org/supported_java"));
             HAS_SENT_ENCRYPTION_MESSAGE = true;
         }
-    } 
+    }
 
     public static void buildAndShowLoginWindow(GeyserSession session) {
         if (session.isLoggedIn()) {
@@ -142,12 +142,12 @@ public class LoginEncryptionUtils {
 
         session.sendForm(
                 SimpleForm.builder()
-                        // .translator(GeyserLocale::getPlayerLocaleString, session.locale())
-                        .title("服务器登陆系统")
-                        .content("您需要登陆泉镜岛社区帐户才能在此服务器上游玩.")
-                        .optionalButton("登录泉镜岛社区帐户", isPasswordAuthEnabled)
-                        // .button("geyser.auth.login.form.notice.btn_login.microsoft")
-                        .button("断开连接")
+                        .translator(GeyserLocale::getPlayerLocaleString, session.locale())
+                        .title("geyser.auth.login.form.notice.title")
+                        .content("geyser.auth.login.form.notice.desc")
+                        .optionalButton("geyser.auth.login.form.notice.btn_login.mojang", isPasswordAuthEnabled)
+                        .button("geyser.auth.login.form.notice.btn_login.microsoft")
+                        .button("geyser.auth.login.form.notice.btn_disconnect")
                         .closedOrInvalidResultHandler(() -> buildAndShowLoginWindow(session))
                         .validResultHandler((response) -> {
                             if (response.clickedButtonId() == 0) {
@@ -156,12 +156,12 @@ public class LoginEncryptionUtils {
                                 return;
                             }
 
-                            // if (response.clickedButtonId() == 1) {
-                            //     session.authenticateWithMicrosoftCode();
-                            //     return;
-                            // }
+                            if (response.clickedButtonId() == 1) {
+                                session.authenticateWithMicrosoftCode();
+                                return;
+                            }
 
-                            session.disconnect(GeyserLocale.getPlayerLocaleString("未登录！", session.locale()));
+                            session.disconnect(GeyserLocale.getPlayerLocaleString("geyser.auth.login.form.disconnect", session.locale()));
                         }));
     }
 
@@ -173,12 +173,12 @@ public class LoginEncryptionUtils {
 
         session.sendForm(
                 SimpleForm.builder()
-                        // .translator(LoginEncryptionUtils::translate, locale)
+                        .translator(LoginEncryptionUtils::translate, locale)
                         .title("%gui.signIn")
                         .content("""
-                                &c注意：&r您的泉镜岛社区帐户信息已在这个互通服务器上被列出并保存。 这可能被任何有权访问此互通服务器的人用来登录您的帐户而无需您的许可。
+                                geyser.auth.login.save_token.warning
 
-                                仅在您是这个互通服务器的所有者或信任它的所有者使用您的账户时继续。""")
+                                geyser.auth.login.save_token.proceed""")
                         .button("%gui.ok")
                         .button("%gui.decline")
                         .resultHandler(authenticateOrKickHandler(session))
@@ -190,12 +190,12 @@ public class LoginEncryptionUtils {
 
         session.sendForm(
                 SimpleForm.builder()
-                        // .translator(LoginEncryptionUtils::translate, locale)
-                        .title("g登录已过期")
+                        .translator(LoginEncryptionUtils::translate, locale)
+                        .title("geyser.auth.login.form.expired")
                         .content("""
-                                您的泉镜岛社区帐户登录凭据已过期或不再有效。您必须使用泉镜岛社区帐户重新认证，之后您的凭据会被重新保存。
+                                geyser.auth.login.save_token.expired
 
-                                仅在您是这个互通服务器的所有者或信任它的所有者使用您的账户时继续。""")
+                                geyser.auth.login.save_token.proceed""")
                         .button("%gui.ok")
                         .resultHandler(authenticateOrKickHandler(session))
         );
@@ -215,11 +215,11 @@ public class LoginEncryptionUtils {
     public static void buildAndShowLoginDetailsWindow(GeyserSession session) {
         session.sendForm(
                 CustomForm.builder()
-                        // .translator(GeyserLocale::getPlayerLocaleString, session.locale())
-                        .title("登录详细信息")
-                        .label("在下方输入你泉镜岛社区帐户的登录信息")
-                        .input("账户邮箱/用户名", "游戏ID或邮箱", "")
-                        .input("账户密码", "密码", "")
+                        .translator(GeyserLocale::getPlayerLocaleString, session.locale())
+                        .title("geyser.auth.login.form.details.title")
+                        .label("geyser.auth.login.form.details.desc")
+                        .input("geyser.auth.login.form.details.email", "account Or email", "")
+                        .input("geyser.auth.login.form.details.pass", "123456", "")
                         .invalidResultHandler(() -> buildAndShowLoginDetailsWindow(session))
                         .closedResultHandler(() -> buildAndShowLoginWindow(session))
                         .validResultHandler((response) -> session.authenticate(response.next(), response.next())));
