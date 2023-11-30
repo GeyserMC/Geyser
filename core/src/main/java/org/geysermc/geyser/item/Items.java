@@ -1351,6 +1351,8 @@ public final class Items {
     public static final Item TRIAL_SPAWNER = register(new BlockItem("trial_spawner", builder()));
     public static final Item TRIAL_KEY = register(new Item("trial_key", builder()));
 
+    public static final int AIR_ID = AIR.javaId();
+
     private static <T extends Item> T register(T item) {
         return register(item, Registries.JAVA_ITEMS.get().size());
     }
