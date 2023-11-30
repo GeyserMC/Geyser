@@ -105,6 +105,7 @@ import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
+import org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent;
 import org.geysermc.geyser.api.event.bedrock.SessionLoginEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.RemoteServer;
@@ -128,6 +129,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.physics.CollisionManager;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -391,6 +393,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private Entity mouseoverEntity;
 
+    /**
+     * Stores all Java recipes by recipe identifier, and matches them to all possible Bedrock recipe identifiers.
+     * They are not 1:1, since Bedrock can have multiple recipes for the same Java recipe.
+     */
+    @Setter
+    private Map<String, List<String>> javaToBedrockRecipeIds;
+
     @Setter
     private Int2ObjectMap<GeyserRecipe> craftingRecipes;
     private final AtomicInteger lastRecipeNetId;
@@ -611,6 +620,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.playerInventory = new PlayerInventory();
         this.openInventory = null;
         this.craftingRecipes = new Int2ObjectOpenHashMap<>();
+        this.javaToBedrockRecipeIds = new Object2ObjectOpenHashMap<>();
         this.lastRecipeNetId = new AtomicInteger(1);
 
         this.spawned = false;
@@ -690,6 +700,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         gamerulePacket.getGameRules().add(new GameRuleData<>("keepinventory", true));
         // Ensure client doesn't try and do anything funky; the server handles this for us
         gamerulePacket.getGameRules().add(new GameRuleData<>("spawnradius", 0));
+        // Recipe unlocking - only needs to be added if 1. it isn't already on via an experiment, or 2. the client is on pre 1.20.10
+        if (!GameProtocol.isPre1_20_10(this) && !GameProtocol.isUsingExperimentalRecipeUnlocking(this)) {
+            gamerulePacket.getGameRules().add(new GameRuleData<>("recipesunlock", true));
+        }
         upstream.sendPacket(gamerulePacket);
     }
 
@@ -1025,10 +1039,18 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                     geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.remote.disconnect", authData.name(), remoteServer.address(), disconnectMessage));
                 }
                 if (cause != null) {
-                    cause.printStackTrace();
+                    if (cause.getMessage() != null) {
+                        GeyserImpl.getInstance().getLogger().error(cause.getMessage());
+                    } else {
+                        GeyserImpl.getInstance().getLogger().error("An exception occurred: ", cause);
+                    }
+                    // GeyserSession is disconnected via session.disconnect() called indirectly be the server
+                    // This only needs to be "initiated" here when there is an exception, hence the cause clause
+                    GeyserSession.this.disconnect(disconnectMessage);
+                    if (geyser.getConfig().isDebugMode()) {
+                        cause.printStackTrace();
+                    }
                 }
-
-                upstream.disconnect(disconnectMessage);
             }
 
             @Override
@@ -1055,17 +1077,30 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public void disconnect(String reason) {
         if (!closed) {
             loggedIn = false;
+
+            // Fire SessionDisconnectEvent
+            SessionDisconnectEvent disconnectEvent = new SessionDisconnectEvent(this, reason);
+            geyser.getEventBus().fire(disconnectEvent);
+
+            // Disconnect downstream if necessary
             if (downstream != null) {
-                downstream.disconnect(reason);
+                // No need to disconnect if already closed
+                if (!downstream.isClosed()) {
+                    downstream.disconnect(reason);
+                }
             } else {
                 // Downstream's disconnect will fire an event that prints a log message
                 // Otherwise, we print a message here
                 String address = geyser.getConfig().isLogPlayerIpAddresses() ? upstream.getAddress().getAddress().toString() : "<IP address withheld>";
                 geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.disconnect", address, reason));
             }
+
+            // Disconnect upstream if necessary
             if (!upstream.isClosed()) {
-                upstream.disconnect(reason);
+                upstream.disconnect(disconnectEvent.disconnectReason());
             }
+
+            // Remove from session manager
             geyser.getSessionManager().removeSession(this);
             if (authData != null) {
                 PendingMicrosoftAuthentication.AuthenticationTask task = geyser.getPendingMicrosoftAuthentication().getTask(authData.xuid());
@@ -1526,6 +1561,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT);
         startGamePacket.setRewindHistorySize(0);
         startGamePacket.setServerAuthoritativeBlockBreaking(false);
+
+        if (GameProtocol.isUsingExperimentalRecipeUnlocking(this)) {
+            startGamePacket.getExperiments().add(new ExperimentData("recipe_unlocking", true));
+        }
 
         upstream.sendPacket(startGamePacket);
     }

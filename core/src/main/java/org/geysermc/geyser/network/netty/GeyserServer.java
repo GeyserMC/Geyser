@@ -69,6 +69,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.IntFunction;
+import java.util.function.Supplier;
 
 public final class GeyserServer {
     private static final boolean PRINT_DEBUG_PINGS = Boolean.parseBoolean(System.getProperty("Geyser.PrintPingsInDebugMode", "true"));
@@ -163,8 +164,9 @@ public final class GeyserServer {
                 if (System.getProperties().contains("disableNativeEventLoop")) {
                     this.geyser.getLogger().debug("EventLoop type is NIO because native event loops are disabled.");
                 } else {
-                    this.geyser.getLogger().debug("Reason for no Epoll: " + Epoll.unavailabilityCause().toString());
-                    this.geyser.getLogger().debug("Reason for no KQueue: " + KQueue.unavailabilityCause().toString());
+                    // Use lambda here, not method reference, or else NoClassDefFoundError for Epoll/KQueue will not be caught
+                    this.geyser.getLogger().debug("Reason for no Epoll: " + throwableOrCaught(() -> Epoll.unavailabilityCause()));
+                    this.geyser.getLogger().debug("Reason for no KQueue: " + throwableOrCaught(() -> KQueue.unavailabilityCause()));
                 }
             }
         }
@@ -230,7 +232,9 @@ public final class GeyserServer {
         GeyserPingInfo pingInfo = null;
         if (config.isPassthroughMotd() || config.isPassthroughPlayerCounts()) {
             IGeyserPingPassthrough pingPassthrough = geyser.getBootstrap().getGeyserPingPassthrough();
-            pingInfo = pingPassthrough.getPingInformation(inetSocketAddress);
+            if (pingPassthrough != null) {
+                pingInfo = pingPassthrough.getPingInformation(inetSocketAddress);
+            }
         }
 
         BedrockPong pong = new BedrockPong()
@@ -245,8 +249,8 @@ public final class GeyserServer {
 
         if (config.isPassthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
             String[] motd = MessageTranslator.convertMessageLenient(pingInfo.getDescription()).split("\n");
-            String mainMotd = motd[0]; // First line of the motd.
-            String subMotd = (motd.length != 1) ? motd[1] : GeyserImpl.NAME; // Second line of the motd if present, otherwise default.
+            String mainMotd = (motd.length > 0) ? motd[0] : config.getBedrock().primaryMotd(); // First line of the motd.
+            String subMotd = (motd.length > 1) ? motd[1] : config.getBedrock().secondaryMotd(); // Second line of the motd if present, otherwise default.
 
             pong.motd(mainMotd.trim());
             pong.subMotd(subMotd.trim()); // Trimmed to shift it to the left, prevents the universe from collapsing on us just because we went 2 characters over the text box's limit.
@@ -310,6 +314,17 @@ public final class GeyserServer {
         }
 
         return pong;
+    }
+
+    /**
+     * @return the throwable from the given supplier, or the throwable caught while calling the supplier.
+     */
+    private static Throwable throwableOrCaught(Supplier<Throwable> supplier) {
+        try {
+            return supplier.get();
+        } catch (Throwable throwable) {
+            return throwable;
+        }
     }
 
     private static Transport compatibleTransport() {
