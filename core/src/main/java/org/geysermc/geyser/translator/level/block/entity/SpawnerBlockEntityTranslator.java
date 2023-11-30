@@ -48,16 +48,17 @@ public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
         if (spawnData != null) {
             CompoundTag entityTag = spawnData.get("entity");
             if (entityTag.isEmpty()) {
+                Vector3i position = Vector3i.from(x, y, z);
                 // Set to air and back to reset the spawner - "just" updating the spawner doesn't work
                 UpdateBlockPacket emptyBlockPacket = new UpdateBlockPacket();
                 emptyBlockPacket.setDataLayer(0);
-                emptyBlockPacket.setBlockPosition(Vector3i.from(x, y, z));
+                emptyBlockPacket.setBlockPosition(position);
                 emptyBlockPacket.setDefinition(session.getBlockMappings().getBedrockAir());
                 session.sendUpstreamPacket(emptyBlockPacket);
 
                 UpdateBlockPacket spawnerBlockPacket = new UpdateBlockPacket();
                 spawnerBlockPacket.setDataLayer(0);
-                spawnerBlockPacket.setBlockPosition(Vector3i.from(x, y, z));
+                spawnerBlockPacket.setBlockPosition(position);
                 spawnerBlockPacket.setDefinition(session.getBlockMappings().getMobSpawnerBlock());
                 session.sendUpstreamPacket(spawnerBlockPacket);
             }
