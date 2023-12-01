@@ -300,13 +300,11 @@ public final class BlockRegistryPopulator {
             if (commandBlockDefinition == null) {
                 throw new AssertionError("Unable to find command block in palette");
             }
-
             builder.commandBlock(commandBlockDefinition);
 
             if (mobSpawnerBlockDefinition == null) {
                 throw new AssertionError("Unable to find mob spawner block in palette");
             }
-
             builder.mobSpawnerBlock(mobSpawnerBlockDefinition);
 
             if (waterDefinition  == null) {
