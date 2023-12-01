@@ -29,12 +29,44 @@ import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.session.GeyserSession;
 
 @BlockEntity(type = BlockEntityType.MOB_SPAWNER)
 public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
+
+    @Override
+    public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, CompoundTag tag, int blockState) {
+        // Sending an empty EntityIdentifier to empty the spawner is ignored by the client, so we send a whole new spawner!
+        // Fixes https://github.com/GeyserMC/Geyser/issues/4214
+        CompoundTag spawnData = tag.get("SpawnData");
+        if (spawnData != null) {
+            CompoundTag entityTag = spawnData.get("entity");
+            if (entityTag.isEmpty()) {
+                Vector3i position = Vector3i.from(x, y, z);
+                // Set to air and back to reset the spawner - "just" updating the spawner doesn't work
+                UpdateBlockPacket emptyBlockPacket = new UpdateBlockPacket();
+                emptyBlockPacket.setDataLayer(0);
+                emptyBlockPacket.setBlockPosition(position);
+                emptyBlockPacket.setDefinition(session.getBlockMappings().getBedrockAir());
+                session.sendUpstreamPacket(emptyBlockPacket);
+
+                UpdateBlockPacket spawnerBlockPacket = new UpdateBlockPacket();
+                spawnerBlockPacket.setDataLayer(0);
+                spawnerBlockPacket.setBlockPosition(position);
+                spawnerBlockPacket.setDefinition(session.getBlockMappings().getMobSpawnerBlock());
+                session.sendUpstreamPacket(spawnerBlockPacket);
+            }
+        }
+
+        return super.getBlockEntityTag(session, type, x, y, z, tag, blockState);
+    }
+
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
         Tag current;
@@ -69,8 +101,8 @@ public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
 
         CompoundTag spawnData = tag.get("SpawnData");
         if (spawnData != null) {
-            StringTag idTag = ((CompoundTag) spawnData.get("entity")).get("id");
-            if (idTag != null) {
+            CompoundTag entityTag = spawnData.get("entity");
+            if (entityTag.get("id") instanceof StringTag idTag) {
                 // As of 1.19.3, spawners can be empty
                 String entityId = idTag.getValue();
                 builder.put("EntityIdentifier", entityId);

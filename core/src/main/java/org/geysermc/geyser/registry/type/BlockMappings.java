@@ -54,6 +54,7 @@ public class BlockMappings implements DefinitionRegistry<GeyserBedrockBlock> {
     int[] remappedVanillaIds;
 
     BlockDefinition commandBlock;
+    BlockDefinition mobSpawnerBlock;
 
     Map<NbtMap, BlockDefinition> itemFrames;
     Map<String, NbtMap> flowerPotBlocks;
