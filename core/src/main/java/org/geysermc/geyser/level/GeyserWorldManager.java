@@ -99,7 +99,9 @@ public class GeyserWorldManager extends WorldManager {
             return;
         }
         List<Vector3i> vectors = new ObjectArrayList<>(blockEntityInfos.size());
-        for (BlockEntityInfo info : blockEntityInfos) {
+        //noinspection ForLoopReplaceableByForEach
+        for (int i = 0; i < blockEntityInfos.size(); i++) {
+            BlockEntityInfo info = blockEntityInfos.get(i);
             vectors.add(Vector3i.from(info.getX(), info.getY(), info.getZ()));
         }
         erosionHandler.sendPacket(new BackendboundBatchBlockEntityPacket(x, z, vectors));

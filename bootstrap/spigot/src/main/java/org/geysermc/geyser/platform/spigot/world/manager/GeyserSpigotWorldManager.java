@@ -138,7 +138,9 @@ public class GeyserSpigotWorldManager extends WorldManager {
     }
 
     private void sendLecternData(GeyserSession session, Chunk chunk, List<BlockEntityInfo> blockEntityInfos) {
-        for (BlockEntityInfo info : blockEntityInfos) {
+        //noinspection ForLoopReplaceableByForEach
+        for (int i = 0; i < blockEntityInfos.size(); i++) {
+            BlockEntityInfo info = blockEntityInfos.get(i);
             Block block = chunk.getBlock(info.getX(), info.getY(), info.getZ());
             sendLecternData(session, block, true);
         }

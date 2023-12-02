@@ -77,7 +77,9 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
             LevelChunk chunk = player.level().getChunk(x, z);
             final int chunkBlockX = x << 4;
             final int chunkBlockZ = z << 4;
-            for (BlockEntityInfo blockEntityInfo : blockEntityInfos) {
+            //noinspection ForLoopReplaceableByForEach
+            for (int i = 0; i < blockEntityInfos.size(); i++) {
+                BlockEntityInfo blockEntityInfo = blockEntityInfos.get(i);
                 BlockEntity blockEntity = chunk.getBlockEntity(new BlockPos(chunkBlockX + blockEntityInfo.getX(),
                         blockEntityInfo.getY(), chunkBlockZ + blockEntityInfo.getZ()));
                 sendLecternData(session, blockEntity, true);
