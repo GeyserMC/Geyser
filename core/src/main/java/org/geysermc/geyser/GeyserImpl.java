@@ -308,6 +308,21 @@ public class GeyserImpl implements GeyserApi {
                 }
             }
 
+            String pongPort = System.getProperty("geyserBroadcastPort", "");
+            if (!pongPort.isEmpty()) {
+                int parsedPort;
+                try {
+                    parsedPort = Integer.parseInt(pongPort);
+                    if (parsedPort < 1 || parsedPort > 65535) {
+                        throw new NumberFormatException("The broadcast port must be between 1 and 65535 inclusive!");
+                    }
+                } catch (NumberFormatException e) {
+                    GeyserImpl.getInstance().getLogger().error(String.format("Invalid broadcast port: %s! Defaulting to configured port.", pongPort + " (" + e.getMessage() + ")"));
+                    parsedPort = config.getBedrock().port();
+                }
+                config.getBedrock().setBroadcastPort(parsedPort);
+            }
+
             boolean floodgatePresent = bootstrap.testFloodgatePluginPresent();
             if (config.getRemote().authType() == AuthType.FLOODGATE && !floodgatePresent) {
                 logger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " "

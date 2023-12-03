@@ -121,22 +121,7 @@ public final class GeyserServer {
             this.proxiedAddresses = null;
         }
 
-        String pongPort = System.getProperty("Geyser.PongPort", "");
-        if (pongPort.isEmpty()) {
-            broadCastPort = geyser.getConfig().getBedrock().port();
-        } else {
-            int parsedPort;
-            try {
-                parsedPort = Integer.parseInt(pongPort);
-                if (parsedPort < 1 || parsedPort > 65535) {
-                    throw new NumberFormatException("The port must be between 1 and 65535 inclusive!");
-                }
-            } catch (NumberFormatException e) {
-                GeyserImpl.getInstance().getLogger().error(String.format("Invalid pong port: %s! Defaulting to configured port.", pongPort + " (" + e.getMessage() + ")"));
-                parsedPort = geyser.getConfig().getBedrock().port();
-            }
-            broadCastPort = parsedPort;
-        }
+        this.broadCastPort = geyser.getConfig().getBedrock().broadcastPort();
     }
 
     public CompletableFuture<Void> bind(InetSocketAddress address) {

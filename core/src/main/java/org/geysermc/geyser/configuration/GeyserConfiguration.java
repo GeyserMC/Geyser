@@ -120,6 +120,8 @@ public interface GeyserConfiguration {
 
         void setPort(int port);
 
+        void setBroadcastPort(int broadcastPort);
+
         boolean isCloneRemotePort();
 
         int getCompressionLevel();
