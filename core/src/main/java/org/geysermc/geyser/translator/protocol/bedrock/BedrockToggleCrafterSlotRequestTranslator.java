@@ -23,35 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.level.block.entity;
+package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerSlotStateChangedPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ToggleCrafterSlotRequestPacket;
+import org.geysermc.geyser.inventory.CrafterContainer;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
 
-import java.util.ArrayList;
-import java.util.List;
-
-@BlockEntity(type = BlockEntityType.DECORATED_POT)
-public class DecoratedPotBlockEntityTranslator extends BlockEntityTranslator {
+@Translator(packet = ToggleCrafterSlotRequestPacket.class)
+public class BedrockToggleCrafterSlotRequestTranslator extends PacketTranslator<ToggleCrafterSlotRequestPacket> {
 
     @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
-        if (tag == null) {
+    public void translate(GeyserSession session, ToggleCrafterSlotRequestPacket packet) {
+        if (!(session.getOpenInventory() instanceof CrafterContainer container)) {
             return;
         }
 
-        // exact same format
-        if (tag.get("sherds") instanceof ListTag sherds) {
-            List<String> translated = new ArrayList<>(4);
-            for (Tag sherd : sherds) {
-                translated.add(((StringTag) sherd).getValue());
-            }
-            builder.putList("sherds", NbtType.STRING, translated);
-        }
+        // Note that the Bedrock packet uses disabled, whereas the java packet used enabled.
+        session.sendDownstreamGamePacket(
+                new ServerboundContainerSlotStateChangedPacket(packet.getSlot(), container.getJavaId(), !packet.isDisabled()));
     }
 }

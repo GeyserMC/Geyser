@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.cloudburstmc.protocol.bedrock.codec.v622.Bedrock_v622;
 import org.cloudburstmc.protocol.bedrock.codec.v630.Bedrock_v630;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
+import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,6 +81,10 @@ public final class GameProtocol {
     }
 
     /* Bedrock convenience methods to gatekeep features and easily remove the check on version removal */
+
+    public static boolean isPre1_20_50(GeyserSession session) {
+        return session.getUpstream().getProtocolVersion() < Bedrock_v630.CODEC.getProtocolVersion();
+    }
 
     /**
      * Gets the {@link PacketCodec} for Minecraft: Java Edition.

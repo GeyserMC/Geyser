@@ -27,31 +27,16 @@ package org.geysermc.geyser.translator.level.block.entity;
 
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 
-import java.util.ArrayList;
-import java.util.List;
-
-@BlockEntity(type = BlockEntityType.DECORATED_POT)
-public class DecoratedPotBlockEntityTranslator extends BlockEntityTranslator {
+@BlockEntity(type = BlockEntityType.TRIAL_SPAWNER)
+public class TrialSpawnerBlockEntityTranslator extends SpawnerBlockEntityTranslator {
 
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
-        if (tag == null) {
-            return;
-        }
-
-        // exact same format
-        if (tag.get("sherds") instanceof ListTag sherds) {
-            List<String> translated = new ArrayList<>(4);
-            for (Tag sherd : sherds) {
-                translated.add(((StringTag) sherd).getValue());
-            }
-            builder.putList("sherds", NbtType.STRING, translated);
+        if (tag != null) {
+            // todo 1.20.3 doesn't seem to work
+            super.translateTag(builder, tag, blockState);
         }
     }
 }

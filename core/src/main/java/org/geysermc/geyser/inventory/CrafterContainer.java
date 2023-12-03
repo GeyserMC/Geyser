@@ -23,35 +23,39 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.level.block.entity;
+package org.geysermc.geyser.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
+import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
+import lombok.Getter;
+import lombok.Setter;
+import org.geysermc.geyser.GeyserImpl;
 
-import java.util.ArrayList;
-import java.util.List;
+@Getter
+public class CrafterContainer extends Container {
 
-@BlockEntity(type = BlockEntityType.DECORATED_POT)
-public class DecoratedPotBlockEntityTranslator extends BlockEntityTranslator {
+    @Setter
+    private boolean triggered = false;
 
-    @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
-        if (tag == null) {
+    /**
+     * Bedrock Edition bitmask of the *disabled* slots.
+     * Disabled slots are 1, enabled slots are 0 - same as Java Edition
+     */
+    private short disabledSlotsMask = 0;
+
+    public CrafterContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory) {
+        super(title, id, size, containerType, playerInventory);
+    }
+
+    public void setSlot(int slot, boolean enabled) {
+        if (slot < 0 || slot > 8) {
+            GeyserImpl.getInstance().getLogger().warning("Crafter slot out of bounds: " + slot);
             return;
         }
 
-        // exact same format
-        if (tag.get("sherds") instanceof ListTag sherds) {
-            List<String> translated = new ArrayList<>(4);
-            for (Tag sherd : sherds) {
-                translated.add(((StringTag) sherd).getValue());
-            }
-            builder.putList("sherds", NbtType.STRING, translated);
+        if (enabled) {
+            disabledSlotsMask = (short) (disabledSlotsMask & ~(1 << slot));
+        } else {
+            disabledSlotsMask = (short) (disabledSlotsMask | (1 << slot));
         }
     }
 }
