@@ -99,7 +99,7 @@ public class GeyserWorldManager extends WorldManager {
             return;
         }
         List<Vector3i> vectors = new ObjectArrayList<>(blockEntityInfos.size());
-        //noinspection ForLoopReplaceableByForEach
+        //noinspection ForLoopReplaceableByForEach - avoid constructing iterator
         for (int i = 0; i < blockEntityInfos.size(); i++) {
             BlockEntityInfo info = blockEntityInfos.get(i);
             vectors.add(Vector3i.from(info.getX(), info.getY(), info.getZ()));

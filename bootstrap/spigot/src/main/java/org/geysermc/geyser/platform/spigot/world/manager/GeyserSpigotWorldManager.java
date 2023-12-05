@@ -138,7 +138,7 @@ public class GeyserSpigotWorldManager extends WorldManager {
     }
 
     private void sendLecternData(GeyserSession session, Chunk chunk, List<BlockEntityInfo> blockEntityInfos) {
-        //noinspection ForLoopReplaceableByForEach
+        //noinspection ForLoopReplaceableByForEach - avoid constructing Iterator
         for (int i = 0; i < blockEntityInfos.size(); i++) {
             BlockEntityInfo info = blockEntityInfos.get(i);
             Block block = chunk.getBlock(info.getX(), info.getY(), info.getZ());
@@ -170,6 +170,7 @@ public class GeyserSpigotWorldManager extends WorldManager {
         if (value instanceof Boolean booleanValue) {
             return booleanValue;
         }
+        GeyserImpl.getInstance().getLogger().debug("Expected a bool for " + gameRule + " but got " + value);
         return gameRule.getDefaultBooleanValue();
     }
 
@@ -185,6 +186,7 @@ public class GeyserSpigotWorldManager extends WorldManager {
         if (value instanceof Integer intValue) {
             return intValue;
         }
+        GeyserImpl.getInstance().getLogger().debug("Expected an int for " + gameRule + " but got " + value);
         return gameRule.getDefaultIntValue();
     }
 

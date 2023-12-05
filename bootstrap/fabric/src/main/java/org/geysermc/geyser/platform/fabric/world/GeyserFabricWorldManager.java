@@ -74,10 +74,11 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
                 return;
             }
 
+            //noinspection resource - level() is just a getter
             LevelChunk chunk = player.level().getChunk(x, z);
             final int chunkBlockX = x << 4;
             final int chunkBlockZ = z << 4;
-            //noinspection ForLoopReplaceableByForEach
+            //noinspection ForLoopReplaceableByForEach - avoid constructing iterator
             for (int i = 0; i < blockEntityInfos.size(); i++) {
                 BlockEntityInfo blockEntityInfo = blockEntityInfos.get(i);
                 BlockEntity blockEntity = chunk.getBlockEntity(new BlockPos(chunkBlockX + blockEntityInfo.getX(),
@@ -94,7 +95,7 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
             if (player == null) {
                 return;
             }
-
+            //noinspection resource - level() is just a getter
             BlockEntity blockEntity = player.level().getBlockEntity(new BlockPos(x, y, z));
             sendLecternData(session, blockEntity, false);
         });
@@ -174,6 +175,7 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
 
             BlockPos pos = new BlockPos(x, y, z);
             // Don't create a new block entity if invalid
+            //noinspection resource - level() is just a getter
             BlockEntity blockEntity = player.level().getChunkAt(pos).getBlockEntity(pos);
             if (blockEntity instanceof BannerBlockEntity banner) {
                 // Potentially exposes other NBT data? But we need to get the NBT data for the banner patterns *and*
@@ -273,8 +275,8 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
             OpenNbtTagVisitor visitor = new OpenNbtTagVisitor(name);
             for (String key : compoundTag.getAllKeys()) {
                 visitor.currentKey = key;
-                Tag tag = compoundTag.get(key);
-                Objects.requireNonNull(tag).accept(visitor);
+                Tag tag = Objects.requireNonNull(compoundTag.get(key));
+                tag.accept(visitor);
                 visitor.root.put(visitor.currentTag);
             }
             return visitor.root;
