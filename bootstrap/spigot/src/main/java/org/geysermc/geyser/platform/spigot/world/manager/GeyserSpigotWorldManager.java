@@ -198,9 +198,8 @@ public class GeyserSpigotWorldManager extends WorldManager {
         return Objects.requireNonNull(Bukkit.getPlayer(session.getPlayerEntity().getUsername())).hasPermission(permission);
     }
 
-    @NonNull
     @Override
-    public CompletableFuture<@Nullable CompoundTag> getPickItemNbt(GeyserSession session, int x, int y, int z, boolean addNbtData) {
+    public @NonNull CompletableFuture<@Nullable CompoundTag> getPickItemNbt(GeyserSession session, int x, int y, int z, boolean addNbtData) {
         CompletableFuture<@Nullable CompoundTag> future = new CompletableFuture<>();
         Player bukkitPlayer;
         if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUuid())) == null) {
