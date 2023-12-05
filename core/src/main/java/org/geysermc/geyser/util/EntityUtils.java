@@ -33,6 +33,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.geysermc.geyser.api.util.Position;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
@@ -273,6 +274,10 @@ public final class EntityUtils {
             case SPECTATOR -> GameType.SPECTATOR;
             default -> GameType.SURVIVAL;
         };
+    }
+
+    public static Vector3f vector3fFromPosition(Position position) {
+        return Vector3f.from(position.x(), position.y(), position.z());
     }
 
     private EntityUtils() {

@@ -30,7 +30,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.connection.Connection;
 import org.geysermc.geyser.api.bedrock.camera.CameraFade;
-import org.geysermc.geyser.api.bedrock.camera.CameraInstruction;
+import org.geysermc.geyser.api.bedrock.camera.CameraMovement;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
@@ -77,23 +77,23 @@ public interface GeyserConnection extends Connection, CommandSource {
     void stopCameraShake();
 
     /**
-     * Sends a fade camera transition to the client.
+     * Sends a camera instruction to the client.
      * Can be built using {@link CameraFade.Builder}.
      *
-     * @param fade the CameraFade to send
+     * @param fade the camera fade to send
      */
-    void sendFadeTransition(CameraFade fade);
+    void sendCameraFade(CameraFade fade);
 
     /**
      * Sends a camera instruction to the client.
-     * Can be built using {@link CameraInstruction.Builder}.
+     * Can be built using {@link CameraMovement.Builder}.
      *
-     * @param instruction the CameraInstruction to send
+     * @param movement the camera movement to send
      */
-    void sendCameraInstruction(CameraInstruction instruction);
+    void sendCameraMovement(CameraMovement movement);
 
     /**
-     * Stops all sent camera instructions.
+     * Stops all sent camera instructions (fades and movements).
      */
     void stopCameraInstructions();
 
