@@ -27,11 +27,12 @@ package org.geysermc.geyser.api.bedrock.camera;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.value.qual.IntRange;
+import org.geysermc.geyser.api.util.Position;
 
-public interface CameraInstruction {
+public interface CameraMovement {
 
     /**
-     * Gets the name of the camera preset.
+     * Gets the name of the camera preset, if set
      *
      * @return the {@link CameraPreset}
      */
@@ -58,7 +59,7 @@ public interface CameraInstruction {
      *
      * @return Camera's ease type.
      */
-    CameraEaseType easeType();
+    @NonNull CameraEaseType easeType();
 
     /**
      * Gets the easing duration of the camera.
@@ -69,25 +70,11 @@ public interface CameraInstruction {
     int easeDuration();
 
     /**
-     * Gets the x position of the camera.
+     * Gets the camera {@link Position}.
      *
-     * @return Camera's x position.
+     * @return Camera's position.
      */
-    int pos_x();
-
-    /**
-     * Gets the y position of the camera.
-     *
-     * @return Camera's y position.
-     */
-    int pos_y();
-
-    /**
-     * Gets the z position of the camera.
-     *
-     * @return Camera's z position.
-     */
-    int pos_z();
+    @NonNull Position position();
 
     /**
      * Gets the x rotation of the camera.
@@ -95,23 +82,28 @@ public interface CameraInstruction {
      *
      * @return Camera's x rotation.
      */
-    @IntRange(from = -90, to = 90) int rot_x();
+    @IntRange(from = -90, to = 90) int rotationX();
 
     /**
      * Gets the y rotation of the camera.
      *
      * @return Camera's y rotation.
      */
-    int rot_y();
+    int rotationY();
 
-    // TODO: implement this?
-    int facing_x();
-    int facing_y();
-    int facing_z();
+    /**
+     * Gets the facing position of the camera.
+     *
+     * @return Camera's facing position.
+     */
+    @NonNull Position facingPosition();
+
 
     interface Builder {
 
         Builder type(@NonNull CameraPreset type);
+
+        Builder fade(@NonNull CameraFade fade);
 
         Builder renderPlayerEffects(boolean renderPlayerEffects);
 
@@ -121,27 +113,14 @@ public interface CameraInstruction {
 
         Builder easeDuration(int easeDuration);
 
-        Builder pos_x(int pos_x);
+        Builder position(@NonNull Position position);
 
-        Builder pos_y(int pos_y);
+        Builder rotationX(int rot_x);
 
-        Builder pos_z(int pos_z);
+        Builder rotationY(int rot_y);
 
-        Builder rot_x(int rot_x);
+        Builder facingPosition(@NonNull Position facingPosition);
 
-        Builder rot_y(int rot_y);
-
-        Builder rot_z(int rot_z);
-
-        Builder facing_x(int facing_x);
-
-        Builder facing_y(int facing_y);
-
-        Builder facing_z(int facing_z);
-
-        CameraInstruction build();
+        CameraMovement build();
     }
 }
-
-
-
