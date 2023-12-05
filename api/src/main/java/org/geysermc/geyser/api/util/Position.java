@@ -28,5 +28,17 @@ package org.geysermc.geyser.api.util;
 /**
  * Represents a 3D position in the world.
  */
-public record Position(int x, int y, int z) {
+public record Position(float x, float y, float z) {
+
+    Position from(double x, double y, double z) {
+        return new Position((float) x, (float) y, (float) z);
+    }
+
+    Position from(int x, int y, int z) {
+        return new Position((float) x, (float) y, (float) z);
+    }
+
+    Position from(float x, float y, float z) {
+        return new Position(x, y, z);
+    }
 }
