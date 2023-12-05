@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,27 +23,33 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.floodgate.pluginmessage;
+package org.geysermc.geyser.platform.standalone.command;
 
-import java.nio.charset.StandardCharsets;
+import lombok.Getter;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.command.GeyserCommandManager;
 
-public final class PluginMessageChannels {
-    public static final String SKIN = "floodgate:skin";
-    public static final String FORM = "floodgate:form";
-    public static final String TRANSFER = "floodgate:transfer";
-    public static final String PACKET = "floodgate:packet";
-    public static final String COMMANDS = "floodgate:commands";
+import java.util.HashMap;
+import java.util.Map;
 
-    private static final byte[] FLOODGATE_REGISTER_DATA =
-            String.join("\0", SKIN, FORM, TRANSFER, PACKET, COMMANDS)
-                    .getBytes(StandardCharsets.UTF_8);
+@Getter
+public class GeyserStandaloneCommandManager extends GeyserCommandManager {
 
-    /**
-     * Get the prebuilt register data as a byte array
-     *
-     * @return the register data of the Floodgate channels
-     */
-    public static byte[] getFloodgateRegisterData() {
-        return FLOODGATE_REGISTER_DATA;
+    // command descriptions optionally sent by floodgate on backend servers
+    private Map<String, String> commandDescriptionMap = new HashMap<>();
+
+    public GeyserStandaloneCommandManager(GeyserImpl geyser) {
+        super(geyser);
+    }
+
+    @Override
+    public void addCommandDescriptions(Map<String, String> commandDescriptions) {
+        commandDescriptionMap.putAll(commandDescriptions);
+    }
+
+    @Override
+    public String description(String command) {
+        String description = commandDescriptionMap.get(command.replace("/", ""));
+        return description != null ? description : "";
     }
 }

@@ -141,6 +141,10 @@ public class GeyserCommandManager {
         return Collections.unmodifiableMap(this.commands);
     }
 
+    public void addCommandDescriptions(Map<String, String> commandDescriptions){
+        return;
+    }
+
     @NotNull
     public Map<Extension, Map<String, Command>> extensionCommands() {
         return Collections.unmodifiableMap(this.extensionCommands);

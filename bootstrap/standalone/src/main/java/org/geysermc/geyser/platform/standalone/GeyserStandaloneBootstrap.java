@@ -47,6 +47,7 @@ import org.geysermc.geyser.configuration.GeyserJacksonConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
+import org.geysermc.geyser.platform.standalone.command.GeyserStandaloneCommandManager;
 import org.geysermc.geyser.platform.standalone.gui.GeyserStandaloneGUI;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
@@ -64,7 +65,7 @@ import java.util.stream.Collectors;
 
 public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
-    private GeyserCommandManager geyserCommandManager;
+    private GeyserStandaloneCommandManager geyserCommandManager;
     private GeyserStandaloneConfiguration geyserConfig;
     private GeyserStandaloneLogger geyserLogger;
     private IGeyserPingPassthrough geyserPingPassthrough;
@@ -220,7 +221,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         geyser = GeyserImpl.load(PlatformType.STANDALONE, this);
         GeyserImpl.start();
 
-        geyserCommandManager = new GeyserCommandManager(geyser);
+        geyserCommandManager = new GeyserStandaloneCommandManager(geyser);
         geyserCommandManager.init();
 
         if (gui != null) {

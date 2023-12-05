@@ -28,10 +28,10 @@ package org.geysermc.geyser.translator.protocol.java;
 import com.github.steveice10.mc.protocol.packet.common.clientbound.ClientboundCustomPayloadPacket;
 import com.github.steveice10.mc.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
 import com.google.common.base.Charsets;
-import org.cloudburstmc.protocol.bedrock.packet.TransferPacket;
-import org.cloudburstmc.protocol.bedrock.packet.UnknownPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import org.cloudburstmc.protocol.bedrock.packet.TransferPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UnknownPacket;
 import org.geysermc.cumulus.Forms;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormType;
@@ -47,6 +47,8 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 @Translator(packet = ClientboundCustomPayloadPacket.class)
 public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCustomPayloadPacket> {
@@ -138,7 +140,27 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
 
                 session.sendUpstreamPacket(toSend);
             });
+        } else if (channel.equals(PluginMessageChannels.COMMANDS)) {
+            session.ensureInEventLoop(() -> {
+                Map<String, String> parsedCommandDescriptions = deserializeCommandDescriptions(packet.getData());
+                session.getGeyser().commandManager().addCommandDescriptions(parsedCommandDescriptions);
+            });
         }
+    }
+
+    public Map<String, String> deserializeCommandDescriptions(byte[] data) {
+        ByteBuf in = Unpooled.wrappedBuffer(data);
+
+        Map<String, String> parsedCommandDescriptions = new HashMap<>();
+        int length = in.readUnsignedShort();
+        for (int i = 0; i < length; i++) {
+            int commandLength = in.readUnsignedShort();
+            String command = in.readBytes(commandLength).toString(StandardCharsets.UTF_8);
+            int commandDescriptionLength = in.readUnsignedShort();
+            String description = in.readBytes(commandDescriptionLength).toString(StandardCharsets.UTF_8);
+            parsedCommandDescriptions.put(command, description);
+        }
+        return parsedCommandDescriptions;
     }
 
     @Override
