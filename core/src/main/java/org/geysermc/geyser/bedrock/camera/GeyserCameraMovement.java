@@ -26,39 +26,37 @@
 package org.geysermc.geyser.bedrock.camera;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.value.qual.IntRange;
 import org.geysermc.geyser.api.bedrock.camera.CameraEaseType;
 import org.geysermc.geyser.api.bedrock.camera.CameraFade;
-import org.geysermc.geyser.api.bedrock.camera.CameraMovement;
-import org.geysermc.geyser.api.bedrock.camera.CameraPreset;
+import org.geysermc.geyser.api.bedrock.camera.CameraPosition;
 import org.geysermc.geyser.api.util.Position;
 
-public record GeyserCameraMovement(CameraPreset type,
-                                   CameraFade fade,
+public record GeyserCameraMovement(CameraFade fade,
                                    boolean renderPlayerEffects,
                                    boolean playerPositionForAudio,
 
                                    CameraEaseType easeType,
 
-                                   int easeDuration,
+                                   float easeDuration,
                                    Position position,
 
                                    @IntRange(from = -90, to = 90) int rotationX,
                                    int rotationY,
 
                                    Position facingPosition
-                                      ) implements CameraMovement {
+) implements CameraPosition {
 
 
-    public static class Builder implements CameraMovement.Builder {
-        private CameraPreset type;
+    public static class Builder implements CameraPosition.Builder {
         private CameraFade fade;
         private boolean renderPlayerEffects;
         private boolean playerPositionForAudio;
 
         private CameraEaseType easeType;
 
-        private int easeDuration;
+        private float easeDuration;
         private Position position;
 
         private @IntRange(from = -90, to = 90) int rotationX;
@@ -66,54 +64,41 @@ public record GeyserCameraMovement(CameraPreset type,
 
         private Position facingPosition;
 
-
         @Override
-        public CameraMovement.Builder type(@NonNull CameraPreset type) {
-            if (type == null) {
-                throw new IllegalArgumentException("Camera type cannot be null");
-            }
-            this.type = type;
-            return this;
-        }
-
-        @Override
-        public CameraMovement.Builder fade(@NonNull CameraFade fade) {
-            if (fade == null) {
-                throw new IllegalArgumentException("Camera fade cannot be null");
-            }
+        public CameraPosition.Builder fade(@Nullable CameraFade fade) {
             this.fade = fade;
             return this;
         }
 
         @Override
-        public CameraMovement.Builder renderPlayerEffects(boolean renderPlayerEffects) {
+        public CameraPosition.Builder renderPlayerEffects(boolean renderPlayerEffects) {
             this.renderPlayerEffects = renderPlayerEffects;
             return this;
         }
 
         @Override
-        public CameraMovement.Builder playerPositionForAudio(boolean playerPositionForAudio) {
+        public CameraPosition.Builder playerPositionForAudio(boolean playerPositionForAudio) {
             this.playerPositionForAudio = playerPositionForAudio;
             return this;
         }
 
         @Override
-        public CameraMovement.Builder easeType(@NonNull CameraEaseType easeType) {
-            if (easeType == null) {
-                throw new IllegalArgumentException("Camera ease type cannot be null");
-            }
+        public CameraPosition.Builder easeType(@Nullable CameraEaseType easeType) {
             this.easeType = easeType;
             return this;
         }
 
         @Override
-        public CameraMovement.Builder easeDuration(int easeDuration) {
+        public CameraPosition.Builder easeDuration(float easeDuration) {
+            if (easeDuration < 0) {
+                throw new IllegalArgumentException("Camera ease duration cannot be negative");
+            }
             this.easeDuration = easeDuration;
             return this;
         }
 
         @Override
-        public CameraMovement.Builder position(@NonNull Position position) {
+        public CameraPosition.Builder position(@NonNull Position position) {
             if (position == null) {
                 throw new IllegalArgumentException("Camera position cannot be null");
             }
@@ -122,19 +107,19 @@ public record GeyserCameraMovement(CameraPreset type,
         }
 
         @Override
-        public CameraMovement.Builder rotationX(int rotationX) {
+        public CameraPosition.Builder rotationX(int rotationX) {
             this.rotationX = rotationX;
             return this;
         }
 
         @Override
-        public CameraMovement.Builder rotationY(int rotationY) {
+        public CameraPosition.Builder rotationY(int rotationY) {
             this.rotationY = rotationY;
             return this;
         }
 
         @Override
-        public CameraMovement.Builder facingPosition(@NonNull Position facingPosition) {
+        public CameraPosition.Builder facingPosition(@NonNull Position facingPosition) {
             if (facingPosition == null) {
                 throw new IllegalArgumentException("Camera facing position cannot be null");
             }
@@ -143,8 +128,16 @@ public record GeyserCameraMovement(CameraPreset type,
         }
 
         @Override
-        public CameraMovement build() {
-            return new GeyserCameraMovement(type, fade, renderPlayerEffects, playerPositionForAudio, easeType, easeDuration, position, rotationX, rotationY, facingPosition);
+        public CameraPosition build() {
+            if (easeDuration > 0 && easeType == null) {
+                throw new IllegalArgumentException("Camera ease type cannot be null if ease duration is greater than 0");
+            }
+
+            if (position == null) {
+                throw new IllegalArgumentException("Camera position cannot be null");
+            }
+
+            return new GeyserCameraMovement(fade, renderPlayerEffects, playerPositionForAudio, easeType, easeDuration, position, rotationX, rotationY, facingPosition);
         }
     }
 }

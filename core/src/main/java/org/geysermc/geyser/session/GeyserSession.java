@@ -75,6 +75,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -145,8 +146,10 @@ import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.bedrock.camera.CameraEaseType;
 import org.geysermc.geyser.api.bedrock.camera.CameraFade;
-import org.geysermc.geyser.api.bedrock.camera.CameraMovement;
+import org.geysermc.geyser.api.bedrock.camera.CameraPerspective;
+import org.geysermc.geyser.api.bedrock.camera.CameraPosition;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
@@ -156,6 +159,7 @@ import org.geysermc.geyser.api.event.bedrock.SessionLoginEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.api.util.PlatformType;
+import org.geysermc.geyser.api.util.Position;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -656,6 +660,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Only used if {@link GeyserConfiguration#isForwardPlayerPing()} is enabled.
      */
     private final Queue<Long> keepAliveCache = new ConcurrentLinkedQueue<>();
+
+    /**
+     * Stores the current camera perspective, if locked.
+     */
+    private CameraPerspective cameraPerspective = null;
+
 
     private MinecraftProtocol protocol;
 
@@ -2099,13 +2109,23 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
-    public void sendCameraMovement(CameraMovement movement) {
+    public void setCameraPosition(CameraPosition movement) {
+        this.cameraPerspective = CameraPerspective.FREE; // Movements only work with the free preset
         CameraSetInstruction setInstruction = new CameraSetInstruction();
-        setInstruction.setEase(new CameraSetInstruction.EaseData(
-                CameraEase.fromName(movement.type().name()),
-                movement.easeDuration()
-        ));
-        setInstruction.setFacing(EntityUtils.vector3fFromPosition(movement.facingPosition()));
+
+        CameraEaseType easeType = movement.easeType();
+        if (easeType != null) {
+            setInstruction.setEase(new CameraSetInstruction.EaseData(
+                    CameraEase.fromName(easeType.name()),
+                    movement.easeDuration()
+            ));
+        }
+
+        Position facingPosition = movement.facingPosition();
+        if (facingPosition != null) {
+            setInstruction.setFacing(EntityUtils.vector3fFromPosition(facingPosition));
+        }
+
         setInstruction.setPos(EntityUtils.vector3fFromPosition(movement.position()));
         setInstruction.setRot(Vector2f.from(movement.rotationX(), movement.rotationY()));
         //setInstruction.setPreset(); // TODO.. ah shite
@@ -2116,10 +2136,36 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
-    public void stopCameraInstructions() {
+    public void clearCameraInstructions() {
+        this.cameraPerspective = null;
         CameraInstructionPacket packet = new CameraInstructionPacket();
         packet.setClear(true);
         sendUpstreamPacket(packet);
+    }
+
+    @Override
+    public void forceCameraPerspective(@NonNull CameraPerspective perspective) {
+        this.cameraPerspective = perspective;
+        CameraInstructionPacket packet = new CameraInstructionPacket();
+        CameraSetInstruction setInstruction = new CameraSetInstruction();
+
+        if (perspective == CameraPerspective.FREE) {
+            throw new IllegalArgumentException("Cannot force a stationary camera on the player!" +
+                    "Send a CameraPosition with an exact position instead");
+        }
+        //setInstruction.setPreset(); //TODO
+        packet.setSetInstruction(setInstruction);
+        sendUpstreamPacket(packet);
+    }
+
+    @Override
+    public @Nullable CameraPerspective forcedCameraPerspective() {
+        return cameraPerspective;
+    }
+
+    @Override
+    public void sendMessage(Component message) {
+        GeyserCommandSource.super.sendMessage(message);
     }
 
     @Override

@@ -65,7 +65,7 @@ public interface CameraFade {
      *
      * @return the seconds it takes to fade in.
      */
-    int fadeInSeconds();
+    float fadeInSeconds();
 
     /**
      * Gets the seconds the overlay is held.
@@ -73,7 +73,7 @@ public interface CameraFade {
      *
      * @return the seconds the overlay is held.
      */
-    int holdSeconds();
+    float holdSeconds();
 
     /**
      * Gets the seconds it takes to fade out.
@@ -81,7 +81,7 @@ public interface CameraFade {
      *
      * @return the seconds it takes to fade out.
      */
-    int fadeOutSeconds();
+    float fadeOutSeconds();
 
     interface Builder {
 
@@ -91,11 +91,11 @@ public interface CameraFade {
 
         Builder blue(int blue);
 
-        Builder fadeInSeconds(int fadeInSeconds);
+        Builder fadeInSeconds(float fadeInSeconds);
 
-        Builder holdSeconds(int holdSeconds);
+        Builder holdSeconds(float holdSeconds);
 
-        Builder fadeOutSeconds(int fadeOutSeconds);
+        Builder fadeOutSeconds(float fadeOutSeconds);
 
         CameraFade build();
     }
