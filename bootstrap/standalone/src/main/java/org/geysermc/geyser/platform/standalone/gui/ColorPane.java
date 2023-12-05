@@ -28,11 +28,16 @@ package org.geysermc.geyser.platform.standalone.gui;
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
+import java.io.Serial;
 
 /**
- * This class was based on this code: https://stackoverflow.com/a/6899478/5299903
+ * This class was based on this <a href="https://stackoverflow.com/a/6899478/5299903">code</a>
  */
 public class ColorPane extends JTextPane {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     private static Color colorCurrent = ANSIColor.RESET.getColor();
     private String remaining = "";
 
@@ -62,7 +67,7 @@ public class ColorPane extends JTextPane {
         int aPos = 0;   // current char position in addString
         int aIndex; // index of next Escape sequence
         int mIndex; // index of "m" terminating Escape sequence
-        String tmpString = "";
+        String tmpString;
         boolean stillSearching = true; // true until no more Escape sequences
         String addString = remaining + s;
         remaining = "";

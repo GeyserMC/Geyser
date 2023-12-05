@@ -26,9 +26,9 @@
 package org.geysermc.geyser.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 
-import javax.annotation.Nullable;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
 import java.io.*;
@@ -101,7 +101,7 @@ public class WebUtils {
      * @param reqURL URL to post to
      * @param postContent String data to post
      * @return String returned by the server
-     * @throws IOException
+     * @throws IOException If the request fails
      */
     public static String post(String reqURL, String postContent) throws IOException {
         URL url = new URL(reqURL);
@@ -123,7 +123,7 @@ public class WebUtils {
      *
      * @param con The connection to get the string from
      * @return The body of the returned page
-     * @throws IOException
+     * @throws IOException If the request fails
      */
     private static String connectionToString(HttpURLConnection con) throws IOException {
         // Send the request (we dont use this but its required for getErrorStream() to work)
@@ -156,7 +156,7 @@ public class WebUtils {
      * @param reqURL URL to post to
      * @param fields Form data to post
      * @return String returned by the server
-     * @throws IOException
+     * @throws IOException If the request fails
      */
     public static String postForm(String reqURL, Map<String, String> fields) throws IOException {
         URL url = new URL(reqURL);
@@ -169,15 +169,14 @@ public class WebUtils {
         try (OutputStream out = con.getOutputStream()) {
             // Write the form data to the output
             for (Map.Entry<String, String> field : fields.entrySet()) {
-                out.write((field.getKey() + "=" + URLEncoder.encode(field.getValue(), StandardCharsets.UTF_8.toString()) + "&").getBytes(StandardCharsets.UTF_8));
+                out.write((field.getKey() + "=" + URLEncoder.encode(field.getValue(), StandardCharsets.UTF_8) + "&").getBytes(StandardCharsets.UTF_8));
             }
         }
 
         return connectionToString(con);
     }
 
-    @Nullable
-    public static String[] findSrvRecord(GeyserImpl geyser, String remoteAddress) {
+    public static String @Nullable [] findSrvRecord(GeyserImpl geyser, String remoteAddress) {
         try {
             // Searches for a server address and a port from a SRV record of the specified host name
             InitialDirContext ctx = new InitialDirContext();

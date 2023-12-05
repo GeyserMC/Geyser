@@ -26,12 +26,12 @@
 package org.geysermc.geyser.text;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.util.AssetUtils;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.WebUtils;
 
-import javax.annotation.Nullable;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -217,8 +217,7 @@ public class MinecraftLocale {
      * @param locale Locale to translate to
      * @return Translated string or null if it was not found in the given locale
      */
-    @Nullable
-    public static String getLocaleStringIfPresent(String messageText, String locale) {
+    public static @Nullable String getLocaleStringIfPresent(String messageText, String locale) {
         Map<String, String> localeStrings = LOCALE_MAPPINGS.get(locale.toLowerCase(Locale.ROOT));
         if (localeStrings != null) {
             return localeStrings.get(messageText);

@@ -31,6 +31,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollDomainSocketChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.erosion.netty.impl.AbstractUnixSocketListener;
 import org.geysermc.erosion.packet.geyserbound.GeyserboundPacketHandler;
 
@@ -49,9 +50,9 @@ public final class UnixSocketClientListener extends AbstractUnixSocketListener {
         initializeEventLoopGroup();
         (new Bootstrap()
                 .channel(EpollDomainSocketChannel.class)
-                .handler(new ChannelInitializer<Channel>() {
+                .handler(new ChannelInitializer<>() {
                     @Override
-                    protected void initChannel(Channel ch) {
+                    protected void initChannel(@NonNull Channel ch) {
                         initPipeline(ch, handler);
                     }
                 })

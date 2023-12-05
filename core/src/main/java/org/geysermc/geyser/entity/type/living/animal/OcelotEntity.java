@@ -26,6 +26,7 @@
 package org.geysermc.geyser.entity.type.living.animal;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
@@ -36,7 +37,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 
-import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class OcelotEntity extends AnimalEntity {
@@ -50,9 +50,9 @@ public class OcelotEntity extends AnimalEntity {
         return item == Items.COD || item == Items.SALMON;
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (!getFlag(EntityFlag.TRUSTING) && canEat(itemInHand) && session.getPlayerEntity().getPosition().distanceSquared(position) < 9f) {
             // Attempt to feed
             return InteractiveTag.FEED;
@@ -61,9 +61,9 @@ public class OcelotEntity extends AnimalEntity {
         }
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (!getFlag(EntityFlag.TRUSTING) && canEat(itemInHand) && session.getPlayerEntity().getPosition().distanceSquared(position) < 9f) {
             // Attempt to feed
             return InteractionResult.SUCCESS;

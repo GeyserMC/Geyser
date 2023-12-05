@@ -29,12 +29,12 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.session.GeyserSession;
-import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
@@ -107,7 +107,7 @@ public abstract class WorldManager {
      *
      * We solve this problem by querying all loaded lecterns, where possible, and sending their information in a block entity
      * tag.
-     *
+     * <p>
      * Note that the lectern data may be sent asynchronously.
      *
      * @param session the session of the player
@@ -210,8 +210,7 @@ public abstract class WorldManager {
     /**
      * Returns a list of biome identifiers available on the server.
      */
-    @Nullable
-    public String[] getBiomeIdentifiers(boolean withTags) {
+    public String @Nullable [] getBiomeIdentifiers(boolean withTags) {
         return null;
     }
 
@@ -220,7 +219,7 @@ public abstract class WorldManager {
      *
      * @return expected NBT for this item.
      */
-    @Nonnull
+    @NonNull
     public CompletableFuture<@Nullable CompoundTag> getPickItemNbt(GeyserSession session, int x, int y, int z, boolean addNbtData) {
         return CompletableFuture.completedFuture(null);
     }

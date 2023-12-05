@@ -140,7 +140,7 @@ public class AdvancementsCache {
             session.sendDownstreamGamePacket(new ServerboundSeenAdvancementsPacket());
 
         }).validResultHandler((response) -> {
-            if (response.getClickedButtonId() < visibleAdvancements.size()) {
+            if (response.clickedButtonId() < visibleAdvancements.size()) {
                 GeyserAdvancement advancement = visibleAdvancements.get(response.clickedButtonId());
                 buildAndShowInfoForm(advancement);
             } else {

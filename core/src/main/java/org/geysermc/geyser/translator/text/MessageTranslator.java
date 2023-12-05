@@ -201,7 +201,7 @@ public class MessageTranslator {
 
     /**
      * Verifies the message is valid JSON in case it's plaintext. Works around GsonComponentSerializer not using lenient mode.
-     * See https://wiki.vg/Chat for messages sent in lenient mode, and for a description on leniency.
+     * See <a href="https://wiki.vg/Chat">here</a> for messages sent in lenient mode, and for a description on leniency.
      *
      * @param message Potentially lenient JSON message
      * @param locale Locale to use for translation strings

@@ -35,6 +35,7 @@ import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.event.ProxyPingEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.protocol.ProtocolConstants;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 
@@ -104,7 +105,7 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
         }
 
         @Override
-        public InetSocketAddress getVirtualHost() {
+        public @Nullable InetSocketAddress getVirtualHost() {
             return null;
         }
 
