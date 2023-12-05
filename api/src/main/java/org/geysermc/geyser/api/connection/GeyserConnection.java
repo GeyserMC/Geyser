@@ -114,6 +114,19 @@ public interface GeyserConnection extends Connection, CommandSource {
     void removeFog(String... fogNameSpaces);
 
     /**
+     * Locks/Unlocks the client's ability to move or look around.
+     *
+     * @param camera whether to lock the camera (prevents looking around)
+     * @param movement whether to lock movement (prevents moving around)
+     */
+    void lockInputs(boolean camera, boolean movement);
+
+    /**
+     * Unlocks the client's ability to move or look around.
+     */
+    void unlockInputs();
+
+    /**
      * Returns an immutable copy of all fog affects currently applied to this client.
      */
     @NonNull

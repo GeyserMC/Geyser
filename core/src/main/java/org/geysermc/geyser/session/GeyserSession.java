@@ -132,6 +132,7 @@ import org.cloudburstmc.protocol.bedrock.packet.TransferPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAbilitiesPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAdventureSettingsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateClientInputLocksPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateSoftEnumPacket;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.cloudburstmc.protocol.common.util.OptionalBoolean;
@@ -2148,6 +2149,26 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public @NonNull Set<String> fogEffects() {
         // Use a copy so that sendFog/removeFog can be called while iterating the returned set (avoid CME)
         return Set.copyOf(this.appliedFog);
+    }
+
+    @Override
+    public void lockInputs(boolean camera, boolean movement) {
+        UpdateClientInputLocksPacket packet = new UpdateClientInputLocksPacket();
+        final int cameraOffset = 1 << 1;
+        final int movementOffset = 1 << 2;
+
+        int result = 0;
+        result |= (camera ? cameraOffset : 0);
+        result |= (movement ? movementOffset : 0);
+
+        packet.setLockComponentData(result);
+
+        sendUpstreamPacket(packet);
+    }
+
+    @Override
+    public void unlockInputs() {
+        lockInputs(false, false);
     }
 
     public void addCommandEnum(String name, String enums) {

@@ -45,6 +45,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
+import org.geysermc.geyser.api.util.Position;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
@@ -431,5 +432,10 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
      */
     public UUID getTabListUuid() {
         return getUuid();
+    }
+
+    @Override
+    public Position position() {
+        return new Position(position.getX(), position.getY(), position.getZ());
     }
 }

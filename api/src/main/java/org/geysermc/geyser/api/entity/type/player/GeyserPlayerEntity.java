@@ -26,6 +26,14 @@
 package org.geysermc.geyser.api.entity.type.player;
 
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
+import org.geysermc.geyser.api.util.Position;
 
 public interface GeyserPlayerEntity extends GeyserEntity {
+
+    /**
+     * Gets the position of the player.
+     *
+     * @return the position of the player.
+     */
+    Position position();
 }
