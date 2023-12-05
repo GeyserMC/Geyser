@@ -621,10 +621,9 @@ public class GeyserImpl implements GeyserApi {
      *
      * @return true if the version number is not 'DEV'.
      */
-    @SuppressWarnings("MismatchedStringCase")
     public boolean isProductionEnvironment() {
         // First is if Blossom runs, second is if Blossom doesn't run
-        // noinspection ConstantConditions - changes in production
+        //noinspection ConstantConditions,MismatchedStringCase - changes in production
         return !("git-local/dev-0000000".equals(GeyserImpl.GIT_VERSION) || "${gitVersion}".equals(GeyserImpl.GIT_VERSION));
     }
 
