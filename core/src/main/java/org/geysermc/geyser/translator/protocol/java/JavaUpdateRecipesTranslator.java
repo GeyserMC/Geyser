@@ -338,7 +338,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     GroupedItem groupedItem = entry.getKey();
 
                     String recipeTag = RECIPE_TAGS.get(groupedItem.id.getIdentifier());
-                    if (recipeTag != null) {
+                    if (recipeTag != null && ingredients.length > 1) {
                         optionSet.add(new ItemDescriptorWithCount(new ItemTagDescriptor(recipeTag), groupedItem.count));
                         continue;
                     }
