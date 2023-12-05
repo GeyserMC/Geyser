@@ -26,17 +26,11 @@
 package org.geysermc.geyser.api.bedrock.camera;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.value.qual.IntRange;
 import org.geysermc.geyser.api.util.Position;
 
-public interface CameraMovement {
-
-    /**
-     * Gets the name of the camera preset, if set
-     *
-     * @return the {@link CameraPreset}
-     */
-    @NonNull CameraPreset type();
+public interface CameraPosition {
 
     /**
      * Controls whether player effects, such as night vision or blindness, should be rendered.
@@ -55,11 +49,11 @@ public interface CameraMovement {
 
     /**
      * Gets the {@link CameraEaseType} of the camera.
-     * Only applies to the {@link CameraPreset#FREE} preset.
+     * If not set, there is no easing.d
      *
      * @return Camera's ease type.
      */
-    @NonNull CameraEaseType easeType();
+    @Nullable CameraEaseType easeType();
 
     /**
      * Gets the easing duration of the camera.
@@ -67,10 +61,10 @@ public interface CameraMovement {
      *
      * @return Camera's easing duration.
      */
-    int easeDuration();
+    float easeDuration();
 
     /**
-     * Gets the camera {@link Position}.
+     * Gets the camera's {@link Position}.
      *
      * @return Camera's position.
      */
@@ -78,7 +72,7 @@ public interface CameraMovement {
 
     /**
      * Gets the x rotation of the camera.
-     * To prevent the camera from being upside down, the range is limited to -90 to 90.
+     * To prevent the camera from being upside down, Bedrock limits the range to -90 to 90.
      *
      * @return Camera's x rotation.
      */
@@ -92,16 +86,15 @@ public interface CameraMovement {
     int rotationY();
 
     /**
-     * Gets the facing position of the camera.
+     * Gets the position that the camera is facing.
+     * Can be used instead of manually setting rotation values.
      *
      * @return Camera's facing position.
      */
-    @NonNull Position facingPosition();
+    @Nullable Position facingPosition();
 
 
     interface Builder {
-
-        Builder type(@NonNull CameraPreset type);
 
         Builder fade(@NonNull CameraFade fade);
 
@@ -111,7 +104,7 @@ public interface CameraMovement {
 
         Builder easeType(@NonNull CameraEaseType easeType);
 
-        Builder easeDuration(int easeDuration);
+        Builder easeDuration(float easeDuration);
 
         Builder position(@NonNull Position position);
 
@@ -121,6 +114,6 @@ public interface CameraMovement {
 
         Builder facingPosition(@NonNull Position facingPosition);
 
-        CameraMovement build();
+        CameraPosition build();
     }
 }

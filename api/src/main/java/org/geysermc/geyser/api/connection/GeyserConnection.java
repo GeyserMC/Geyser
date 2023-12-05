@@ -30,7 +30,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.connection.Connection;
 import org.geysermc.geyser.api.bedrock.camera.CameraFade;
-import org.geysermc.geyser.api.bedrock.camera.CameraMovement;
+import org.geysermc.geyser.api.bedrock.camera.CameraPerspective;
+import org.geysermc.geyser.api.bedrock.camera.CameraPosition;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
@@ -86,16 +87,32 @@ public interface GeyserConnection extends Connection, CommandSource {
 
     /**
      * Sends a camera instruction to the client.
-     * Can be built using {@link CameraMovement.Builder}.
+     * Can be built using {@link CameraPosition.Builder}.
      *
      * @param movement the camera movement to send
      */
-    void sendCameraMovement(CameraMovement movement);
+    void setCameraPosition(CameraPosition movement);
 
     /**
-     * Stops all sent camera instructions (fades and movements).
+     * Stops all sent camera instructions (fades, movements, and perspective locks).
+     * This will not stop any camera shakes/input locks/fog effects, use the respective methods for those.
      */
-    void stopCameraInstructions();
+    void clearCameraInstructions();
+
+    /**
+     * Forces a {@link CameraPerspective} on the client. This will prevent
+     * the client from changing their camera perspective until it is unlocked via {@link #clearCameraInstructions()}.
+     *
+     * @param perspective the {@link CameraPerspective} to force.
+     */
+    void forceCameraPerspective(@NonNull CameraPerspective perspective);
+
+    /**
+     * Gets the client's current {@link CameraPerspective}, if forced.
+     *
+     * @return the forced perspective, or {@code null} if none is forced.
+     */
+    @Nullable CameraPerspective forcedCameraPerspective();
 
     /**
      * Adds the given fog IDs to the fog cache, then sends all fog IDs in the cache to the client.
