@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,23 +35,21 @@ import java.util.Set;
 
 public final class NewsItem {
     private final int id;
-    private final String project;
     private final boolean active;
     private final NewsType type;
     private final ItemData data;
-    private final boolean priority;
     private final String message;
     private final Set<NewsItemAction> actions;
     private final String url;
 
-    private NewsItem(int id, String project, boolean active, NewsType type, ItemData data,
-                     boolean priority, String message, Set<NewsItemAction> actions, String url) {
+    private NewsItem(
+            int id, boolean active, NewsType type, ItemData data,
+            String message, Set<NewsItemAction> actions, String url) {
+
         this.id = id;
-        this.project = project;
         this.active = active;
         this.type = type;
         this.data = data;
-        this.priority = priority;
         this.message = message;
         this.actions = Collections.unmodifiableSet(actions);
         this.url = url;
@@ -81,11 +79,9 @@ public final class NewsItem {
 
         return new NewsItem(
                 newsItem.get("id").getAsInt(),
-                newsItem.get("project").getAsString(),
                 newsItem.get("active").getAsBoolean(),
                 newsType,
                 newsType.read(newsItem.getAsJsonObject("data")),
-                newsItem.get("priority").getAsBoolean(),
                 message,
                 actions,
                 newsItem.get("url").getAsString()
@@ -94,14 +90,6 @@ public final class NewsItem {
 
     public int getId() {
         return id;
-    }
-
-    public String getProject() {
-        return project;
-    }
-
-    public boolean isGlobal() {
-        return "all".equals(getProject());
     }
 
     public boolean isActive() {
@@ -121,10 +109,7 @@ public final class NewsItem {
         return (T) data;
     }
 
-    public boolean isPriority() {
-        return priority;
-    }
-
+    @SuppressWarnings("unused")
     public String getRawMessage() {
         return message;
     }

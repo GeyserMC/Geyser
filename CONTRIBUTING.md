@@ -19,33 +19,31 @@ public class LongClassName {
     public int nameWithMultipleWords = 0;
 
     /**
-    * Javadoc comment to explain what a function does.
-    */
+     * Javadoc comment to explain what a function does.
+     */
     @RandomAnnotation(stuff = true, moreStuff = "might exist")
     public void applyStuff() {
         Variable variable = new Variable();
         Variable otherVariable = new Variable();
 
         if (condition) {
-	        // Do stuff.
+            // Do stuff.
         } else if (anotherCondition) {
-	    	// Do something else.
+            // Do something else.
         }
 
         switch (value) {
-            case 0:
-                stuff();
-                break;
-            case 1:
-                differentStuff();
-                break;
+            case 0 -> stuff();
+            case 1 -> differentStuff();
         }
     }
 }
 ```
 
-Make sure to comment your code where possible.
+Make sure to comment your code where possible. To mark nullable methods, use `@Nullable` (and subsequently, `@NonNull`) from the `org.checkerframework.checker.nullness.qual` package.
 
 The nature of our software requires a lot of arrays and maps to be stored - where possible, use Fastutil's specialized maps. For example, if you're storing block state translations, use an `Int2IntMap`.
 
-We have a rundown of all the tools you need to develop over on our [wiki](https://github.com/GeyserMC/Geyser/wiki/Developer-Guide). If you have any questions, please feel free to reach out to our [Discord](https://discord.gg/geysermc)!
+We have a rundown of all the tools you need to develop over on our [wiki](https://wiki.geysermc.org/other/developer-guide/). If you have any questions, please feel free to reach out to our [Discord](https://discord.gg/geysermc)!
+
+If you're making a pull request that also depends on changes to [the base API](https://github.com/GeyserMC/api), simply fork the API repo and create a branch with the same name as your Geyser PR. The pull request [action](https://github.com/GeyserMC/Geyser/blob/master/.github/workflows/pullrequest.yml) will automatically use your API changes while building your changes to Geyser.

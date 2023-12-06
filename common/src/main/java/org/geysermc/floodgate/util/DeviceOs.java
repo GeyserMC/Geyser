@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@ public enum DeviceOs {
     AMAZON("Amazon"),
     GEARVR("Gear VR"),
     HOLOLENS("Hololens"),
-    UWP("Windows 10"),
+    UWP("Windows"),
     WIN32("Windows x86"),
     DEDICATED("Dedicated"),
     TVOS("Apple TV"),
@@ -59,7 +59,7 @@ public enum DeviceOs {
      * @param id the DeviceOs identifier
      * @return The DeviceOs or {@link #UNKNOWN} if the DeviceOs wasn't found
      */
-    public static DeviceOs getById(int id) {
+    public static DeviceOs fromId(int id) {
         return id < VALUES.length ? VALUES[id] : VALUES[0];
     }
 

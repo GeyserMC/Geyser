@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@
 package org.geysermc.floodgate.news;
 
 import com.google.gson.JsonObject;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.floodgate.news.data.*;
 
 import java.util.function.Function;
@@ -44,7 +45,7 @@ public enum NewsType {
         this.readFunction = readFunction;
     }
 
-    public static NewsType getByName(String newsType) {
+    public static @Nullable NewsType getByName(String newsType) {
         for (NewsType type : VALUES) {
             if (type.name().equalsIgnoreCase(newsType)) {
                 return type;
