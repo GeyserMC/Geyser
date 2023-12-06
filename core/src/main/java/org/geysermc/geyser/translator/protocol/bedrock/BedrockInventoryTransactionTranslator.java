@@ -137,7 +137,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             ServerboundContainerClickPacket dropPacket = new ServerboundContainerClickPacket(
                                     inventory.getJavaId(), inventory.getStateId(), hotbarSlot, clickType.actionType, clickType.action,
                                     inventory.getCursor().getItemStack(), changedItem);
-                            session.sendDownstreamPacket(dropPacket);
+                            session.sendDownstreamGamePacket(dropPacket);
                             return;
                         }
                         if (session.getPlayerInventory().getItemInHand().isEmpty()) {
@@ -150,7 +150,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 Direction.DOWN,
                                 0
                         );
-                        session.sendDownstreamPacket(dropPacket);
+                        session.sendDownstreamGamePacket(dropPacket);
 
                         if (dropAll) {
                             session.getPlayerInventory().setItemInHand(GeyserItemStack.EMPTY);
@@ -309,7 +309,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 packet.getClickPosition().getX(), packet.getClickPosition().getY(), packet.getClickPosition().getZ(),
                                 false,
                                 session.getWorldCache().nextPredictionSequence());
-                        session.sendDownstreamPacket(blockPacket);
+                        session.sendDownstreamGamePacket(blockPacket);
 
                         Item item = session.getPlayerInventory().getItemInHand().asItem();
                         if (packet.getItemInHand() != null) {
@@ -384,7 +384,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         ServerboundUseItemPacket useItemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getWorldCache().nextPredictionSequence());
-                        session.sendDownstreamPacket(useItemPacket);
+                        session.sendDownstreamGamePacket(useItemPacket);
 
                         List<LegacySetItemSlotData> legacySlots = packet.getLegacySlots();
                         if (packet.getActions().size() == 1 && legacySlots.size() > 0) {
@@ -453,13 +453,13 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         if (itemFrameEntity != null) {
                             ServerboundInteractPacket attackPacket = new ServerboundInteractPacket(itemFrameEntity.getEntityId(),
                                     InteractAction.ATTACK, session.isSneaking());
-                            session.sendDownstreamPacket(attackPacket);
+                            session.sendDownstreamGamePacket(attackPacket);
                             break;
                         }
 
                         PlayerAction action = session.getGameMode() == GameMode.CREATIVE ? PlayerAction.START_DIGGING : PlayerAction.FINISH_DIGGING;
                         ServerboundPlayerActionPacket breakPacket = new ServerboundPlayerActionPacket(action, packet.getBlockPosition(), Direction.VALUES[packet.getBlockFace()], sequence);
-                        session.sendDownstreamPacket(breakPacket);
+                        session.sendDownstreamGamePacket(breakPacket);
                     }
                 }
                 break;
@@ -468,7 +468,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                     // Followed to the Minecraft Protocol specification outlined at wiki.vg
                     ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, Vector3i.ZERO,
                             Direction.DOWN, 0);
-                    session.sendDownstreamPacket(releaseItemPacket);
+                    session.sendDownstreamGamePacket(releaseItemPacket);
                 }
                 break;
             case ITEM_USE_ON_ENTITY:
@@ -490,7 +490,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
                         ServerboundInteractPacket attackPacket = new ServerboundInteractPacket(entityId,
                                 InteractAction.ATTACK, session.isSneaking());
-                        session.sendDownstreamPacket(attackPacket);
+                        session.sendDownstreamGamePacket(attackPacket);
 
                         // Since 1.19.10, LevelSoundEventPackets are no longer sent by the client when attacking entities
                         CooldownUtils.sendCooldown(session);
@@ -510,7 +510,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         Vector3f clickPosition = packet.getClickPosition().sub(entityPosition);
         boolean isSpectator = session.getGameMode() == GameMode.SPECTATOR;
         for (Hand hand : EntityUtils.HANDS) {
-            session.sendDownstreamPacket(new ServerboundInteractPacket(entity.getEntityId(),
+            session.sendDownstreamGamePacket(new ServerboundInteractPacket(entity.getEntityId(),
                     InteractAction.INTERACT_AT, clickPosition.getX(), clickPosition.getY(), clickPosition.getZ(),
                     hand, session.isSneaking()));
 
@@ -522,7 +522,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             }
 
             if (!result.consumesAction()) {
-                session.sendDownstreamPacket(new ServerboundInteractPacket(entity.getEntityId(),
+                session.sendDownstreamGamePacket(new ServerboundInteractPacket(entity.getEntityId(),
                         InteractAction.INTERACT, hand, session.isSneaking()));
                 if (!isSpectator) {
                     result = entity.interact(hand);
@@ -532,7 +532,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             if (result.consumesAction()) {
                 if (result.shouldSwing() && hand == Hand.OFF_HAND) {
                     // Currently, Bedrock will send us the arm swing packet in most cases. But it won't for offhand.
-                    session.sendDownstreamPacket(new ServerboundSwingPacket(hand));
+                    session.sendDownstreamGamePacket(new ServerboundSwingPacket(hand));
                     // Note here to look into sending the animation packet back to Bedrock
                 }
                 return;
@@ -629,22 +629,22 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         lookAt(session, target);
 
         ServerboundUseItemPacket itemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getWorldCache().nextPredictionSequence());
-        session.sendDownstreamPacket(itemPacket);
+        session.sendDownstreamGamePacket(itemPacket);
         return true;
     }
 
     /**
      * Determine the rotation necessary to activate this transaction.
-     *
+     * <p>
      * The position between the intended click position and the player can be determined with two triangles.
      * First, we compute the difference of the X and Z coordinates:
-     *
+     * <p>
      * Player position (0, 0)
      * |
      * |
      * |
      * |_____________ Intended target (-3, 2)
-     *
+     * <p>
      * We then use the Pythagorean Theorem to find the direct line (hypotenuse) on the XZ plane. Finding the angle of the
      * triangle from there, closest to the player, gives us our yaw rotation value
      * Then doing the same using the new XZ distance and Y difference, we can find the direct line of sight from the
@@ -671,7 +671,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         ServerboundMovePlayerPosRotPacket returnPacket = new ServerboundMovePlayerPosRotPacket(entity.isOnGround(), playerPosition.getX(), playerPosition.getY(), playerPosition.getZ(), entity.getYaw(), entity.getPitch());
         // This matches Java edition behavior
         ServerboundMovePlayerPosRotPacket movementPacket = new ServerboundMovePlayerPosRotPacket(entity.isOnGround(), playerPosition.getX(), playerPosition.getY(), playerPosition.getZ(), yaw, pitch);
-        session.sendDownstreamPacket(movementPacket);
+        session.sendDownstreamGamePacket(movementPacket);
 
         if (session.getLookBackScheduledFuture() != null) {
             session.getLookBackScheduledFuture().cancel(false);
@@ -683,7 +683,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                     // The player moved/rotated so there is no need to change their rotation back
                     return;
                 }
-                session.sendDownstreamPacket(returnPacket);
+                session.sendDownstreamGamePacket(returnPacket);
             }, 150, TimeUnit.MILLISECONDS));
         }
     }

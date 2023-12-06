@@ -52,13 +52,11 @@ public interface GeyserConfiguration {
 
     List<String> getSavedUserLogins();
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     boolean isCommandSuggestions();
 
     @JsonIgnore
     boolean isPassthroughMotd();
-
-    @JsonIgnore
-    boolean isPassthroughProtocolName();
 
     @JsonIgnore
     boolean isPassthroughPlayerCounts();
@@ -96,6 +94,7 @@ public interface GeyserConfiguration {
 
     boolean isForceResourcePacks();
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     boolean isXboxAchievementsEnabled();
 
     int getCacheImages();

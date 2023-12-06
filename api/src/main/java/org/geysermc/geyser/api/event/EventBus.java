@@ -28,7 +28,6 @@ package org.geysermc.geyser.api.event;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Event;
 import org.geysermc.event.bus.OwnedEventBus;
-import org.geysermc.geyser.api.extension.Extension;
 
 import java.util.Set;
 

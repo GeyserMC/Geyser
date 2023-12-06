@@ -58,7 +58,7 @@ public class BedrockRequestAbilityTranslator extends PacketTranslator<RequestAbi
 
             session.setFlying(isFlying);
             ServerboundPlayerAbilitiesPacket abilitiesPacket = new ServerboundPlayerAbilitiesPacket(isFlying);
-            session.sendDownstreamPacket(abilitiesPacket);
+            session.sendDownstreamGamePacket(abilitiesPacket);
         }
     }
 }

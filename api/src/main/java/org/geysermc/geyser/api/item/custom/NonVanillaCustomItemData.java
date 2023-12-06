@@ -239,6 +239,9 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         @Override
         Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets);
 
+        @Override
+        Builder tags(@Nullable Set<String> tags);
+
         NonVanillaCustomItemData build();
     }
 }

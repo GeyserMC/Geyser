@@ -33,7 +33,7 @@ import org.geysermc.geyser.session.GeyserSession;
 
 /**
  * Manages updating the current writable book.
- *
+ * <p>
  * Java sends book updates less frequently than Bedrock, and this can cause issues with servers that rate limit
  * book packets. Because of this, we need to ensure packets are only send every second or so at maximum.
  */
@@ -68,7 +68,7 @@ public class BookEditCache {
             packet = null;
             return;
         }
-        session.sendDownstreamPacket(packet);
+        session.sendDownstreamGamePacket(packet);
         packet = null;
         lastBookUpdate = System.currentTimeMillis();
     }

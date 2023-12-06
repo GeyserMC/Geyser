@@ -63,7 +63,7 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
                 InventoryUtils.closeInventory(session, openInventory.getJavaId(), true);
             }
             ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(packet.getContainerId());
-            session.sendDownstreamPacket(closeWindowPacket);
+            session.sendDownstreamGamePacket(closeWindowPacket);
             return;
         }
 

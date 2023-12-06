@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,16 +23,39 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.collision;
+package org.geysermc.geyser.api.event.bedrock;
 
-import lombok.EqualsAndHashCode;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 
-@EqualsAndHashCode(callSuper = true)
-@CollisionRemapper(regex = "^spawner$")
-public class SpawnerCollision extends SolidCollision {
-    public SpawnerCollision(String params) {
-        super(params);
-        // Increase pushAwayTolerance to work around https://bugs.mojang.com/browse/MCPE-41996
-        pushAwayTolerance = 0.0002;
+/**
+ * Called when a Geyser session disconnects.
+ */
+public class SessionDisconnectEvent extends ConnectionEvent {
+    private String disconnectReason;
+
+    public SessionDisconnectEvent(@NonNull GeyserConnection connection, @NonNull String reason) {
+        super(connection);
+        this.disconnectReason = reason;
+    }
+
+    /**
+     * Gets the disconnect reason.
+     *
+     * @return the reason for the disconnect
+     */
+    public @NonNull String disconnectReason() {
+        return disconnectReason;
+    }
+
+    /**
+     * Sets the disconnect reason, thereby overriding th original reason.
+     *
+     * @param disconnectReason the reason for the disconnect
+     */
+    public void disconnectReason(@NonNull String disconnectReason) {
+        this.disconnectReason = disconnectReason;
     }
 }
+

@@ -28,6 +28,7 @@ package org.geysermc.geyser.level.block;
 import it.unimi.dsi.fastutil.objects.*;
 import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
@@ -37,9 +38,6 @@ import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
 import org.geysermc.geyser.api.block.custom.property.PropertyType;
 import org.geysermc.geyser.api.util.CreativeCategory;
-import org.jetbrains.annotations.NotNull;
-
-import javax.annotation.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -142,7 +140,7 @@ public class GeyserCustomBlockData implements CustomBlockData {
     }
 
     @Override
-    public CustomBlockState.@NotNull Builder blockStateBuilder() {
+    public CustomBlockState.@NonNull Builder blockStateBuilder() {
         return new GeyserCustomBlockState.CustomBlockStateBuilder(this);
     }
 

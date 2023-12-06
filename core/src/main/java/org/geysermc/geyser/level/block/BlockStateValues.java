@@ -62,6 +62,7 @@ public final class BlockStateValues {
     private static final IntSet ALL_PISTON_HEADS = new IntOpenHashSet();
     private static final IntSet MOVING_PISTONS = new IntOpenHashSet();
     private static final Int2ByteMap SKULL_VARIANTS = new FixedInt2ByteMap();
+    private static final IntSet SKULL_POWERED = new IntOpenHashSet();
     private static final Int2ByteMap SKULL_ROTATIONS = new Int2ByteOpenHashMap();
     private static final Int2IntMap SKULL_WALL_DIRECTIONS = new Int2IntOpenHashMap();
     private static final Int2ByteMap SHULKERBOX_DIRECTIONS = new FixedInt2ByteMap();
@@ -170,6 +171,13 @@ public final class BlockStateValues {
         JsonNode skullRotation = blockData.get("skull_rotation");
         if (skullRotation != null) {
             SKULL_ROTATIONS.put(javaBlockState, (byte) skullRotation.intValue());
+        }
+
+        if (javaId.startsWith("minecraft:dragon_head[") || javaId.startsWith("minecraft:piglin_head[")
+                || javaId.startsWith("minecraft:dragon_wall_head[") || javaId.startsWith("minecraft:piglin_wall_head[")) {
+            if (javaId.contains("powered=true")) {
+                SKULL_POWERED.add(javaBlockState);
+            }
         }
 
         if (javaId.contains("wall_skull") || javaId.contains("wall_head")) {
@@ -446,6 +454,17 @@ public final class BlockStateValues {
      */
     public static byte getSkullRotation(int state) {
         return SKULL_ROTATIONS.getOrDefault(state, (byte) -1);
+    }
+
+    /**
+     * As of Java 1.20.2:
+     * Skull powered states are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
+     *
+     * @param state BlockState of the block
+     * @return true if this skull is currently being powered.
+     */
+    public static boolean isSkullPowered(int state) {
+        return SKULL_POWERED.contains(state);
     }
 
     /**

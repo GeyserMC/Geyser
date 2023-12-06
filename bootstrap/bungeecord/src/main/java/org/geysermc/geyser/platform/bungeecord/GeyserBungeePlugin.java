@@ -30,6 +30,7 @@ import net.md_5.bungee.BungeeCord;
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.protocol.ProtocolConstants;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
@@ -44,7 +45,6 @@ import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.bungeecord.command.GeyserBungeeCommandExecutor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -70,6 +70,9 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     private GeyserImpl geyser;
 
+    private static boolean INITIALIZED = false;
+
+    @SuppressWarnings({"JavaReflectionMemberAccess", "ResultOfMethodCallIgnored"})
     @Override
     public void onLoad() {
         GeyserLocale.init(this);
@@ -133,7 +136,12 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         // Big hack - Bungee does not provide us an event to listen to, so schedule a repeating
         // task that waits for a field to be filled which is set after the plugin enable
         // process is complete
-        this.awaitStartupCompletion(0);
+        if (!INITIALIZED) {
+            this.awaitStartupCompletion(0);
+        } else {
+            // No need to "wait" for startup completion, just start Geyser - we're reloading.
+            this.postStartup();
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -166,8 +174,10 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     private void postStartup() {
         GeyserImpl.start();
 
-        this.geyserInjector = new GeyserBungeeInjector(this);
-        this.geyserInjector.initializeLocalChannel(this);
+        if (!INITIALIZED) {
+            this.geyserInjector = new GeyserBungeeInjector(this);
+            this.geyserInjector.initializeLocalChannel(this);
+        }
 
         this.geyserCommandManager = new GeyserCommandManager(geyser);
         this.geyserCommandManager.init();
@@ -187,6 +197,8 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         } else {
             this.geyserBungeePingPassthrough = new GeyserBungeePingPassthrough(getProxy());
         }
+
+        INITIALIZED = true;
     }
 
     @Override
@@ -240,7 +252,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         return this.geyserInjector.getServerSocketAddress();
     }
 
-    @NotNull
+    @NonNull
     @Override
     public String getServerBindAddress() {
         return findCompatibleListener().map(InetSocketAddress::getHostString).orElse("");

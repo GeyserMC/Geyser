@@ -27,6 +27,7 @@ package org.geysermc.geyser.level;
 
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.util.HSVLike;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 public enum FireworkColor {
     BLACK(1973019),
@@ -75,7 +76,7 @@ public enum FireworkColor {
      * @return nearest named color. will always return a value
      * @since 4.0.0
      */
-    private static FireworkColor nearestTo(final HSVLike any) {
+    private static @NonNull FireworkColor nearestTo(final HSVLike any) {
         float matchedDistance = Float.MAX_VALUE;
         FireworkColor match = VALUES[0];
         for (final FireworkColor potential : VALUES) {

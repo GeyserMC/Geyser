@@ -52,12 +52,12 @@ public class GeyserFabricCommandExecutor extends GeyserCommandExecutor implement
     }
 
     @Override
-    public int run(CommandContext context) {
+    public int run(CommandContext<CommandSourceStack> context) {
         return runWithArgs(context, "");
     }
 
-    public int runWithArgs(CommandContext context, String args) {
-        CommandSourceStack source = (CommandSourceStack) context.getSource();
+    public int runWithArgs(CommandContext<CommandSourceStack> context, String args) {
+        CommandSourceStack source = context.getSource();
         FabricCommandSender sender = new FabricCommandSender(source);
         GeyserSession session = getGeyserSession(sender);
         if (!testPermission(source)) {

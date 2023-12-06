@@ -27,6 +27,7 @@ package org.geysermc.geyser.level;
 
 import com.github.steveice10.mc.protocol.data.game.level.map.MapIconType;
 import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 public enum BedrockMapIcon {
     ICON_WHITE_ARROW(MapIconType.WHITE_ARROW, 0),
@@ -87,7 +88,7 @@ public enum BedrockMapIcon {
      * @param iconType A MapIconType
      * @return The mapping for a BedrockMapIcon
      */
-    public static BedrockMapIcon fromType(MapIconType iconType) {
+    public static @Nullable BedrockMapIcon fromType(MapIconType iconType) {
         for (BedrockMapIcon icon : VALUES) {
             if (icon.iconType.equals(iconType)) {
                 return icon;
