@@ -42,13 +42,14 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.geysermc.geyser.api.util.PlatformType;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
@@ -66,7 +67,6 @@ import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotNativeWorld
 import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -76,6 +76,7 @@ import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -137,6 +138,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         // This is manually done instead of using Bukkit methods to save the config because otherwise comments get removed
         try {
             if (!getDataFolder().exists()) {
+                //noinspection ResultOfMethodCallIgnored
                 getDataFolder().mkdir();
             }
             File configFile = FileUtils.fileOrCopiedFromResource(new File(getDataFolder(), "config.yml"), "config.yml",
@@ -162,13 +164,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         if (this.geyserConfig == null) {
             // We failed to initialize correctly
             Bukkit.getPluginManager().disablePlugin(this);
-            return;
-        }
-
-        // Remove this in like a year
-        if (Bukkit.getPluginManager().getPlugin("floodgate-bukkit") != null) {
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.outdated", Constants.FLOODGATE_DOWNLOAD_LOCATION));
-            this.getPluginLoader().disablePlugin(this);
             return;
         }
 
@@ -201,7 +196,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
                     commandMap.register(extension.description().id(), "geyserext", pluginCommand);
                 } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
-                    this.geyserLogger.error("Failed to construct PluginCommand for extension " + extension.description().name(), ex);
+                    this.geyserLogger.error("Failed to construct PluginCommand for extension " + extension.name(), ex);
                 }
             }
         }
@@ -279,6 +274,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         }
 
         PluginCommand geyserCommand = this.getCommand("geyser");
+        Objects.requireNonNull(geyserCommand, "base command cannot be null");
         geyserCommand.setExecutor(new GeyserSpigotCommandExecutor(geyser, geyserCommandManager.getCommands()));
 
         for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
@@ -320,6 +316,12 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                     }
 
                     if (command.permission().isBlank()) {
+                        continue;
+                    }
+
+                    // Avoid registering the same permission twice, e.g. for the extension help commands
+                    if (Bukkit.getPluginManager().getPermission(command.permission()) != null) {
+                        GeyserImpl.getInstance().getLogger().debug("Skipping permission " + command.permission() + " as it is already registered");
                         continue;
                     }
 
@@ -438,7 +440,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         return false;
     }
 
-    @NotNull
+    @NonNull
     @Override
     public String getServerBindAddress() {
         return Bukkit.getIp();

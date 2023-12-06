@@ -31,6 +31,7 @@ import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundPickItemPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetCreativeModeSlotPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -53,6 +54,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -60,7 +62,6 @@ import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;
 import org.geysermc.geyser.translator.inventory.chest.DoubleChestInventoryTranslator;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
@@ -129,7 +130,7 @@ public class InventoryUtils {
         session.setOpenInventory(null);
     }
 
-    public static Inventory getInventory(GeyserSession session, int javaId) {
+    public static @Nullable Inventory getInventory(GeyserSession session, int javaId) {
         if (javaId == 0) {
             return session.getPlayerInventory();
         } else {
@@ -207,23 +208,22 @@ public class InventoryUtils {
     }
 
     private static ItemDefinition getUnusableSpaceBlockDefinition(int protocolVersion) {
+        ItemMappings mappings = Registries.ITEMS.forVersion(protocolVersion);
         String unusableSpaceBlock = GeyserImpl.getInstance().getConfig().getUnusableSpaceBlock();
-        ItemDefinition itemDefinition = null;
-
-        // looping through all the items to find the one with the specified Bedrock identifier
-        for (ItemDefinition definition : Registries.ITEMS.forVersion(protocolVersion).getItemDefinitions().values()) {
-            if (definition.getIdentifier().equals(unusableSpaceBlock)) {
-                itemDefinition = definition;
-                break;
-            }
-        }
+        ItemDefinition itemDefinition = mappings.getDefinition(unusableSpaceBlock);
 
         if (itemDefinition == null) {
             GeyserImpl.getInstance().getLogger().error("Invalid value " + unusableSpaceBlock + ". Resorting to barrier block.");
-            return Registries.ITEMS.forVersion(protocolVersion).getStoredItems().barrier().getBedrockDefinition();
+            return mappings.getStoredItems().barrier().getBedrockDefinition();
         } else {
             return itemDefinition;
         }
+    }
+
+    public static IntFunction<ItemData> getUpgradeTemplate() {
+        return protocolVersion -> ItemData.builder()
+                .definition(Registries.ITEMS.forVersion(protocolVersion).getStoredItems().upgradeTemplate().getBedrockDefinition())
+                .count(1).build();
     }
 
     /**
@@ -262,7 +262,7 @@ public class InventoryUtils {
             // If this is the item we're looking for
             if (geyserItem.getJavaId() == itemStack.getId() && Objects.equals(geyserItem.getNbt(), itemStack.getNbt())) {
                 ServerboundPickItemPacket packetToSend = new ServerboundPickItemPacket(i); // https://wiki.vg/Protocol#Pick_Item
-                session.sendDownstreamPacket(packetToSend);
+                session.sendDownstreamGamePacket(packetToSend);
                 return;
             }
         }
@@ -276,7 +276,7 @@ public class InventoryUtils {
             if ((slot - 36) != inventory.getHeldItemSlot()) {
                 setHotbarItem(session, slot);
             }
-            session.sendDownstreamPacket(actionPacket);
+            session.sendDownstreamGamePacket(actionPacket);
         }
     }
 
@@ -286,7 +286,7 @@ public class InventoryUtils {
      * If it is found in another part of the inventory, move it.
      * If it is not found and the user is in creative mode, create the item,
      * overriding the current item slot if no other hotbar slots are empty, or otherwise selecting the empty slot.
-     *
+     * <p>
      * This attempts to mimic Java Edition behavior as best as it can.
      * @param session the Bedrock client's session
      * @param itemName the Java identifier of the item to search/select
@@ -327,7 +327,7 @@ public class InventoryUtils {
             }
 
             ServerboundPickItemPacket packetToSend = new ServerboundPickItemPacket(i); // https://wiki.vg/Protocol#Pick_Item
-            session.sendDownstreamPacket(packetToSend);
+            session.sendDownstreamGamePacket(packetToSend);
             return;
         }
 
@@ -342,7 +342,7 @@ public class InventoryUtils {
                 if ((slot - 36) != inventory.getHeldItemSlot()) {
                     setHotbarItem(session, slot);
                 }
-                session.sendDownstreamPacket(actionPacket);
+                session.sendDownstreamGamePacket(actionPacket);
             } else {
                 session.getGeyser().getLogger().debug("Cannot find item for block " + itemName);
             }
@@ -457,6 +457,7 @@ public class InventoryUtils {
                             for (int col = firstCol; col < width + firstCol; col++) {
                                 GeyserItemStack geyserItemStack = inventoryGetter.apply(col + (row * gridDimensions) + 1);
                                 if (geyserItemStack.isEmpty()) {
+                                    //noinspection ConstantValue
                                     inventoryHasItem = itemStack == null || itemStack.getId() == 0;
                                     if (inventoryHasItem) {
                                         break crafting;
@@ -478,6 +479,7 @@ public class InventoryUtils {
         return null;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private static boolean testShapedRecipe(final Ingredient[] ingredients, final IntFunction<GeyserItemStack> inventoryGetter,
                                             final int gridDimensions, final int firstRow, final int height, final int firstCol, final int width) {
         int ingredientIndex = 0;

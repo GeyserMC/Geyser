@@ -62,6 +62,7 @@ public final class BlockStateValues {
     private static final IntSet ALL_PISTON_HEADS = new IntOpenHashSet();
     private static final IntSet MOVING_PISTONS = new IntOpenHashSet();
     private static final Int2ByteMap SKULL_VARIANTS = new FixedInt2ByteMap();
+    private static final IntSet SKULL_POWERED = new IntOpenHashSet();
     private static final Int2ByteMap SKULL_ROTATIONS = new Int2ByteOpenHashMap();
     private static final Int2IntMap SKULL_WALL_DIRECTIONS = new Int2IntOpenHashMap();
     private static final Int2ByteMap SHULKERBOX_DIRECTIONS = new FixedInt2ByteMap();
@@ -172,9 +173,16 @@ public final class BlockStateValues {
             SKULL_ROTATIONS.put(javaBlockState, (byte) skullRotation.intValue());
         }
 
+        if (javaId.startsWith("minecraft:dragon_head[") || javaId.startsWith("minecraft:piglin_head[")
+                || javaId.startsWith("minecraft:dragon_wall_head[") || javaId.startsWith("minecraft:piglin_wall_head[")) {
+            if (javaId.contains("powered=true")) {
+                SKULL_POWERED.add(javaBlockState);
+            }
+        }
+
         if (javaId.contains("wall_skull") || javaId.contains("wall_head")) {
-            String direction = javaId.substring(javaId.lastIndexOf("facing=") + 7);
-            int rotation = switch (direction.substring(0, direction.length() - 1)) {
+            String direction = javaId.substring(javaId.lastIndexOf("facing=") + 7, javaId.lastIndexOf("powered=") - 1);
+            int rotation = switch (direction) {
                 case "north" -> 180;
                 case "west" -> 90;
                 case "east" -> 270;
@@ -403,7 +411,7 @@ public final class BlockStateValues {
      * @return true if a piston can break the block
      */
     public static boolean canPistonDestroyBlock(int state)  {
-        return BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.AIR).getPistonBehavior() == PistonBehavior.DESTROY;
+        return BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.DEFAULT).getPistonBehavior() == PistonBehavior.DESTROY;
     }
 
     public static boolean canPistonMoveBlock(int javaId, boolean isPushing) {
@@ -414,7 +422,7 @@ public final class BlockStateValues {
         if (PistonBlockEntityTranslator.isBlock(javaId)) {
             return !PISTON_VALUES.get(javaId);
         }
-        BlockMapping block = BlockRegistries.JAVA_BLOCKS.getOrDefault(javaId, BlockMapping.AIR);
+        BlockMapping block = BlockRegistries.JAVA_BLOCKS.getOrDefault(javaId, BlockMapping.DEFAULT);
         // Bedrock, End portal frames, etc. can't be moved
         if (block.getHardness() == -1.0d) {
             return false;
@@ -446,6 +454,17 @@ public final class BlockStateValues {
      */
     public static byte getSkullRotation(int state) {
         return SKULL_ROTATIONS.getOrDefault(state, (byte) -1);
+    }
+
+    /**
+     * As of Java 1.20.2:
+     * Skull powered states are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
+     *
+     * @param state BlockState of the block
+     * @return true if this skull is currently being powered.
+     */
+    public static boolean isSkullPowered(int state) {
+        return SKULL_POWERED.contains(state);
     }
 
     /**
@@ -511,7 +530,7 @@ public final class BlockStateValues {
      * @return The block's slipperiness
      */
     public static float getSlipperiness(int state) {
-        String blockIdentifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.AIR).getJavaIdentifier();
+        String blockIdentifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.DEFAULT).getJavaIdentifier();
         return switch (blockIdentifier) {
             case "minecraft:slime_block" -> 0.8f;
             case "minecraft:ice", "minecraft:packed_ice" -> 0.98f;

@@ -46,6 +46,7 @@ import org.geysermc.geyser.level.chunk.GeyserChunkSection;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.level.block.entity.BedrockOnlyBlockEntity;
 
@@ -53,19 +54,27 @@ import static org.geysermc.geyser.level.block.BlockStateValues.JAVA_AIR_ID;
 
 @UtilityClass
 public class ChunkUtils {
-    /**
-     * An empty subchunk.
-     */
-    public static final byte[] SERIALIZED_CHUNK_DATA;
+
     public static final byte[] EMPTY_BIOME_DATA;
 
+    public static final BlockStorage[] EMPTY_BLOCK_STORAGE;
+
+    public static final int EMPTY_CHUNK_SECTION_SIZE;
+
     static {
+        EMPTY_BLOCK_STORAGE = new BlockStorage[0];
+
         ByteBuf byteBuf = Unpooled.buffer();
         try {
-            new GeyserChunkSection(new BlockStorage[0], 0)
+            new GeyserChunkSection(EMPTY_BLOCK_STORAGE, 0)
                     .writeToNetwork(byteBuf);
-            SERIALIZED_CHUNK_DATA = new byte[byteBuf.readableBytes()];
-            byteBuf.readBytes(SERIALIZED_CHUNK_DATA);
+
+            byte[] emptyChunkData = new byte[byteBuf.readableBytes()];
+            byteBuf.readBytes(emptyChunkData);
+
+            EMPTY_CHUNK_SECTION_SIZE = emptyChunkData.length;
+
+            emptyChunkData = null;
         } finally {
             byteBuf.release();
         }
@@ -129,16 +138,23 @@ public class ChunkUtils {
             // Otherwise, let's still store our reference to the item frame, but let the new block take precedence for now
         }
 
-        if (BlockStateValues.getSkullVariant(blockState) == -1) {
+        BlockDefinition definition = session.getBlockMappings().getBedrockBlock(blockState);
+
+        int skullVariant = BlockStateValues.getSkullVariant(blockState);
+        if (skullVariant == -1) {
             // Skull is gone
             session.getSkullCache().removeSkull(position);
+        } else if (skullVariant == 3) {
+            // The changed block was a player skull so check if a custom block was defined for this skull
+            SkullCache.Skull skull = session.getSkullCache().updateSkull(position, blockState);
+            if (skull != null && skull.getBlockDefinition() != null) {
+                definition = skull.getBlockDefinition();
+            }
         }
 
         // Prevent moving_piston from being placed
         // It's used for extending piston heads, but it isn't needed on Bedrock and causes pistons to flicker
         if (!BlockStateValues.isMovingPiston(blockState)) {
-            BlockDefinition definition = session.getBlockMappings().getBedrockBlock(blockState);
-
             UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
             updateBlockPacket.setDataLayer(0);
             updateBlockPacket.setBlockPosition(position);
@@ -156,6 +172,36 @@ public class ChunkUtils {
                 waterPacket.setDefinition(session.getBlockMappings().getBedrockAir());
             }
             session.sendUpstreamPacket(waterPacket);
+        }
+
+        // Extended collision boxes for custom blocks
+        if (!session.getBlockMappings().getExtendedCollisionBoxes().isEmpty()) {
+            int aboveBlock = session.getGeyser().getWorldManager().getBlockAt(session, position.getX(), position.getY() + 1, position.getZ());
+            BlockDefinition aboveBedrockExtendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes().get(blockState);
+            int belowBlock = session.getGeyser().getWorldManager().getBlockAt(session, position.getX(), position.getY() - 1, position.getZ());
+            BlockDefinition belowBedrockExtendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes().get(belowBlock);
+            if (belowBedrockExtendedCollisionDefinition != null && blockState == BlockStateValues.JAVA_AIR_ID) {
+                UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+                updateBlockPacket.setDataLayer(0);
+                updateBlockPacket.setBlockPosition(position);
+                updateBlockPacket.setDefinition(belowBedrockExtendedCollisionDefinition);
+                updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+                session.sendUpstreamPacket(updateBlockPacket);
+            } else if (aboveBedrockExtendedCollisionDefinition != null && aboveBlock == BlockStateValues.JAVA_AIR_ID) {
+                UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+                updateBlockPacket.setDataLayer(0);
+                updateBlockPacket.setBlockPosition(position.add(0, 1, 0));
+                updateBlockPacket.setDefinition(aboveBedrockExtendedCollisionDefinition);
+                updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+                session.sendUpstreamPacket(updateBlockPacket);
+            } else if (aboveBlock == BlockStateValues.JAVA_AIR_ID) {
+                UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+                updateBlockPacket.setDataLayer(0);
+                updateBlockPacket.setBlockPosition(position.add(0, 1, 0));
+                updateBlockPacket.setDefinition(session.getBlockMappings().getBedrockAir());
+                updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+                session.sendUpstreamPacket(updateBlockPacket);
+            }
         }
 
         BlockStateValues.getLecternBookStates().handleBlockChange(session, blockState, position);

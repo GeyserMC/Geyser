@@ -32,6 +32,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.AllArgsConstructor;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -66,7 +67,7 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
 
         // Load collision mappings file
         List<BoundingBox[]> collisionList;
-        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource(input.value())) {
+        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow(input.value())) {
             ArrayNode collisionNode = (ArrayNode) GeyserImpl.JSON_MAPPER.readTree(stream);
             collisionList = loadBoundingBoxes(collisionNode);
         } catch (Exception e) {
@@ -79,6 +80,11 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
         Map<BlockCollision, BlockCollision> collisionInstances = new Object2ObjectOpenHashMap<>();
         for (int i = 0; i < blockMappings.length; i++) {
             BlockMapping blockMapping = blockMappings[i];
+            if (blockMapping == null) {
+                GeyserImpl.getInstance().getLogger().warning("Missing block mapping for Java block " + i);
+                continue;
+            }
+
             BlockCollision newCollision = instantiateCollision(blockMapping, annotationMap, collisionList);
 
             if (newCollision != null) {
@@ -96,7 +102,7 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
         return collisions;
     }
 
-    private BlockCollision instantiateCollision(BlockMapping mapping, Map<Class<?>, CollisionInfo> annotationMap, List<BoundingBox[]> collisionList) {
+    private @Nullable BlockCollision instantiateCollision(BlockMapping mapping, Map<Class<?>, CollisionInfo> annotationMap, List<BoundingBox[]> collisionList) {
         String[] blockIdParts = mapping.getJavaIdentifier().split("\\[");
         String blockName = blockIdParts[0].replace("minecraft:", "");
         String params = "";

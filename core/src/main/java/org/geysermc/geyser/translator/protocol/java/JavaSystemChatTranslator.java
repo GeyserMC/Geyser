@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundSy
 import net.kyori.adventure.text.TranslatableComponent;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -55,7 +56,11 @@ public class JavaSystemChatTranslator extends PacketTranslator<ClientboundSystem
         textPacket.setType(packet.isOverlay() ? TextPacket.Type.JUKEBOX_POPUP : TextPacket.Type.SYSTEM);
 
         textPacket.setNeedsTranslation(false);
-        textPacket.setMessage(MessageTranslator.convertMessage(packet.getContent(), session.locale()));
+        if (packet.isOverlay()) {
+            textPacket.setMessage(ChatColor.WHITE + MessageTranslator.convertMessage(packet.getContent(), session.locale()));
+        } else {
+            textPacket.setMessage(MessageTranslator.convertMessage(packet.getContent(), session.locale()));
+        }
 
         if (session.isSentSpawnPacket()) {
             session.sendUpstreamPacket(textPacket);

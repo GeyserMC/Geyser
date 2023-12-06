@@ -30,6 +30,7 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -51,7 +52,8 @@ public class GeyserBungeeDumpInfo extends BootstrapDumpInfo {
         this.plugins = new ArrayList<>();
 
         for (net.md_5.bungee.api.config.ListenerInfo listener : proxy.getConfig().getListeners()) {
-            this.listeners.add(new ListenerInfo(listener.getHost().getHostString(), listener.getHost().getPort()));
+            InetSocketAddress address = (InetSocketAddress) listener.getSocketAddress();
+            this.listeners.add(new ListenerInfo(address.getHostString(), address.getPort()));
         }
 
         for (Plugin plugin : proxy.getPluginManager().getPlugins()) {

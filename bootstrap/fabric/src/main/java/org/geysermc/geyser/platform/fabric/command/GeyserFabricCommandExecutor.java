@@ -52,8 +52,12 @@ public class GeyserFabricCommandExecutor extends GeyserCommandExecutor implement
     }
 
     @Override
-    public int run(CommandContext context) {
-        CommandSourceStack source = (CommandSourceStack) context.getSource();
+    public int run(CommandContext<CommandSourceStack> context) {
+        return runWithArgs(context, "");
+    }
+
+    public int runWithArgs(CommandContext<CommandSourceStack> context, String args) {
+        CommandSourceStack source = context.getSource();
         FabricCommandSender sender = new FabricCommandSender(source);
         GeyserSession session = getGeyserSession(sender);
         if (!testPermission(source)) {
@@ -68,7 +72,8 @@ public class GeyserFabricCommandExecutor extends GeyserCommandExecutor implement
             sender.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.bedrock_only", sender.locale()));
             return 0;
         }
-        command.execute(session, sender, new String[0]);
+
+        command.execute(session, sender, args.split(" "));
         return 0;
     }
 }

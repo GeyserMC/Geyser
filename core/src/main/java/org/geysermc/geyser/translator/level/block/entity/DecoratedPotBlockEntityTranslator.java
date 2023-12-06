@@ -41,6 +41,10 @@ public class DecoratedPotBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+        if (tag == null) {
+            return;
+        }
+
         // exact same format
         if (tag.get("sherds") instanceof ListTag sherds) {
             List<String> translated = new ArrayList<>(4);
