@@ -55,10 +55,10 @@ public class GeyserFabricDumpInfo extends BootstrapDumpInfo {
     private final List<ModInfo> mods;
 
     public GeyserFabricDumpInfo(MinecraftServer server) {
+        this.platformName = server.getServerModName();
         FabricLoader.getInstance().getModContainer("fabricloader").ifPresent(mod ->
             this.platformVersion = mod.getMetadata().getVersion().getFriendlyString());
 
-        this.platformName = server.getServerModName();
         this.minecraftVersion = server.getServerVersion();
         this.environmentType = FabricLoader.getInstance().getEnvironmentType();
         this.serverIP = server.getLocalIp() == null ? "unknown" : server.getLocalIp();
