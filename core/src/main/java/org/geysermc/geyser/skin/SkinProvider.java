@@ -58,7 +58,7 @@ import java.util.function.Predicate;
 
 public class SkinProvider {
     private static final boolean ALLOW_THIRD_PARTY_CAPES = GeyserImpl.getInstance().getConfig().isAllowThirdPartyCapes();
-    static ExecutorService EXECUTOR_SERVICE;
+    private static ExecutorService EXECUTOR_SERVICE;
 
     static final Skin EMPTY_SKIN;
     static final Cape EMPTY_CAPE = new Cape("", "no-cape", ByteArrays.EMPTY_ARRAY, -1, true);
@@ -133,7 +133,7 @@ public class SkinProvider {
         WEARING_CUSTOM_SKULL_SLIM = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.wearingCustomSkullSlim\"}}", wearingCustomSkullSlim, false);
     }
 
-    private static ExecutorService getExecutorService() {
+    public static ExecutorService getExecutorService() {
         if (EXECUTOR_SERVICE == null) {
             EXECUTOR_SERVICE = Executors.newFixedThreadPool(ALLOW_THIRD_PARTY_CAPES ? 21 : 14);
         }

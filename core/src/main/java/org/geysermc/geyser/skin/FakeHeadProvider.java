@@ -134,7 +134,7 @@ public class FakeHeadProvider {
 
         session.getPlayerWithCustomHeads().add(entity.getUuid());
         String texturesProperty = entity.getTexturesProperty();
-        SkinProvider.EXECUTOR_SERVICE.execute(() -> {
+        SkinProvider.getExecutorService().execute(() -> {
             try {
                 SkinProvider.SkinData mergedSkinData = MERGED_SKINS_LOADING_CACHE.get(new FakeHeadEntry(texturesProperty, fakeHeadSkinUrl, entity));
                 SkinManager.sendSkinPacket(session, entity, mergedSkinData);
