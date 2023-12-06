@@ -146,32 +146,32 @@ public class MinecraftLocale {
     /**
      * Loads a locale already downloaded, if the file doesn't exist it just logs a warning
      *
-     * @param locale Locale to load
+     * @param locale Bedrock locale to load
      */
     private static boolean loadLocale(String locale) {
-        String bedrockLocale = locale.toLowerCase(Locale.ROOT);
+        String lowercaseLocale = locale.toLowerCase(Locale.ROOT);
 
-        // Need to grab this before we change the locale - downloaded locales are stored under the Java Bedrock locale
-        Path localeFile = getPath(bedrockLocale);
+        // Need to grab this before we change the locale - downloaded/override locales are stored under the Java locale name
+        Path localeFile = getPath(lowercaseLocale);
+        Path localeOverride = getPath("overrides/" + lowercaseLocale);
 
-        if (bedrockLocale.equals("no_no")) {
-            // Store this locale under the Bedrock locale so we don't need to do this check over and over
-            bedrockLocale = "nb_no";
+        if (lowercaseLocale.equals("no_no")) {
+            // Store this locale under the Bedrock locale, so we don't need to do this check over and over
+            lowercaseLocale = "nb_no";
         }
 
         Map<String, String> langMap = new HashMap<>();
         if (Files.exists(localeFile) && Files.isReadable(localeFile)) {
-            langMap.putAll(parseLangFile(localeFile, bedrockLocale));
+            langMap.putAll(parseLangFile(localeFile, lowercaseLocale));
         }
 
         // Load the locale overwrites
-        localeFile = getPath("overrides/" + bedrockLocale);
-        if (Files.exists(localeFile) && Files.isReadable(localeFile)) {
-            langMap.putAll(parseLangFile(localeFile, bedrockLocale));
+        if (Files.exists(localeOverride) && Files.isReadable(localeOverride)) {
+            langMap.putAll(parseLangFile(localeOverride, lowercaseLocale));
         }
 
         if (!langMap.isEmpty()) {
-            LOCALE_MAPPINGS.put(bedrockLocale, langMap);
+            LOCALE_MAPPINGS.put(lowercaseLocale, langMap);
             return true;
         } else {
             return false;
