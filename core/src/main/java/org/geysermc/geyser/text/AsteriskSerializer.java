@@ -68,6 +68,11 @@ public class AsteriskSerializer extends StdSerializer<Object> implements Context
     String asterisk;
     boolean isIp;
 
+    @SuppressWarnings("unused") // Used by Jackson for Geyser dumps
+    public AsteriskSerializer() {
+        super(Object.class);
+    }
+
     public AsteriskSerializer(String asterisk, boolean isIp) {
         super(Object.class);
         this.asterisk = asterisk;
