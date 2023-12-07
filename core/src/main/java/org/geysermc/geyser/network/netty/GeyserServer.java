@@ -96,7 +96,7 @@ public final class GeyserServer {
     private final GeyserImpl geyser;
     private EventLoopGroup group;
     // Split childGroup may improve IO
-    private final EventLoopGroup childGroup;
+    private EventLoopGroup childGroup;
     private final ServerBootstrap bootstrap;
     private EventLoopGroup playerGroup;
 
@@ -130,37 +130,38 @@ public final class GeyserServer {
     public CompletableFuture<Void> bind(InetSocketAddress address) {
         bootstrapFutures = new ChannelFuture[listenCount];
         for (int i = 0; i < listenCount; i++) {
-            bootstrapFutures[i] = Optional.of(bootstrap)
-                    .map(f -> f.bind(address))
-                    .map(f -> addHandlers(f, this))
-                    .orElseThrow();
+            ChannelFuture future = bootstrap.bind(address);
+            addHandlers(future);
+            bootstrapFutures[i] = future;
         }
 
         return Bootstraps.allOf(bootstrapFutures);
     }
 
-    private static ChannelFuture addHandlers(ChannelFuture f, GeyserServer self) {
-        Channel channel = f.channel();
+    private void addHandlers(ChannelFuture future) {
+        Channel channel = future.channel();
         // Add our ping handler
         channel.pipeline()
-                .addFirst(RakConnectionRequestHandler.NAME, new RakConnectionRequestHandler(self))
-                .addAfter(RakServerOfflineHandler.NAME, RakPingHandler.NAME, new RakPingHandler(self));
+                .addFirst(RakConnectionRequestHandler.NAME, new RakConnectionRequestHandler(this))
+                .addAfter(RakServerOfflineHandler.NAME, RakPingHandler.NAME, new RakPingHandler(this));
         // Add proxy handler
-        if (self.geyser.getConfig().getBedrock().isEnableProxyProtocol()) {
+        if (this.geyser.getConfig().getBedrock().isEnableProxyProtocol()) {
             channel.pipeline().addFirst("proxy-protocol-decoder", new ProxyServerHandler());
         }
-        return f;
     }
 
     public void shutdown() {
         try {
-            this.childGroup.shutdownGracefully();
-            Future<?> future1 = this.group.shutdownGracefully(SHUTDOWN_QUIET_PERIOD_MS, SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+            Future<?> futureChildGroup = this.childGroup.shutdownGracefully(SHUTDOWN_QUIET_PERIOD_MS, SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+            this.childGroup = null;
+            Future<?> futureGroup = this.group.shutdownGracefully(SHUTDOWN_QUIET_PERIOD_MS, SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS);
             this.group = null;
-            Future<?> future2 = this.playerGroup.shutdownGracefully(SHUTDOWN_QUIET_PERIOD_MS, SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+            Future<?> futurePlayerGroup = this.playerGroup.shutdownGracefully(SHUTDOWN_QUIET_PERIOD_MS, SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS);
             this.playerGroup = null;
-            future1.sync();
-            future2.sync();
+
+            futureChildGroup.sync();
+            futureGroup .sync();
+            futurePlayerGroup.sync();
 
             SkinProvider.shutdown();
         } catch (InterruptedException e) {
