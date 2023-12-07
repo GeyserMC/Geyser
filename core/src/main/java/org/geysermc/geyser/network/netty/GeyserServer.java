@@ -66,6 +66,7 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.IntFunction;
@@ -94,19 +95,28 @@ public final class GeyserServer {
 
     private final GeyserImpl geyser;
     private EventLoopGroup group;
+    // Split childGroup may improve IO
+    private final EventLoopGroup childGroup;
     private final ServerBootstrap bootstrap;
     private EventLoopGroup playerGroup;
 
     @Getter
     private final ExpiringMap<InetSocketAddress, InetSocketAddress> proxiedAddresses;
+    private final int listenCount;
 
-    private ChannelFuture bootstrapFuture;
+    private ChannelFuture[] bootstrapFutures;
 
     public GeyserServer(GeyserImpl geyser, int threadCount) {
         this.geyser = geyser;
-        this.group = TRANSPORT.eventLoopGroupFactory().apply(threadCount);
+        // bindCount = 1/2 of processors, and max to 20
+        // It's offers up to 20*250=5000 workload
+        this.listenCount = Bootstraps.isReusePortAvailable() ? Math.max(1, Math.min(20, threadCount / 4)) : 1;
+        this.group = TRANSPORT.eventLoopGroupFactory().apply(listenCount);
+        this.childGroup = TRANSPORT.eventLoopGroupFactory().apply(threadCount);
 
-        this.bootstrap = this.createBootstrap(this.group);
+        this.bootstrap = this.createBootstrap();
+        // setup SO_REUSEPORT if exists
+        Bootstraps.setupBootstrap(this.bootstrap);
 
         if (this.geyser.getConfig().getBedrock().isEnableProxyProtocol()) {
             this.proxiedAddresses = ExpiringMap.builder()
@@ -118,31 +128,33 @@ public final class GeyserServer {
     }
 
     public CompletableFuture<Void> bind(InetSocketAddress address) {
-        CompletableFuture<Void> future = new CompletableFuture<>();
-        this.bootstrapFuture = this.bootstrap.bind(address).addListener(bindResult -> {
-            if (bindResult.cause() != null) {
-                future.completeExceptionally(bindResult.cause());
-                return;
-            }
-            future.complete(null);
-        });
-
-        Channel channel = this.bootstrapFuture.channel();
-
-        // Add our ping handler
-        channel.pipeline()
-                .addFirst(RakConnectionRequestHandler.NAME, new RakConnectionRequestHandler(this))
-                .addAfter(RakServerOfflineHandler.NAME, RakPingHandler.NAME, new RakPingHandler(this));
-
-        if (this.geyser.getConfig().getBedrock().isEnableProxyProtocol()) {
-            channel.pipeline().addFirst("proxy-protocol-decoder", new ProxyServerHandler());
+        bootstrapFutures = new ChannelFuture[listenCount];
+        for (int i = 0; i < listenCount; i++) {
+            bootstrapFutures[i] = Optional.of(bootstrap)
+                    .map(f -> f.bind(address))
+                    .map(f -> addHandlers(f, this))
+                    .orElseThrow();
         }
 
-        return future;
+        return Bootstraps.allOf(bootstrapFutures);
+    }
+
+    private static ChannelFuture addHandlers(ChannelFuture f, GeyserServer self) {
+        Channel channel = f.channel();
+        // Add our ping handler
+        channel.pipeline()
+                .addFirst(RakConnectionRequestHandler.NAME, new RakConnectionRequestHandler(self))
+                .addAfter(RakServerOfflineHandler.NAME, RakPingHandler.NAME, new RakPingHandler(self));
+        // Add proxy handler
+        if (self.geyser.getConfig().getBedrock().isEnableProxyProtocol()) {
+            channel.pipeline().addFirst("proxy-protocol-decoder", new ProxyServerHandler());
+        }
+        return f;
     }
 
     public void shutdown() {
         try {
+            this.childGroup.shutdownGracefully();
             Future<?> future1 = this.group.shutdownGracefully(SHUTDOWN_QUIET_PERIOD_MS, SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS);
             this.group = null;
             Future<?> future2 = this.playerGroup.shutdownGracefully(SHUTDOWN_QUIET_PERIOD_MS, SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS);
@@ -154,10 +166,12 @@ public final class GeyserServer {
         } catch (InterruptedException e) {
             GeyserImpl.getInstance().getLogger().severe("Exception in shutdown process", e);
         }
-        this.bootstrapFuture.channel().closeFuture().syncUninterruptibly();
+        for (ChannelFuture f : bootstrapFutures) {
+            f.channel().closeFuture().syncUninterruptibly();
+        }
     }
 
-    private ServerBootstrap createBootstrap(EventLoopGroup group) {
+    private ServerBootstrap createBootstrap() {
         if (this.geyser.getConfig().isDebugMode()) {
             this.geyser.getLogger().debug("EventLoop type: " + TRANSPORT.datagramChannel());
             if (TRANSPORT.datagramChannel() == NioDatagramChannel.class) {
@@ -176,7 +190,7 @@ public final class GeyserServer {
         this.geyser.getLogger().debug("Setting MTU to " + this.geyser.getConfig().getMtu());
         return new ServerBootstrap()
                 .channelFactory(RakChannelFactory.server(TRANSPORT.datagramChannel()))
-                .group(group)
+                .group(group, childGroup)
                 .option(RakChannelOption.RAK_HANDLE_PING, true)
                 .option(RakChannelOption.RAK_MAX_MTU, this.geyser.getConfig().getMtu())
                 .childHandler(serverInitializer);
@@ -212,7 +226,7 @@ public final class GeyserServer {
         return true;
     }
 
-    public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {
+    public BedrockPong onQuery(Channel channel, InetSocketAddress inetSocketAddress) {
         if (geyser.getConfig().isDebugMode() && PRINT_DEBUG_PINGS) {
             String ip;
             if (geyser.getConfig().isLogPlayerIpAddresses()) {
@@ -245,7 +259,7 @@ public final class GeyserServer {
                 .version(GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()) // Required to not be empty as of 1.16.210.59. Can only contain . and numbers.
                 .ipv4Port(this.geyser.getConfig().getBedrock().port())
                 .ipv6Port(this.geyser.getConfig().getBedrock().port())
-                .serverId(bootstrapFuture.channel().config().getOption(RakChannelOption.RAK_GUID));
+                .serverId(channel.config().getOption(RakChannelOption.RAK_GUID));
 
         if (config.isPassthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
             String[] motd = MessageTranslator.convertMessageLenient(pingInfo.getDescription()).split("\n");
