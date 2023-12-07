@@ -134,11 +134,14 @@ public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runn
             }
 
             this.pingInfo = GeyserImpl.JSON_MAPPER.readValue(buffer, GeyserPingInfo.class);
-        } catch (SocketTimeoutException | UnknownHostException | ConnectException ex) {
+        } catch (SocketTimeoutException | ConnectException ex) {
             this.pingInfo = null;
             this.geyser.getLogger().debug("Connection timeout for ping passthrough.");
         } catch (JsonParseException | JsonMappingException ex) {
             this.geyser.getLogger().error("Failed to parse json when pinging server!", ex);
+        } catch (UnknownHostException ex) {
+            // Don't reset pingInfo, as we want to keep the last known value
+            this.geyser.getLogger().warning("Unable to resolve remote host! Is the remote server down or invalid?");
         } catch (IOException e) {
             this.geyser.getLogger().error("IO error while trying to use legacy ping passthrough", e);
         }
