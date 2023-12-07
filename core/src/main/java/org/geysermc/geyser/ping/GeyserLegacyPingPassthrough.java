@@ -134,7 +134,7 @@ public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runn
             }
 
             this.pingInfo = GeyserImpl.JSON_MAPPER.readValue(buffer, GeyserPingInfo.class);
-        } catch (SocketTimeoutException | ConnectException ex) {
+        } catch (SocketTimeoutException | UnknownHostException | ConnectException ex) {
             this.pingInfo = null;
             this.geyser.getLogger().debug("Connection timeout for ping passthrough.");
         } catch (JsonParseException | JsonMappingException ex) {
