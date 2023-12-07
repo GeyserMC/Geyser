@@ -173,7 +173,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
         @Setter
         @JsonProperty("broadcast-port")
-        private int broadcastPort = 19132;
+        private int broadcastPort = -1;
 
         @Override
         public int broadcastPort() {

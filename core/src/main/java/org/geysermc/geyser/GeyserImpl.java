@@ -317,10 +317,11 @@ public class GeyserImpl implements GeyserApi {
                         throw new NumberFormatException("The broadcast port must be between 1 and 65535 inclusive!");
                     }
                 } catch (NumberFormatException e) {
-                    GeyserImpl.getInstance().getLogger().error(String.format("Invalid broadcast port: %s! Defaulting to configured port.", pongPort + " (" + e.getMessage() + ")"));
+                    logger.error(String.format("Invalid broadcast port: %s! Defaulting to configured port.", pongPort + " (" + e.getMessage() + ")"));
                     parsedPort = config.getBedrock().port();
                 }
                 config.getBedrock().setBroadcastPort(parsedPort);
+                logger.info("Broadcast port set from system property: " + parsedPort);
             }
 
             boolean floodgatePresent = bootstrap.testFloodgatePluginPresent();
