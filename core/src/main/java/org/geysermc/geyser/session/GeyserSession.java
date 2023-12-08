@@ -114,6 +114,7 @@ import org.cloudburstmc.protocol.bedrock.packet.AvailableEntityIdentifiersPacket
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BiomeDefinitionListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CameraInstructionPacket;
+import org.cloudburstmc.protocol.bedrock.packet.CameraPresetsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CameraShakePacket;
 import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ClientboundMapItemDataPacket;
@@ -160,6 +161,7 @@ import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.api.util.Position;
+import org.geysermc.geyser.bedrock.camera.CameraUtil;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -745,6 +747,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
         entityPacket.setIdentifiers(Registries.BEDROCK_ENTITY_IDENTIFIERS.get());
         upstream.sendPacket(entityPacket);
+
+        CameraPresetsPacket cameraPresetsPacket = new CameraPresetsPacket();
+        cameraPresetsPacket.getPresets().addAll(CameraUtil.CAMERA_PRESETS);
+        upstream.sendPacket(cameraPresetsPacket);
 
         CreativeContentPacket creativePacket = new CreativeContentPacket();
         creativePacket.setContents(this.itemMappings.getCreativeItems());
@@ -1559,6 +1565,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private void startGame() {
         this.upstream.getCodecHelper().setItemDefinitions(this.itemMappings);
         this.upstream.getCodecHelper().setBlockDefinitions((DefinitionRegistry) this.blockMappings); //FIXME
+        this.upstream.getCodecHelper().setCameraPresetDefinitions(CameraUtil.CAMERA_DEFINITIONS);
 
         StartGamePacket startGamePacket = new StartGamePacket();
         startGamePacket.setUniqueEntityId(playerEntity.getGeyserId());
@@ -1625,6 +1632,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
         // Required for experimental 1.21 features
         startGamePacket.getExperiments().add(new ExperimentData("updateAnnouncedLive2023", true));
+        // Add experimental cameras
+        startGamePacket.getExperiments().add(new ExperimentData("cameras", true));
 
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);
@@ -2114,7 +2123,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         CameraEaseType easeType = movement.easeType();
         if (easeType != null) {
             setInstruction.setEase(new CameraSetInstruction.EaseData(
-                    CameraEase.fromName(easeType.name()),
+                    CameraEase.fromName(easeType.id()),
                     movement.easeDuration()
             ));
         }
@@ -2126,7 +2135,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         setInstruction.setPos(EntityUtils.vector3fFromPosition(movement.position()));
         setInstruction.setRot(Vector2f.from(movement.rotationX(), movement.rotationY()));
-        //setInstruction.setPreset(); // TODO.. ah shite
+        setInstruction.setPreset(CameraUtil.getByFunctionality(movement.playerPositionForAudio(), movement.renderPlayerEffects()));
 
         CameraInstructionPacket packet = new CameraInstructionPacket();
         packet.setSetInstruction(setInstruction);
@@ -2151,7 +2160,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             throw new IllegalArgumentException("Cannot force a stationary camera on the player!" +
                     "Send a CameraPosition with an exact position instead");
         }
-        //setInstruction.setPreset(); //TODO
+
+        setInstruction.setPreset(CameraUtil.getById(perspective.ordinal()));
         packet.setSetInstruction(setInstruction);
         sendUpstreamPacket(packet);
     }
@@ -2206,6 +2216,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         result |= (movement ? movementOffset : 0);
 
         packet.setLockComponentData(result);
+        packet.setServerPosition(this.playerEntity.getPosition());
 
         sendUpstreamPacket(packet);
     }

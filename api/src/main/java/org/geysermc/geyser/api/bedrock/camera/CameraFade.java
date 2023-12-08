@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.bedrock.camera;
 
 import org.checkerframework.common.value.qual.IntRange;
+import org.geysermc.geyser.api.GeyserApi;
 
 /**
  * Represents a fade in/out color overlay
@@ -82,6 +83,15 @@ public interface CameraFade {
      * @return the seconds it takes to fade out.
      */
     float fadeOutSeconds();
+
+    /**
+     * Create a Builder for CameraFade
+     *
+     * @return A CameraFade Builder
+     */
+    static CameraFade.Builder builder() {
+        return GeyserApi.api().provider(CameraFade.Builder.class);
+    }
 
     interface Builder {
 

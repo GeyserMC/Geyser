@@ -26,38 +26,46 @@
 package org.geysermc.geyser.api.bedrock.camera;
 
 public enum CameraEaseType {
-    IN_BACK("in_back"),
-    IN_BOUNCE("in_bounce"),
-    IN_CIRC("in_circ"),
-    IN_CUBIC("in_cubic"),
-    IN_ELASTIC("in_elastic"),
-    IN_EXPO("in_expo"),
-    IN_OUT_BACK("in_out_back"),
-    IN_OUT_BOUNCE("in_out_bounce"),
-    IN_OUT_CIRC("in_out_circ"),
-    IN_OUT_CUBIC("in_out_cubic"),
-    IN_OUT_ELASTIC("in_out_elastic"),
-    IN_OUT_EXPO("in_out_expo"),
-    IN_OUT_QUAD("in_out_quad"),
-    IN_OUT_QUART("in_out_quart"),
-    IN_OUT_QUINT("in_out_quint"),
-    IN_OUT_SINE("in_out_sine"),
-    IN_QUAD("in_quad"),
-    IN_QUART("in_quart"),
-    IN_QUINT("in_quint"),
-    IN_SINE("in_sine"),
     LINEAR("linear"),
-    OUT_BACK("out_back"),
-    OUT_BOUNCE("out_bounce"),
-    OUT_CIRC("out_circ"),
-    OUT_CUBIC("out_cubic"),
-    OUT_ELASTIC("out_elastic"),
-    OUT_EXPO("out_expo"),
-    OUT_QUAD("out_quad"),
-    OUT_QUART("out_quart"),
-    OUT_QUINT("out_quint"),
-    OUT_SINE("out_sine"),
-    SPRING("spring");
-    CameraEaseType(String name) {
+    SPRING("spring"),
+    EASE_IN_SINE("in_sine"),
+    EASE_OUT_SINE("out_sine"),
+    EASE_IN_OUT_SINE("in_out_sine"),
+    EASE_IN_QUAD("in_quad"),
+    EASE_OUT_QUAD("out_quad"),
+    EASE_IN_OUT_QUAD("in_out_quad"),
+    EASE_IN_CUBIC("in_cubic"),
+    EASE_OUT_CUBIC("out_cubic"),
+    EASE_IN_OUT_CUBIC("in_out_cubic"),
+    EASE_IN_QUART("in_quart"),
+    EASE_OUT_QUART("out_quart"),
+    EASE_IN_OUT_QUART("in_out_quart"),
+    EASE_IN_QUINT("in_quint"),
+    EASE_OUT_QUINT("out_quint"),
+    EASE_IN_OUT_QUINT("in_out_quint"),
+    EASE_IN_EXPO("in_expo"),
+    EASE_OUT_EXPO("out_expo"),
+    EASE_IN_OUT_EXPO("in_out_expo"),
+    EASE_IN_CIRC("in_circ"),
+    EASE_OUT_CIRC("out_circ"),
+    EASE_IN_OUT_CIRC("in_out_circ"),
+    EASE_IN_BACK("in_back"),
+    EASE_OUT_BACK("out_back"),
+    EASE_IN_OUT_BACK("in_out_back"),
+    EASE_IN_ELASTIC("in_elastic"),
+    EASE_OUT_ELASTIC("out_elastic"),
+    EASE_IN_OUT_ELASTIC("in_out_elastic"),
+    EASE_IN_BOUNCE("in_bounce"),
+    EASE_OUT_BOUNCE("out_bounce"),
+    EASE_IN_OUT_BOUNCE("in_out_bounce");
+
+    CameraEaseType(String id) {
+        this.id = id;
+    }
+
+    private final String id;
+
+    public String id() {
+        return this.id;
     }
 }

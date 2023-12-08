@@ -23,21 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.bedrock.camera;
+package org.geysermc.geyser.bedrock.camera;
 
-public enum CameraPerspective {
-    FIRST_PERSON("minecraft:first_person"),
-    FREE("minecraft:free"),
-    THIRD_PERSON("minecraft:third_person"),
-    THIRD_PERSON_FRONT("minecraft:third_person_front");
+import org.cloudburstmc.protocol.common.NamedDefinition;
 
-    CameraPerspective(String id) {
-        this.id = id;
+public record CameraDefinition(String identifier, int runtimeId) implements NamedDefinition {
+
+    @Override
+    public String getIdentifier() {
+        return identifier;
     }
 
-    private final String id;
+    @Override
+    public int getRuntimeId() {
+        return runtimeId;
+    }
 
-    public String id() {
-        return this.id;
+    public static CameraDefinition of(String identifier, int runtimeId) {
+        return new CameraDefinition(identifier, runtimeId);
     }
 }

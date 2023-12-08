@@ -28,6 +28,7 @@ package org.geysermc.geyser.api.bedrock.camera;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.value.qual.IntRange;
+import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.util.Position;
 
 public interface CameraPosition {
@@ -93,6 +94,14 @@ public interface CameraPosition {
      */
     @Nullable Position facingPosition();
 
+    /**
+     * Create a Builder for CameraPosition
+     *
+     * @return A CameraPosition Builder
+     */
+    static CameraPosition.Builder builder() {
+        return GeyserApi.api().provider(CameraPosition.Builder.class);
+    }
 
     interface Builder {
 
