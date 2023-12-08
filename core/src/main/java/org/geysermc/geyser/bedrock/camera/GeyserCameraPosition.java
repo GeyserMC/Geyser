@@ -33,7 +33,7 @@ import org.geysermc.geyser.api.bedrock.camera.CameraFade;
 import org.geysermc.geyser.api.bedrock.camera.CameraPosition;
 import org.geysermc.geyser.api.util.Position;
 
-public record GeyserCameraMovement(CameraFade fade,
+public record GeyserCameraPosition(CameraFade fade,
                                    boolean renderPlayerEffects,
                                    boolean playerPositionForAudio,
 
@@ -49,7 +49,7 @@ public record GeyserCameraMovement(CameraFade fade,
 ) implements CameraPosition {
 
 
-    public static class Builder implements CameraPosition.Builder {
+    public static class CameraPositionBuilder implements CameraPosition.Builder {
         private CameraFade fade;
         private boolean renderPlayerEffects;
         private boolean playerPositionForAudio;
@@ -137,7 +137,7 @@ public record GeyserCameraMovement(CameraFade fade,
                 throw new IllegalArgumentException("Camera position cannot be null");
             }
 
-            return new GeyserCameraMovement(fade, renderPlayerEffects, playerPositionForAudio, easeType, easeDuration, position, rotationX, rotationY, facingPosition);
+            return new GeyserCameraPosition(fade, renderPlayerEffects, playerPositionForAudio, easeType, easeDuration, position, rotationX, rotationY, facingPosition);
         }
     }
 }
