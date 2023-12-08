@@ -26,13 +26,14 @@
 package org.geysermc.geyser.scoreboard;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.ScoreInfo;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumConstraint;
 import org.cloudburstmc.protocol.bedrock.packet.RemoveObjectivePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetDisplayObjectivePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetScorePacket;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import lombok.Getter;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.type.Entity;
@@ -41,14 +42,16 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.jetbrains.annotations.Contract;
 
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static org.geysermc.geyser.scoreboard.UpdateType.*;
+import static org.geysermc.geyser.scoreboard.UpdateType.ADD;
+import static org.geysermc.geyser.scoreboard.UpdateType.NOTHING;
+import static org.geysermc.geyser.scoreboard.UpdateType.REMOVE;
+import static org.geysermc.geyser.scoreboard.UpdateType.UPDATE;
 
 public final class Scoreboard {
     private static final boolean SHOW_SCOREBOARD_LOGS = Boolean.parseBoolean(System.getProperty("Geyser.ShowScoreboardLogs", "true"));
@@ -89,7 +92,7 @@ public final class Scoreboard {
         }
     }
 
-    public Objective registerNewObjective(String objectiveId) {
+    public @Nullable Objective registerNewObjective(String objectiveId) {
         Objective objective = objectives.get(objectiveId);
         if (objective != null) {
             // we have no other choice, or we have to make a new map?

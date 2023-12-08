@@ -30,8 +30,8 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -49,7 +49,7 @@ public record GeyserResourcePackManifest(@JsonProperty("format_version") int for
     public record Version(int major, int minor, int patch) implements ResourcePackManifest.Version {
 
         @Override
-        public @NotNull String toString() {
+        public @NonNull String toString() {
             return major + "." + minor + "." + patch;
         }
 

@@ -28,6 +28,7 @@ package org.geysermc.geyser.item.type;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserImpl;
@@ -69,7 +70,7 @@ public class PotionItem extends Item {
     }
 
     @Override
-    public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, ItemMappings mappings) {
+    public @NonNull ItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
         Potion potion = Potion.getByBedrockId(itemData.getDamage());
         ItemStack itemStack = super.translateToJava(itemData, mapping, mappings);
         if (potion != null) {

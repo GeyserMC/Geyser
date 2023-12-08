@@ -152,7 +152,7 @@ public interface GeyserBootstrap {
      * @param resource Resource to get
      * @return InputStream of the given resource
      */
-    default @NonNull InputStream getResource(String resource) {
+    default @NonNull InputStream getResourceOrThrow(@NonNull String resource) {
         InputStream stream = getResourceOrNull(resource);
         if (stream == null) {
             throw new AssertionError("Unable to find resource: " + resource);

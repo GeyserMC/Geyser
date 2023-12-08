@@ -29,14 +29,13 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
-import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,7 +44,7 @@ import static org.geysermc.erosion.util.BannerUtils.getJavaPatternTag;
 public class BannerItem extends BlockItem {
     /**
      * Holds what a Java ominous banner pattern looks like.
-     *
+     * <p>
      * Translating the patterns over to Bedrock does not work effectively, but Bedrock has a dedicated type for
      * ominous banners that we set instead. This variable is used to detect Java ominous banner patterns, and apply
      * the correct ominous banner pattern if Bedrock pulls the item from creative.
@@ -86,7 +85,7 @@ public class BannerItem extends BlockItem {
      * @param pattern Java edition pattern nbt
      * @return The Bedrock edition format pattern nbt
      */
-    @Nonnull
+    @NonNull
     private static NbtMap getBedrockBannerPattern(CompoundTag pattern) {
         return NbtMap.builder()
                 .putInt("Color", 15 - (int) pattern.get("Color").getValue())
@@ -121,7 +120,7 @@ public class BannerItem extends BlockItem {
     }
 
     @Override
-    public void translateNbtToBedrock(@NotNull GeyserSession session, @NotNull CompoundTag tag) {
+    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag) {
         super.translateNbtToBedrock(session, tag);
 
         CompoundTag blockEntityTag = tag.remove("BlockEntityTag");
@@ -137,7 +136,7 @@ public class BannerItem extends BlockItem {
     }
 
     @Override
-    public void translateNbtToJava(@NotNull CompoundTag tag, @NotNull ItemMapping mapping) {
+    public void translateNbtToJava(@NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
         super.translateNbtToJava(tag, mapping);
 
         if (tag.get("Type") instanceof IntTag type && type.getValue() == 1) {

@@ -30,9 +30,9 @@ import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -54,6 +54,10 @@ public final class LodestoneCache {
 
     public void cacheInventoryItem(GeyserItemStack itemStack) {
         CompoundTag tag = itemStack.getNbt();
+        if (tag == null) {
+            // invalid
+            return;
+        }
         CompoundTag lodestonePos = tag.get("LodestonePos");
         if (lodestonePos == null) {
             // invalid

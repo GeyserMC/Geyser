@@ -60,6 +60,6 @@ public class BedrockEntityEventTranslator extends PacketTranslator<EntityEventPa
                 return;
             }
         }
-        session.getGeyser().getLogger().debug("Did not translate incoming EntityEventPacket: " + packet.toString());
+        session.getGeyser().getLogger().debug("Did not translate incoming EntityEventPacket: " + packet);
     }
 }

@@ -32,11 +32,11 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.OptionalInt;
 import java.util.Set;
 
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 @EqualsAndHashCode(callSuper = true)
 @ToString
 public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData implements NonVanillaCustomItemData {
@@ -84,7 +84,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     }
 
     @Override
-    public @NotNull String identifier() {
+    public @NonNull String identifier() {
         return identifier;
     }
 
@@ -134,7 +134,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     }
 
     @Override
-    public @NotNull OptionalInt creativeCategory() {
+    public @NonNull OptionalInt creativeCategory() {
         return creativeCategory;
     }
 
