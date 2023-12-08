@@ -68,6 +68,7 @@ import static org.geysermc.geyser.util.InventoryUtils.LAST_RECIPE_NET_ID;
 
 /**
  * Used to send all valid recipes from Java to Bedrock.
+ * <p>
  * Bedrock REQUIRES a CraftingDataPacket to be sent in order to craft anything.
  */
 @Translator(packet = ClientboundUpdateRecipesPacket.class)

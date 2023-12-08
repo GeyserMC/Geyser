@@ -129,7 +129,7 @@ public abstract class InventoryTranslator {
     /**
      * Should be overwritten in cases where specific inventories should reject an item being in a specific spot.
      * For examples, looms use this to reject items that are dyes in Bedrock but not in Java.
-     *
+     * <p>
      * The source/destination slot will be -1 if the cursor is the slot
      *
      * @return true if this transfer should be rejected

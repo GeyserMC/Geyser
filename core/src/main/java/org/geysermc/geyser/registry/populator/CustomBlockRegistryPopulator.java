@@ -48,7 +48,7 @@ public class CustomBlockRegistryPopulator {
         DEFINITION,
         VANILLA_REGISTRATION,
         NON_VANILLA_REGISTRATION,
-        CUSTOM_REGISTRATION;
+        CUSTOM_REGISTRATION
     }
 
     /**
@@ -62,11 +62,11 @@ public class CustomBlockRegistryPopulator {
         }
         
         switch (stage) {
-            case DEFINITION -> { populateBedrock(); }
-            case VANILLA_REGISTRATION -> { populateVanilla(); }
-            case NON_VANILLA_REGISTRATION -> { populateNonVanilla(); }
-            case CUSTOM_REGISTRATION -> { registration(); }
-            default -> { throw new IllegalArgumentException("Unknown stage: " + stage); }
+            case DEFINITION -> populateBedrock();
+            case VANILLA_REGISTRATION -> populateVanilla();
+            case NON_VANILLA_REGISTRATION -> populateNonVanilla();
+            case CUSTOM_REGISTRATION -> registration();
+            default -> throw new IllegalArgumentException("Unknown stage: " + stage);
         }
     }
 
@@ -479,7 +479,7 @@ public class CustomBlockRegistryPopulator {
     }
 
     private static CustomBlockData createExtendedCollisionBlock(BoxComponent boxComponent, int extendedCollisionBlock) {
-        CustomBlockData customBlockData = new CustomBlockDataBuilder()
+        return new CustomBlockDataBuilder()
                 .name("extended_collision_" + extendedCollisionBlock)
                 .components(
                     new CustomBlockComponentsBuilder()
@@ -497,6 +497,5 @@ public class CustomBlockRegistryPopulator {
                             .build())
                         .build())
                 .build();
-        return customBlockData;
     }
 }

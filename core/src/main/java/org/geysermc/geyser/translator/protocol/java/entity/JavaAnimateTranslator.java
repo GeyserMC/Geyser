@@ -56,13 +56,13 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
         AnimatePacket animatePacket = new AnimatePacket();
         animatePacket.setRuntimeEntityId(entity.getGeyserId());
         switch (animation) {
-            case SWING_ARM:
+            case SWING_ARM -> {
                 animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
                 if (entity.getEntityId() == session.getPlayerEntity().getEntityId()) {
                     session.activateArmAnimationTicking();
                 }
-                break;
-            case SWING_OFFHAND:
+            }
+            case SWING_OFFHAND -> {
                 // Use the OptionalPack to trigger the animation
                 AnimateEntityPacket offHandPacket = new AnimateEntityPacket();
                 offHandPacket.setAnimation("animation.player.attack.rotations.offhand");
@@ -71,14 +71,13 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
                 offHandPacket.setStopExpression("query.any_animation_finished");
                 offHandPacket.setController("__runtime_controller");
                 offHandPacket.getRuntimeEntityIds().add(entity.getGeyserId());
-
                 session.sendUpstreamPacket(offHandPacket);
                 return;
-            case CRITICAL_HIT:
-                animatePacket.setAction(AnimatePacket.Action.CRITICAL_HIT);
-                break;
-            case ENCHANTMENT_CRITICAL_HIT:
+            }
+            case CRITICAL_HIT -> animatePacket.setAction(AnimatePacket.Action.CRITICAL_HIT);
+            case ENCHANTMENT_CRITICAL_HIT -> {
                 animatePacket.setAction(AnimatePacket.Action.MAGIC_CRITICAL_HIT); // Unsure if this does anything
+
                 // Spawn custom particle
                 SpawnParticleEffectPacket stringPacket = new SpawnParticleEffectPacket();
                 stringPacket.setIdentifier("geyseropt:enchanted_hit_multiple");
@@ -87,13 +86,12 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
                 stringPacket.setUniqueEntityId(entity.getGeyserId());
                 stringPacket.setMolangVariablesJson(Optional.empty());
                 session.sendUpstreamPacket(stringPacket);
-                break;
-            case LEAVE_BED:
-                animatePacket.setAction(AnimatePacket.Action.WAKE_UP);
-                break;
-            default:
+            }
+            case LEAVE_BED -> animatePacket.setAction(AnimatePacket.Action.WAKE_UP);
+            default -> {
                 session.getGeyser().getLogger().debug("Unhandled java animation: " + animation);
                 return;
+            }
         }
 
         session.sendUpstreamPacket(animatePacket);

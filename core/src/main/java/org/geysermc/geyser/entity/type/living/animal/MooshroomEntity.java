@@ -27,6 +27,7 @@ package org.geysermc.geyser.entity.type.living.animal;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.EntityDefinition;
@@ -37,7 +38,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 
-import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class MooshroomEntity extends AnimalEntity {
@@ -52,9 +52,9 @@ public class MooshroomEntity extends AnimalEntity {
         dirtyMetadata.put(EntityDataTypes.VARIANT, isBrown ? 1 : 0);
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    protected InteractiveTag testMobInteraction(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (!isBaby()) {
             if (itemInHand.asItem() == Items.BOWL) {
                 // Stew
@@ -67,9 +67,9 @@ public class MooshroomEntity extends AnimalEntity {
         return super.testMobInteraction(hand, itemInHand);
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    protected InteractionResult mobInteract(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         boolean isBaby = isBaby();
         if (!isBaby && itemInHand.asItem() == Items.BOWL) {
             // Stew

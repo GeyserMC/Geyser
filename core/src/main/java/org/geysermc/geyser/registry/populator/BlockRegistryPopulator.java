@@ -79,7 +79,7 @@ public final class BlockRegistryPopulator {
         PRE_INIT,
         INIT_JAVA,
         INIT_BEDROCK,
-        POST_INIT;
+        POST_INIT
     }
 
     @FunctionalInterface
@@ -103,10 +103,10 @@ public final class BlockRegistryPopulator {
 
     public static void populate(Stage stage) {
         switch (stage) {
-            case PRE_INIT, POST_INIT -> { nullifyBlocksNode(); }
-            case INIT_JAVA -> { registerJavaBlocks(); }
-            case INIT_BEDROCK -> { registerBedrockBlocks(); }
-            default -> { throw new IllegalArgumentException("Unknown stage: " + stage); }
+            case PRE_INIT, POST_INIT -> nullifyBlocksNode();
+            case INIT_JAVA -> registerJavaBlocks();
+            case INIT_BEDROCK -> registerBedrockBlocks();
+            default -> throw new IllegalArgumentException("Unknown stage: " + stage);
         }
     }
 
@@ -137,14 +137,15 @@ public final class BlockRegistryPopulator {
 
         // We can keep this strong as nothing should be garbage collected
         // Safe to intern since Cloudburst NBT is immutable
+        //noinspection UnstableApiUsage
         Interner<NbtMap> statesInterner = Interners.newStrongInterner();
 
         for (ObjectIntPair<String> palette : blockMappers.keySet()) {
             int protocolVersion = palette.valueInt();
             List<NbtMap> vanillaBlockStates;
             List<NbtMap> blockStates;
-            try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource(String.format("bedrock/block_palette.%s.nbt", palette.key()));
-                NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(new GZIPInputStream(stream)), true, true)) {
+            try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow(String.format("bedrock/block_palette.%s.nbt", palette.key()));
+                 NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(new GZIPInputStream(stream)), true, true)) {
                 NbtMap blockPalette = (NbtMap) nbtInputStream.readTag();
 
                 vanillaBlockStates = new ArrayList<>(blockPalette.getList("blocks", NbtType.COMPOUND));
@@ -153,6 +154,7 @@ public final class BlockRegistryPopulator {
                     builder.remove("version"); // Remove all nbt tags which are not needed for differentiating states
                     builder.remove("name_hash"); // Quick workaround - was added in 1.19.20
                     builder.remove("network_id"); // Added in 1.19.80 - ????
+                    //noinspection UnstableApiUsage
                     builder.putCompound("states", statesInterner.intern((NbtMap) builder.remove("states")));
                     vanillaBlockStates.set(i, builder.build());
                 }
@@ -323,7 +325,7 @@ public final class BlockRegistryPopulator {
             builder.bedrockMovingBlock(movingBlockDefinition);
 
             Map<JavaBlockState, CustomBlockState> nonVanillaStateOverrides = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get();
-            if (nonVanillaStateOverrides.size() > 0) {
+            if (!nonVanillaStateOverrides.isEmpty()) {
                 // First ensure all non vanilla runtime IDs at minimum are air in case they aren't consecutive
                 Arrays.fill(javaToVanillaBedrockBlocks, MIN_CUSTOM_RUNTIME_ID, javaToVanillaBedrockBlocks.length, airDefinition);
                 Arrays.fill(javaToBedrockBlocks, MIN_CUSTOM_RUNTIME_ID, javaToBedrockBlocks.length, airDefinition);
@@ -374,7 +376,7 @@ public final class BlockRegistryPopulator {
 
     private static void registerJavaBlocks() {
         JsonNode blocksJson;
-        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource("mappings/blocks.json")) {
+        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow("mappings/blocks.json")) {
             blocksJson = GeyserImpl.JSON_MAPPER.readTree(stream);
         } catch (Exception e) {
             throw new AssertionError("Unable to load Java block mappings", e);
@@ -382,9 +384,9 @@ public final class BlockRegistryPopulator {
 
         JAVA_BLOCKS_SIZE = blocksJson.size();
 
-        if (BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().size() > 0) {
-            MIN_CUSTOM_RUNTIME_ID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().min(Comparator.comparing(JavaBlockState::javaId)).get().javaId();
-            int maxCustomRuntimeID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().max(Comparator.comparing(JavaBlockState::javaId)).get().javaId();
+        if (!BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().isEmpty()) {
+            MIN_CUSTOM_RUNTIME_ID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().min(Comparator.comparing(JavaBlockState::javaId)).orElseThrow().javaId();
+            int maxCustomRuntimeID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().max(Comparator.comparing(JavaBlockState::javaId)).orElseThrow().javaId();
 
             if (MIN_CUSTOM_RUNTIME_ID < blocksJson.size()) {
                 throw new RuntimeException("Non vanilla custom block state overrides runtime ID must start after the last vanilla block state (" + JAVA_BLOCKS_SIZE + ")");
@@ -531,7 +533,7 @@ public final class BlockRegistryPopulator {
         }
         BlockStateValues.JAVA_WATER_ID = waterRuntimeId;
 
-        if (BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().size() > 0) {
+        if (!BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().isEmpty()) {
             Set<Integer> usedNonVanillaRuntimeIDs = new HashSet<>();
 
             for (JavaBlockState javaBlockState : BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet()) {
@@ -543,6 +545,7 @@ public final class BlockRegistryPopulator {
 
                 String javaId = javaBlockState.identifier();
                 int stateRuntimeId = javaBlockState.javaId();
+                String pistonBehavior = javaBlockState.pistonBehavior();
                 BlockMapping blockMapping = BlockMapping.builder()
                     .canBreakWithHand(javaBlockState.canBreakWithHand())
                     .pickItem(javaBlockState.pickItem())
@@ -550,7 +553,7 @@ public final class BlockRegistryPopulator {
                     .javaIdentifier(javaId)
                     .javaBlockId(javaBlockState.stateGroupId())
                     .hardness(javaBlockState.blockHardness())
-                    .pistonBehavior(javaBlockState.pistonBehavior() == null ? PistonBehavior.NORMAL : PistonBehavior.getByName(javaBlockState.pistonBehavior()))
+                    .pistonBehavior(pistonBehavior == null ? PistonBehavior.NORMAL : PistonBehavior.getByName(pistonBehavior))
                     .isBlockEntity(javaBlockState.hasBlockEntity())
                     .build();
 
@@ -576,7 +579,7 @@ public final class BlockRegistryPopulator {
         BLOCKS_JSON = blocksJson;
 
         JsonNode blockInteractionsJson;
-        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource("mappings/interactions.json")) {
+        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow("mappings/interactions.json")) {
             blockInteractionsJson = GeyserImpl.JSON_MAPPER.readTree(stream);
         } catch (Exception e) {
             throw new AssertionError("Unable to load Java block interaction mappings", e);

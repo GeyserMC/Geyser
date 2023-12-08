@@ -79,7 +79,7 @@ public class FileUtils {
             //noinspection ResultOfMethodCallIgnored
             file.createNewFile();
             try (FileOutputStream fos = new FileOutputStream(file)) {
-                try (InputStream input = bootstrap.getResource(name)) {
+                try (InputStream input = bootstrap.getResourceOrThrow(name)) {
                     byte[] bytes = new byte[input.available()];
 
                     //noinspection ResultOfMethodCallIgnored
@@ -170,7 +170,7 @@ public class FileUtils {
      * @return the byte array of an InputStream
      */
     public static byte[] readAllBytes(String resource) {
-        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource(resource)) {
+        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow(resource)) {
             return stream.readAllBytes();
         } catch (IOException e) {
             throw new RuntimeException("Error while trying to read internal input stream!", e);
@@ -225,7 +225,7 @@ public class FileUtils {
      * @return a set of all the classes annotated by the given annotation
      */
     public static Set<Class<?>> getGeneratedClassesForAnnotation(String input) {
-        try (InputStream annotatedClass = GeyserImpl.getInstance().getBootstrap().getResource(input);
+        try (InputStream annotatedClass = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow(input);
              BufferedReader reader = new BufferedReader(new InputStreamReader(annotatedClass))) {
             return reader.lines().map(className -> {
                 try {

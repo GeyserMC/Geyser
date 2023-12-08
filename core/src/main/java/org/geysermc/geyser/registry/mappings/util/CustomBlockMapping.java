@@ -25,10 +25,10 @@
 
 package org.geysermc.geyser.registry.mappings.util;
 
-import java.util.Map;
-
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
+
+import java.util.Map;
 
 /**
  * This class is used to store a custom block mappings, which contain all of the 
@@ -38,7 +38,7 @@ import org.geysermc.geyser.api.block.custom.CustomBlockData;
  * @param data The custom block data
  * @param states The custom block state mappings
  * @param javaIdentifier The java identifier of the block
- * @param overrideItem Whether or not the custom block should override the java item
+ * @param overrideItem Whether the custom block should override the java item
  */
 public record CustomBlockMapping(@NonNull CustomBlockData data, @NonNull Map<String, CustomBlockStateMapping> states, @NonNull String javaIdentifier, boolean overrideItem) {
 }

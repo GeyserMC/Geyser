@@ -33,6 +33,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEnti
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
@@ -44,7 +45,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.DimensionUtils;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -112,7 +112,7 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     /**
      * Sending any updated flags (sprinting, onFire, etc.) to the client while in spectator is not needed
-     * Also "fixes" https://github.com/GeyserMC/Geyser/issues/3318
+     * Also "fixes" <a href="https://github.com/GeyserMC/Geyser/issues/3318">issue 3318</a>
      */
     @Override
     public void setFlags(ByteEntityMetadata entityMetadata) {
@@ -126,7 +126,7 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     /**
      * Since 1.19.40, the client must be re-informed of its bounding box on respawn
-     * See https://github.com/GeyserMC/Geyser/issues/3370
+     * See <a href="https://github.com/GeyserMC/Geyser/issues/3370">issue 3370</a>
      */
     public void updateBoundingBox() {
         dirtyMetadata.put(EntityDataTypes.HEIGHT, getBoundingBoxHeight());

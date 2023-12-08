@@ -26,7 +26,6 @@
 package org.geysermc.geyser.item.components;
 
 import com.google.common.base.Suppliers;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 
@@ -65,15 +64,5 @@ public enum ToolTier {
     @Override
     public String toString() {
         return this.name().toLowerCase(Locale.ROOT);
-    }
-
-    public static ToolTier getByName(@NonNull String name) {
-        String upperCase = name.toUpperCase(Locale.ROOT);
-        for (ToolTier tier : VALUES) {
-            if (tier.name().equals(upperCase)) {
-                return tier;
-            }
-        }
-        return null;
     }
 }

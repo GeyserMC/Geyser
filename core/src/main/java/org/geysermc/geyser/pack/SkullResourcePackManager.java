@@ -27,6 +27,7 @@ package org.geysermc.geyser.pack;
 
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
@@ -63,7 +64,7 @@ public class SkullResourcePackManager {
     public static final Map<String, Path> SKULL_SKINS = new Object2ObjectOpenHashMap<>();
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static Path createResourcePack() {
+    public static @Nullable Path createResourcePack() {
         Path cachePath = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache");
         try {
             Files.createDirectories(cachePath);
@@ -165,7 +166,7 @@ public class SkullResourcePackManager {
     }
 
     private static void addBaseResources(ZipOutputStream zipOS) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(GeyserImpl.getInstance().getBootstrap().getResource("bedrock/skull_resource_pack_files.txt")))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(GeyserImpl.getInstance().getBootstrap().getResourceOrThrow("bedrock/skull_resource_pack_files.txt")))) {
             List<String> lines = reader.lines().toList();
             for (String path : lines) {
                 ZipEntry entry = new ZipEntry(path);

@@ -26,6 +26,7 @@
 package org.geysermc.geyser.text;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrays;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 
@@ -110,7 +111,7 @@ public class GeyserLocale {
         loadGeyserLocale(locale, geyser.getBootstrap());
     }
 
-    private static String loadGeyserLocale(String locale, GeyserBootstrap bootstrap) {
+    private static @Nullable String loadGeyserLocale(String locale, GeyserBootstrap bootstrap) {
         locale = formatLocale(locale);
         // Don't load the locale if it's already loaded.
         if (LOCALE_MAPPINGS.containsKey(locale)) {
