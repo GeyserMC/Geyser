@@ -89,9 +89,9 @@ public interface GeyserConnection extends Connection, CommandSource {
      * Sends a camera instruction to the client.
      * Can be built using {@link CameraPosition.Builder}.
      *
-     * @param movement the camera movement to send
+     * @param position the camera position to send
      */
-    void setCameraPosition(CameraPosition movement);
+    void sendCameraPosition(CameraPosition position);
 
     /**
      * Stops all sent camera instructions (fades, movements, and perspective locks).

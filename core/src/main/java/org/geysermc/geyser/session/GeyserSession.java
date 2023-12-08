@@ -2121,7 +2121,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
-    public void setCameraPosition(CameraPosition movement) {
+    public void sendCameraPosition(CameraPosition movement) {
         this.cameraPerspective = CameraPerspective.FREE; // Movements only work with the free preset
         CameraSetInstruction setInstruction = new CameraSetInstruction();
 
