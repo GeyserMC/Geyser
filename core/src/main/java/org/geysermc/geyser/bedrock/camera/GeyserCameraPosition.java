@@ -36,15 +36,11 @@ import org.geysermc.geyser.api.util.Position;
 public record GeyserCameraPosition(CameraFade fade,
                                    boolean renderPlayerEffects,
                                    boolean playerPositionForAudio,
-
                                    CameraEaseType easeType,
-
                                    float easeDuration,
                                    Position position,
-
                                    @IntRange(from = -90, to = 90) int rotationX,
                                    int rotationY,
-
                                    Position facingPosition
 ) implements CameraPosition {
 
@@ -53,15 +49,11 @@ public record GeyserCameraPosition(CameraFade fade,
         private CameraFade fade;
         private boolean renderPlayerEffects;
         private boolean playerPositionForAudio;
-
         private CameraEaseType easeType;
-
         private float easeDuration;
         private Position position;
-
         private @IntRange(from = -90, to = 90) int rotationX;
         private int rotationY;
-
         private Position facingPosition;
 
         @Override
