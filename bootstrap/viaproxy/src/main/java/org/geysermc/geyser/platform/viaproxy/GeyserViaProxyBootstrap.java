@@ -78,13 +78,12 @@ public class GeyserViaProxyBootstrap implements GeyserBootstrap {
         GeyserConfiguration.checkGeyserConfiguration(this.config, this.logger);
 
         this.geyser = GeyserImpl.load(PlatformType.VIAPROXY, this);
+        GeyserImpl.start();
 
         this.commandManager = new GeyserCommandManager(this.geyser);
         this.commandManager.init();
 
         this.pingPassthrough = GeyserLegacyPingPassthrough.init(this.geyser);
-
-        GeyserImpl.start();
     }
 
     @Override
