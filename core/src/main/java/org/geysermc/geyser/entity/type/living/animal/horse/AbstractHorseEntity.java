@@ -27,6 +27,7 @@ package org.geysermc.geyser.entity.type.living.animal.horse;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
@@ -44,7 +45,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 
-import javax.annotation.Nonnull;
 import java.util.Set;
 import java.util.UUID;
 
@@ -128,14 +128,14 @@ public class AbstractHorseEntity extends AnimalEntity {
         return DONKEY_AND_HORSE_FOODS.contains(item);
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    protected InteractiveTag testMobInteraction(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         return testHorseInteraction(hand, itemInHand);
     }
 
-    @Nonnull
-    protected final InteractiveTag testHorseInteraction(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    @NonNull
+    protected final InteractiveTag testHorseInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         boolean isBaby = isBaby();
         if (!isBaby) {
             if (getFlag(EntityFlag.TAMED) && session.isSneaking()) {
@@ -178,14 +178,14 @@ public class AbstractHorseEntity extends AnimalEntity {
         }
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         return mobHorseInteract(hand, itemInHand);
     }
 
-    @Nonnull
-    protected final InteractionResult mobHorseInteract(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    @NonNull
+    protected final InteractionResult mobHorseInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         boolean isBaby = isBaby();
         if (!isBaby) {
             if (getFlag(EntityFlag.TAMED) && session.isSneaking()) {
@@ -236,21 +236,21 @@ public class AbstractHorseEntity extends AnimalEntity {
         }
     }
 
-    protected boolean testSaddle(@Nonnull GeyserItemStack itemInHand) {
+    protected boolean testSaddle(@NonNull GeyserItemStack itemInHand) {
         return isAlive() && !getFlag(EntityFlag.BABY) && getFlag(EntityFlag.TAMED);
     }
 
-    protected boolean testForChest(@Nonnull GeyserItemStack itemInHand) {
+    protected boolean testForChest(@NonNull GeyserItemStack itemInHand) {
         return false;
     }
 
-    protected boolean additionalTestForInventoryOpen(@Nonnull GeyserItemStack itemInHand) {
+    protected boolean additionalTestForInventoryOpen(@NonNull GeyserItemStack itemInHand) {
         return itemInHand.asItem().javaIdentifier().endsWith("_horse_armor");
     }
 
     /* Just a place to stuff common code for the undead variants without having duplicate code */
 
-    protected final InteractiveTag testUndeadHorseInteraction(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected final InteractiveTag testUndeadHorseInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (!getFlag(EntityFlag.TAMED)) {
             return InteractiveTag.NONE;
         } else if (isBaby()) {
@@ -272,7 +272,7 @@ public class AbstractHorseEntity extends AnimalEntity {
         }
     }
 
-    protected final InteractionResult undeadHorseInteract(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected final InteractionResult undeadHorseInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (!getFlag(EntityFlag.TAMED)) {
             return InteractionResult.PASS;
         } else if (isBaby()) {

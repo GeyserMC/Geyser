@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.level.physics;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -133,7 +134,7 @@ public class CollisionManager {
      * @param teleported whether the Bedrock player has teleported to a new position. If true, movement correction is skipped.
      * @return the position to send to the Java server, or null to cancel sending the packet
      */
-    public Vector3d adjustBedrockPosition(Vector3f bedrockPosition, boolean onGround, boolean teleported) {
+    public @Nullable Vector3d adjustBedrockPosition(Vector3f bedrockPosition, boolean onGround, boolean teleported) {
         PistonCache pistonCache = session.getPistonCache();
         // Bedrock clients tend to fall off of honey blocks, so we need to teleport them to the new position
         if (pistonCache.isPlayerAttachedToHoney()) {

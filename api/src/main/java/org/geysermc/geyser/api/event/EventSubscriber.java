@@ -27,7 +27,6 @@ package org.geysermc.geyser.api.event;
 
 import org.geysermc.event.Event;
 import org.geysermc.event.subscribe.OwnedSubscriber;
-import org.geysermc.geyser.api.extension.Extension;
 
 /**
  * Represents a subscribed listener to a {@link Event}. Wraps around

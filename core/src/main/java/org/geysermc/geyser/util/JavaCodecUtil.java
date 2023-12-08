@@ -28,8 +28,8 @@ package org.geysermc.geyser.util;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
-import javax.annotation.Nonnull;
 import java.util.Iterator;
 
 public final class JavaCodecUtil {
@@ -41,7 +41,7 @@ public final class JavaCodecUtil {
         ListTag value = tag.get("value");
         Iterator<Tag> originalIterator = value.iterator();
         return new Iterable<>() {
-            @Nonnull
+            @NonNull
             @Override
             public Iterator<CompoundTag> iterator() {
                 return new Iterator<>() {

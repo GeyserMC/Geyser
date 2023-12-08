@@ -34,13 +34,13 @@ import com.google.common.cache.LoadingCache;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 
-import javax.annotation.Nonnull;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -58,7 +58,7 @@ public class FakeHeadProvider {
             .maximumSize(10000)
             .build(new CacheLoader<>() {
                 @Override
-                public SkinProvider.SkinData load(@Nonnull FakeHeadEntry fakeHeadEntry) throws Exception {
+                public SkinProvider.SkinData load(@NonNull FakeHeadEntry fakeHeadEntry) throws Exception {
                     SkinProvider.SkinData skinData = SkinProvider.getOrDefault(SkinProvider.requestSkinData(fakeHeadEntry.getEntity()), null, 5);
 
                     if (skinData == null) {
@@ -134,7 +134,7 @@ public class FakeHeadProvider {
 
         session.getPlayerWithCustomHeads().add(entity.getUuid());
         String texturesProperty = entity.getTexturesProperty();
-        SkinProvider.EXECUTOR_SERVICE.execute(() -> {
+        SkinProvider.getExecutorService().execute(() -> {
             try {
                 SkinProvider.SkinData mergedSkinData = MERGED_SKINS_LOADING_CACHE.get(new FakeHeadEntry(texturesProperty, fakeHeadSkinUrl, entity));
                 SkinManager.sendSkinPacket(session, entity, mergedSkinData);

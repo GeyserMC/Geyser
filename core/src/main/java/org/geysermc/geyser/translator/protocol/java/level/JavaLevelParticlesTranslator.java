@@ -35,6 +35,7 @@ import com.github.steveice10.mc.protocol.data.game.level.particle.VibrationParti
 import com.github.steveice10.mc.protocol.data.game.level.particle.positionsource.BlockPositionSource;
 import com.github.steveice10.mc.protocol.data.game.level.particle.positionsource.EntityPositionSource;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelParticlesPacket;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
@@ -92,7 +93,7 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
      * @return a function to create a packet with a specified particle, in the event we need to spawn multiple particles
      * with different offsets.
      */
-    private Function<Vector3f, BedrockPacket> createParticle(GeyserSession session, Particle particle) {
+    private @Nullable Function<Vector3f, BedrockPacket> createParticle(GeyserSession session, Particle particle) {
         switch (particle.getType()) {
             case BLOCK -> {
                 int blockState = session.getBlockMappings().getBedrockBlockId(((BlockParticleData) particle.getData()).getBlockState());

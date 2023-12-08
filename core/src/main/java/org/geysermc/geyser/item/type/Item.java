@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.Identifier;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.Enchantment;
@@ -99,8 +100,7 @@ public class Item {
         return builder;
     }
 
-    public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, ItemMappings mappings) {
-        if (itemData == null) return null;
+    public @NonNull ItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
         if (itemData.getTag() == null) {
             return new ItemStack(javaId, itemData.getCount(), new CompoundTag(""));
         }
@@ -206,7 +206,7 @@ public class Item {
         }
     }
 
-    protected final CompoundTag remapEnchantment(GeyserSession session, CompoundTag tag, CompoundTag rootTag) {
+    protected final @Nullable CompoundTag remapEnchantment(GeyserSession session, CompoundTag tag, CompoundTag rootTag) {
         Tag javaEnchId = tag.get("id");
         if (!(javaEnchId instanceof StringTag))
             return null;

@@ -33,7 +33,7 @@ import org.geysermc.geyser.translator.inventory.Generic3X3InventoryTranslator;
 public class Generic3X3Container extends Container {
     /**
      * Whether we need to set the container type as {@link org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType#DROPPER}.
-     *
+     * <p>
      * Used at {@link Generic3X3InventoryTranslator#openInventory(GeyserSession, Inventory)}
      */
     @Getter

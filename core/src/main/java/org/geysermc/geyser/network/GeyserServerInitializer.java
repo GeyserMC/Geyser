@@ -28,6 +28,7 @@ package org.geysermc.geyser.network;
 import io.netty.channel.Channel;
 import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.BedrockPeer;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.netty.initializer.BedrockServerInitializer;
@@ -35,7 +36,6 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.bedrock.SessionInitializeEvent;
 import org.geysermc.geyser.session.GeyserSession;
 
-import javax.annotation.Nonnull;
 import java.net.InetSocketAddress;
 
 public class GeyserServerInitializer extends BedrockServerInitializer {
@@ -52,7 +52,7 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
     }
 
     @Override
-    public void initSession(@Nonnull BedrockServerSession bedrockServerSession) {
+    public void initSession(@NonNull BedrockServerSession bedrockServerSession) {
         try {
             if (this.geyser.getGeyserServer().getProxiedAddresses() != null) {
                 InetSocketAddress address = this.geyser.getGeyserServer().getProxiedAddresses().get((InetSocketAddress) bedrockServerSession.getSocketAddress());

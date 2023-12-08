@@ -42,6 +42,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v589.Bedrock_v589;
 import org.cloudburstmc.protocol.bedrock.codec.v594.Bedrock_v594;
 import org.cloudburstmc.protocol.bedrock.codec.v618.Bedrock_v618;
 import org.cloudburstmc.protocol.bedrock.codec.v622.Bedrock_v622;
+import org.cloudburstmc.protocol.bedrock.codec.v630.Bedrock_v630;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
@@ -113,18 +114,32 @@ public class ItemRegistryPopulator {
             return mapping;
         };
 
+        Remapper remapper630 = (item, mapping) -> {
+            mapping = remapper618.remap(item, mapping); // apply 1.20.30 remapper first
+
+            String id = item.javaIdentifier();
+            // 1.20.50 replaced stone & planks to individual stone types
+            // E.g.: granite, diorite, andesite, polished variants, dark_oak_planks etc
+            if (mapping.getBedrockIdentifier().equals("minecraft:stone") || mapping.getBedrockIdentifier().equals("minecraft:planks")) {
+                return mapping.withBedrockIdentifier(id);
+            }
+
+            return mapping;
+        };
+
         List<PaletteVersion> paletteVersions = new ArrayList<>(3);
         paletteVersions.add(new PaletteVersion("1_20_0", Bedrock_v589.CODEC.getProtocolVersion()));
         paletteVersions.add(new PaletteVersion("1_20_10", Bedrock_v594.CODEC.getProtocolVersion(), Collections.emptyMap(), remapper594));
         paletteVersions.add(new PaletteVersion("1_20_30", Bedrock_v618.CODEC.getProtocolVersion(), Collections.emptyMap(), remapper618));
         paletteVersions.add(new PaletteVersion("1_20_40", Bedrock_v622.CODEC.getProtocolVersion(), Collections.emptyMap(), remapper618)); // NO item changes between 1.20.30 and 1.20.40
+        paletteVersions.add(new PaletteVersion("1_20_50", Bedrock_v630.CODEC.getProtocolVersion(), Collections.emptyMap(), remapper630));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
         TypeReference<Map<String, GeyserMappingItem>> mappingItemsType = new TypeReference<>() { };
 
         Map<String, GeyserMappingItem> items;
-        try (InputStream stream = bootstrap.getResource("mappings/items.json")) {
+        try (InputStream stream = bootstrap.getResourceOrThrow("mappings/items.json")) {
             // Load item mappings from Java Edition to Bedrock Edition
             items = GeyserImpl.JSON_MAPPER.readValue(stream, mappingItemsType);
         } catch (Exception e) {
@@ -151,7 +166,7 @@ public class ItemRegistryPopulator {
             TypeReference<List<PaletteItem>> paletteEntriesType = new TypeReference<>() {};
 
             List<PaletteItem> itemEntries;
-            try (InputStream stream = bootstrap.getResource(String.format("bedrock/runtime_item_states.%s.json", palette.version()))) {
+            try (InputStream stream = bootstrap.getResourceOrThrow(String.format("bedrock/runtime_item_states.%s.json", palette.version()))) {
                 itemEntries = GeyserImpl.JSON_MAPPER.readValue(stream, paletteEntriesType);
             } catch (Exception e) {
                 throw new AssertionError("Unable to load Bedrock runtime item IDs", e);
