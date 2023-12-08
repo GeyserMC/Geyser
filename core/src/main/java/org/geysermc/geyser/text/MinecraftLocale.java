@@ -52,8 +52,6 @@ public class MinecraftLocale {
             // Create the locales folder
             Files.createDirectories(LOCALE_FOLDER);
             Files.createDirectories(LOCALE_FOLDER.resolve("overrides"));
-            // FIXME TEMPORARY
-            Files.delete(LOCALE_FOLDER.resolve("en_us.hash"));
         } catch (IOException ignored) {
             //no-op
         }
