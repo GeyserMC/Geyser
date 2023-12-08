@@ -24,6 +24,7 @@
  */
 package org.geysermc.geyser.platform.viaproxy;
 
+import net.raphimc.vialoader.util.VersionEnum;
 import net.raphimc.viaproxy.cli.options.Options;
 import org.apache.logging.log4j.Logger;
 import org.geysermc.geyser.GeyserBootstrap;
@@ -83,7 +84,10 @@ public class GeyserViaProxyBootstrap implements GeyserBootstrap {
         this.commandManager = new GeyserCommandManager(this.geyser);
         this.commandManager.init();
 
-        this.pingPassthrough = GeyserLegacyPingPassthrough.init(this.geyser);
+        if (Options.PROTOCOL_VERSION != null && Options.PROTOCOL_VERSION.isNewerThanOrEqualTo(VersionEnum.b1_8tob1_8_1)) {
+            // Only initialize the ping passthrough if the protocol version is above beta 1.7.3, as that's when the status protocol was added
+            this.pingPassthrough = GeyserLegacyPingPassthrough.init(this.geyser);
+        }
     }
 
     @Override
