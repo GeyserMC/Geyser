@@ -52,8 +52,8 @@ public class MinecraftLocale {
             // Create the locales folder
             Files.createDirectories(LOCALE_FOLDER);
             Files.createDirectories(LOCALE_FOLDER.resolve("overrides"));
-        } catch (IOException ignored) {
-            //no-op
+        } catch (IOException exception) {
+            throw new RuntimeException("Unable to create locale folders! " + exception.getMessage());
         }
     }
 
