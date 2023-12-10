@@ -2052,7 +2052,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
-    public void sendCameraPosition(CameraPosition movement) {
+    public void sendCameraPosition(@NonNull CameraPosition movement) {
+        if (movement == null) {
+            return;
+        }
         this.cameraPerspective = CameraPerspective.FREE; // Movements only work with the free preset
         CameraSetInstruction setInstruction = new CameraSetInstruction();
 
@@ -2088,6 +2091,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public void forceCameraPerspective(@NonNull CameraPerspective perspective) {
+        if (perspective == null || perspective == cameraPerspective) {
+            return;
+        }
         this.cameraPerspective = perspective;
         CameraInstructionPacket packet = new CameraInstructionPacket();
         CameraSetInstruction setInstruction = new CameraSetInstruction();
@@ -2104,7 +2110,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public @Nullable CameraPerspective forcedCameraPerspective() {
-        return cameraPerspective;
+        return this.cameraPerspective;
     }
 
     @Override

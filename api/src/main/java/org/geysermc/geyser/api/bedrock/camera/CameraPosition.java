@@ -105,13 +105,13 @@ public interface CameraPosition {
 
     interface Builder {
 
-        Builder fade(@NonNull CameraFade fade);
+        Builder fade(@Nullable CameraFade fade);
 
         Builder renderPlayerEffects(boolean renderPlayerEffects);
 
         Builder playerPositionForAudio(boolean playerPositionForAudio);
 
-        Builder easeType(@NonNull CameraEaseType easeType);
+        Builder easeType(@Nullable CameraEaseType easeType);
 
         Builder easeDuration(float easeDuration);
 
@@ -121,7 +121,7 @@ public interface CameraPosition {
 
         Builder rotationY(int rot_y);
 
-        Builder facingPosition(@NonNull Position facingPosition);
+        Builder facingPosition(@Nullable Position facingPosition);
 
         CameraPosition build();
     }

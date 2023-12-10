@@ -111,10 +111,7 @@ public record GeyserCameraPosition(CameraFade fade,
         }
 
         @Override
-        public CameraPosition.Builder facingPosition(@NonNull Position facingPosition) {
-            if (facingPosition == null) {
-                throw new IllegalArgumentException("Camera facing position cannot be null");
-            }
+        public CameraPosition.Builder facingPosition(@Nullable Position facingPosition) {
             this.facingPosition = facingPosition;
             return this;
         }
