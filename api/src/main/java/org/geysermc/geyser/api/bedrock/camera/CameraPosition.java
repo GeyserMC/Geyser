@@ -34,19 +34,11 @@ import org.geysermc.geyser.api.util.Position;
 public interface CameraPosition {
 
     /**
-     * Controls whether player effects, such as night vision or blindness, should be rendered.
+     * Gets the camera's {@link Position}.
      *
-     * @return whether player effects should be rendered
+     * @return Camera's position.
      */
-    boolean renderPlayerEffects();
-
-    /**
-     * Controls whether the player position should be used for directional audio.
-     * If false, the camera position will be used instead.
-     *
-     * @return whether the players position should be used for directional audio.
-     */
-    boolean playerPositionForAudio();
+    @NonNull Position position();
 
     /**
      * Gets the {@link CameraEaseType} of the camera.
@@ -65,15 +57,9 @@ public interface CameraPosition {
     float easeDuration();
 
     /**
-     * Gets the camera's {@link Position}.
-     *
-     * @return Camera's position.
-     */
-    @NonNull Position position();
-
-    /**
      * Gets the x rotation of the camera.
      * To prevent the camera from being upside down, Bedrock limits the range to -90 to 90.
+     * Will be overridden if {@link #facingPosition()} is set.
      *
      * @return Camera's x rotation.
      */
@@ -81,6 +67,7 @@ public interface CameraPosition {
 
     /**
      * Gets the y rotation of the camera.
+     * Will be overridden if {@link #facingPosition()} is set.
      *
      * @return Camera's y rotation.
      */
@@ -89,10 +76,28 @@ public interface CameraPosition {
     /**
      * Gets the position that the camera is facing.
      * Can be used instead of manually setting rotation values.
+     * <p>
+     * If set, the rotation values set via {@link #rotationX()} and {@link #rotationY()} will be ignored.
      *
      * @return Camera's facing position.
      */
     @Nullable Position facingPosition();
+
+    /**
+     * Controls whether player effects, such as night vision or blindness, should be rendered on the camera.
+     * Defaults to false.
+     *
+     * @return whether player effects should be rendered
+     */
+    boolean renderPlayerEffects();
+
+    /**
+     * Controls whether the player position should be used for directional audio.
+     * If false, the camera position will be used instead.
+     *
+     * @return whether the players position should be used for directional audio.
+     */
+    boolean playerPositionForAudio();
 
     /**
      * Create a Builder for CameraPosition

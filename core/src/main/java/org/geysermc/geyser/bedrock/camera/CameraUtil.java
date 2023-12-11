@@ -48,9 +48,9 @@ public class CameraUtil {
                 new CameraPreset("minecraft:free", "", null, null, null, null, OptionalBoolean.empty()),
                 new CameraPreset("minecraft:third_person", "", null, null, null, null, OptionalBoolean.empty()),
                 new CameraPreset("minecraft:third_person_front", "", null, null, null, null, OptionalBoolean.empty()),
-                new CameraPreset("geyser:free_audio", "minecraft:free", null, null, null, CameraAudioListener.CAMERA, OptionalBoolean.of(false)),
-                new CameraPreset("geyser:free_effects", "minecraft:free", null, null, null, CameraAudioListener.PLAYER, OptionalBoolean.of(true)),
-                new CameraPreset("geyser:free_audio_effects", "minecraft:free", null, null, null, CameraAudioListener.CAMERA, OptionalBoolean.of(true)));
+                new CameraPreset("geyser:free_audio", "minecraft:free", null, null, null, CameraAudioListener.PLAYER, OptionalBoolean.of(false)),
+                new CameraPreset("geyser:free_effects", "minecraft:free", null, null, null, CameraAudioListener.CAMERA, OptionalBoolean.of(true)),
+                new CameraPreset("geyser:free_audio_effects", "minecraft:free", null, null, null, CameraAudioListener.PLAYER, OptionalBoolean.of(true)));
 
         CAMERA_DEFINITIONS = SimpleDefinitionRegistry.<NamedDefinition>builder()
                 .addAll(IntStream.range(0, CAMERA_PRESETS.size())
