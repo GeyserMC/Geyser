@@ -132,6 +132,13 @@ public class ConnectionTestCommand extends GeyserCommand {
                     sender.sendMessage("Re-run the command with that port, or change the port in the config under `bedrock` `port`.");
                 }
             }
+        } else {
+            if (config.getBedrock().broadcastPort() != port) {
+                sender.sendMessage("The port you are testing with (" + port + ") is not the same as the broadcast port set in your Geyser configuration ("
+                        + config.getBedrock().broadcastPort() + "). ");
+                sender.sendMessage("You ONLY need to change the broadcast port if clients connects with a port different from the port Geyser is running on.");
+                sender.sendMessage("Re-run the command with the port in the config, or change the `bedrock` `broadcast-port` in the config.");
+            }
         }
 
         // Issue: is the `bedrock` `address` in the config different?
