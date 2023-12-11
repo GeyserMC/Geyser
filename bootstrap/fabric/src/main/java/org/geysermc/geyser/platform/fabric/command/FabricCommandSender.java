@@ -30,11 +30,12 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.ChatColor;
 
-import javax.annotation.Nonnull;
+import java.util.Objects;
 
 public class FabricCommandSender implements GeyserCommandSource {
 
@@ -50,7 +51,7 @@ public class FabricCommandSender implements GeyserCommandSource {
     }
 
     @Override
-    public void sendMessage(@Nonnull String message) {
+    public void sendMessage(@NonNull String message) {
         if (source.getEntity() instanceof ServerPlayer) {
             ((ServerPlayer) source.getEntity()).displayClientMessage(Component.literal(message), false);
         } else {
@@ -62,7 +63,7 @@ public class FabricCommandSender implements GeyserCommandSource {
     public void sendMessage(net.kyori.adventure.text.Component message) {
         if (source.getEntity() instanceof ServerPlayer player) {
             String decoded = GsonComponentSerializer.gson().serialize(message);
-            player.displayClientMessage(Component.Serializer.fromJson(decoded), false);
+            player.displayClientMessage(Objects.requireNonNull(Component.Serializer.fromJson(decoded)), false);
             return;
         }
         GeyserCommandSource.super.sendMessage(message);

@@ -32,7 +32,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
 public final class AesKeyProducer implements KeyProducer {
-    public static int KEY_SIZE = 128;
+    public static final int KEY_SIZE = 128;
 
     @Override
     public SecretKey produce() {

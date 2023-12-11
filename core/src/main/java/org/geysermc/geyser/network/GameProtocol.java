@@ -27,11 +27,13 @@ package org.geysermc.geyser.network;
 
 import com.github.steveice10.mc.protocol.codec.MinecraftCodec;
 import com.github.steveice10.mc.protocol.codec.PacketCodec;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.cloudburstmc.protocol.bedrock.codec.v589.Bedrock_v589;
 import org.cloudburstmc.protocol.bedrock.codec.v594.Bedrock_v594;
 import org.cloudburstmc.protocol.bedrock.codec.v618.Bedrock_v618;
 import org.cloudburstmc.protocol.bedrock.codec.v622.Bedrock_v622;
+import org.cloudburstmc.protocol.bedrock.codec.v630.Bedrock_v630;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -47,7 +49,7 @@ public final class GameProtocol {
      * Default Bedrock codec that should act as a fallback. Should represent the latest available
      * release of the game that Geyser supports.
      */
-    public static final BedrockCodec DEFAULT_BEDROCK_CODEC = Bedrock_v622.CODEC;
+    public static final BedrockCodec DEFAULT_BEDROCK_CODEC = Bedrock_v630.CODEC;
 
     /**
      * A list of all supported Bedrock versions that can join Geyser
@@ -70,6 +72,9 @@ public final class GameProtocol {
         SUPPORTED_BEDROCK_CODECS.add(Bedrock_v618.CODEC.toBuilder()
             .minecraftVersion("1.20.30/1.20.32")
             .build());
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v622.CODEC.toBuilder()
+            .minecraftVersion("1.20.40/1.20.41")
+            .build());
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
     }
 
@@ -78,7 +83,7 @@ public final class GameProtocol {
      * @param protocolVersion The protocol version to attempt to find
      * @return The packet codec, or null if the client's protocol is unsupported
      */
-    public static BedrockCodec getBedrockCodec(int protocolVersion) {
+    public static @Nullable BedrockCodec getBedrockCodec(int protocolVersion) {
         for (BedrockCodec packetCodec : SUPPORTED_BEDROCK_CODECS) {
             if (packetCodec.getProtocolVersion() == protocolVersion) {
                 return packetCodec;

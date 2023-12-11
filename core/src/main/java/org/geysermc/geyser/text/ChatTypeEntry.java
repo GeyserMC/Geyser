@@ -26,13 +26,12 @@
 package org.geysermc.geyser.text;
 
 import com.github.steveice10.mc.protocol.data.game.chat.BuiltinChatType;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-public record ChatTypeEntry(@Nonnull TextPacket.Type bedrockChatType, @Nullable TextDecoration textDecoration) {
+public record ChatTypeEntry(TextPacket.@NonNull Type bedrockChatType, @Nullable TextDecoration textDecoration) {
     private static final ChatTypeEntry CHAT = new ChatTypeEntry(TextPacket.Type.CHAT, null);
     private static final ChatTypeEntry RAW = new ChatTypeEntry(TextPacket.Type.RAW, null);
 

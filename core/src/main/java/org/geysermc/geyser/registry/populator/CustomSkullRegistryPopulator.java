@@ -27,7 +27,8 @@ package org.geysermc.geyser.registry.populator;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import lombok.NonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomSkullsEvent;
@@ -139,7 +140,7 @@ public class CustomSkullRegistryPopulator {
      * @param profile the base64 encoded profile
      * @return the skin hash or null if the profile is invalid
      */
-    private static String getSkinHash(String profile) {
+    private static @Nullable String getSkinHash(String profile) {
         try {
             SkinManager.GameProfileData profileData = SkinManager.GameProfileData.loadFromJson(profile);
             if (profileData == null) {
@@ -159,7 +160,7 @@ public class CustomSkullRegistryPopulator {
      * @param username the player username
      * @return the base64 encoded profile or null if the request failed
      */
-    private static String getProfileFromUsername(String username) {
+    private static @Nullable String getProfileFromUsername(String username) {
         try {
             return SkinProvider.requestTexturesFromUsername(username).get();
         } catch (InterruptedException | ExecutionException e) {
@@ -173,7 +174,7 @@ public class CustomSkullRegistryPopulator {
      * @param uuid the player UUID
      * @return the base64 encoded profile or null if the request failed
      */
-    private static String getProfileFromUuid(String uuid) {
+    private static @Nullable String getProfileFromUuid(String uuid) {
         try {
             String uuidDigits = uuid.replace("-", "");
             if (uuidDigits.length() != 32) {

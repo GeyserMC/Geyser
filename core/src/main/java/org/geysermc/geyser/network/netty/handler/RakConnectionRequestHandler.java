@@ -49,7 +49,7 @@ public class RakConnectionRequestHandler extends ChannelInboundHandlerAdapter {
     private final GeyserServer server;
 
     @Override
-    public void channelRead(@NonNull ChannelHandlerContext ctx, @NonNull Object msg) throws Exception {
+    public void channelRead(@NonNull ChannelHandlerContext ctx, @NonNull Object msg) {
         if (!(msg instanceof DatagramPacket packet)) {
             ctx.fireChannelRead(msg);
             return;

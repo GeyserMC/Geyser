@@ -27,5 +27,5 @@ package org.geysermc.geyser.api.bedrock.camera;
 
 public enum CameraShake {
     POSITIONAL,
-    ROTATIONAL;
+    ROTATIONAL
 }

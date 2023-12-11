@@ -49,28 +49,32 @@ public class SettingsUtils {
                 .title("geyser.settings.title.main")
                 .iconPath("textures/ui/settings_glyph_color_2x.png");
 
+        // Let's store these to avoid issues
+        boolean showCoordinates = session.getPreferencesCache().isAllowShowCoordinates();
+        boolean cooldownShown = CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED;
+        boolean customSkulls = session.getGeyser().getConfig().isAllowCustomSkulls();
+
         // Only show the client title if any of the client settings are available
-        boolean showClientSettings = session.getPreferencesCache().isAllowShowCoordinates()
-                || CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED
-                || session.getGeyser().getConfig().isAllowCustomSkulls();
+        boolean showClientSettings = showCoordinates || cooldownShown || customSkulls;
 
         if (showClientSettings) {
             builder.label("geyser.settings.title.client");
 
             // Client can only see its coordinates if reducedDebugInfo is disabled and coordinates are enabled in geyser config.
-            if (session.getPreferencesCache().isAllowShowCoordinates()) {
+            if (showCoordinates) {
                 builder.toggle("%createWorldScreen.showCoordinates", session.getPreferencesCache().isPrefersShowCoordinates());
             }
 
-            if (CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED) {
+            if (cooldownShown) {
                 DropdownComponent.Builder cooldownDropdown = DropdownComponent.builder("options.attackIndicator");
-                cooldownDropdown.option("options.attack.crosshair", session.getPreferencesCache().getCooldownPreference() == CooldownUtils.CooldownType.TITLE);
-                cooldownDropdown.option("options.attack.hotbar", session.getPreferencesCache().getCooldownPreference() == CooldownUtils.CooldownType.ACTIONBAR);
-                cooldownDropdown.option("options.off", session.getPreferencesCache().getCooldownPreference() == CooldownUtils.CooldownType.DISABLED);
+                CooldownUtils.CooldownType currentCooldownType = session.getPreferencesCache().getCooldownPreference();
+                cooldownDropdown.option("options.attack.crosshair", currentCooldownType == CooldownUtils.CooldownType.TITLE);
+                cooldownDropdown.option("options.attack.hotbar", currentCooldownType == CooldownUtils.CooldownType.ACTIONBAR);
+                cooldownDropdown.option("options.off", currentCooldownType == CooldownUtils.CooldownType.DISABLED);
                 builder.dropdown(cooldownDropdown);
             }
 
-            if (session.getGeyser().getConfig().isAllowCustomSkulls()) {
+            if (customSkulls) {
                 builder.toggle("geyser.settings.option.customSkulls", session.getPreferencesCache().isPrefersCustomSkulls());
             }
         }
@@ -94,17 +98,21 @@ public class SettingsUtils {
         builder.validResultHandler((response) -> {
             if (showClientSettings) {
                 // Client can only see its coordinates if reducedDebugInfo is disabled and coordinates are enabled in geyser config.
-                if (session.getPreferencesCache().isAllowShowCoordinates()) {
-                    session.getPreferencesCache().setPrefersShowCoordinates(response.next());
-                    session.getPreferencesCache().updateShowCoordinates();
+                if (showCoordinates) {
+                    // In theory, a server could update the gamerule while the client is in the settings menu.
+                    // We need to still read the response to update the client's preference, but we don't want to update the gamerule.
+                    if (session.getPreferencesCache().isAllowShowCoordinates()) {
+                        session.getPreferencesCache().setPrefersShowCoordinates(response.next());
+                        session.getPreferencesCache().updateShowCoordinates();
+                    }
                 }
 
-                if (CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED) {
+                if (cooldownShown) {
                     CooldownUtils.CooldownType cooldownType = CooldownUtils.CooldownType.VALUES[(int) response.next()];
                     session.getPreferencesCache().setCooldownPreference(cooldownType);
                 }
 
-                if (session.getGeyser().getConfig().isAllowCustomSkulls()) {
+                if (customSkulls) {
                     session.getPreferencesCache().setPrefersCustomSkulls(response.next());
                 }
             }

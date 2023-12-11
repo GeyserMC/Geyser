@@ -32,13 +32,13 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 import lombok.SneakyThrows;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 
-import javax.annotation.Nonnull;
+import java.io.Serial;
 import java.util.concurrent.*;
 
 /**
@@ -63,12 +63,12 @@ public class PendingMicrosoftAuthentication {
                 });
     }
 
-    public AuthenticationTask getTask(@Nonnull String userKey) {
+    public AuthenticationTask getTask(@NonNull String userKey) {
         return authentications.getIfPresent(userKey);
     }
 
     @SneakyThrows(ExecutionException.class)
-    public AuthenticationTask getOrCreateTask(@Nonnull String userKey) {
+    public AuthenticationTask getOrCreateTask(@NonNull String userKey) {
         return authentications.get(userKey);
     }
 
@@ -189,6 +189,10 @@ public class PendingMicrosoftAuthentication {
      * @see PendingMicrosoftAuthentication
      */
     public static class TaskTimeoutException extends Exception {
+
+        @Serial
+        private static final long serialVersionUID = 1L;
+
         TaskTimeoutException() {
             super("It took too long to authorize Geyser to access your Microsoft account. " +
                     "Please request new code and try again.");
