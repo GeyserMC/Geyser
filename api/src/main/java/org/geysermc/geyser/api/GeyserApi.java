@@ -139,7 +139,7 @@ public interface GeyserApi extends GeyserApiBase {
     /**
      * Gets the version of Java Minecraft that is supported.
      *
-     * @return the version of Java Minecraft that is supported
+     * @return the supported version of Java Minecraft
      */
     @NonNull
     MinecraftVersion supportedJavaVersion();

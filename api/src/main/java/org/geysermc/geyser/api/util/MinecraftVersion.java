@@ -33,17 +33,17 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 public interface MinecraftVersion {
 
     /**
-     * Gets the Minecraft version string.
+     * Gets the Minecraft version as a String.
      * Example: "1.20.2", or "1.20.40/1.20.41"
      *
-     * @return the version of the Minecraft version
+     * @return the version string
      */
     @NonNull String versionString();
 
     /**
      * Gets the protocol version of this Minecraft version.
      *
-     * @return the protocol version of the Minecraft version
+     * @return the protocol version
      */
     int protocolVersion();
 }
