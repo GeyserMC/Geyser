@@ -27,5 +27,5 @@ package org.geysermc.geyser.util;
 
 import org.geysermc.geyser.api.util.MinecraftVersion;
 
-public record McVersion(String name, int protocolVersion) implements MinecraftVersion {
+public record MinecraftVersionImpl(String name, int protocolVersion) implements MinecraftVersion {
 }

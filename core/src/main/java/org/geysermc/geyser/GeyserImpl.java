@@ -64,7 +64,6 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserShutdownEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
-import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.entity.EntityDefinitions;
@@ -690,14 +689,14 @@ public class GeyserImpl implements GeyserApi {
 
     @Override
     public @NonNull MinecraftVersion supportedJavaVersion() {
-        return new McVersion(GameProtocol.getJavaMinecraftVersion(), GameProtocol.getJavaProtocolVersion());
+        return new MinecraftVersionImpl(GameProtocol.getJavaMinecraftVersion(), GameProtocol.getJavaProtocolVersion());
     }
 
     @Override
     public @NonNull List<MinecraftVersion> supportedBedrockVersions() {
         ArrayList<MinecraftVersion> versions = new ArrayList<>();
         for (BedrockCodec codec : GameProtocol.SUPPORTED_BEDROCK_CODECS) {
-            versions.add(new McVersion(codec.getMinecraftVersion(), codec.getProtocolVersion()));
+            versions.add(new MinecraftVersionImpl(codec.getMinecraftVersion(), codec.getProtocolVersion()));
         }
         return Collections.unmodifiableList(versions);
     }
