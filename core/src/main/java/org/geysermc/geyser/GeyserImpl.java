@@ -42,8 +42,10 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.geysermc.api.Geyser;
 import org.geysermc.geyser.api.command.CommandSource;
+import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
@@ -686,23 +688,17 @@ public class GeyserImpl implements GeyserApi {
     }
 
     @Override
-    public @NonNull String getJavaMinecraftVersion() {
-        return GameProtocol.getJavaMinecraftVersion();
+    public @NonNull MinecraftVersion supportedJavaVersion() {
+        return new McVersion(GameProtocol.getJavaMinecraftVersion(), GameProtocol.getJavaProtocolVersion());
     }
 
     @Override
-    public int getJavaProtocolVersion() {
-        return GameProtocol.getJavaProtocolVersion();
-    }
-
-    @Override
-    public @NonNull String getBedrockMinecraftVersion() {
-        return GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion();
-    }
-
-    @Override
-    public int getBedrockProtocolVersion() {
-        return GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion();
+    public @NonNull List<MinecraftVersion> supportedBedrockVersions() {
+        ArrayList<MinecraftVersion> versions = new ArrayList<>();
+        for (BedrockCodec codec : GameProtocol.SUPPORTED_BEDROCK_CODECS) {
+            versions.add(new McVersion(codec.getMinecraftVersion(), codec.getProtocolVersion()));
+        }
+        return Collections.unmodifiableList(versions);
     }
 
     @Override

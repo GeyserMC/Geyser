@@ -36,6 +36,7 @@ import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.extension.ExtensionManager;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
+import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.api.util.PlatformType;
 
 import java.nio.file.Path;
@@ -139,30 +140,15 @@ public interface GeyserApi extends GeyserApiBase {
      *
      * @return the version of Java Minecraft that is supported
      */
-    @NonNull
-    String getJavaMinecraftVersion();
+    @NonNull MinecraftVersion supportedJavaVersion();
 
     /**
-     * Gets the version of the Java Minecraft protocol that is supported.
+     * Gets a list of Bedrock Minecraft version that are supported.
      *
-     * @return the version of the Java Minecraft protocol that is supported
-     */
-    int getJavaProtocolVersion();
-
-    /**
-     * Gets the version of Bedrock Minecraft that is supported.
-     *
-     * @return the version of Bedrock Minecraft that is supported
+     * @return the list of supported Bedrock Minecraft versions
      */
     @NonNull
-    String getBedrockMinecraftVersion();
-
-    /**
-     * Gets the version of the Bedrock Minecraft protocol that is supported.
-     *
-     * @return the version of the Bedrock Minecraft protocol that is supported
-     */
-    int getBedrockProtocolVersion();
+    List<MinecraftVersion> supportedBedrockVersions();
 
     /**
      * Gets the {@link CommandSource} for the console.
