@@ -158,7 +158,6 @@ import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 
-import java.awt.Color;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
@@ -2040,9 +2039,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
-    public void sendCameraFade(CameraFade fade) {
+    public void sendCameraFade(@NonNull CameraFade fade) {
+        //noinspection ConstantConditions
+        if (fade == null) {
+            return;
+        }
         CameraFadeInstruction fadeInstruction = new CameraFadeInstruction();
-        fadeInstruction.setColor(new Color(fade.red(), fade.green(), fade.blue()));
+        fadeInstruction.setColor(fade.color());
         fadeInstruction.setTimeData(
                 new CameraFadeInstruction.TimeData(
                         fade.fadeInSeconds(),
@@ -2058,6 +2061,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public void sendCameraPosition(@NonNull CameraPosition movement) {
+        //noinspection ConstantConditions
         if (movement == null) {
             return;
         }

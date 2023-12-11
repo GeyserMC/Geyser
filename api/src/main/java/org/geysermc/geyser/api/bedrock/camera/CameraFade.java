@@ -25,8 +25,10 @@
 
 package org.geysermc.geyser.api.bedrock.camera;
 
-import org.checkerframework.common.value.qual.IntRange;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
+
+import java.awt.Color;
 
 /**
  * Represents a fade in/out color overlay
@@ -34,31 +36,12 @@ import org.geysermc.geyser.api.GeyserApi;
 public interface CameraFade {
 
     /**
-     * Gets the red value of the color overlay.
-     * If not set, defaults to 0.
-     * Must be between 0 and 255.
+     * Gets the color overlay of the camera.
+     * Bedrock uses a RGB color system.
      *
-     * @return the red value of the color overlay.
+     * @return The color of the fade
      */
-    @IntRange(from = 0, to = 255) int red();
-
-    /**
-     * Gets the green value of the color overlay.
-     * If not set, defaults to 0.
-     * Must be between 0 and 255.
-     *
-     * @return the green value of the color overlay.
-     */
-    @IntRange(from = 0, to = 255) int green();
-
-    /**
-     * Gets the blue value of the color overlay.
-     * If not set, defaults to 0.
-     * Must be between 0 and 255.
-     *
-     * @return the blue value of the color overlay.
-     */
-    @IntRange(from = 0, to = 255) int blue();
+    @NonNull Color color();
 
     /**
      * Gets the seconds it takes to fade in.
@@ -95,11 +78,7 @@ public interface CameraFade {
 
     interface Builder {
 
-        Builder red(int red);
-
-        Builder green(int green);
-
-        Builder blue(int blue);
+        Builder color(@NonNull Color color);
 
         Builder fadeInSeconds(float fadeInSeconds);
 

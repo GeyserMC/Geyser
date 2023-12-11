@@ -84,7 +84,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      *
      * @param fade the camera fade to send
      */
-    void sendCameraFade(CameraFade fade);
+    void sendCameraFade(@NonNull CameraFade fade);
 
     /**
      * Sends a camera instruction to the client.
@@ -95,7 +95,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      *
      * @param position the camera position to send
      */
-    void sendCameraPosition(CameraPosition position);
+    void sendCameraPosition(@NonNull CameraPosition position);
 
     /**
      * Stops all sent camera instructions (fades, movements, and perspective locks).
