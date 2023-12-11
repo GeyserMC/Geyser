@@ -150,7 +150,7 @@ public interface GeyserConnection extends Connection, CommandSource {
     Set<String> fogEffects();
 
     /**
-     * Returns the `GeyserPlayerEntity` of this connection.
+     * Returns the {@link GeyserPlayerEntity} of this connection.
      */
     @NonNull
     GeyserPlayerEntity playerEntity();
