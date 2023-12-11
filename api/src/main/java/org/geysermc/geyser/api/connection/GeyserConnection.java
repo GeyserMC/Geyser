@@ -79,6 +79,7 @@ public interface GeyserConnection extends Connection, CommandSource {
 
     /**
      * Sends a camera instruction to the client.
+     * If an existing camera fade is already in progress, the current fade will be prolonged.
      * Can be built using {@link CameraFade.Builder}.
      *
      * @param fade the camera fade to send
@@ -87,6 +88,9 @@ public interface GeyserConnection extends Connection, CommandSource {
 
     /**
      * Sends a camera instruction to the client.
+     * If an existing camera movement is already in progress:
+     * The (optional) camera fade will be added on top of the existing fade, and
+     * the final camera position will be the one of the latest instruction.
      * Can be built using {@link CameraPosition.Builder}.
      *
      * @param position the camera position to send
@@ -102,6 +106,10 @@ public interface GeyserConnection extends Connection, CommandSource {
     /**
      * Forces a {@link CameraPerspective} on the client. This will prevent
      * the client from changing their camera perspective until it is unlocked via {@link #clearCameraInstructions()}.
+     * <p>
+     * Note: You cannot force a client into a free camera perspective with this method.
+     * To do that, send a {@link CameraPosition} via {@link #sendCameraPosition(CameraPosition)} - it requires a set position
+     * instead of being relative to the player.
      *
      * @param perspective the {@link CameraPerspective} to force.
      */
@@ -109,6 +117,8 @@ public interface GeyserConnection extends Connection, CommandSource {
 
     /**
      * Gets the client's current {@link CameraPerspective}, if forced.
+     * This will return {@code null} if the client is not currently forced into a perspective.
+     * If a perspective is forced, the client will not be able to change their camera perspective until it is unlocked
      *
      * @return the forced perspective, or {@code null} if none is forced.
      */
