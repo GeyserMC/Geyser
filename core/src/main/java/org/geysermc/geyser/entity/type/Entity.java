@@ -58,7 +58,7 @@ import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.geyser.util.MathUtils;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -106,7 +106,7 @@ public class Entity implements GeyserEntity {
     protected boolean silent = false;
     /* Metadata end */
 
-    protected List<Entity> passengers = Collections.emptyList();
+    protected List<Entity> passengers = new ArrayList<>();
     protected Entity vehicle;
     /**
      * A container to store temporary metadata before it's sent to Bedrock.
@@ -488,6 +488,10 @@ public class Entity implements GeyserEntity {
      */
     public Vector3f getBedrockRotation() {
         return Vector3f.from(getPitch(), getYaw(), getHeadYaw());
+    }
+
+    public Vector2f getSpectateRotation() {
+        return Vector2f.from(getYaw(), getPitch());
     }
 
     /**

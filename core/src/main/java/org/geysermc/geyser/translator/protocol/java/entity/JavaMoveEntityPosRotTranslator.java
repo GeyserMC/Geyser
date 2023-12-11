@@ -40,5 +40,9 @@ public class JavaMoveEntityPosRotTranslator extends PacketTranslator<Clientbound
         if (entity == null) return;
 
         entity.updatePositionAndRotation(packet.getMoveX(), packet.getMoveY(), packet.getMoveZ(), packet.getYaw(), packet.getPitch(), packet.isOnGround());
+
+        if (session.getSpectatorTarget() != null && session.getSpectatorTarget().getGeyserId() == entity.getGeyserId()) {
+            session.sendSpectateLocation();
+        }
     }
 }

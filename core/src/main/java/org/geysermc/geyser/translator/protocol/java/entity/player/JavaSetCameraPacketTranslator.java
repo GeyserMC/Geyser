@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,26 +23,32 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java.entity;
+package org.geysermc.geyser.translator.protocol.java.entity.player;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundMoveEntityPosPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundSetCameraPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
-@Translator(packet = ClientboundMoveEntityPosPacket.class)
-public class JavaMoveEntityPosTranslator extends PacketTranslator<ClientboundMoveEntityPosPacket> {
+@Translator(packet = ClientboundSetCameraPacket.class)
+public class JavaSetCameraPacketTranslator extends PacketTranslator<ClientboundSetCameraPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundMoveEntityPosPacket packet) {
-        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
-        if (entity == null) return;
-
-        entity.moveRelative(packet.getMoveX(), packet.getMoveY(), packet.getMoveZ(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), packet.isOnGround());
-
-        if (session.getSpectatorTarget() != null && session.getSpectatorTarget().getGeyserId() == entity.getGeyserId()) {
-            session.sendSpectateLocation();
+    public void translate(GeyserSession session, ClientboundSetCameraPacket packet) {
+        GeyserImpl.getInstance().getLogger().error("JavaSetCameraPacket: " + packet.toString());
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getCameraEntityId());
+        if (entity != null) {
+            if (entity == session.getPlayerEntity()) {
+                // Java server also sends this packet when we switch out of spectator mode
+                if (session.getSpectatorTarget() == null) return;
+                // stop spectating
+                session.stopSpectating();
+            } else {
+                // start spectating
+                session.setSpectatorTarget(entity);
+            }
         }
     }
 }
