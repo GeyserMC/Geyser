@@ -2173,6 +2173,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         lockInputs(false, false);
     }
 
+    @Override
+    public @NonNull GeyserPlayerEntity playerEntity() {
+        return this.playerEntity;
+    }
+
     public void addCommandEnum(String name, String enums) {
         softEnumPacket(name, SoftEnumUpdateType.ADD, enums);
     }
