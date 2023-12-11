@@ -83,8 +83,8 @@ public class JavaLoginDisconnectTranslator extends PacketTranslator<ClientboundL
                     return true;
                 } else {
                     List<Component> children = component.children();
-                    for (int i = 0; i < children.size(); i++) {
-                        if (children.get(i) instanceof TextComponent child && child.content().startsWith("Outdated server!")) {
+                    for (Component value : children) {
+                        if (value instanceof TextComponent child && child.content().startsWith("Outdated server!")) {
                             // Reproduced on Paper 1.17.1
                             return true;
                         }

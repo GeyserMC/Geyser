@@ -30,6 +30,7 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntArrayTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.GeyserImpl;
@@ -60,6 +61,9 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         }
         builder.put("Rotation", rotation);
         builder.put("SkullType", skullVariant);
+        if (BlockStateValues.isSkullPowered(blockState)) {
+            builder.putBoolean("MouthMoving", true);
+        }
     }
 
     private static UUID getUUID(CompoundTag owner) {
@@ -96,7 +100,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         return CompletableFuture.completedFuture(texture.getValue());
     }
 
-    public static BlockDefinition translateSkull(GeyserSession session, CompoundTag tag, Vector3i blockPosition, int blockState) {
+    public static @Nullable BlockDefinition translateSkull(GeyserSession session, CompoundTag tag, Vector3i blockPosition, int blockState) {
         CompoundTag owner = tag.get("SkullOwner");
         if (owner == null) {
             session.getSkullCache().removeSkull(blockPosition);

@@ -26,6 +26,7 @@
 package org.geysermc.geyser.util;
 
 import com.github.steveice10.mc.protocol.data.game.level.sound.Sound;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
@@ -50,7 +51,7 @@ public final class SoundUtils {
      * @param sound the sound name
      * @return a sound event from the given sound
      */
-    private static SoundEvent toSoundEvent(String sound) {
+    private static @Nullable SoundEvent toSoundEvent(String sound) {
         try {
             return SoundEvent.valueOf(sound.toUpperCase(Locale.ROOT).replace(".", "_"));
         } catch (Exception ex) {

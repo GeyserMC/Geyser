@@ -41,7 +41,7 @@ public class BedrockRiderJumpTranslator extends PacketTranslator<RiderJumpPacket
         Entity vehicle = session.getPlayerEntity().getVehicle();
         if (vehicle instanceof AbstractHorseEntity) {
             ServerboundPlayerCommandPacket playerCommandPacket = new ServerboundPlayerCommandPacket(vehicle.getEntityId(), PlayerState.START_HORSE_JUMP, packet.getJumpStrength());
-            session.sendDownstreamPacket(playerCommandPacket);
+            session.sendDownstreamGamePacket(playerCommandPacket);
         }
     }
 }

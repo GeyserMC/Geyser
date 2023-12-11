@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import lombok.Getter;
 import lombok.Setter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -150,7 +151,7 @@ public final class Objective {
         updateType = UpdateType.REMOVE;
     }
 
-    public TeamColor getTeamColor() {
+    public @Nullable TeamColor getTeamColor() {
         return switch (displaySlot) {
             case SIDEBAR_TEAM_RED -> TeamColor.RED;
             case SIDEBAR_TEAM_AQUA -> TeamColor.AQUA;

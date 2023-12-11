@@ -27,6 +27,7 @@ package org.geysermc.geyser.registry.populator;
 
 import com.google.common.collect.Multimap;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
@@ -48,7 +49,6 @@ import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
 
-import javax.annotation.Nullable;
 import java.util.*;
 
 public class CustomItemRegistryPopulator {
@@ -171,7 +171,7 @@ public class CustomItemRegistryPopulator {
 
         boolean canDestroyInCreative = true;
         if (mapping.getToolType() != null) { // This is not using the isTool boolean because it is not just a render type here.
-            canDestroyInCreative = computeToolProperties(mapping.getToolTier(), mapping.getToolType(), itemProperties, componentBuilder);
+            canDestroyInCreative = computeToolProperties(mapping.getToolType(), itemProperties, componentBuilder);
         }
         itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
 
@@ -192,18 +192,11 @@ public class CustomItemRegistryPopulator {
         }
 
         switch (mapping.getBedrockIdentifier()) {
-            case "minecraft:fire_charge", "minecraft:flint_and_steel" -> {
-                computeBlockItemProperties("minecraft:fire", componentBuilder);
-            }
-            case "minecraft:bow", "minecraft:crossbow", "minecraft:trident" -> {
-                computeChargeableProperties(itemProperties, componentBuilder);
-            }
-            case "minecraft:honey_bottle", "minecraft:milk_bucket", "minecraft:potion" -> {
-                computeConsumableProperties(itemProperties, componentBuilder, 2, true);
-            }
-            case "minecraft:experience_bottle", "minecraft:egg", "minecraft:ender_pearl", "minecraft:ender_eye", "minecraft:lingering_potion", "minecraft:snowball", "minecraft:splash_potion" -> {
-                computeThrowableProperties(componentBuilder);
-            }
+            case "minecraft:fire_charge", "minecraft:flint_and_steel" -> computeBlockItemProperties("minecraft:fire", componentBuilder);
+            case "minecraft:bow", "minecraft:crossbow", "minecraft:trident" -> computeChargeableProperties(itemProperties, componentBuilder);
+            case "minecraft:honey_bottle", "minecraft:milk_bucket", "minecraft:potion" -> computeConsumableProperties(itemProperties, componentBuilder, 2, true);
+            case "minecraft:experience_bottle", "minecraft:egg", "minecraft:ender_pearl", "minecraft:ender_eye", "minecraft:lingering_potion", "minecraft:snowball", "minecraft:splash_potion" ->
+                    computeThrowableProperties(componentBuilder);
         }
 
         computeRenderOffsets(false, customItemData, componentBuilder);
@@ -214,6 +207,7 @@ public class CustomItemRegistryPopulator {
         return builder;
     }
 
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private static NbtMapBuilder createComponentNbt(NonVanillaCustomItemData customItemData, String customItemName,
                                                     int customItemId, OptionalInt creativeCategory,
                                                     String creativeGroup, boolean isHat, boolean displayHandheld) {
@@ -228,7 +222,7 @@ public class CustomItemRegistryPopulator {
 
         boolean canDestroyInCreative = true;
         if (customItemData.toolType() != null) { // This is not using the isTool boolean because it is not just a render type here.
-            canDestroyInCreative = computeToolProperties(customItemData.toolTier(), customItemData.toolType(), itemProperties, componentBuilder);
+            canDestroyInCreative = computeToolProperties(customItemData.toolType(), itemProperties, componentBuilder);
         }
         itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
 
@@ -270,6 +264,17 @@ public class CustomItemRegistryPopulator {
                 .build());
         componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", customItemData.displayName()).build());
 
+        // Add a Geyser tag to the item, allowing Molang queries
+        addItemTag(componentBuilder, "geyser:is_custom");
+
+        // Add other defined tags to the item
+        Set<String> tags = customItemData.tags();
+        for (String tag : tags) {
+            if (tag != null && !tag.isBlank()) {
+                addItemTag(componentBuilder, tag);
+            }
+        }
+
         itemProperties.putBoolean("allow_off_hand", customItemData.allowOffhand());
         itemProperties.putBoolean("hand_equipped", displayHandheld);
         itemProperties.putInt("max_stack_size", stackSize);
@@ -289,7 +294,7 @@ public class CustomItemRegistryPopulator {
     /**
      * @return can destroy in creative
      */
-    private static boolean computeToolProperties(String toolTier, String toolType, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
+    private static boolean computeToolProperties(String toolType, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
         boolean canDestroyInCreative = true;
         float miningSpeed = 1.0f;
 
@@ -313,7 +318,7 @@ public class CustomItemRegistryPopulator {
                 .build()
         ));
         
-        componentBuilder.putCompound("minecraft:digger", 
+        componentBuilder.putCompound("minecraft:digger",
             NbtMap.builder()
             .putList("destroy_speeds", NbtType.COMPOUND, speed)
             .putCompound("on_dig", NbtMap.builder()
@@ -456,7 +461,7 @@ public class CustomItemRegistryPopulator {
         return builder.build();
     }
 
-    private static NbtMap toNbtMap(CustomRenderOffsets.Hand hand) {
+    private static @Nullable NbtMap toNbtMap(CustomRenderOffsets.Hand hand) {
         NbtMap firstPerson = toNbtMap(hand.firstPerson());
         NbtMap thirdPerson = toNbtMap(hand.thirdPerson());
 
@@ -475,7 +480,7 @@ public class CustomItemRegistryPopulator {
         return builder.build();
     }
 
-    private static NbtMap toNbtMap(@Nullable CustomRenderOffsets.Offset offset) {
+    private static @Nullable NbtMap toNbtMap(CustomRenderOffsets.@Nullable Offset offset) {
         if (offset == null) {
             return null;
         }
@@ -506,8 +511,19 @@ public class CustomItemRegistryPopulator {
         return List.of(xyz.x(), xyz.y(), xyz.z());
     }
 
-    private static void setItemTag(NbtMapBuilder builder, String tag) {
-        builder.putList("item_tags", NbtType.STRING, List.of("minecraft:is_" + tag));
+    @SuppressWarnings("unchecked")
+    private static void addItemTag(NbtMapBuilder builder, String tag) {
+        List<String> tagList = (List<String>) builder.get("item_tags");
+        if (tagList == null) {
+            builder.putList("item_tags", NbtType.STRING, tag);
+        } else {
+            // NbtList is immutable
+            if (!tagList.contains(tag)) {
+                tagList = new ArrayList<>(tagList);
+                tagList.add(tag);
+                builder.putList("item_tags", NbtType.STRING, tagList);
+            }
+        }
     }
 
     private static NbtMap xyzToScaleList(float x, float y, float z) {

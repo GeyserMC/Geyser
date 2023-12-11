@@ -51,7 +51,7 @@ public enum CreativeCategory {
      * 
      * @return the name of the category
      */
-    @NonNull public String internalName() {
+    public @NonNull String internalName() {
         return internalName;
     }
 
