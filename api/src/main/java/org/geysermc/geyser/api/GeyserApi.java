@@ -158,7 +158,7 @@ public interface GeyserApi extends GeyserApiBase {
      * @return the console command source
      */
     @NonNull
-    CommandSource getConsoleCommandSource();
+    CommandSource consoleCommandSource();
 
     /**
      * Gets the current {@link GeyserApiBase} instance.

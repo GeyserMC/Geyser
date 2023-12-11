@@ -702,7 +702,7 @@ public class GeyserImpl implements GeyserApi {
     }
 
     @Override
-    public @NonNull CommandSource getConsoleCommandSource() {
+    public @NonNull CommandSource consoleCommandSource() {
         return getLogger();
     }
 
