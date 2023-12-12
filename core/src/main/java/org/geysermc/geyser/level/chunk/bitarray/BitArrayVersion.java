@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.level.chunk.bitarray;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.util.MathUtils;
 
 public enum BitArrayVersion {
@@ -61,7 +62,7 @@ public enum BitArrayVersion {
         throw new IllegalArgumentException("Invalid palette version: " + version);
     }
 
-    public static BitArrayVersion forBitsCeil(int bits) {
+    public static @Nullable BitArrayVersion forBitsCeil(int bits) {
         for (int i = VALUES.length - 1; i >= 0; i--)  {
             BitArrayVersion version = VALUES[i];
             if (version.bits >= bits)   {
@@ -77,10 +78,6 @@ public enum BitArrayVersion {
 
     public int getMaxEntryValue() {
         return maxEntryValue;
-    }
-
-    public int getWordsForSize(int size) {
-        return MathUtils.ceil((float) size / entriesPerWord);
     }
 
     public BitArrayVersion next() {

@@ -27,19 +27,14 @@ package org.geysermc.geyser.level.block;
 
 /**
  * This stores all values of double chests that are part of the Java block state.
+ *
+ * @param isFacingEast If true, then chest is facing east/west; if false, south/north
+ * @param isDirectionPositive If true, direction is positive (east/south); if false, direction is negative (west/north)
+ * @param isLeft If true, chest is the left of a pair; if false, chest is the right of a pair.
  */
 public record DoubleChestValue(
-        /**
-         * If true, then chest is facing east/west; if false, south/north
-         */
         boolean isFacingEast,
-        /**
-         * If true, direction is positive (east/south); if false, direction is negative (west/north)
-         */
         boolean isDirectionPositive,
-        /**
-         * If true, chest is the left of a pair; if false, chest is the right of a pair.
-         */
         boolean isLeft) {
 
 }

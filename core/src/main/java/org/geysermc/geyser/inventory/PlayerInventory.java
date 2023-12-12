@@ -28,11 +28,10 @@ package org.geysermc.geyser.inventory;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import lombok.Getter;
 import lombok.Setter;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.jetbrains.annotations.Range;
-
-import javax.annotation.Nonnull;
 
 public class PlayerInventory extends Inventory {
     /**
@@ -44,7 +43,7 @@ public class PlayerInventory extends Inventory {
     private int heldItemSlot;
 
     @Getter
-    @Nonnull
+    @NonNull
     private GeyserItemStack cursor = GeyserItemStack.EMPTY;
 
     public PlayerInventory() {
@@ -57,12 +56,12 @@ public class PlayerInventory extends Inventory {
         return slot + 36;
     }
 
-    public void setCursor(@Nonnull GeyserItemStack newCursor, GeyserSession session) {
+    public void setCursor(@NonNull GeyserItemStack newCursor, GeyserSession session) {
         updateItemNetId(cursor, newCursor, session);
         cursor = newCursor;
     }
 
-    public GeyserItemStack getItemInHand(@Nonnull Hand hand) {
+    public GeyserItemStack getItemInHand(@NonNull Hand hand) {
         return hand == Hand.OFF_HAND ? getOffhand() : getItemInHand();
     }
 
@@ -74,7 +73,7 @@ public class PlayerInventory extends Inventory {
         return items[36 + heldItemSlot];
     }
 
-    public void setItemInHand(@Nonnull GeyserItemStack item) {
+    public void setItemInHand(@NonNull GeyserItemStack item) {
         if (36 + heldItemSlot > this.size) {
             GeyserImpl.getInstance().getLogger().debug("Held item slot was larger than expected!");
             return;

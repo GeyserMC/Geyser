@@ -29,6 +29,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandExecutor;
@@ -47,7 +48,7 @@ public class GeyserSpigotCommandExecutor extends GeyserCommandExecutor implement
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    public boolean onCommand(@NonNull CommandSender sender, @NonNull Command command, @NonNull String label, String[] args) {
         SpigotCommandSource commandSender = new SpigotCommandSource(sender);
         GeyserSession session = getGeyserSession(commandSender);
 
@@ -78,7 +79,7 @@ public class GeyserSpigotCommandExecutor extends GeyserCommandExecutor implement
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+    public List<String> onTabComplete(@NonNull CommandSender sender, @NonNull Command command, @NonNull String label, String[] args) {
         if (args.length == 1) {
             return tabComplete(new SpigotCommandSource(sender));
         }

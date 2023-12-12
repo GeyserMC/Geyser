@@ -66,7 +66,6 @@ import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotNativeWorld
 import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -76,6 +75,7 @@ import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -142,6 +142,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         // This is manually done instead of using Bukkit methods to save the config because otherwise comments get removed
         try {
             if (!getDataFolder().exists()) {
+                //noinspection ResultOfMethodCallIgnored
                 getDataFolder().mkdir();
             }
             File configFile = FileUtils.fileOrCopiedFromResource(new File(getDataFolder(), "config.yml"), "config.yml",
@@ -272,6 +273,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         }
 
         PluginCommand geyserCommand = this.getCommand("geyser");
+        Objects.requireNonNull(geyserCommand, "base command cannot be null");
         geyserCommand.setExecutor(new GeyserSpigotCommandExecutor(geyser, geyserCommandManager.getCommands()));
 
         for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
@@ -447,7 +449,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         return false;
     }
 
-    @NotNull
+    @NonNull
     @Override
     public String getServerBindAddress() {
         return Bukkit.getIp();

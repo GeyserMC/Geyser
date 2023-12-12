@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.github.steveice10.opennbt.tag.builtin.ByteTag;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3i;
 import lombok.Getter;
 import lombok.Setter;
@@ -40,7 +41,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.jetbrains.annotations.Range;
 
-import javax.annotation.Nonnull;
 import java.util.Arrays;
 
 @ToString
@@ -126,7 +126,7 @@ public abstract class Inventory {
 
     public abstract int getOffsetForHotbar(@Range(from = 0, to = 8) int slot);
 
-    public void setItem(int slot, @Nonnull GeyserItemStack newItem, GeyserSession session) {
+    public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSession session) {
         if (slot > this.size) {
             session.getGeyser().getLogger().debug("Tried to set an item out of bounds! " + this);
             return;

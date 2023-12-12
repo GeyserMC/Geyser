@@ -26,6 +26,7 @@
 package org.geysermc.geyser.registry.mappings.versions;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
@@ -41,7 +42,7 @@ public abstract class MappingsReader {
     public abstract CustomItemData readItemMappingEntry(JsonNode node) throws InvalidCustomMappingsFileException;
     public abstract CustomBlockMapping readBlockMappingEntry(String identifier, JsonNode node) throws InvalidCustomMappingsFileException;
 
-    protected CustomRenderOffsets fromJsonNode(JsonNode node) {
+    protected @Nullable CustomRenderOffsets fromJsonNode(JsonNode node) {
         if (node == null || !node.isObject()) {
             return null;
         }
@@ -52,7 +53,7 @@ public abstract class MappingsReader {
         );
     }
 
-    protected CustomRenderOffsets.Hand getHandOffsets(JsonNode node, String hand) {
+    protected CustomRenderOffsets.@Nullable Hand getHandOffsets(JsonNode node, String hand) {
         JsonNode tmpNode = node.get(hand);
         if (tmpNode == null || !tmpNode.isObject()) {
             return null;
@@ -64,7 +65,7 @@ public abstract class MappingsReader {
         );
     }
 
-    protected CustomRenderOffsets.Offset getPerspectiveOffsets(JsonNode node, String perspective) {
+    protected CustomRenderOffsets.@Nullable Offset getPerspectiveOffsets(JsonNode node, String perspective) {
         JsonNode tmpNode = node.get(perspective);
         if (tmpNode == null || !tmpNode.isObject()) {
             return null;
@@ -77,7 +78,7 @@ public abstract class MappingsReader {
         );
     }
 
-    protected CustomRenderOffsets.OffsetXYZ getOffsetXYZ(JsonNode node, String offsetType) {
+    protected CustomRenderOffsets.@Nullable OffsetXYZ getOffsetXYZ(JsonNode node, String offsetType) {
         JsonNode tmpNode = node.get(offsetType);
         if (tmpNode == null || !tmpNode.isObject()) {
             return null;

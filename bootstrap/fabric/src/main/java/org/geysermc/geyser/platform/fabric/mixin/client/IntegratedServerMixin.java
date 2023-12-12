@@ -43,6 +43,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.Objects;
+
 @Environment(EnvType.CLIENT)
 @Mixin(IntegratedServer.class)
 public class IntegratedServerMixin implements GeyserServerPortGetter {
@@ -60,6 +62,7 @@ public class IntegratedServerMixin implements GeyserServerPortGetter {
             // Ensure player locale has been loaded, in case it's different from Java system language
             GeyserLocale.loadGeyserLocale(this.minecraft.options.languageCode);
             // Give indication that Geyser is loaded
+            Objects.requireNonNull(this.minecraft.player);
             this.minecraft.player.displayClientMessage(Component.literal(GeyserLocale.getPlayerLocaleString("geyser.core.start",
                     this.minecraft.options.languageCode, "localhost", String.valueOf(GeyserImpl.getInstance().getConfig().getBedrock().port()))), false);
         }

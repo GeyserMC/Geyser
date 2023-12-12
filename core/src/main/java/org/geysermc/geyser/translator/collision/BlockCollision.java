@@ -54,7 +54,7 @@ public class BlockCollision {
     /**
      * This is used to control the maximum distance a face of a bounding box can push the player away
      */
-    protected double pushAwayTolerance = CollisionManager.COLLISION_TOLERANCE * 1.1;
+    protected final double pushAwayTolerance = CollisionManager.COLLISION_TOLERANCE * 1.1;
 
     protected BlockCollision(BoundingBox[] boxes) {
         this.boundingBoxes = boxes;

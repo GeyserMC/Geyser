@@ -26,6 +26,7 @@
 package org.geysermc.geyser.item.type;
 
 import com.github.steveice10.opennbt.tag.builtin.*;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -35,7 +36,7 @@ public class MapItem extends Item {
     }
 
     @Override
-    public void translateNbtToBedrock(GeyserSession session, CompoundTag tag) {
+    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag) {
         super.translateNbtToBedrock(session, tag);
 
         Tag mapId = tag.remove("map");
@@ -49,7 +50,7 @@ public class MapItem extends Item {
     }
 
     @Override
-    public void translateNbtToJava(CompoundTag tag, ItemMapping mapping) {
+    public void translateNbtToJava(@NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
         super.translateNbtToJava(tag, mapping);
 
         IntTag mapNameIndex = tag.remove("map_name_index");
