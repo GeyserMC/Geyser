@@ -96,6 +96,8 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
         GeyserLocale.init(this);
 
+        this.geyserInjector = new GeyserVelocityInjector(proxyServer);
+
         this.geyser = GeyserImpl.load(PlatformType.VELOCITY, this);
     }
 
@@ -118,11 +120,6 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
         GeyserImpl.start();
-
-        if (!GeyserImpl.isReloading) {
-            // Will be initialized after the proxy has been bound
-            this.geyserInjector = new GeyserVelocityInjector(proxyServer);
-        }
 
         this.geyserCommandManager = new GeyserCommandManager(geyser);
         this.geyserCommandManager.init();
@@ -183,12 +180,12 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     @Subscribe
     public void onInit(ProxyInitializeEvent event) {
-        onGeyserEnable();
+        onGeyserInitialize();
     }
 
     @Subscribe
     public void onShutdown(ProxyShutdownEvent event) {
-        onGeyserDisable();
+        onGeyserShutdown();
     }
 
     @Subscribe
@@ -201,8 +198,6 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
                 // After this bound, we know that the channel initializer cannot change without it being ineffective for Velocity, too
                 geyserInjector.initializeLocalChannel(this);
             }
-
-            GeyserImpl.isReloading = false;
         }
     }
 

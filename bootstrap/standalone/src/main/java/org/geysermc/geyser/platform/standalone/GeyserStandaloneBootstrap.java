@@ -163,13 +163,9 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
                 }
             }
         }
-        bootstrap.onEnable(useGuiOpts, configFilenameOpt);
-    }
-
-    public void onEnable(boolean useGui, String configFilename) {
-        this.configFilename = configFilename;
-        this.useGui = useGui;
-        this.onGeyserInitialize();
+        bootstrap.useGui = useGuiOpts;
+        bootstrap.configFilename = configFilenameOpt;
+        bootstrap.onGeyserInitialize();
     }
 
     @Override
@@ -263,7 +259,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
     @Override
     public void onGeyserShutdown() {
-        geyser.shutdown();
+        this.onGeyserDisable();
         System.exit(0);
     }
 

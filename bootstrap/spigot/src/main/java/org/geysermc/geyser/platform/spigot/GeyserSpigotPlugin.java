@@ -42,13 +42,13 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
@@ -81,7 +81,7 @@ import java.util.logging.Level;
 
 public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     /**
-     * Determines if the plugin has been ran once before, including before /geyser reload.
+     * Determines if the plugin has been ran once before.
      */
     private static boolean INITIALIZED = false;
 
@@ -101,6 +101,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     @Override
     public void onLoad() {
+        onGeyserInitialize();
+    }
+
+    @Override
+    public void onGeyserInitialize() {
         GeyserLocale.init(this);
 
         try {
@@ -155,15 +160,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
         this.geyser = GeyserImpl.load(PlatformType.SPIGOT, this);
-    }
 
-    @Override
-    public void onGeyserInitialize() {
-
-    }
-
-    @Override
-    public void onGeyserEnable() {
         if (this.geyserConfig == null) {
             // We failed to initialize correctly
             Bukkit.getPluginManager().disablePlugin(this);
@@ -180,7 +177,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                 @EventHandler
                 public void onServerLoaded(ServerLoadEvent event) {
                     // Wait until all plugins have loaded so Geyser can start
-                    postStartup();
+                    onGeyserEnable();
                 }
             }, this);
 
@@ -202,15 +199,13 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                     this.geyserLogger.error("Failed to construct PluginCommand for extension " + extension.name(), ex);
                 }
             }
-        }
-
-        if (INITIALIZED) {
+        } else {
             // Reload; continue with post startup
-            postStartup();
+            onGeyserEnable();
         }
     }
 
-    private void postStartup() {
+    public void onGeyserEnable() {
         GeyserImpl.start();
 
         // Turn "(MC: 1.16.4)" into 1.16.4.
@@ -362,14 +357,19 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         if (geyser != null) {
             geyser.shutdown();
         }
+    }
+
+    @Override
+    public void onGeyserShutdown() {
+        onGeyserDisable();
         if (geyserInjector != null) {
             geyserInjector.shutdown();
         }
     }
 
     @Override
-    public void onGeyserShutdown() {
-
+    public void onDisable() {
+        this.onGeyserDisable();
     }
 
     @Override
