@@ -32,6 +32,7 @@ import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.GameType;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.platform.fabric.GeyserFabricMod;
 import org.geysermc.geyser.platform.fabric.GeyserServerPortGetter;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -54,12 +55,13 @@ public class IntegratedServerMixin implements GeyserServerPortGetter {
     private void onOpenToLan(GameType gameType, boolean cheatsAllowed, int port, CallbackInfoReturnable<Boolean> cir) {
         if (cir.getReturnValueZ()) {
             // If the LAN is opened, starts Geyser.
-            GeyserFabricMod.getInstance().startGeyser((MinecraftServer) (Object) this);
+            GeyserFabricMod.getInstance().setServer((MinecraftServer) (Object) this);
+            GeyserFabricMod.getInstance().onGeyserEnable();
             // Ensure player locale has been loaded, in case it's different from Java system language
             GeyserLocale.loadGeyserLocale(this.minecraft.options.languageCode);
             // Give indication that Geyser is loaded
             this.minecraft.player.displayClientMessage(Component.literal(GeyserLocale.getPlayerLocaleString("geyser.core.start",
-                    this.minecraft.options.languageCode, "localhost", String.valueOf(this.publishedPort))), false);
+                    this.minecraft.options.languageCode, "localhost", String.valueOf(GeyserImpl.getInstance().getConfig().getBedrock().port()))), false);
         }
     }
 

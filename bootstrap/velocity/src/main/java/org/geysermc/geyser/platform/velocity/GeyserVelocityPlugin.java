@@ -84,7 +84,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     private final Path configFolder = Paths.get("plugins/" + GeyserImpl.NAME + "-Velocity/");
 
     @Override
-    public void onInitialize() {
+    public void onGeyserInitialize() {
         try {
             Codec.class.getMethod("codec", Codec.Decoder.class, Codec.Encoder.class);
         } catch (NoSuchMethodException e) {
@@ -100,7 +100,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     }
 
     @Override
-    public void onEnable() {
+    public void onGeyserEnable() {
         try {
             if (!configFolder.toFile().exists())
                 //noinspection ResultOfMethodCallIgnored
@@ -147,15 +147,15 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     }
 
     @Override
-    public void onDisable() {
+    public void onGeyserDisable() {
         if (geyser != null) {
             geyser.shutdown();
         }
     }
 
     @Override
-    public void onShutdown() {
-        onDisable();
+    public void onGeyserShutdown() {
+        onGeyserDisable();
         if (geyserInjector != null) {
             geyserInjector.shutdown();
         }
@@ -183,19 +183,19 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     @Subscribe
     public void onInit(ProxyInitializeEvent event) {
-        onEnable();
+        onGeyserEnable();
     }
 
     @Subscribe
     public void onShutdown(ProxyShutdownEvent event) {
-        onDisable();
+        onGeyserDisable();
     }
 
     @Subscribe
     public void onProxyBound(ListenerBoundEvent event) {
         if (event.getListenerType() == ListenerType.MINECRAFT) {
             // Once listener is bound, do our startup process
-            this.onEnable();
+            this.onGeyserEnable();
 
             if (geyserInjector != null) {
                 // After this bound, we know that the channel initializer cannot change without it being ineffective for Velocity, too
@@ -208,7 +208,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     @Subscribe
     public void onProxyShutdown(ProxyShutdownEvent event) {
-        onShutdown();
+        onGeyserShutdown();
     }
 
     @Override

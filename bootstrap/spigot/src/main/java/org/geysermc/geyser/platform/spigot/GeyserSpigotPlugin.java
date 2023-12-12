@@ -158,12 +158,12 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     }
 
     @Override
-    public void onInitialize() {
+    public void onGeyserInitialize() {
 
     }
 
     @Override
-    public void onEnable() {
+    public void onGeyserEnable() {
         if (this.geyserConfig == null) {
             // We failed to initialize correctly
             Bukkit.getPluginManager().disablePlugin(this);
@@ -358,7 +358,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     }
 
     @Override
-    public void onDisable() {
+    public void onGeyserDisable() {
         if (geyser != null) {
             geyser.shutdown();
         }
@@ -368,7 +368,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     }
 
     @Override
-    public void onShutdown() {
+    public void onGeyserShutdown() {
 
     }
 

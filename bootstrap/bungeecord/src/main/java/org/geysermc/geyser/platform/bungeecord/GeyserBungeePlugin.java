@@ -112,7 +112,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     }
 
     @Override
-    public void onEnable() {
+    public void onGeyserEnable() {
 
         // Force-disable query if enabled, or else Geyser won't enable
         for (ListenerInfo info : getProxy().getConfig().getListeners()) {
@@ -201,7 +201,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     }
 
     @Override
-    public void onDisable() {
+    public void onGeyserDisable() {
         if (geyser != null) {
             geyser.shutdown();
         }

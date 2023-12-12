@@ -46,22 +46,22 @@ public interface GeyserBootstrap {
     /**
      * Called when the GeyserBootstrap is initialized
      */
-    void onInitialize();
+    void onGeyserInitialize();
 
     /**
      * Called when the GeyserBootstrap is enabled/reloaded
      */
-    void onEnable();
+    void onGeyserEnable();
 
     /**
      * Called when the GeyserBootstrap is disabled
      */
-    void onDisable();
+    void onGeyserDisable();
 
     /**
      * Called when the GeyserBootstrap is shutting down.
      */
-    void onShutdown();
+    void onGeyserShutdown();
 
     /**
      * Returns the current GeyserConfiguration

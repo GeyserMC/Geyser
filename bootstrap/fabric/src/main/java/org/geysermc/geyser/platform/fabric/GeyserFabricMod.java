@@ -27,6 +27,8 @@ package org.geysermc.geyser.platform.fabric;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import lombok.Getter;
+import lombok.Setter;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -66,13 +68,13 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
+    @Getter
     private static GeyserFabricMod instance;
-
-    private boolean reloading;
-
     private GeyserImpl geyser;
     private ModContainer mod;
     private Path dataFolder;
+
+    @Setter
     private MinecraftServer server;
 
     private GeyserCommandManager geyserCommandManager;
@@ -85,16 +87,26 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     public void onInitialize() {
         instance = this;
         mod = FabricLoader.getInstance().getModContainer("geyser-fabric").orElseThrow();
+        onGeyserInitialize();
+    }
 
-        this.onEnable();
+    @Override
+    public void onGeyserInitialize() {
         if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
-            // Set as an event so we can get the proper IP and port if needed
-            ServerLifecycleEvents.SERVER_STARTED.register(this::startGeyser);
+            // Set as an event, so we can get the proper IP and port if needed
+            ServerLifecycleEvents.SERVER_STARTED.register((server) -> {
+                this.server = server;
+                onGeyserEnable();
+            });
+
+            // These are only registered once - TODO client side?
+            ServerLifecycleEvents.SERVER_STOPPING.register((server) -> onGeyserShutdown());
+            ServerPlayConnectionEvents.JOIN.register((handler, $, $$) -> GeyserFabricUpdateListener.onPlayReady(handler));
         }
     }
 
     @Override
-    public void onEnable() {
+    public void onGeyserEnable() {
         dataFolder = FabricLoader.getInstance().getConfigDir().resolve("Geyser-Fabric");
         if (!dataFolder.toFile().exists()) {
             //noinspection ResultOfMethodCallIgnored
@@ -119,28 +131,6 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
         this.geyser = GeyserImpl.load(PlatformType.FABRIC, this);
-
-        if (server == null) {
-            // Server has yet to start
-            // Register onDisable so players are properly kicked
-            ServerLifecycleEvents.SERVER_STOPPING.register((server) -> onDisable());
-
-            ServerPlayConnectionEvents.JOIN.register((handler, $, $$) -> GeyserFabricUpdateListener.onPlayReady(handler));
-        } else {
-            // Server has started and this is a reload
-            startGeyser(this.server);
-            reloading = false;
-        }
-    }
-
-    /**
-     * Initialize core Geyser.
-     * A function, as it needs to be called in different places depending on if Geyser is being reloaded or not.
-     *
-     * @param server The minecraft server.
-     */
-    public void startGeyser(MinecraftServer server) {
-        this.server = server;
 
         GeyserImpl.start();
 
@@ -201,13 +191,13 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     }
 
     @Override
-    public void onShutdown() {
-        onDisable();
+    public void onGeyserShutdown() {
+        this.onGeyserDisable();
         this.server = null;
     }
 
     @Override
-    public void onDisable() {
+    public void onGeyserDisable() {
         if (geyser != null) {
             geyser.shutdown();
             geyser = null;
@@ -292,13 +282,5 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
         } catch (IOException e) {
             return null;
         }
-    }
-
-    public void setReloading(boolean reloading) {
-        this.reloading = reloading;
-    }
-
-    public static GeyserFabricMod getInstance() {
-        return instance;
     }
 }

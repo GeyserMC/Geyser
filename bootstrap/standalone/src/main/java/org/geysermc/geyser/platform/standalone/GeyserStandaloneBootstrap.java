@@ -169,11 +169,11 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     public void onEnable(boolean useGui, String configFilename) {
         this.configFilename = configFilename;
         this.useGui = useGui;
-        this.onInitialize();
+        this.onGeyserInitialize();
     }
 
     @Override
-    public void onInitialize() {
+    public void onGeyserInitialize() {
         log4jLogger = (Logger) LogManager.getRootLogger();
         for (Appender appender : log4jLogger.getAppenders().values()) {
             // Remove the appender that is not in use
@@ -193,11 +193,11 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
         LoopbackUtil.checkAndApplyLoopback(geyserLogger);
 
-        this.onEnable();
+        this.onGeyserEnable();
     }
 
     @Override
-    public void onEnable() {
+    public void onGeyserEnable() {
         try {
             File configFile = FileUtils.fileOrCopiedFromResource(new File(configFilename), "config.yml",
                     (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
@@ -257,12 +257,12 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     }
 
     @Override
-    public void onDisable() {
+    public void onGeyserDisable() {
         geyser.shutdown();
     }
 
     @Override
-    public void onShutdown() {
+    public void onGeyserShutdown() {
         geyser.shutdown();
         System.exit(0);
     }

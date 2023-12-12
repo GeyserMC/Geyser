@@ -612,8 +612,8 @@ public class GeyserImpl implements GeyserApi {
 
     public void reload() {
         isReloading = true;
-        bootstrap.onDisable();
-        bootstrap.onEnable();
+        bootstrap.onGeyserDisable();
+        bootstrap.onGeyserEnable();
     }
 
     /**
