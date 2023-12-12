@@ -70,10 +70,13 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     private GeyserImpl geyser;
 
-    private static boolean INITIALIZED = false;
-
     @Override
     public void onLoad() {
+        onGeyserInitialize();
+    }
+
+    @Override
+    public void onGeyserInitialize() {
         GeyserLocale.init(this);
 
         // Copied from ViaVersion.
@@ -112,8 +115,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     }
 
     @Override
-    public void onGeyserEnable() {
-
+    public void onEnable() {
         // Force-disable query if enabled, or else Geyser won't enable
         for (ListenerInfo info : getProxy().getConfig().getListeners()) {
             if (info.isQueryEnabled() && info.getQueryPort() == geyserConfig.getBedrock().port()) {
@@ -132,15 +134,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             }
         }
 
-        // Big hack - Bungee does not provide us an event to listen to, so schedule a repeating
-        // task that waits for a field to be filled which is set after the plugin enable
-        // process is complete
-        if (!INITIALIZED) {
-            this.awaitStartupCompletion(0);
-        } else {
-            // No need to "wait" for startup completion, just start Geyser - we're reloading.
-            this.postStartup();
-        }
+        this.awaitStartupCompletion(0);
     }
 
     @SuppressWarnings("unchecked")
@@ -151,7 +145,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             this.geyserLogger.warning("BungeeCord plugin startup is taking abnormally long, so Geyser is starting now. " +
                     "If all your plugins are loaded properly, this is a bug! " +
                     "If not, consider cutting down the amount of plugins on your proxy as it is causing abnormally slow starting times.");
-            this.postStartup();
+            this.onGeyserEnable();
             return;
         }
 
@@ -161,7 +155,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
             Collection<Channel> listeners = (Collection<Channel>) listenersField.get(BungeeCord.getInstance());
             if (listeners.isEmpty()) {
-                this.getProxy().getScheduler().schedule(this, this::postStartup, tries, TimeUnit.SECONDS);
+                this.getProxy().getScheduler().schedule(this, this::onGeyserEnable, tries, TimeUnit.SECONDS);
             } else {
                 this.awaitStartupCompletion(++tries);
             }
@@ -170,10 +164,10 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         }
     }
 
-    private void postStartup() {
+    public void onGeyserEnable() {
         GeyserImpl.start();
 
-        if (!INITIALIZED) {
+        if (!GeyserImpl.isReloading) {
             this.geyserInjector = new GeyserBungeeInjector(this);
             this.geyserInjector.initializeLocalChannel(this);
         }
@@ -196,8 +190,6 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         } else {
             this.geyserBungeePingPassthrough = new GeyserBungeePingPassthrough(getProxy());
         }
-
-        INITIALIZED = true;
     }
 
     @Override
@@ -205,8 +197,13 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         if (geyser != null) {
             geyser.shutdown();
         }
-        if (geyserInjector != null) {
-            geyserInjector.shutdown();
+    }
+
+    @Override
+    public void onGeyserShutdown() {
+        onGeyserDisable();
+        if (geyser != null) {
+            geyser.shutdown();
         }
     }
 
