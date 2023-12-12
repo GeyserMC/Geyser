@@ -98,11 +98,11 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
                 this.server = server;
                 onGeyserEnable();
             });
-
-            // These are only registered once - TODO client side?
-            ServerLifecycleEvents.SERVER_STOPPING.register((server) -> onGeyserShutdown());
-            ServerPlayConnectionEvents.JOIN.register((handler, $, $$) -> GeyserFabricUpdateListener.onPlayReady(handler));
         }
+
+        // These are only registered once
+        ServerLifecycleEvents.SERVER_STOPPING.register((server) -> onGeyserShutdown());
+        ServerPlayConnectionEvents.JOIN.register((handler, $, $$) -> GeyserFabricUpdateListener.onPlayReady(handler));
     }
 
     @Override
