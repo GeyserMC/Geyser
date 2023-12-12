@@ -82,7 +82,7 @@ import java.util.logging.Level;
 
 public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     /**
-     * Determines if the plugin has been ran once before.
+     * Determines if the plugin has been run once before.
      */
     private static boolean INITIALIZED = false;
 
@@ -205,6 +205,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             // Reload; continue with post startup
             onGeyserEnable();
         }
+    }
+
+    @Override
+    public void onEnable() {
+        onGeyserEnable();
     }
 
     public void onGeyserEnable() {
