@@ -29,7 +29,11 @@ import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.PlayerActionType;
-import org.cloudburstmc.protocol.bedrock.packet.*;
+import org.cloudburstmc.protocol.bedrock.packet.ChangeDimensionPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
+import org.cloudburstmc.protocol.bedrock.packet.MobEffectPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerActionPacket;
+import org.cloudburstmc.protocol.bedrock.packet.StopSoundPacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.session.GeyserSession;
@@ -71,10 +75,6 @@ public class DimensionUtils {
         session.getLodestoneCache().clear();
         session.getPistonCache().clear();
         session.getSkullCache().clear();
-        
-        if (session.getOpenInventory() != null) {
-            InventoryUtils.closeInventory(session, session.getOpenInventory().getJavaId(), false);
-        }
 
         if (session.getServerRenderDistance() > 32 && !session.isEmulatePost1_13Logic()) {
             // The server-sided view distance wasn't a thing until Minecraft Java 1.14
