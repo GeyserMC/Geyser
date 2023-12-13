@@ -30,13 +30,18 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 
 @BlockEntity(type = BlockEntityType.TRIAL_SPAWNER)
-public class TrialSpawnerBlockEntityTranslator extends SpawnerBlockEntityTranslator {
+public class TrialSpawnerBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
-        if (tag != null) {
-            // todo 1.20.3 doesn't seem to work
-            super.translateTag(builder, tag, blockState);
+        if (tag == null) {
+            return;
         }
+
+        // trial spawners have "spawn_data" instead of "SpawnData"
+        SpawnerBlockEntityTranslator.translateSpawnData(builder, tag.get("spawn_data"));
+
+        // Because trial spawners don't exist on bedrock yet
+        builder.put("id", "MobSpawner");
     }
 }
