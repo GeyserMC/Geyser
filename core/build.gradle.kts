@@ -113,7 +113,7 @@ inner class GitInfo {
     val repository: String
 
     init {
-        branch = indraGit.branchName() ?: System.getenv("BRANCH_NAME")
+        branch = indraGit.branchName() ?: System.getenv("BRANCH_NAME") ?: "DEV"
 
         val commit = indraGit.commit()
         this.commit = commit?.name ?: "0".repeat(40)
