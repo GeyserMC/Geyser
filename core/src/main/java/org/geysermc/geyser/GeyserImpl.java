@@ -633,7 +633,7 @@ public class GeyserImpl implements GeyserApi {
 
     public boolean isDevBuild() {
         //noinspection ConstantValue - changes in production
-        return !GeyserImpl.BRANCH.equals("master") && !GeyserImpl.REPOSITORY.equalsIgnoreCase("https://github.com/GeyserMC/Geyser.git");
+        return !GeyserImpl.BRANCH.equals("master") && !GeyserImpl.REPOSITORY.equalsIgnoreCase("https://github.com/GeyserMC/Geyser");
     }
 
     @Override
