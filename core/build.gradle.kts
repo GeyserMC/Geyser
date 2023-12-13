@@ -97,8 +97,8 @@ configure<BlossomExtension> {
     replaceToken("\${repository}", info.repository, mainFile)
 }
 
-fun Project.buildNumber(): Int =
-    (System.getenv("GITHUB_RUN_NUMBER") ?: jenkinsBuildNumber())?.let { Integer.parseInt(it) } ?: -1
+// -1 as a fallback for local builds
+fun buildNumber(): Int = Integer.parseInt(System.getenv("GITHUB_RUN_NUMBER") ?: "-1")
 
 inner class GitInfo {
     val branch: String
@@ -113,9 +113,7 @@ inner class GitInfo {
     val repository: String
 
     init {
-        // On Jenkins, a detached head is checked out, so indra cannot determine the branch.
-        // Fortunately, this environment variable is available.
-        branch = indraGit.branchName() ?: System.getenv("BRANCH_NAME") ?: "DEV"
+        branch = indraGit.branchName() ?: System.getenv("BRANCH_NAME")
 
         val commit = indraGit.commit()
         this.commit = commit?.name ?: "0".repeat(40)
@@ -130,6 +128,3 @@ inner class GitInfo {
         repository = git?.repository?.config?.getString("remote", "origin", "url") ?: ""
     }
 }
-
-// todo remove this when we're not using Jenkins anymore
-fun jenkinsBuildNumber(): String? = System.getenv("BUILD_NUMBER")

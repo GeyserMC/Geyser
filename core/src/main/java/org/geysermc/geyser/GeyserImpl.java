@@ -185,7 +185,10 @@ public class GeyserImpl implements GeyserApi {
 
         logger.info("******************************************");
         logger.info("");
-        logger.info(GeyserLocale.getLocaleStringLog("geyser.core.load", NAME, VERSION));
+        logger.info(GeyserLocale.getLocaleStringLog("geyser.core.load", NAME, BUILD_NUMBER));
+        logger.info(GeyserImpl.VERSION);
+        logger.info("");
+        if (isDevBuild()) logger.info(GeyserLocale.getLocaleStringLog("geyser.core.dev_build", "https://discord.gg/geysermc"));
         logger.info("");
         logger.info("******************************************");
 
@@ -625,6 +628,11 @@ public class GeyserImpl implements GeyserApi {
         // First is if Blossom runs, second is if Blossom doesn't run
         //noinspection ConstantConditions,MismatchedStringCase - changes in production
         return !("git-local/dev-0000000".equals(GeyserImpl.GIT_VERSION) || "${gitVersion}".equals(GeyserImpl.GIT_VERSION));
+    }
+
+    public boolean isDevBuild() {
+        //noinspection ConstantValue - changes in production
+        return !GeyserImpl.BRANCH.equals("master") && !GeyserImpl.REPOSITORY.equalsIgnoreCase("https://github.com/GeyserMC/Geyser.git");
     }
 
     @Override
