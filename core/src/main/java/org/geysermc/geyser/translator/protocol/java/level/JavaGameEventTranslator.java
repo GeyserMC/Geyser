@@ -142,7 +142,8 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 }
                 break;
             case AFFECTED_BY_ELDER_GUARDIAN:
-                // todo 1.20.3 does this play a sound? this game event has a value for audible or not
+                // note: There is a ElderGuardianEffectValue that determines if a sound should be made or not,
+                // but that doesn't seem to be controllable on Bedrock Edition
                 EntityEventPacket eventPacket = new EntityEventPacket();
                 eventPacket.setType(EntityEventType.ELDER_GUARDIAN_CURSE);
                 eventPacket.setData(0);
@@ -168,9 +169,10 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 arrowSoundPacket.setPosition(entity.getPosition());
                 session.sendUpstreamPacket(arrowSoundPacket);
                 break;
-            case PUFFERFISH_STING_SOUND:
-                // todo 1.20.3 was this accidentally not implemented?
             default:
+                // DEMO_MESSAGE             - for JE game demo
+                // LEVEL_CHUNKS_LOAD_START  - ???
+                // PUFFERFISH_STING_SOUND   - doesn't exist on bedrock
                 break;
         }
     }

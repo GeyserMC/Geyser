@@ -29,6 +29,8 @@ import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -99,24 +101,28 @@ public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
             builder.put("MinSpawnDelay", current.getValue());
         }
 
-        CompoundTag spawnData = tag.get("SpawnData");
-        if (spawnData != null) {
-            CompoundTag entityTag = spawnData.get("entity");
-            if (entityTag.get("id") instanceof StringTag idTag) {
-                // As of 1.19.3, spawners can be empty
-                String entityId = idTag.getValue();
-                builder.put("EntityIdentifier", entityId);
+        translateSpawnData(builder, tag.get("SpawnData"));
 
-                EntityDefinition<?> definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityId);
-                if (definition != null) {
-                    builder.put("DisplayEntityWidth", definition.width());
-                    builder.put("DisplayEntityHeight", definition.height());
-                    builder.put("DisplayEntityScale", 1.0f);
-                }
-            }
+        builder.put("isMovable", (byte) 1);
+    }
+
+    static void translateSpawnData(@NonNull NbtMapBuilder builder, @Nullable CompoundTag spawnData) {
+        if (spawnData == null) {
+            return;
         }
 
-        builder.put("id", "MobSpawner");
-        builder.put("isMovable", (byte) 1);
+        CompoundTag entityTag = spawnData.get("entity");
+        if (entityTag.get("id") instanceof StringTag idTag) {
+            // As of 1.19.3, spawners can be empty
+            String entityId = idTag.getValue();
+            builder.put("EntityIdentifier", entityId);
+
+            EntityDefinition<?> definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityId);
+            if (definition != null) {
+                builder.put("DisplayEntityWidth", definition.width());
+                builder.put("DisplayEntityHeight", definition.height());
+                builder.put("DisplayEntityScale", 1.0f);
+            }
+        }
     }
 }

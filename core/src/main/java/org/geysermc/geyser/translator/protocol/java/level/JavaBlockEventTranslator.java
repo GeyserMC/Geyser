@@ -33,7 +33,6 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEventPacket;
 import it.unimi.dsi.fastutil.objects.Object2IntMaps;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.physics.Direction;
@@ -128,14 +127,6 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
             
             blockEntityPacket.setData(builder.build());
             session.sendUpstreamPacket(blockEntityPacket);
-        } else if (value instanceof DecoratedPotValue) {
-            // todo 1.20.3
-        } else if (value instanceof GenericBlockValue genericValue) {
-            if (genericValue.getValue() != 0) {
-                GeyserImpl.getInstance().getLogger().warning("Nonzero generic block value: " + packet);
-            }
-        } else {
-            GeyserImpl.getInstance().getLogger().warning("Unhandled non-generic block event: " + packet);
         }
     }
 }
