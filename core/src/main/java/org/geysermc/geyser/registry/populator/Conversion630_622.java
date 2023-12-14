@@ -37,7 +37,7 @@ import java.util.Map;
 /**
  * Backwards-maps the blocks and items of 1.20.50 (630) to 1.20.40 (622)
  */
-public class Conversion630_622 {
+class Conversion630_622 {
 
     private static final List<String> NEW_STONES = List.of("minecraft:stone", "minecraft:granite", "minecraft:polished_granite", "minecraft:diorite", "minecraft:polished_diorite", "minecraft:andesite", "minecraft:polished_andesite");
     private static final List<String> NEW_WOODS = List.of("minecraft:oak_planks", "minecraft:spruce_planks", "minecraft:birch_planks", "minecraft:jungle_planks", "minecraft:acacia_planks", "minecraft:dark_oak_planks");

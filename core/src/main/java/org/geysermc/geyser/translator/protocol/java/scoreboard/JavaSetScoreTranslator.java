@@ -27,6 +27,7 @@ package org.geysermc.geyser.translator.protocol.java.scoreboard;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetScorePacket;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.geyser.GeyserImpl;
@@ -86,7 +87,7 @@ public class JavaSetScoreTranslator extends PacketTranslator<ClientboundSetScore
     /**
      * @param objective the objective that currently resides on the below name display slot
      */
-    protected static void setBelowName(GeyserSession session, Objective objective, String username, int count) {
+    static void setBelowName(GeyserSession session, Objective objective, String username, int count) {
         PlayerEntity entity = getOtherPlayerEntity(session, username);
         if (entity == null) {
             return;
@@ -102,7 +103,7 @@ public class JavaSetScoreTranslator extends PacketTranslator<ClientboundSetScore
         session.sendUpstreamPacket(entityDataPacket);
     }
 
-    private static PlayerEntity getOtherPlayerEntity(GeyserSession session, String username) {
+    private static @Nullable PlayerEntity getOtherPlayerEntity(GeyserSession session, String username) {
         // We don't care about the session player, because... they're not going to be seeing their own score
         if (session.getPlayerEntity().getUsername().equals(username)) {
             return null;
