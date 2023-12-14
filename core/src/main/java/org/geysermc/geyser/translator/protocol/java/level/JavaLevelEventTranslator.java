@@ -336,7 +336,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 return;
             }
             default -> {
-                GeyserImpl.getInstance().getLogger().warning("Unhandled level event: " + packet.getEvent());
+                GeyserImpl.getInstance().getLogger().debug("Unhandled level event: " + packet.getEvent());
                 return;
             }
         }
