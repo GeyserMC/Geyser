@@ -188,8 +188,10 @@ public class GeyserImpl implements GeyserApi {
         logger.info(GeyserLocale.getLocaleStringLog("geyser.core.load", NAME, BUILD_NUMBER));
         logger.info(GeyserImpl.VERSION);
         logger.info("");
-        if (isDevBuild()) logger.info(GeyserLocale.getLocaleStringLog("geyser.core.dev_build", "https://discord.gg/geysermc"));
-        logger.info("");
+        if (isDevBuild()) {
+            logger.info(GeyserLocale.getLocaleStringLog("geyser.core.dev_build", "https://discord.gg/geysermc"));
+            logger.info("");
+        }
         logger.info("******************************************");
 
         /* Initialize registries */
