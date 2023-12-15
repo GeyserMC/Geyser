@@ -5,12 +5,6 @@ plugins {
     id("com.modrinth.minotaur") version "2.+"
 }
 
-indra {
-    javaVersions {
-        target(17)
-    }
-}
-
 dependencies {
     //to change the versions see the gradle.properties file
     minecraft(libs.fabric.minecraft)
