@@ -118,7 +118,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
             return;
         }
 
-        if (item == null || item.getId() == 0) {
+        if (InventoryUtils.isEmpty(item)) {
             return;
         }
 

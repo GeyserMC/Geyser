@@ -23,26 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java;
+package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.github.steveice10.mc.protocol.data.game.ResourcePackStatus;
-import com.github.steveice10.mc.protocol.packet.common.clientbound.ClientboundResourcePackPacket;
-import com.github.steveice10.mc.protocol.packet.common.serverbound.ServerboundResourcePackPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerSlotStateChangedPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ToggleCrafterSlotRequestPacket;
+import org.geysermc.geyser.inventory.CrafterContainer;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
-@Translator(packet = ClientboundResourcePackPacket.class)
-public class JavaClientboundResourcePacksPacket extends PacketTranslator<ClientboundResourcePackPacket> {
+@Translator(packet = ToggleCrafterSlotRequestPacket.class)
+public class BedrockToggleCrafterSlotRequestTranslator extends PacketTranslator<ToggleCrafterSlotRequestPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundResourcePackPacket packet) {
-        // We need to "answer" this to avoid timeout issues related to resource packs
-        // If packs are required, we need to lie to the server that we accepted them, as we get kicked otherwise.
-        if (packet.isRequired()) {
-            session.sendDownstreamPacket(new ServerboundResourcePackPacket(ResourcePackStatus.SUCCESSFULLY_LOADED));
-        } else {
-            session.sendDownstreamPacket(new ServerboundResourcePackPacket(ResourcePackStatus.DECLINED));
+    public void translate(GeyserSession session, ToggleCrafterSlotRequestPacket packet) {
+        if (!(session.getOpenInventory() instanceof CrafterContainer container)) {
+            return;
         }
+
+        // Note that the Bedrock packet uses disabled, whereas the java packet used enabled.
+        session.sendDownstreamGamePacket(
+                new ServerboundContainerSlotStateChangedPacket(packet.getSlot(), container.getJavaId(), !packet.isDisabled()));
     }
 }

@@ -118,8 +118,9 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
             String pool = tag.getString("target_pool");
             String finalState = tag.getString("final_state");
             String joint = tag.getString("joint");
+            // last two parameters are priority values that Bedrock doesn't have (yet?)
             ServerboundSetJigsawBlockPacket jigsawPacket = new ServerboundSetJigsawBlockPacket(pos, name, target, pool,
-                    finalState, joint);
+                    finalState, joint, 0, 0);
             session.sendDownstreamGamePacket(jigsawPacket);
         }
 
