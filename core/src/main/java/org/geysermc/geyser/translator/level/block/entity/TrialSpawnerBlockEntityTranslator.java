@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,21 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.inventory.recipe;
+package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
-import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 
-public record GeyserShapedRecipe(int width, int height, Ingredient[] ingredients, @Nullable ItemStack result) implements GeyserRecipe {
-
-    public GeyserShapedRecipe(ShapedRecipeData data) {
-        this(data.getWidth(), data.getHeight(), data.getIngredients(), data.getResult());
-    }
+@BlockEntity(type = BlockEntityType.TRIAL_SPAWNER)
+public class TrialSpawnerBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
-    public boolean isShaped() {
-        return true;
+    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+        if (tag == null) {
+            return;
+        }
+
+        // trial spawners have "spawn_data" instead of "SpawnData"
+        SpawnerBlockEntityTranslator.translateSpawnData(builder, tag.get("spawn_data"));
+
+        // Because trial spawners don't exist on bedrock yet
+        builder.put("id", "MobSpawner");
     }
 }

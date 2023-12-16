@@ -29,9 +29,6 @@ import com.github.steveice10.mc.protocol.codec.MinecraftCodec;
 import com.github.steveice10.mc.protocol.codec.PacketCodec;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
-import org.cloudburstmc.protocol.bedrock.codec.v589.Bedrock_v589;
-import org.cloudburstmc.protocol.bedrock.codec.v594.Bedrock_v594;
-import org.cloudburstmc.protocol.bedrock.codec.v618.Bedrock_v618;
 import org.cloudburstmc.protocol.bedrock.codec.v622.Bedrock_v622;
 import org.cloudburstmc.protocol.bedrock.codec.v630.Bedrock_v630;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
@@ -63,19 +60,12 @@ public final class GameProtocol {
     private static final PacketCodec DEFAULT_JAVA_CODEC = MinecraftCodec.CODEC;
 
     static {
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v589.CODEC.toBuilder()
-            .minecraftVersion("1.20.0/1.20.1")
-            .build());
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v594.CODEC.toBuilder()
-            .minecraftVersion("1.20.10/1.20.15")
-            .build());
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v618.CODEC.toBuilder()
-            .minecraftVersion("1.20.30/1.20.32")
-            .build());
         SUPPORTED_BEDROCK_CODECS.add(Bedrock_v622.CODEC.toBuilder()
             .minecraftVersion("1.20.40/1.20.41")
             .build());
-        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
+        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC.toBuilder()
+            .minecraftVersion("1.20.50/1.20.51")
+            .build());
     }
 
     /**
@@ -94,16 +84,8 @@ public final class GameProtocol {
 
     /* Bedrock convenience methods to gatekeep features and easily remove the check on version removal */
 
-    public static boolean isPre1_20_10(GeyserSession session) {
-        return session.getUpstream().getProtocolVersion() < Bedrock_v594.CODEC.getProtocolVersion();
-    }
-
-    /**
-     * @param session the session to check
-     * @return true if the session needs an experiment for recipe unlocking
-     */
-    public static boolean isUsingExperimentalRecipeUnlocking(GeyserSession session) {
-        return session.getUpstream().getProtocolVersion() == Bedrock_v594.CODEC.getProtocolVersion();
+    public static boolean isPre1_20_50(GeyserSession session) {
+        return session.getUpstream().getProtocolVersion() < Bedrock_v630.CODEC.getProtocolVersion();
     }
 
     /**

@@ -46,6 +46,7 @@ public class JavaExplodeTranslator extends PacketTranslator<ClientboundExplodePa
 
     @Override
     public void translate(GeyserSession session, ClientboundExplodePacket packet) {
+        // todo 1.20.3 handle the 4 new fields
         LevelEventGenericPacket levelEventPacket = new LevelEventGenericPacket();
         levelEventPacket.setType(LevelEvent.PARTICLE_BLOCK_EXPLOSION);
         NbtMapBuilder builder = NbtMap.builder();
