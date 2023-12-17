@@ -44,6 +44,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
@@ -128,12 +129,20 @@ public class GeyserViaProxyBootstrap implements GeyserBootstrap {
     @NotNull
     @Override
     public String getServerBindAddress() {
-        return Options.BIND_ADDRESS;
+        if (Options.BIND_ADDRESS instanceof InetSocketAddress socketAddress) {
+            return socketAddress.getHostString();
+        } else {
+            throw new IllegalStateException("Unsupported bind address type: " + Options.BIND_ADDRESS.getClass().getName());
+        }
     }
 
     @Override
     public int getServerPort() {
-        return Options.BIND_PORT;
+        if (Options.BIND_ADDRESS instanceof InetSocketAddress socketAddress) {
+            return socketAddress.getPort();
+        } else {
+            throw new IllegalStateException("Unsupported bind address type: " + Options.BIND_ADDRESS.getClass().getName());
+        }
     }
 
     @Override

@@ -31,6 +31,7 @@ import net.raphimc.viaproxy.plugins.ViaProxyPlugin;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.text.AsteriskSerializer;
 
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -49,8 +50,13 @@ public class GeyserViaProxyDumpInfo extends BootstrapDumpInfo {
     public GeyserViaProxyDumpInfo() {
         this.platformVersion = ViaProxy.VERSION;
         this.onlineMode = Options.ONLINE_MODE;
-        this.serverIP = Options.BIND_ADDRESS;
-        this.serverPort = Options.BIND_PORT;
+        if (Options.BIND_ADDRESS instanceof InetSocketAddress inetSocketAddress) {
+            this.serverIP = inetSocketAddress.getHostString();
+            this.serverPort = inetSocketAddress.getPort();
+        } else {
+            this.serverIP = "unsupported";
+            this.serverPort = 0;
+        }
         this.plugins = new ArrayList<>();
 
         for (ViaProxyPlugin plugin : ViaProxy.getPluginManager().getPlugins()) {
