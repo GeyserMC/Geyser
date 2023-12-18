@@ -129,6 +129,10 @@ public class GeyserViaProxyBootstrap implements GeyserBootstrap {
     @NotNull
     @Override
     public String getServerBindAddress() {
+        if (Options.BIND_ADDRESS == null) { // TODO: Remove this check when Geyser has better init/load support
+            return "0.0.0.0";
+        }
+
         if (Options.BIND_ADDRESS instanceof InetSocketAddress socketAddress) {
             return socketAddress.getHostString();
         } else {
@@ -138,6 +142,10 @@ public class GeyserViaProxyBootstrap implements GeyserBootstrap {
 
     @Override
     public int getServerPort() {
+        if (Options.BIND_ADDRESS == null) { // TODO: Remove this check when Geyser has better init/load support
+            return 25568;
+        }
+
         if (Options.BIND_ADDRESS instanceof InetSocketAddress socketAddress) {
             return socketAddress.getPort();
         } else {

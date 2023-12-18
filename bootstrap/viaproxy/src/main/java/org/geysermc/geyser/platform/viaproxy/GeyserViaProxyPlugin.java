@@ -61,10 +61,9 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin {
 
     @EventHandler
     private void onConsoleCommand(final ConsoleCommandEvent event) {
-        if (event.getCommand().equals("geyser") || event.getCommand().equals("/geyser")) {
+        final String command = event.getCommand().startsWith("/") ? event.getCommand().substring(1) : event.getCommand();
+        if (this.bootstrap.getGeyserCommandManager().runCommand(this.bootstrap.getGeyserLogger(), command + " " + String.join(" ", event.getArgs()))) {
             event.setCancelled(true);
-
-            this.bootstrap.getGeyserCommandManager().runCommand(this.bootstrap.getGeyserLogger(), "geyser " + String.join(" ", event.getArgs()));
         }
     }
 
