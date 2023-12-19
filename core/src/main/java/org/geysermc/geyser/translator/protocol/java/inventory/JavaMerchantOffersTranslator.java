@@ -44,6 +44,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.MathUtils;
 
 import java.util.ArrayList;
@@ -158,14 +159,14 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
     }
 
     private static NbtMap getItemTag(GeyserSession session, ItemStack stack) {
-        if (stack == null || stack.getAmount() <= 0) { // Negative item counts appear as air on Java
+        if (InventoryUtils.isEmpty(stack)) { // Negative item counts appear as air on Java
             return NbtMap.EMPTY;
         }
         return getItemTag(session, stack, session.getItemMappings().getMapping(stack), stack.getAmount());
     }
 
     private static NbtMap getItemTag(GeyserSession session, ItemStack stack, int specialPrice, int demand, float priceMultiplier) {
-        if (stack == null || stack.getAmount() <= 0) { // Negative item counts appear as air on Java
+        if (InventoryUtils.isEmpty(stack)) { // Negative item counts appear as air on Java
             return NbtMap.EMPTY;
         }
         ItemMapping mapping = session.getItemMappings().getMapping(stack);
