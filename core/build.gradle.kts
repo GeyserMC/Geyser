@@ -98,7 +98,7 @@ configure<BlossomExtension> {
 }
 
 // -1 as a fallback for local builds
-fun buildNumber(): Int = Integer.parseInt(System.getenv("GITHUB_RUN_NUMBER") ?: "-1")
+fun buildNumber(): Int = System.getenv("GITHUB_RUN_NUMBER")?.let { Integer.parseInt(it) } ?: -1
 
 inner class GitInfo {
     val branch: String
