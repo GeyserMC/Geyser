@@ -26,20 +26,21 @@
 package org.geysermc.geyser.api.bedrock.camera;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.common.value.qual.IntRange;
 import org.geysermc.geyser.api.GeyserApi;
 
-import java.awt.Color;
+import java.awt.*;
 
 /**
- * Represents a fade in/out color overlay
+ * Represents a coloured fade overlay on the camera.
  */
 public interface CameraFade {
 
     /**
      * Gets the color overlay of the camera.
-     * Bedrock uses a RGB color system.
+     * Bedrock uses an RGB color system.
      *
-     * @return The color of the fade
+     * @return the color of the fade
      */
     @NonNull Color color();
 
@@ -47,7 +48,7 @@ public interface CameraFade {
      * Gets the seconds it takes to fade in.
      * All fade times combined must take at least 0.5 seconds, and at most 10 seconds.
      *
-     * @return the seconds it takes to fade in.
+     * @return the seconds it takes to fade in
      */
     float fadeInSeconds();
 
@@ -55,7 +56,7 @@ public interface CameraFade {
      * Gets the seconds the overlay is held.
      * All fade times combined must take at least 0.5 seconds, and at most 10 seconds.
      *
-     * @return the seconds the overlay is held.
+     * @return the seconds the overlay is held
      */
     float holdSeconds();
 
@@ -63,14 +64,14 @@ public interface CameraFade {
      * Gets the seconds it takes to fade out.
      * All fade times combined must take at least 0.5 seconds, and at most 10 seconds.
      *
-     * @return the seconds it takes to fade out.
+     * @return the seconds it takes to fade out
      */
     float fadeOutSeconds();
 
     /**
-     * Create a Builder for CameraFade
+     * Creates a Builder for CameraFade
      *
-     * @return A CameraFade Builder
+     * @return a CameraFade Builder
      */
     static CameraFade.Builder builder() {
         return GeyserApi.api().provider(CameraFade.Builder.class);
@@ -80,11 +81,11 @@ public interface CameraFade {
 
         Builder color(@NonNull Color color);
 
-        Builder fadeInSeconds(float fadeInSeconds);
+        Builder fadeInSeconds(@IntRange(from = 0, to = 10)float fadeInSeconds);
 
-        Builder holdSeconds(float holdSeconds);
+        Builder holdSeconds(@IntRange(from = 0, to = 10)float holdSeconds);
 
-        Builder fadeOutSeconds(float fadeOutSeconds);
+        Builder fadeOutSeconds(@IntRange(from = 0, to = 10) float fadeOutSeconds);
 
         CameraFade build();
     }
