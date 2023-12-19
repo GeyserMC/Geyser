@@ -36,15 +36,15 @@ public interface CameraPosition {
     /**
      * Gets the camera's {@link Position}.
      *
-     * @return Camera's position.
+     * @return camera position
      */
     @NonNull Position position();
 
     /**
      * Gets the {@link CameraEaseType} of the camera.
-     * If not set, there is no easing.d
+     * If not set, there is no easing.
      *
-     * @return Camera's ease type.
+     * @return camera ease type
      */
     @Nullable CameraEaseType easeType();
 
@@ -52,24 +52,24 @@ public interface CameraPosition {
      * Gets the easing duration of the camera.
      * Is only used if a {@link CameraEaseType} is set.
      *
-     * @return Camera's easing duration.
+     * @return camera easing duration
      */
     float easeDuration();
 
     /**
-     * Gets the x rotation of the camera.
+     * Gets the x-axis rotation of the camera.
      * To prevent the camera from being upside down, Bedrock limits the range to -90 to 90.
      * Will be overridden if {@link #facingPosition()} is set.
      *
-     * @return Camera's x rotation.
+     * @return camera x-axis rotation
      */
     @IntRange(from = -90, to = 90) int rotationX();
 
     /**
-     * Gets the y rotation of the camera.
+     * Gets the y-axis rotation of the camera.
      * Will be overridden if {@link #facingPosition()} is set.
      *
-     * @return Camera's y rotation.
+     * @return camera y-axis rotation
      */
     int rotationY();
 
@@ -79,7 +79,7 @@ public interface CameraPosition {
      * <p>
      * If set, the rotation values set via {@link #rotationX()} and {@link #rotationY()} will be ignored.
      *
-     * @return Camera's facing position.
+     * @return Camera's facing position
      */
     @Nullable Position facingPosition();
 
@@ -95,14 +95,14 @@ public interface CameraPosition {
      * Controls whether the player position should be used for directional audio.
      * If false, the camera position will be used instead.
      *
-     * @return whether the players position should be used for directional audio.
+     * @return whether the players position should be used for directional audio
      */
     boolean playerPositionForAudio();
 
     /**
-     * Create a Builder for CameraPosition
+     * Creates a Builder for CameraPosition
      *
-     * @return A CameraPosition Builder
+     * @return a CameraPosition Builder
      */
     static CameraPosition.Builder builder() {
         return GeyserApi.api().provider(CameraPosition.Builder.class);
@@ -122,9 +122,9 @@ public interface CameraPosition {
 
         Builder position(@NonNull Position position);
 
-        Builder rotationX(int rot_x);
+        Builder rotationX(int rotX);
 
-        Builder rotationY(int rot_y);
+        Builder rotationY(int rotY);
 
         Builder facingPosition(@Nullable Position facingPosition);
 

@@ -26,6 +26,7 @@
 package org.geysermc.geyser.bedrock.camera;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.common.value.qual.IntRange;
 import org.geysermc.geyser.api.bedrock.camera.CameraFade;
 
 import java.awt.Color;
@@ -50,7 +51,11 @@ public record GeyserCameraFade(
         }
 
         @Override
-        public CameraFade.Builder fadeInSeconds(float fadeInSeconds) {
+        public CameraFade.Builder fadeInSeconds(@IntRange(from = 0, to = 10) float fadeInSeconds) {
+            if (fadeInSeconds < 0f) {
+                throw new IllegalArgumentException("Fade in seconds must be at least 0 seconds");
+            }
+
             if (fadeInSeconds > 10f) {
                 throw new IllegalArgumentException("Fade in seconds must be at most 10 seconds");
             }
@@ -59,7 +64,11 @@ public record GeyserCameraFade(
         }
 
         @Override
-        public CameraFade.Builder holdSeconds(float holdSeconds) {
+        public CameraFade.Builder holdSeconds(@IntRange(from = 0, to = 10) float holdSeconds) {
+            if (holdSeconds < 0f) {
+                throw new IllegalArgumentException("Hold seconds must be at least 0 seconds");
+            }
+
             if (holdSeconds > 10f) {
                 throw new IllegalArgumentException("Hold seconds must be at most 10 seconds");
             }
@@ -68,7 +77,11 @@ public record GeyserCameraFade(
         }
 
         @Override
-        public CameraFade.Builder fadeOutSeconds(float fadeOutSeconds) {
+        public CameraFade.Builder fadeOutSeconds(@IntRange(from = 0, to = 10) float fadeOutSeconds) {
+            if (fadeOutSeconds < 0f) {
+                throw new IllegalArgumentException("Fade out seconds must be at least 0 seconds");
+            }
+
             if (fadeOutSeconds > 10f) {
                 throw new IllegalArgumentException("Fade out seconds must be at most 10 seconds");
             }
@@ -83,11 +96,11 @@ public record GeyserCameraFade(
             }
 
             if (fadeInSeconds + holdSeconds + fadeOutSeconds < 0.5f) {
-                throw new IllegalArgumentException("Fade times must be at least 0.5 seconds");
+                throw new IllegalArgumentException("Total fade time (in, hold, out) must be at least 0.5 seconds");
             }
 
             if (fadeInSeconds + holdSeconds + fadeOutSeconds > 10f) {
-                throw new IllegalArgumentException("Fade times must be at most 10 seconds");
+                throw new IllegalArgumentException("Total fade time (in, hold, out) must be at most 10 seconds");
             }
             return new GeyserCameraFade(color, fadeInSeconds, holdSeconds, fadeOutSeconds);
         }

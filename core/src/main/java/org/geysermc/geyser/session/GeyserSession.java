@@ -119,7 +119,7 @@ import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.api.util.Position;
-import org.geysermc.geyser.bedrock.camera.CameraUtil;
+    import org.geysermc.geyser.bedrock.camera.CameraDefinitions;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -684,7 +684,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         upstream.sendPacket(entityPacket);
 
         CameraPresetsPacket cameraPresetsPacket = new CameraPresetsPacket();
-        cameraPresetsPacket.getPresets().addAll(CameraUtil.CAMERA_PRESETS);
+        cameraPresetsPacket.getPresets().addAll(CameraDefinitions.CAMERA_PRESETS);
         upstream.sendPacket(cameraPresetsPacket);
 
         CreativeContentPacket creativePacket = new CreativeContentPacket();
@@ -1500,7 +1500,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private void startGame() {
         this.upstream.getCodecHelper().setItemDefinitions(this.itemMappings);
         this.upstream.getCodecHelper().setBlockDefinitions((DefinitionRegistry) this.blockMappings); //FIXME
-        this.upstream.getCodecHelper().setCameraPresetDefinitions(CameraUtil.CAMERA_DEFINITIONS);
+        this.upstream.getCodecHelper().setCameraPresetDefinitions(CameraDefinitions.CAMERA_DEFINITIONS);
 
         StartGamePacket startGamePacket = new StartGamePacket();
         startGamePacket.setUniqueEntityId(playerEntity.getGeyserId());
@@ -2037,7 +2037,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public void sendCameraFade(@NonNull CameraFade fade) {
         //noinspection ConstantConditions
         if (fade == null) {
-            return;
+            throw new IllegalArgumentException("Fade cannot be null!");
         }
         CameraFadeInstruction fadeInstruction = new CameraFadeInstruction();
         fadeInstruction.setColor(fade.color());
@@ -2058,7 +2058,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public void sendCameraPosition(@NonNull CameraPosition movement) {
         //noinspection ConstantConditions
         if (movement == null) {
-            return;
+            throw new IllegalArgumentException("Movement cannot be null!");
         }
         this.cameraPerspective = CameraPerspective.FREE; // Movements only work with the free preset
         CameraSetInstruction setInstruction = new CameraSetInstruction();
@@ -2078,7 +2078,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         setInstruction.setPos(EntityUtils.vector3fFromPosition(movement.position()));
         setInstruction.setRot(Vector2f.from(movement.rotationX(), movement.rotationY()));
-        setInstruction.setPreset(CameraUtil.getByFunctionality(movement.playerPositionForAudio(), movement.renderPlayerEffects()));
+        setInstruction.setPreset(CameraDefinitions.getByFunctionality(movement.playerPositionForAudio(), movement.renderPlayerEffects()));
 
         CameraInstructionPacket packet = new CameraInstructionPacket();
         packet.setSetInstruction(setInstruction);
@@ -2095,19 +2095,24 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public void forceCameraPerspective(@NonNull CameraPerspective perspective) {
-        if (perspective == null || perspective == cameraPerspective) {
-            return;
+        if (perspective == null) {
+            throw new IllegalArgumentException("Perspective cannot be null!");
         }
+
+        if (perspective == cameraPerspective) {
+            return; // nothing to do
+        }
+
         this.cameraPerspective = perspective;
         CameraInstructionPacket packet = new CameraInstructionPacket();
         CameraSetInstruction setInstruction = new CameraSetInstruction();
 
         if (perspective == CameraPerspective.FREE) {
-            throw new IllegalArgumentException("Cannot force a stationary camera on the player!" +
+            throw new IllegalArgumentException("Cannot force a stationary camera (CameraPerspective#FREE) on the player!" +
                     "Send a CameraPosition with an exact position instead");
         }
 
-        setInstruction.setPreset(CameraUtil.getById(perspective.ordinal()));
+        setInstruction.setPreset(CameraDefinitions.getById(perspective.ordinal()));
         packet.setSetInstruction(setInstruction);
         sendUpstreamPacket(packet);
     }
@@ -2158,8 +2163,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         final int movementOffset = 1 << 2;
 
         int result = 0;
-        result |= (camera ? cameraOffset : 0);
-        result |= (movement ? movementOffset : 0);
+        if (camera) {
+            result |= cameraOffset;
+        }
+        if (movement) {
+            result |= movementOffset;
+        }
 
         packet.setLockComponentData(result);
         packet.setServerPosition(this.playerEntity.getPosition());

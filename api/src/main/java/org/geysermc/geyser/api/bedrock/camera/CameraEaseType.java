@@ -59,11 +59,11 @@ public enum CameraEaseType {
     EASE_OUT_BOUNCE("out_bounce"),
     EASE_IN_OUT_BOUNCE("in_out_bounce");
 
+    private final String id;
+
     CameraEaseType(String id) {
         this.id = id;
     }
-
-    private final String id;
 
     public String id() {
         return this.id;
