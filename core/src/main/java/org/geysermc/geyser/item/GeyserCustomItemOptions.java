@@ -37,7 +37,7 @@ public record GeyserCustomItemOptions(TriState unbreakable,
                                       boolean defaultItem) implements CustomItemOptions {
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    public static class CustomItemOptionsBuilder implements CustomItemOptions.Builder {
+    public static class Builder implements CustomItemOptions.Builder {
         private TriState unbreakable = TriState.NOT_SET;
         private OptionalInt customModelData = OptionalInt.empty();
         private OptionalInt damagePredicate = OptionalInt.empty();

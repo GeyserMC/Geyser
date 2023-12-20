@@ -38,7 +38,7 @@ public record GeyserCameraFade(
         float fadeOutSeconds
 ) implements CameraFade {
 
-    public static class CustomFadeBuilder implements CameraFade.Builder {
+    public static class Builder implements CameraFade.Builder {
         private Color color;
         private float fadeInSeconds;
         private float holdSeconds;

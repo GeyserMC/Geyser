@@ -36,7 +36,7 @@ public class GeyserMaterialInstance implements MaterialInstance {
     private final boolean faceDimming;
     private final boolean ambientOcclusion;
 
-    GeyserMaterialInstance(MaterialInstanceBuilder builder) {
+    GeyserMaterialInstance(Builder builder) {
         this.texture = builder.texture;
         this.renderMethod = builder.renderMethod;
         this.faceDimming = builder.faceDimming;
@@ -63,7 +63,7 @@ public class GeyserMaterialInstance implements MaterialInstance {
         return ambientOcclusion;
     }
 
-    public static class MaterialInstanceBuilder implements Builder {
+    public static class Builder implements MaterialInstance.Builder {
         private String texture;
         private String renderMethod;
         private boolean faceDimming;

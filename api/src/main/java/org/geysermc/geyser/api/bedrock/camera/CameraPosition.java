@@ -28,17 +28,17 @@ package org.geysermc.geyser.api.bedrock.camera;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.value.qual.IntRange;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.api.GeyserApi;
-import org.geysermc.geyser.api.util.Position;
 
 public interface CameraPosition {
 
     /**
-     * Gets the camera's {@link Position}.
+     * Gets the camera's position.
      *
-     * @return camera position
+     * @return camera position vector
      */
-    @NonNull Position position();
+    @NonNull Vector3f position();
 
     /**
      * Gets the {@link CameraEaseType} of the camera.
@@ -81,7 +81,7 @@ public interface CameraPosition {
      *
      * @return Camera's facing position
      */
-    @Nullable Position facingPosition();
+    @Nullable Vector3f facingPosition();
 
     /**
      * Controls whether player effects, such as night vision or blindness, should be rendered on the camera.
@@ -120,13 +120,13 @@ public interface CameraPosition {
 
         Builder easeDuration(float easeDuration);
 
-        Builder position(@NonNull Position position);
+        Builder position(@NonNull Vector3f position);
 
         Builder rotationX(int rotX);
 
         Builder rotationY(int rotY);
 
-        Builder facingPosition(@Nullable Position facingPosition);
+        Builder facingPosition(@Nullable Vector3f facingPosition);
 
         CameraPosition build();
     }

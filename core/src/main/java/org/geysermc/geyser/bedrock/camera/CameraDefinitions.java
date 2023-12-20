@@ -76,4 +76,22 @@ public class CameraDefinitions {
             return getById(5); // FREE_EFFECTS
         }
     }
+
+    public record CameraDefinition(String identifier, int runtimeId) implements NamedDefinition {
+
+        @Override
+        public String getIdentifier() {
+            return identifier;
+        }
+
+        @Override
+        public int getRuntimeId() {
+            return runtimeId;
+        }
+
+        public static CameraDefinition of(String identifier, int runtimeId) {
+            return new CameraDefinition(identifier, runtimeId);
+        }
+    }
+
 }
