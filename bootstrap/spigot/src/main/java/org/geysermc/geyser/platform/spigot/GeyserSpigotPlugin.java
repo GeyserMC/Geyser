@@ -140,7 +140,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         } catch (ClassNotFoundException e) {
             getLogger().severe("*********************************************");
             getLogger().severe("");
-            getLogger().severe("This version of Spigot is using an outdated version of netty. Please update, or use Paper!");
+            getLogger().severe("This version of Spigot is using an outdated version of netty. Please use Paper instead!");
             getLogger().severe("");
             getLogger().severe("*********************************************");
             return;
