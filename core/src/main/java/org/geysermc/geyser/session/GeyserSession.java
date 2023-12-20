@@ -81,19 +81,53 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.value.qual.IntRange;
-import org.cloudburstmc.math.vector.*;
+import org.cloudburstmc.math.vector.Vector2f;
+import org.cloudburstmc.math.vector.Vector2i;
+import org.cloudburstmc.math.vector.Vector3d;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
-import org.cloudburstmc.protocol.bedrock.data.*;
-import org.cloudburstmc.protocol.bedrock.data.camera.CameraEase;
-import org.cloudburstmc.protocol.bedrock.data.camera.CameraFadeInstruction;
-import org.cloudburstmc.protocol.bedrock.data.camera.CameraSetInstruction;
+import org.cloudburstmc.protocol.bedrock.data.Ability;
+import org.cloudburstmc.protocol.bedrock.data.AbilityLayer;
+import org.cloudburstmc.protocol.bedrock.data.AttributeData;
+import org.cloudburstmc.protocol.bedrock.data.AuthoritativeMovementMode;
+import org.cloudburstmc.protocol.bedrock.data.ChatRestrictionLevel;
+import org.cloudburstmc.protocol.bedrock.data.ExperimentData;
+import org.cloudburstmc.protocol.bedrock.data.GamePublishSetting;
+import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
+import org.cloudburstmc.protocol.bedrock.data.GameType;
+import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.data.SpawnBiomeType;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.protocol.bedrock.packet.*;
+import org.cloudburstmc.protocol.bedrock.packet.AvailableEntityIdentifiersPacket;
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
+import org.cloudburstmc.protocol.bedrock.packet.BiomeDefinitionListPacket;
+import org.cloudburstmc.protocol.bedrock.packet.CameraPresetsPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ClientboundMapItemDataPacket;
+import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
+import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
+import org.cloudburstmc.protocol.bedrock.packet.EmoteListPacket;
+import org.cloudburstmc.protocol.bedrock.packet.EmotePacket;
+import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ItemComponentPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEvent2Packet;
+import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetTimePacket;
+import org.cloudburstmc.protocol.bedrock.packet.StartGamePacket;
+import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
+import org.cloudburstmc.protocol.bedrock.packet.TransferPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAbilitiesPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAdventureSettingsPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateClientInputLocksPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateSoftEnumPacket;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.cloudburstmc.protocol.common.util.OptionalBoolean;
 import org.geysermc.api.util.BedrockPlatform;
@@ -105,10 +139,7 @@ import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.bedrock.camera.CameraEaseType;
-import org.geysermc.geyser.api.bedrock.camera.CameraFade;
-import org.geysermc.geyser.api.bedrock.camera.CameraPerspective;
-import org.geysermc.geyser.api.bedrock.camera.CameraPosition;
+import org.geysermc.geyser.api.bedrock.camera.CameraExpansion;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
@@ -118,8 +149,8 @@ import org.geysermc.geyser.api.event.bedrock.SessionLoginEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.api.util.Position;
-    import org.geysermc.geyser.bedrock.camera.CameraDefinitions;
+import org.geysermc.geyser.bedrock.camera.CameraDefinitions;
+import org.geysermc.geyser.bedrock.camera.GeyserCameraExpansion;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -145,7 +176,20 @@ import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
-import org.geysermc.geyser.session.cache.*;
+import org.geysermc.geyser.session.cache.AdvancementsCache;
+import org.geysermc.geyser.session.cache.BookEditCache;
+import org.geysermc.geyser.session.cache.ChunkCache;
+import org.geysermc.geyser.session.cache.EntityCache;
+import org.geysermc.geyser.session.cache.EntityEffectCache;
+import org.geysermc.geyser.session.cache.FormCache;
+import org.geysermc.geyser.session.cache.LodestoneCache;
+import org.geysermc.geyser.session.cache.PistonCache;
+import org.geysermc.geyser.session.cache.PreferencesCache;
+import org.geysermc.geyser.session.cache.SkullCache;
+import org.geysermc.geyser.session.cache.TagCache;
+import org.geysermc.geyser.session.cache.TeleportCache;
+import org.geysermc.geyser.session.cache.WorldBorder;
+import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
@@ -161,7 +205,16 @@ import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledFuture;
@@ -560,11 +613,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private boolean waitingForStatistics = false;
 
-    /**
-     * All fog effects that are currently applied to the client.
-     */
-    private final Set<String> appliedFog = new HashSet<>();
-
     private final Set<UUID> emotes;
 
     /**
@@ -596,11 +644,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     private final Queue<Long> keepAliveCache = new ConcurrentLinkedQueue<>();
 
-    /**
-     * Stores the current camera perspective, if locked.
-     */
-    private CameraPerspective cameraPerspective = null;
-
+    private final GeyserCameraExpansion cameraExpansion;
 
     private MinecraftProtocol protocol;
 
@@ -623,6 +667,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.skullCache = new SkullCache(this);
         this.tagCache = new TagCache();
         this.worldCache = new WorldCache(this);
+        this.cameraExpansion = new GeyserCameraExpansion(this);
 
         this.worldBorder = new WorldBorder(this);
 
@@ -1202,12 +1247,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 // Set the mood
                 if (shouldShowFog && !isInWorldBorderWarningArea) {
                     isInWorldBorderWarningArea = true;
-                    sendFog("minecraft:fog_crimson_forest");
+                    camera().sendFog("minecraft:fog_crimson_forest");
                 }
             }
             if (!shouldShowFog && isInWorldBorderWarningArea) {
                 // Clear fog as we are outside the world border now
-                removeFog("minecraft:fog_crimson_forest");
+                camera().removeFog("minecraft:fog_crimson_forest");
                 isInWorldBorderWarningArea = false;
             }
 
@@ -2015,145 +2060,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
-    public void shakeCamera(float intensity, float duration, @NonNull CameraShake type) {
-        CameraShakePacket packet = new CameraShakePacket();
-        packet.setIntensity(intensity);
-        packet.setDuration(duration);
-        packet.setShakeType(type == CameraShake.POSITIONAL ? CameraShakeType.POSITIONAL : CameraShakeType.ROTATIONAL);
-        packet.setShakeAction(CameraShakeAction.ADD);
-        sendUpstreamPacket(packet);
-    }
-
-    @Override
-    public void stopCameraShake() {
-        CameraShakePacket packet = new CameraShakePacket();
-        // CameraShakeAction.STOP removes all types regardless of the given type, but regardless it can't be null
-        packet.setShakeType(CameraShakeType.POSITIONAL);
-        packet.setShakeAction(CameraShakeAction.STOP);
-        sendUpstreamPacket(packet);
-    }
-
-    @Override
-    public void sendCameraFade(@NonNull CameraFade fade) {
-        //noinspection ConstantConditions
-        if (fade == null) {
-            throw new IllegalArgumentException("Fade cannot be null!");
-        }
-        CameraFadeInstruction fadeInstruction = new CameraFadeInstruction();
-        fadeInstruction.setColor(fade.color());
-        fadeInstruction.setTimeData(
-                new CameraFadeInstruction.TimeData(
-                        fade.fadeInSeconds(),
-                        fade.holdSeconds(),
-                        fade.fadeOutSeconds()
-                )
-        );
-
-        CameraInstructionPacket packet = new CameraInstructionPacket();
-        packet.setFadeInstruction(fadeInstruction);
-        sendUpstreamPacket(packet);
-    }
-
-    @Override
-    public void sendCameraPosition(@NonNull CameraPosition movement) {
-        //noinspection ConstantConditions
-        if (movement == null) {
-            throw new IllegalArgumentException("Movement cannot be null!");
-        }
-        this.cameraPerspective = CameraPerspective.FREE; // Movements only work with the free preset
-        CameraSetInstruction setInstruction = new CameraSetInstruction();
-
-        CameraEaseType easeType = movement.easeType();
-        if (easeType != null) {
-            setInstruction.setEase(new CameraSetInstruction.EaseData(
-                    CameraEase.fromName(easeType.id()),
-                    movement.easeDuration()
-            ));
-        }
-
-        Position facingPosition = movement.facingPosition();
-        if (facingPosition != null) {
-            setInstruction.setFacing(EntityUtils.vector3fFromPosition(facingPosition));
-        }
-
-        setInstruction.setPos(EntityUtils.vector3fFromPosition(movement.position()));
-        setInstruction.setRot(Vector2f.from(movement.rotationX(), movement.rotationY()));
-        setInstruction.setPreset(CameraDefinitions.getByFunctionality(movement.playerPositionForAudio(), movement.renderPlayerEffects()));
-
-        CameraInstructionPacket packet = new CameraInstructionPacket();
-        packet.setSetInstruction(setInstruction);
-        sendUpstreamPacket(packet);
-    }
-
-    @Override
-    public void clearCameraInstructions() {
-        this.cameraPerspective = null;
-        CameraInstructionPacket packet = new CameraInstructionPacket();
-        packet.setClear(true);
-        sendUpstreamPacket(packet);
-    }
-
-    @Override
-    public void forceCameraPerspective(@NonNull CameraPerspective perspective) {
-        if (perspective == null) {
-            throw new IllegalArgumentException("Perspective cannot be null!");
-        }
-
-        if (perspective == cameraPerspective) {
-            return; // nothing to do
-        }
-
-        this.cameraPerspective = perspective;
-        CameraInstructionPacket packet = new CameraInstructionPacket();
-        CameraSetInstruction setInstruction = new CameraSetInstruction();
-
-        if (perspective == CameraPerspective.FREE) {
-            throw new IllegalArgumentException("Cannot force a stationary camera (CameraPerspective#FREE) on the player!" +
-                    "Send a CameraPosition with an exact position instead");
-        }
-
-        setInstruction.setPreset(CameraDefinitions.getById(perspective.ordinal()));
-        packet.setSetInstruction(setInstruction);
-        sendUpstreamPacket(packet);
-    }
-
-    @Override
-    public @Nullable CameraPerspective forcedCameraPerspective() {
-        return this.cameraPerspective;
-    }
-
-    @Override
     public void sendMessage(Component message) {
         GeyserCommandSource.super.sendMessage(message);
-    }
-
-    @Override
-    public void sendFog(String... fogNameSpaces) {
-        Collections.addAll(this.appliedFog, fogNameSpaces);
-
-        PlayerFogPacket packet = new PlayerFogPacket();
-        packet.getFogStack().addAll(this.appliedFog);
-        sendUpstreamPacket(packet);
-    }
-
-    @Override
-    public void removeFog(String... fogNameSpaces) {
-        if (fogNameSpaces.length == 0) {
-            this.appliedFog.clear();
-        } else {
-            for (String id : fogNameSpaces) {
-                this.appliedFog.remove(id);
-            }
-        }
-        PlayerFogPacket packet = new PlayerFogPacket();
-        packet.getFogStack().addAll(this.appliedFog);
-        sendUpstreamPacket(packet);
-    }
-
-    @Override
-    public @NonNull Set<String> fogEffects() {
-        // Use a copy so that sendFog/removeFog can be called while iterating the returned set (avoid CME)
-        return Set.copyOf(this.appliedFog);
     }
 
     @Override
@@ -2179,6 +2087,36 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Override
     public void unlockInputs() {
         lockInputs(false, false);
+    }
+
+    @Override
+    public @NonNull CameraExpansion camera() {
+        return this.cameraExpansion;
+    }
+
+    @Override
+    public void shakeCamera(float intensity, float duration, @NonNull CameraShake type) {
+        this.cameraExpansion.shakeCamera(intensity, duration, type);
+    }
+
+    @Override
+    public void stopCameraShake() {
+        this.cameraExpansion.stopCameraShake();
+    }
+
+    @Override
+    public void sendFog(String... fogNameSpaces) {
+        this.cameraExpansion.sendFog(fogNameSpaces);
+    }
+
+    @Override
+    public void removeFog(String... fogNameSpaces) {
+        this.cameraExpansion.removeFog(fogNameSpaces);
+    }
+
+    @Override
+    public @NonNull Set<String> fogEffects() {
+        return this.cameraExpansion.fogEffects();
     }
 
     @Override

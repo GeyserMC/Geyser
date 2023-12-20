@@ -28,33 +28,33 @@ package org.geysermc.geyser.bedrock.camera;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.value.qual.IntRange;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.api.bedrock.camera.CameraEaseType;
 import org.geysermc.geyser.api.bedrock.camera.CameraFade;
 import org.geysermc.geyser.api.bedrock.camera.CameraPosition;
-import org.geysermc.geyser.api.util.Position;
 
 public record GeyserCameraPosition(CameraFade fade,
                                    boolean renderPlayerEffects,
                                    boolean playerPositionForAudio,
                                    CameraEaseType easeType,
                                    float easeDuration,
-                                   Position position,
+                                   Vector3f position,
                                    @IntRange(from = -90, to = 90) int rotationX,
                                    int rotationY,
-                                   Position facingPosition
+                                   Vector3f facingPosition
 ) implements CameraPosition {
 
 
-    public static class CameraPositionBuilder implements CameraPosition.Builder {
+    public static class Builder implements CameraPosition.Builder {
         private CameraFade fade;
         private boolean renderPlayerEffects;
         private boolean playerPositionForAudio;
         private CameraEaseType easeType;
         private float easeDuration;
-        private Position position;
+        private Vector3f position;
         private @IntRange(from = -90, to = 90) int rotationX;
         private int rotationY;
-        private Position facingPosition;
+        private Vector3f facingPosition;
 
         @Override
         public CameraPosition.Builder fade(@Nullable CameraFade fade) {
@@ -90,7 +90,7 @@ public record GeyserCameraPosition(CameraFade fade,
         }
 
         @Override
-        public CameraPosition.Builder position(@NonNull Position position) {
+        public CameraPosition.Builder position(@NonNull Vector3f position) {
             if (position == null) {
                 throw new IllegalArgumentException("Camera position cannot be null");
             }
@@ -111,7 +111,7 @@ public record GeyserCameraPosition(CameraFade fade,
         }
 
         @Override
-        public CameraPosition.Builder facingPosition(@Nullable Position facingPosition) {
+        public CameraPosition.Builder facingPosition(@Nullable Vector3f facingPosition) {
             this.facingPosition = facingPosition;
             return this;
         }

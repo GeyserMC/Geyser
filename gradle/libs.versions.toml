@@ -98,6 +98,8 @@ protocol-common = { group = "org.cloudburstmc.protocol", name = "common", versio
 protocol-codec = { group = "org.cloudburstmc.protocol", name = "bedrock-codec", version.ref = "protocol" }
 protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol-connection" }
 
+math = { group = "org.cloudburstmc.math", name = "immutable", version = "2.0" }
+
 blockstateupdater = { group = "org.cloudburstmc", name = "block-state-updater", version.ref = "blockstateupdater"}
 
 [bundles]

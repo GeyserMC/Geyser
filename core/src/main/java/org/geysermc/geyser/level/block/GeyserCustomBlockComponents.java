@@ -62,7 +62,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     boolean placeAir;
     Set<String> tags;
 
-    private GeyserCustomBlockComponents(CustomBlockComponentsBuilder builder) {
+    private GeyserCustomBlockComponents(Builder builder) {
         this.selectionBox = builder.selectionBox;
         this.collisionBox = builder.collisionBox;
         this.displayName = builder.displayName;
@@ -157,7 +157,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         return tags;
     }
 
-    public static class CustomBlockComponentsBuilder implements Builder {
+    public static class Builder implements CustomBlockComponents.Builder {
         protected BoxComponent selectionBox;
         protected BoxComponent collisionBox;
         protected String displayName;

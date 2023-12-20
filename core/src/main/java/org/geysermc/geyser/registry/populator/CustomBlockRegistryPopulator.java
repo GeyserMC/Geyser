@@ -23,11 +23,11 @@ import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
 import org.geysermc.geyser.api.block.custom.property.PropertyType;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBlocksEvent;
 import org.geysermc.geyser.api.util.CreativeCategory;
+import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
+import org.geysermc.geyser.level.block.GeyserCustomBlockData;
 import org.geysermc.geyser.level.block.GeyserCustomBlockState;
-import org.geysermc.geyser.level.block.GeyserCustomBlockComponents.CustomBlockComponentsBuilder;
-import org.geysermc.geyser.level.block.GeyserCustomBlockData.CustomBlockDataBuilder;
-import org.geysermc.geyser.level.block.GeyserGeometryComponent.GeometryComponentBuilder;
-import org.geysermc.geyser.level.block.GeyserMaterialInstance.MaterialInstanceBuilder;
+import org.geysermc.geyser.level.block.GeyserGeometryComponent;
+import org.geysermc.geyser.level.block.GeyserMaterialInstance;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.CustomSkull;
@@ -479,20 +479,20 @@ public class CustomBlockRegistryPopulator {
     }
 
     private static CustomBlockData createExtendedCollisionBlock(BoxComponent boxComponent, int extendedCollisionBlock) {
-        return new CustomBlockDataBuilder()
+        return new GeyserCustomBlockData.Builder()
                 .name("extended_collision_" + extendedCollisionBlock)
                 .components(
-                    new CustomBlockComponentsBuilder()
+                    new GeyserCustomBlockComponents.Builder()
                         .collisionBox(boxComponent)
                         .selectionBox(BoxComponent.emptyBox())
-                        .materialInstance("*", new MaterialInstanceBuilder()
+                        .materialInstance("*", new GeyserMaterialInstance.Builder()
                             .texture("glass")
                             .renderMethod("alpha_test")
                             .faceDimming(false)
                             .ambientOcclusion(false)
                             .build())
                         .lightDampening(0)
-                        .geometry(new GeometryComponentBuilder()
+                        .geometry(new GeyserGeometryComponent.Builder()
                             .identifier("geometry.invisible")
                             .build())
                         .build())
