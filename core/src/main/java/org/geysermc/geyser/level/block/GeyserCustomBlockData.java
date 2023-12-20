@@ -54,7 +54,7 @@ public class GeyserCustomBlockData implements CustomBlockData {
 
     private final Map<String, Object> defaultProperties;
 
-    GeyserCustomBlockData(GeyserCustomBlockData.Builder builder) {
+    GeyserCustomBlockData(Builder builder) {
         this.name = builder.name;
         if (name == null) {
             throw new IllegalStateException("Name must be set");

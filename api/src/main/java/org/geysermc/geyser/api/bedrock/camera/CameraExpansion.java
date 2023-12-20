@@ -69,7 +69,7 @@ public interface CameraExpansion {
      *
      * @param perspective the {@link CameraPerspective} to force.
      */
-    void forceCameraPerspective(@NonNull     CameraPerspective perspective);
+    void forceCameraPerspective(@NonNull CameraPerspective perspective);
 
     /**
      * Gets the client's current {@link CameraPerspective}, if forced.

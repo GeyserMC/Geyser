@@ -59,7 +59,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     private final boolean canAlwaysEat;
     private final boolean isChargeable;
 
-    public GeyserNonVanillaCustomItemData(GeyserNonVanillaCustomItemData.Builder builder) {
+    public GeyserNonVanillaCustomItemData(Builder builder) {
         super(builder.name, builder.customItemOptions, builder.displayName, builder.icon, builder.allowOffhand,
                 builder.displayHandheld, builder.textureSize, builder.renderOffsets, builder.tags);
 

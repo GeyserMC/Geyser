@@ -44,7 +44,6 @@ public record GeyserCameraPosition(CameraFade fade,
                                    Vector3f facingPosition
 ) implements CameraPosition {
 
-
     public static class Builder implements CameraPosition.Builder {
         private CameraFade fade;
         private boolean renderPlayerEffects;

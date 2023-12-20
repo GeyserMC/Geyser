@@ -60,7 +60,7 @@ public class GeyserNonVanillaCustomBlockData extends GeyserCustomBlockData imple
         private String namespace;
 
         @Override
-        public NonVanillaCustomBlockData.Builder namespace(@NonNull String namespace) {
+        public Builder namespace(@NonNull String namespace) {
             this.namespace = namespace;
             return this;
         }
