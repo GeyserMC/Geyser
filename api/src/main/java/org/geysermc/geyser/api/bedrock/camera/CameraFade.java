@@ -29,7 +29,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.value.qual.IntRange;
 import org.geysermc.geyser.api.GeyserApi;
 
-import java.awt.*;
+import java.awt.Color;
 
 /**
  * Represents a coloured fade overlay on the camera.

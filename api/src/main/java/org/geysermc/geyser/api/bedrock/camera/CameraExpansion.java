@@ -129,7 +129,7 @@ public interface CameraExpansion {
      * @param owner the owner of the lock
      * @return if the camera is locked after this method call
      */
-    boolean lockCamera(boolean lock, UUID owner);
+    boolean lockCamera(boolean lock, @NonNull UUID owner);
 
     /**
      * Returns whether the client's camera is locked.
