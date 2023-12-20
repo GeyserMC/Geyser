@@ -32,6 +32,7 @@ import org.geysermc.api.connection.Connection;
 import org.geysermc.geyser.api.bedrock.camera.CameraExpansion;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.command.CommandSource;
+import org.geysermc.geyser.api.entity.EntityExpansion;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 
@@ -45,7 +46,9 @@ public interface GeyserConnection extends Connection, CommandSource {
     /**
      * @param javaId the Java entity ID to look up.
      * @return a {@link GeyserEntity} if present in this connection's entity tracker.
+     * @deprecated Use {@link EntityExpansion#entityByJavaId(int)} instead
      */
+    @Deprecated
     @NonNull
     CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId);
 
@@ -54,16 +57,26 @@ public interface GeyserConnection extends Connection, CommandSource {
      *
      * @param emoter the player entity emoting.
      * @param emoteId the emote ID to send to this client.
+     * @deprecated use {@link EntityExpansion#showEmote(GeyserPlayerEntity, String)} instead
      */
+    @Deprecated
     void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId);
 
     /**
-     * Exposes the {@link CameraExpansion}for this connection.
+     * Exposes the {@link CameraExpansion} for this connection.
      * It allows you to send fogs, camera shakes, force camera perspectives, and more.
      *
      * @return the CameraExpansion for this connection.
      */
     @NonNull CameraExpansion camera();
+
+    /**
+     * Exposes the {@link EntityExpansion} for this connection.
+     * It allows you to get entities by their Java entity ID, show emotes, and get the player entity.
+     *
+     * @return the EntityExpansion for this connection.
+     */
+    @NonNull EntityExpansion entities();
 
     /**
      * Shakes the client's camera.

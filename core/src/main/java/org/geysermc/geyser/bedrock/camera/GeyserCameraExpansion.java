@@ -209,21 +209,19 @@ public class GeyserCameraExpansion implements CameraExpansion {
     }
 
     @Override
-    public boolean lockCamera(boolean lock, UUID owner) {
+    public boolean lockCamera(boolean lock, @NonNull UUID owner) {
+        //noinspection ConstantConditions
+        if (owner == null) {
+            throw new IllegalArgumentException("Owner cannot be null!");
+        }
         if (lock) {
             this.cameraLockOwners.add(owner);
         } else {
             this.cameraLockOwners.remove(owner);
         }
 
-        if (isCameraLocked()) {
-            //TODO ensure that movement locks are properly set
-            session.lockInputs(true, false);
-            return true;
-        } else {
-            session.lockInputs(false, false);
-            return false;
-        }
+        session.lockInputs(isCameraLocked(), session.entities().isMovementLocked());
+        return isCameraLocked();
     }
 
     @Override
