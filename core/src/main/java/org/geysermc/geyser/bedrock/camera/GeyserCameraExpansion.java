@@ -49,6 +49,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 public class GeyserCameraExpansion implements CameraExpansion {
 
@@ -61,6 +62,8 @@ public class GeyserCameraExpansion implements CameraExpansion {
      * All fog effects that are currently applied to the client.
      */
     private final Set<String> appliedFog = new HashSet<>();
+
+    private final Set<UUID> cameraLockOwners = new HashSet<>();
 
     public GeyserCameraExpansion(GeyserSession session) {
         this.session = session;
@@ -205,4 +208,26 @@ public class GeyserCameraExpansion implements CameraExpansion {
         return Set.copyOf(this.appliedFog);
     }
 
+    @Override
+    public boolean lockCamera(boolean lock, UUID owner) {
+        if (lock) {
+            this.cameraLockOwners.add(owner);
+        } else {
+            this.cameraLockOwners.remove(owner);
+        }
+
+        if (isCameraLocked()) {
+            //TODO ensure that movement locks are properly set
+            session.lockInputs(true, false);
+            return true;
+        } else {
+            session.lockInputs(false, false);
+            return false;
+        }
+    }
+
+    @Override
+    public boolean isCameraLocked() {
+        return !this.cameraLockOwners.isEmpty();
+    }
 }

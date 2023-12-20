@@ -66,7 +66,8 @@ public interface GeyserConnection extends Connection, CommandSource {
     @NonNull CameraExpansion camera();
 
     /**
-     * Shakes the client's camera.<br><br>
+     * Shakes the client's camera.
+     * <p>
      * If the camera is already shaking with the same {@link CameraShake} type, then the additional intensity
      * will be layered on top of the existing intensity, with their own distinct durations.<br>
      * If the existing shake type is different and the new intensity/duration are not positive, the existing shake only
@@ -110,19 +111,6 @@ public interface GeyserConnection extends Connection, CommandSource {
     void removeFog(String... fogNameSpaces);
 
     /**
-     * Locks/Unlocks the client's ability to move or look around.
-     *
-     * @param camera whether to lock the camera (prevents looking around)
-     * @param movement whether to lock movement (prevents moving around)
-     */
-    void lockInputs(boolean camera, boolean movement); // TODO
-
-    /**
-     * Unlocks the client's ability to move or look around.
-     */
-    void unlockInputs(); // TODO
-
-    /**
      * Returns an immutable copy of all fog affects currently applied to this client.
      *
      * @deprecated Use {@link CameraExpansion#fogEffects()} instead.
@@ -130,12 +118,4 @@ public interface GeyserConnection extends Connection, CommandSource {
     @Deprecated
     @NonNull
     Set<String> fogEffects();
-
-    /**
-     * Returns the {@link GeyserPlayerEntity} of this connection.
-     *
-     * @return the {@link GeyserPlayerEntity} of this connection.
-     */
-    @NonNull
-    GeyserPlayerEntity playerEntity();
 }
