@@ -136,7 +136,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         }
 
         try {
-            Class.forName("io.netty.util.internal.ObjectPool.ObjectCreator");
+            Class.forName("io.netty.util.internal.ObjectPool$ObjectCreator");
         } catch (ClassNotFoundException e) {
             getLogger().severe("*********************************************");
             getLogger().severe("");
