@@ -27,12 +27,9 @@ package org.geysermc.geyser.api.bedrock.camera;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.bedrock.camera.CameraFade;
-import org.geysermc.geyser.api.bedrock.camera.CameraPerspective;
-import org.geysermc.geyser.api.bedrock.camera.CameraPosition;
-import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 
 import java.util.Set;
+import java.util.UUID;
 
 public interface CameraExpansion {
 
@@ -122,4 +119,22 @@ public interface CameraExpansion {
      */
     @NonNull
     Set<String> fogEffects();
+
+    /**
+     * (Un)locks the client's camera, so that they cannot look around.
+     * To ensure the camera is only unlocked when all locks are released, you must supply
+     * a UUID-key to this method, and use the same key to unlock the camera.
+     *
+     * @param lock whether to lock the camera
+     * @param owner the owner of the lock
+     * @return if the camera is locked after this method call
+     */
+    boolean lockCamera(boolean lock, UUID owner);
+
+    /**
+     * Returns whether the client's camera is locked.
+     *
+     * @return whether the camera is locked
+     */
+    boolean isCameraLocked();
 }

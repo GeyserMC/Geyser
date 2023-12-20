@@ -2064,7 +2064,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         GeyserCommandSource.super.sendMessage(message);
     }
 
-    @Override
     public void lockInputs(boolean camera, boolean movement) {
         UpdateClientInputLocksPacket packet = new UpdateClientInputLocksPacket();
         final int cameraOffset = 1 << 1;
@@ -2082,11 +2081,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         packet.setServerPosition(this.playerEntity.getPosition());
 
         sendUpstreamPacket(packet);
-    }
-
-    @Override
-    public void unlockInputs() {
-        lockInputs(false, false);
     }
 
     @Override
@@ -2117,11 +2111,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Override
     public @NonNull Set<String> fogEffects() {
         return this.cameraExpansion.fogEffects();
-    }
-
-    @Override
-    public @NonNull GeyserPlayerEntity playerEntity() {
-        return this.playerEntity;
     }
 
     public void addCommandEnum(String name, String enums) {
