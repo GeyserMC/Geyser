@@ -135,6 +135,17 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             }
         }
 
+        try {
+            Class.forName("io.netty.util.internal.ObjectPool.ObjectCreator");
+        } catch (ClassNotFoundException e) {
+            getLogger().severe("*********************************************");
+            getLogger().severe("");
+            getLogger().severe("This version of Spigot is using an outdated version of netty. Please use Paper instead!");
+            getLogger().severe("");
+            getLogger().severe("*********************************************");
+            return;
+        }
+
         // This is manually done instead of using Bukkit methods to save the config because otherwise comments get removed
         try {
             if (!getDataFolder().exists()) {
