@@ -40,8 +40,7 @@ public interface EntityExpansion {
      * @param javaId the Java entity ID to look up.
      * @return a {@link GeyserEntity} if present in this connection's entity tracker.
      */
-    @NonNull
-    CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId);
+    @NonNull CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId);
 
     /**
      * Displays a player entity as emoting to this client.
@@ -56,8 +55,7 @@ public interface EntityExpansion {
      *
      * @return the {@link GeyserPlayerEntity} of this connection.
      */
-    @NonNull
-    GeyserPlayerEntity playerEntity();
+    @NonNull GeyserPlayerEntity playerEntity();
 
     /**
      * (Un)locks the client's movement inputs, so that they cannot move.
@@ -68,7 +66,7 @@ public interface EntityExpansion {
      * @param owner the owner of the lock
      * @return if the movement is locked after this method call
      */
-    boolean lockMovement(boolean lock, UUID owner);
+    boolean lockMovement(boolean lock, @NonNull UUID owner);
 
     /**
      * Returns whether the client's camera is locked.

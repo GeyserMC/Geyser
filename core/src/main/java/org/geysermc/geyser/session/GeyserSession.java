@@ -114,7 +114,6 @@ import org.cloudburstmc.protocol.bedrock.packet.ClientboundMapItemDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EmoteListPacket;
-import org.cloudburstmc.protocol.bedrock.packet.EmotePacket;
 import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ItemComponentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEvent2Packet;
@@ -142,6 +141,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.bedrock.camera.CameraExpansion;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.entity.EntityExpansion;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent;
@@ -155,6 +155,7 @@ import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.GeyserEntityExpansion;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
@@ -646,6 +647,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private final GeyserCameraExpansion cameraExpansion;
 
+    private final GeyserEntityExpansion entityExpansion;
+
     private MinecraftProtocol protocol;
 
     public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop eventLoop) {
@@ -668,6 +671,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.tagCache = new TagCache();
         this.worldCache = new WorldCache(this);
         this.cameraExpansion = new GeyserCameraExpansion(this);
+        this.entityExpansion = new GeyserEntityExpansion(this);
 
         this.worldBorder = new WorldBorder(this);
 
@@ -2039,24 +2043,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public @NonNull CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId) {
-        CompletableFuture<GeyserEntity> future = new CompletableFuture<>();
-        ensureInEventLoop(() -> future.complete(this.entityCache.getEntityByJavaId(javaId)));
-        return future;
+        return entities().entityByJavaId(javaId);
     }
 
     @Override
     public void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId) {
-        Entity entity = (Entity) emoter;
-        if (entity.getSession() != this) {
-            throw new IllegalStateException("Given entity must be from this session!");
-        }
-
-        EmotePacket packet = new EmotePacket();
-        packet.setRuntimeEntityId(entity.getGeyserId());
-        packet.setXuid("");
-        packet.setPlatformId(""); // BDS sends empty
-        packet.setEmoteId(emoteId);
-        sendUpstreamPacket(packet);
+        entities().showEmote(emoter, emoteId);
     }
 
     @Override
@@ -2086,6 +2078,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Override
     public @NonNull CameraExpansion camera() {
         return this.cameraExpansion;
+    }
+
+    @Override
+    public @NonNull EntityExpansion entities() {
+        return this.entityExpansion;
     }
 
     @Override
