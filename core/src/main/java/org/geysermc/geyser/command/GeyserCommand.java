@@ -29,10 +29,10 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.session.GeyserSession;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
@@ -71,15 +71,6 @@ public abstract class GeyserCommand implements Command {
     @Override
     public List<String> subCommands() {
         return Collections.emptyList();
-    }
-
-    /**
-     * Shortcut to {@link #subCommands()} ()}{@code .isEmpty()}.
-     *
-     * @return true if there are subcommand present for this command.
-     */
-    public boolean hasSubCommands() {
-        return !this.subCommands().isEmpty();
     }
 
     public void setAliases(List<String> aliases) {

@@ -25,7 +25,7 @@
 
 /**
  * Contains useful collections for use in Geyser.
- *
+ * <p>
  * Of note are the fixed int maps. Designed for use with block states that are positive and sequential, they do not allow keys to be
  * added that are not greater by one versus the previous key. Because of this, speedy operations of {@link java.util.Map#get(java.lang.Object)}
  * and {@link java.util.Map#containsKey(java.lang.Object)} can be performed by simply checking the bounds of the map

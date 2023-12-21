@@ -26,6 +26,7 @@
 package org.geysermc.geyser.entity.type.living.animal.horse;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -33,7 +34,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 
-import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class SkeletonHorseEntity extends AbstractHorseEntity {
@@ -41,15 +41,15 @@ public class SkeletonHorseEntity extends AbstractHorseEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         return testUndeadHorseInteraction(hand, itemInHand);
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         return undeadHorseInteract(hand, itemInHand);
     }
 }

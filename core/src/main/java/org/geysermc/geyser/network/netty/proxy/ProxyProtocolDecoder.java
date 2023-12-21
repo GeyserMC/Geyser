@@ -30,6 +30,7 @@ import io.netty.handler.codec.ProtocolDetectionResult;
 import io.netty.handler.codec.haproxy.*;
 import io.netty.util.ByteProcessor;
 import io.netty.util.CharsetUtil;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Objects;
 
@@ -75,7 +76,7 @@ public final class ProxyProtocolDecoder {
     /**
      * Protocol specification version
      */
-    private int decodingVersion = -1;
+    private final int decodingVersion;
 
     /**
      * The latest v2 spec (2014/05/18) allows for additional data to be sent in the proxy protocol header beyond the
@@ -87,7 +88,7 @@ public final class ProxyProtocolDecoder {
         this.decodingVersion = version;
     }
 
-    public static HAProxyMessage decode(ByteBuf packet, int version) {
+    public static @Nullable HAProxyMessage decode(ByteBuf packet, int version) {
         if (version == -1) {
             return null;
         }
@@ -95,7 +96,7 @@ public final class ProxyProtocolDecoder {
         return decoder.decodeHeader(packet);
     }
 
-    private HAProxyMessage decodeHeader(ByteBuf in) {
+    private @Nullable HAProxyMessage decodeHeader(ByteBuf in) {
         final ByteBuf decoded = decodingVersion == 1 ? decodeLine(in) : decodeStruct(in);
         if (decoded == null) {
             return null;
@@ -233,8 +234,8 @@ public final class ProxyProtocolDecoder {
             dstPort = header.readUnsignedShort();
         }
 
+        //noinspection StatementWithEmptyBody
         while (skipNextTLV(header)) {
-
         }
         return new HAProxyMessage(ver, cmd, protAndFam, srcAddress, dstAddress, srcPort, dstPort);
     }
@@ -479,7 +480,7 @@ public final class ProxyProtocolDecoder {
          * @return frame  the {@link ByteBuf} which represent the frame or {@code null} if no frame could
          *                be created
          */
-        public ByteBuf extract(ByteBuf buffer) {
+        public @Nullable ByteBuf extract(ByteBuf buffer) {
             final int eoh = findEndOfHeader(buffer);
             if (!discarding) {
                 if (eoh >= 0) {

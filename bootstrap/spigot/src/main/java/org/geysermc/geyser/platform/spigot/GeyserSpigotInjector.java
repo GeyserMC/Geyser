@@ -32,6 +32,7 @@ import io.netty.channel.*;
 import io.netty.channel.local.LocalAddress;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.bukkit.Bukkit;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.network.netty.GeyserInjector;
 import org.geysermc.geyser.network.netty.LocalServerChannelWrapper;
@@ -74,12 +75,10 @@ public class GeyserSpigotInjector extends GeyserInjector {
         Object connection = null;
         // Find the class that manages network IO
         for (Method m : serverClazz.getDeclaredMethods()) {
-            if (m.getReturnType() != null) {
-                // First is Spigot-mapped name, second is Mojang-mapped name which is implemented as future-proofing
-                if (m.getReturnType().getSimpleName().equals("ServerConnection") || m.getReturnType().getSimpleName().equals("ServerConnectionListener")) {
-                    if (m.getParameterTypes().length == 0) {
-                        connection = m.invoke(server);
-                    }
+            // First is Spigot-mapped name, second is Mojang-mapped name which is implemented as future-proofing
+            if (m.getReturnType().getSimpleName().equals("ServerConnection") || m.getReturnType().getSimpleName().equals("ServerConnectionListener")) {
+                if (m.getParameterTypes().length == 0) {
+                    connection = m.invoke(server);
                 }
             }
         }
@@ -117,7 +116,7 @@ public class GeyserSpigotInjector extends GeyserInjector {
                 .channel(LocalServerChannelWrapper.class)
                 .childHandler(new ChannelInitializer<>() {
                     @Override
-                    protected void initChannel(Channel ch) throws Exception {
+                    protected void initChannel(@NonNull Channel ch) throws Exception {
                         initChannel.invoke(childHandler, ch);
 
                         if (bootstrap.getGeyserConfig().isDisableCompression() && GeyserSpigotCompressionDisabler.ENABLED) {

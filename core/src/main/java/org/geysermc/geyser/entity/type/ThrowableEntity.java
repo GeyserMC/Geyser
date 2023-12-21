@@ -51,7 +51,6 @@ public class ThrowableEntity extends Entity implements Tickable {
 
     /**
      * Updates the position for the Bedrock client.
-     *
      * Java clients assume the next positions of moving items. Bedrock needs to be explicitly told positions
      */
     @Override

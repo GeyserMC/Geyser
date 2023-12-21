@@ -222,6 +222,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     // Allow custom items to work
                     stackPacket.getExperiments().add(new ExperimentData("data_driven_items", true));
                 }
+
+                // Required for experimental 1.21 features
+                stackPacket.getExperiments().add(new ExperimentData("updateAnnouncedLive2023", true));
+
                 session.sendUpstreamPacket(stackPacket);
             }
             default -> session.disconnect("disconnectionScreen.resourcePack");

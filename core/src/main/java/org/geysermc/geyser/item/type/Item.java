@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.Identifier;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.Enchantment;
@@ -39,6 +40,7 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.InventoryUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -81,7 +83,7 @@ public class Item {
     /* Translation methods to Bedrock and back */
 
     public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
-        if (itemStack == null) {
+        if (InventoryUtils.isEmpty(itemStack)) {
             // Return, essentially, air
             return ItemData.builder();
         }
@@ -99,8 +101,7 @@ public class Item {
         return builder;
     }
 
-    public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, ItemMappings mappings) {
-        if (itemData == null) return null;
+    public @NonNull ItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
         if (itemData.getTag() == null) {
             return new ItemStack(javaId, itemData.getCount(), new CompoundTag(""));
         }
@@ -206,7 +207,7 @@ public class Item {
         }
     }
 
-    protected final CompoundTag remapEnchantment(GeyserSession session, CompoundTag tag, CompoundTag rootTag) {
+    protected final @Nullable CompoundTag remapEnchantment(GeyserSession session, CompoundTag tag, CompoundTag rootTag) {
         Tag javaEnchId = tag.get("id");
         if (!(javaEnchId instanceof StringTag))
             return null;

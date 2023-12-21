@@ -149,7 +149,7 @@ public class WebUtils {
      * @param reqURL URL to post to
      * @param postContent String data to post
      * @return String returned by the server
-     * @throws IOException
+     * @throws IOException If the request fails
      */
     public static String post(String reqURL, String postContent) throws IOException {
         URL url = new URL(reqURL);
@@ -171,7 +171,7 @@ public class WebUtils {
      *
      * @param con The connection to get the string from
      * @return The body of the returned page
-     * @throws IOException
+     * @throws IOException If the request fails
      */
     private static String connectionToString(HttpURLConnection con) throws IOException {
         // Send the request (we dont use this but its required for getErrorStream() to work)
@@ -204,7 +204,7 @@ public class WebUtils {
      * @param reqURL URL to post to
      * @param fields Form data to post
      * @return String returned by the server
-     * @throws IOException
+     * @throws IOException If the request fails
      */
     public static String postForm(String reqURL, Map<String, String> fields) throws IOException {
         URL url = new URL(reqURL);

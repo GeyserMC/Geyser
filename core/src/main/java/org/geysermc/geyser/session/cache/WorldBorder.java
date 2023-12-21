@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.session.cache;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2d;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -37,13 +38,11 @@ import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 
-import javax.annotation.Nonnull;
-
 public class WorldBorder {
     private static final double DEFAULT_WORLD_BORDER_SIZE = 5.9999968E7D;
 
     @Setter
-    private @Nonnull Vector2d center = Vector2d.ZERO;
+    private @NonNull Vector2d center = Vector2d.ZERO;
     /**
      * The diameter in blocks of the world border before it got changed or similar to newDiameter if not changed.
      */

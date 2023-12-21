@@ -83,7 +83,7 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
      * @return an item entry from the given java edition identifier
      */
     @NonNull
-    public ItemMapping getMapping(ItemStack itemStack) {
+    public ItemMapping getMapping(@NonNull ItemStack itemStack) {
         return this.getMapping(itemStack.getId());
     }
 

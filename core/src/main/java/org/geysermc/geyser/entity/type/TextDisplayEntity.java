@@ -34,6 +34,7 @@ import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
+import java.util.Optional;
 import java.util.UUID;
 
 // Note: 1.19.4 requires that the billboard is set to something in order to show, on Java Edition
@@ -54,6 +55,12 @@ public class TextDisplayEntity extends Entity {
     public void setDisplayNameVisible(BooleanEntityMetadata entityMetadata) {
         // Don't allow the display name to be hidden - messes with our armor stand.
         // On JE: Hiding the display name still shows the display entity text.
+    }
+
+    @Override
+    public void setDisplayName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
+        // This would usually set EntityDataTypes.NAME, but we are instead using NAME for the text display.
+        // On JE: custom name does not override text display.
     }
 
     public void setText(EntityMetadata<Component, ?> entityMetadata) {

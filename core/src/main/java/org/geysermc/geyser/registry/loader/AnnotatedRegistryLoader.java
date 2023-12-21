@@ -62,6 +62,7 @@ public class AnnotatedRegistryLoader<R, A extends Annotation, V> implements Regi
         this.mapper = mapper;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Map<R, V> load(String input) {
         Map<R, V> entries = new Object2ObjectOpenHashMap<>();
