@@ -100,6 +100,8 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
             resourcePacks.add(skullResourcePack);
         }
 
+
+        @SuppressWarnings("deprecation")
         GeyserLoadResourcePacksEvent event = new GeyserLoadResourcePacksEvent(resourcePacks);
         GeyserImpl.getInstance().eventBus().fire(event);
 
@@ -230,8 +232,12 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
     }
 
     public static CompletableFuture<@Nullable Path> downloadPack(String url) throws IllegalArgumentException {
+
+        //TODO check if our cache pack is fine (size, url hash; head req)
+
         return WebUtils.checkUrlAndDownloadRemotePack(url).whenCompleteAsync((cachedPath, throwable) -> {
             if (cachedPath == null) {
+                // already warned about in WebUtils
                 return;
             }
 

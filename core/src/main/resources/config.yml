@@ -174,6 +174,7 @@ force-resource-packs: true
 
 # A list of links to send to the client to download resource packs from.
 # These must be direct links to the resource pack, not a link to a page containing the resource pack.
+# If you enter a link here, Geyser will download the resource pack once to check if it's in a valid format.
 resource-pack-urls:
   # Example: GeyserOptionalPack
   - "https://ci.opencollab.dev/job/GeyserMC/job/GeyserOptionalPack/job/master/lastSuccessfulBuild/artifact/GeyserOptionalPack.mcpack"

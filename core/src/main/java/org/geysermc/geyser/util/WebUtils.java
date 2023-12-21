@@ -115,12 +115,12 @@ public class WebUtils {
 
                 if (size <= 0) {
                     GeyserImpl.getInstance().getLogger().error(String.format("Invalid size from remote pack URL: %s (size: %d)", url, size));
-                    //return null;
+                    return null;
                 }
 
                 if (type == null || !type.equals("application/zip")) {
                     GeyserImpl.getInstance().getLogger().error(String.format("Invalid application type from remote pack URL: %s (type: %s)", url, type));
-                    //return null;
+                    return null;
                 }
 
                 InputStream in = con.getInputStream();
@@ -137,7 +137,7 @@ public class WebUtils {
             } catch (MalformedURLException e) {
                 throw new IllegalArgumentException("Malformed URL: " + url);
             } catch (IOException e) {
-                throw new RuntimeException("Unable to download and save file: " + url + ")");
+                throw new RuntimeException("Unable to download and save remote resource pack from: " + url + ")");
             }
         });
     }

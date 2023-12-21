@@ -44,13 +44,13 @@ import org.geysermc.geyser.event.type.SessionLoadResourcePacksEventImpl;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.loader.ResourcePackLoader;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.geyser.util.VersionCheckUtils;
-import org.geysermc.geyser.util.WebUtils;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -61,7 +61,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     private boolean networkSettingsRequested = false;
     private final Deque<String> packsToSent = new ArrayDeque<>();
-    private final List<UUID> brokenResourcePacks = new ArrayList<>();
+    private final Set<UUID> brokenResourcePacks = new HashSet<>();
 
     private SessionLoadResourcePacksEventImpl resourcePackLoadEvent;
 
@@ -186,7 +186,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         }
 
         resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().getConfig().isForceResourcePacks());
-        GeyserImpl.getInstance().getLogger().info(resourcePacksInfo.toString());
         session.sendUpstreamPacket(resourcePacksInfo);
 
         GeyserLocale.loadGeyserLocale(session.locale());
@@ -280,16 +279,15 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         ResourcePack pack = this.resourcePackLoadEvent.getPacks().get(packet.getPackId().toString());
         PackCodec codec = pack.codec();
 
-        // Check for packs that the client should normally download on its own. If the client cannot find the pack, we provide it instead.
+        // If a remote pack ends up here, that usually implies that a platform was not able to download the pack
         if (codec instanceof UrlPackCodec urlPackCodec) {
-            if (!GameProtocol.isPre1_20_30(this.session)) {
-                // Ensure we don't a. spam console, and b. spam download/check requests
-                if (!brokenResourcePacks.contains(packet.getPackId())) {
-                    brokenResourcePacks.add(packet.getPackId());
-                    GeyserImpl.getInstance().getLogger().warning("Received a request for a remote pack that the client should have already downloaded!" +
-                            "Is the pack at the URL " + urlPackCodec.url() + " still available?");
-                    WebUtils.checkUrlAndDownloadRemotePack(urlPackCodec.url());
-                }
+            // Ensure we don't a. spam console, and b. spam download/check requests
+            if (!brokenResourcePacks.contains(packet.getPackId())) {
+                brokenResourcePacks.add(packet.getPackId());
+                GeyserImpl.getInstance().getLogger().warning("Received a request for a remote pack that the client should have already downloaded!" +
+                        "Is the pack at the URL " + urlPackCodec.url() + " still available?");
+                // not actually interested in using the download, but this does all the checks we need
+                ResourcePackLoader.downloadPack(urlPackCodec.url());
             }
         }
 
