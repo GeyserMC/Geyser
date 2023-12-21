@@ -42,11 +42,11 @@ import org.geysermc.geyser.platform.mod.GeyserModUpdateListener;
 import java.util.concurrent.ExecutorService;
 
 @Mod(ModConstants.MOD_ID)
-public class GeyserForgeBootstrap extends GeyserModBootstrap {
-    private final GeyserForgePermissionHandler permissionHandler = new GeyserForgePermissionHandler();
+public class GeyserNeoforgeBootstrap extends GeyserModBootstrap {
+    private final GeyserNeoforgePermissionHandler permissionHandler = new GeyserNeoforgePermissionHandler();
 
-    public GeyserForgeBootstrap() {
-        super(new GeyserForgePlatform());
+    public GeyserNeoforgeBootstrap() {
+        super(new GeyserNeoforgePlatform());
 
         this.onEnable();
 

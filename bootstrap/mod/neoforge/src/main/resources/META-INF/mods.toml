@@ -2,19 +2,19 @@ modLoader="javafml"
 loaderVersion="[46,)"
 license="MIT"
 [[mods]]
-modId="geyser_forge"
+modId="geyser_neoforge"
 version="${version}"
 displayName="Geyser"
-logoFile= "../assets/geyser_forge/icon.png"
+logoFile= "../assets/geyser_neoforge/icon.png"
 authors="GeyserMC"
 description="${description}"
-[[dependencies.geyser_forge]]
+[[dependencies.geyser_neoforge]]
     modId="forge"
     mandatory=true
     versionRange="[46,)"
     ordering="NONE"
     side="BOTH"
-[[dependencies.geyser_forge]]
+[[dependencies.geyser_neoforge]]
     modId="minecraft"
     mandatory=true
     versionRange="[1.20,1.21)"

@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.forge;
+package org.geysermc.geyser.platform.neoforge;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.fml.loading.FMLPaths;
@@ -38,16 +38,16 @@ import org.jetbrains.annotations.Nullable;
 import java.io.InputStream;
 import java.nio.file.Path;
 
-public class GeyserForgePlatform implements GeyserModPlatform {
+public class GeyserNeoforgePlatform implements GeyserModPlatform {
 
     @Override
     public @NotNull PlatformType platformType() {
-        return PlatformType.FORGE;
+        return PlatformType.NEOFORGE;
     }
 
     @Override
     public @NotNull String configPath() {
-        return "Geyser-Forge";
+        return "Geyser-Neoforge";
     }
 
     @Override
@@ -57,12 +57,12 @@ public class GeyserForgePlatform implements GeyserModPlatform {
 
     @Override
     public @NotNull BootstrapDumpInfo dumpInfo(@NotNull MinecraftServer server) {
-        return new GeyserForgeDumpInfo(server);
+        return new GeyserNeoforgeDumpInfo(server);
     }
 
     @Override
     public boolean testFloodgatePluginPresent(@NotNull GeyserModBootstrap bootstrap) {
-        return false; // No Floodgate plugin for Forge
+        return false; // No Floodgate plugin for Forge yet
     }
 
     @Override

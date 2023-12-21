@@ -2,6 +2,7 @@
 
 import net.fabricmc.loom.task.RemapJarTask
 import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.maven
 
 plugins {
     id("geyser.publish-conventions")
@@ -16,7 +17,7 @@ architectury {
 
 loom {
     silentMojangMappingsLicense()
-    mixin.defaultRefmapName.set("geyser-mod-refmap.json")
+    //mixin.defaultRefmapName.set("geyser-mod-refmap.json")
 }
 
 tasks {
@@ -84,6 +85,7 @@ repositories {
     maven("https://jitpack.io")
     maven("https://oss.sonatype.org/content/repositories/snapshots/")
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+    maven("https://maven.neoforged.net/releases")
 }
 
 modrinth {

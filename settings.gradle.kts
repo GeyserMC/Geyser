@@ -18,8 +18,11 @@ dependencyResolutionManagement {
             mavenContent { snapshotsOnly() }
         }
 
-        // Forge
-        maven("https://maven.minecraftforge.net/")
+        // Neoforge
+        maven("https://maven.neoforged.net/releases") {
+            mavenContent { releasesOnly() }
+        }
+        maven("https://maven.neoforged.net/")
 
         // Minecraft
         maven("https://libraries.minecraft.net") {
@@ -50,8 +53,9 @@ pluginManagement {
 
         maven("https://repo.opencollab.dev/maven-snapshots/")
         maven("https://maven.fabricmc.net/")
-        maven("https://maven.minecraftforge.net/")
         maven("https://maven.architectury.dev/")
+        maven("https://maven.neoforged.net/releases")
+        maven("https://maven.neoforged.net/")
     }
 
     plugins {
@@ -68,7 +72,7 @@ include(":ap")
 include(":api")
 include(":bungeecord")
 include(":fabric")
-include(":forge")
+include(":neoforge")
 include(":mod")
 include(":spigot")
 include(":standalone")
@@ -79,7 +83,7 @@ include(":core")
 // Specify project dirs
 project(":bungeecord").projectDir = file("bootstrap/bungeecord")
 project(":fabric").projectDir = file("bootstrap/mod/fabric")
-project(":forge").projectDir = file("bootstrap/mod/forge")
+project(":neoforge").projectDir = file("bootstrap/mod/neoforge")
 project(":mod").projectDir = file("bootstrap/mod")
 project(":spigot").projectDir = file("bootstrap/spigot")
 project(":standalone").projectDir = file("bootstrap/standalone")

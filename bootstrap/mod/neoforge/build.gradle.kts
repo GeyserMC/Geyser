@@ -4,24 +4,27 @@ plugins {
 
 architectury {
     platformSetupLoomIde()
-    forge()
+    neoForge()
 }
 
 loom {
-    forge {
+    /*
+    neoForge {
         mixinConfig("geyser.mixins.json")
     }
+
+     */
 }
 
 dependencies {
-    forge(libs.forge.minecraft)
+    neoForge(libs.neoforge.minecraft)
 
     api(projects.mod)
     shadow(project(path = ":mod", configuration = "transformProductionForge")) {
         isTransitive = false
     }
     shadow(projects.core) {
-        exclude(group = "com.google.guava", module = "guava")
+        //exclude(group = "com.google.guava", module = "guava")
         exclude(group = "com.google.code.gson", module = "gson")
         exclude(group = "org.slf4j")
         exclude(group = "io.netty.incubator")
@@ -30,7 +33,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("org.geysermc.geyser.platform.forge.GeyserForgeMain")
+    mainClass.set("org.geysermc.geyser.platform.forge.GeyserNeoforgeMain")
 }
 
 tasks {
@@ -39,14 +42,14 @@ tasks {
     }
 
     remapJar {
-        archiveBaseName.set("Geyser-Forge")
+        archiveBaseName.set("Geyser-Neoforge")
     }
 
     remapModrinthJar {
-        archiveBaseName.set("geyser-forge")
+        archiveBaseName.set("geyser-neoforge")
     }
 }
 
 modrinth {
-    loaders.add("forge")
+    loaders.add("neoforge")
 }

@@ -23,8 +23,8 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.forge;
+package org.geysermc.geyser.platform.neoforge;
 
 public class ModConstants {
-    public static final String MOD_ID = "geyser_forge";
+    public static final String MOD_ID = "geyser_neoforge";
 }

@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.forge;
+package org.geysermc.geyser.platform.neoforge;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -40,7 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-public class GeyserForgeDumpInfo extends BootstrapDumpInfo {
+public class GeyserNeoforgeDumpInfo extends BootstrapDumpInfo {
 
     private String platformVersion = null;
     private final Dist dist;
@@ -50,7 +50,7 @@ public class GeyserForgeDumpInfo extends BootstrapDumpInfo {
     private final int serverPort;
     private final List<ModInfo> mods;
 
-    public GeyserForgeDumpInfo(MinecraftServer server) {
+    public GeyseNeoforgeDumpInfo(MinecraftServer server) {
         this.platformVersion = FMLLoader.versionInfo().mcAndForgeVersion();
         this.dist = FMLLoader.getDist();
         this.serverIP = server.getLocalIp() == null ? "unknown" : server.getLocalIp();

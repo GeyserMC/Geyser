@@ -44,7 +44,7 @@ import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GeyserForgePermissionHandler {
+public class GeyserNeoforgePermissionHandler {
     private static final Constructor<?> PERMISSION_NODE_CONSTRUCTOR;
 
     static {

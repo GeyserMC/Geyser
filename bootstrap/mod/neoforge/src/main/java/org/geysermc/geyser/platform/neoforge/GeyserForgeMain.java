@@ -27,15 +27,15 @@ package org.geysermc.geyser.platform.forge;
 
 import org.geysermc.geyser.GeyserMain;
 
-public class GeyserForgeMain extends GeyserMain {
+public class GeyserNeoforgeMain extends GeyserMain {
 
     public static void main(String[] args) {
-        new GeyserForgeMain().displayMessage();
+        new GeyserNeoforgeMain().displayMessage();
     }
 
     @Override
     public String getPluginType() {
-        return "Forge";
+        return "Neoforge";
     }
 
     @Override
