@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.session.cache;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -247,7 +248,7 @@ public class SkullCache {
         lastPlayerPosition = null;
     }
 
-    private BlockDefinition translateCustomSkull(String skinHash, int blockState) {
+    private @Nullable BlockDefinition translateCustomSkull(String skinHash, int blockState) {
         CustomSkull customSkull = BlockRegistries.CUSTOM_SKULLS.get(skinHash);
         if (customSkull != null) {
             byte floorRotation = BlockStateValues.getSkullRotation(blockState);

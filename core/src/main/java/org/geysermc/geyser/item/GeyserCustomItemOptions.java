@@ -30,15 +30,13 @@ import org.geysermc.geyser.api.util.TriState;
 
 import java.util.OptionalInt;
 
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public record GeyserCustomItemOptions(TriState unbreakable,
                                       OptionalInt customModelData,
                                       OptionalInt damagePredicate,
                                       boolean defaultItem) implements CustomItemOptions {
 
-    public GeyserCustomItemOptions(TriState unbreakable, OptionalInt customModelData, OptionalInt damagePredicate) {
-        this(unbreakable, customModelData, damagePredicate, false);
-    }
-
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public static class CustomItemOptionsBuilder implements CustomItemOptions.Builder {
         private TriState unbreakable = TriState.NOT_SET;
         private OptionalInt customModelData = OptionalInt.empty();

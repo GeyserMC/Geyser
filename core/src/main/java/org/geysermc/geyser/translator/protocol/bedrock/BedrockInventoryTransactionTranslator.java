@@ -635,16 +635,16 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
     /**
      * Determine the rotation necessary to activate this transaction.
-     *
+     * <p>
      * The position between the intended click position and the player can be determined with two triangles.
      * First, we compute the difference of the X and Z coordinates:
-     *
+     * <p>
      * Player position (0, 0)
      * |
      * |
      * |
      * |_____________ Intended target (-3, 2)
-     *
+     * <p>
      * We then use the Pythagorean Theorem to find the direct line (hypotenuse) on the XZ plane. Finding the angle of the
      * triangle from there, closest to the player, gives us our yaw rotation value
      * Then doing the same using the new XZ distance and Y difference, we can find the direct line of sight from the

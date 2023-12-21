@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,16 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.collision;
+package org.geysermc.geyser.translator.level.block.entity;
 
-import lombok.EqualsAndHashCode;
+import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 
-@EqualsAndHashCode(callSuper = true)
-@CollisionRemapper(regex = "^spawner$")
-public class SpawnerCollision extends SolidCollision {
-    public SpawnerCollision(String params) {
-        super(params);
-        // Increase pushAwayTolerance to work around https://bugs.mojang.com/browse/MCPE-41996
-        pushAwayTolerance = 0.0002;
+@BlockEntity(type = BlockEntityType.TRIAL_SPAWNER)
+public class TrialSpawnerBlockEntityTranslator extends BlockEntityTranslator {
+
+    @Override
+    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+        if (tag == null) {
+            return;
+        }
+
+        // trial spawners have "spawn_data" instead of "SpawnData"
+        SpawnerBlockEntityTranslator.translateSpawnData(builder, tag.get("spawn_data"));
+
+        // Because trial spawners don't exist on bedrock yet
+        builder.put("id", "MobSpawner");
     }
 }

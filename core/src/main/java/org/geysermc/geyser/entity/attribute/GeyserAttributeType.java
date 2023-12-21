@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.entity.attribute;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -69,7 +70,7 @@ public enum GeyserAttributeType {
         return getAttribute(value, maximum);
     }
 
-    public AttributeData getAttribute(float value, float maximum) {
+    public @Nullable AttributeData getAttribute(float value, float maximum) {
         if (bedrockIdentifier == null) {
             return null;
         }

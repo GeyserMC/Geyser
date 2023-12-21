@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Scanner;
 
 public class GeyserMain {
@@ -61,8 +62,8 @@ public class GeyserMain {
             helpStream = GeyserMain.class.getClassLoader().getResourceAsStream("languages/run-help/en_US.txt");
         }
 
-        Scanner help = new Scanner(helpStream, StandardCharsets.UTF_8).useDelimiter("\\Z");
-        String line = "";
+        Scanner help = new Scanner(Objects.requireNonNull(helpStream), StandardCharsets.UTF_8).useDelimiter("\\Z");
+        String line;
         while (help.hasNext()) {
             line = help.next();
 

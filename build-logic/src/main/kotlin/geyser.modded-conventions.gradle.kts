@@ -11,7 +11,7 @@ plugins {
 }
 
 architectury {
-    minecraft = "1.20.2"
+    minecraft = "1.20.4"
 }
 
 loom {
@@ -74,7 +74,7 @@ tasks {
 }
 
 dependencies {
-    minecraft("com.mojang:minecraft:1.20.2")
+    minecraft("com.mojang:minecraft:1.20.4")
     mappings(loom.officialMojangMappings())
 }
 
@@ -96,6 +96,6 @@ modrinth {
     syncBodyFrom.set(rootProject.file("README.md").readText())
 
     uploadFile.set(tasks.getByPath("remapModrinthJar"))
-    gameVersions.addAll("1.20.2")
+    gameVersions.addAll("1.20.4")
     failSilently.set(true)
 }

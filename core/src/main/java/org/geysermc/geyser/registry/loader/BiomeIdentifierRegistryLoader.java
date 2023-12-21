@@ -47,7 +47,7 @@ public class BiomeIdentifierRegistryLoader implements RegistryLoader<String, Obj
         TypeReference<Map<String, BiomeEntry>> biomeEntriesType = new TypeReference<>() { };
         Map<String, BiomeEntry> biomeEntries;
 
-        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource("mappings/biomes.json")) {
+        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow("mappings/biomes.json")) {
             biomeEntries = GeyserImpl.JSON_MAPPER.readValue(stream, biomeEntriesType);
         } catch (IOException e) {
             throw new AssertionError("Unable to load Bedrock runtime biomes", e);

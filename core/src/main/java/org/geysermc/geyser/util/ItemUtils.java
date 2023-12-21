@@ -29,11 +29,10 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.FishingRodItem;
 import org.geysermc.geyser.item.type.Item;
-
-import javax.annotation.Nullable;
 
 public class ItemUtils {
 
@@ -74,7 +73,7 @@ public class ItemUtils {
      * @param itemTag the NBT tag of the item
      * @return the custom name of the item
      */
-    public static String getCustomName(CompoundTag itemTag) {
+    public static @Nullable String getCustomName(CompoundTag itemTag) {
         if (itemTag != null) {
             if (itemTag.get("display") instanceof CompoundTag displayTag) {
                 if (displayTag.get("Name") instanceof StringTag nameTag) {

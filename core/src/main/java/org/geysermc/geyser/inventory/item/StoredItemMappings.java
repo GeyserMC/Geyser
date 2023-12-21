@@ -27,11 +27,11 @@ package org.geysermc.geyser.inventory.item;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.ItemMapping;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
 
 /**
@@ -70,7 +70,7 @@ public class StoredItemMappings {
         this.writableBook = load(itemMappings, Items.WRITABLE_BOOK);
     }
 
-    @Nonnull
+    @NonNull
     private ItemMapping load(Map<Item, ItemMapping> itemMappings, Item item) {
         ItemMapping mapping = itemMappings.get(item);
         if (mapping == null) {

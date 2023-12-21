@@ -30,18 +30,20 @@ import org.cloudburstmc.protocol.common.util.Preconditions;
 
 public class GeyserChunkSection {
 
-    // Temporary reversion to v8 as it reduces the frequnecy of https://github.com/GeyserMC/Geyser/issues/4240
-    // This does not fully resolve the issue so a better solution is still needed
-    private static final int CHUNK_SECTION_VERSION = 8;
+    // As of at least 1.19.80
+    private static final int CHUNK_SECTION_VERSION = 9;
 
     private final BlockStorage[] storage;
+    // Counts up from 00 for y >= 0 and down from FF for y < 0
+    private final int subChunkIndex;
 
-    public GeyserChunkSection(int airBlockId) {
-        this(new BlockStorage[]{new BlockStorage(airBlockId), new BlockStorage(airBlockId)});
+    public GeyserChunkSection(int airBlockId, int subChunkIndex) {
+        this(new BlockStorage[]{new BlockStorage(airBlockId), new BlockStorage(airBlockId)}, subChunkIndex);
     }
 
-    public GeyserChunkSection(BlockStorage[] storage) {
+    public GeyserChunkSection(BlockStorage[] storage, int subChunkIndex) {
         this.storage = storage;
+        this.subChunkIndex = subChunkIndex;
     }
 
     public int getFullBlock(int x, int y, int z, int layer) {
@@ -60,6 +62,7 @@ public class GeyserChunkSection {
         buffer.writeByte(CHUNK_SECTION_VERSION);
         buffer.writeByte(this.storage.length);
         // Required for chunk version 9+
+        buffer.writeByte(this.subChunkIndex);
         for (BlockStorage blockStorage : this.storage) {
             blockStorage.writeToNetwork(buffer);
         }
@@ -86,12 +89,12 @@ public class GeyserChunkSection {
         return true;
     }
 
-    public GeyserChunkSection copy() {
+    public GeyserChunkSection copy(int subChunkIndex) {
         BlockStorage[] storage = new BlockStorage[this.storage.length];
         for (int i = 0; i < storage.length; i++) {
             storage[i] = this.storage[i].copy();
         }
-        return new GeyserChunkSection(storage);
+        return new GeyserChunkSection(storage, subChunkIndex);
     }
 
     public static int blockPosition(int x, int y, int z) {

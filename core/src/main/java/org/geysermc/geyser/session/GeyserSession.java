@@ -129,7 +129,6 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.physics.CollisionManager;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -147,7 +146,6 @@ import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
-import org.jetbrains.annotations.NotNull;
 
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
@@ -181,7 +179,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private List<String> certChainData;
 
-    @NotNull
+    @NonNull
     @Setter
     private AbstractGeyserboundPacketHandler erosionHandler;
 
@@ -336,7 +334,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     /**
      * Tracks the original speed attribute.
-     *
+     * <p>
      * We need to do this in order to emulate speeds when sneaking under 1.5-blocks-tall areas if the player isn't sneaking,
      * and when crawling.
      */
@@ -461,7 +459,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     /**
      * Store the last time the player interacted. Used to fix a right-click spam bug.
-     * See https://github.com/GeyserMC/Geyser/issues/503 for context.
+     * See <a href="https://github.com/GeyserMC/Geyser/issues/503">this</a> for context.
      */
     @Setter
     private long lastInteractionTime;
@@ -700,10 +698,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         gamerulePacket.getGameRules().add(new GameRuleData<>("keepinventory", true));
         // Ensure client doesn't try and do anything funky; the server handles this for us
         gamerulePacket.getGameRules().add(new GameRuleData<>("spawnradius", 0));
-        // Recipe unlocking - only needs to be added if 1. it isn't already on via an experiment, or 2. the client is on pre 1.20.10
-        if (!GameProtocol.isPre1_20_10(this) && !GameProtocol.isUsingExperimentalRecipeUnlocking(this)) {
-            gamerulePacket.getGameRules().add(new GameRuleData<>("recipesunlock", true));
-        }
+        // Recipe unlocking
+        gamerulePacket.getGameRules().add(new GameRuleData<>("recipesunlock", true));
         upstream.sendPacket(gamerulePacket);
     }
 
@@ -1039,7 +1035,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                     geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.remote.disconnect", authData.name(), remoteServer.address(), disconnectMessage));
                 }
                 if (cause != null) {
-                    GeyserImpl.getInstance().getLogger().error(cause.getMessage());
+                    if (cause.getMessage() != null) {
+                        GeyserImpl.getInstance().getLogger().error(cause.getMessage());
+                    } else {
+                        GeyserImpl.getInstance().getLogger().error("An exception occurred: ", cause);
+                    }
                     // GeyserSession is disconnected via session.disconnect() called indirectly be the server
                     // This only needs to be "initiated" here when there is an exception, hence the cause clause
                     GeyserSession.this.disconnect(disconnectMessage);
@@ -1314,7 +1314,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      *
      * @return not null if attributes should be updated.
      */
-    public AttributeData adjustSpeed() {
+    public @Nullable AttributeData adjustSpeed() {
         AttributeData currentPlayerSpeed = playerEntity.getAttributes().get(GeyserAttributeType.MOVEMENT_SPEED);
         if (currentPlayerSpeed != null) {
             if ((pose.equals(Pose.SNEAKING) && !sneaking && collisionManager.mustPlayerSneakHere()) ||
@@ -1366,7 +1366,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     /**
-     * For https://github.com/GeyserMC/Geyser/issues/2113 and combating arm ticking activating being delayed in
+     * For <a href="https://github.com/GeyserMC/Geyser/issues/2113">issue 2113</a> and combating arm ticking activating being delayed in
      * BedrockAnimateTranslator.
      */
     public void armSwingPending() {
@@ -1401,7 +1401,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
-    public void sendMessage(String message) {
+    public void sendMessage(@NonNull String message) {
         TextPacket textPacket = new TextPacket();
         textPacket.setPlatformChatId("");
         textPacket.setSourceName("");
@@ -1544,6 +1544,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.getExperiments().add(new ExperimentData("upcoming_creator_features", true));
         // Needed for certain molang queries used in blocks and items
         startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
+        // Required for experimental 1.21 features
+        startGamePacket.getExperiments().add(new ExperimentData("updateAnnouncedLive2023", true));
 
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);
@@ -1557,10 +1559,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT);
         startGamePacket.setRewindHistorySize(0);
         startGamePacket.setServerAuthoritativeBlockBreaking(false);
-
-        if (GameProtocol.isUsingExperimentalRecipeUnlocking(this)) {
-            startGamePacket.getExperiments().add(new ExperimentData("recipe_unlocking", true));
-        }
 
         upstream.sendPacket(startGamePacket);
     }
@@ -1907,7 +1905,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
-    public String bedrockUsername() {
+    public @NonNull String bedrockUsername() {
         return authData.name();
     }
 
@@ -1922,7 +1920,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
-    public String xuid() {
+    public @NonNull String xuid() {
         return authData.xuid();
     }
 

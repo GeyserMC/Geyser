@@ -64,7 +64,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         super.updateInventory(translator, session, inventory);
         AnvilContainer anvilContainer = (AnvilContainer) inventory;
         updateInventoryState(session, anvilContainer);
-        int targetSlot = getTargetSlot(session, anvilContainer);
+        int targetSlot = getTargetSlot(anvilContainer);
         for (int i = 0; i < translator.size; i++) {
             final int bedrockSlot = translator.javaSlotToBedrock(i);
             if (bedrockSlot == 50)
@@ -89,7 +89,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         updateInventoryState(session, anvilContainer);
 
         int lastTargetSlot = anvilContainer.getLastTargetSlot();
-        int targetSlot = getTargetSlot(session, anvilContainer);
+        int targetSlot = getTargetSlot(anvilContainer);
         if (targetSlot != javaSlot) {
             // Update the requested slot
             InventorySlotPacket slotPacket = new InventorySlotPacket();
@@ -136,7 +136,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
      * @param anvilContainer the anvil inventory
      * @return the slot to change the repair cost
      */
-    private int getTargetSlot(GeyserSession session, AnvilContainer anvilContainer) {
+    private int getTargetSlot(AnvilContainer anvilContainer) {
         GeyserItemStack input = anvilContainer.getInput();
         GeyserItemStack material = anvilContainer.getMaterial();
 
@@ -433,6 +433,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         return !Objects.equals(originalName, ItemUtils.getCustomName(anvilContainer.getResult().getNbt()));
     }
 
+    @SuppressWarnings("SameParameterValue")
     private int getTagIntValueOr(GeyserItemStack itemStack, String tagName, int defaultValue) {
         if (itemStack.getNbt() != null) {
             Tag tag = itemStack.getNbt().get(tagName);
