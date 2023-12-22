@@ -28,10 +28,10 @@ package org.geysermc.geyser.platform.neoforge;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.minecraft.server.MinecraftServer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.loading.FMLLoader;
-import net.minecraftforge.forgespi.language.IModInfo;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.loading.FMLLoader;
+import net.neoforged.neoforgespi.language.IModInfo;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.text.AsteriskSerializer;
 
@@ -50,8 +50,8 @@ public class GeyserNeoforgeDumpInfo extends BootstrapDumpInfo {
     private final int serverPort;
     private final List<ModInfo> mods;
 
-    public GeyseNeoforgeDumpInfo(MinecraftServer server) {
-        this.platformVersion = FMLLoader.versionInfo().mcAndForgeVersion();
+    public GeyserNeoforgeDumpInfo(MinecraftServer server) {
+        this.platformVersion = FMLLoader.versionInfo().mcAndNeoFormVersion();
         this.dist = FMLLoader.getDist();
         this.serverIP = server.getLocalIp() == null ? "unknown" : server.getLocalIp();
         this.serverPort = server.getPort();

@@ -23,17 +23,17 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.forge;
+package org.geysermc.geyser.platform.neoforge;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.server.permission.PermissionAPI;
-import net.minecraftforge.server.permission.events.PermissionGatherEvent;
-import net.minecraftforge.server.permission.nodes.PermissionDynamicContextKey;
-import net.minecraftforge.server.permission.nodes.PermissionNode;
-import net.minecraftforge.server.permission.nodes.PermissionType;
-import net.minecraftforge.server.permission.nodes.PermissionTypes;
+import net.neoforged.neoforge.server.permission.PermissionAPI;
+import net.neoforged.neoforge.server.permission.events.PermissionGatherEvent;
+import net.neoforged.neoforge.server.permission.nodes.PermissionDynamicContextKey;
+import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
+import net.neoforged.neoforge.server.permission.nodes.PermissionType;
+import net.neoforged.neoforge.server.permission.nodes.PermissionTypes;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;

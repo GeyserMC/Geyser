@@ -3,7 +3,7 @@ plugins {
     // Ensure AP works in eclipse (no effect on other IDEs)
     `eclipse`
     id("geyser.build-logic")
-    id("io.freefair.lombok") version "6.3.0" apply false
+    id("io.freefair.lombok") version "8.4" apply false
 }
 
 allprojects {

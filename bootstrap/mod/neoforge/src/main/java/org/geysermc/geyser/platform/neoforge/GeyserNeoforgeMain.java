@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.forge;
+package org.geysermc.geyser.platform.neoforge;
 
 import org.geysermc.geyser.GeyserMain;
 
