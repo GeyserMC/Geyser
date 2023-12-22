@@ -37,6 +37,7 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.common.value.qual.IntRange;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
@@ -79,9 +80,9 @@ public class Entity implements GeyserEntity {
     /**
      * x = Yaw, y = Pitch, z = HeadYaw
      */
-    protected float yaw;
+    protected @IntRange(from = -90, to = 90) float yaw;
     protected float pitch;
-    protected float headYaw;
+    protected @IntRange(from = -90, to = 90) float headYaw;
 
     /**
      * Saves if the entity should be on the ground. Otherwise entities like parrots are flapping when rotating
@@ -126,7 +127,7 @@ public class Entity implements GeyserEntity {
     @Setter(AccessLevel.PROTECTED) // For players
     private boolean flagsDirty = false;
 
-    public Entity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public Entity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, @IntRange(from = -90, to = 90) float yaw, float pitch, float headYaw) {
         this.session = session;
 
         this.entityId = entityId;
@@ -225,7 +226,7 @@ public class Entity implements GeyserEntity {
         moveRelative(relX, relY, relZ, yaw, pitch, getHeadYaw(), isOnGround);
     }
 
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+    public void moveRelative(double relX, double relY, double relZ, @IntRange(from = -90, to = 90)float yaw, float pitch, float headYaw, boolean isOnGround) {
         position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
 
         MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
@@ -491,7 +492,7 @@ public class Entity implements GeyserEntity {
     }
 
     public Vector2f getSpectateRotation() {
-        return Vector2f.from(getYaw(), getPitch());
+        return Vector2f.from(getPitch(), getHeadYaw());
     }
 
     /**

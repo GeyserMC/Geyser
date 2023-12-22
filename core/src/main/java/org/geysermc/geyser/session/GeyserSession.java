@@ -85,10 +85,13 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.data.*;
+import org.cloudburstmc.protocol.bedrock.data.camera.CameraEase;
+import org.cloudburstmc.protocol.bedrock.data.camera.CameraSetInstruction;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.cloudburstmc.protocol.common.util.OptionalBoolean;
@@ -1976,14 +1979,26 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     public void sendSpectateLocation() {
         CameraSetInstruction setInstruction = new CameraSetInstruction();
-        setInstruction.setPreset(CameraUtil.getById(5));
-        setInstruction.setEase(new CameraSetInstruction.EaseData(CameraEase.LINEAR, 0.5f));
-        setInstruction.setPos(spectatorTarget.getPosition().add(0, spectatorTarget.getDefinition().offset(), 0));
-        setInstruction.setRot(spectatorTarget.getSpectateRotation());
+        setInstruction.setPreset(CameraDefinitions.getById(5));
+        setInstruction.setEase(new CameraSetInstruction.EaseData(CameraEase.LINEAR, 0.1f));
+        final Vector2f spectateRotation = spectatorTarget.getSpectateRotation();
+        setInstruction.setRot(spectateRotation);
+        final Vector3f spectateVector = spectatorRotationToVector(spectateRotation);
+        setInstruction.setPos(spectatorTarget.getPosition().add(spectateVector));
 
         CameraInstructionPacket packet = new CameraInstructionPacket();
         packet.setSetInstruction(setInstruction);
         sendUpstreamPacket(packet);
+    }
+
+    private Vector3f spectatorRotationToVector(final Vector2f spectateRotation) {
+        final double pitch = Math.toRadians(spectateRotation.getX());
+        final double yaw = Math.toRadians(spectateRotation.getY());
+        return Vector3f.from(
+                -Math.sin(yaw) * Math.cos(pitch),
+                -Math.sin(pitch),
+                Math.cos(yaw) * Math.cos(pitch)
+        ).normalize();
     }
 
     @Override
