@@ -57,7 +57,7 @@ public class GeyserModCommandExecutor extends GeyserCommandExecutor implements C
 
     public int runWithArgs(CommandContext<CommandSourceStack> context, String args) {
         CommandSourceStack source = context.getSource();
-        FabricCommandSender sender = new FabricCommandSender(source);
+        ModCommandSender sender = new ModCommandSender(source);
         GeyserSession session = getGeyserSession(sender);
         if (!testPermission(source)) {
             sender.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", sender.locale()));

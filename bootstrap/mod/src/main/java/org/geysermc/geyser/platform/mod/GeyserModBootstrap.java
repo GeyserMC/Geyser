@@ -52,8 +52,6 @@ import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
 import org.geysermc.geyser.platform.mod.world.GeyserModWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -245,7 +243,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         return this.server.getServerVersion();
     }
 
-    @NotNull
+    @NonNull
     @Override
     public String getServerBindAddress() {
         String ip = this.server.getLocalIp();

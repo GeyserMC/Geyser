@@ -26,7 +26,7 @@
 package org.geysermc.geyser.platform.neoforge;
 
 import net.minecraft.server.MinecraftServer;
-import net.minecraftforge.fml.loading.FMLPaths;
+import net.neoforged.fml.loading.FMLPaths;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
