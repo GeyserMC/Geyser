@@ -81,7 +81,7 @@ public class GeyserUrlPackCodec extends UrlPackCodec {
     public ResourcePack create() {
         if (this.fallback == null) {
             try {
-                final Path downloadedPack = ResourcePackLoader.downloadPack(url).whenComplete((pack, throwable) -> {
+                final Path downloadedPack = ResourcePackLoader.downloadPack(url, false).whenComplete((pack, throwable) -> {
                     if (throwable != null) {
                         GeyserImpl.getInstance().getLogger().error("Failed to download pack from " + url, throwable);
                         if (GeyserImpl.getInstance().getConfig().isDebugMode()) {

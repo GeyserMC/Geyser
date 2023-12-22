@@ -284,10 +284,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             // Ensure we don't a. spam console, and b. spam download/check requests
             if (!brokenResourcePacks.contains(packet.getPackId())) {
                 brokenResourcePacks.add(packet.getPackId());
-                GeyserImpl.getInstance().getLogger().warning("Received a request for a remote pack that the client should have already downloaded!" +
+                GeyserImpl.getInstance().getLogger().warning("Received a request for a remote pack that the client should have already downloaded! " +
                         "Is the pack at the URL " + urlPackCodec.url() + " still available?");
                 // not actually interested in using the download, but this does all the checks we need
-                ResourcePackLoader.downloadPack(urlPackCodec.url());
+                ResourcePackLoader.downloadPack(urlPackCodec.url(), true);
             }
         }
 

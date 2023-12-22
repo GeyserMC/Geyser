@@ -200,7 +200,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
         }
     }
 
-    public Map<String, ResourcePack> loadRemotePacks() {
+    private Map<String, ResourcePack> loadRemotePacks() {
         final Path cachedCdnPacksDirectory = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs");
 
         // Download CDN packs to get the pack uuid's
@@ -231,11 +231,8 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
         return packMap;
     }
 
-    public static CompletableFuture<@Nullable Path> downloadPack(String url) throws IllegalArgumentException {
-
-        //TODO check if our cache pack is fine (size, url hash; head req)
-
-        return WebUtils.checkUrlAndDownloadRemotePack(url).whenCompleteAsync((cachedPath, throwable) -> {
+    public static CompletableFuture<@Nullable Path> downloadPack(String url, boolean force) throws IllegalArgumentException {
+        return WebUtils.checkUrlAndDownloadRemotePack(url, force).whenCompleteAsync((cachedPath, throwable) -> {
             if (cachedPath == null) {
                 // already warned about in WebUtils
                 return;
