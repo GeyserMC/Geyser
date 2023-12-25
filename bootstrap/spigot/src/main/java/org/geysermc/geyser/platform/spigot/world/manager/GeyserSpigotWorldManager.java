@@ -197,7 +197,11 @@ public class GeyserSpigotWorldManager extends WorldManager {
 
     @Override
     public boolean hasPermission(GeyserSession session, String permission) {
-        return Objects.requireNonNull(Bukkit.getPlayer(session.getPlayerEntity().getUsername())).hasPermission(permission);
+        Player player = Bukkit.getPlayer(session.javaUuid());
+        if (player != null) {
+            return player.hasPermission(permission);
+        }
+        return false;
     }
 
     @Override
