@@ -42,7 +42,7 @@ import java.util.List;
 @Getter
 public class GeyserNeoforgeDumpInfo extends BootstrapDumpInfo {
 
-    private String platformVersion = null;
+    private String platformVersion;
     private final Dist dist;
 
     @AsteriskSerializer.Asterisk(isIp = true)

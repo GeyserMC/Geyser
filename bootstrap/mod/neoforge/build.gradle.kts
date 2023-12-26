@@ -8,12 +8,9 @@ architectury {
 }
 
 loom {
-    /*
     neoForge {
         mixinConfig("geyser.mixins.json")
     }
-
-     */
 }
 
 dependencies {
@@ -27,7 +24,7 @@ dependencies {
     neoForge(libs.neoforge.minecraft)
 
     api(projects.mod)
-    shadow(project(path = ":mod", configuration = "transformProductionForge")) {
+    shadow(project(path = ":mod", configuration = "transformProductionNeoForge")) {
         isTransitive = false
     }
     shadow(projects.core) {

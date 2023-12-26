@@ -128,7 +128,7 @@ public class GeyserNeoforgePermissionHandler {
     private PermissionNode<Boolean> createNode(String node) {
         // The typical constructors in PermissionNode require a
         // mod id, which means our permission nodes end up becoming
-        // geyser_forge.<node> instead of just <node>. We work around
+        // geyser_neoforge.<node> instead of just <node>. We work around
         // this by using reflection to access the constructor that
         // doesn't require a mod id or ResourceLocation.
         try {
