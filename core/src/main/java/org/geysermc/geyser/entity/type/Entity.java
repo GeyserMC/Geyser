@@ -492,7 +492,7 @@ public class Entity implements GeyserEntity {
     }
 
     public Vector2f getSpectateRotation() {
-        return Vector2f.from(getPitch(), getHeadYaw());
+        return Vector2f.from(getPitch(), getYaw());
     }
 
     /**

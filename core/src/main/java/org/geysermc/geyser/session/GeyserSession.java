@@ -1994,11 +1994,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private Vector3f spectatorRotationToVector(final Vector2f spectateRotation) {
         final double pitch = Math.toRadians(spectateRotation.getX());
         final double yaw = Math.toRadians(spectateRotation.getY());
-        return Vector3f.from(
+        final Vector3f location = Vector3f.from(
                 -Math.sin(yaw) * Math.cos(pitch),
                 -Math.sin(pitch),
                 Math.cos(yaw) * Math.cos(pitch)
-        ).normalize();
+        );
+        // Normalize the vector to a length of 1 so that we can multiply it by a constant to move the player
+        // out of the entity's head.
+        return location.normalize().mul(0.7);
     }
 
     @Override
