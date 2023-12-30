@@ -1637,6 +1637,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         if (protocol == null) {
             return;
         }
+
         if (protocol.getState() != intendedState) {
             geyser.getLogger().debug("Tried to send " + packet.getClass().getSimpleName() + " packet while not in " + intendedState.name() + " state");
             return;
