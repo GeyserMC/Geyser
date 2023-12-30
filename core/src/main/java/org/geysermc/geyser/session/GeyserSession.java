@@ -1635,6 +1635,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public void sendDownstreamPacket(Packet packet, ProtocolState intendedState) {
         // protocol can be null when we're not yet logged in (online auth)
         if (protocol == null) {
+            if (geyser.getConfig().isDebugMode()) {
+                geyser.getLogger().debug("Tried to send downstream packet with no downstream session!");
+                Thread.dumpStack();
+            }
             return;
         }
 
