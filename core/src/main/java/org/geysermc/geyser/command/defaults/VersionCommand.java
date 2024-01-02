@@ -76,7 +76,7 @@ public class VersionCommand extends GeyserCommand {
             return;
         }
 
-        if (GeyserImpl.getInstance().isDevBuild()) {
+        if (GeyserImpl.IS_DEV) {
             sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.core.dev_build", sender.locale(), "https://discord.gg/geysermc"));
             return;
         }

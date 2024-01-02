@@ -89,16 +89,22 @@ configure<BlossomExtension> {
     val mainFile = "src/main/java/org/geysermc/geyser/GeyserImpl.java"
     val info = GitInfo()
 
-    replaceToken("\${version}", "${project.version} (${info.gitVersion})", mainFile)
+    replaceToken("\${version}", "${info.buildNumber} (${info.gitVersion})", mainFile)
     replaceToken("\${gitVersion}", info.gitVersion, mainFile)
     replaceToken("\${buildNumber}", info.buildNumber, mainFile)
     replaceToken("\${branch}", info.branch, mainFile)
     replaceToken("\${commit}", info.commit, mainFile)
     replaceToken("\${repository}", info.repository, mainFile)
+    replaceToken("\${dev}", isDevBuild(info.branch, info.repository))
 }
 
 // -1 as a fallback for local builds
 fun buildNumber(): Int = System.getenv("GITHUB_RUN_NUMBER")?.let { Integer.parseInt(it) } ?: -1
+
+fun isDevBuild(branch: String, repository: String): Boolean {
+    return branch != "master" && repository.equals("https://github.com/GeyserMC/Geyser", ignoreCase = true).not()
+}
+
 
 inner class GitInfo {
     val branch: String

@@ -119,6 +119,9 @@ public class GeyserImpl implements GeyserApi {
     public static final String COMMIT = "${commit}";
     public static final String REPOSITORY = "${repository}";
 
+    @SuppressWarnings("ConstantValue")
+    public static final boolean IS_DEV = Boolean.parseBoolean("${dev}");
+
     /**
      * Oauth client ID for Microsoft authentication
      */
@@ -185,10 +188,9 @@ public class GeyserImpl implements GeyserApi {
 
         logger.info("******************************************");
         logger.info("");
-        logger.info(GeyserLocale.getLocaleStringLog("geyser.core.load", NAME, BUILD_NUMBER));
-        logger.info(GeyserImpl.VERSION);
+        logger.info(GeyserLocale.getLocaleStringLog("geyser.core.load", NAME, VERSION));
         logger.info("");
-        if (isDevBuild()) {
+        if (IS_DEV) {
             logger.info(GeyserLocale.getLocaleStringLog("geyser.core.dev_build", "https://discord.gg/geysermc"));
             logger.info("");
         }
@@ -631,11 +633,6 @@ public class GeyserImpl implements GeyserApi {
         // First is if Blossom runs, second is if Blossom doesn't run
         //noinspection ConstantConditions,MismatchedStringCase - changes in production
         return !("git-local/dev-0000000".equals(GeyserImpl.GIT_VERSION) || "${gitVersion}".equals(GeyserImpl.GIT_VERSION));
-    }
-
-    public boolean isDevBuild() {
-        //noinspection ConstantValue - changes in production
-        return !BRANCH.equals("master") && !REPOSITORY.equalsIgnoreCase("https://github.com/GeyserMC/Geyser");
     }
 
     @Override
