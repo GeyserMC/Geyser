@@ -309,16 +309,16 @@ public class GeyserImpl implements GeyserApi {
                 }
             }
 
-            String pongPort = System.getProperty("geyserBroadcastPort", "");
-            if (!pongPort.isEmpty()) {
+            String broadcastPort = System.getProperty("geyserBroadcastPort", "");
+            if (!broadcastPort.isEmpty()) {
                 int parsedPort;
                 try {
-                    parsedPort = Integer.parseInt(pongPort);
+                    parsedPort = Integer.parseInt(broadcastPort);
                     if (parsedPort < 1 || parsedPort > 65535) {
                         throw new NumberFormatException("The broadcast port must be between 1 and 65535 inclusive!");
                     }
                 } catch (NumberFormatException e) {
-                    logger.error(String.format("Invalid broadcast port: %s! Defaulting to configured port.", pongPort + " (" + e.getMessage() + ")"));
+                    logger.error(String.format("Invalid broadcast port: %s! Defaulting to configured port.", broadcastPort + " (" + e.getMessage() + ")"));
                     parsedPort = config.getBedrock().port();
                 }
                 config.getBedrock().setBroadcastPort(parsedPort);
