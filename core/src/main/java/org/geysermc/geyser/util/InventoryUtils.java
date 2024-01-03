@@ -61,6 +61,7 @@ import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;
 import org.geysermc.geyser.translator.inventory.chest.DoubleChestInventoryTranslator;
+import org.jetbrains.annotations.Contract;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -181,8 +182,9 @@ public class InventoryUtils {
     /**
      * Checks to see if an item stack represents air or has no count.
      */
+    @Contract("null -> true")
     public static boolean isEmpty(@Nullable ItemStack itemStack) {
-        return itemStack == null || itemStack.getId() == Items.AIR.javaId() || itemStack.getAmount() <= 0;
+        return itemStack == null || itemStack.getId() == Items.AIR_ID || itemStack.getAmount() <= 0;
     }
 
     /**
@@ -233,11 +235,10 @@ public class InventoryUtils {
      * @param itemStack the item to try to find a match for. NBT will also be accounted for.
      */
     public static void findOrCreateItem(GeyserSession session, ItemStack itemStack) {
-        PlayerInventory inventory = session.getPlayerInventory();
-
-        if (itemStack == null || itemStack.getId() == 0) {
+        if (isEmpty(itemStack)) {
             return;
         }
+        PlayerInventory inventory = session.getPlayerInventory();
 
         // Check hotbar for item
         for (int i = 36; i < 45; i++) {

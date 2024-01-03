@@ -5,12 +5,6 @@ plugins {
     id("com.modrinth.minotaur") version "2.+"
 }
 
-indra {
-    javaVersions {
-        target(17)
-    }
-}
-
 dependencies {
     //to change the versions see the gradle.properties file
     minecraft(libs.fabric.minecraft)
@@ -119,7 +113,7 @@ modrinth {
     syncBodyFrom.set(rootProject.file("README.md").readText())
 
     uploadFile.set(tasks.getByPath("remapModrinthJar"))
-    gameVersions.addAll("1.20.2")
+    gameVersions.addAll("1.20.4")
 
     loaders.add("fabric")
     failSilently.set(true)

@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.translator.protocol.java.scoreboard;
 
-import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardAction;
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetScorePacket;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.geyser.GeyserImpl;
@@ -54,12 +54,13 @@ public class JavaSetScoreTranslator extends PacketTranslator<ClientboundSetScore
 
     @Override
     public void translate(GeyserSession session, ClientboundSetScorePacket packet) {
+        // todo 1.20.3 unused display and number format?
         WorldCache worldCache = session.getWorldCache();
         Scoreboard scoreboard = worldCache.getScoreboard();
         int pps = worldCache.increaseAndGetScoreboardPacketsPerSecond();
 
         Objective objective = scoreboard.getObjective(packet.getObjective());
-        if (objective == null && packet.getAction() != ScoreboardAction.REMOVE) {
+        if (objective == null) {
             if (SHOW_SCOREBOARD_LOGS) {
                 logger.info(GeyserLocale.getLocaleStringLog("geyser.network.translator.score.failed_objective", packet.getObjective()));
             }
@@ -68,38 +69,12 @@ public class JavaSetScoreTranslator extends PacketTranslator<ClientboundSetScore
 
         // If this is the objective that is in use to show the below name text, we need to update the player
         // attached to this score.
-        boolean isBelowName = objective != null && objective == scoreboard.getObjectiveSlots().get(ScoreboardPosition.BELOW_NAME);
+        boolean isBelowName = objective == scoreboard.getObjectiveSlots().get(ScoreboardPosition.BELOW_NAME);
 
-        switch (packet.getAction()) {
-            case ADD_OR_UPDATE -> {
-                objective.setScore(packet.getEntry(), packet.getValue());
-                if (isBelowName) {
-                    // Update the below name score on this player
-                    setBelowName(session, objective, packet.getEntry(), packet.getValue());
-                }
-            }
-            case REMOVE -> {
-                if (packet.getObjective().isEmpty()) {
-                    // An empty objective name means all scores are reset for that player (/scoreboard players reset PLAYERNAME)
-                    Objective belowName = scoreboard.getObjectiveSlots().get(ScoreboardPosition.BELOW_NAME);
-                    if (belowName != null) {
-                        setBelowName(session, belowName, packet.getEntry(), 0);
-                    }
-                }
-
-                if (objective != null) {
-                    objective.removeScore(packet.getEntry());
-
-                    if (isBelowName) {
-                        // Update the score on this player to now reflect 0
-                        setBelowName(session, objective, packet.getEntry(), 0);
-                    }
-                } else {
-                    for (Objective objective1 : scoreboard.getObjectives()) {
-                        objective1.removeScore(packet.getEntry());
-                    }
-                }
-            }
+        objective.setScore(packet.getOwner(), packet.getValue());
+        if (isBelowName) {
+            // Update the below name score on this player
+            setBelowName(session, objective, packet.getOwner(), packet.getValue());
         }
 
         // ScoreboardUpdater will handle it for us if the packets per second
@@ -112,8 +87,8 @@ public class JavaSetScoreTranslator extends PacketTranslator<ClientboundSetScore
     /**
      * @param objective the objective that currently resides on the below name display slot
      */
-    private void setBelowName(GeyserSession session, Objective objective, String username, int count) {
-        PlayerEntity entity = getPlayerEntity(session, username);
+    static void setBelowName(GeyserSession session, Objective objective, String username, int count) {
+        PlayerEntity entity = getOtherPlayerEntity(session, username);
         if (entity == null) {
             return;
         }
@@ -128,7 +103,7 @@ public class JavaSetScoreTranslator extends PacketTranslator<ClientboundSetScore
         session.sendUpstreamPacket(entityDataPacket);
     }
 
-    private PlayerEntity getPlayerEntity(GeyserSession session, String username) {
+    private static @Nullable PlayerEntity getOtherPlayerEntity(GeyserSession session, String username) {
         // We don't care about the session player, because... they're not going to be seeing their own score
         if (session.getPlayerEntity().getUsername().equals(username)) {
             return null;

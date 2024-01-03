@@ -258,7 +258,12 @@ public final class Scoreboard {
 
         for (Score score : objective.getScores().values()) {
             if (score.getUpdateType() == REMOVE) {
-                removeScores.add(score.getCachedInfo());
+                ScoreInfo cachedInfo = score.getCachedInfo();
+                // cachedInfo can be null here when ScoreboardUpdater is being used and a score is added and
+                // removed before a single update cycle is performed
+                if (cachedInfo != null) {
+                    removeScores.add(cachedInfo);
+                }
                 // score is pending to be removed, so we can remove it from the objective
                 objective.removeScore0(score.getName());
                 break;

@@ -64,7 +64,7 @@ public class IntegratedServerMixin implements GeyserServerPortGetter {
             // Give indication that Geyser is loaded
             Objects.requireNonNull(this.minecraft.player);
             this.minecraft.player.displayClientMessage(Component.literal(GeyserLocale.getPlayerLocaleString("geyser.core.start",
-                    this.minecraft.options.languageCode, "localhost", String.valueOf(GeyserImpl.getInstance().getConfig().getBedrock().port()))), false);
+                    this.minecraft.options.languageCode, "localhost", String.valueOf(GeyserImpl.getInstance().bedrockListener().port()))), false);
         }
     }
 

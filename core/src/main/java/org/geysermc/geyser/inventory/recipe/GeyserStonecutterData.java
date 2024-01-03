@@ -26,10 +26,11 @@
 package org.geysermc.geyser.inventory.recipe;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * @param buttonId the button that needs to be pressed for Java Edition to accept this item.
  * @param output the expected output of this item when cut.
  */
-public record GeyserStonecutterData(int buttonId, ItemStack output) {
+public record GeyserStonecutterData(int buttonId, @Nullable ItemStack output) {
 }

@@ -129,7 +129,6 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.physics.CollisionManager;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -699,10 +698,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         gamerulePacket.getGameRules().add(new GameRuleData<>("keepinventory", true));
         // Ensure client doesn't try and do anything funky; the server handles this for us
         gamerulePacket.getGameRules().add(new GameRuleData<>("spawnradius", 0));
-        // Recipe unlocking - only needs to be added if 1. it isn't already on via an experiment, or 2. the client is on pre 1.20.10
-        if (!GameProtocol.isPre1_20_10(this) && !GameProtocol.isUsingExperimentalRecipeUnlocking(this)) {
-            gamerulePacket.getGameRules().add(new GameRuleData<>("recipesunlock", true));
-        }
+        // Recipe unlocking
+        gamerulePacket.getGameRules().add(new GameRuleData<>("recipesunlock", true));
         upstream.sendPacket(gamerulePacket);
     }
 
@@ -1547,6 +1544,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.getExperiments().add(new ExperimentData("upcoming_creator_features", true));
         // Needed for certain molang queries used in blocks and items
         startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
+        // Required for experimental 1.21 features
+        startGamePacket.getExperiments().add(new ExperimentData("updateAnnouncedLive2023", true));
 
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);
@@ -1560,10 +1559,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT);
         startGamePacket.setRewindHistorySize(0);
         startGamePacket.setServerAuthoritativeBlockBreaking(false);
-
-        if (GameProtocol.isUsingExperimentalRecipeUnlocking(this)) {
-            startGamePacket.getExperiments().add(new ExperimentData("recipe_unlocking", true));
-        }
 
         upstream.sendPacket(startGamePacket);
     }
@@ -1638,6 +1633,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * @param intendedState the state the client should be in
      */
     public void sendDownstreamPacket(Packet packet, ProtocolState intendedState) {
+        // protocol can be null when we're not yet logged in (online auth)
+        if (protocol == null) {
+            if (geyser.getConfig().isDebugMode()) {
+                geyser.getLogger().debug("Tried to send downstream packet with no downstream session!");
+                Thread.dumpStack();
+            }
+            return;
+        }
+
         if (protocol.getState() != intendedState) {
             geyser.getLogger().debug("Tried to send " + packet.getClass().getSimpleName() + " packet while not in " + intendedState.name() + " state");
             return;
