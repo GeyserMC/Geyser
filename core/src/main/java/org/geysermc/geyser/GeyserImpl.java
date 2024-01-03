@@ -159,6 +159,9 @@ public class GeyserImpl implements GeyserApi {
 
     private static GeyserImpl instance;
 
+    /**
+     * Determines if we're reloading. Replaces per-bootstrap reload checks
+     */
     public static boolean isReloading;
 
     private GeyserImpl(PlatformType platformType, GeyserBootstrap bootstrap) {
@@ -706,7 +709,7 @@ public class GeyserImpl implements GeyserApi {
             throw new RuntimeException("Geyser has not been loaded yet!");
         }
 
-        // We've been reloaded
+        // We've been reloaded (spigot only)
         if (instance.isShuttingDown()) {
             instance.shuttingDown = false;
             instance.startInstance();

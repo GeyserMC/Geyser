@@ -70,7 +70,6 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     private GeyserImpl geyser;
 
-    @SuppressWarnings({"JavaReflectionMemberAccess", "ResultOfMethodCallIgnored"})
     @Override
     public void onLoad() {
         onGeyserInitialize();
@@ -94,20 +93,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             getLogger().warning("/_____________\\");
         }
 
-        if (!getDataFolder().exists())
-            getDataFolder().mkdir();
-
-        try {
-            if (!getDataFolder().exists())
-                getDataFolder().mkdir();
-            File configFile = FileUtils.fileOrCopiedFromResource(new File(getDataFolder(), "config.yml"),
-                    "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
-            this.geyserConfig = FileUtils.loadConfig(configFile, GeyserBungeeConfiguration.class);
-        } catch (IOException ex) {
-            getLogger().log(Level.SEVERE, GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
-            ex.printStackTrace();
-            return;
-        }
+        if (!loadConfig()) return;
 
         this.geyserLogger = new GeyserBungeeLogger(getLogger(), geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
@@ -140,8 +126,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     @SuppressWarnings("unchecked")
     private void awaitStartupCompletion(int tries) {
-        // After 20 tries give up waiting. This will happen
-        // just after 3 minutes approximately
+        // After 20 tries give up waiting. This will happen just after 3 minutes approximately
         if (tries >= 20) {
             this.geyserLogger.warning("BungeeCord plugin startup is taking abnormally long, so Geyser is starting now. " +
                     "If all your plugins are loaded properly, this is a bug! " +
@@ -166,6 +151,8 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     }
 
     public void onGeyserEnable() {
+        if (!loadConfig()) return;
+
         GeyserImpl.start();
 
         if (!GeyserImpl.isReloading) {
@@ -203,9 +190,14 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     @Override
     public void onGeyserShutdown() {
         onGeyserDisable();
-        if (geyser != null) {
-            geyser.shutdown();
+        if (geyserInjector != null) {
+            geyserInjector.shutdown();
         }
+    }
+
+    @Override
+    public void onDisable() {
+        onGeyserShutdown();
     }
 
     @Override
@@ -274,5 +266,21 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
                 .filter(info -> info.getSocketAddress() instanceof InetSocketAddress)
                 .map(info -> (InetSocketAddress) info.getSocketAddress())
                 .findFirst();
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean loadConfig() {
+        try {
+            if (!getDataFolder().exists()) //noinspection ResultOfMethodCallIgnored
+                getDataFolder().mkdir();
+            File configFile = FileUtils.fileOrCopiedFromResource(new File(getDataFolder(), "config.yml"),
+                    "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
+            this.geyserConfig = FileUtils.loadConfig(configFile, GeyserBungeeConfiguration.class);
+        } catch (IOException ex) {
+            getLogger().log(Level.SEVERE, GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
+            ex.printStackTrace();
+            return false;
+        }
+        return true;
     }
 }

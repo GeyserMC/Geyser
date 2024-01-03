@@ -68,6 +68,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
+
     @Getter
     private static GeyserFabricMod instance;
     private GeyserImpl geyser;
@@ -191,17 +192,17 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     }
 
     @Override
-    public void onGeyserShutdown() {
-        this.onGeyserDisable();
-        this.server = null;
-    }
-
-    @Override
     public void onGeyserDisable() {
         if (geyser != null) {
             geyser.shutdown();
             geyser = null;
         }
+    }
+
+    @Override
+    public void onGeyserShutdown() {
+        this.onGeyserDisable();
+        this.server = null;
     }
 
     @Override

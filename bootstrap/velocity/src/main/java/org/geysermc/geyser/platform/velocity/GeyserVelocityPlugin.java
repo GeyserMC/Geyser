@@ -32,10 +32,10 @@ import com.velocitypowered.api.event.proxy.ListenerBoundEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.network.ListenerType;
+import com.velocitypowered.api.network.ProtocolVersion;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
-import net.kyori.adventure.util.Codec;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserBootstrap;
@@ -46,6 +46,7 @@ import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.velocity.command.GeyserVelocityCommandExecutor;
@@ -85,13 +86,14 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     @Override
     public void onGeyserInitialize() {
-        try {
-            Codec.class.getMethod("codec", Codec.Decoder.class, Codec.Encoder.class);
-        } catch (NoSuchMethodException e) {
-            // velocitypowered.com has a build that is very outdated
-            logger.error("Please download Velocity from https://papermc.io/downloads#Velocity - the 'stable' Velocity version " +
-                    "that has likely been downloaded is very outdated and does not support 1.19.");
-            return;
+        if (!ProtocolVersion.isSupported(GameProtocol.getJavaProtocolVersion())) {
+            logger.error("      / \\");
+            logger.error("     /   \\");
+            logger.error("    /  |  \\");
+            logger.error("   /   |   \\    " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_proxy", proxyServer.getVersion().getName()));
+            logger.error("  /         \\   " + GeyserLocale.getLocaleStringLog("geyser.may_not_work_as_intended_all_caps"));
+            logger.error(" /     o     \\");
+            logger.error("/_____________\\");
         }
 
         GeyserLocale.init(this);
@@ -192,7 +194,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     public void onProxyBound(ListenerBoundEvent event) {
         if (event.getListenerType() == ListenerType.MINECRAFT) {
             // Once listener is bound, do our startup process
-            this.onGeyserEnable();
+            onGeyserEnable();
 
             if (geyserInjector != null) {
                 // After this bound, we know that the channel initializer cannot change without it being ineffective for Velocity, too
