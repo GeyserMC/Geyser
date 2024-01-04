@@ -94,6 +94,8 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         }
 
         this.geyser = GeyserImpl.load(PlatformType.BUNGEECORD, this);
+
+        this.geyserInjector = new GeyserBungeeInjector(this);
     }
 
     @Override
@@ -135,26 +137,25 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
         GeyserImpl.start();
 
-        if (!GeyserImpl.isReloading) {
-            // Force-disable query if enabled, or else Geyser won't enable
-            for (ListenerInfo info : getProxy().getConfig().getListeners()) {
-                if (info.isQueryEnabled() && info.getQueryPort() == geyserConfig.getBedrock().port()) {
-                    try {
-                        Field queryField = ListenerInfo.class.getDeclaredField("queryEnabled");
-                        queryField.setAccessible(true);
-                        queryField.setBoolean(info, false);
-                        geyserLogger.warning("We force-disabled query on port " + info.getQueryPort() + " in order for Geyser to boot up successfully. " +
-                                "To remove this message, disable query in your proxy's config.");
-                    } catch (NoSuchFieldException | IllegalAccessException e) {
-                        geyserLogger.warning("Could not force-disable query. Geyser may not start correctly!");
-                        if (geyserLogger.isDebug()) {
-                            e.printStackTrace();
-                        }
+        // Force-disable query if enabled, or else Geyser won't enable
+        for (ListenerInfo info : getProxy().getConfig().getListeners()) {
+            if (info.isQueryEnabled() && info.getQueryPort() == geyserConfig.getBedrock().port()) {
+                try {
+                    Field queryField = ListenerInfo.class.getDeclaredField("queryEnabled");
+                    queryField.setAccessible(true);
+                    queryField.setBoolean(info, false);
+                    geyserLogger.warning("We force-disabled query on port " + info.getQueryPort() + " in order for Geyser to boot up successfully. " +
+                            "To remove this message, disable query in your proxy's config.");
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                    geyserLogger.warning("Could not force-disable query. Geyser may not start correctly!");
+                    if (geyserLogger.isDebug()) {
+                        e.printStackTrace();
                     }
                 }
             }
+        }
 
-            this.geyserInjector = new GeyserBungeeInjector(this);
+        if (!GeyserImpl.isReloading) {
             this.geyserInjector.initializeLocalChannel(this);
         }
 
