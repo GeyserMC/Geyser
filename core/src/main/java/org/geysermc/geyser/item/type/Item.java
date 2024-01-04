@@ -40,6 +40,7 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.InventoryUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,7 +83,7 @@ public class Item {
     /* Translation methods to Bedrock and back */
 
     public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
-        if (itemStack == null) {
+        if (InventoryUtils.isEmpty(itemStack)) {
             // Return, essentially, air
             return ItemData.builder();
         }

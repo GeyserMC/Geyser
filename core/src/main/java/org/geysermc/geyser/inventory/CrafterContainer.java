@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,21 +23,39 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.inventory.recipe;
+package org.geysermc.geyser.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
-import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
+import lombok.Getter;
+import lombok.Setter;
+import org.geysermc.geyser.GeyserImpl;
 
-public record GeyserShapedRecipe(int width, int height, Ingredient[] ingredients, @Nullable ItemStack result) implements GeyserRecipe {
+@Getter
+public class CrafterContainer extends Container {
 
-    public GeyserShapedRecipe(ShapedRecipeData data) {
-        this(data.getWidth(), data.getHeight(), data.getIngredients(), data.getResult());
+    @Setter
+    private boolean triggered = false;
+
+    /**
+     * Bedrock Edition bitmask of the *disabled* slots.
+     * Disabled slots are 1, enabled slots are 0 - same as Java Edition
+     */
+    private short disabledSlotsMask = 0;
+
+    public CrafterContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory) {
+        super(title, id, size, containerType, playerInventory);
     }
 
-    @Override
-    public boolean isShaped() {
-        return true;
+    public void setSlot(int slot, boolean enabled) {
+        if (slot < 0 || slot > 8) {
+            GeyserImpl.getInstance().getLogger().warning("Crafter slot out of bounds: " + slot);
+            return;
+        }
+
+        if (enabled) {
+            disabledSlotsMask = (short) (disabledSlotsMask & ~(1 << slot));
+        } else {
+            disabledSlotsMask = (short) (disabledSlotsMask | (1 << slot));
+        }
     }
 }
