@@ -160,7 +160,7 @@ public final class GeyserServer {
             this.playerGroup = null;
 
             futureChildGroup.sync();
-            futureGroup .sync();
+            futureGroup.sync();
             futurePlayerGroup.sync();
 
             SkinProvider.shutdown();
