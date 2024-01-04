@@ -81,10 +81,6 @@ import java.util.UUID;
 import java.util.logging.Level;
 
 public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
-    /**
-     * Determines whether we're waiting on the ServerStartedEvent
-     */
-    private static boolean FIRST_RUN;
 
     private GeyserSpigotCommandManager geyserCommandManager;
     private GeyserSpigotConfiguration geyserConfig;
@@ -102,15 +98,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     @Override
     public void onLoad() {
-        // Needs to be an anonymous inner class otherwise Bukkit complains about missing classes
-        Bukkit.getPluginManager().registerEvents(new Listener() {
-
-            @EventHandler
-            public void onServerLoaded(ServerLoadEvent event) {
-                // Wait until all plugins have loaded so Geyser can start
-                onGeyserEnable();
-            }
-        }, this);
         onGeyserInitialize();
     }
 
@@ -160,19 +147,20 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             return;
         }
 
-        if (!loadConfig()) return;
-
-        this.geyserLogger = GeyserPaperLogger.supported() ? new GeyserPaperLogger(this, getLogger(), geyserConfig.isDebugMode())
-                : new GeyserSpigotLogger(getLogger(), geyserConfig.isDebugMode());
-
-        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
-
         this.geyser = GeyserImpl.load(PlatformType.SPIGOT, this);
     }
 
     @Override
     public void onEnable() {
-        onGeyserEnable();
+        // Needs to be an anonymous inner class otherwise Bukkit complains about missing classes
+        Bukkit.getPluginManager().registerEvents(new Listener() {
+
+            @EventHandler
+            public void onServerLoaded(ServerLoadEvent event) {
+                // Wait until all plugins have loaded so Geyser can start
+                onGeyserEnable();
+            }
+        }, this);
     }
 
     public void onGeyserEnable() {
@@ -181,20 +169,15 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             return;
         }
 
+        this.geyserLogger = GeyserPaperLogger.supported() ? new GeyserPaperLogger(this, getLogger(), geyserConfig.isDebugMode())
+                : new GeyserSpigotLogger(getLogger(), geyserConfig.isDebugMode());
+
+        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
+
         this.geyserCommandManager = new GeyserSpigotCommandManager(geyser);
         this.geyserCommandManager.init();
 
-        if (!FIRST_RUN) {
-            // Needs to be an anonymous inner class otherwise Bukkit complains about missing classes
-            Bukkit.getPluginManager().registerEvents(new Listener() {
-
-                @EventHandler
-                public void onServerLoaded(ServerLoadEvent event) {
-                    // Wait until all plugins have loaded so Geyser can start
-                    onGeyserEnable();
-                }
-            }, this);
-
+        if (!GeyserImpl.isReloading) {
             // Because Bukkit locks its command map upon startup, we need to
             // add our plugin commands in onEnable, but populating the executor
             // can happen at any time
@@ -213,9 +196,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                     this.geyserLogger.error("Failed to construct PluginCommand for extension " + extension.name(), ex);
                 }
             }
-
-            FIRST_RUN = true;
-            return; // onGeyserEnable will be called again by the ServerLoadEvent subscription
         }
 
         GeyserImpl.start();

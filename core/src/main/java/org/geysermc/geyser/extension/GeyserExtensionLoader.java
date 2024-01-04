@@ -205,6 +205,10 @@ public class GeyserExtensionLoader extends ExtensionLoader {
         }
     }
 
+    public void clear() {
+        this.classes.clear();
+    }
+
     @Override
     protected boolean isEnabled(@NonNull Extension extension) {
         return this.extensionContainers.get(extension).enabled;

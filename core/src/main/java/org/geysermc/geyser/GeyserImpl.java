@@ -157,6 +157,7 @@ public class GeyserImpl implements GeyserApi {
     @Getter(AccessLevel.NONE)
     private Map<String, String> savedRefreshTokens;
 
+    @Getter
     private static GeyserImpl instance;
 
     /**
@@ -172,18 +173,21 @@ public class GeyserImpl implements GeyserApi {
         this.platformType = platformType;
         this.bootstrap = bootstrap;
 
-        GeyserLocale.finalizeDefaultLocale(this);
-
         /* Initialize event bus */
         this.eventBus = new GeyserEventBus();
 
-        /* Load Extensions */
+        /* Create Extension Manager */
         this.extensionManager = new GeyserExtensionManager();
-        this.extensionManager.init();
-        this.eventBus.fire(new GeyserPreInitializeEvent(this.extensionManager, this.eventBus));
     }
 
     public void initialize() {
+        /* Finalize locale loading now that we know the default locale from the config */
+        GeyserLocale.finalizeDefaultLocale(this);
+
+        /* Load Extensions */
+        this.extensionManager.init();
+        this.eventBus.fire(new GeyserPreInitializeEvent(this.extensionManager, this.eventBus));
+
         long startupTime = System.currentTimeMillis();
 
         GeyserLogger logger = bootstrap.getGeyserLogger();
@@ -617,6 +621,7 @@ public class GeyserImpl implements GeyserApi {
     public void reload() {
         isReloading = true;
         bootstrap.onGeyserDisable();
+        shuttingDown = false;
         bootstrap.onGeyserEnable();
     }
 
@@ -709,7 +714,7 @@ public class GeyserImpl implements GeyserApi {
             throw new RuntimeException("Geyser has not been loaded yet!");
         }
 
-        // We've been reloaded (spigot only)
+        // Check whether we've been reloaded - todo needed?
         if (instance.isShuttingDown()) {
             instance.shuttingDown = false;
             instance.startInstance();
@@ -761,9 +766,5 @@ public class GeyserImpl implements GeyserApi {
                 getLogger().error("Unable to write saved refresh tokens!", e);
             }
         });
-    }
-
-    public static GeyserImpl getInstance() {
-        return instance;
     }
 }

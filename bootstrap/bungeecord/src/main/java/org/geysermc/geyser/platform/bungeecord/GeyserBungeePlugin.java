@@ -32,11 +32,11 @@ import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.protocol.ProtocolConstants;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
@@ -93,34 +93,11 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             getLogger().warning("/_____________\\");
         }
 
-        if (!loadConfig()) return;
-
-        this.geyserLogger = new GeyserBungeeLogger(getLogger(), geyserConfig.isDebugMode());
-        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
-
         this.geyser = GeyserImpl.load(PlatformType.BUNGEECORD, this);
     }
 
     @Override
     public void onEnable() {
-        // Force-disable query if enabled, or else Geyser won't enable
-        for (ListenerInfo info : getProxy().getConfig().getListeners()) {
-            if (info.isQueryEnabled() && info.getQueryPort() == geyserConfig.getBedrock().port()) {
-                try {
-                    Field queryField = ListenerInfo.class.getDeclaredField("queryEnabled");
-                    queryField.setAccessible(true);
-                    queryField.setBoolean(info, false);
-                    geyserLogger.warning("We force-disabled query on port " + info.getQueryPort() + " in order for Geyser to boot up successfully. " +
-                            "To remove this message, disable query in your proxy's config.");
-                } catch (NoSuchFieldException | IllegalAccessException e) {
-                    geyserLogger.warning("Could not force-disable query. Geyser may not start correctly!");
-                    if (geyserLogger.isDebug()) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-
         this.awaitStartupCompletion(0);
     }
 
@@ -128,7 +105,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     private void awaitStartupCompletion(int tries) {
         // After 20 tries give up waiting. This will happen just after 3 minutes approximately
         if (tries >= 20) {
-            this.geyserLogger.warning("BungeeCord plugin startup is taking abnormally long, so Geyser is starting now. " +
+            getLogger().warning("BungeeCord plugin startup is taking abnormally long, so Geyser is starting now. " +
                     "If all your plugins are loaded properly, this is a bug! " +
                     "If not, consider cutting down the amount of plugins on your proxy as it is causing abnormally slow starting times.");
             this.onGeyserEnable();
@@ -153,9 +130,30 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     public void onGeyserEnable() {
         if (!loadConfig()) return;
 
+        this.geyserLogger = new GeyserBungeeLogger(getLogger(), geyserConfig.isDebugMode());
+        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
+
         GeyserImpl.start();
 
         if (!GeyserImpl.isReloading) {
+            // Force-disable query if enabled, or else Geyser won't enable
+            for (ListenerInfo info : getProxy().getConfig().getListeners()) {
+                if (info.isQueryEnabled() && info.getQueryPort() == geyserConfig.getBedrock().port()) {
+                    try {
+                        Field queryField = ListenerInfo.class.getDeclaredField("queryEnabled");
+                        queryField.setAccessible(true);
+                        queryField.setBoolean(info, false);
+                        geyserLogger.warning("We force-disabled query on port " + info.getQueryPort() + " in order for Geyser to boot up successfully. " +
+                                "To remove this message, disable query in your proxy's config.");
+                    } catch (NoSuchFieldException | IllegalAccessException e) {
+                        geyserLogger.warning("Could not force-disable query. Geyser may not start correctly!");
+                        if (geyserLogger.isDebug()) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+
             this.geyserInjector = new GeyserBungeeInjector(this);
             this.geyserInjector.initializeLocalChannel(this);
         }

@@ -86,6 +86,8 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     @Override
     public void onGeyserInitialize() {
+        GeyserLocale.init(this);
+
         if (!ProtocolVersion.isSupported(GameProtocol.getJavaProtocolVersion())) {
             logger.error("      / \\");
             logger.error("     /   \\");
@@ -96,8 +98,6 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
             logger.error("/_____________\\");
         }
 
-        GeyserLocale.init(this);
-
         this.geyserInjector = new GeyserVelocityInjector(proxyServer);
 
         this.geyser = GeyserImpl.load(PlatformType.VELOCITY, this);
@@ -105,18 +105,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     @Override
     public void onGeyserEnable() {
-        try {
-            if (!configFolder.toFile().exists())
-                //noinspection ResultOfMethodCallIgnored
-                configFolder.toFile().mkdirs();
-            File configFile = FileUtils.fileOrCopiedFromResource(configFolder.resolve("config.yml").toFile(),
-                    "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
-            this.geyserConfig = FileUtils.loadConfig(configFile, GeyserVelocityConfiguration.class);
-        } catch (IOException ex) {
-            logger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
-            ex.printStackTrace();
-            return;
-        }
+        if (!loadConfig()) return;
 
         this.geyserLogger = new GeyserVelocityLogger(logger, geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
@@ -238,5 +227,21 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
             return true;
         }
         return false;
+    }
+
+    private boolean loadConfig() {
+        try {
+            if (!configFolder.toFile().exists())
+                //noinspection ResultOfMethodCallIgnored
+                configFolder.toFile().mkdirs();
+            File configFile = FileUtils.fileOrCopiedFromResource(configFolder.resolve("config.yml").toFile(),
+                    "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
+            this.geyserConfig = FileUtils.loadConfig(configFile, GeyserVelocityConfiguration.class);
+        } catch (IOException ex) {
+            logger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
+            ex.printStackTrace();
+            return false;
+        }
+        return true;
     }
 }
