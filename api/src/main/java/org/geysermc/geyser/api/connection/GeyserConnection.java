@@ -29,10 +29,10 @@ import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.connection.Connection;
-import org.geysermc.geyser.api.bedrock.camera.CameraExpansion;
+import org.geysermc.geyser.api.bedrock.camera.CameraData;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.command.CommandSource;
-import org.geysermc.geyser.api.entity.EntityExpansion;
+import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 
@@ -43,10 +43,27 @@ import java.util.concurrent.CompletableFuture;
  * Represents a player connection used in Geyser.
  */
 public interface GeyserConnection extends Connection, CommandSource {
+
+    /**
+     * Exposes the {@link CameraData} for this connection.
+     * It allows you to send fogs, camera shakes, force camera perspectives, and more.
+     *
+     * @return the CameraData for this connection.
+     */
+    @NonNull CameraData camera();
+
+    /**
+     * Exposes the {@link EntityData} for this connection.
+     * It allows you to get entities by their Java entity ID, show emotes, and get the player entity.
+     *
+     * @return the EntityData for this connection.
+     */
+    @NonNull EntityData entities();
+
     /**
      * @param javaId the Java entity ID to look up.
      * @return a {@link GeyserEntity} if present in this connection's entity tracker.
-     * @deprecated Use {@link EntityExpansion#entityByJavaId(int)} instead
+     * @deprecated Use {@link EntityData#entityByJavaId(int)} instead
      */
     @Deprecated
     @NonNull
@@ -57,26 +74,10 @@ public interface GeyserConnection extends Connection, CommandSource {
      *
      * @param emoter the player entity emoting.
      * @param emoteId the emote ID to send to this client.
-     * @deprecated use {@link EntityExpansion#showEmote(GeyserPlayerEntity, String)} instead
+     * @deprecated use {@link EntityData#showEmote(GeyserPlayerEntity, String)} instead
      */
     @Deprecated
     void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId);
-
-    /**
-     * Exposes the {@link CameraExpansion} for this connection.
-     * It allows you to send fogs, camera shakes, force camera perspectives, and more.
-     *
-     * @return the CameraExpansion for this connection.
-     */
-    @NonNull CameraExpansion camera();
-
-    /**
-     * Exposes the {@link EntityExpansion} for this connection.
-     * It allows you to get entities by their Java entity ID, show emotes, and get the player entity.
-     *
-     * @return the EntityExpansion for this connection.
-     */
-    @NonNull EntityExpansion entities();
 
     /**
      * Shakes the client's camera.
@@ -90,7 +91,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      * @param duration the time in seconds that the shake will occur for
      * @param type the type of shake
      *
-     * @deprecated Use {@link CameraExpansion#shakeCamera(float, float, CameraShake)} instead.
+     * @deprecated Use {@link CameraData#shakeCamera(float, float, CameraShake)} instead.
      */
     @Deprecated
     void shakeCamera(float intensity, float duration, @NonNull CameraShake type);
@@ -98,7 +99,7 @@ public interface GeyserConnection extends Connection, CommandSource {
     /**
      * Stops all camera shake of any type.
      *
-     * @deprecated Use {@link CameraExpansion#stopCameraShake()} instead.
+     * @deprecated Use {@link CameraData#stopCameraShake()} instead.
      */
     @Deprecated
     void stopCameraShake();
@@ -109,7 +110,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      * Fog IDs can be found <a href="https://wiki.bedrock.dev/documentation/fog-ids.html">here</a>
      *
      * @param fogNameSpaces the fog IDs to add. If empty, the existing cached IDs will still be sent.
-     * @deprecated Use {@link CameraExpansion#sendFog(String...)} instead.
+     * @deprecated Use {@link CameraData#sendFog(String...)} instead.
      */
     @Deprecated
     void sendFog(String... fogNameSpaces);
@@ -118,7 +119,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      * Removes the given fog IDs from the fog cache, then sends all fog IDs in the cache to the client.
      *
      * @param fogNameSpaces the fog IDs to remove. If empty, all fog IDs will be removed.
-     * @deprecated Use {@link CameraExpansion#removeFog(String...)} instead.
+     * @deprecated Use {@link CameraData#removeFog(String...)} instead.
      */
     @Deprecated
     void removeFog(String... fogNameSpaces);
@@ -126,7 +127,7 @@ public interface GeyserConnection extends Connection, CommandSource {
     /**
      * Returns an immutable copy of all fog affects currently applied to this client.
      *
-     * @deprecated Use {@link CameraExpansion#fogEffects()} instead.
+     * @deprecated Use {@link CameraData#fogEffects()} instead.
      */
     @Deprecated
     @NonNull

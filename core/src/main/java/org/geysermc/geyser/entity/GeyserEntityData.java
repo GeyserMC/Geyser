@@ -29,7 +29,7 @@ import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.packet.EmotePacket;
-import org.geysermc.geyser.api.entity.EntityExpansion;
+import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.entity.type.Entity;
@@ -40,13 +40,13 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public class GeyserEntityExpansion implements EntityExpansion {
+public class GeyserEntityData implements EntityData {
 
     private final GeyserSession session;
 
     private final Set<UUID> movementLockOwners = new HashSet<>();
 
-    public GeyserEntityExpansion(GeyserSession session) {
+    public GeyserEntityData(GeyserSession session) {
         this.session = session;
     }
 

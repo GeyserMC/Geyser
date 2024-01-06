@@ -34,7 +34,7 @@ import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public interface EntityExpansion {
+public interface EntityData {
 
     /**
      * @param javaId the Java entity ID to look up.

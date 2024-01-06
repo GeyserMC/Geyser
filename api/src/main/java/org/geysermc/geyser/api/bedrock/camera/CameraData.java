@@ -31,7 +31,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import java.util.Set;
 import java.util.UUID;
 
-public interface CameraExpansion {
+public interface CameraData {
 
     /**
      * Sends a camera instruction to the client.

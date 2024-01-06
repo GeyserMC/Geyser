@@ -101,10 +101,10 @@ import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.bedrock.camera.CameraExpansion;
+import org.geysermc.geyser.api.bedrock.camera.CameraData;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.entity.EntityExpansion;
+import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent;
@@ -112,13 +112,13 @@ import org.geysermc.geyser.api.event.bedrock.SessionLoginEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.bedrock.camera.CameraDefinitions;
-import org.geysermc.geyser.bedrock.camera.GeyserCameraExpansion;
+import org.geysermc.geyser.impl.camera.CameraDefinitions;
+import org.geysermc.geyser.impl.camera.GeyserCameraData;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.entity.GeyserEntityExpansion;
+import org.geysermc.geyser.entity.GeyserEntityData;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
@@ -595,9 +595,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     private final Queue<Long> keepAliveCache = new ConcurrentLinkedQueue<>();
 
-    private final GeyserCameraExpansion cameraExpansion;
+    private final GeyserCameraData cameraData;
 
-    private final GeyserEntityExpansion entityExpansion;
+    private final GeyserEntityData entityData;
 
     private MinecraftProtocol protocol;
 
@@ -620,8 +620,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.skullCache = new SkullCache(this);
         this.tagCache = new TagCache();
         this.worldCache = new WorldCache(this);
-        this.cameraExpansion = new GeyserCameraExpansion(this);
-        this.entityExpansion = new GeyserEntityExpansion(this);
+        this.cameraData = new GeyserCameraData(this);
+        this.entityData = new GeyserEntityData(this);
 
         this.worldBorder = new WorldBorder(this);
 
@@ -2021,38 +2021,38 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
-    public @NonNull CameraExpansion camera() {
-        return this.cameraExpansion;
+    public @NonNull CameraData camera() {
+        return this.cameraData;
     }
 
     @Override
-    public @NonNull EntityExpansion entities() {
-        return this.entityExpansion;
+    public @NonNull EntityData entities() {
+        return this.entityData;
     }
 
     @Override
     public void shakeCamera(float intensity, float duration, @NonNull CameraShake type) {
-        this.cameraExpansion.shakeCamera(intensity, duration, type);
+        this.cameraData.shakeCamera(intensity, duration, type);
     }
 
     @Override
     public void stopCameraShake() {
-        this.cameraExpansion.stopCameraShake();
+        this.cameraData.stopCameraShake();
     }
 
     @Override
     public void sendFog(String... fogNameSpaces) {
-        this.cameraExpansion.sendFog(fogNameSpaces);
+        this.cameraData.sendFog(fogNameSpaces);
     }
 
     @Override
     public void removeFog(String... fogNameSpaces) {
-        this.cameraExpansion.removeFog(fogNameSpaces);
+        this.cameraData.removeFog(fogNameSpaces);
     }
 
     @Override
     public @NonNull Set<String> fogEffects() {
-        return this.cameraExpansion.fogEffects();
+        return this.cameraData.fogEffects();
     }
 
     public void addCommandEnum(String name, String enums) {
