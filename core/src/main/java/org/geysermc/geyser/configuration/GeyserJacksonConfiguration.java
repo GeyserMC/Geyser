@@ -316,6 +316,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("disable-compression")
     private boolean isDisableCompression = true;
 
+    @JsonProperty("thread-bind-count")
+    private int threadBindCount = 2;
+
     @JsonProperty("config-version")
     private int configVersion = 0;
 

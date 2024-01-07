@@ -39,6 +39,9 @@ import java.util.concurrent.CompletableFuture;
 @UtilityClass
 public final class Bootstraps {
     private static final Optional<int[]> KERNEL_VERSION;
+
+    // The REUSEPORT_AVAILABLE socket option is available starting from kernel version 3.9.
+    // This option allows multiple sockets to listen on the same IP address and port without conflict.
     private static final int[] REUSEPORT_VERSION = new int[]{3, 9, 0};
     private static final boolean REUSEPORT_AVAILABLE;
 

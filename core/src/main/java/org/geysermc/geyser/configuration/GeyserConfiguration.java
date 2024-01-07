@@ -175,6 +175,8 @@ public interface GeyserConfiguration {
 
     boolean isDisableCompression();
 
+    int getThreadBindCount();
+
     int getConfigVersion();
 
     static void checkGeyserConfiguration(GeyserConfiguration geyserConfig, GeyserLogger geyserLogger) {
