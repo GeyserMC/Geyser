@@ -36,6 +36,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.ChatColor;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class FabricCommandSource implements GeyserCommandSource {
@@ -64,7 +65,7 @@ public class FabricCommandSource implements GeyserCommandSource {
     public void sendMessage(net.kyori.adventure.text.Component message) {
         if (source.getEntity() instanceof ServerPlayer player) {
             String decoded = GsonComponentSerializer.gson().serialize(message);
-            player.displayClientMessage(Component.Serializer.fromJson(decoded), false);
+            player.displayClientMessage(Objects.requireNonNull(Component.Serializer.fromJson(decoded)), false);
             return;
         }
         GeyserCommandSource.super.sendMessage(message);

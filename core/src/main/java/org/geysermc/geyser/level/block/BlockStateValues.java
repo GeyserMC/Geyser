@@ -62,10 +62,12 @@ public final class BlockStateValues {
     private static final IntSet ALL_PISTON_HEADS = new IntOpenHashSet();
     private static final IntSet MOVING_PISTONS = new IntOpenHashSet();
     private static final Int2ByteMap SKULL_VARIANTS = new FixedInt2ByteMap();
+    private static final IntSet SKULL_POWERED = new IntOpenHashSet();
     private static final Int2ByteMap SKULL_ROTATIONS = new Int2ByteOpenHashMap();
     private static final Int2IntMap SKULL_WALL_DIRECTIONS = new Int2IntOpenHashMap();
     private static final Int2ByteMap SHULKERBOX_DIRECTIONS = new FixedInt2ByteMap();
     private static final Int2IntMap WATER_LEVEL = new Int2IntOpenHashMap();
+    private static final IntSet UPPER_DOORS = new IntOpenHashSet();
 
     public static final int JAVA_AIR_ID = 0;
 
@@ -172,6 +174,13 @@ public final class BlockStateValues {
             SKULL_ROTATIONS.put(javaBlockState, (byte) skullRotation.intValue());
         }
 
+        if (javaId.startsWith("minecraft:dragon_head[") || javaId.startsWith("minecraft:piglin_head[")
+                || javaId.startsWith("minecraft:dragon_wall_head[") || javaId.startsWith("minecraft:piglin_wall_head[")) {
+            if (javaId.contains("powered=true")) {
+                SKULL_POWERED.add(javaBlockState);
+            }
+        }
+
         if (javaId.contains("wall_skull") || javaId.contains("wall_head")) {
             String direction = javaId.substring(javaId.lastIndexOf("facing=") + 7, javaId.lastIndexOf("powered=") - 1);
             int rotation = switch (direction) {
@@ -210,6 +219,10 @@ public final class BlockStateValues {
         }
         if (javaId.contains("_cauldron") && !javaId.contains("water_")) {
              NON_WATER_CAULDRONS.add(javaBlockState);
+        }
+
+        if (javaId.contains("_door[") && javaId.contains("half=upper")) {
+            UPPER_DOORS.add(javaBlockState);
         }
     }
 
@@ -449,6 +462,17 @@ public final class BlockStateValues {
     }
 
     /**
+     * As of Java 1.20.2:
+     * Skull powered states are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
+     *
+     * @param state BlockState of the block
+     * @return true if this skull is currently being powered.
+     */
+    public static boolean isSkullPowered(int state) {
+        return SKULL_POWERED.contains(state);
+    }
+
+    /**
      * Skull rotations are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
      * This gives a integer rotation that Bedrock can use.
      *
@@ -477,6 +501,16 @@ public final class BlockStateValues {
      */
     public static int getWaterLevel(int state) {
         return WATER_LEVEL.getOrDefault(state, -1);
+    }
+
+    /**
+     * Check if a block is the upper half of a door.
+     *
+     * @param state BlockState of the block
+     * @return True if the block is the upper half of a door
+     */
+    public static boolean isUpperDoor(int state) {
+        return UPPER_DOORS.contains(state);
     }
 
     /**

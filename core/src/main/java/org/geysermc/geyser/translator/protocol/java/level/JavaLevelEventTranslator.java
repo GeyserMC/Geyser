@@ -163,8 +163,12 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 soundEventPacket.setRelativeVolumeDisabled(false);
                 session.sendUpstreamPacket(soundEventPacket);
             }
-            case SMOKE -> {
-                effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_SHOOT);
+            case SMOKE, WHITE_SMOKE -> {
+                if (levelEvent == LevelEventType.SMOKE) {
+                    effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_SHOOT);
+                } else {
+                    effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_SHOOT_WHITE_SMOKE);
+                }
 
                 SmokeEventData smokeEventData = (SmokeEventData) packet.getData();
                 int data = 0;

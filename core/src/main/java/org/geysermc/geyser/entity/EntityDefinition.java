@@ -59,6 +59,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
         return new Builder<>(factory);
     }
 
+    @SuppressWarnings("unchecked")
     public <M> void translateMetadata(T entity, EntityMetadata<M, ? extends MetadataType<M>> metadata) {
         EntityMetadataTranslator<? super T, M, EntityMetadata<M, ? extends MetadataType<M>>> translator = (EntityMetadataTranslator<? super T, M, EntityMetadata<M, ? extends MetadataType<M>>>) this.translators.get(metadata.getId());
         if (translator == null) {

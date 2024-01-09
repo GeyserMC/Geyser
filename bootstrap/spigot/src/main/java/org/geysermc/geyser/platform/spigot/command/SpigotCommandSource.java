@@ -58,6 +58,7 @@ public class SpigotCommandSource implements GeyserCommandSource {
         handle.sendMessage(message);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void sendMessage(Component message) {
         if (PaperAdventure.canSendMessageUsingComponent()) {
@@ -87,9 +88,11 @@ public class SpigotCommandSource implements GeyserCommandSource {
         return null;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public String locale() {
         if (this.handle instanceof Player player) {
+            // getLocale() is deprecated on Paper, but not on Spigot
             return player.getLocale();
         }
 

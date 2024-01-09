@@ -43,6 +43,7 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.Constants;
@@ -67,7 +68,6 @@ import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotNativeWorld
 import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -132,9 +132,21 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             }
         }
 
+        try {
+            Class.forName("io.netty.util.internal.ObjectPool$ObjectCreator");
+        } catch (ClassNotFoundException e) {
+            getLogger().severe("*********************************************");
+            getLogger().severe("");
+            getLogger().severe("This version of Spigot is using an outdated version of netty. Please use Paper instead!");
+            getLogger().severe("");
+            getLogger().severe("*********************************************");
+            return;
+        }
+
         // This is manually done instead of using Bukkit methods to save the config because otherwise comments get removed
         try {
             if (!getDataFolder().exists()) {
+                //noinspection ResultOfMethodCallIgnored
                 getDataFolder().mkdir();
             }
             File configFile = FileUtils.fileOrCopiedFromResource(new File(getDataFolder(), "config.yml"), "config.yml",
@@ -402,7 +414,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         return false;
     }
 
-    @NotNull
+    @NonNull
     @Override
     public String getServerBindAddress() {
         return Bukkit.getIp();

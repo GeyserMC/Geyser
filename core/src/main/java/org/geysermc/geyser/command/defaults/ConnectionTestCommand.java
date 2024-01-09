@@ -30,6 +30,7 @@ import cloud.commandframework.arguments.standard.IntegerArgument;
 import cloud.commandframework.arguments.standard.StringArgument;
 import cloud.commandframework.context.CommandContext;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
@@ -37,6 +38,8 @@ import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.util.LoopbackUtil;
 import org.geysermc.geyser.util.WebUtils;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
@@ -98,6 +101,12 @@ public class ConnectionTestCommand extends GeyserCommand {
             return;
         }
 
+        // Issue: port out of bounds
+        if (port <= 0 || port >= 65535) {
+            source.sendMessage("The port you specified is invalid! Please specify a valid port.");
+            return;
+        }
+
         // Issue: do the ports not line up?
         if (port != geyser.getConfig().getBedrock().port()) {
             if (portArgument != null) {
@@ -155,20 +164,21 @@ public class ConnectionTestCommand extends GeyserCommand {
                 source.sendMessage("Testing server connection now. Please wait...");
                 JsonNode output;
                 try {
-                    output = WebUtils.getJson("https://checker.geysermc.org/ping?hostname=" + ip + "&port=" + port);
+                    String hostname = URLEncoder.encode(ip, StandardCharsets.UTF_8);
+                    output = WebUtils.getJson("https://checker.geysermc.org/ping?hostname=" + hostname + "&port=" + port);
                 } finally {
                     CONNECTION_TEST_MOTD = null;
                 }
 
-                JsonNode cache = output.get("cache");
-                String when;
-                if (cache.get("fromCache").asBoolean()) {
-                    when = cache.get("secondsSince").asInt() + " seconds ago";
-                } else {
-                    when = "now";
-                }
-
                 if (output.get("success").asBoolean()) {
+                    JsonNode cache = output.get("cache");
+                    String when;
+                    if (cache.get("fromCache").asBoolean()) {
+                        when = cache.get("secondsSince").asInt() + " seconds ago";
+                    } else {
+                        when = "now";
+                    }
+
                     JsonNode ping = output.get("ping");
                     JsonNode pong = ping.get("pong");
                     String remoteMotd = pong.get("motd").asText();
@@ -190,7 +200,11 @@ public class ConnectionTestCommand extends GeyserCommand {
                     return;
                 }
 
-                source.sendMessage("Your server is likely unreachable from outside the network as of " + when + ".");
+                source.sendMessage("Your server is likely unreachable from outside the network!");
+                JsonNode message = output.get("message");
+                if (message != null && !message.asText().isEmpty()) {
+                    source.sendMessage("Got the error message: " + message.asText());
+                }
                 sendLinks(source);
             } catch (Exception e) {
                 source.sendMessage("An error occurred while trying to check your connection! Check the console for more information.");

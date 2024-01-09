@@ -1,5 +1,7 @@
 plugins {
     `java-library`
+    // Ensure AP works in eclipse (no effect on other IDEs)
+    `eclipse`
     id("geyser.build-logic")
     id("io.freefair.lombok") version "8.4" apply false
 }
@@ -12,7 +14,7 @@ allprojects {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(16))
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
 

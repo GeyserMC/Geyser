@@ -123,7 +123,7 @@ public class DumpCommand extends GeyserCommand {
             return;
         }
 
-        String uploadedDumpUrl = "";
+        String uploadedDumpUrl;
 
         if (offlineDump) {
             source.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.dump.writing", source.locale()));

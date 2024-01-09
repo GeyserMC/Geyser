@@ -28,6 +28,8 @@ package org.geysermc.geyser.network;
 import io.netty.buffer.Unpooled;
 import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
+import org.cloudburstmc.protocol.bedrock.codec.compat.BedrockCompat;
+import org.cloudburstmc.protocol.bedrock.codec.v622.Bedrock_v622;
 import org.cloudburstmc.protocol.bedrock.data.ExperimentData;
 import org.cloudburstmc.protocol.bedrock.data.PacketCompressionAlgorithm;
 import org.cloudburstmc.protocol.bedrock.data.ResourcePackType;
@@ -108,8 +110,14 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 session.disconnect(disconnectMessage);
                 return false;
             } else if (protocolVersion < GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
+                if (protocolVersion < Bedrock_v622.CODEC.getProtocolVersion()) {
+                    // https://github.com/GeyserMC/Geyser/issues/4378
+                    session.getUpstream().getSession().setCodec(BedrockCompat.CODEC_LEGACY);
+                }
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.client", supportedVersions));
                 return false;
+            } else {
+                throw new IllegalStateException("Default codec of protocol version " + protocolVersion + " should have been found");
             }
         }
 
@@ -229,6 +237,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     // Allow custom items to work
                     stackPacket.getExperiments().add(new ExperimentData("data_driven_items", true));
                 }
+
+                // Required for experimental 1.21 features
+                stackPacket.getExperiments().add(new ExperimentData("updateAnnouncedLive2023", true));
 
                 session.sendUpstreamPacket(stackPacket);
                 break;

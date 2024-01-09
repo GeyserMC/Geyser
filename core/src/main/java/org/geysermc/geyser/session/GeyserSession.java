@@ -105,6 +105,7 @@ import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
+import org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent;
 import org.geysermc.geyser.api.event.bedrock.SessionLoginEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.RemoteServer;
@@ -145,7 +146,6 @@ import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
-import org.jetbrains.annotations.NotNull;
 
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
@@ -179,7 +179,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private List<String> certChainData;
 
-    @NotNull
+    @NonNull
     @Setter
     private AbstractGeyserboundPacketHandler erosionHandler;
 
@@ -334,7 +334,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     /**
      * Tracks the original speed attribute.
-     *
+     * <p>
      * We need to do this in order to emulate speeds when sneaking under 1.5-blocks-tall areas if the player isn't sneaking,
      * and when crawling.
      */
@@ -390,6 +390,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private Entity mouseoverEntity;
+
+    /**
+     * Stores all Java recipes by recipe identifier, and matches them to all possible Bedrock recipe identifiers.
+     * They are not 1:1, since Bedrock can have multiple recipes for the same Java recipe.
+     */
+    @Setter
+    private Map<String, List<String>> javaToBedrockRecipeIds;
 
     @Setter
     private Int2ObjectMap<GeyserRecipe> craftingRecipes;
@@ -452,7 +459,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     /**
      * Store the last time the player interacted. Used to fix a right-click spam bug.
-     * See https://github.com/GeyserMC/Geyser/issues/503 for context.
+     * See <a href="https://github.com/GeyserMC/Geyser/issues/503">this</a> for context.
      */
     @Setter
     private long lastInteractionTime;
@@ -611,6 +618,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.playerInventory = new PlayerInventory();
         this.openInventory = null;
         this.craftingRecipes = new Int2ObjectOpenHashMap<>();
+        this.javaToBedrockRecipeIds = new Object2ObjectOpenHashMap<>();
         this.lastRecipeNetId = new AtomicInteger(1);
 
         this.spawned = false;
@@ -690,6 +698,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         gamerulePacket.getGameRules().add(new GameRuleData<>("keepinventory", true));
         // Ensure client doesn't try and do anything funky; the server handles this for us
         gamerulePacket.getGameRules().add(new GameRuleData<>("spawnradius", 0));
+        // Recipe unlocking
+        gamerulePacket.getGameRules().add(new GameRuleData<>("recipesunlock", true));
         upstream.sendPacket(gamerulePacket);
     }
 
@@ -1025,10 +1035,18 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                     geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.remote.disconnect", authData.name(), remoteServer.address(), disconnectMessage));
                 }
                 if (cause != null) {
-                    cause.printStackTrace();
+                    if (cause.getMessage() != null) {
+                        GeyserImpl.getInstance().getLogger().error(cause.getMessage());
+                    } else {
+                        GeyserImpl.getInstance().getLogger().error("An exception occurred: ", cause);
+                    }
+                    // GeyserSession is disconnected via session.disconnect() called indirectly be the server
+                    // This only needs to be "initiated" here when there is an exception, hence the cause clause
+                    GeyserSession.this.disconnect(disconnectMessage);
+                    if (geyser.getConfig().isDebugMode()) {
+                        cause.printStackTrace();
+                    }
                 }
-
-                upstream.disconnect(disconnectMessage);
             }
 
             @Override
@@ -1055,17 +1073,30 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public void disconnect(String reason) {
         if (!closed) {
             loggedIn = false;
+
+            // Fire SessionDisconnectEvent
+            SessionDisconnectEvent disconnectEvent = new SessionDisconnectEvent(this, reason);
+            geyser.getEventBus().fire(disconnectEvent);
+
+            // Disconnect downstream if necessary
             if (downstream != null) {
-                downstream.disconnect(reason);
+                // No need to disconnect if already closed
+                if (!downstream.isClosed()) {
+                    downstream.disconnect(reason);
+                }
             } else {
                 // Downstream's disconnect will fire an event that prints a log message
                 // Otherwise, we print a message here
                 String address = geyser.getConfig().isLogPlayerIpAddresses() ? upstream.getAddress().getAddress().toString() : "<IP address withheld>";
                 geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.disconnect", address, reason));
             }
+
+            // Disconnect upstream if necessary
             if (!upstream.isClosed()) {
-                upstream.disconnect(reason);
+                upstream.disconnect(disconnectEvent.disconnectReason());
             }
+
+            // Remove from session manager
             geyser.getSessionManager().removeSession(this);
             if (authData != null) {
                 PendingMicrosoftAuthentication.AuthenticationTask task = geyser.getPendingMicrosoftAuthentication().getTask(authData.xuid());
@@ -1283,7 +1314,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      *
      * @return not null if attributes should be updated.
      */
-    public AttributeData adjustSpeed() {
+    public @Nullable AttributeData adjustSpeed() {
         AttributeData currentPlayerSpeed = playerEntity.getAttributes().get(GeyserAttributeType.MOVEMENT_SPEED);
         if (currentPlayerSpeed != null) {
             if ((pose.equals(Pose.SNEAKING) && !sneaking && collisionManager.mustPlayerSneakHere()) ||
@@ -1335,7 +1366,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     /**
-     * For https://github.com/GeyserMC/Geyser/issues/2113 and combating arm ticking activating being delayed in
+     * For <a href="https://github.com/GeyserMC/Geyser/issues/2113">issue 2113</a> and combating arm ticking activating being delayed in
      * BedrockAnimateTranslator.
      */
     public void armSwingPending() {
@@ -1530,6 +1561,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.getExperiments().add(new ExperimentData("upcoming_creator_features", true));
         // Needed for certain molang queries used in blocks and items
         startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
+        // Required for experimental 1.21 features
+        startGamePacket.getExperiments().add(new ExperimentData("updateAnnouncedLive2023", true));
 
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);
@@ -1617,6 +1650,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * @param intendedState the state the client should be in
      */
     public void sendDownstreamPacket(Packet packet, ProtocolState intendedState) {
+        // protocol can be null when we're not yet logged in (online auth)
+        if (protocol == null) {
+            if (geyser.getConfig().isDebugMode()) {
+                geyser.getLogger().debug("Tried to send downstream packet with no downstream session!");
+                Thread.dumpStack();
+            }
+            return;
+        }
+
         if (protocol.getState() != intendedState) {
             geyser.getLogger().debug("Tried to send " + packet.getClass().getSimpleName() + " packet while not in " + intendedState.name() + " state");
             return;
@@ -1878,7 +1920,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
-    public String bedrockUsername() {
+    public @NonNull String bedrockUsername() {
         return authData.name();
     }
 
@@ -1893,7 +1935,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
-    public String xuid() {
+    public @NonNull String xuid() {
         return authData.xuid();
     }
 
