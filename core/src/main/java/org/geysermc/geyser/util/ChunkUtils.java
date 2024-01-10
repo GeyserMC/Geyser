@@ -215,6 +215,14 @@ public class ChunkUtils {
                 break; //No block will be a part of two classes
             }
         }
+
+        if (BlockStateValues.isUpperDoor(blockState)) {
+            // Update the lower door block as Bedrock client doesn't like door to be closed from the top
+            // See https://github.com/GeyserMC/Geyser/issues/4358
+            Vector3i belowDoorPosition = position.sub(0, 1, 0);
+            int belowDoorBlockState = session.getGeyser().getWorldManager().getBlockAt(session, belowDoorPosition.getX(), belowDoorPosition.getY(), belowDoorPosition.getZ());
+            updateBlock(session, belowDoorBlockState, belowDoorPosition);
+        }
     }
 
     public static void sendEmptyChunk(GeyserSession session, int chunkX, int chunkZ, boolean forceUpdate) {
