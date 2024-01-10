@@ -1,22 +1,25 @@
 modLoader="javafml"
-loaderVersion="[46,)"
+loaderVersion="[1,)"
 license="MIT"
 [[mods]]
 modId="geyser_neoforge"
 version="${version}"
 displayName="Geyser"
+displayURL="https://geysermc.org/"
 logoFile= "../assets/geyser_neoforge/icon.png"
 authors="GeyserMC"
 description="${description}"
+[[mixins]]
+config = "geyser.mixins.json"
 [[dependencies.geyser_neoforge]]
-    modId="forge"
-    mandatory=true
-    versionRange="[46,)"
+    modId="neoforge"
+    type="required"
+    versionRange="[20.4.72-beta,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.geyser_neoforge]]
     modId="minecraft"
-    mandatory=true
+    type="required"
     versionRange="[1.20,1.21)"
     ordering="NONE"
     side="BOTH"

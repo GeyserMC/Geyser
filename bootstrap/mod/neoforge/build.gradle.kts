@@ -7,12 +7,6 @@ architectury {
     neoForge()
 }
 
-loom {
-    neoForge {
-        mixinConfig("geyser.mixins.json")
-    }
-}
-
 dependencies {
     // See https://github.com/google/guava/issues/6618
     modules {
@@ -46,7 +40,7 @@ tasks {
     }
 
     remapJar {
-        archiveBaseName.set("Geyser-Neoforge")
+        archiveBaseName.set("Geyser-NeoForge")
     }
 
     remapModrinthJar {

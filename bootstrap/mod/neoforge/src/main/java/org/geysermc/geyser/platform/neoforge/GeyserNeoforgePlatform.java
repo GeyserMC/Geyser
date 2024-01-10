@@ -47,7 +47,7 @@ public class GeyserNeoforgePlatform implements GeyserModPlatform {
 
     @Override
     public @NotNull String configPath() {
-        return "Geyser-Neoforge";
+        return "Geyser-NeoForge";
     }
 
     @Override
