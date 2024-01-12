@@ -869,4 +869,11 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
     public PacketSignal handle(RequestNetworkSettingsPacket packet) {
         return defaultHandler(packet);
     }
+
+    // todo: fix arrangement
+
+    @Override
+    public PacketSignal handle(ToggleCrafterSlotRequestPacket packet) {
+        return defaultHandler(packet);
+    }
 }

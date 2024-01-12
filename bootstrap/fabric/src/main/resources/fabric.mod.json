@@ -23,9 +23,9 @@
     "geyser-fabric.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.14.21",
+    "fabricloader": ">=0.15.2",
     "fabric": "*",
-    "minecraft": ">=1.20.2",
+    "minecraft": ">=1.20.4",
     "fabric-permissions-api-v0": "*"
   }
 }

@@ -34,6 +34,7 @@ import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -42,7 +43,7 @@ import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 
 @Data
 public class GeyserItemStack {
-    public static final GeyserItemStack EMPTY = new GeyserItemStack(0, 0, null);
+    public static final GeyserItemStack EMPTY = new GeyserItemStack(Items.AIR_ID, 0, null);
 
     private final int javaId;
     private int amount;
@@ -64,7 +65,7 @@ public class GeyserItemStack {
         this.netId = netId;
     }
 
-    public static @NonNull GeyserItemStack from(ItemStack itemStack) {
+    public static @NonNull GeyserItemStack from(@Nullable ItemStack itemStack) {
         return itemStack == null ? EMPTY : new GeyserItemStack(itemStack.getId(), itemStack.getAmount(), itemStack.getNbt());
     }
 
@@ -122,7 +123,7 @@ public class GeyserItemStack {
     }
 
     public boolean isEmpty() {
-        return amount <= 0 || javaId == 0;
+        return amount <= 0 || javaId == Items.AIR_ID;
     }
 
     public GeyserItemStack copy() {

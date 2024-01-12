@@ -67,6 +67,7 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.InventoryUtils;
 
 import java.text.DecimalFormat;
 import java.util.*;
@@ -89,7 +90,7 @@ public final class ItemTranslator {
      */
     public static ItemStack translateToJava(ItemData data, ItemMappings mappings) {
         if (data == null) {
-            return new ItemStack(0);
+            return new ItemStack(Items.AIR_ID);
         }
 
         ItemMapping bedrockItem = mappings.getMapping(data);
@@ -118,7 +119,7 @@ public final class ItemTranslator {
 
     @NonNull
     public static ItemData translateToBedrock(GeyserSession session, ItemStack stack) {
-        if (stack == null) {
+        if (InventoryUtils.isEmpty(stack)) {
             return ItemData.AIR;
         }
 

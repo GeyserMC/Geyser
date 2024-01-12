@@ -25,9 +25,11 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity.spawn;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
 import com.github.steveice10.mc.protocol.data.game.entity.object.FallingBlockData;
 import com.github.steveice10.mc.protocol.data.game.entity.object.ProjectileData;
+import com.github.steveice10.mc.protocol.data.game.entity.object.WardenData;
 import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.spawn.ClientboundAddEntityPacket;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -114,6 +116,14 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             entity = definition.factory().create(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
                     packet.getUuid(), definition, position, motion, yaw, pitch, headYaw);
         }
+
+        if (packet.getType() == EntityType.WARDEN) {
+            WardenData wardenData = (WardenData) packet.getData();
+            if (wardenData.isEmerging()) {
+                entity.setPose(Pose.EMERGING);
+            }
+        }
+
         session.getEntityCache().spawnEntity(entity);
     }
 }

@@ -47,22 +47,25 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
 
     @Override
     public void translate(GeyserSession session, ClientboundBlockEventPacket packet) {
-        BlockEventPacket blockEventPacket = new BlockEventPacket();
         Vector3i position = packet.getPosition();
+        BlockValue value = packet.getValue();
+
+        BlockEventPacket blockEventPacket = new BlockEventPacket();
         blockEventPacket.setBlockPosition(position);
-        if (packet.getValue() instanceof ChestValue value) {
+
+        if (value instanceof ChestValue chestValue) {
             blockEventPacket.setEventType(1);
-            blockEventPacket.setEventData(value.getViewers() > 0 ? 1 : 0);
+            blockEventPacket.setEventData(chestValue.getViewers() > 0 ? 1 : 0);
             session.sendUpstreamPacket(blockEventPacket);
-        } else if (packet.getValue() instanceof EndGatewayValue) {
+        } else if (value instanceof EndGatewayValue) {
             blockEventPacket.setEventType(1);
             session.sendUpstreamPacket(blockEventPacket);
-        } else if (packet.getValue() instanceof NoteBlockValue) {
+        } else if (value instanceof NoteBlockValue) {
             session.getGeyser().getWorldManager().getBlockAtAsync(session, position).thenAccept(blockState -> {
                 blockEventPacket.setEventData(BlockStateValues.getNoteblockPitch(blockState));
                 session.sendUpstreamPacket(blockEventPacket);
             });
-        } else if (packet.getValue() instanceof PistonValue pistonValue) {
+        } else if (value instanceof PistonValue pistonValue) {
             PistonValueType action = (PistonValueType) packet.getType();
             Direction direction = Direction.fromPistonValue(pistonValue.getDirection());
             PistonCache pistonCache = session.getPistonCache();
@@ -98,13 +101,10 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
                 });
                 blockEntity.setAction(action);
             }
-        } else if (packet.getValue() instanceof MobSpawnerValue) {
+        } else if (value instanceof MobSpawnerValue) {
             blockEventPacket.setEventType(1);
             session.sendUpstreamPacket(blockEventPacket);
-        } else if (packet.getValue() instanceof EndGatewayValue) {
-            blockEventPacket.setEventType(1);
-            session.sendUpstreamPacket(blockEventPacket);
-        } else if (packet.getValue() instanceof BellValue bellValue) {
+        } else if (value instanceof BellValue bellValue) {
             // Bells - needed to show ring from other players
             BlockEntityDataPacket blockEntityPacket = new BlockEntityDataPacket();
             blockEntityPacket.setBlockPosition(position);
