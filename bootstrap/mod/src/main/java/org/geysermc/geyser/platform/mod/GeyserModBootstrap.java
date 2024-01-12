@@ -28,6 +28,7 @@ package org.geysermc.geyser.platform.mod;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.MinecraftServer;
@@ -66,6 +67,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
 
     private final GeyserModPlatform platform;
 
+    @Setter
     private boolean reloading;
 
     private GeyserImpl geyser;
@@ -200,6 +202,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         }
         if (!reloading) {
             this.server = null;
+            this.geyserInjector.shutdown();
         }
     }
 
@@ -264,10 +267,6 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     @Override
     public InputStream getResourceOrNull(String resource) {
         return this.platform.resolveResource(resource);
-    }
-
-    public void setReloading(boolean reloading) {
-        this.reloading = reloading;
     }
 
     public abstract boolean hasPermission(@NonNull Player source, @NonNull String permissionNode);

@@ -27,13 +27,13 @@ package org.geysermc.geyser.platform.neoforge;
 
 import net.minecraft.server.MinecraftServer;
 import net.neoforged.fml.loading.FMLPaths;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
 import java.nio.file.Path;
@@ -41,32 +41,32 @@ import java.nio.file.Path;
 public class GeyserNeoforgePlatform implements GeyserModPlatform {
 
     @Override
-    public @NotNull PlatformType platformType() {
+    public @NonNull PlatformType platformType() {
         return PlatformType.NEOFORGE;
     }
 
     @Override
-    public @NotNull String configPath() {
+    public @NonNull String configPath() {
         return "Geyser-NeoForge";
     }
 
     @Override
-    public @NotNull Path dataFolder(@NotNull String modId) {
+    public @NonNull Path dataFolder(@NonNull String modId) {
         return FMLPaths.CONFIGDIR.get().resolve(modId);
     }
 
     @Override
-    public @NotNull BootstrapDumpInfo dumpInfo(@NotNull MinecraftServer server) {
+    public @NonNull BootstrapDumpInfo dumpInfo(@NonNull MinecraftServer server) {
         return new GeyserNeoforgeDumpInfo(server);
     }
 
     @Override
-    public boolean testFloodgatePluginPresent(@NotNull GeyserModBootstrap bootstrap) {
+    public boolean testFloodgatePluginPresent(@NonNull GeyserModBootstrap bootstrap) {
         return false; // No Floodgate plugin for Forge yet
     }
 
     @Override
-    public @Nullable InputStream resolveResource(@NotNull String resource) {
+    public @Nullable InputStream resolveResource(@NonNull String resource) {
         return GeyserBootstrap.class.getClassLoader().getResourceAsStream(resource);
     }
 }

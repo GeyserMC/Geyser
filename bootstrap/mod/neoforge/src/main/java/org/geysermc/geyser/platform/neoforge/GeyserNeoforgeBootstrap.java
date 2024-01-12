@@ -29,12 +29,12 @@ import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
-import net.neoforged.neoforge.event.server.ServerStoppedEvent;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.loading.FMLLoader;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.platform.mod.GeyserModUpdateListener;
@@ -60,7 +60,7 @@ public class GeyserNeoforgeBootstrap extends GeyserModBootstrap {
     public void onInitialStartup() {
         // Server has yet to start
         // Register onDisable so players are properly kicked
-        NeoForge.EVENT_BUS.addListener(this::onServerStopped);
+        NeoForge.EVENT_BUS.addListener(this::onServerStopping);
         NeoForge.EVENT_BUS.addListener(this::onPlayerJoin);
 
         NeoForge.EVENT_BUS.addListener(this.permissionHandler::onPermissionGather);
@@ -70,7 +70,7 @@ public class GeyserNeoforgeBootstrap extends GeyserModBootstrap {
         this.startGeyser(event.getServer());
     }
 
-    private void onServerStopped(ServerStoppedEvent event) {
+    private void onServerStopping(ServerStoppingEvent event) {
         this.onDisable();
     }
 

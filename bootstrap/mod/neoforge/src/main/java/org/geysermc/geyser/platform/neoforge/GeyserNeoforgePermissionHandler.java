@@ -34,11 +34,11 @@ import net.neoforged.neoforge.server.permission.nodes.PermissionDynamicContextKe
 import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
 import net.neoforged.neoforge.server.permission.nodes.PermissionType;
 import net.neoforged.neoforge.server.permission.nodes.PermissionTypes;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.command.GeyserCommandManager;
-import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
@@ -94,7 +94,7 @@ public class GeyserNeoforgePermissionHandler {
         }
     }
 
-    public boolean hasPermission(@NotNull Player source, @NotNull String permissionNode) {
+    public boolean hasPermission(@NonNull Player source, @NonNull String permissionNode) {
         PermissionNode<Boolean> node = this.permissionNodes.get(permissionNode);
         if (node == null) {
             GeyserImpl.getInstance().getLogger().warning("Unable to find permission node " + permissionNode);
@@ -104,7 +104,7 @@ public class GeyserNeoforgePermissionHandler {
         return PermissionAPI.getPermission((ServerPlayer) source, node);
     }
 
-    public boolean hasPermission(@NotNull CommandSourceStack source, @NotNull String permissionNode, int permissionLevel) {
+    public boolean hasPermission(@NonNull CommandSourceStack source, @NonNull String permissionNode, int permissionLevel) {
         if (!source.isPlayer()) {
             return true;
         }

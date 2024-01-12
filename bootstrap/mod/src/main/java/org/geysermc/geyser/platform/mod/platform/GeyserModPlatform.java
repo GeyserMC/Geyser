@@ -26,11 +26,11 @@
 package org.geysermc.geyser.platform.mod.platform;
 
 import net.minecraft.server.MinecraftServer;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
 import java.nio.file.Path;
@@ -46,7 +46,7 @@ public interface GeyserModPlatform {
      *
      * @return the platform type of the mod platform
      */
-    @NotNull
+    @NonNull
     PlatformType platformType();
 
     /**
@@ -54,7 +54,7 @@ public interface GeyserModPlatform {
      *
      * @return the config path of the mod platform
      */
-    @NotNull
+    @NonNull
     String configPath();
 
     /**
@@ -62,8 +62,8 @@ public interface GeyserModPlatform {
      *
      * @return the data folder of the mod platform
      */
-    @NotNull
-    Path dataFolder(@NotNull String modId);
+    @NonNull
+    Path dataFolder(@NonNull String modId);
 
     /**
      * Gets the dump info of the mod platform.
@@ -71,15 +71,15 @@ public interface GeyserModPlatform {
      * @param server the server to get the dump info from
      * @return the dump info of the mod platform
      */
-    @NotNull
-    BootstrapDumpInfo dumpInfo(@NotNull MinecraftServer server);
+    @NonNull
+    BootstrapDumpInfo dumpInfo(@NonNull MinecraftServer server);
 
     /**
      * Tests if the Floodgate plugin is present on the mod platform.
      *
      * @return {@code true} if the Floodgate plugin is present on the mod platform, {@code false} otherwise
      */
-    boolean testFloodgatePluginPresent(@NotNull GeyserModBootstrap bootstrap);
+    boolean testFloodgatePluginPresent(@NonNull GeyserModBootstrap bootstrap);
 
     /**
      * Resolves a resource from the mod jar.
@@ -88,5 +88,5 @@ public interface GeyserModPlatform {
      * @return the input stream of the resource
      */
     @Nullable
-    InputStream resolveResource(@NotNull String resource);
+    InputStream resolveResource(@NonNull String resource);
 }

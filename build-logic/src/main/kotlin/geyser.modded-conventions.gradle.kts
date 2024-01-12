@@ -17,7 +17,6 @@ architectury {
 
 loom {
     silentMojangMappingsLicense()
-    //mixin.defaultRefmapName.set("geyser-mod-refmap.json")
 }
 
 tasks {

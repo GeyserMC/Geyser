@@ -14,7 +14,7 @@ config = "geyser.mixins.json"
 [[dependencies.geyser_neoforge]]
     modId="neoforge"
     type="required"
-    versionRange="[20.4.72-beta,)"
+    versionRange="[20.4.48-beta,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.geyser_neoforge]]

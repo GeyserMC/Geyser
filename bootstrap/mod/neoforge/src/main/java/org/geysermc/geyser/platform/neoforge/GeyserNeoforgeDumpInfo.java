@@ -42,19 +42,25 @@ import java.util.List;
 @Getter
 public class GeyserNeoforgeDumpInfo extends BootstrapDumpInfo {
 
+    private final String platformName;
     private String platformVersion;
+    private final String minecraftVersion;
     private final Dist dist;
 
     @AsteriskSerializer.Asterisk(isIp = true)
     private final String serverIP;
     private final int serverPort;
+    private final boolean onlineMode;
     private final List<ModInfo> mods;
 
     public GeyserNeoforgeDumpInfo(MinecraftServer server) {
-        this.platformVersion = FMLLoader.versionInfo().mcAndNeoFormVersion();
+        this.platformName = FMLLoader.getNaming();
+        this.platformVersion = FMLLoader.versionInfo().neoForgeVersion();
+        this.minecraftVersion = FMLLoader.versionInfo().mcVersion();
         this.dist = FMLLoader.getDist();
         this.serverIP = server.getLocalIp() == null ? "unknown" : server.getLocalIp();
         this.serverPort = server.getPort();
+        this.onlineMode = server.usesAuthentication();
         this.mods = new ArrayList<>();
 
         for (IModInfo mod : ModList.get().getMods()) {
