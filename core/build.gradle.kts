@@ -89,13 +89,13 @@ configure<BlossomExtension> {
     val mainFile = "src/main/java/org/geysermc/geyser/GeyserImpl.java"
     val info = GitInfo()
 
-    replaceToken("\${version}", "${info.buildNumber} (${info.gitVersion})", mainFile)
+    replaceToken("\${version}", "${info.version} (${info.gitVersion})", mainFile)
     replaceToken("\${gitVersion}", info.gitVersion, mainFile)
     replaceToken("\${buildNumber}", info.buildNumber, mainFile)
     replaceToken("\${branch}", info.branch, mainFile)
     replaceToken("\${commit}", info.commit, mainFile)
     replaceToken("\${repository}", info.repository, mainFile)
-    replaceToken("\${dev}", isDevBuild(info.branch, info.repository))
+    replaceToken("\${dev}", info.isDev)
 }
 
 // -1 as a fallback for local builds
@@ -118,6 +118,8 @@ inner class GitInfo {
     val commitMessage: String
     val repository: String
 
+    val isDev: Boolean
+
     init {
         branch = indraGit.branchName() ?: "DEV"
 
@@ -126,11 +128,14 @@ inner class GitInfo {
         commitAbbrev = commit?.name?.substring(0, 7) ?: "0".repeat(7)
 
         gitVersion = "git-${branch}-${commitAbbrev}"
-        version = "${project.version} ($gitVersion)"
-        buildNumber = buildNumber()
 
         val git = indraGit.git()
         commitMessage = git?.commit()?.message ?: ""
         repository = git?.repository?.config?.getString("remote", "origin", "url") ?: ""
+
+        buildNumber = buildNumber()
+        isDev = isDevBuild(branch, repository)
+        val projectVersion = if (isDev) project.version else project.version.toString().replace("SNAPSHOT", "b${buildNumber}")
+        version = "$projectVersion ($gitVersion)"
     }
 }
