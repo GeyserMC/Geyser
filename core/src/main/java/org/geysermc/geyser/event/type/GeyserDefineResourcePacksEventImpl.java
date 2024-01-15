@@ -30,6 +30,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineResourcePacksEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -56,6 +57,17 @@ public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePack
         }
         packs.put(resourcePack.manifest().header().uuid().toString(), resourcePack);
         return true;
+    }
+
+    @Override
+    public boolean registerAll(@NonNull Collection<ResourcePack> resourcePacks) {
+        boolean successful = true;
+        for (ResourcePack pack : resourcePacks) {
+            if (!this.register(pack)) {
+                successful = false;
+            }
+        }
+        return successful;
     }
 
     @Override

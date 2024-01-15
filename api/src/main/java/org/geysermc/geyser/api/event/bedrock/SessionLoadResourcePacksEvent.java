@@ -30,6 +30,7 @@ import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -56,6 +57,14 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
      *         or false if already present
      */
     public abstract boolean register(@NonNull ResourcePack resourcePack);
+
+    /**
+     * Registers a collection of {@link ResourcePack} to be sent to clients.
+     *
+     * @param resourcePacks collection of resourcePack's that will be sent to clients.
+     * @return true if resource packs were added successfully, false if at least one failed
+     */
+    public abstract boolean registerAll(@NonNull Collection<ResourcePack> resourcePacks);
 
     /**
      * Unregisters a {@link ResourcePack} from being sent to the client.
