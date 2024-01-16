@@ -12,12 +12,6 @@ allprojects {
     description = properties["description"] as String
 }
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
-    }
-}
-
 val basePlatforms = setOf(
     projects.bungeecord,
     projects.spigot,
