@@ -105,7 +105,7 @@ public final class GeyserServer {
     /**
      * The port to broadcast in the pong. This can be different from the port the server is bound to, e.g. due to port forwarding.
      */
-    private final int broadCastPort;
+    private final int broadcastPort;
 
     public GeyserServer(GeyserImpl geyser, int threadCount) {
         this.geyser = geyser;
@@ -126,7 +126,7 @@ public final class GeyserServer {
             geyser.getConfig().getBedrock().setBroadcastPort(geyser.getConfig().getBedrock().port());
         }
 
-        this.broadCastPort = geyser.getConfig().getBedrock().broadcastPort();
+        this.broadcastPort = geyser.getConfig().getBedrock().broadcastPort();
     }
 
     public CompletableFuture<Void> bind(InetSocketAddress address) {
@@ -255,8 +255,8 @@ public final class GeyserServer {
                 .nintendoLimited(false)
                 .protocolVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
                 .version(GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()) // Required to not be empty as of 1.16.210.59. Can only contain . and numbers.
-                .ipv4Port(this.broadCastPort)
-                .ipv6Port(this.broadCastPort)
+                .ipv4Port(this.broadcastPort)
+                .ipv6Port(this.broadcastPort)
                 .serverId(bootstrapFuture.channel().config().getOption(RakChannelOption.RAK_GUID));
 
         if (config.isPassthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
