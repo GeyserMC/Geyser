@@ -748,7 +748,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             protocol = new MinecraftProtocol(profile, service.getAccessToken());
             geyser.saveRefreshToken(bedrockUsername(), service.getRefreshToken());
             return Boolean.TRUE;
-        }, this.geyser.platformExecutor()).whenComplete((successful, ex) -> {
+        }).whenComplete((successful, ex) -> {
             if (this.closed) {
                 return;
             }

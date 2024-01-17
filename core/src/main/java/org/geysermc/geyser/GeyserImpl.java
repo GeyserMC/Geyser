@@ -96,7 +96,6 @@ import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.regex.Matcher;
@@ -199,7 +198,7 @@ public class GeyserImpl implements GeyserApi {
         MessageTranslator.init();
 
         // Download the latest asset list and cache it
-        AssetUtils.generateAssetCache(this.bootstrap.platformExecutor()).whenComplete((aVoid, ex) -> {
+        AssetUtils.generateAssetCache().whenComplete((aVoid, ex) -> {
             if (ex != null) {
                 return;
             }
@@ -213,7 +212,7 @@ public class GeyserImpl implements GeyserApi {
 
             ProvidedSkins.init();
 
-            CompletableFuture.runAsync(AssetUtils::downloadAndRunClientJarTasks, GeyserImpl.getInstance().platformExecutor());
+            CompletableFuture.runAsync(AssetUtils::downloadAndRunClientJarTasks);
         });
 
         startInstance();
@@ -725,10 +724,6 @@ public class GeyserImpl implements GeyserApi {
 
     public WorldManager getWorldManager() {
         return bootstrap.getWorldManager();
-    }
-
-    public ExecutorService platformExecutor() {
-        return this.bootstrap.platformExecutor();
     }
 
     @Nullable

@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.platform.neoforge;
 
-import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
@@ -38,8 +37,6 @@ import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.platform.mod.GeyserModUpdateListener;
-
-import java.util.concurrent.ExecutorService;
 
 @Mod(ModConstants.MOD_ID)
 public class GeyserNeoforgeBootstrap extends GeyserModBootstrap {
@@ -76,12 +73,6 @@ public class GeyserNeoforgeBootstrap extends GeyserModBootstrap {
 
     private void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
         GeyserModUpdateListener.onPlayReady(event.getEntity());
-    }
-
-    @NonNull
-    @Override
-    public ExecutorService platformExecutor() {
-        return Util.backgroundExecutor();
     }
 
     @Override

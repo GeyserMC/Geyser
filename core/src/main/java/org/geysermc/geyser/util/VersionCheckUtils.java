@@ -123,7 +123,7 @@ public final class VersionCheckUtils {
             } catch (Exception e) {
                 GeyserImpl.getInstance().getLogger().error("Error whilst checking for Geyser update!", e);
             }
-        }, GeyserImpl.getInstance().platformExecutor());
+        });
     }
 
     public static @NonNull OptionalInt getLatestBedrockRelease() {

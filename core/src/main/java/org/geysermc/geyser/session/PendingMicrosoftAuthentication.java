@@ -78,7 +78,7 @@ public class PendingMicrosoftAuthentication {
     }
 
     public class AuthenticationTask {
-        private static final Executor DELAYED_BY_ONE_SECOND = CompletableFuture.delayedExecutor(1, TimeUnit.SECONDS, GeyserImpl.getInstance().platformExecutor());
+        private static final Executor DELAYED_BY_ONE_SECOND = CompletableFuture.delayedExecutor(1, TimeUnit.SECONDS);
 
         @Getter
         private final MsaAuthenticationService msaAuthenticationService = new MsaAuthenticationService(GeyserImpl.OAUTH_CLIENT_ID);
@@ -124,8 +124,7 @@ public class PendingMicrosoftAuthentication {
         public CompletableFuture<MsaAuthenticationService.MsCodeResponse> getCode(boolean offlineAccess) {
             // Request the code
             CompletableFuture<MsaAuthenticationService.MsCodeResponse> code = CompletableFuture.supplyAsync(
-                    () -> tryGetCode(offlineAccess),
-                    GeyserImpl.getInstance().platformExecutor());
+                    () -> tryGetCode(offlineAccess));
             // Once the code is received, continuously try to request the access token, profile, etc
             code.thenRun(() -> performLoginAttempt(System.currentTimeMillis()));
             return code;
