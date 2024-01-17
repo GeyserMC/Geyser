@@ -94,7 +94,6 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         }
 
         this.geyser = GeyserImpl.load(PlatformType.BUNGEECORD, this);
-
         this.geyserInjector = new GeyserBungeeInjector(this);
     }
 

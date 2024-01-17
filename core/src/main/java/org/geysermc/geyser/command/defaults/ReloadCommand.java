@@ -55,7 +55,7 @@ public class ReloadCommand extends GeyserCommand {
 
         geyser.getSessionManager().disconnectAll("geyser.commands.reload.kick");
         //FIXME Without the tiny wait, players do not get kicked - same happens when Geyser tries to disconnect all sessions on shutdown
-        geyser.getScheduledThread().schedule(geyser::reload, 10, TimeUnit.MILLISECONDS);
+        geyser.getScheduledThread().schedule(geyser::reloadGeyser, 10, TimeUnit.MILLISECONDS);
     }
 
     @Override

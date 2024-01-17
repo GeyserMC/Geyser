@@ -592,6 +592,32 @@ public class GeyserImpl implements GeyserApi {
         return session.transfer(address, port);
     }
 
+    public void disable() {
+        bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown"));
+
+        if (sessionManager.size() >= 1) {
+            bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.log", sessionManager.size()));
+            sessionManager.disconnectAll("geyser.core.shutdown.kick.message");
+            bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.done"));
+        }
+
+        scheduledThread.shutdown();
+        geyserServer.shutdown();
+        if (skinUploader != null) {
+            skinUploader.close();
+        }
+        newsHandler.shutdown();
+        this.commandManager().getCommands().clear();
+
+        if (this.erosionUnixListener != null) {
+            this.erosionUnixListener.close();
+        }
+
+        Registries.RESOURCE_PACKS.get().clear();
+
+        bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.done"));
+    }
+
     public void shutdown() {
         shuttingDown = true;
         this.disable();
@@ -603,7 +629,7 @@ public class GeyserImpl implements GeyserApi {
         bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.done"));
     }
 
-    public void reload() {
+    public void reloadGeyser() {
         isReloading = true;
         this.eventBus.fire(new GeyserPreReloadEvent(this.extensionManager, this.eventBus));
 
@@ -702,9 +728,7 @@ public class GeyserImpl implements GeyserApi {
             throw new RuntimeException("Geyser has not been loaded yet!");
         }
 
-        // Check whether we've been reloaded - todo needed?
-        if (instance.isShuttingDown()) {
-            instance.shuttingDown = false;
+        if (getInstance().isReloading()) {
             instance.startInstance();
         } else {
             instance.initialize();
