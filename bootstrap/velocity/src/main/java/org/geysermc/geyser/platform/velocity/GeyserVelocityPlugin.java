@@ -173,12 +173,12 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     @Subscribe
     public void onInit(ProxyInitializeEvent event) {
-        onGeyserInitialize();
+        this.onGeyserInitialize();
     }
 
     @Subscribe
     public void onShutdown(ProxyShutdownEvent event) {
-        onGeyserShutdown();
+        this.onGeyserShutdown();
     }
 
     @Subscribe

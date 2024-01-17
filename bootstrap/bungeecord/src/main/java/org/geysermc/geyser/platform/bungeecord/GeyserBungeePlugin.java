@@ -197,7 +197,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     @Override
     public void onDisable() {
-        onGeyserShutdown();
+        this.onGeyserShutdown();
     }
 
     @Override

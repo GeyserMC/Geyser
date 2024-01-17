@@ -177,13 +177,14 @@ public class GeyserImpl implements GeyserApi {
 
         /* Create Extension Manager */
         this.extensionManager = new GeyserExtensionManager();
+    }
+
+    public void initialize() {
 
         /* Load Extensions */
         this.extensionManager.init();
         this.eventBus.fire(new GeyserPreInitializeEvent(this.extensionManager, this.eventBus));
-    }
 
-    public void initialize() {
         /* Finalize locale loading now that we know the default locale from the config */
         GeyserLocale.finalizeDefaultLocale(this);
 

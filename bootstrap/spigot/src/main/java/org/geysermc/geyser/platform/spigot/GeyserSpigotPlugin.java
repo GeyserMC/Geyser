@@ -160,10 +160,10 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                 if (event.getType() == ServerLoadEvent.LoadType.RELOAD) {
                     geyser.setShuttingDown(false);
                 }
-                // Wait until all plugins have loaded so Geyser can start
-                onGeyserEnable();
             }
         }, this);
+
+        this.onGeyserEnable();
     }
 
     public void onGeyserEnable() {
@@ -343,7 +343,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     @Override
     public void onGeyserShutdown() {
         if (geyser != null) {
-            geyser.disable();
+            geyser.shutdown();
         }
         if (geyserInjector != null) {
             geyserInjector.shutdown();
