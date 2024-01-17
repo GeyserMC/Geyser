@@ -251,12 +251,12 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
     @Override
     public void onGeyserDisable() {
-        geyser.shutdown();
+        geyser.disable();
     }
 
     @Override
     public void onGeyserShutdown() {
-        this.onGeyserDisable();
+        geyser.shutdown();
         System.exit(0);
     }
 

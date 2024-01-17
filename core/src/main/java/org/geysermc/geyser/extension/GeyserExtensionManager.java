@@ -106,9 +106,6 @@ public class GeyserExtensionManager extends ExtensionManager {
         for (Extension extension : this.extensions()) {
             this.disable(extension);
         }
-        // Fully disable and remove extensions
-        this.extensionLoader.clear();
-        this.extensions.clear();
     }
 
     @NonNull

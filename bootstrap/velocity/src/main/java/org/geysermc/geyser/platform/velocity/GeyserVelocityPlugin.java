@@ -137,13 +137,15 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     @Override
     public void onGeyserDisable() {
         if (geyser != null) {
-            geyser.shutdown();
+            geyser.disable();
         }
     }
 
     @Override
     public void onGeyserShutdown() {
-        onGeyserDisable();
+        if (geyser != null) {
+            geyser.shutdown();
+        }
         if (geyserInjector != null) {
             geyserInjector.shutdown();
         }

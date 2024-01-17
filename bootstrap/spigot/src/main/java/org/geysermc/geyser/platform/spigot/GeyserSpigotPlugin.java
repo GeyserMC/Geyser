@@ -157,6 +157,9 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
             @EventHandler
             public void onServerLoaded(ServerLoadEvent event) {
+                if (event.getType() == ServerLoadEvent.LoadType.RELOAD) {
+                    geyser.setShuttingDown(false);
+                }
                 // Wait until all plugins have loaded so Geyser can start
                 onGeyserEnable();
             }
@@ -171,7 +174,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
         this.geyserLogger = GeyserPaperLogger.supported() ? new GeyserPaperLogger(this, getLogger(), geyserConfig.isDebugMode())
                 : new GeyserSpigotLogger(getLogger(), geyserConfig.isDebugMode());
-
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
         GeyserImpl.start();
@@ -179,7 +181,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         this.geyserCommandManager = new GeyserSpigotCommandManager(geyser);
         this.geyserCommandManager.init();
 
-        if (!GeyserImpl.isReloading) {
+        if (!GeyserImpl.getInstance().isReloading()) {
             // Because Bukkit locks its command map upon startup, we need to
             // add our plugin commands in onEnable, but populating the executor
             // can happen at any time
@@ -269,7 +271,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             command.setExecutor(new GeyserSpigotCommandExecutor(this.geyser, commands));
         }
 
-        if (!GeyserImpl.isReloading) {
+        if (!GeyserImpl.getInstance().isReloading()) {
             // Register permissions so they appear in, for example, LuckPerms' UI
             // Re-registering permissions throws an error
             for (Map.Entry<String, Command> entry : geyserCommandManager.commands().entrySet()) {
@@ -334,13 +336,15 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     @Override
     public void onGeyserDisable() {
         if (geyser != null) {
-            geyser.shutdown();
+            geyser.disable();
         }
     }
 
     @Override
     public void onGeyserShutdown() {
-        onGeyserDisable();
+        if (geyser != null) {
+            geyser.disable();
+        }
         if (geyserInjector != null) {
             geyserInjector.shutdown();
         }
@@ -348,7 +352,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     @Override
     public void onDisable() {
-        this.onGeyserDisable();
+        this.onGeyserShutdown();
     }
 
     @Override

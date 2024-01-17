@@ -155,7 +155,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             }
         }
 
-        if (!GeyserImpl.isReloading) {
+        if (!GeyserImpl.getInstance().isReloading()) {
             this.geyserInjector.initializeLocalChannel(this);
         }
 
@@ -182,13 +182,15 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     @Override
     public void onGeyserDisable() {
         if (geyser != null) {
-            geyser.shutdown();
+            geyser.disable();
         }
     }
 
     @Override
     public void onGeyserShutdown() {
-        onGeyserDisable();
+        if (geyser != null) {
+            geyser.shutdown();
+        }
         if (geyserInjector != null) {
             geyserInjector.shutdown();
         }

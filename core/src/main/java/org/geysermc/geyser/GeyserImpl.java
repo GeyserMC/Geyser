@@ -54,9 +54,7 @@ import org.geysermc.floodgate.news.NewsItemAction;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.event.EventRegistrar;
-import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
-import org.geysermc.geyser.api.event.lifecycle.GeyserPreInitializeEvent;
-import org.geysermc.geyser.api.event.lifecycle.GeyserShutdownEvent;
+import org.geysermc.geyser.api.event.lifecycle.*;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
@@ -140,6 +138,7 @@ public class GeyserImpl implements GeyserApi {
 
     private UnixSocketClientListener erosionUnixListener;
 
+    @Setter
     private volatile boolean shuttingDown = false;
 
     private ScheduledExecutorService scheduledThread;
@@ -161,9 +160,9 @@ public class GeyserImpl implements GeyserApi {
     private static GeyserImpl instance;
 
     /**
-     * Determines if we're reloading. Replaces per-bootstrap reload checks
+     * Determines if we're currently reloading. Replaces per-bootstrap reload checks
      */
-    public static boolean isReloading;
+    private volatile boolean isReloading;
 
     private GeyserImpl(PlatformType platformType, GeyserBootstrap bootstrap) {
         instance = this;
@@ -178,15 +177,15 @@ public class GeyserImpl implements GeyserApi {
 
         /* Create Extension Manager */
         this.extensionManager = new GeyserExtensionManager();
+
+        /* Load Extensions */
+        this.extensionManager.init();
+        this.eventBus.fire(new GeyserPreInitializeEvent(this.extensionManager, this.eventBus));
     }
 
     public void initialize() {
         /* Finalize locale loading now that we know the default locale from the config */
         GeyserLocale.finalizeDefaultLocale(this);
-
-        /* Load Extensions */
-        this.extensionManager.init();
-        this.eventBus.fire(new GeyserPreInitializeEvent(this.extensionManager, this.eventBus));
 
         long startupTime = System.currentTimeMillis();
 
@@ -240,6 +239,8 @@ public class GeyserImpl implements GeyserApi {
         } else if (config.getRemote().authType() == AuthType.FLOODGATE) {
             VersionCheckUtils.checkForOutdatedFloodgate(logger);
         }
+
+        VersionCheckUtils.checkForOutdatedJava(logger);
     }
 
     private void startInstance() {
@@ -524,12 +525,15 @@ public class GeyserImpl implements GeyserApi {
 
         newsHandler.handleNews(null, NewsItemAction.ON_SERVER_STARTED);
 
-        this.eventBus.fire(new GeyserPostInitializeEvent(this.extensionManager, this.eventBus));
+        if (isReloading) {
+            this.eventBus.fire(new GeyserPostReloadEvent(this.extensionManager, this.eventBus));
+        } else {
+            this.eventBus.fire(new GeyserPostInitializeEvent(this.extensionManager, this.eventBus));
+        }
+
         if (config.isNotifyOnNewBedrockUpdate()) {
             VersionCheckUtils.checkForGeyserUpdate(this::getLogger);
         }
-
-        VersionCheckUtils.checkForOutdatedJava(logger);
     }
 
     @Override
@@ -589,29 +593,10 @@ public class GeyserImpl implements GeyserApi {
     }
 
     public void shutdown() {
-        bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown"));
         shuttingDown = true;
+        this.disable();
 
-        if (sessionManager.size() >= 1) {
-            bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.log", sessionManager.size()));
-            sessionManager.disconnectAll("geyser.core.shutdown.kick.message");
-            bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.done"));
-        }
-
-        scheduledThread.shutdown();
-        geyserServer.shutdown();
-        if (skinUploader != null) {
-            skinUploader.close();
-        }
-        newsHandler.shutdown();
-        this.commandManager().getCommands().clear();
-
-        if (this.erosionUnixListener != null) {
-            this.erosionUnixListener.close();
-        }
-
-        Registries.RESOURCE_PACKS.get().clear();
-
+        // Disable extensions, fire the shutdown event
         this.eventBus.fire(new GeyserShutdownEvent(this.extensionManager, this.eventBus));
         this.extensionManager.disableExtensions();
 
@@ -620,9 +605,12 @@ public class GeyserImpl implements GeyserApi {
 
     public void reload() {
         isReloading = true;
+        this.eventBus.fire(new GeyserPreReloadEvent(this.extensionManager, this.eventBus));
+
         bootstrap.onGeyserDisable();
-        shuttingDown = false;
         bootstrap.onGeyserEnable();
+
+        isReloading = false;
     }
 
     /**

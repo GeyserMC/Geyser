@@ -101,23 +101,28 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
             });
         }
 
-        // These are only registered once
-        ServerLifecycleEvents.SERVER_STOPPING.register((server) -> onGeyserShutdown());
-        ServerPlayConnectionEvents.JOIN.register((handler, $, $$) -> GeyserFabricUpdateListener.onPlayReady(handler));
-    }
-
-    @Override
-    public void onGeyserEnable() {
         dataFolder = FabricLoader.getInstance().getConfigDir().resolve("Geyser-Fabric");
         if (!dataFolder.toFile().exists()) {
             //noinspection ResultOfMethodCallIgnored
             dataFolder.toFile().mkdir();
         }
 
-        // Init dataFolder first as local language overrides call getConfigFolder()
-        GeyserLocale.init(this);
+        // These are only registered once
+        ServerLifecycleEvents.SERVER_STOPPING.register((server) -> onGeyserShutdown());
+        ServerPlayConnectionEvents.JOIN.register((handler, $, $$) -> GeyserFabricUpdateListener.onPlayReady(handler));
 
+        GeyserLocale.init(this);
+        this.geyser = GeyserImpl.load(PlatformType.FABRIC, this);
+    }
+
+    @Override
+    public void onGeyserEnable() {
         try {
+            if (!dataFolder.toFile().exists()) {
+                //noinspection ResultOfMethodCallIgnored
+                dataFolder.toFile().mkdir();
+            }
+
             File configFile = FileUtils.fileOrCopiedFromResource(dataFolder.resolve("config.yml").toFile(), "config.yml",
                     (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserFabricConfiguration.class);
@@ -128,10 +133,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
         }
 
         this.geyserLogger = new GeyserFabricLogger(geyserConfig.isDebugMode());
-
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
-
-        this.geyser = GeyserImpl.load(PlatformType.FABRIC, this);
 
         GeyserImpl.start();
 
@@ -194,14 +196,16 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     @Override
     public void onGeyserDisable() {
         if (geyser != null) {
-            geyser.shutdown();
-            geyser = null;
+            geyser.disable();
         }
     }
 
     @Override
     public void onGeyserShutdown() {
-        this.onGeyserDisable();
+        if (geyser != null) {
+            geyser.shutdown();
+            geyser = null;
+        }
         this.server = null;
     }
 

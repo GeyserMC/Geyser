@@ -62,7 +62,7 @@ public final class ScoreboardUpdater extends Thread {
 
     @Override
     public void run() {
-        while (!geyser.isShuttingDown()) {
+        while (!geyser.isShuttingDown() && !geyser.isReloading()) {
             try {
                 long timeTillAction = getTimeTillNextAction();
                 if (timeTillAction > 0) {

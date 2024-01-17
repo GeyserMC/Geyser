@@ -52,7 +52,7 @@ public class StopCommand extends GeyserCommand {
             return;
         }
 
-        geyser.getBootstrap().onGeyserDisable();
+        geyser.getBootstrap().onGeyserShutdown();
     }
 
     @Override

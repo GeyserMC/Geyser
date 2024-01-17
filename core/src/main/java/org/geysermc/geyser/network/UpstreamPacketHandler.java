@@ -152,7 +152,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public PacketSignal handle(LoginPacket loginPacket) {
-        if (geyser.isShuttingDown()) {
+        if (geyser.isShuttingDown() || geyser.isReloading()) {
             // Don't allow new players in if we're no longer operating
             session.disconnect(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.message"));
             return PacketSignal.HANDLED;
