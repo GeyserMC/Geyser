@@ -194,11 +194,6 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         }
     }
 
-    @Subscribe
-    public void onProxyShutdown(ProxyShutdownEvent event) {
-        onGeyserShutdown();
-    }
-
     @Override
     public BootstrapDumpInfo getDumpInfo() {
         return new GeyserVelocityDumpInfo(proxyServer);
