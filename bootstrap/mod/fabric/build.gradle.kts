@@ -7,11 +7,20 @@ architectury {
     fabric()
 }
 
+val common: Configuration by configurations.creating
+val shadowCommon: Configuration by configurations.creating // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
+val developmentFabric: Configuration = configurations.getByName("developmentFabric")
+configurations {
+    compileClasspath.get().extendsFrom(configurations["common"])
+    runtimeClasspath.get().extendsFrom(configurations["common"])
+    developmentFabric.extendsFrom(configurations["common"])
+}
+
 dependencies {
     modImplementation(libs.fabric.loader)
     modApi(libs.fabric.api)
 
-    api(projects.mod)
+    //api(projects.mod)
     shadow(project(path = ":mod", configuration = "transformProductionFabric")) {
         isTransitive = false
     }
@@ -25,6 +34,9 @@ dependencies {
 
     // This should be in the libs TOML, but something about modImplementation AND include just doesn't work
     include(modImplementation("me.lucko", "fabric-permissions-api", "0.2-SNAPSHOT"))
+
+    common(project(":mod", configuration = "namedElements")) { isTransitive = true }
+    //shadowCommon(project(":mod", configuration = "transformProductionFabric")) { isTransitive = false }
 }
 
 application {

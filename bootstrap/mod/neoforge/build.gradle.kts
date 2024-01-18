@@ -7,6 +7,15 @@ architectury {
     neoForge()
 }
 
+val common: Configuration by configurations.creating
+val shadowCommon: Configuration by configurations.creating // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
+val developmentForge: Configuration = configurations.getByName("developmentNeoForge")
+configurations {
+    compileClasspath.get().extendsFrom(configurations["common"])
+    runtimeClasspath.get().extendsFrom(configurations["common"])
+    developmentForge.extendsFrom(configurations["common"])
+}
+
 dependencies {
     // See https://github.com/google/guava/issues/6618
     modules {
@@ -17,7 +26,7 @@ dependencies {
 
     neoForge(libs.neoforge.minecraft)
 
-    api(projects.mod)
+    //api(projects.mod)
     shadow(project(path = ":mod", configuration = "transformProductionNeoForge")) {
         isTransitive = false
     }
@@ -27,6 +36,8 @@ dependencies {
         exclude(group = "org.slf4j")
         exclude(group = "io.netty.incubator")
     }
+    common(project(":mod", configuration = "namedElements")) { isTransitive = true }
+    //shadowCommon(project(":mod", configuration = "transformProductionNeoForge")) { isTransitive = false }
 }
 
 application {
