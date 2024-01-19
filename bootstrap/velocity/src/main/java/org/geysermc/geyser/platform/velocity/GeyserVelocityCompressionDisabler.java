@@ -47,8 +47,14 @@ public class GeyserVelocityCompressionDisabler extends ChannelDuplexHandler {
         Method setCompressionMethod = null;
 
         try {
-            compressionPacketClass = Class.forName("com.velocitypowered.proxy.protocol.packet.SetCompression");
-            loginSuccessPacketClass = Class.forName("com.velocitypowered.proxy.protocol.packet.ServerLoginSuccess");
+            try {
+                compressionPacketClass = Class.forName("com.velocitypowered.proxy.protocol.packet.SetCompressionPacket");
+                loginSuccessPacketClass = Class.forName("com.velocitypowered.proxy.protocol.packet.ServerLoginSuccessPacket");
+            } catch (Exception ignored) {
+                // Velocity renamed packet classes in https://github.com/PaperMC/Velocity/commit/2ac8751337befd04f4663575f5d752c748384110
+                compressionPacketClass = Class.forName("com.velocitypowered.proxy.protocol.packet.SetCompression");
+                loginSuccessPacketClass = Class.forName("com.velocitypowered.proxy.protocol.packet.ServerLoginSuccess");
+            }
             compressionEnabledEvent = Class.forName("com.velocitypowered.proxy.protocol.VelocityConnectionEvent")
                     .getDeclaredField("COMPRESSION_ENABLED").get(null);
             setCompressionMethod = Class.forName("com.velocitypowered.proxy.connection.MinecraftConnection")
