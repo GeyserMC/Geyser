@@ -11,7 +11,7 @@ dependencies {
     modImplementation(libs.fabric.loader)
     modApi(libs.fabric.api)
 
-    api(projects.mod)
+    api(project(":mod", configuration = "namedElements"))
     shadow(project(path = ":mod", configuration = "transformProductionFabric")) {
         isTransitive = false
     }

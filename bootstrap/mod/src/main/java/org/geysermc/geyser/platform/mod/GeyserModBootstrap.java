@@ -28,11 +28,14 @@ package org.geysermc.geyser.platform.mod;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.player.Player;
 import org.apache.logging.log4j.LogManager;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
@@ -50,8 +53,6 @@ import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
 import org.geysermc.geyser.platform.mod.world.GeyserModWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -66,6 +67,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
 
     private final GeyserModPlatform platform;
 
+    @Setter
     private boolean reloading;
 
     private GeyserImpl geyser;
@@ -200,6 +202,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         }
         if (!reloading) {
             this.server = null;
+            this.geyserInjector.shutdown();
         }
     }
 
@@ -264,10 +267,6 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     @Override
     public InputStream getResourceOrNull(String resource) {
         return this.platform.resolveResource(resource);
-    }
-
-    public void setReloading(boolean reloading) {
-        this.reloading = reloading;
     }
 
     public abstract boolean hasPermission(@NonNull Player source, @NonNull String permissionNode);

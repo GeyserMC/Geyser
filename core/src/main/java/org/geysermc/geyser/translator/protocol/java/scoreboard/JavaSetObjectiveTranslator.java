@@ -47,6 +47,7 @@ public class JavaSetObjectiveTranslator extends PacketTranslator<ClientboundSetO
 
     @Override
     public void translate(GeyserSession session, ClientboundSetObjectivePacket packet) {
+        // todo 1.20.3 unused NumberFormat ?
         WorldCache worldCache = session.getWorldCache();
         Scoreboard scoreboard = worldCache.getScoreboard();
         int pps = worldCache.increaseAndGetScoreboardPacketsPerSecond();

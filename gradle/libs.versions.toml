@@ -5,16 +5,16 @@ erosion = "1.0-20230406.174837-8"
 events = "1.1-SNAPSHOT"
 jackson = { strictly = "2.14.0" } # Don't let other dependencies override
 fastutil = "8.5.2"
-netty = "4.1.80.Final"
+netty = "4.1.103.Final"
 guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8
 websocket = "1.5.1"
-protocol = "3.0.0.Beta1-20231016.115644-107"
-protocol-connection = "3.0.0.Beta1-20231016.115644-106"
-raknet = "1.0.0.CR1-20230703.195238-9"
-blockstateupdater="1.20.40-20231016.111746-1"
+protocol = "3.0.0.Beta1-20231206.150507-114"
+protocol-connection = "3.0.0.Beta1-20231206.150507-113"
+raknet = "1.0.0.CR1-20231206.145325-12"
+blockstateupdater="1.20.50-20231106.161340-1"
 mcauthlib = "d9d773e"
-mcprotocollib = "1.20.2-1-20231101.141901-7"
+mcprotocollib = "1.20.4-2-20231219.074138-2"
 adventure = "4.14.0"
 adventure-platform = "4.3.0"
 junit = "5.9.2"
@@ -24,14 +24,14 @@ jline = "3.21.0"
 terminalconsoleappender = "1.2.0"
 folia = "1.19.4-R0.1-SNAPSHOT"
 viaversion = "4.0.0"
-adapters = "1.10-SNAPSHOT"
+adapters = "1.11-SNAPSHOT"
 commodore = "2.2"
 bungeecord = "a7c6ede"
 velocity = "3.1.1"
-fabric-minecraft = "1.20.2"
-fabric-loader = "0.14.21"
-fabric-api = "0.89.0+1.20.2"
-forge-minecraft = "1.20.2-48.0.31"
+fabric-minecraft = "1.20.4"
+fabric-loader = "0.15.2"
+fabric-api = "0.91.2+1.20.4"
+neoforge-minecraft = "20.4.48-beta"
 mixin = "0.8.5"
 
 [libraries]
@@ -83,7 +83,7 @@ fabric-minecraft = { group = "com.mojang", name = "minecraft", version.ref = "fa
 fabric-loader = { group = "net.fabricmc", name = "fabric-loader", version.ref = "fabric-loader" }
 fabric-api = { group = "net.fabricmc.fabric-api", name = "fabric-api", version.ref = "fabric-api" }
 
-forge-minecraft = { group = "net.minecraftforge", name = "forge", version.ref = "forge-minecraft" }
+neoforge-minecraft = { group = "net.neoforged", name = "neoforge", version.ref = "neoforge-minecraft" }
 
 adapters-spigot = { group = "org.geysermc.geyser.adapters", name = "spigot-all", version.ref = "adapters" }
 bungeecord-proxy = { group = "com.github.SpigotMC.BungeeCord", name = "bungeecord-proxy", version.ref = "bungeecord" }

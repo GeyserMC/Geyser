@@ -86,6 +86,7 @@ public abstract class InventoryTranslator {
             put(ContainerType.BEACON, new BeaconInventoryTranslator());
             put(ContainerType.BREWING_STAND, new BrewingInventoryTranslator());
             put(ContainerType.CARTOGRAPHY, new CartographyInventoryTranslator());
+            //put(ContainerType.CRAFTER_3x3, new CrafterInventoryTranslator()); todo Output slot is currently broken
             put(ContainerType.CRAFTING, new CraftingInventoryTranslator());
             put(ContainerType.ENCHANTMENT, new EnchantingInventoryTranslator());
             put(ContainerType.HOPPER, new HopperInventoryTranslator());
@@ -129,7 +130,7 @@ public abstract class InventoryTranslator {
     /**
      * Should be overwritten in cases where specific inventories should reject an item being in a specific spot.
      * For examples, looms use this to reject items that are dyes in Bedrock but not in Java.
-     *
+     * <p>
      * The source/destination slot will be -1 if the cursor is the slot
      *
      * @return true if this transfer should be rejected

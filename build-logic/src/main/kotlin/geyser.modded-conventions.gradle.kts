@@ -2,6 +2,7 @@
 
 import net.fabricmc.loom.task.RemapJarTask
 import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.maven
 
 plugins {
     id("geyser.publish-conventions")
@@ -11,12 +12,11 @@ plugins {
 }
 
 architectury {
-    minecraft = "1.20.2"
+    minecraft = "1.20.4"
 }
 
 loom {
     silentMojangMappingsLicense()
-    mixin.defaultRefmapName.set("geyser-mod-refmap.json")
 }
 
 tasks {
@@ -74,7 +74,7 @@ tasks {
 }
 
 dependencies {
-    minecraft("com.mojang:minecraft:1.20.2")
+    minecraft("com.mojang:minecraft:1.20.4")
     mappings(loom.officialMojangMappings())
 }
 
@@ -84,6 +84,7 @@ repositories {
     maven("https://jitpack.io")
     maven("https://oss.sonatype.org/content/repositories/snapshots/")
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+    maven("https://maven.neoforged.net/releases")
 }
 
 modrinth {
@@ -96,6 +97,6 @@ modrinth {
     syncBodyFrom.set(rootProject.file("README.md").readText())
 
     uploadFile.set(tasks.getByPath("remapModrinthJar"))
-    gameVersions.addAll("1.20.2")
+    gameVersions.addAll("1.20.4")
     failSilently.set(true)
 }

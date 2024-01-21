@@ -30,6 +30,7 @@ import net.md_5.bungee.BungeeCord;
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.protocol.ProtocolConstants;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
@@ -44,7 +45,6 @@ import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.bungeecord.command.GeyserBungeeCommandExecutor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -72,6 +72,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     private static boolean INITIALIZED = false;
 
+    @SuppressWarnings({"JavaReflectionMemberAccess", "ResultOfMethodCallIgnored"})
     @Override
     public void onLoad() {
         GeyserLocale.init(this);
@@ -79,7 +80,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         // Copied from ViaVersion.
         // https://github.com/ViaVersion/ViaVersion/blob/b8072aad86695cc8ec6f5e4103e43baf3abf6cc5/bungee/src/main/java/us/myles/ViaVersion/BungeePlugin.java#L43
         try {
-            ProtocolConstants.class.getField("MINECRAFT_1_20_2");
+            ProtocolConstants.class.getField("MINECRAFT_1_20_3");
         } catch (NoSuchFieldException e) {
             getLogger().warning("      / \\");
             getLogger().warning("     /   \\");
@@ -251,7 +252,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         return this.geyserInjector.getServerSocketAddress();
     }
 
-    @NotNull
+    @NonNull
     @Override
     public String getServerBindAddress() {
         return findCompatibleListener().map(InetSocketAddress::getHostString).orElse("");

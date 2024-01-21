@@ -38,8 +38,6 @@ import java.io.InputStream;
 import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
 
 public interface GeyserBootstrap {
 
@@ -154,7 +152,7 @@ public interface GeyserBootstrap {
      * @param resource Resource to get
      * @return InputStream of the given resource
      */
-    default @NonNull InputStream getResource(String resource) {
+    default @NonNull InputStream getResourceOrThrow(@NonNull String resource) {
         InputStream stream = getResourceOrNull(resource);
         if (stream == null) {
             throw new AssertionError("Unable to find resource: " + resource);
@@ -177,19 +175,4 @@ public interface GeyserBootstrap {
      * Tests if Floodgate is installed, loads the Floodgate key if so, and returns the result of Floodgate installed.
      */
     boolean testFloodgatePluginPresent();
-
-    /**
-     * The executor provided by the platform for
-     * running asynchronous tasks.
-     * <p>
-     * While most platforms will just use the ForkJoinPool
-     * common executor, some platforms (i.e. Forge)
-     * require a specific executor be used.
-     *
-     * @return the platform executor
-     */
-    @NonNull
-    default ExecutorService platformExecutor() {
-        return ForkJoinPool.commonPool();
-    }
 }

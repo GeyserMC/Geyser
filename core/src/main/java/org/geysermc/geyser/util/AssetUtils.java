@@ -38,7 +38,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.zip.ZipFile;
 
 /**
@@ -80,7 +79,7 @@ public final class AssetUtils {
     /**
      * Fetch the latest versions asset cache from Mojang so we can grab the locale files later
      */
-    public static CompletableFuture<Void> generateAssetCache(ExecutorService executor) {
+    public static CompletableFuture<Void> generateAssetCache() {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 // Get the version manifest from Mojang
@@ -129,7 +128,7 @@ public final class AssetUtils {
                 GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.locale.fail.asset_cache", (!e.getMessage().isEmpty() ? e.getMessage() : e.getStackTrace())));
             }
             return null;
-        }, executor);
+        });
     }
 
     public static void downloadAndRunClientJarTasks() {

@@ -36,6 +36,7 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.*;
@@ -57,7 +58,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -86,6 +86,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
     @Nullable
     private String texturesProperty;
 
+    @Nullable
     private Vector3i bedPosition;
 
     /**
@@ -240,7 +241,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
     }
 
     @Override
-    public Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
+    public @Nullable Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
         bedPosition = super.setBedPosition(entityMetadata);
         if (bedPosition != null) {
             // Required to sync position of entity to bed

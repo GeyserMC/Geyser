@@ -49,12 +49,12 @@ jobs:
           name: Geyser Fabric
           path: bootstrap/mod/fabric/build/libs/Geyser-Fabric.jar
           if-no-files-found: error
-      - name: Archive artifacts (Geyser Forge)
+      - name: Archive artifacts (Geyser NeoForge)
         uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32
         if: success()
         with:
-          name: Geyser Forge
-          path: bootstrap/mod/forge/build/libs/Geyser-Forge.jar
+          name: Geyser NeoForge
+          path: bootstrap/mod/neoforge/build/libs/Geyser-NeoForge.jar
           if-no-files-found: error
       - name: Archive artifacts (Geyser Standalone)
         uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32
@@ -127,13 +127,13 @@ jobs:
           arguments: fabric:modrinth
           gradle-home-cache-cleanup: true
 
-      - name: Publish to Modrinth (Forge)
+      - name: Publish to Modrinth (NeoForge)
         uses: gradle/gradle-build-action@3bfe3a46584a206fb8361cdedd0647b0c4204232
         if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
         with:
-          arguments: forge:modrinth
+          arguments: neoforge:modrinth
           gradle-home-cache-cleanup: true
 
       - name: Notify Discord

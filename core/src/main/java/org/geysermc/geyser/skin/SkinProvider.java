@@ -32,6 +32,8 @@ import it.unimi.dsi.fastutil.bytes.ByteArrays;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
@@ -40,8 +42,6 @@ import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.WebUtils;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -58,7 +58,7 @@ import java.util.function.Predicate;
 
 public class SkinProvider {
     private static final boolean ALLOW_THIRD_PARTY_CAPES = GeyserImpl.getInstance().getConfig().isAllowThirdPartyCapes();
-    static ExecutorService EXECUTOR_SERVICE;
+    private static ExecutorService EXECUTOR_SERVICE;
 
     static final Skin EMPTY_SKIN;
     static final Cape EMPTY_CAPE = new Cape("", "no-cape", ByteArrays.EMPTY_ARRAY, -1, true);
@@ -133,7 +133,7 @@ public class SkinProvider {
         WEARING_CUSTOM_SKULL_SLIM = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.wearingCustomSkullSlim\"}}", wearingCustomSkullSlim, false);
     }
 
-    private static ExecutorService getExecutorService() {
+    public static ExecutorService getExecutorService() {
         if (EXECUTOR_SERVICE == null) {
             EXECUTOR_SERVICE = Executors.newFixedThreadPool(ALLOW_THIRD_PARTY_CAPES ? 21 : 14);
         }
@@ -217,7 +217,7 @@ public class SkinProvider {
     /**
      * Used as a fallback if an official Java cape doesn't exist for this user.
      */
-    @Nonnull
+    @NonNull
     private static Cape getCachedBedrockCape(UUID uuid) {
         GeyserSession session = GeyserImpl.getInstance().connectionByUuid(uuid);
         if (session != null) {
@@ -545,7 +545,7 @@ public class SkinProvider {
         BufferedImage image = null;
 
         // First see if we have a cached file. We also update the modification stamp so we know when the file was last used
-        File imageFile = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("images").resolve(UUID.nameUUIDFromBytes(imageUrl.getBytes()).toString() + ".png").toFile();
+        File imageFile = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("images").resolve(UUID.nameUUIDFromBytes(imageUrl.getBytes()) + ".png").toFile();
         if (imageFile.exists()) {
             try {
                 GeyserImpl.getInstance().getLogger().debug("Reading cached image from file " + imageFile.getPath() + " for " + imageUrl);
@@ -617,7 +617,7 @@ public class SkinProvider {
      * @param uuid the player's UUID without any hyphens
      * @return a completable GameProfile with textures included
      */
-    public static CompletableFuture<String> requestTexturesFromUUID(String uuid) {
+    public static CompletableFuture<@Nullable String> requestTexturesFromUUID(String uuid) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 JsonNode node = WebUtils.getJson("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
@@ -643,7 +643,7 @@ public class SkinProvider {
      * @param username the player's username
      * @return a completable GameProfile with textures included
      */
-    public static CompletableFuture<String> requestTexturesFromUsername(String username) {
+    public static CompletableFuture<@Nullable String> requestTexturesFromUsername(String username) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 // Offline skin, or no present UUID
@@ -669,20 +669,25 @@ public class SkinProvider {
     }
 
     private static BufferedImage downloadImage(String imageUrl, CapeProvider provider) throws IOException {
-        if (provider == CapeProvider.FIVEZIG)
-            return readFiveZigCape(imageUrl);
+        BufferedImage image;
+        if (provider == CapeProvider.FIVEZIG) {
+            image = readFiveZigCape(imageUrl);
+        } else {
+            HttpURLConnection con = (HttpURLConnection) new URL(imageUrl).openConnection();
+            con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION);
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(10000);
 
-        HttpURLConnection con = (HttpURLConnection) new URL(imageUrl).openConnection();
-        con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION);
-        con.setConnectTimeout(10000);
-        con.setReadTimeout(10000);
+            image = ImageIO.read(con.getInputStream());
+        }
 
-        BufferedImage image = ImageIO.read(con.getInputStream());
-        if (image == null) throw new NullPointerException();
+        if (image == null) {
+            throw new IllegalArgumentException("Failed to read image from: %s (cape provider=%s)".formatted(imageUrl, provider));
+        }
         return image;
     }
 
-    private static BufferedImage readFiveZigCape(String url) throws IOException {
+    private static @Nullable BufferedImage readFiveZigCape(String url) throws IOException {
         JsonNode element = GeyserImpl.JSON_MAPPER.readTree(WebUtils.getBody(url));
         if (element != null && element.isObject()) {
             JsonNode capeElement = element.get("d");

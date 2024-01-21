@@ -36,6 +36,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
@@ -580,7 +581,7 @@ public class Entity implements GeyserEntity {
     }
 
     @SuppressWarnings("unchecked")
-    public <I extends Entity> I as(Class<I> entityClass) {
+    public <I extends Entity> @Nullable I as(Class<I> entityClass) {
         return entityClass.isInstance(this) ? (I) this : null;
     }
 }

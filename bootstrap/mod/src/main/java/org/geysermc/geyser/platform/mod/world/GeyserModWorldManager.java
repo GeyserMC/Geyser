@@ -70,9 +70,9 @@ import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 public class GeyserModWorldManager extends GeyserWorldManager {
@@ -136,10 +136,13 @@ public class GeyserModWorldManager extends GeyserWorldManager {
                 return;
             }
 
+            //noinspection resource - level() is just a getter
             LevelChunk chunk = player.level().getChunk(x, z);
             final int chunkBlockX = x << 4;
             final int chunkBlockZ = z << 4;
-            for (BlockEntityInfo blockEntityInfo : blockEntityInfos) {
+            //noinspection ForLoopReplaceableByForEach - avoid constructing iterator
+            for (int i = 0; i < blockEntityInfos.size(); i++) {
+                BlockEntityInfo blockEntityInfo = blockEntityInfos.get(i);
                 BlockEntity blockEntity = chunk.getBlockEntity(new BlockPos(chunkBlockX + blockEntityInfo.getX(),
                         blockEntityInfo.getY(), chunkBlockZ + blockEntityInfo.getZ()));
                 sendLecternData(session, blockEntity, true);
@@ -154,7 +157,7 @@ public class GeyserModWorldManager extends GeyserWorldManager {
             if (player == null) {
                 return;
             }
-
+            //noinspection resource - level() is just a getter
             BlockEntity blockEntity = player.level().getBlockEntity(new BlockPos(x, y, z));
             sendLecternData(session, blockEntity, false);
         });
@@ -221,7 +224,7 @@ public class GeyserModWorldManager extends GeyserWorldManager {
         return GameMode.byId(server.getDefaultGameType().getId());
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public CompletableFuture<com.github.steveice10.opennbt.tag.builtin.CompoundTag> getPickItemNbt(GeyserSession session, int x, int y, int z, boolean addNbtData) {
         CompletableFuture<com.github.steveice10.opennbt.tag.builtin.CompoundTag> future = new CompletableFuture<>();
@@ -234,6 +237,7 @@ public class GeyserModWorldManager extends GeyserWorldManager {
 
             BlockPos pos = new BlockPos(x, y, z);
             // Don't create a new block entity if invalid
+            //noinspection resource - level() is just a getter
             BlockEntity blockEntity = player.level().getChunkAt(pos).getBlockEntity(pos);
             if (blockEntity instanceof BannerBlockEntity banner) {
                 // Potentially exposes other NBT data? But we need to get the NBT data for the banner patterns *and*
@@ -333,8 +337,7 @@ public class GeyserModWorldManager extends GeyserWorldManager {
             OpenNbtTagVisitor visitor = new OpenNbtTagVisitor(name);
             for (String key : compoundTag.getAllKeys()) {
                 visitor.currentKey = key;
-                Tag tag = compoundTag.get(key);
-                assert tag != null;
+                Tag tag = Objects.requireNonNull(compoundTag.get(key));
                 tag.accept(visitor);
                 visitor.root.put(visitor.currentTag);
             }

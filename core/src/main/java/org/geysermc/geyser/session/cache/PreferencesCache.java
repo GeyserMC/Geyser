@@ -67,10 +67,10 @@ public class PreferencesCache {
 
     /**
      * Tell the client to hide or show the coordinates.
-     *
+     * <p>
      * If {@link #prefersShowCoordinates} is true, coordinates will be shown, unless either of the following conditions apply: <br>
      * <br>
-     * {@link GeyserSession#reducedDebugInfo} is enabled
+     * {@link GeyserSession#isReducedDebugInfo()} is enabled
      * {@link GeyserConfiguration#isShowCoordinates()} is disabled
      */
     public void updateShowCoordinates() {

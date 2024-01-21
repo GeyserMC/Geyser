@@ -140,7 +140,7 @@ public class AdvancementsCache {
             session.sendDownstreamGamePacket(new ServerboundSeenAdvancementsPacket());
 
         }).validResultHandler((response) -> {
-            if (response.getClickedButtonId() < visibleAdvancements.size()) {
+            if (response.clickedButtonId() < visibleAdvancements.size()) {
                 GeyserAdvancement advancement = visibleAdvancements.get(response.clickedButtonId());
                 buildAndShowInfoForm(advancement);
             } else {
@@ -231,7 +231,7 @@ public class AdvancementsCache {
     }
 
     public String getColorFromAdvancementFrameType(GeyserAdvancement advancement) {
-        if (advancement.getDisplayData().getFrameType() == Advancement.DisplayData.FrameType.CHALLENGE) {
+        if (advancement.getDisplayData().getAdvancementType() == Advancement.DisplayData.AdvancementType.CHALLENGE) {
             return ChatColor.DARK_PURPLE;
         }
         return ChatColor.GREEN; // Used for types TASK and GOAL

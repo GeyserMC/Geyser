@@ -1,19 +1,15 @@
 plugins {
     `java-library`
+    // Ensure AP works in eclipse (no effect on other IDEs)
+    `eclipse`
     id("geyser.build-logic")
-    id("io.freefair.lombok") version "8.1.0" apply false
+    id("io.freefair.lombok") version "8.4" apply false
 }
 
 allprojects {
     group = properties["group"] as String + "." + properties["id"] as String
     version = properties["version"] as String
     description = properties["description"] as String
-}
-
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(16))
-    }
 }
 
 val basePlatforms = setOf(
@@ -25,7 +21,7 @@ val basePlatforms = setOf(
 
 val moddedPlatforms = setOf(
     projects.fabric,
-    projects.forge,
+    projects.neoforge,
     projects.mod
 ).map { it.dependencyProject }
 

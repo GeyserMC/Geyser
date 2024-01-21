@@ -28,12 +28,12 @@ package org.geysermc.geyser.platform.fabric;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.server.MinecraftServer;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,27 +48,27 @@ public class GeyserFabricPlatform implements GeyserModPlatform {
     }
 
     @Override
-    public @NotNull PlatformType platformType() {
+    public @NonNull PlatformType platformType() {
         return PlatformType.FABRIC;
     }
 
     @Override
-    public @NotNull String configPath() {
+    public @NonNull String configPath() {
         return "Geyser-Fabric";
     }
 
     @Override
-    public @NotNull Path dataFolder(@NotNull String modId) {
+    public @NonNull Path dataFolder(@NonNull String modId) {
         return FabricLoader.getInstance().getConfigDir().resolve(modId);
     }
 
     @Override
-    public @NotNull BootstrapDumpInfo dumpInfo(@NotNull MinecraftServer server) {
+    public @NonNull BootstrapDumpInfo dumpInfo(@NonNull MinecraftServer server) {
         return new GeyserFabricDumpInfo(server);
     }
 
     @Override
-    public boolean testFloodgatePluginPresent(@NotNull GeyserModBootstrap bootstrap) {
+    public boolean testFloodgatePluginPresent(@NonNull GeyserModBootstrap bootstrap) {
         Optional<ModContainer> floodgate = FabricLoader.getInstance().getModContainer("floodgate");
         if (floodgate.isPresent()) {
             Path floodgateDataFolder = FabricLoader.getInstance().getConfigDir().resolve("floodgate");
@@ -80,7 +80,7 @@ public class GeyserFabricPlatform implements GeyserModPlatform {
     }
 
     @Override
-    public @Nullable InputStream resolveResource(@NotNull String resource) {
+    public @Nullable InputStream resolveResource(@NonNull String resource) {
         // We need to handle this differently, because Fabric shares the classloader across multiple mods
         Path path = this.mod.findPath(resource).orElse(null);
         if (path == null) {

@@ -27,16 +27,15 @@ package org.geysermc.geyser.registry.type;
 
 import lombok.Builder;
 import lombok.Value;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.util.BlockUtils;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 @Builder
 @Value
 public class BlockMapping {
-    public static BlockMapping DEFAULT = BlockMapping.builder().javaIdentifier("minecraft:air").pistonBehavior(PistonBehavior.NORMAL).build();;
+    public static BlockMapping DEFAULT = BlockMapping.builder().javaIdentifier("minecraft:air").pistonBehavior(PistonBehavior.NORMAL).build();
 
     String javaIdentifier;
     /**
@@ -53,8 +52,7 @@ public class BlockMapping {
     int collisionIndex;
     @Nullable String pickItem;
 
-    @Nonnull
-    PistonBehavior pistonBehavior;
+    @NonNull PistonBehavior pistonBehavior;
     boolean isBlockEntity;
     boolean isNonVanilla;
 

@@ -32,13 +32,13 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 import lombok.SneakyThrows;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 
-import javax.annotation.Nonnull;
+import java.io.Serial;
 import java.util.concurrent.*;
 
 /**
@@ -63,12 +63,12 @@ public class PendingMicrosoftAuthentication {
                 });
     }
 
-    public AuthenticationTask getTask(@Nonnull String userKey) {
+    public AuthenticationTask getTask(@NonNull String userKey) {
         return authentications.getIfPresent(userKey);
     }
 
     @SneakyThrows(ExecutionException.class)
-    public AuthenticationTask getOrCreateTask(@Nonnull String userKey) {
+    public AuthenticationTask getOrCreateTask(@NonNull String userKey) {
         return authentications.get(userKey);
     }
 
@@ -78,7 +78,7 @@ public class PendingMicrosoftAuthentication {
     }
 
     public class AuthenticationTask {
-        private static final Executor DELAYED_BY_ONE_SECOND = CompletableFuture.delayedExecutor(1, TimeUnit.SECONDS, GeyserImpl.getInstance().platformExecutor());
+        private static final Executor DELAYED_BY_ONE_SECOND = CompletableFuture.delayedExecutor(1, TimeUnit.SECONDS);
 
         @Getter
         private final MsaAuthenticationService msaAuthenticationService = new MsaAuthenticationService(GeyserImpl.OAUTH_CLIENT_ID);
@@ -124,8 +124,7 @@ public class PendingMicrosoftAuthentication {
         public CompletableFuture<MsaAuthenticationService.MsCodeResponse> getCode(boolean offlineAccess) {
             // Request the code
             CompletableFuture<MsaAuthenticationService.MsCodeResponse> code = CompletableFuture.supplyAsync(
-                    () -> tryGetCode(offlineAccess),
-                    GeyserImpl.getInstance().platformExecutor());
+                    () -> tryGetCode(offlineAccess));
             // Once the code is received, continuously try to request the access token, profile, etc
             code.thenRun(() -> performLoginAttempt(System.currentTimeMillis()));
             return code;
@@ -191,6 +190,10 @@ public class PendingMicrosoftAuthentication {
      * @see PendingMicrosoftAuthentication
      */
     public static class TaskTimeoutException extends Exception {
+
+        @Serial
+        private static final long serialVersionUID = 1L;
+
         TaskTimeoutException() {
             super("It took too long to authorize Geyser to access your Microsoft account. " +
                     "Please request new code and try again.");

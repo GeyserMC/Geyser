@@ -40,11 +40,6 @@ public class JavaClientboundRecipesTranslator extends PacketTranslator<Clientbou
 
     @Override
     public void translate(GeyserSession session, ClientboundRecipePacket packet) {
-        // recipe unlocking does not exist pre 1.20.10
-        if (GameProtocol.isPre1_20_10(session)) {
-            return;
-        }
-
         UnlockedRecipesPacket recipesPacket = new UnlockedRecipesPacket();
         switch (packet.getAction()) {
             case INIT -> {

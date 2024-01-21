@@ -28,9 +28,9 @@ package org.geysermc.geyser.item.type;
 import com.github.steveice10.opennbt.tag.builtin.ByteTag;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.MinecraftLocale;
-import org.jetbrains.annotations.NotNull;
 
 public class AxolotlBucketItem extends Item {
     public AxolotlBucketItem(String javaIdentifier, Builder builder) {
@@ -38,7 +38,7 @@ public class AxolotlBucketItem extends Item {
     }
 
     @Override
-    public void translateNbtToBedrock(@NotNull GeyserSession session, @NotNull CompoundTag tag) {
+    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag) {
         super.translateNbtToBedrock(session, tag);
 
         // Bedrock Edition displays the properties of the axolotl. Java does not.
