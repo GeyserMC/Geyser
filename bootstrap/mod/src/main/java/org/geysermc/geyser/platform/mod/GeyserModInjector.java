@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.platform.mod;
 
-import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -41,12 +40,10 @@ import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.network.netty.GeyserInjector;
 import org.geysermc.geyser.network.netty.LocalServerChannelWrapper;
-import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.net.InetAddress;
 import java.util.List;
 
 public class GeyserModInjector extends GeyserInjector {
@@ -86,6 +83,7 @@ public class GeyserModInjector extends GeyserInjector {
         Method initChannel = childHandler.getClass().getDeclaredMethod("initChannel", Channel.class);
         initChannel.setAccessible(true);
 
+        // Separate variable so we can shut it down later
         eventLoopGroup = new DefaultEventLoopGroup(0, new DefaultThreadFactory("Geyser " + this.platform.platformType().platformName() + " connection thread", Thread.MAX_PRIORITY));
         ChannelFuture channelFuture = (new ServerBootstrap()
                 .channel(LocalServerChannelWrapper.class)
@@ -109,10 +107,6 @@ public class GeyserModInjector extends GeyserInjector {
         allServerChannels.add(channelFuture);
         this.localChannel = channelFuture;
         this.serverSocketAddress = channelFuture.channel().localAddress();
-
-        workAroundWeirdBug(bootstrap);
-
-        Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
     }
 
     @SuppressWarnings("unchecked")
@@ -137,19 +131,6 @@ public class GeyserModInjector extends GeyserInjector {
             throw new RuntimeException();
         }
         return childHandler;
-    }
-
-    /**
-     * Work around an odd bug where the first connection might not initialize all channel handlers on the main pipeline -
-     * send a dummy status request down that acts as the first connection, then.
-     * For the future, if someone wants to properly fix this - as of December 28, 2021, it happens on 1.16.5/1.17.1/1.18.1 EXCEPT Spigot 1.16.5
-     */
-    private void workAroundWeirdBug(GeyserBootstrap bootstrap) {
-        MinecraftProtocol protocol = new MinecraftProtocol();
-        LocalSession session = new LocalSession(bootstrap.getGeyserConfig().getRemote().address(),
-                bootstrap.getGeyserConfig().getRemote().port(), this.serverSocketAddress,
-                InetAddress.getLoopbackAddress().getHostAddress(), protocol, protocol.createHelper());
-        session.connect();
     }
 
     @Override
