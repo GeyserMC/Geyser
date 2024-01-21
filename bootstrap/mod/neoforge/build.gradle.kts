@@ -8,12 +8,11 @@ architectury {
 }
 
 val common: Configuration by configurations.creating
-val shadowCommon: Configuration by configurations.creating // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
-val developmentForge: Configuration = configurations.getByName("developmentNeoForge")
+val developmentNeoForge: Configuration = configurations.getByName("developmentNeoForge")
 configurations {
     compileClasspath.get().extendsFrom(configurations["common"])
     runtimeClasspath.get().extendsFrom(configurations["common"])
-    developmentForge.extendsFrom(configurations["common"])
+    developmentNeoForge.extendsFrom(configurations["common"])
 }
 
 dependencies {
@@ -36,8 +35,7 @@ dependencies {
         exclude(group = "org.slf4j")
         exclude(group = "io.netty.incubator")
     }
-    common(project(":mod", configuration = "namedElements")) { isTransitive = true }
-    //shadowCommon(project(":mod", configuration = "transformProductionNeoForge")) { isTransitive = false }
+    common(project(":mod", configuration = "namedElements")) { isTransitive = false }
 }
 
 application {
