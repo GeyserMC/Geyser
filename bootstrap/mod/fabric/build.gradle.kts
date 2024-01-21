@@ -7,12 +7,6 @@ architectury {
     fabric()
 }
 
-val common: Configuration by configurations.creating
-configurations {
-    compileClasspath.get().extendsFrom(configurations["common"])
-    runtimeClasspath.get().extendsFrom(configurations["common"])
-}
-
 dependencies {
     modImplementation(libs.fabric.loader)
     modApi(libs.fabric.api)
@@ -31,8 +25,6 @@ dependencies {
 
     // This should be in the libs TOML, but something about modImplementation AND include just doesn't work
     include(modImplementation("me.lucko", "fabric-permissions-api", "0.2-SNAPSHOT"))
-
-    common(project(":mod", configuration = "namedElements")) { isTransitive = false }
 }
 
 application {

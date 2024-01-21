@@ -7,15 +7,6 @@ architectury {
     neoForge()
 }
 
-val common: Configuration by configurations.creating
-// Without this, mixin config isn't read properly with the runServer neoforge task
-val developmentNeoForge: Configuration = configurations.getByName("developmentNeoForge")
-configurations {
-    compileClasspath.get().extendsFrom(configurations["common"])
-    runtimeClasspath.get().extendsFrom(configurations["common"])
-    developmentNeoForge.extendsFrom(configurations["common"])
-}
-
 dependencies {
     // See https://github.com/google/guava/issues/6618
     modules {
@@ -36,9 +27,6 @@ dependencies {
         exclude(group = "org.slf4j")
         exclude(group = "io.netty.incubator")
     }
-    common(project(":mod", configuration = "namedElements")) { isTransitive = false }
-
-    forgeRuntimeLibrary(projects.core)
 }
 
 application {

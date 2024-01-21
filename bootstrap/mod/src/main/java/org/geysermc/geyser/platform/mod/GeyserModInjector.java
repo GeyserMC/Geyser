@@ -38,6 +38,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerConnectionListener;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserBootstrap;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.network.netty.GeyserInjector;
 import org.geysermc.geyser.network.netty.LocalServerChannelWrapper;
 import org.geysermc.geyser.network.netty.LocalSession;
@@ -51,6 +52,7 @@ import java.util.List;
 public class GeyserModInjector extends GeyserInjector {
     private final MinecraftServer server;
     private final GeyserModPlatform platform;
+    private DefaultEventLoopGroup eventLoopGroup;
 
     /**
      * Used to uninject ourselves on shutdown.
@@ -84,6 +86,7 @@ public class GeyserModInjector extends GeyserInjector {
         Method initChannel = childHandler.getClass().getDeclaredMethod("initChannel", Channel.class);
         initChannel.setAccessible(true);
 
+        eventLoopGroup = new DefaultEventLoopGroup(0, new DefaultThreadFactory("Geyser " + this.platform.platformType().platformName() + " connection thread", Thread.MAX_PRIORITY));
         ChannelFuture channelFuture = (new ServerBootstrap()
                 .channel(LocalServerChannelWrapper.class)
                 .childHandler(new ChannelInitializer<>() {
@@ -97,7 +100,7 @@ public class GeyserModInjector extends GeyserInjector {
                     }
                 })
                 // Set to MAX_PRIORITY as MultithreadEventLoopGroup#newDefaultThreadFactory which DefaultEventLoopGroup implements does by default
-                .group(new DefaultEventLoopGroup(0, new DefaultThreadFactory("Geyser " + this.platform.platformType().platformName() + " connection thread", Thread.MAX_PRIORITY)))
+                .group(eventLoopGroup)
                 .localAddress(LocalAddress.ANY))
                 .bind()
                 .syncUninterruptibly();
@@ -108,6 +111,8 @@ public class GeyserModInjector extends GeyserInjector {
         this.serverSocketAddress = channelFuture.channel().localAddress();
 
         workAroundWeirdBug(bootstrap);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
     }
 
     @SuppressWarnings("unchecked")
@@ -153,6 +158,17 @@ public class GeyserModInjector extends GeyserInjector {
             this.allServerChannels.remove(this.localChannel);
             this.allServerChannels = null;
         }
+
+        if (eventLoopGroup != null) {
+            try {
+                eventLoopGroup.shutdownGracefully().sync();
+                eventLoopGroup = null;
+            } catch (Exception e) {
+                GeyserImpl.getInstance().getLogger().error("Unable to shut down injector! " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
         super.shutdown();
     }
 }
