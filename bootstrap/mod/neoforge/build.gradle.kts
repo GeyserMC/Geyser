@@ -8,6 +8,7 @@ architectury {
 }
 
 val common: Configuration by configurations.creating
+// Without this, mixin config isn't read properly with the runServer neoforge task
 val developmentNeoForge: Configuration = configurations.getByName("developmentNeoForge")
 configurations {
     compileClasspath.get().extendsFrom(configurations["common"])
@@ -25,7 +26,7 @@ dependencies {
 
     neoForge(libs.neoforge.minecraft)
 
-    //api(projects.mod)
+    api(project(":mod", configuration = "namedElements"))
     shadow(project(path = ":mod", configuration = "transformProductionNeoForge")) {
         isTransitive = false
     }
@@ -36,6 +37,8 @@ dependencies {
         exclude(group = "io.netty.incubator")
     }
     common(project(":mod", configuration = "namedElements")) { isTransitive = false }
+
+    forgeRuntimeLibrary(projects.core)
 }
 
 application {

@@ -8,18 +8,16 @@ architectury {
 }
 
 val common: Configuration by configurations.creating
-val developmentFabric: Configuration = configurations.getByName("developmentFabric")
 configurations {
     compileClasspath.get().extendsFrom(configurations["common"])
     runtimeClasspath.get().extendsFrom(configurations["common"])
-    developmentFabric.extendsFrom(configurations["common"])
 }
 
 dependencies {
     modImplementation(libs.fabric.loader)
     modApi(libs.fabric.api)
 
-    api(projects.mod)
+    api(project(":mod", configuration = "namedElements"))
     shadow(project(path = ":mod", configuration = "transformProductionFabric")) {
         isTransitive = false
     }
