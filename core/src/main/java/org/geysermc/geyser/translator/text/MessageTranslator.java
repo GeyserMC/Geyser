@@ -320,7 +320,7 @@ public class MessageTranslator {
             if (parameters.contains(TextDecoration.Parameter.CONTENT)) {
                 args.add(message);
             }
-            withDecoration.arguments(args);
+            withDecoration.args(args);
             textPacket.setMessage(MessageTranslator.convertMessage(withDecoration.build(), session.locale()));
         } else {
             session.getGeyser().getLogger().debug("Likely illegal chat type detection found.");
