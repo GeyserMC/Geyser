@@ -102,7 +102,7 @@ configure<BlossomExtension> {
 fun buildNumber(): Int = System.getenv("GITHUB_RUN_NUMBER")?.let { Integer.parseInt(it) } ?: -1
 
 fun isDevBuild(branch: String, repository: String): Boolean {
-    return branch != "master" && repository.equals("https://github.com/GeyserMC/Geyser", ignoreCase = true).not()
+    return branch != "master" || repository.equals("https://github.com/GeyserMC/Geyser", ignoreCase = true).not()
 }
 
 
