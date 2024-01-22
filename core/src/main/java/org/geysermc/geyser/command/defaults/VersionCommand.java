@@ -91,7 +91,6 @@ public class VersionCommand extends GeyserCommand {
                 return;
             }
 
-
             sender.sendMessage(GeyserLocale.getPlayerLocaleString(
                     "geyser.commands.version.outdated",
                     sender.locale(), (latestBuildNumber - buildNumber), "https://geysermc.org/download"
