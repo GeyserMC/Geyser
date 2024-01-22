@@ -170,8 +170,10 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 case STONECUTTING -> {
                     StoneCuttingRecipeData stoneCuttingData = (StoneCuttingRecipeData) recipe.getData();
                     if (stoneCuttingData.getIngredient().getOptions().length == 0) {
-                        GeyserImpl.getInstance().getLogger().debug("Received broken stone cutter recipe: " + stoneCuttingData + " " +
-                                recipe.getIdentifier() + " " + Registries.JAVA_ITEMS.get().get(stoneCuttingData.getResult().getId()).javaIdentifier());
+                        if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
+                            GeyserImpl.getInstance().getLogger().debug("Received broken stone cutter recipe: " + stoneCuttingData + " " +
+                                    recipe.getIdentifier() + " " + Registries.JAVA_ITEMS.get().get(stoneCuttingData.getResult().getId()).javaIdentifier());
+                        }
                         continue;
                     }
                     ItemStack ingredient = stoneCuttingData.getIngredient().getOptions()[0];
