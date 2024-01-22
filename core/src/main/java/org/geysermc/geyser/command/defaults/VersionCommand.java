@@ -96,7 +96,7 @@ public class VersionCommand extends GeyserCommand {
                     "geyser.commands.version.outdated",
                     sender.locale(), (latestBuildNumber - buildNumber), "https://geysermc.org/download"
             ));
-        } catch (IOException | AssertionError e) {
+        } catch (IOException e) {
             GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.commands.version.failed"), e);
             sender.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.commands.version.failed", sender.locale()));
         }
