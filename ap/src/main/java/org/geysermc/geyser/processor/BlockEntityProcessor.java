@@ -30,7 +30,7 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 
 @SupportedAnnotationTypes("*")
-@SupportedSourceVersion(SourceVersion.RELEASE_16)
+@SupportedSourceVersion(SourceVersion.RELEASE_17)
 public class BlockEntityProcessor extends ClassProcessor {
     public BlockEntityProcessor() {
         super("org.geysermc.geyser.translator.level.block.entity.BlockEntity");
