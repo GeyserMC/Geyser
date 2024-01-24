@@ -145,7 +145,7 @@ public interface GeyserApi extends GeyserApiBase {
     MinecraftVersion supportedJavaVersion();
 
     /**
-     * Gets a list of Bedrock Minecraft version that are supported.
+     * Gets a list of Bedrock Minecraft versions that are supported.
      *
      * @return the list of supported Bedrock Minecraft versions
      */
