@@ -51,6 +51,14 @@ public interface BedrockListener {
     int port();
 
     /**
+     * Gets the broadcast port that's sent to Bedrock clients with the motd.
+     * This is the port that Bedrock clients will connect with. It usually does not differ from the listening port.
+     *
+     * @return the broadcast port
+     */
+    int broadcastPort();
+
+    /**
      * Gets the primary MOTD shown to Bedrock players if a ping passthrough setting is not enabled.
      * <p>
      * This is the first line that will be displayed.

@@ -30,6 +30,9 @@ bedrock:
   # How much to compress network traffic to the Bedrock client. The higher the number, the more CPU usage used, but
   # the smaller the bandwidth used. Does not have any effect below -1 or above 9. Set to -1 to disable.
   compression-level: 6
+  # The port to broadcast to Bedrock clients with the MOTD that they should use to connect to the server.
+  # DO NOT uncomment and change this unless Geyser runs on a different internal port than the one that is used to connect.
+  # broadcast-port: 19132
   # Whether to enable PROXY protocol or not for clients. You DO NOT WANT this feature unless you run UDP reverse proxy
   # in front of your Geyser instance.
   enable-proxy-protocol: false

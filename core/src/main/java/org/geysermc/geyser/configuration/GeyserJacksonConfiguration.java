@@ -176,6 +176,15 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
             return port;
         }
 
+        @Setter
+        @JsonProperty("broadcast-port")
+        private int broadcastPort = 0;
+
+        @Override
+        public int broadcastPort() {
+            return broadcastPort;
+        }
+
         @Getter
         @JsonProperty("clone-remote-port")
         private boolean cloneRemotePort = false;
