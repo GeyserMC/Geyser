@@ -29,7 +29,7 @@ package org.geysermc.geyser.api.bedrock.camera;
  * These are all the easing types that can be used when sending a {@link CameraPosition} instruction.
  * When using these, the client won't teleport to the new camera position, but instead transition to it.
  * <p>
- * See <a href="https://easings.net/">https://easings.net/</a>.</a> for more information.
+ * See <a href="https://easings.net/">https://easings.net/</a> for more information.
  */
 public enum CameraEaseType {
     LINEAR("linear"),
