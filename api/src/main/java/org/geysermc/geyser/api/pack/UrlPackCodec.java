@@ -34,10 +34,10 @@ import org.checkerframework.checker.nullness.qual.NonNull;
  * Due to Bedrock limitations, the URL must:
  * <ul>
  *     <li>be a direct download link to a .zip or .mcpack resource pack</li>
- *     <li>Use application type `application/zip` and set a correct content length</li>
+ *     <li>use the application type `application/zip` and set a correct content length</li>
  * </ul>
  *
- * Additionally, the ResourcePack must be zipped in a folder enclosing the resource pack, instead of the resource pack being at the root of the zip.
+ * Additionally, the resource pack must be zipped in a folder enclosing the resource pack, instead of the resource pack being at the root of the zip.
  */
 public abstract class UrlPackCodec extends PackCodec {
 
@@ -51,7 +51,8 @@ public abstract class UrlPackCodec extends PackCodec {
 
     /**
      * If the remote pack has an encryption key, it must be specified here.
-     * Otherwise, leave empty.
+     * This will return empty if none is specified.
+     *
      * @return the encryption key of the resource pack
      */
     @NonNull

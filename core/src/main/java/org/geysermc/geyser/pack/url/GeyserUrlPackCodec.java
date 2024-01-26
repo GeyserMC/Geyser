@@ -27,6 +27,7 @@ package org.geysermc.geyser.pack.url;
 
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.UrlPackCodec;
@@ -47,9 +48,13 @@ public class GeyserUrlPackCodec extends UrlPackCodec {
         this(url, "");
     }
 
-    public GeyserUrlPackCodec(String url, String contentKey) throws IllegalArgumentException {
+    public GeyserUrlPackCodec(@NonNull String url, @Nullable String contentKey) throws IllegalArgumentException {
+        //noinspection ConstantValue - need to enforce
+        if (url == null) {
+            throw new IllegalArgumentException("Url cannot be nulL!");
+        }
         this.url = url;
-        this.contentKey = contentKey;
+        this.contentKey = contentKey == null ? "" : contentKey;
     }
 
     @Override

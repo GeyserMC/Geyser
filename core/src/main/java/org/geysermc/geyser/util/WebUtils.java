@@ -155,7 +155,7 @@ public class WebUtils {
                         String cachedEtag = metadataLines.get(1);
                         long cachedLastModified = Long.parseLong(metadataLines.get(2));
 
-                        if (cachedSize == size && cachedEtag.equals(con.getHeaderField("ETag")) && cachedLastModified == con.getLastModified()) {
+                        if (cachedSize == size && cachedEtag.equals(con.getHeaderField("ETag")) && cachedLastModified == con.getLastModified() && !force) {
                             GeyserImpl.getInstance().getLogger().debug("Using cached pack for " + url);
                             return packLocation;
                         }
@@ -168,7 +168,7 @@ public class WebUtils {
                 Files.copy(in, packLocation, StandardCopyOption.REPLACE_EXISTING);
 
                 if (Files.size(packLocation) != size) {
-                    GeyserImpl.getInstance().getLogger().error("Downloaded pack has " + Files.size(packLocation) + " bytes, expected " + size + " bytes");
+                    GeyserImpl.getInstance().getLogger().error(String.format("Size mismatch with resource pack at url: %s. Downloaded pack has %s bytes, expected %s bytes!", url, Files.size(packLocation), size));
                     Files.delete(packLocation);
                     return null;
                 }
@@ -186,7 +186,6 @@ public class WebUtils {
                 GeyserImpl.getInstance().getLogger().error("Unable to reach URL: " + url + " (" + e.getMessage() + ")");
                 return null;
             } catch (IOException e) {
-                e.printStackTrace(); // TODO yeeeeeeeet
                 throw new RuntimeException("Unable to download and save remote resource pack from: " + url + " (" + e.getMessage() + ")");
             }
         });
