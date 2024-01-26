@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,16 +23,9 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.processor;
+package org.geysermc.geyser.impl;
 
-import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedSourceVersion;
-import javax.lang.model.SourceVersion;
+import org.geysermc.geyser.api.util.MinecraftVersion;
 
-@SupportedAnnotationTypes("*")
-@SupportedSourceVersion(SourceVersion.RELEASE_17)
-public class SoundHandlerProcessor extends ClassProcessor {
-    public SoundHandlerProcessor() {
-        super("org.geysermc.geyser.translator.sound.SoundTranslator");
-    }
+public record MinecraftVersionImpl(String versionString, int protocolVersion) implements MinecraftVersion {
 }

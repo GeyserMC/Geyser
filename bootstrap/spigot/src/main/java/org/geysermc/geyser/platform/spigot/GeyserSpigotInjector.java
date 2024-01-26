@@ -150,7 +150,7 @@ public class GeyserSpigotInjector extends GeyserInjector {
                 childHandler = (ChannelInitializer<Channel>) childHandlerField.get(handler);
                 // ViaVersion non-Paper-injector workaround so we aren't double-injecting
                 if (isViaVersion && childHandler instanceof BukkitChannelInitializer) {
-                    childHandler = ((BukkitChannelInitializer) childHandler).getOriginal();
+                    childHandler = ((BukkitChannelInitializer) childHandler).original();
                 }
                 break;
             } catch (Exception e) {

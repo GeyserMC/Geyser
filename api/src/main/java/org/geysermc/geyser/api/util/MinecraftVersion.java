@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,16 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.processor;
+package org.geysermc.geyser.api.util;
 
-import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedSourceVersion;
-import javax.lang.model.SourceVersion;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
-@SupportedAnnotationTypes("*")
-@SupportedSourceVersion(SourceVersion.RELEASE_17)
-public class SoundHandlerProcessor extends ClassProcessor {
-    public SoundHandlerProcessor() {
-        super("org.geysermc.geyser.translator.sound.SoundTranslator");
-    }
+/**
+ * Represents a Minecraft version.
+ */
+public interface MinecraftVersion {
+
+    /**
+     * Gets the Minecraft version as a String.
+     * Example: "1.20.2", or "1.20.40/1.20.41"
+     *
+     * @return the version string
+     */
+    @NonNull String versionString();
+
+    /**
+     * Gets the protocol version of this Minecraft version.
+     *
+     * @return the protocol version
+     */
+    int protocolVersion();
 }

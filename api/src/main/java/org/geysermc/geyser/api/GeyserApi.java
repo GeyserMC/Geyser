@@ -29,12 +29,14 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.Geyser;
 import org.geysermc.api.GeyserApiBase;
+import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.extension.ExtensionManager;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
+import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.api.util.PlatformType;
 
 import java.nio.file.Path;
@@ -133,6 +135,30 @@ public interface GeyserApi extends GeyserApiBase {
      */
     @NonNull
     PlatformType platformType();
+
+    /**
+     * Gets the version of Java Minecraft that is supported.
+     *
+     * @return the supported version of Java Minecraft
+     */
+    @NonNull
+    MinecraftVersion supportedJavaVersion();
+
+    /**
+     * Gets a list of Bedrock Minecraft versions that are supported.
+     *
+     * @return the list of supported Bedrock Minecraft versions
+     */
+    @NonNull
+    List<MinecraftVersion> supportedBedrockVersions();
+
+    /**
+     * Gets the {@link CommandSource} for the console.
+     *
+     * @return the console command source
+     */
+    @NonNull
+    CommandSource consoleCommandSource();
 
     /**
      * Gets the current {@link GeyserApiBase} instance.
