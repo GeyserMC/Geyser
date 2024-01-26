@@ -27,7 +27,8 @@ package org.geysermc.geyser.api.bedrock.camera;
 
 /**
  * Represents a camera perspective that a player's camera can take.
- * All perspectives except for {@link #FREE} are locked to the player's head, and are therefore relative to the player's rotation.
+ * All perspectives except for {@link #FREE} are locked to the player's head,
+ * and are therefore relative to the player's position and rotation.
  */
 public enum CameraPerspective {
     FIRST_PERSON("minecraft:first_person"),

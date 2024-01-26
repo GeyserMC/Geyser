@@ -131,9 +131,9 @@ public interface CameraPosition {
 
         Builder position(@NonNull Vector3f position);
 
-        Builder rotationX(int rotX);
+        Builder rotationX(int rotationX);
 
-        Builder rotationY(int rotY);
+        Builder rotationY(int rotationY);
 
         Builder facingPosition(@Nullable Vector3f facingPosition);
 

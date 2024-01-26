@@ -93,5 +93,4 @@ public class CameraDefinitions {
             return new CameraDefinition(identifier, runtimeId);
         }
     }
-
 }

@@ -77,7 +77,6 @@ public class GeyserCameraData implements CameraData {
         session.sendUpstreamPacket(packet);
     }
 
-
     @Override
     public void forceCameraPerspective(@NonNull CameraPerspective perspective) {
         //noinspection ConstantConditions
