@@ -27,29 +27,36 @@ package org.geysermc.geyser.api.bedrock.camera;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.api.connection.GeyserConnection;
 
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * This interface holds all the methods that relate to a client's camera.
+ * Can be accessed through {@link GeyserConnection#camera()}.
+ */
 public interface CameraData {
 
     /**
-     * Sends a camera instruction to the client.
+     * Sends a camera fade instruction to the client.
      * If an existing camera fade is already in progress, the current fade will be prolonged.
      * Can be built using {@link CameraFade.Builder}.
+     * To stop a fade early, use {@link #clearCameraInstructions()}.
      *
-     * @param fade the camera fade to send
+     * @param fade the camera fade instruction to send
      */
     void sendCameraFade(@NonNull CameraFade fade);
 
     /**
-     * Sends a camera instruction to the client.
-     * If an existing camera movement is already in progress:
-     * The (optional) camera fade will be added on top of the existing fade, and
-     * the final camera position will be the one of the latest instruction.
+     * Sends a camera position instruction to the client.
+     * If an existing camera movement is already in progress,
+     * the final camera position will be the one of the latest instruction, and
+     * the (optional) camera fade will be added on top of the existing fade.
      * Can be built using {@link CameraPosition.Builder}.
+     * To stop reset the camera position/stop ongoing instructions, use {@link #clearCameraInstructions()}.
      *
-     * @param position the camera position to send
+     * @param position the camera position instruction to send
      */
     void sendCameraPosition(@NonNull CameraPosition position);
 
@@ -60,8 +67,8 @@ public interface CameraData {
     void clearCameraInstructions();
 
     /**
-     * Forces a {@link CameraPerspective} on the client. This will prevent
-     * the client from changing their camera perspective until it is unlocked via {@link #clearCameraInstructions()}.
+     * Forces a {@link CameraPerspective} on the client. This will prevent the client
+     * from changing their camera perspective until it is unlocked via {@link #clearCameraInstructions()}.
      * <p>
      * Note: You cannot force a client into a free camera perspective with this method.
      * To do that, send a {@link CameraPosition} via {@link #sendCameraPosition(CameraPosition)} - it requires a set position
@@ -72,16 +79,17 @@ public interface CameraData {
     void forceCameraPerspective(@NonNull CameraPerspective perspective);
 
     /**
-     * Gets the client's current {@link CameraPerspective}, if forced.
+     * Gets the client's current {@link CameraPerspective}, if one is currently forced.
      * This will return {@code null} if the client is not currently forced into a perspective.
-     * If a perspective is forced, the client will not be able to change their camera perspective until it is unlocked
+     * If a perspective is forced, the client will not be able to change their camera perspective until it is unlocked.
      *
      * @return the forced perspective, or {@code null} if none is forced.
      */
     @Nullable CameraPerspective forcedCameraPerspective();
 
     /**
-     * Shakes the client's camera.<br><br>
+     * Shakes the client's camera.
+     * <p>
      * If the camera is already shaking with the same {@link CameraShake} type, then the additional intensity
      * will be layered on top of the existing intensity, with their own distinct durations.<br>
      * If the existing shake type is different and the new intensity/duration are not positive, the existing shake only
@@ -94,7 +102,7 @@ public interface CameraData {
     void shakeCamera(float intensity, float duration, @NonNull CameraShake type);
 
     /**
-     * Stops all camera shake of any type.
+     * Stops all camera shakes of any type.
      */
     void stopCameraShake();
 
@@ -123,10 +131,10 @@ public interface CameraData {
     /**
      * (Un)locks the client's camera, so that they cannot look around.
      * To ensure the camera is only unlocked when all locks are released, you must supply
-     * a UUID-key to this method, and use the same key to unlock the camera.
+     * a UUID when using method, and use the same UUID to unlock the camera.
      *
      * @param lock whether to lock the camera
-     * @param owner the owner of the lock
+     * @param owner the owner of the lock, represented with a UUID
      * @return if the camera is locked after this method call
      */
     boolean lockCamera(boolean lock, @NonNull UUID owner);
@@ -134,7 +142,7 @@ public interface CameraData {
     /**
      * Returns whether the client's camera is locked.
      *
-     * @return whether the camera is locked
+     * @return whether the camera is currently locked
      */
     boolean isCameraLocked();
 }

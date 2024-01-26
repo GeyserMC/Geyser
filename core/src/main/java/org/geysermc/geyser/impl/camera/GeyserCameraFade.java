@@ -36,8 +36,8 @@ public record GeyserCameraFade(
         float fadeInSeconds,
         float holdSeconds,
         float fadeOutSeconds
-) implements CameraFade {
 
+) implements CameraFade {
     public static class Builder implements CameraFade.Builder {
         private Color color;
         private float fadeInSeconds;
@@ -46,6 +46,10 @@ public record GeyserCameraFade(
 
         @Override
         public CameraFade.Builder color(@NonNull Color color) {
+            //noinspection ConstantValue
+            if (color == null) {
+                throw new IllegalArgumentException("Color cannot be null!");
+            }
             this.color = color;
             return this;
         }

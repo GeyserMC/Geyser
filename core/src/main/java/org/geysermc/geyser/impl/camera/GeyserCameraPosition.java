@@ -82,7 +82,7 @@ public record GeyserCameraPosition(CameraFade fade,
         @Override
         public CameraPosition.Builder easeDuration(float easeDuration) {
             if (easeDuration < 0) {
-                throw new IllegalArgumentException("Camera ease duration cannot be negative");
+                throw new IllegalArgumentException("Camera ease duration cannot be negative!");
             }
             this.easeDuration = easeDuration;
             return this;
@@ -90,6 +90,7 @@ public record GeyserCameraPosition(CameraFade fade,
 
         @Override
         public CameraPosition.Builder position(@NonNull Vector3f position) {
+            //noinspection ConstantValue
             if (position == null) {
                 throw new IllegalArgumentException("Camera position cannot be null");
             }
@@ -99,6 +100,9 @@ public record GeyserCameraPosition(CameraFade fade,
 
         @Override
         public CameraPosition.Builder rotationX(int rotationX) {
+            if (rotationX < -90 || rotationX > 90) {
+                throw new IllegalArgumentException("X-axis rotation needs to be between -90 and 90 degrees.");
+            }
             this.rotationX = rotationX;
             return this;
         }

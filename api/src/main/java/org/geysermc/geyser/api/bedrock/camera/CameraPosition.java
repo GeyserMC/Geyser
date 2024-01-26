@@ -31,6 +31,15 @@ import org.checkerframework.common.value.qual.IntRange;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.api.GeyserApi;
 
+/**
+ * This interface represents a camera position instruction. Can be built with the {@link #builder()}.
+ * <p>
+ * Any camera position instruction pins the client camera to a specific position and rotation.
+ * You can set {@link CameraEaseType} to ensure a smooth transition that will last {@link #easeDuration()} seconds.
+ * A {@link CameraFade} can also be sent, which will transition the player to a coloured transition during the transition.
+ * <p>
+ * Use {@link CameraData#sendCameraPosition(CameraPosition)} to send such an instruction to any connection.
+ */
 public interface CameraPosition {
 
     /**

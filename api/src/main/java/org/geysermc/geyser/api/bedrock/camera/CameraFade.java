@@ -33,6 +33,8 @@ import java.awt.Color;
 
 /**
  * Represents a coloured fade overlay on the camera.
+ * <p>
+ * Can be sent with {@link CameraData#sendCameraFade(CameraFade)}, or with a {@link CameraPosition} instruction.
  */
 public interface CameraFade {
 
