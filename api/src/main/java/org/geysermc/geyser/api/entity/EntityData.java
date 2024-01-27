@@ -44,23 +44,23 @@ public interface EntityData {
     /**
      * Returns a {@link GeyserEntity} to e.g. make them play an emote.
      *
-     * @param javaId the Java entity ID to look up.
-     * @return a {@link GeyserEntity} if present in this connection's entity tracker.
+     * @param javaId the Java entity ID to look up
+     * @return a {@link GeyserEntity} if present in this connection's entity tracker
      */
     @NonNull CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId);
 
     /**
      * Displays a player entity as emoting to this client.
      *
-     * @param emoter the player entity emoting.
-     * @param emoteId the emote ID to send to this client.
+     * @param emoter the player entity emoting
+     * @param emoteId the emote ID to send to this client
      */
     void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId);
 
     /**
      * Gets the {@link GeyserPlayerEntity} of this connection.
      *
-     * @return the {@link GeyserPlayerEntity} of this connection.
+     * @return the {@link GeyserPlayerEntity} of this connection
      */
     @NonNull GeyserPlayerEntity playerEntity();
 

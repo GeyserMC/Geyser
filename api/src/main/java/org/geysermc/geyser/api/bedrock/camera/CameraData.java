@@ -74,7 +74,7 @@ public interface CameraData {
      * To do that, send a {@link CameraPosition} via {@link #sendCameraPosition(CameraPosition)} - it requires a set position
      * instead of being relative to the player.
      *
-     * @param perspective the {@link CameraPerspective} to force.
+     * @param perspective the {@link CameraPerspective} to force
      */
     void forceCameraPerspective(@NonNull CameraPerspective perspective);
 
@@ -83,7 +83,7 @@ public interface CameraData {
      * This will return {@code null} if the client is not currently forced into a perspective.
      * If a perspective is forced, the client will not be able to change their camera perspective until it is unlocked.
      *
-     * @return the forced perspective, or {@code null} if none is forced.
+     * @return the forced perspective, or {@code null} if none is forced
      */
     @Nullable CameraPerspective forcedCameraPerspective();
 
