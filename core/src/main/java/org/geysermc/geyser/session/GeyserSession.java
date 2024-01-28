@@ -935,7 +935,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                             ).toString());
                         } catch (Exception e) {
                             geyser.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);
-                            disconnect(GeyserLocale.getPlayerLocaleString("geyser.auth.floodgate.encryption_fail", getClientData().getLanguageCode()));
+                            disconnect(GeyserLocale.getPlayerLocaleString("geyser.auth.floodgate.encrypt_fail", getClientData().getLanguageCode()));
                             return;
                         }
 
