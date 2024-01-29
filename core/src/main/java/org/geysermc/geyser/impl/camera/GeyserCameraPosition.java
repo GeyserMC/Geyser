@@ -33,6 +33,8 @@ import org.geysermc.geyser.api.bedrock.camera.CameraEaseType;
 import org.geysermc.geyser.api.bedrock.camera.CameraFade;
 import org.geysermc.geyser.api.bedrock.camera.CameraPosition;
 
+import java.util.Objects;
+
 public record GeyserCameraPosition(CameraFade fade,
                                    boolean renderPlayerEffects,
                                    boolean playerPositionForAudio,
@@ -90,10 +92,7 @@ public record GeyserCameraPosition(CameraFade fade,
 
         @Override
         public CameraPosition.Builder position(@NonNull Vector3f position) {
-            //noinspection ConstantValue
-            if (position == null) {
-                throw new IllegalArgumentException("Camera position cannot be null");
-            }
+            Objects.requireNonNull(position, "camera position cannot be null!");
             this.position = position;
             return this;
         }
@@ -101,7 +100,7 @@ public record GeyserCameraPosition(CameraFade fade,
         @Override
         public CameraPosition.Builder rotationX(int rotationX) {
             if (rotationX < -90 || rotationX > 90) {
-                throw new IllegalArgumentException("X-axis rotation needs to be between -90 and 90 degrees.");
+                throw new IllegalArgumentException("x-axis rotation needs to be between -90 and 90 degrees.");
             }
             this.rotationX = rotationX;
             return this;
@@ -125,10 +124,7 @@ public record GeyserCameraPosition(CameraFade fade,
                 throw new IllegalArgumentException("Camera ease type cannot be null if ease duration is greater than 0");
             }
 
-            if (position == null) {
-                throw new IllegalArgumentException("Camera position cannot be null");
-            }
-
+            Objects.requireNonNull(position, "camera position must be non null!");
             return new GeyserCameraPosition(fade, renderPlayerEffects, playerPositionForAudio, easeType, easeDuration, position, rotationX, rotationY, facingPosition);
         }
     }

@@ -36,6 +36,7 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -59,6 +60,7 @@ public class GeyserEntityData implements EntityData {
 
     @Override
     public void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId) {
+        Objects.requireNonNull(emoter, "emoter must not be null!");
         Entity entity = (Entity) emoter;
         if (entity.getSession() != session) {
             throw new IllegalStateException("Given entity must be from this session!");
@@ -79,10 +81,7 @@ public class GeyserEntityData implements EntityData {
 
     @Override
     public boolean lockMovement(boolean lock, @NonNull UUID owner) {
-        //noinspection ConstantConditions
-        if (owner == null) {
-            throw new IllegalArgumentException("Owner cannot be null!");
-        }
+        Objects.requireNonNull(owner, "owner must not be null!");
         if (lock) {
             movementLockOwners.add(owner);
         } else {

@@ -48,6 +48,7 @@ import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -79,10 +80,7 @@ public class GeyserCameraData implements CameraData {
 
     @Override
     public void forceCameraPerspective(@NonNull CameraPerspective perspective) {
-        //noinspection ConstantConditions
-        if (perspective == null) {
-            throw new IllegalArgumentException("Perspective cannot be null!");
-        }
+        Objects.requireNonNull(perspective, "perspective cannot be null!");
 
         if (perspective == cameraPerspective) {
             return; // nothing to do
@@ -109,10 +107,7 @@ public class GeyserCameraData implements CameraData {
 
     @Override
     public void sendCameraFade(@NonNull CameraFade fade) {
-        //noinspection ConstantConditions
-        if (fade == null) {
-            throw new IllegalArgumentException("Fade cannot be null!");
-        }
+        Objects.requireNonNull(fade, "fade cannot be null!");
         CameraFadeInstruction fadeInstruction = new CameraFadeInstruction();
         fadeInstruction.setColor(fade.color());
         fadeInstruction.setTimeData(
@@ -130,10 +125,7 @@ public class GeyserCameraData implements CameraData {
 
     @Override
     public void sendCameraPosition(@NonNull CameraPosition movement) {
-        //noinspection ConstantConditions
-        if (movement == null) {
-            throw new IllegalArgumentException("Movement cannot be null!");
-        }
+        Objects.requireNonNull(movement, "movement cannot be null!");
         this.cameraPerspective = CameraPerspective.FREE; // Movements only work with the free preset
         CameraSetInstruction setInstruction = new CameraSetInstruction();
 
@@ -161,6 +153,7 @@ public class GeyserCameraData implements CameraData {
 
     @Override
     public void shakeCamera(float intensity, float duration, @NonNull CameraShake type) {
+        Objects.requireNonNull(type, "camera shake type must be non null!");
         CameraShakePacket packet = new CameraShakePacket();
         packet.setIntensity(intensity);
         packet.setDuration(duration);
@@ -209,10 +202,7 @@ public class GeyserCameraData implements CameraData {
 
     @Override
     public boolean lockCamera(boolean lock, @NonNull UUID owner) {
-        //noinspection ConstantConditions
-        if (owner == null) {
-            throw new IllegalArgumentException("Owner cannot be null!");
-        }
+        Objects.requireNonNull(owner, "owner cannot be null!");
         if (lock) {
             this.cameraLockOwners.add(owner);
         } else {

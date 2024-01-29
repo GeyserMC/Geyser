@@ -30,6 +30,7 @@ import org.checkerframework.common.value.qual.IntRange;
 import org.geysermc.geyser.api.bedrock.camera.CameraFade;
 
 import java.awt.Color;
+import java.util.Objects;
 
 public record GeyserCameraFade(
         Color color,
@@ -46,10 +47,7 @@ public record GeyserCameraFade(
 
         @Override
         public CameraFade.Builder color(@NonNull Color color) {
-            //noinspection ConstantValue
-            if (color == null) {
-                throw new IllegalArgumentException("Color cannot be null!");
-            }
+            Objects.requireNonNull(color, "color cannot be null!");
             this.color = color;
             return this;
         }
@@ -95,10 +93,7 @@ public record GeyserCameraFade(
 
         @Override
         public CameraFade build() {
-            if (color == null) {
-                throw new IllegalArgumentException("Color must be set");
-            }
-
+            Objects.requireNonNull(color, "color must be non null!");
             if (fadeInSeconds + holdSeconds + fadeOutSeconds < 0.5f) {
                 throw new IllegalArgumentException("Total fade time (in, hold, out) must be at least 0.5 seconds");
             }
