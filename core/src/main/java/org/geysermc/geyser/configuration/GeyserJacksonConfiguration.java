@@ -43,6 +43,7 @@ import org.geysermc.geyser.text.GeyserLocale;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -133,6 +134,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     @JsonProperty("force-resource-packs")
     private boolean forceResourcePacks = true;
+
+    @JsonProperty("resource-pack-urls")
+    private List<String> resourcePackUrls = new ArrayList<>();
 
     @JsonProperty("xbox-achievements-enabled")
     private boolean xboxAchievementsEnabled = false;

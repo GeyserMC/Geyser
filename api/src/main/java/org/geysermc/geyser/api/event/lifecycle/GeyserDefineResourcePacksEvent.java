@@ -23,11 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event.bedrock;
+package org.geysermc.geyser.api.event.lifecycle;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.event.connection.ConnectionEvent;
+import org.geysermc.event.Event;
 import org.geysermc.geyser.api.pack.ResourcePack;
 
 import java.util.Collection;
@@ -35,24 +34,21 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Called when Geyser initializes a session for a new Bedrock client and is in the process of sending resource packs.
+ * Called when {@link ResourcePack}'s are loaded within Geyser.
  */
-public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
-    public SessionLoadResourcePacksEvent(@NonNull GeyserConnection connection) {
-        super(connection);
-    }
+public abstract class GeyserDefineResourcePacksEvent implements Event {
 
     /**
-     * Gets an unmodifiable list of {@link ResourcePack}s that will be sent to the client.
+     * Gets an unmodifiable list of {@link ResourcePack}s that will be sent to clients.
      *
-     * @return an unmodifiable list of resource packs that will be sent to the client.
+     * @return an unmodifiable list of resource packs that will be sent to clients.
      */
     public abstract @NonNull List<ResourcePack> resourcePacks();
 
     /**
-     * Registers a {@link ResourcePack} to be sent to the client.
+     * Registers a {@link ResourcePack} to be sent to clients.
      *
-     * @param resourcePack a resource pack that will be sent to the client.
+     * @param resourcePack a resource pack that will be sent to clients.
      * @return true if the resource pack was added successfully,
      *         or false if already present
      */
@@ -66,8 +62,9 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
      */
     public abstract boolean registerAll(@NonNull Collection<ResourcePack> resourcePacks);
 
+
     /**
-     * Unregisters a {@link ResourcePack} from being sent to the client.
+     * Unregisters a {@link ResourcePack} from being sent to clients.
      *
      * @param uuid the UUID of the resource pack to remove.
      * @return true whether the resource pack was removed successfully.
