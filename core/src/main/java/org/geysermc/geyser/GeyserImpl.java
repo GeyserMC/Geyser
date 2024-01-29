@@ -180,13 +180,12 @@ public class GeyserImpl implements GeyserApi {
     }
 
     public void initialize() {
+        /* Finalize locale loading now that we know the default locale from the config */
+        GeyserLocale.finalizeDefaultLocale(this);
 
         /* Load Extensions */
         this.extensionManager.init();
         this.eventBus.fire(new GeyserPreInitializeEvent(this.extensionManager, this.eventBus));
-
-        /* Finalize locale loading now that we know the default locale from the config */
-        GeyserLocale.finalizeDefaultLocale(this);
 
         long startupTime = System.currentTimeMillis();
 

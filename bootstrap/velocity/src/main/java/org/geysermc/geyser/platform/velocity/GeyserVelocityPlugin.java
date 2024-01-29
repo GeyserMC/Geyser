@@ -185,7 +185,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     public void onProxyBound(ListenerBoundEvent event) {
         if (event.getListenerType() == ListenerType.MINECRAFT) {
             // Once listener is bound, do our startup process
-            onGeyserEnable();
+            this.onGeyserEnable();
 
             if (geyserInjector != null) {
                 // After this bound, we know that the channel initializer cannot change without it being ineffective for Velocity, too
