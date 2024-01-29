@@ -39,7 +39,7 @@ public record GeyserCameraPosition(CameraFade fade,
                                    boolean renderPlayerEffects,
                                    boolean playerPositionForAudio,
                                    CameraEaseType easeType,
-                                   float easeDuration,
+                                   float easeSeconds,
                                    Vector3f position,
                                    @IntRange(from = -90, to = 90) int rotationX,
                                    int rotationY,
@@ -51,7 +51,7 @@ public record GeyserCameraPosition(CameraFade fade,
         private boolean renderPlayerEffects;
         private boolean playerPositionForAudio;
         private CameraEaseType easeType;
-        private float easeDuration;
+        private float easeSeconds;
         private Vector3f position;
         private @IntRange(from = -90, to = 90) int rotationX;
         private int rotationY;
@@ -82,11 +82,11 @@ public record GeyserCameraPosition(CameraFade fade,
         }
 
         @Override
-        public CameraPosition.Builder easeDuration(float easeDuration) {
-            if (easeDuration < 0) {
+        public CameraPosition.Builder easeSeconds(float easeSeconds) {
+            if (easeSeconds < 0) {
                 throw new IllegalArgumentException("Camera ease duration cannot be negative!");
             }
-            this.easeDuration = easeDuration;
+            this.easeSeconds = easeSeconds;
             return this;
         }
 
@@ -120,12 +120,12 @@ public record GeyserCameraPosition(CameraFade fade,
 
         @Override
         public CameraPosition build() {
-            if (easeDuration > 0 && easeType == null) {
+            if (easeSeconds > 0 && easeType == null) {
                 throw new IllegalArgumentException("Camera ease type cannot be null if ease duration is greater than 0");
             }
 
             Objects.requireNonNull(position, "camera position must be non null!");
-            return new GeyserCameraPosition(fade, renderPlayerEffects, playerPositionForAudio, easeType, easeDuration, position, rotationX, rotationY, facingPosition);
+            return new GeyserCameraPosition(fade, renderPlayerEffects, playerPositionForAudio, easeType, easeSeconds, position, rotationX, rotationY, facingPosition);
         }
     }
 }

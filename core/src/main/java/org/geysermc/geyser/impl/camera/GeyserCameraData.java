@@ -113,7 +113,7 @@ public class GeyserCameraData implements CameraData {
         fadeInstruction.setTimeData(
                 new CameraFadeInstruction.TimeData(
                         fade.fadeInSeconds(),
-                        fade.holdSeconds(),
+                        fade.fadeHoldSeconds(),
                         fade.fadeOutSeconds()
                 )
         );
@@ -133,7 +133,7 @@ public class GeyserCameraData implements CameraData {
         if (easeType != null) {
             setInstruction.setEase(new CameraSetInstruction.EaseData(
                     CameraEase.fromName(easeType.id()),
-                    movement.easeDuration()
+                    movement.easeSeconds()
             ));
         }
 

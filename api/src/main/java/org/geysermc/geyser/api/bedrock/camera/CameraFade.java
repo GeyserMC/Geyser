@@ -60,7 +60,7 @@ public interface CameraFade {
      *
      * @return the seconds the overlay is held
      */
-    float holdSeconds();
+    float fadeHoldSeconds();
 
     /**
      * Gets the seconds it takes to fade out.
@@ -85,7 +85,7 @@ public interface CameraFade {
 
         Builder fadeInSeconds(@IntRange(from = 0, to = 10) float fadeInSeconds);
 
-        Builder holdSeconds(@IntRange(from = 0, to = 10) float holdSeconds);
+        Builder fadeHoldSeconds(@IntRange(from = 0, to = 10) float holdSeconds);
 
         Builder fadeOutSeconds(@IntRange(from = 0, to = 10) float fadeOutSeconds);
 

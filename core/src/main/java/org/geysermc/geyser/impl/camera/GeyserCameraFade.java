@@ -35,7 +35,7 @@ import java.util.Objects;
 public record GeyserCameraFade(
         Color color,
         float fadeInSeconds,
-        float holdSeconds,
+        float fadeHoldSeconds,
         float fadeOutSeconds
 
 ) implements CameraFade {
@@ -66,7 +66,7 @@ public record GeyserCameraFade(
         }
 
         @Override
-        public CameraFade.Builder holdSeconds(@IntRange(from = 0, to = 10) float holdSeconds) {
+        public CameraFade.Builder fadeHoldSeconds(@IntRange(from = 0, to = 10) float holdSeconds) {
             if (holdSeconds < 0f) {
                 throw new IllegalArgumentException("Hold seconds must be at least 0 seconds");
             }

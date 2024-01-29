@@ -35,7 +35,7 @@ import org.geysermc.geyser.api.GeyserApi;
  * This interface represents a camera position instruction. Can be built with the {@link #builder()}.
  * <p>
  * Any camera position instruction pins the client camera to a specific position and rotation.
- * You can set {@link CameraEaseType} to ensure a smooth transition that will last {@link #easeDuration()} seconds.
+ * You can set {@link CameraEaseType} to ensure a smooth transition that will last {@link #easeSeconds()} seconds.
  * A {@link CameraFade} can also be sent, which will transition the player to a coloured transition during the transition.
  * <p>
  * Use {@link CameraData#sendCameraPosition(CameraPosition)} to send such an instruction to any connection.
@@ -58,12 +58,12 @@ public interface CameraPosition {
     @Nullable CameraEaseType easeType();
 
     /**
-     * Gets the easing duration of the camera.
+     * Gets the easing duration of the camera, in seconds.
      * Is only used if a {@link CameraEaseType} is set.
      *
-     * @return camera easing duration
+     * @return camera easing duration in seconds
      */
-    float easeDuration();
+    float easeSeconds();
 
     /**
      * Gets the x-axis rotation of the camera.
@@ -127,11 +127,11 @@ public interface CameraPosition {
 
         Builder easeType(@Nullable CameraEaseType easeType);
 
-        Builder easeDuration(float easeDuration);
+        Builder easeSeconds(float easeSeconds);
 
         Builder position(@NonNull Vector3f position);
 
-        Builder rotationX(int rotationX);
+        Builder rotationX(@IntRange(from = -90, to = 90) int rotationX);
 
         Builder rotationY(int rotationY);
 
