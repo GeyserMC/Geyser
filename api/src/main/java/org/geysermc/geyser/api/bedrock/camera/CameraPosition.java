@@ -58,6 +58,14 @@ public interface CameraPosition {
     @Nullable CameraEaseType easeType();
 
     /**
+     * Gets the {@link CameraFade} to be sent along the camera position instruction.
+     * If set, they will run at once.
+     *
+     * @return camera fade, or null if not present
+     */
+    @Nullable CameraFade cameraFade();
+
+    /**
      * Gets the easing duration of the camera, in seconds.
      * Is only used if a {@link CameraEaseType} is set.
      *
@@ -119,7 +127,7 @@ public interface CameraPosition {
 
     interface Builder {
 
-        Builder fade(@Nullable CameraFade fade);
+        Builder cameraFade(@Nullable CameraFade cameraFade);
 
         Builder renderPlayerEffects(boolean renderPlayerEffects);
 

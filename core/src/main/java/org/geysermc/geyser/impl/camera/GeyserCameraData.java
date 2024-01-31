@@ -148,6 +148,21 @@ public class GeyserCameraData implements CameraData {
 
         CameraInstructionPacket packet = new CameraInstructionPacket();
         packet.setSetInstruction(setInstruction);
+
+        // If present, also send the fade
+        CameraFade fade = movement.cameraFade();
+        if (fade != null) {
+            CameraFadeInstruction fadeInstruction = new CameraFadeInstruction();
+            fadeInstruction.setColor(fade.color());
+            fadeInstruction.setTimeData(
+                    new CameraFadeInstruction.TimeData(
+                            fade.fadeInSeconds(),
+                            fade.fadeHoldSeconds(),
+                            fade.fadeOutSeconds()
+                    )
+            );
+            packet.setFadeInstruction(fadeInstruction);
+        }
         session.sendUpstreamPacket(packet);
     }
 

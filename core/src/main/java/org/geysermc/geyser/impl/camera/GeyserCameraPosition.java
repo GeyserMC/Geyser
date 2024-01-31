@@ -35,7 +35,7 @@ import org.geysermc.geyser.api.bedrock.camera.CameraPosition;
 
 import java.util.Objects;
 
-public record GeyserCameraPosition(CameraFade fade,
+public record GeyserCameraPosition(CameraFade cameraFade,
                                    boolean renderPlayerEffects,
                                    boolean playerPositionForAudio,
                                    CameraEaseType easeType,
@@ -47,7 +47,7 @@ public record GeyserCameraPosition(CameraFade fade,
 ) implements CameraPosition {
 
     public static class Builder implements CameraPosition.Builder {
-        private CameraFade fade;
+        private CameraFade cameraFade;
         private boolean renderPlayerEffects;
         private boolean playerPositionForAudio;
         private CameraEaseType easeType;
@@ -58,8 +58,8 @@ public record GeyserCameraPosition(CameraFade fade,
         private Vector3f facingPosition;
 
         @Override
-        public CameraPosition.Builder fade(@Nullable CameraFade fade) {
-            this.fade = fade;
+        public CameraPosition.Builder cameraFade(@Nullable CameraFade cameraFade) {
+            this.cameraFade = cameraFade;
             return this;
         }
 
@@ -125,7 +125,7 @@ public record GeyserCameraPosition(CameraFade fade,
             }
 
             Objects.requireNonNull(position, "camera position must be non null!");
-            return new GeyserCameraPosition(fade, renderPlayerEffects, playerPositionForAudio, easeType, easeSeconds, position, rotationX, rotationY, facingPosition);
+            return new GeyserCameraPosition(cameraFade, renderPlayerEffects, playerPositionForAudio, easeType, easeSeconds, position, rotationX, rotationY, facingPosition);
         }
     }
 }

@@ -1566,8 +1566,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
         // Required for experimental 1.21 features
         startGamePacket.getExperiments().add(new ExperimentData("updateAnnouncedLive2023", true));
-        // Add experimental cameras
-        startGamePacket.getExperiments().add(new ExperimentData("cameras", true));
 
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);

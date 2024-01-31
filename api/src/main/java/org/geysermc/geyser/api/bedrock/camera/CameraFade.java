@@ -85,7 +85,7 @@ public interface CameraFade {
 
         Builder fadeInSeconds(@IntRange(from = 0, to = 10) float fadeInSeconds);
 
-        Builder fadeHoldSeconds(@IntRange(from = 0, to = 10) float holdSeconds);
+        Builder fadeHoldSeconds(@IntRange(from = 0, to = 10) float fadeHoldSeconds);
 
         Builder fadeOutSeconds(@IntRange(from = 0, to = 10) float fadeOutSeconds);
 

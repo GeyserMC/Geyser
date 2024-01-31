@@ -42,7 +42,7 @@ public record GeyserCameraFade(
     public static class Builder implements CameraFade.Builder {
         private Color color;
         private float fadeInSeconds;
-        private float holdSeconds;
+        private float fadeHoldSeconds;
         private float fadeOutSeconds;
 
         @Override
@@ -66,15 +66,15 @@ public record GeyserCameraFade(
         }
 
         @Override
-        public CameraFade.Builder fadeHoldSeconds(@IntRange(from = 0, to = 10) float holdSeconds) {
-            if (holdSeconds < 0f) {
-                throw new IllegalArgumentException("Hold seconds must be at least 0 seconds");
+        public CameraFade.Builder fadeHoldSeconds(@IntRange(from = 0, to = 10) float fadeHoldSeconds) {
+            if (fadeHoldSeconds < 0f) {
+                throw new IllegalArgumentException("Fade hold seconds must be at least 0 seconds");
             }
 
-            if (holdSeconds > 10f) {
-                throw new IllegalArgumentException("Hold seconds must be at most 10 seconds");
+            if (fadeHoldSeconds > 10f) {
+                throw new IllegalArgumentException("Fade hold seconds must be at most 10 seconds");
             }
-            this.holdSeconds = holdSeconds;
+            this.fadeHoldSeconds = fadeHoldSeconds;
             return this;
         }
 
@@ -94,14 +94,11 @@ public record GeyserCameraFade(
         @Override
         public CameraFade build() {
             Objects.requireNonNull(color, "color must be non null!");
-            if (fadeInSeconds + holdSeconds + fadeOutSeconds < 0.5f) {
+            if (fadeInSeconds + fadeHoldSeconds + fadeOutSeconds < 0.5f) {
                 throw new IllegalArgumentException("Total fade time (in, hold, out) must be at least 0.5 seconds");
             }
 
-            if (fadeInSeconds + holdSeconds + fadeOutSeconds > 10f) {
-                throw new IllegalArgumentException("Total fade time (in, hold, out) must be at most 10 seconds");
-            }
-            return new GeyserCameraFade(color, fadeInSeconds, holdSeconds, fadeOutSeconds);
+            return new GeyserCameraFade(color, fadeInSeconds, fadeHoldSeconds, fadeOutSeconds);
         }
     }
 }
