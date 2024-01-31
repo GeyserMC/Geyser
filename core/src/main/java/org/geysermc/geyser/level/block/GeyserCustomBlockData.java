@@ -54,7 +54,7 @@ public class GeyserCustomBlockData implements CustomBlockData {
 
     private final Map<String, Object> defaultProperties;
 
-    GeyserCustomBlockData(CustomBlockDataBuilder builder) {
+    GeyserCustomBlockData(Builder builder) {
         this.name = builder.name;
         if (name == null) {
             throw new IllegalStateException("Name must be set");
@@ -141,10 +141,10 @@ public class GeyserCustomBlockData implements CustomBlockData {
 
     @Override
     public CustomBlockState.@NonNull Builder blockStateBuilder() {
-        return new GeyserCustomBlockState.CustomBlockStateBuilder(this);
+        return new GeyserCustomBlockState.Builder(this);
     }
 
-    public static class CustomBlockDataBuilder implements Builder {
+    public static class Builder implements CustomBlockData.Builder {
         private String name;
         private boolean includedInCreativeInventory;
         private CreativeCategory creativeCategory;

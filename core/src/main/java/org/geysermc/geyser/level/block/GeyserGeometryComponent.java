@@ -37,7 +37,7 @@ public class GeyserGeometryComponent implements GeometryComponent {
     private final String identifier;
     private final Map<String, String> boneVisibility;
 
-    GeyserGeometryComponent(GeometryComponentBuilder builder) {
+    GeyserGeometryComponent(Builder builder) {
         this.identifier = builder.identifier;
         this.boneVisibility = builder.boneVisibility;
     }
@@ -52,18 +52,18 @@ public class GeyserGeometryComponent implements GeometryComponent {
         return boneVisibility;
     }
 
-    public static class GeometryComponentBuilder implements Builder {
+    public static class Builder implements GeometryComponent.Builder {
         private String identifier;
         private Map<String, String> boneVisibility;
 
         @Override
-        public GeometryComponent.Builder identifier(@NonNull String identifier) {
+        public Builder identifier(@NonNull String identifier) {
             this.identifier = identifier;
             return this;
         }
 
         @Override
-        public GeometryComponent.Builder boneVisibility(@Nullable Map<String, String> boneVisibility) {
+        public Builder boneVisibility(@Nullable Map<String, String> boneVisibility) {
             this.boneVisibility = boneVisibility;
             return this;
         }

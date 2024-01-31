@@ -101,6 +101,16 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
     }
 
     @Override
+    public PacketSignal handle(CameraPresetsPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public PacketSignal handle(CameraInstructionPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
     public PacketSignal handle(CommandBlockUpdatePacket packet) {
         return defaultHandler(packet);
     }
