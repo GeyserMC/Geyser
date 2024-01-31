@@ -48,7 +48,7 @@ public interface CameraFade {
 
     /**
      * Gets the seconds it takes to fade in.
-     * All fade times combined must take at least 0.5 seconds, and at most 10 seconds.
+     * All fade times combined must take at least 0.5 seconds, and at most 30 seconds.
      *
      * @return the seconds it takes to fade in
      */
@@ -56,7 +56,7 @@ public interface CameraFade {
 
     /**
      * Gets the seconds the overlay is held.
-     * All fade times combined must take at least 0.5 seconds, and at most 10 seconds.
+     * All fade times combined must take at least 0.5 seconds, and at most 30 seconds.
      *
      * @return the seconds the overlay is held
      */
@@ -64,7 +64,7 @@ public interface CameraFade {
 
     /**
      * Gets the seconds it takes to fade out.
-     * All fade times combined must take at least 0.5 seconds, and at most 10 seconds.
+     * All fade times combined must take at least 0.5 seconds, and at most 30 seconds.
      *
      * @return the seconds it takes to fade out
      */
