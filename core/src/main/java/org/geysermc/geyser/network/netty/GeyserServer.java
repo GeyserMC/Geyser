@@ -108,38 +108,8 @@ public final class GeyserServer {
 
     public GeyserServer(GeyserImpl geyser, int threadCount) {
         this.geyser = geyser;
-        // bindCount = 1/2 of processors, and max to 20
-        // It's offers up to 20*100=2000 workload
-        int threadBindCount = this.geyser.getConfig().getThreadBindCount();
-        if (Bootstraps.isReusePortAvailable()) {
-            if (threadBindCount == -1) {
-                // Set to the minimum of 20 and threadCount if configThreadCount is -1
-                threadBindCount = Math.min(20, threadCount);
-                this.geyser.getLogger().info(String.format("Thread bind count is auto set to %s!", threadBindCount));
-            } else if (threadBindCount < 0) {
-                // Check for negative values and set to 1 if negative
-                this.geyser.getLogger().warning("Thread bind count in config cannot be negative, force set to 1!");
-                threadBindCount = 1;
-            } else {
-                // Ensure threadBindCount is the lesser of 20 or threadCount
-                if (threadBindCount > 20) {
-                    this.geyser.getLogger().warning("Thread bind count in config is bigger than 20, force set to 20!");
-                    threadBindCount = 20;
-                }
-                if (threadBindCount > threadCount) {
-                    threadBindCount = threadCount;
-                    this.geyser.getLogger().warning(String.format("Thread bind count in config is bigger than Netty's default thread, force set to %s!", threadBindCount));
-                }
-            }
-
-            this.listenCount = threadBindCount;
-        } else {
-            if (threadBindCount != 1) {
-                this.geyser.getLogger().warning("System does not support modify thread_bind_count; force to 1.");
-            }
-            this.listenCount = 1;
-        }
-//        this.listenCount = Bootstraps.isReusePortAvailable() ? Math.max(1, Math.min(20, threadCount / 4)) : 1;
+        int defaultListenCount = 4; // 4 should be a pretty perfect value, as it is unlikely to cause disconnections and also won't waste any performance.
+        this.listenCount = Bootstraps.isReusePortAvailable() ? defaultListenCount : 1;
         this.group = TRANSPORT.eventLoopGroupFactory().apply(listenCount);
         this.childGroup = TRANSPORT.eventLoopGroupFactory().apply(threadCount);
 

@@ -74,11 +74,11 @@ public final class Bootstraps {
         return REUSEPORT_AVAILABLE;
     }
 
-    public static AbstractBootstrap setupBootstrap(AbstractBootstrap bootstrap) {
+    @SuppressWarnings({"rawtypes, unchecked"})
+    public static void setupBootstrap(AbstractBootstrap bootstrap) {
         if (REUSEPORT_AVAILABLE) {
             bootstrap.option(UnixChannelOption.SO_REUSEPORT, true);
         }
-        return bootstrap;
     }
 
     private static int[] fromString(String ver) {
