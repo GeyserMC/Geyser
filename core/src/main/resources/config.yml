@@ -225,14 +225,4 @@ use-direct-connection: true
 # This requires use-direct-connection to be true.
 disable-compression: true
 
-# Default value is 2, max value is 20. If set to -1, we will automatically configure this value.
-# Value 2 is generally sufficient for most servers, especially those with a low to moderate player count.
-# Increasing this value can be beneficial for servers with higher player counts or those experiencing high network traffic.
-# However, it should be noted that increasing the number of listen threads might not always result in performance improvements
-# and could lead to unnecessary resource usage on servers with fewer players.
-# Adjust this value only if your server's player count justifies the need for more listen threads.
-# It's recommended to add one more listen thread  for every 100 players.
-thread_bind_count: 2
-
-
 config-version: 4
