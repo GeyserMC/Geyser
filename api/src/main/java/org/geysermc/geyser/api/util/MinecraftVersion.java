@@ -23,12 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.bedrock.camera;
+package org.geysermc.geyser.api.util;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**
- * Represents a camera shake instruction. Can be sent in {@link CameraData#shakeCamera(float, float, CameraShake)}
+ * Represents a Minecraft version.
  */
-public enum CameraShake {
-    POSITIONAL,
-    ROTATIONAL
+public interface MinecraftVersion {
+
+    /**
+     * Gets the Minecraft version as a String.
+     * Example: "1.20.2", or "1.20.40/1.20.41"
+     *
+     * @return the version string
+     */
+    @NonNull String versionString();
+
+    /**
+     * Gets the protocol version of this Minecraft version.
+     *
+     * @return the protocol version
+     */
+    int protocolVersion();
 }

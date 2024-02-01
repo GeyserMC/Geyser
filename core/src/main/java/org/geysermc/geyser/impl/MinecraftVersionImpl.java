@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,12 +23,9 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.bedrock.camera;
+package org.geysermc.geyser.impl;
 
-/**
- * Represents a camera shake instruction. Can be sent in {@link CameraData#shakeCamera(float, float, CameraShake)}
- */
-public enum CameraShake {
-    POSITIONAL,
-    ROTATIONAL
+import org.geysermc.geyser.api.util.MinecraftVersion;
+
+public record MinecraftVersionImpl(String versionString, int protocolVersion) implements MinecraftVersion {
 }
