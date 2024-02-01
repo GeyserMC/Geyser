@@ -66,7 +66,6 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.IntFunction;
@@ -113,8 +112,9 @@ public final class GeyserServer {
 
     public GeyserServer(GeyserImpl geyser, int threadCount) {
         this.geyser = geyser;
-        int defaultListenCount = 4; // 4 should be a pretty perfect value, as it is unlikely to cause disconnections and also won't waste any performance.
-        this.listenCount = Bootstraps.isReusePortAvailable() ? defaultListenCount : 1;
+        int defaultListenCount = 2;
+        this.listenCount = Bootstraps.isReusePortAvailable() ?  Integer.getInteger("Geyser.ListenCount", defaultListenCount) : 1;
+        GeyserImpl.getInstance().getLogger().debug("Listen thread count: " + listenCount);
         this.group = TRANSPORT.eventLoopGroupFactory().apply(listenCount);
         this.childGroup = TRANSPORT.eventLoopGroupFactory().apply(threadCount);
 
