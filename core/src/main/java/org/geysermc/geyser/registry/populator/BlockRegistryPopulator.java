@@ -119,7 +119,7 @@ public final class BlockRegistryPopulator {
         var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
                 .put(ObjectIntPair.of("1_20_40", Bedrock_v622.CODEC.getProtocolVersion()), Conversion630_622::remapBlock)
                 .put(ObjectIntPair.of("1_20_50", Bedrock_v630.CODEC.getProtocolVersion()), tag -> tag)
-                // Only changes in 1.20.60 are hard_stained_glass, and some EDU only block
+                // Only changes in 1.20.60 are hard_stained_glass (an EDU only block)
                 .put(ObjectIntPair.of("1_20_60", Bedrock_v649.CODEC.getProtocolVersion()), tag -> tag)
                 .build();
 

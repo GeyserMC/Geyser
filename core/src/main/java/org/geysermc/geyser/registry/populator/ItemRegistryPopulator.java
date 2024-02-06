@@ -597,10 +597,10 @@ public class ItemRegistryPopulator {
         NbtMapBuilder componentBuilder = NbtMap.builder();
         // Conveniently, as of 1.16.200, the furnace minecart has a texture AND translation string already.
         itemProperties.putCompound("minecraft:icon", NbtMap.builder()
-                .putString("texture", "minecart_furnace")
-                .putString("frame", "0.000000")
-                .putInt("frame_version", 1)
-                .putString("legacy_id", "").build());
+                        .putCompound("textures", NbtMap.builder()
+                                .putString("default", "minecart_furnace")
+                                .build())
+                .build());
         componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", "item.minecartFurnace.name").build());
 
         // Indicate that the arm animation should play on rails
@@ -621,5 +621,7 @@ public class ItemRegistryPopulator {
         componentBuilder.putCompound("item_properties", itemProperties.build());
         builder.putCompound("components", componentBuilder.build());
         componentItemData.add(new ComponentItemData("geysermc:furnace_minecart", builder.build()));
+
+        System.out.println(builder.build());
     }
 }

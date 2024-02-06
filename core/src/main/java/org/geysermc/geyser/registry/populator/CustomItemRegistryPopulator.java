@@ -260,7 +260,9 @@ public class CustomItemRegistryPopulator {
 
     private static void setupBasicItemInfo(int maxDamage, int stackSize, boolean displayHandheld, CustomItemData customItemData, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
         itemProperties.putCompound("minecraft:icon", NbtMap.builder()
-                .putString("texture", customItemData.icon())
+                        .putCompound("textures", NbtMap.builder()
+                                .putString("default", customItemData.icon())
+                                .build())
                 .build());
         componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", customItemData.displayName()).build());
 
