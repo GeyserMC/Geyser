@@ -60,6 +60,7 @@ import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.*;
@@ -422,7 +423,7 @@ public class ItemRegistryPopulator {
                         }
 
                         GeyserCustomMappingData customMapping = CustomItemRegistryPopulator.registerCustomItem(
-                                customItemName, javaItem, mappingItem, customItem, customProtocolId
+                                customItemName, javaItem, mappingItem, customItem, customProtocolId, palette.protocolVersion
                         );
                         // ComponentItemData - used to register some custom properties
                         componentItemData.add(customMapping.componentItemData());
@@ -497,7 +498,7 @@ public class ItemRegistryPopulator {
                         .count(1)
                         .build());
 
-                registerFurnaceMinecart(nextFreeBedrockId++, componentItemData);
+                registerFurnaceMinecart(nextFreeBedrockId++, componentItemData, palette.protocolVersion);
 
                 // Register any completely custom items given to us
                 IntSet registeredJavaIds = new IntOpenHashSet(); // Used to check for duplicate item java ids
@@ -510,7 +511,7 @@ public class ItemRegistryPopulator {
                     }
 
                     int customItemId = nextFreeBedrockId++;
-                    NonVanillaItemRegistration registration = CustomItemRegistryPopulator.registerCustomItem(customItem, customItemId);
+                    NonVanillaItemRegistration registration = CustomItemRegistryPopulator.registerCustomItem(customItem, customItemId, palette.protocolVersion);
 
                     componentItemData.add(registration.componentItemData());
                     ItemMapping mapping = registration.mapping();
@@ -587,7 +588,7 @@ public class ItemRegistryPopulator {
         }
     }
 
-    private static void registerFurnaceMinecart(int nextFreeBedrockId, List<ComponentItemData> componentItemData) {
+    private static void registerFurnaceMinecart(int nextFreeBedrockId, List<ComponentItemData> componentItemData, int protocolVersion) {
         NbtMapBuilder builder = NbtMap.builder();
         builder.putString("name", "geysermc:furnace_minecart")
                 .putInt("id", nextFreeBedrockId);
@@ -596,11 +597,20 @@ public class ItemRegistryPopulator {
 
         NbtMapBuilder componentBuilder = NbtMap.builder();
         // Conveniently, as of 1.16.200, the furnace minecart has a texture AND translation string already.
-        itemProperties.putCompound("minecraft:icon", NbtMap.builder()
-                        .putCompound("textures", NbtMap.builder()
-                                .putString("default", "minecart_furnace")
-                                .build())
-                .build());
+        // Not so conveniently, the way to set an icon changed in 1.20.60
+        NbtMap iconMap;
+        if (GameProtocol.is1_20_60orHigher(protocolVersion)) {
+            iconMap = NbtMap.builder()
+                    .putCompound("textures", NbtMap.builder()
+                            .putString("default", "minecart_furnace")
+                            .build())
+                    .build();
+        } else {
+            iconMap = NbtMap.builder()
+                    .putString("texture", "minecart_furnace")
+                    .build();
+        }
+        itemProperties.putCompound("minecraft:icon", iconMap);
         componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", "item.minecartFurnace.name").build());
 
         // Indicate that the arm animation should play on rails
