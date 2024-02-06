@@ -621,7 +621,5 @@ public class ItemRegistryPopulator {
         componentBuilder.putCompound("item_properties", itemProperties.build());
         builder.putCompound("components", componentBuilder.build());
         componentItemData.add(new ComponentItemData("geysermc:furnace_minecart", builder.build()));
-
-        System.out.println(builder.build());
     }
 }
