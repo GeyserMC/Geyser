@@ -91,8 +91,8 @@ public final class GameProtocol {
         return session.getUpstream().getProtocolVersion() < Bedrock_v630.CODEC.getProtocolVersion();
     }
 
-    public static boolean isPre1_20_60(GeyserSession session) {
-        return session.getUpstream().getProtocolVersion() < Bedrock_v649.CODEC.getProtocolVersion();
+    public static boolean is1_20_60orHigher(int protocolVersion) {
+        return protocolVersion >= Bedrock_v649.CODEC.getProtocolVersion();
     }
 
     /**

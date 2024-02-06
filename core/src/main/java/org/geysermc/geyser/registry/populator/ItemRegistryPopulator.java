@@ -274,7 +274,7 @@ public class ItemRegistryPopulator {
 
                                 if (firstPass) {
                                     firstPass = false;
-                                    if (states.size() == 0) {
+                                    if (states.isEmpty()) {
                                         // No need to iterate and find all block states - this is the one, as there can't be any others
                                         bedrockBlock = bedrockBlockRuntimeId;
                                         break;
