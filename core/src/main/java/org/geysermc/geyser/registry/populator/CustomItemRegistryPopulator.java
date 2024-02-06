@@ -44,6 +44,7 @@ import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.components.WearableSlot;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -97,10 +98,10 @@ public class CustomItemRegistryPopulator {
         }
     }
 
-    public static GeyserCustomMappingData registerCustomItem(String customItemName, Item javaItem, GeyserMappingItem mapping, CustomItemData customItemData, int bedrockId) {
+    public static GeyserCustomMappingData registerCustomItem(String customItemName, Item javaItem, GeyserMappingItem mapping, CustomItemData customItemData, int bedrockId, int protocolVersion) {
         ItemDefinition itemDefinition = new SimpleItemDefinition(customItemName, bedrockId, true);
 
-        NbtMapBuilder builder = createComponentNbt(customItemData, javaItem, mapping, customItemName, bedrockId);
+        NbtMapBuilder builder = createComponentNbt(customItemData, javaItem, mapping, customItemName, bedrockId, protocolVersion);
         ComponentItemData componentItemData = new ComponentItemData(customItemName, builder.build());
 
         return new GeyserCustomMappingData(componentItemData, itemDefinition, customItemName, bedrockId);
@@ -124,7 +125,7 @@ public class CustomItemRegistryPopulator {
         return true;
     }
 
-    public static NonVanillaItemRegistration registerCustomItem(NonVanillaCustomItemData customItemData, int customItemId) {
+    public static NonVanillaItemRegistration registerCustomItem(NonVanillaCustomItemData customItemData, int customItemId, int protocolVersion) {
         String customIdentifier = customItemData.identifier();
 
         Set<String> repairMaterials = customItemData.repairMaterials();
@@ -152,14 +153,14 @@ public class CustomItemRegistryPopulator {
                 .build();
 
         NbtMapBuilder builder = createComponentNbt(customItemData, customItemData.identifier(), customItemId,
-                customItemData.creativeCategory(), customItemData.creativeGroup(), customItemData.isHat(), customItemData.displayHandheld());
+                customItemData.creativeCategory(), customItemData.creativeGroup(), customItemData.isHat(), customItemData.displayHandheld(), protocolVersion);
         ComponentItemData componentItemData = new ComponentItemData(customIdentifier, builder.build());
 
         return new NonVanillaItemRegistration(componentItemData, item, customItemMapping);
     }
 
     private static NbtMapBuilder createComponentNbt(CustomItemData customItemData, Item javaItem, GeyserMappingItem mapping,
-                                                    String customItemName, int customItemId) {
+                                                    String customItemName, int customItemId, int protocolVersion) {
         NbtMapBuilder builder = NbtMap.builder();
         builder.putString("name", customItemName)
                 .putInt("id", customItemId);
@@ -167,7 +168,7 @@ public class CustomItemRegistryPopulator {
         NbtMapBuilder itemProperties = NbtMap.builder();
         NbtMapBuilder componentBuilder = NbtMap.builder();
 
-        setupBasicItemInfo(javaItem.maxDamage(), javaItem.maxStackSize(), mapping.getToolType() != null || customItemData.displayHandheld(), customItemData, itemProperties, componentBuilder);
+        setupBasicItemInfo(javaItem.maxDamage(), javaItem.maxStackSize(), mapping.getToolType() != null || customItemData.displayHandheld(), customItemData, itemProperties, componentBuilder, protocolVersion);
 
         boolean canDestroyInCreative = true;
         if (mapping.getToolType() != null) { // This is not using the isTool boolean because it is not just a render type here.
@@ -210,7 +211,7 @@ public class CustomItemRegistryPopulator {
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private static NbtMapBuilder createComponentNbt(NonVanillaCustomItemData customItemData, String customItemName,
                                                     int customItemId, OptionalInt creativeCategory,
-                                                    String creativeGroup, boolean isHat, boolean displayHandheld) {
+                                                    String creativeGroup, boolean isHat, boolean displayHandheld, int protocolVersion) {
         NbtMapBuilder builder = NbtMap.builder();
         builder.putString("name", customItemName)
                 .putInt("id", customItemId);
@@ -218,7 +219,7 @@ public class CustomItemRegistryPopulator {
         NbtMapBuilder itemProperties = NbtMap.builder();
         NbtMapBuilder componentBuilder = NbtMap.builder();
 
-        setupBasicItemInfo(customItemData.maxDamage(), customItemData.stackSize(), displayHandheld, customItemData, itemProperties, componentBuilder);
+        setupBasicItemInfo(customItemData.maxDamage(), customItemData.stackSize(), displayHandheld, customItemData, itemProperties, componentBuilder, protocolVersion);
 
         boolean canDestroyInCreative = true;
         if (customItemData.toolType() != null) { // This is not using the isTool boolean because it is not just a render type here.
@@ -258,10 +259,21 @@ public class CustomItemRegistryPopulator {
         return builder;
     }
 
-    private static void setupBasicItemInfo(int maxDamage, int stackSize, boolean displayHandheld, CustomItemData customItemData, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
-        itemProperties.putCompound("minecraft:icon", NbtMap.builder()
-                .putString("texture", customItemData.icon())
-                .build());
+    private static void setupBasicItemInfo(int maxDamage, int stackSize, boolean displayHandheld, CustomItemData customItemData, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder, int protocolVersion) {
+        NbtMap iconMap;
+        if (GameProtocol.is1_20_60orHigher(protocolVersion)) {
+            iconMap = NbtMap.builder()
+                    .putCompound("textures", NbtMap.builder()
+                            .putString("default", customItemData.icon())
+                            .build())
+                    .build();
+        } else {
+            iconMap = NbtMap.builder()
+                    .putString("texture", customItemData.icon())
+                    .build();
+        }
+        itemProperties.putCompound("minecraft:icon", iconMap);
+
         componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", customItemData.displayName()).build());
 
         // Add a Geyser tag to the item, allowing Molang queries

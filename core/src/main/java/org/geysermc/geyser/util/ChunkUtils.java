@@ -244,6 +244,7 @@ public class ChunkUtils {
             byteBuf.readBytes(payload);
 
             LevelChunkPacket data = new LevelChunkPacket();
+            data.setDimension(DimensionUtils.javaToBedrock(session.getChunkCache().getBedrockDimension()));
             data.setChunkX(chunkX);
             data.setChunkZ(chunkZ);
             data.setSubChunksLength(0);
