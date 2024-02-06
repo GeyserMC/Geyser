@@ -25,26 +25,16 @@
 
 package org.geysermc.geyser.registry.populator;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
-
-import java.util.Map;
 
 
 public class Conversion630_649 {
 
-    private static final Map<String, String> ITEMS = new Object2ObjectOpenHashMap<>() {{
-        // Makes way for the new armadillo_scute
-        put("minecraft:scute", "minecraft:turtle_scute");
-    }};
-
     static GeyserMappingItem remapItem(@SuppressWarnings("unused") Item item, GeyserMappingItem mapping) {
-        String replacement = ITEMS.get(mapping.getBedrockIdentifier());
-        if (replacement == null) {
-            return mapping;
-        } else {
-            return mapping.withBedrockIdentifier(replacement);
+        if (mapping.getBedrockIdentifier().equalsIgnoreCase("minecraft:scute")) {
+            return mapping.withBedrockIdentifier("minecraft:turtle_scute");
         }
+        return mapping;
     }
 }

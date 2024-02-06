@@ -44,7 +44,10 @@ import java.util.Set;
 public class CustomBlockRegistryPopulator {
 
     // Since 1.20.60, custom blocks need a block_id in their nbt tag
-    public static AtomicInteger BLOCK_ID = new AtomicInteger(10000);
+    public static AtomicInteger BLOCK_ID = new AtomicInteger();
+
+    // Custom block id's start at 10000, and count up
+    public static final int START_OFFSET = 10000;
 
     /**
      * The stage of population
