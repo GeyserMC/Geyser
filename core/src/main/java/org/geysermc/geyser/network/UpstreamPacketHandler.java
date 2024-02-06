@@ -151,7 +151,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         session.sendUpstreamPacketImmediately(responsePacket);
 
         session.getUpstream().getSession().setCompression(algorithm);
-        session.getUpstream().getSession().setCompressionLevel(this.geyser.getConfig().getBedrock().getCompressionLevel());
+        //session.getUpstream().getSession().setCompressionLevel(this.geyser.getConfig().getBedrock().getCompressionLevel());
         networkSettingsRequested = true;
         return PacketSignal.HANDLED;
     }
