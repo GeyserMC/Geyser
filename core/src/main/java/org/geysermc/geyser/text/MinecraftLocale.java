@@ -196,7 +196,6 @@ public class MinecraftLocale {
                 Map.Entry<String, JsonNode> entry = localeIterator.next();
                 langMap.put(entry.getKey(), entry.getValue().asText());
             }
-            localeStream.close();
             return langMap;
         } catch (FileNotFoundException e){
             throw new AssertionError(GeyserLocale.getLocaleStringLog("geyser.locale.fail.file", locale, e.getMessage()));

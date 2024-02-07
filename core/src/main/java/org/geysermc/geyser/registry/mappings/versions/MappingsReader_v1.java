@@ -35,17 +35,22 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockPermutation;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
-import org.geysermc.geyser.api.block.custom.component.*;
+import org.geysermc.geyser.api.block.custom.component.BoxComponent;
+import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
+import org.geysermc.geyser.api.block.custom.component.GeometryComponent;
+import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
+import org.geysermc.geyser.api.block.custom.component.PlacementConditions;
 import org.geysermc.geyser.api.block.custom.component.PlacementConditions.BlockFilterType;
 import org.geysermc.geyser.api.block.custom.component.PlacementConditions.Face;
+import org.geysermc.geyser.api.block.custom.component.TransformationComponent;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
-import org.geysermc.geyser.level.block.GeyserCustomBlockComponents.CustomBlockComponentsBuilder;
-import org.geysermc.geyser.level.block.GeyserCustomBlockData.CustomBlockDataBuilder;
-import org.geysermc.geyser.level.block.GeyserGeometryComponent.GeometryComponentBuilder;
-import org.geysermc.geyser.level.block.GeyserMaterialInstance.MaterialInstanceBuilder;
+import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
+import org.geysermc.geyser.level.block.GeyserCustomBlockData;
+import org.geysermc.geyser.level.block.GeyserGeometryComponent;
+import org.geysermc.geyser.level.block.GeyserMaterialInstance;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockComponentsMapping;
@@ -57,7 +62,14 @@ import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.MathUtils;
 
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -248,7 +260,7 @@ public class MappingsReader_v1 extends MappingsReader {
         boolean onlyOverrideStates = node.has("only_override_states") && node.get("only_override_states").asBoolean();
 
         // Create the data for the overall block
-        CustomBlockData.Builder customBlockDataBuilder = new CustomBlockDataBuilder()
+        CustomBlockData.Builder customBlockDataBuilder = new GeyserCustomBlockData.Builder()
                 .name(name)
                 .includedInCreativeInventory(includedInCreativeInventory)
                 .creativeCategory(creativeCategory)
@@ -360,7 +372,7 @@ public class MappingsReader_v1 extends MappingsReader {
         int id = BlockRegistries.JAVA_IDENTIFIER_TO_ID.getOrDefault(stateKey, -1);
         BoxComponent boxComponent = createBoxComponent(id);
         BoxComponent extendedBoxComponent = createExtendedBoxComponent(id);
-        CustomBlockComponents.Builder builder = new CustomBlockComponentsBuilder()
+        CustomBlockComponents.Builder builder = new GeyserCustomBlockComponents.Builder()
                 .collisionBox(boxComponent)
                 .selectionBox(boxComponent);
 
@@ -392,12 +404,12 @@ public class MappingsReader_v1 extends MappingsReader {
 
         if (node.has("geometry")) {
             if (node.get("geometry").isTextual()) {
-                builder.geometry(new GeometryComponentBuilder()
+                builder.geometry(new GeyserGeometryComponent.Builder()
                         .identifier(node.get("geometry").asText())
                         .build());
             } else {
                 JsonNode geometry = node.get("geometry");
-                GeometryComponentBuilder geometryBuilder = new GeometryComponentBuilder();
+                GeometryComponent.Builder geometryBuilder = new GeyserGeometryComponent.Builder();
                 if (geometry.has("identifier")) {
                     geometryBuilder.identifier(geometry.get("identifier").asText());
                 }
@@ -654,7 +666,7 @@ public class MappingsReader_v1 extends MappingsReader {
             ambientOcclusion = node.get("ambient_occlusion").asBoolean();
         }
 
-        return new MaterialInstanceBuilder()
+        return new GeyserMaterialInstance.Builder()
                 .texture(texture)
                 .renderMethod(renderMethod)
                 .faceDimming(faceDimming)
