@@ -348,7 +348,6 @@ public class CustomItemRegistryPopulator {
         if (toolType.equals("sword")) {
             miningSpeed = 1.5f;
             canDestroyInCreative = false;
-            componentBuilder.putCompound("minecraft:weapon", NbtMap.EMPTY);
         }
 
         itemProperties.putBoolean("hand_equipped", true);
