@@ -177,7 +177,7 @@ public class CustomItemRegistryPopulator {
         itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
 
         if (mapping.getArmorType() != null) {
-            computeArmorProperties(mapping.getArmorType(), mapping.getProtectionValue(), componentBuilder);
+            computeArmorProperties(mapping.getArmorType(), mapping.getProtectionValue(), itemProperties, componentBuilder);
         }
 
         if (mapping.getFirstBlockRuntimeId() != null) {
@@ -194,7 +194,7 @@ public class CustomItemRegistryPopulator {
 
         switch (mapping.getBedrockIdentifier()) {
             case "minecraft:fire_charge", "minecraft:flint_and_steel" -> computeBlockItemProperties("minecraft:fire", componentBuilder);
-            case "minecraft:bow", "minecraft:crossbow", "minecraft:trident" -> computeChargeableProperties(itemProperties, componentBuilder);
+            case "minecraft:bow", "minecraft:crossbow", "minecraft:trident" -> computeChargeableProperties(itemProperties, componentBuilder, mapping.getBedrockIdentifier(), protocolVersion);
             case "minecraft:honey_bottle", "minecraft:milk_bucket", "minecraft:potion" -> computeConsumableProperties(itemProperties, componentBuilder, 2, true);
             case "minecraft:experience_bottle", "minecraft:egg", "minecraft:ender_pearl", "minecraft:ender_eye", "minecraft:lingering_potion", "minecraft:snowball", "minecraft:splash_potion" ->
                     computeThrowableProperties(componentBuilder);
@@ -223,13 +223,13 @@ public class CustomItemRegistryPopulator {
 
         boolean canDestroyInCreative = true;
         if (customItemData.toolType() != null) { // This is not using the isTool boolean because it is not just a render type here.
-            canDestroyInCreative = computeToolProperties(customItemData.toolType(), itemProperties, componentBuilder);
+            canDestroyInCreative = computeToolProperties(Objects.requireNonNull(customItemData.toolType()), itemProperties, componentBuilder);
         }
         itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
 
         String armorType = customItemData.armorType();
         if (armorType != null) {
-            computeArmorProperties(armorType, customItemData.protectionValue(), componentBuilder);
+            computeArmorProperties(armorType, customItemData.protectionValue(), itemProperties, componentBuilder);
         }
 
         if (customItemData.isEdible()) {
@@ -237,7 +237,11 @@ public class CustomItemRegistryPopulator {
         }
 
         if (customItemData.isChargeable()) {
-            computeChargeableProperties(itemProperties, componentBuilder);
+            String tooltype = customItemData.toolType();
+            if (tooltype == null) {
+                throw new IllegalArgumentException("tool type must be set if the custom item is chargeable!");
+            }
+            computeChargeableProperties(itemProperties, componentBuilder, "minecraft:" + tooltype, protocolVersion);
         }
 
         computeRenderOffsets(isHat, customItemData, componentBuilder);
@@ -348,16 +352,19 @@ public class CustomItemRegistryPopulator {
         if (toolType.equals("sword")) {
             miningSpeed = 1.5f;
             canDestroyInCreative = false;
-            componentBuilder.putCompound("minecraft:weapon", NbtMap.EMPTY);
         }
 
         itemProperties.putBoolean("hand_equipped", true);
         itemProperties.putFloat("mining_speed", miningSpeed);
 
+        // This allows custom tools - shears, swords, shovels, axes etc to be enchanted or combined in the anvil
+        itemProperties.putInt("enchantable_value", 1);
+        itemProperties.putString("enchantable_slot", toolType);
+
         return canDestroyInCreative;
     }
 
-    private static void computeArmorProperties(String armorType, int protectionValue, NbtMapBuilder componentBuilder) {
+    private static void computeArmorProperties(String armorType, int protectionValue, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
         switch (armorType) {
             case "boots" -> {
                 componentBuilder.putString("minecraft:render_offsets", "boots");
@@ -391,13 +398,74 @@ public class CustomItemRegistryPopulator {
         componentBuilder.putCompound("minecraft:block_placer", NbtMap.builder().putString("block", blockItem).build());
     }
 
-    private static void computeChargeableProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
+    private static void computeChargeableProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder, String mapping, int protocolVersion) {
         // setting high use_duration prevents the consume animation from playing
         itemProperties.putInt("use_duration", Integer.MAX_VALUE);
         // display item as tool (mainly for crossbow and bow)
         itemProperties.putBoolean("hand_equipped", true);
-        // ensure client moves at slow speed while charging (note: this was calculated by hand as the movement modifer value does not seem to scale linearly)
-        componentBuilder.putCompound("minecraft:chargeable", NbtMap.builder().putFloat("movement_modifier", 0.35F).build());
+        // Make bows, tridents, and crossbows enchantable
+        itemProperties.putInt("enchantable_value", 1);
+
+        if (GameProtocol.is1_20_60orHigher(protocolVersion)) {
+            componentBuilder.putCompound("minecraft:use_modifiers", NbtMap.builder()
+                    .putFloat("use_duration", 100F)
+                    .putFloat("movement_modifier", 0.35F)
+                    .build());
+
+            switch (mapping) {
+                case "minecraft:bow" -> {
+                    itemProperties.putString("enchantable_slot", "bow");
+                    itemProperties.putInt("frame_count", 3);
+
+                    componentBuilder.putCompound("minecraft:shooter", NbtMap.builder()
+                            .putList("ammunition", NbtType.COMPOUND, List.of(
+                                    NbtMap.builder()
+                                            .putCompound("item", NbtMap.builder()
+                                                    .putString("name", "minecraft:arrow")
+                                                    .build())
+                                            .putBoolean("use_offhand", true)
+                                            .putBoolean("search_inventory", true)
+                                            .build()
+                            ))
+                            .putFloat("max_draw_duration", 0f)
+                            .putBoolean("charge_on_draw", true)
+                            .putBoolean("scale_power_by_draw_duration", true)
+                            .build());
+                    componentBuilder.putInt("minecraft:use_duration", 999);
+                }
+                case "minecraft:trident" -> {
+                    itemProperties.putString("enchantable_slot", "trident");
+                    componentBuilder.putInt("minecraft:use_duration", 999);
+                }
+                case "minecraft:crossbow" -> {
+                    itemProperties.putString("enchantable_slot", "crossbow");
+                    itemProperties.putInt("frame_count", 10);
+                    //itemProperties.putInt("minecraft:use_animation", 4); // Todo: find proper cross bow animation value
+
+                    componentBuilder.putCompound("minecraft:shooter", NbtMap.builder()
+                            .putList("ammunition", NbtType.COMPOUND, List.of(
+                                    NbtMap.builder()
+                                            .putCompound("item", NbtMap.builder()
+                                                    .putString("name", "minecraft:arrow")
+                                                    .build())
+                                            .putBoolean("use_offhand", true)
+                                            .putBoolean("search_inventory", true)
+                                            .build()
+                            ))
+                            .putFloat("max_draw_duration", 1f)
+                            .putBoolean("charge_on_draw", true)
+                            .putBoolean("scale_power_by_draw_duration", true)
+                            .build());
+                    componentBuilder.putInt("minecraft:use_duration", 999);
+                }
+            }
+        } else {
+            // ensure client moves at slow speed while charging (note: this was calculated by hand as the movement modifer value does not seem to scale linearly)
+            componentBuilder.putCompound("minecraft:chargeable", NbtMap.builder().putFloat("movement_modifier", 0.35F).build());
+
+            // keep item enchantable; also works on 1.20.50
+            itemProperties.putString("enchantable_slot", mapping.replace("minecraft:", ""));
+        }
     }
 
     private static void computeConsumableProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder, int useAnimation, boolean canAlwaysEat) {
