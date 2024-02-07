@@ -440,7 +440,6 @@ public class CustomItemRegistryPopulator {
                 case "minecraft:crossbow" -> {
                     itemProperties.putString("enchantable_slot", "crossbow");
                     itemProperties.putInt("frame_count", 10);
-                    //itemProperties.putInt("minecraft:use_animation", 4); // Todo: find proper cross bow animation value
 
                     componentBuilder.putCompound("minecraft:shooter", NbtMap.builder()
                             .putList("ammunition", NbtType.COMPOUND, List.of(
