@@ -120,6 +120,9 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         super.initializeMetadata();
         // For the OptionalPack, set all bits as invisible by default as this matches Java Edition behavior
         dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, 0xff);
+        // Since 1.20.60, the nametag does not show properly if this is not set :/
+        // The nametag does disappear properly when the player is invisible though.
+        dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
     }
 
     @Override
