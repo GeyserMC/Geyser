@@ -124,6 +124,7 @@ public class CreativeItemRegistryPopulator {
                 builder.remove("name_hash");
                 builder.remove("network_id");
                 builder.remove("version");
+                builder.remove("block_id");
 
                 blockDefinition = blockMappings.getDefinition(builder.build());
             } catch (IOException e) {

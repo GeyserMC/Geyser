@@ -18,7 +18,7 @@ public class GeyserJavaBlockState implements JavaBlockState {
     String pistonBehavior;
     boolean hasBlockEntity;
 
-    private GeyserJavaBlockState(JavaBlockStateBuilder builder) {
+    private GeyserJavaBlockState(Builder builder) {
         this.identifier = builder.identifier;
         this.javaId = builder.javaId;
         this.stateGroupId = builder.stateGroupId;
@@ -81,7 +81,7 @@ public class GeyserJavaBlockState implements JavaBlockState {
         return hasBlockEntity;
     }
 
-    public static class JavaBlockStateBuilder implements Builder {
+    public static class Builder implements JavaBlockState.Builder {
         private String identifier;
         private int javaId;
         private int stateGroupId;

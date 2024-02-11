@@ -25,6 +25,9 @@
 
 package org.geysermc.geyser.api.bedrock.camera;
 
+/**
+ * Represents a camera shake instruction. Can be sent in {@link CameraData#shakeCamera(float, float, CameraShake)}
+ */
 public enum CameraShake {
     POSITIONAL,
     ROTATIONAL

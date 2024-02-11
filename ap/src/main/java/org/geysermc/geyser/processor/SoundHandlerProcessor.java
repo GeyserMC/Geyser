@@ -30,7 +30,7 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 
 @SupportedAnnotationTypes("*")
-@SupportedSourceVersion(SourceVersion.RELEASE_16)
+@SupportedSourceVersion(SourceVersion.RELEASE_17)
 public class SoundHandlerProcessor extends ClassProcessor {
     public SoundHandlerProcessor() {
         super("org.geysermc.geyser.translator.sound.SoundTranslator");
