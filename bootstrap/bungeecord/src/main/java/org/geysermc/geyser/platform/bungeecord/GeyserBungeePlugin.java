@@ -167,24 +167,27 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
         GeyserImpl.start();
 
-        if (!GeyserImpl.getInstance().isReloading()) {
-            this.geyserInjector.initializeLocalChannel(this);
-
-            this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor("geyser", this.geyser, this.geyserCommandManager.getCommands()));
-            for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
-                Map<String, Command> commands = entry.getValue();
-                if (commands.isEmpty()) {
-                    continue;
-                }
-
-                this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor(entry.getKey().description().id(), this.geyser, commands));
-            }
-        }
-
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserBungeePingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
         } else {
             this.geyserBungeePingPassthrough = new GeyserBungeePingPassthrough(getProxy());
+        }
+
+        // No need to re-register commands or re-init injector when reloading
+        if (GeyserImpl.getInstance().isReloading()) {
+            return;
+        }
+
+        this.geyserInjector.initializeLocalChannel(this);
+
+        this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor("geyser", this.geyser, this.geyserCommandManager.getCommands()));
+        for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
+            Map<String, Command> commands = entry.getValue();
+            if (commands.isEmpty()) {
+                continue;
+            }
+
+            this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor(entry.getKey().description().id(), this.geyser, commands));
         }
     }
 
