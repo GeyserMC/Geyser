@@ -42,7 +42,11 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.geysermc.api.Geyser;
+import org.geysermc.geyser.api.command.CommandSource;
+import org.geysermc.geyser.api.util.MinecraftVersion;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
 import org.geysermc.erosion.packet.Packets;
@@ -58,14 +62,15 @@ import org.geysermc.geyser.api.event.lifecycle.*;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
-import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.erosion.UnixSocketClientListener;
 import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.extension.GeyserExtensionManager;
+import org.geysermc.geyser.impl.MinecraftVersionImpl;
 import org.geysermc.geyser.level.WorldManager;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.GeyserServer;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -109,8 +114,8 @@ public class GeyserImpl implements GeyserApi {
             .enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
 
     public static final String NAME = "Geyser";
-    public static final String GIT_VERSION = "${gitVersion}"; // A fallback for running in IDEs
-    public static final String VERSION = "${version}"; // A fallback for running in IDEs
+    public static final String GIT_VERSION = "${gitVersion}";
+    public static final String VERSION = "${version}";
 
     public static final String BUILD_NUMBER = "${buildNumber}";
     public static final String BRANCH = "${branch}";
@@ -317,6 +322,22 @@ public class GeyserImpl implements GeyserApi {
                 } else {
                     logger.info("Port set from system property: " + port);
                 }
+            }
+
+            String broadcastPort = System.getProperty("geyserBroadcastPort", "");
+            if (!broadcastPort.isEmpty()) {
+                int parsedPort;
+                try {
+                    parsedPort = Integer.parseInt(broadcastPort);
+                    if (parsedPort < 1 || parsedPort > 65535) {
+                        throw new NumberFormatException("The broadcast port must be between 1 and 65535 inclusive!");
+                    }
+                } catch (NumberFormatException e) {
+                    logger.error(String.format("Invalid broadcast port: %s! Defaulting to configured port.", broadcastPort + " (" + e.getMessage() + ")"));
+                    parsedPort = config.getBedrock().port();
+                }
+                config.getBedrock().setBroadcastPort(parsedPort);
+                logger.info("Broadcast port set from system property: " + parsedPort);
             }
 
             boolean floodgatePresent = bootstrap.testFloodgatePluginPresent();
@@ -705,6 +726,25 @@ public class GeyserImpl implements GeyserApi {
     @NonNull
     public PlatformType platformType() {
         return platformType;
+    }
+
+    @Override
+    public @NonNull MinecraftVersion supportedJavaVersion() {
+        return new MinecraftVersionImpl(GameProtocol.getJavaMinecraftVersion(), GameProtocol.getJavaProtocolVersion());
+    }
+
+    @Override
+    public @NonNull List<MinecraftVersion> supportedBedrockVersions() {
+        ArrayList<MinecraftVersion> versions = new ArrayList<>();
+        for (BedrockCodec codec : GameProtocol.SUPPORTED_BEDROCK_CODECS) {
+            versions.add(new MinecraftVersionImpl(codec.getMinecraftVersion(), codec.getProtocolVersion()));
+        }
+        return Collections.unmodifiableList(versions);
+    }
+
+    @Override
+    public @NonNull CommandSource consoleCommandSource() {
+        return getLogger();
     }
 
     public int buildNumber() {

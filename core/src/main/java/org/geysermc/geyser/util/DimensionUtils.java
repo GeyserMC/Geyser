@@ -143,9 +143,9 @@ public class DimensionUtils {
         // thinks they are in the end dimension.
         if (isCustomBedrockNetherId()) {
             if (NETHER.equals(javaDimension)) {
-                session.sendFog(BEDROCK_FOG_HELL);
+                session.camera().sendFog(BEDROCK_FOG_HELL);
             } else if (NETHER.equals(previousDimension)) {
-                session.removeFog(BEDROCK_FOG_HELL);
+                session.camera().removeFog(BEDROCK_FOG_HELL);
             }
         }
     }
