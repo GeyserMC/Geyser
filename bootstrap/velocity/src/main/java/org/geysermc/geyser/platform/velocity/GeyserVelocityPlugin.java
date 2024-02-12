@@ -98,31 +98,43 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
             logger.error("/_____________\\");
         }
 
-        this.geyserInjector = new GeyserVelocityInjector(proxyServer);
+        if (!loadConfig()) {
+            return;
+        }
+        this.geyserLogger = new GeyserVelocityLogger(logger, geyserConfig.isDebugMode());
+        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
         this.geyser = GeyserImpl.load(PlatformType.VELOCITY, this);
+        this.geyserInjector = new GeyserVelocityInjector(proxyServer);
     }
 
     @Override
     public void onGeyserEnable() {
-        if (!loadConfig()) return;
-
-        this.geyserLogger = new GeyserVelocityLogger(logger, geyserConfig.isDebugMode());
-        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
+        if (GeyserImpl.getInstance().isReloading()) {
+            if (!loadConfig()) {
+                return;
+            }
+            this.geyserLogger.setDebug(geyserConfig.isDebugMode());
+            GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
+        } else {
+            this.geyserCommandManager = new GeyserCommandManager(geyser);
+            this.geyserCommandManager.init();
+        }
 
         GeyserImpl.start();
 
-        this.geyserCommandManager = new GeyserCommandManager(geyser);
-        this.geyserCommandManager.init();
+        if (!GeyserImpl.getInstance().isReloading()) {
+            this.commandManager.register("geyser", new GeyserVelocityCommandExecutor(geyser, geyserCommandManager.getCommands()));
+            for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
+                Map<String, Command> commands = entry.getValue();
+                if (commands.isEmpty()) {
+                    continue;
+                }
 
-        this.commandManager.register("geyser", new GeyserVelocityCommandExecutor(geyser, geyserCommandManager.getCommands()));
-        for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
-            Map<String, Command> commands = entry.getValue();
-            if (commands.isEmpty()) {
-                continue;
+                this.commandManager.register(entry.getKey().description().id(), new GeyserVelocityCommandExecutor(this.geyser, commands));
             }
 
-            this.commandManager.register(entry.getKey().description().id(), new GeyserVelocityCommandExecutor(this.geyser, commands));
+            proxyServer.getEventManager().register(this, new GeyserVelocityUpdateListener());
         }
 
         if (geyserConfig.isLegacyPingPassthrough()) {
@@ -130,8 +142,6 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         } else {
             this.geyserPingPassthrough = new GeyserVelocityPingPassthrough(proxyServer);
         }
-
-        proxyServer.getEventManager().register(this, new GeyserVelocityUpdateListener());
     }
 
     @Override

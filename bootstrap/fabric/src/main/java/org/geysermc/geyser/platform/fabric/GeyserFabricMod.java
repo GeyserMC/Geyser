@@ -101,41 +101,31 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
             });
         }
 
-        dataFolder = FabricLoader.getInstance().getConfigDir().resolve("Geyser-Fabric");
-        if (!dataFolder.toFile().exists()) {
-            //noinspection ResultOfMethodCallIgnored
-            dataFolder.toFile().mkdir();
-        }
-
         // These are only registered once
         ServerLifecycleEvents.SERVER_STOPPING.register((server) -> onGeyserShutdown());
         ServerPlayConnectionEvents.JOIN.register((handler, $, $$) -> GeyserFabricUpdateListener.onPlayReady(handler));
 
         GeyserLocale.init(this);
+        if (!loadConfig()) {
+            return;
+        }
+        this.geyserLogger = new GeyserFabricLogger(geyserConfig.isDebugMode());
+        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
         this.geyser = GeyserImpl.load(PlatformType.FABRIC, this);
     }
 
     @Override
     public void onGeyserEnable() {
-        try {
-            if (!dataFolder.toFile().exists()) {
-                //noinspection ResultOfMethodCallIgnored
-                dataFolder.toFile().mkdir();
+        if (GeyserImpl.getInstance().isReloading()) {
+            if (!loadConfig()) {
+                return;
             }
-
-            File configFile = FileUtils.fileOrCopiedFromResource(dataFolder.resolve("config.yml").toFile(), "config.yml",
-                    (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
-            this.geyserConfig = FileUtils.loadConfig(configFile, GeyserFabricConfiguration.class);
-        } catch (IOException ex) {
-            LogManager.getLogger("geyser-fabric").error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
-            ex.printStackTrace();
-            return;
+            this.geyserLogger.setDebug(geyserConfig.isDebugMode());
+            GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
+        } else {
+            this.geyserCommandManager = new GeyserCommandManager(geyser);
+            this.geyserCommandManager.init();
         }
-
-        this.geyserLogger = new GeyserFabricLogger(geyserConfig.isDebugMode());
-        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
-
-        GeyserImpl.start();
 
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
@@ -143,53 +133,54 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
             this.geyserPingPassthrough = new ModPingPassthrough(server, geyserLogger);
         }
 
-        this.geyserCommandManager = new GeyserCommandManager(geyser);
-        this.geyserCommandManager.init();
+        GeyserImpl.start();
 
         this.geyserWorldManager = new GeyserFabricWorldManager(server);
 
-        // Start command building
-        // Set just "geyser" as the help command
-        GeyserFabricCommandExecutor helpExecutor = new GeyserFabricCommandExecutor(geyser,
-                (GeyserCommand) geyser.commandManager().getCommands().get("help"));
-        LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("geyser").executes(helpExecutor);
+        if (!GeyserImpl.getInstance().isReloading()) {
+            // Start command building
+            // Set just "geyser" as the help command
+            GeyserFabricCommandExecutor helpExecutor = new GeyserFabricCommandExecutor(geyser,
+                    (GeyserCommand) geyser.commandManager().getCommands().get("help"));
+            LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("geyser").executes(helpExecutor);
 
-        // Register all subcommands as valid
-        for (Map.Entry<String, Command> command : geyser.commandManager().getCommands().entrySet()) {
-            GeyserFabricCommandExecutor executor = new GeyserFabricCommandExecutor(geyser, (GeyserCommand) command.getValue());
-            builder.then(Commands.literal(command.getKey())
-                    .executes(executor)
-                    // Could also test for Bedrock but depending on when this is called it may backfire
-                    .requires(executor::testPermission)
-                    // Allows parsing of arguments; e.g. for /geyser dump logs or the connectiontest command
-                    .then(Commands.argument("args", StringArgumentType.greedyString())
-                            .executes(context -> executor.runWithArgs(context, StringArgumentType.getString(context, "args")))
-                            .requires(executor::testPermission)));
-        }
-        server.getCommands().getDispatcher().register(builder);
-
-        // Register extension commands
-        for (Map.Entry<Extension, Map<String, Command>> extensionMapEntry : geyser.commandManager().extensionCommands().entrySet()) {
-            Map<String, Command> extensionCommands = extensionMapEntry.getValue();
-            if (extensionCommands.isEmpty()) {
-                continue;
-            }
-
-            // Register help command for just "/<extensionId>"
-            GeyserFabricCommandExecutor extensionHelpExecutor = new GeyserFabricCommandExecutor(geyser,
-                    (GeyserCommand) extensionCommands.get("help"));
-            LiteralArgumentBuilder<CommandSourceStack> extCmdBuilder = Commands.literal(extensionMapEntry.getKey().description().id()).executes(extensionHelpExecutor);
-
-            for (Map.Entry<String, Command> command : extensionCommands.entrySet()) {
+            // Register all subcommands as valid
+            for (Map.Entry<String, Command> command : geyser.commandManager().getCommands().entrySet()) {
                 GeyserFabricCommandExecutor executor = new GeyserFabricCommandExecutor(geyser, (GeyserCommand) command.getValue());
-                extCmdBuilder.then(Commands.literal(command.getKey())
+                builder.then(Commands.literal(command.getKey())
                         .executes(executor)
+                        // Could also test for Bedrock but depending on when this is called it may backfire
                         .requires(executor::testPermission)
+                        // Allows parsing of arguments; e.g. for /geyser dump logs or the connectiontest command
                         .then(Commands.argument("args", StringArgumentType.greedyString())
                                 .executes(context -> executor.runWithArgs(context, StringArgumentType.getString(context, "args")))
                                 .requires(executor::testPermission)));
             }
-            server.getCommands().getDispatcher().register(extCmdBuilder);
+            server.getCommands().getDispatcher().register(builder);
+
+            // Register extension commands
+            for (Map.Entry<Extension, Map<String, Command>> extensionMapEntry : geyser.commandManager().extensionCommands().entrySet()) {
+                Map<String, Command> extensionCommands = extensionMapEntry.getValue();
+                if (extensionCommands.isEmpty()) {
+                    continue;
+                }
+
+                // Register help command for just "/<extensionId>"
+                GeyserFabricCommandExecutor extensionHelpExecutor = new GeyserFabricCommandExecutor(geyser,
+                        (GeyserCommand) extensionCommands.get("help"));
+                LiteralArgumentBuilder<CommandSourceStack> extCmdBuilder = Commands.literal(extensionMapEntry.getKey().description().id()).executes(extensionHelpExecutor);
+
+                for (Map.Entry<String, Command> command : extensionCommands.entrySet()) {
+                    GeyserFabricCommandExecutor executor = new GeyserFabricCommandExecutor(geyser, (GeyserCommand) command.getValue());
+                    extCmdBuilder.then(Commands.literal(command.getKey())
+                            .executes(executor)
+                            .requires(executor::testPermission)
+                            .then(Commands.argument("args", StringArgumentType.greedyString())
+                                    .executes(context -> executor.runWithArgs(context, StringArgumentType.getString(context, "args")))
+                                    .requires(executor::testPermission)));
+                }
+                server.getCommands().getDispatcher().register(extCmdBuilder);
+            }
         }
     }
 
@@ -286,6 +277,26 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
                     .newInputStream(path);
         } catch (IOException e) {
             return null;
+        }
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean loadConfig() {
+        try {
+            dataFolder = FabricLoader.getInstance().getConfigDir().resolve("Geyser-Fabric");
+            if (!dataFolder.toFile().exists()) {
+                //noinspection ResultOfMethodCallIgnored
+                dataFolder.toFile().mkdir();
+            }
+
+            File configFile = FileUtils.fileOrCopiedFromResource(dataFolder.resolve("config.yml").toFile(), "config.yml",
+                    (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
+            this.geyserConfig = FileUtils.loadConfig(configFile, GeyserFabricConfiguration.class);
+            return true;
+        } catch (IOException ex) {
+            LogManager.getLogger("geyser-fabric").error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
+            ex.printStackTrace();
+            return false;
         }
     }
 }

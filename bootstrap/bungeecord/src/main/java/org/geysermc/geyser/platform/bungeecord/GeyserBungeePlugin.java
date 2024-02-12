@@ -93,6 +93,11 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             getLogger().warning("/_____________\\");
         }
 
+        if (!this.loadConfig()) {
+            return;
+        }
+        this.geyserLogger = new GeyserBungeeLogger(getLogger(), geyserConfig.isDebugMode());
+        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
         this.geyser = GeyserImpl.load(PlatformType.BUNGEECORD, this);
         this.geyserInjector = new GeyserBungeeInjector(this);
     }
@@ -129,12 +134,18 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     }
 
     public void onGeyserEnable() {
-        if (!loadConfig()) return;
-
-        this.geyserLogger = new GeyserBungeeLogger(getLogger(), geyserConfig.isDebugMode());
-        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
-
-        GeyserImpl.start();
+        if (GeyserImpl.getInstance().isReloading()) {
+            if (!loadConfig()) {
+                return;
+            }
+            this.geyserLogger.setDebug(geyserConfig.isDebugMode());
+            GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
+        } else {
+            // For consistency with other platforms - create command manager before GeyserImpl#start()
+            // This ensures the command events are called before the item/block ones are
+            this.geyserCommandManager = new GeyserCommandManager(geyser);
+            this.geyserCommandManager.init();
+        }
 
         // Force-disable query if enabled, or else Geyser won't enable
         for (ListenerInfo info : getProxy().getConfig().getListeners()) {
@@ -154,21 +165,20 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             }
         }
 
+        GeyserImpl.start();
+
         if (!GeyserImpl.getInstance().isReloading()) {
             this.geyserInjector.initializeLocalChannel(this);
-        }
 
-        this.geyserCommandManager = new GeyserCommandManager(geyser);
-        this.geyserCommandManager.init();
+            this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor("geyser", this.geyser, this.geyserCommandManager.getCommands()));
+            for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
+                Map<String, Command> commands = entry.getValue();
+                if (commands.isEmpty()) {
+                    continue;
+                }
 
-        this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor("geyser", this.geyser, this.geyserCommandManager.getCommands()));
-        for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
-            Map<String, Command> commands = entry.getValue();
-            if (commands.isEmpty()) {
-                continue;
+                this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor(entry.getKey().description().id(), this.geyser, commands));
             }
-
-            this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor(entry.getKey().description().id(), this.geyser, commands));
         }
 
         if (geyserConfig.isLegacyPingPassthrough()) {

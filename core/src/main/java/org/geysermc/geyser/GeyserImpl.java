@@ -182,16 +182,16 @@ public class GeyserImpl implements GeyserApi {
 
         /* Create Extension Manager */
         this.extensionManager = new GeyserExtensionManager();
-    }
 
-    public void initialize() {
         /* Finalize locale loading now that we know the default locale from the config */
         GeyserLocale.finalizeDefaultLocale(this);
 
         /* Load Extensions */
         this.extensionManager.init();
         this.eventBus.fire(new GeyserPreInitializeEvent(this.extensionManager, this.eventBus));
+    }
 
+    public void initialize() {
         long startupTime = System.currentTimeMillis();
 
         GeyserLogger logger = bootstrap.getGeyserLogger();
@@ -628,7 +628,6 @@ public class GeyserImpl implements GeyserApi {
             skinUploader.close();
         }
         newsHandler.shutdown();
-        this.commandManager().getCommands().clear();
 
         if (this.erosionUnixListener != null) {
             this.erosionUnixListener.close();
@@ -642,6 +641,7 @@ public class GeyserImpl implements GeyserApi {
     public void shutdown() {
         shuttingDown = true;
         this.disable();
+        this.commandManager().getCommands().clear();
 
         // Disable extensions, fire the shutdown event
         this.eventBus.fire(new GeyserShutdownEvent(this.extensionManager, this.eventBus));
