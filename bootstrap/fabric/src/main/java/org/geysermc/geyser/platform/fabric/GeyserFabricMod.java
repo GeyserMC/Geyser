@@ -105,6 +105,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
         ServerLifecycleEvents.SERVER_STOPPING.register((server) -> onGeyserShutdown());
         ServerPlayConnectionEvents.JOIN.register((handler, $, $$) -> GeyserFabricUpdateListener.onPlayReady(handler));
 
+        dataFolder = FabricLoader.getInstance().getConfigDir().resolve("Geyser-Fabric");
         GeyserLocale.init(this);
         if (!loadConfig()) {
             return;
@@ -283,7 +284,6 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean loadConfig() {
         try {
-            dataFolder = FabricLoader.getInstance().getConfigDir().resolve("Geyser-Fabric");
             if (!dataFolder.toFile().exists()) {
                 //noinspection ResultOfMethodCallIgnored
                 dataFolder.toFile().mkdir();

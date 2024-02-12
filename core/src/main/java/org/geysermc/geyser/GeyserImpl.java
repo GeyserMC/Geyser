@@ -251,6 +251,10 @@ public class GeyserImpl implements GeyserApi {
     private void startInstance() {
         this.scheduledThread = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory("Geyser Scheduled Thread"));
 
+        if (isReloading) {
+            // If we're reloading, the default locale in the config might have changed.
+            GeyserLocale.finalizeDefaultLocale(this);
+        }
         GeyserLogger logger = bootstrap.getGeyserLogger();
         GeyserConfiguration config = bootstrap.getGeyserConfig();
 
