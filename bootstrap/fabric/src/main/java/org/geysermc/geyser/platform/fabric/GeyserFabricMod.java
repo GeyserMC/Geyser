@@ -136,52 +136,55 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
         GeyserImpl.start();
 
+        // No need to re-register commands, or re-recreate the world manager when reloading
+        if (GeyserImpl.getInstance().isReloading()) {
+            return;
+        }
+
         this.geyserWorldManager = new GeyserFabricWorldManager(server);
 
-        if (!GeyserImpl.getInstance().isReloading()) {
-            // Start command building
-            // Set just "geyser" as the help command
-            GeyserFabricCommandExecutor helpExecutor = new GeyserFabricCommandExecutor(geyser,
-                    (GeyserCommand) geyser.commandManager().getCommands().get("help"));
-            LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("geyser").executes(helpExecutor);
+        // Start command building
+        // Set just "geyser" as the help command
+        GeyserFabricCommandExecutor helpExecutor = new GeyserFabricCommandExecutor(geyser,
+                (GeyserCommand) geyser.commandManager().getCommands().get("help"));
+        LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("geyser").executes(helpExecutor);
 
-            // Register all subcommands as valid
-            for (Map.Entry<String, Command> command : geyser.commandManager().getCommands().entrySet()) {
+        // Register all subcommands as valid
+        for (Map.Entry<String, Command> command : geyser.commandManager().getCommands().entrySet()) {
+            GeyserFabricCommandExecutor executor = new GeyserFabricCommandExecutor(geyser, (GeyserCommand) command.getValue());
+            builder.then(Commands.literal(command.getKey())
+                    .executes(executor)
+                    // Could also test for Bedrock but depending on when this is called it may backfire
+                    .requires(executor::testPermission)
+                    // Allows parsing of arguments; e.g. for /geyser dump logs or the connectiontest command
+                    .then(Commands.argument("args", StringArgumentType.greedyString())
+                            .executes(context -> executor.runWithArgs(context, StringArgumentType.getString(context, "args")))
+                            .requires(executor::testPermission)));
+        }
+        server.getCommands().getDispatcher().register(builder);
+
+        // Register extension commands
+        for (Map.Entry<Extension, Map<String, Command>> extensionMapEntry : geyser.commandManager().extensionCommands().entrySet()) {
+            Map<String, Command> extensionCommands = extensionMapEntry.getValue();
+            if (extensionCommands.isEmpty()) {
+                continue;
+            }
+
+            // Register help command for just "/<extensionId>"
+            GeyserFabricCommandExecutor extensionHelpExecutor = new GeyserFabricCommandExecutor(geyser,
+                    (GeyserCommand) extensionCommands.get("help"));
+            LiteralArgumentBuilder<CommandSourceStack> extCmdBuilder = Commands.literal(extensionMapEntry.getKey().description().id()).executes(extensionHelpExecutor);
+
+            for (Map.Entry<String, Command> command : extensionCommands.entrySet()) {
                 GeyserFabricCommandExecutor executor = new GeyserFabricCommandExecutor(geyser, (GeyserCommand) command.getValue());
-                builder.then(Commands.literal(command.getKey())
+                extCmdBuilder.then(Commands.literal(command.getKey())
                         .executes(executor)
-                        // Could also test for Bedrock but depending on when this is called it may backfire
                         .requires(executor::testPermission)
-                        // Allows parsing of arguments; e.g. for /geyser dump logs or the connectiontest command
                         .then(Commands.argument("args", StringArgumentType.greedyString())
                                 .executes(context -> executor.runWithArgs(context, StringArgumentType.getString(context, "args")))
                                 .requires(executor::testPermission)));
             }
-            server.getCommands().getDispatcher().register(builder);
-
-            // Register extension commands
-            for (Map.Entry<Extension, Map<String, Command>> extensionMapEntry : geyser.commandManager().extensionCommands().entrySet()) {
-                Map<String, Command> extensionCommands = extensionMapEntry.getValue();
-                if (extensionCommands.isEmpty()) {
-                    continue;
-                }
-
-                // Register help command for just "/<extensionId>"
-                GeyserFabricCommandExecutor extensionHelpExecutor = new GeyserFabricCommandExecutor(geyser,
-                        (GeyserCommand) extensionCommands.get("help"));
-                LiteralArgumentBuilder<CommandSourceStack> extCmdBuilder = Commands.literal(extensionMapEntry.getKey().description().id()).executes(extensionHelpExecutor);
-
-                for (Map.Entry<String, Command> command : extensionCommands.entrySet()) {
-                    GeyserFabricCommandExecutor executor = new GeyserFabricCommandExecutor(geyser, (GeyserCommand) command.getValue());
-                    extCmdBuilder.then(Commands.literal(command.getKey())
-                            .executes(executor)
-                            .requires(executor::testPermission)
-                            .then(Commands.argument("args", StringArgumentType.greedyString())
-                                    .executes(context -> executor.runWithArgs(context, StringArgumentType.getString(context, "args")))
-                                    .requires(executor::testPermission)));
-                }
-                server.getCommands().getDispatcher().register(extCmdBuilder);
-            }
+            server.getCommands().getDispatcher().register(extCmdBuilder);
         }
     }
 
