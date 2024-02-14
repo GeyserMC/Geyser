@@ -63,9 +63,6 @@ public class GeyserModCommandExecutor extends GeyserCommandExecutor implements C
             sender.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", sender.locale()));
             return 0;
         }
-        if (this.command.name().equals("reload")) {
-            GeyserModBootstrap.getInstance().setReloading(true);
-        }
 
         if (command.isBedrockOnly() && session == null) {
             sender.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.bedrock_only", sender.locale()));

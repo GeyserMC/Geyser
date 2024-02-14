@@ -23,17 +23,19 @@ import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
 import org.geysermc.geyser.api.block.custom.property.PropertyType;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBlocksEvent;
 import org.geysermc.geyser.api.util.CreativeCategory;
+import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
+import org.geysermc.geyser.level.block.GeyserCustomBlockData;
 import org.geysermc.geyser.level.block.GeyserCustomBlockState;
-import org.geysermc.geyser.level.block.GeyserCustomBlockComponents.CustomBlockComponentsBuilder;
-import org.geysermc.geyser.level.block.GeyserCustomBlockData.CustomBlockDataBuilder;
-import org.geysermc.geyser.level.block.GeyserGeometryComponent.GeometryComponentBuilder;
-import org.geysermc.geyser.level.block.GeyserMaterialInstance.MaterialInstanceBuilder;
+import org.geysermc.geyser.level.block.GeyserGeometryComponent;
+import org.geysermc.geyser.level.block.GeyserMaterialInstance;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.util.MathUtils;
 
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -41,6 +43,13 @@ import java.util.Map;
 import java.util.Set;
 
 public class CustomBlockRegistryPopulator {
+
+    // Since 1.20.60, custom blocks need a block_id in their nbt tag
+    public static AtomicInteger BLOCK_ID = new AtomicInteger();
+
+    // Custom block id's start at 10000, and count up
+    public static final int START_OFFSET = 10000;
+
     /**
      * The stage of population
      */
@@ -89,7 +98,7 @@ public class CustomBlockRegistryPopulator {
         GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineCustomBlocksEvent() {
             @Override
             public void register(@NonNull CustomBlockData customBlockData) {
-                if (customBlockData.name().length() == 0) {
+                if (customBlockData.name().isEmpty()) {
                     throw new IllegalArgumentException("Custom block name must have at least 1 character.");
                 }
                 if (!CUSTOM_BLOCK_NAMES.add(customBlockData.name())) {
@@ -179,17 +188,17 @@ public class CustomBlockRegistryPopulator {
         });
     
         BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.set(blockStateOverrides);
-        if (blockStateOverrides.size() != 0) {
+        if (!blockStateOverrides.isEmpty()) {
             GeyserImpl.getInstance().getLogger().info("Registered " + blockStateOverrides.size() + " custom block overrides.");
         }
 
         BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.set(CUSTOM_BLOCK_ITEM_OVERRIDES);
-        if (CUSTOM_BLOCK_ITEM_OVERRIDES.size() != 0) {
+        if (!CUSTOM_BLOCK_ITEM_OVERRIDES.isEmpty()) {
             GeyserImpl.getInstance().getLogger().info("Registered " + CUSTOM_BLOCK_ITEM_OVERRIDES.size() + " custom block item overrides.");
         }
 
         BlockRegistries.EXTENDED_COLLISION_BOXES.set(extendedCollisionBoxes);
-        if (extendedCollisionBoxes.size() != 0) {
+        if (!extendedCollisionBoxes.isEmpty()) {
             GeyserImpl.getInstance().getLogger().info("Registered " + extendedCollisionBoxes.size() + " custom block extended collision boxes.");
         }
     }
@@ -199,7 +208,7 @@ public class CustomBlockRegistryPopulator {
      */
     private static void populateNonVanilla() {
         BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.set(NON_VANILLA_BLOCK_STATE_OVERRIDES);
-        if (NON_VANILLA_BLOCK_STATE_OVERRIDES.size() != 0) {
+        if (!NON_VANILLA_BLOCK_STATE_OVERRIDES.isEmpty()) {
             GeyserImpl.getInstance().getLogger().info("Registered " + NON_VANILLA_BLOCK_STATE_OVERRIDES.size() + " non-vanilla block overrides.");
         }
     }
@@ -209,7 +218,7 @@ public class CustomBlockRegistryPopulator {
      */
     private static void registration() {
         BlockRegistries.CUSTOM_BLOCKS.set(CUSTOM_BLOCKS.toArray(new CustomBlockData[0]));
-        if (CUSTOM_BLOCKS.size() != 0) {
+        if (!CUSTOM_BLOCKS.isEmpty()) {
             GeyserImpl.getInstance().getLogger().info("Registered " + CUSTOM_BLOCKS.size() + " custom blocks.");
         }
     }
@@ -279,7 +288,7 @@ public class CustomBlockRegistryPopulator {
     
         CreativeCategory creativeCategory = customBlock.creativeCategory() != null ? customBlock.creativeCategory() : CreativeCategory.NONE;
         String creativeGroup = customBlock.creativeGroup() != null ? customBlock.creativeGroup() : "";
-        NbtMap propertyTag = NbtMap.builder()
+        NbtMapBuilder propertyTag = NbtMap.builder()
                 .putCompound("components", CustomBlockRegistryPopulator.convertComponents(customBlock.components(), protocolVersion))
                 // this is required or the client will crash
                 // in the future, this can be used to replace items in the creative inventory
@@ -292,9 +301,14 @@ public class CustomBlockRegistryPopulator {
                 // meaning of this version is unknown, but it's required for tags to work and should probably be checked periodically
                 .putInt("molangVersion", 1)
                 .putList("permutations", NbtType.COMPOUND, permutations)
-                .putList("properties", NbtType.COMPOUND, properties)
-                .build();
-        return new BlockPropertyData(customBlock.identifier(), propertyTag);
+                .putList("properties", NbtType.COMPOUND, properties);
+
+        if (GameProtocol.is1_20_60orHigher(protocolVersion)) {
+            propertyTag.putCompound("vanilla_block_data", NbtMap.builder()
+                    .putInt("block_id", BLOCK_ID.getAndIncrement())
+                    .build());
+        }
+        return new BlockPropertyData(customBlock.identifier(), propertyTag.build());
     }
 
     /**
@@ -479,20 +493,20 @@ public class CustomBlockRegistryPopulator {
     }
 
     private static CustomBlockData createExtendedCollisionBlock(BoxComponent boxComponent, int extendedCollisionBlock) {
-        return new CustomBlockDataBuilder()
+        return new GeyserCustomBlockData.Builder()
                 .name("extended_collision_" + extendedCollisionBlock)
                 .components(
-                    new CustomBlockComponentsBuilder()
+                    new GeyserCustomBlockComponents.Builder()
                         .collisionBox(boxComponent)
                         .selectionBox(BoxComponent.emptyBox())
-                        .materialInstance("*", new MaterialInstanceBuilder()
+                        .materialInstance("*", new GeyserMaterialInstance.Builder()
                             .texture("glass")
                             .renderMethod("alpha_test")
                             .faceDimming(false)
                             .ambientOcclusion(false)
                             .build())
                         .lightDampening(0)
-                        .geometry(new GeometryComponentBuilder()
+                        .geometry(new GeyserGeometryComponent.Builder()
                             .identifier("geometry.invisible")
                             .build())
                         .build())

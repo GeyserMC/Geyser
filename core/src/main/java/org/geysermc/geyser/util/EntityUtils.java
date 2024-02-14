@@ -266,11 +266,12 @@ public final class EntityUtils {
      * Convert Java GameMode to Bedrock GameType
      * Needed to account for ordinal differences (spectator is 3 in Java, 6 in Bedrock)
      */
+    @SuppressWarnings("deprecation") // Must use survival_viewer due to limitations on Bedrock's spectator gamemode
     public static GameType toBedrockGamemode(GameMode gamemode) {
         return switch (gamemode) {
             case CREATIVE -> GameType.CREATIVE;
             case ADVENTURE -> GameType.ADVENTURE;
-            case SPECTATOR -> GameType.SPECTATOR;
+            case SPECTATOR -> GameType.SURVIVAL_VIEWER;
             default -> GameType.SURVIVAL;
         };
     }

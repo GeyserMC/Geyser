@@ -67,11 +67,10 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
 
     private final GeyserModPlatform platform;
 
-    @Setter
-    private boolean reloading;
-
     private GeyserImpl geyser;
     private Path dataFolder;
+
+    @Setter
     private MinecraftServer server;
 
     private GeyserCommandManager geyserCommandManager;
@@ -82,48 +81,23 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     private WorldManager geyserWorldManager;
 
     @Override
-    public void onEnable() {
+    public void onInitialize() {
         instance = this;
-
-        dataFolder = this.platform.dataFolder(this.platform.configPath());
-        if (!dataFolder.toFile().exists()) {
-            //noinspection ResultOfMethodCallIgnored
-            dataFolder.toFile().mkdir();
-        }
-
-        // Init dataFolder first as local language overrides call getConfigFolder()
-        GeyserLocale.init(this);
-
-        try {
-            File configFile = FileUtils.fileOrCopiedFromResource(dataFolder.resolve("config.yml").toFile(), "config.yml",
-                    (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
-            this.geyserConfig = FileUtils.loadConfig(configFile, GeyserModConfiguration.class);
-        } catch (IOException ex) {
-            LogManager.getLogger("geyser").error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
-            ex.printStackTrace();
-            return;
-        }
-
-        this.geyserLogger = new GeyserModLogger(geyserConfig.isDebugMode());
-
-        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
-
-        this.geyser = GeyserImpl.load(this.platform.platformType(), this);
-
-        this.geyserCommandManager = new GeyserCommandManager(geyser);
-        this.geyserCommandManager.init();
-
-        if (server == null) {
-            // Server has started and this is the first time
-            this.onInitialStartup();
-        } else {
-            // Server has started and this is a reload
-            startGeyser(this.server);
-            reloading = false;
-        }
+        mod = FabricLoader.getInstance().getModContainer("geyser-fabric").orElseThrow();
+        onGeyserInitialize();
     }
 
-    public abstract void onInitialStartup();
+    @Override
+    public void onEnable() {
+        dataFolder = this.platform.dataFolder(this.platform.configPath());
+        GeyserLocale.init(this);
+        if (!loadConfig()) {
+            return;
+        }
+        this.geyserLogger = new GeyserModLogger(geyserConfig.isDebugMode());
+        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
+        this.geyser = GeyserImpl.load(this.platform.platformType(), this);
+    }
 
     /**
      * Initialize core Geyser.
@@ -131,8 +105,17 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
      *
      * @param server The minecraft server.
      */
-    public void startGeyser(MinecraftServer server) {
-        this.server = server;
+    public void onGeyserEnable() {
+        if (GeyserImpl.getInstance().isReloading()) {
+            if (!loadConfig()) {
+                return;
+            }
+            this.geyserLogger.setDebug(geyserConfig.isDebugMode());
+            GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
+        } else {
+            this.geyserCommandManager = new GeyserCommandManager(geyser);
+            this.geyserCommandManager.init();
+        }
 
         GeyserImpl.start();
 
@@ -140,6 +123,11 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
             this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
         } else {
             this.geyserPingPassthrough = new ModPingPassthrough(server, geyserLogger);
+        }
+
+        // No need to re-register commands, or try to re-inject
+        if (GeyserImpl.getInstance().isReloading()) {
+            return;
         }
 
         this.geyserWorldManager = new GeyserModWorldManager(server);
@@ -195,14 +183,21 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     }
 
     @Override
-    public void onDisable() {
+    public void onGeyserDisable() {
+        if (geyser != null) {
+            geyser.disable();
+        }
+    }
+
+    @Override
+    public void onGeyserShutdown() {
         if (geyser != null) {
             geyser.shutdown();
             geyser = null;
         }
-        if (!reloading) {
-            this.server = null;
+        if (this.geyserInjector != null) {
             this.geyserInjector.shutdown();
+            this.server = null;
         }
     }
 
@@ -275,5 +270,24 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
 
     public static GeyserModBootstrap getInstance() {
         return instance;
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean loadConfig() {
+        try {
+            if (!dataFolder.toFile().exists()) {
+                //noinspection ResultOfMethodCallIgnored
+                dataFolder.toFile().mkdir();
+            }
+
+            File configFile = FileUtils.fileOrCopiedFromResource(dataFolder.resolve("config.yml").toFile(), "config.yml",
+                    (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
+            this.geyserConfig = FileUtils.loadConfig(configFile, GeyserFabricConfiguration.class);
+            return true;
+        } catch (IOException ex) {
+            LogManager.getLogger("geyser-fabric").error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
+            ex.printStackTrace();
+            return false;
+        }
     }
 }

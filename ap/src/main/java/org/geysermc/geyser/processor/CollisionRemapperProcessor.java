@@ -30,7 +30,7 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 
 @SupportedAnnotationTypes("*")
-@SupportedSourceVersion(SourceVersion.RELEASE_16)
+@SupportedSourceVersion(SourceVersion.RELEASE_17)
 public class CollisionRemapperProcessor extends ClassProcessor {
     public CollisionRemapperProcessor() {
         super("org.geysermc.geyser.translator.collision.CollisionRemapper");
