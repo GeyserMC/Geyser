@@ -338,7 +338,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
         Bukkit.getServer().getPluginManager().registerEvents(new GeyserSpigotUpdateListener(), this);
 
-
         boolean brigadierSupported = CommodoreProvider.isSupported();
         geyserLogger.debug("Brigadier supported? " + brigadierSupported);
         if (brigadierSupported) {
@@ -463,6 +462,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         return false;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean loadConfig() {
         // This is manually done instead of using Bukkit methods to save the config because otherwise comments get removed
         try {

@@ -239,6 +239,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         return false;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean loadConfig() {
         try {
             if (!configFolder.toFile().exists())

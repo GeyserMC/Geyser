@@ -104,6 +104,9 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     @Override
     public void onEnable() {
+        // Big hack - Bungee does not provide us an event to listen to, so schedule a repeating
+        // task that waits for a field to be filled which is set after the plugin enable
+        // process is complete
         this.awaitStartupCompletion(0);
     }
 
@@ -111,7 +114,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     private void awaitStartupCompletion(int tries) {
         // After 20 tries give up waiting. This will happen just after 3 minutes approximately
         if (tries >= 20) {
-            geyserLogger.warning("BungeeCord plugin startup is taking abnormally long, so Geyser is starting now. " +
+            this.geyserLogger.warning("BungeeCord plugin startup is taking abnormally long, so Geyser is starting now. " +
                     "If all your plugins are loaded properly, this is a bug! " +
                     "If not, consider cutting down the amount of plugins on your proxy as it is causing abnormally slow starting times.");
             this.onGeyserEnable();
