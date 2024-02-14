@@ -58,9 +58,7 @@ import org.geysermc.floodgate.news.NewsItemAction;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.event.EventRegistrar;
-import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
-import org.geysermc.geyser.api.event.lifecycle.GeyserPreInitializeEvent;
-import org.geysermc.geyser.api.event.lifecycle.GeyserShutdownEvent;
+import org.geysermc.geyser.api.event.lifecycle.*;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
@@ -145,6 +143,7 @@ public class GeyserImpl implements GeyserApi {
 
     private UnixSocketClientListener erosionUnixListener;
 
+    @Setter
     private volatile boolean shuttingDown = false;
 
     private ScheduledExecutorService scheduledThread;
@@ -162,7 +161,13 @@ public class GeyserImpl implements GeyserApi {
     @Getter(AccessLevel.NONE)
     private Map<String, String> savedRefreshTokens;
 
+    @Getter
     private static GeyserImpl instance;
+
+    /**
+     * Determines if we're currently reloading. Replaces per-bootstrap reload checks
+     */
+    private volatile boolean isReloading;
 
     private GeyserImpl(PlatformType platformType, GeyserBootstrap bootstrap) {
         instance = this;
@@ -172,13 +177,16 @@ public class GeyserImpl implements GeyserApi {
         this.platformType = platformType;
         this.bootstrap = bootstrap;
 
-        GeyserLocale.finalizeDefaultLocale(this);
-
         /* Initialize event bus */
         this.eventBus = new GeyserEventBus();
 
-        /* Load Extensions */
+        /* Create Extension Manager */
         this.extensionManager = new GeyserExtensionManager();
+
+        /* Finalize locale loading now that we know the default locale from the config */
+        GeyserLocale.finalizeDefaultLocale(this);
+
+        /* Load Extensions */
         this.extensionManager.init();
         this.eventBus.fire(new GeyserPreInitializeEvent(this.extensionManager, this.eventBus));
     }
@@ -236,11 +244,17 @@ public class GeyserImpl implements GeyserApi {
         } else if (config.getRemote().authType() == AuthType.FLOODGATE) {
             VersionCheckUtils.checkForOutdatedFloodgate(logger);
         }
+
+        VersionCheckUtils.checkForOutdatedJava(logger);
     }
 
     private void startInstance() {
         this.scheduledThread = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory("Geyser Scheduled Thread"));
 
+        if (isReloading) {
+            // If we're reloading, the default locale in the config might have changed.
+            GeyserLocale.finalizeDefaultLocale(this);
+        }
         GeyserLogger logger = bootstrap.getGeyserLogger();
         GeyserConfiguration config = bootstrap.getGeyserConfig();
 
@@ -536,12 +550,15 @@ public class GeyserImpl implements GeyserApi {
 
         newsHandler.handleNews(null, NewsItemAction.ON_SERVER_STARTED);
 
-        this.eventBus.fire(new GeyserPostInitializeEvent(this.extensionManager, this.eventBus));
+        if (isReloading) {
+            this.eventBus.fire(new GeyserPostReloadEvent(this.extensionManager, this.eventBus));
+        } else {
+            this.eventBus.fire(new GeyserPostInitializeEvent(this.extensionManager, this.eventBus));
+        }
+
         if (config.isNotifyOnNewBedrockUpdate()) {
             VersionCheckUtils.checkForGeyserUpdate(this::getLogger);
         }
-
-        VersionCheckUtils.checkForOutdatedJava(logger);
     }
 
     @Override
@@ -600,9 +617,8 @@ public class GeyserImpl implements GeyserApi {
         return session.transfer(address, port);
     }
 
-    public void shutdown() {
+    public void disable() {
         bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown"));
-        shuttingDown = true;
 
         if (sessionManager.size() >= 1) {
             bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.log", sessionManager.size()));
@@ -616,7 +632,6 @@ public class GeyserImpl implements GeyserApi {
             skinUploader.close();
         }
         newsHandler.shutdown();
-        this.commandManager().getCommands().clear();
 
         if (this.erosionUnixListener != null) {
             this.erosionUnixListener.close();
@@ -624,16 +639,29 @@ public class GeyserImpl implements GeyserApi {
 
         Registries.RESOURCE_PACKS.get().clear();
 
+        bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.done"));
+    }
+
+    public void shutdown() {
+        shuttingDown = true;
+        this.disable();
+        this.commandManager().getCommands().clear();
+
+        // Disable extensions, fire the shutdown event
         this.eventBus.fire(new GeyserShutdownEvent(this.extensionManager, this.eventBus));
         this.extensionManager.disableExtensions();
 
         bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.done"));
     }
 
-    public void reload() {
-        shutdown();
-        this.extensionManager.enableExtensions();
-        bootstrap.onEnable();
+    public void reloadGeyser() {
+        isReloading = true;
+        this.eventBus.fire(new GeyserPreReloadEvent(this.extensionManager, this.eventBus));
+
+        bootstrap.onGeyserDisable();
+        bootstrap.onGeyserEnable();
+
+        isReloading = false;
     }
 
     /**
@@ -744,9 +772,7 @@ public class GeyserImpl implements GeyserApi {
             throw new RuntimeException("Geyser has not been loaded yet!");
         }
 
-        // We've been reloaded
-        if (instance.isShuttingDown()) {
-            instance.shuttingDown = false;
+        if (getInstance().isReloading()) {
             instance.startInstance();
         } else {
             instance.initialize();
@@ -796,9 +822,5 @@ public class GeyserImpl implements GeyserApi {
                 getLogger().error("Unable to write saved refresh tokens!", e);
             }
         });
-    }
-
-    public static GeyserImpl getInstance() {
-        return instance;
     }
 }
