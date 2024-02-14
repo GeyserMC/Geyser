@@ -86,7 +86,7 @@ public class GeyserCommandManager {
             registerBuiltInCommand(new StopCommand(geyser, "stop", "geyser.commands.stop.desc", "geyser.command.stop"));
         }
 
-        if (this.geyser.extensionManager().extensions().size() > 0) {
+        if (!this.geyser.extensionManager().extensions().isEmpty()) {
             registerBuiltInCommand(new ExtensionsCommand(this.geyser, "extensions", "geyser.commands.extensions.desc", "geyser.command.extensions"));
         }
 

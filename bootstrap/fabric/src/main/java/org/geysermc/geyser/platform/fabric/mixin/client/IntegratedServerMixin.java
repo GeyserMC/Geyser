@@ -57,7 +57,8 @@ public class IntegratedServerMixin implements GeyserServerPortGetter {
     private void onOpenToLan(GameType gameType, boolean cheatsAllowed, int port, CallbackInfoReturnable<Boolean> cir) {
         if (cir.getReturnValueZ()) {
             // If the LAN is opened, starts Geyser.
-            GeyserFabricMod.getInstance().startGeyser((MinecraftServer) (Object) this);
+            GeyserFabricMod.getInstance().setServer((MinecraftServer) (Object) this);
+            GeyserFabricMod.getInstance().onGeyserEnable();
             // Ensure player locale has been loaded, in case it's different from Java system language
             GeyserLocale.loadGeyserLocale(this.minecraft.options.languageCode);
             // Give indication that Geyser is loaded
