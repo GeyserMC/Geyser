@@ -41,8 +41,8 @@ import java.util.Collections;
 public class GeyserModCommandExecutor extends GeyserCommandExecutor implements Command<CommandSourceStack> {
     private final GeyserCommand command;
 
-    public GeyserModCommandExecutor(GeyserImpl connector, GeyserCommand command) {
-        super(connector, Collections.singletonMap(command.name(), command));
+    public GeyserModCommandExecutor(GeyserImpl geyser, GeyserCommand command) {
+        super(geyser, Collections.singletonMap(command.name(), command));
         this.command = command;
     }
 

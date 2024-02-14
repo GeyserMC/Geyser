@@ -45,20 +45,19 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
 
     @Override
     public void onInitialize() {
-        this.onEnable();
         if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
             // Set as an event, so we can get the proper IP and port if needed
-            ServerLifecycleEvents.SERVER_STARTED.register(this::startGeyser);
+            ServerLifecycleEvents.SERVER_STARTED.register((server) -> {
+                this.setServer(server);
+                onGeyserEnable();
+            });
         }
-    }
 
-    @Override
-    public void onInitialStartup() {
-        // Server has yet to start
-        // Register onDisable so players are properly kicked
-        ServerLifecycleEvents.SERVER_STOPPING.register((server) -> onDisable());
-
+        // These are only registered once
+        ServerLifecycleEvents.SERVER_STOPPING.register((server) -> onGeyserShutdown());
         ServerPlayConnectionEvents.JOIN.register((handler, $, $$) -> GeyserModUpdateListener.onPlayReady(handler.getPlayer()));
+
+        this.onGeyserInitialize();
     }
 
     @Override

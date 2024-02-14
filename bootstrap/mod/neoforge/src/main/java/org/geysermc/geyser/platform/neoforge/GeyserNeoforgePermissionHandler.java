@@ -120,8 +120,11 @@ public class GeyserNeoforgePermissionHandler {
     private void registerNode(String node, PermissionGatherEvent.Nodes event) {
         PermissionNode<Boolean> permissionNode = this.createNode(node);
 
-        event.addNodes(permissionNode);
-        this.permissionNodes.put(node, permissionNode);
+        // Neoforge likes to crash if you try and register a duplicate node
+        if (!event.getNodes().contains(permissionNode)) {
+            event.addNodes(permissionNode);
+            this.permissionNodes.put(node, permissionNode);
+        }
     }
 
     @SuppressWarnings("unchecked")

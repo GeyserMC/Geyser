@@ -62,7 +62,7 @@ public class GeyserNeoforgePlatform implements GeyserModPlatform {
 
     @Override
     public boolean testFloodgatePluginPresent(@NonNull GeyserModBootstrap bootstrap) {
-        return false; // No Floodgate plugin for Forge yet
+        return false; // No Floodgate mod for NeoForge yet
     }
 
     @Override

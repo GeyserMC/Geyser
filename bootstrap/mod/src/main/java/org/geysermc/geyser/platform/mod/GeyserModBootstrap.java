@@ -27,6 +27,7 @@ package org.geysermc.geyser.platform.mod;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.minecraft.commands.CommandSourceStack;
@@ -63,6 +64,7 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 public abstract class GeyserModBootstrap implements GeyserBootstrap {
+    @Getter
     private static GeyserModBootstrap instance;
 
     private final GeyserModPlatform platform;
@@ -81,14 +83,8 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     private WorldManager geyserWorldManager;
 
     @Override
-    public void onInitialize() {
+    public void onGeyserInitialize() {
         instance = this;
-        mod = FabricLoader.getInstance().getModContainer("geyser-fabric").orElseThrow();
-        onGeyserInitialize();
-    }
-
-    @Override
-    public void onEnable() {
         dataFolder = this.platform.dataFolder(this.platform.configPath());
         GeyserLocale.init(this);
         if (!loadConfig()) {
@@ -97,14 +93,12 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         this.geyserLogger = new GeyserModLogger(geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
         this.geyser = GeyserImpl.load(this.platform.platformType(), this);
+
+        // Create command manager here, since the permission handler on neo needs it
+        this.geyserCommandManager = new GeyserCommandManager(geyser);
+        this.geyserCommandManager.init();
     }
 
-    /**
-     * Initialize core Geyser.
-     * A function, as it needs to be called in different places depending on if Geyser is being reloaded or not.
-     *
-     * @param server The minecraft server.
-     */
     public void onGeyserEnable() {
         if (GeyserImpl.getInstance().isReloading()) {
             if (!loadConfig()) {
@@ -112,9 +106,6 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
             }
             this.geyserLogger.setDebug(geyserConfig.isDebugMode());
             GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
-        } else {
-            this.geyserCommandManager = new GeyserCommandManager(geyser);
-            this.geyserCommandManager.init();
         }
 
         GeyserImpl.start();
@@ -195,8 +186,8 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
             geyser.shutdown();
             geyser = null;
         }
-        if (this.geyserInjector != null) {
-            this.geyserInjector.shutdown();
+        if (geyserInjector != null) {
+            geyserInjector.shutdown();
             this.server = null;
         }
     }
@@ -268,10 +259,6 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
 
     public abstract boolean hasPermission(@NonNull CommandSourceStack source, @NonNull String permissionNode, int permissionLevel);
 
-    public static GeyserModBootstrap getInstance() {
-        return instance;
-    }
-
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean loadConfig() {
         try {
@@ -282,10 +269,10 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
 
             File configFile = FileUtils.fileOrCopiedFromResource(dataFolder.resolve("config.yml").toFile(), "config.yml",
                     (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
-            this.geyserConfig = FileUtils.loadConfig(configFile, GeyserFabricConfiguration.class);
+            this.geyserConfig = FileUtils.loadConfig(configFile, GeyserModConfiguration.class);
             return true;
         } catch (IOException ex) {
-            LogManager.getLogger("geyser-fabric").error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
+            LogManager.getLogger("geyser").error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
             return false;
         }

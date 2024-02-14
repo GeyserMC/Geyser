@@ -45,30 +45,25 @@ public class GeyserNeoforgeBootstrap extends GeyserModBootstrap {
     public GeyserNeoforgeBootstrap() {
         super(new GeyserNeoforgePlatform());
 
-        this.onEnable();
-
         if (FMLLoader.getDist() == Dist.DEDICATED_SERVER) {
             // Set as an event so we can get the proper IP and port if needed
             NeoForge.EVENT_BUS.addListener(this::onServerStarted);
         }
-    }
 
-    @Override
-    public void onInitialStartup() {
-        // Server has yet to start
-        // Register onDisable so players are properly kicked
         NeoForge.EVENT_BUS.addListener(this::onServerStopping);
         NeoForge.EVENT_BUS.addListener(this::onPlayerJoin);
-
         NeoForge.EVENT_BUS.addListener(this.permissionHandler::onPermissionGather);
+
+        this.onGeyserInitialize();
     }
 
     private void onServerStarted(ServerStartedEvent event) {
-        this.startGeyser(event.getServer());
+        this.setServer(event.getServer());
+        this.onGeyserEnable();
     }
 
     private void onServerStopping(ServerStoppingEvent event) {
-        this.onDisable();
+        this.onGeyserShutdown();
     }
 
     private void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
