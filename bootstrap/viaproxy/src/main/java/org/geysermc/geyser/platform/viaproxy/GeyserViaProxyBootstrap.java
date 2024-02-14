@@ -24,7 +24,7 @@
  */
 package org.geysermc.geyser.platform.viaproxy;
 
-import net.raphimc.vialoader.util.VersionEnum;
+import net.raphimc.vialegacy.api.LegacyProtocolVersion;
 import net.raphimc.viaproxy.cli.options.Options;
 import org.apache.logging.log4j.Logger;
 import org.geysermc.geyser.GeyserBootstrap;
@@ -65,9 +65,7 @@ public class GeyserViaProxyBootstrap implements GeyserBootstrap {
     }
 
     @Override
-    public void onEnable() {
-        LoopbackUtil.checkAndApplyLoopback(this.logger);
-
+    public void onGeyserInitialize() {
         try {
             final File configFile = FileUtils.fileOrCopiedFromResource(new File(this.rootFolder, "config.yml"), "config.yml", s -> s.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
             this.config = FileUtils.loadConfig(configFile, GeyserViaProxyConfiguration.class);
@@ -80,19 +78,29 @@ public class GeyserViaProxyBootstrap implements GeyserBootstrap {
         GeyserConfiguration.checkGeyserConfiguration(this.config, this.logger);
 
         this.geyser = GeyserImpl.load(PlatformType.VIAPROXY, this);
+        LoopbackUtil.checkAndApplyLoopback(this.logger);
+    }
+
+    @Override
+    public void onGeyserEnable() {
         GeyserImpl.start();
 
         this.commandManager = new GeyserCommandManager(this.geyser);
         this.commandManager.init();
 
-        if (Options.PROTOCOL_VERSION != null && Options.PROTOCOL_VERSION.isNewerThanOrEqualTo(VersionEnum.b1_8tob1_8_1)) {
+        if (Options.PROTOCOL_VERSION != null && Options.PROTOCOL_VERSION.newerThanOrEqualTo(LegacyProtocolVersion.b1_8tob1_8_1)) {
             // Only initialize the ping passthrough if the protocol version is above beta 1.7.3, as that's when the status protocol was added
             this.pingPassthrough = GeyserLegacyPingPassthrough.init(this.geyser);
         }
     }
 
     @Override
-    public void onDisable() {
+    public void onGeyserDisable() {
+        this.geyser.disable();
+    }
+
+    @Override
+    public void onGeyserShutdown() {
         this.geyser.shutdown();
     }
 
@@ -129,10 +137,6 @@ public class GeyserViaProxyBootstrap implements GeyserBootstrap {
     @NotNull
     @Override
     public String getServerBindAddress() {
-        if (Options.BIND_ADDRESS == null) { // TODO: Remove this check when Geyser has better init/load support
-            return "0.0.0.0";
-        }
-
         if (Options.BIND_ADDRESS instanceof InetSocketAddress socketAddress) {
             return socketAddress.getHostString();
         } else {
@@ -142,10 +146,6 @@ public class GeyserViaProxyBootstrap implements GeyserBootstrap {
 
     @Override
     public int getServerPort() {
-        if (Options.BIND_ADDRESS == null) { // TODO: Remove this check when Geyser has better init/load support
-            return 25568;
-        }
-
         if (Options.BIND_ADDRESS instanceof InetSocketAddress socketAddress) {
             return socketAddress.getPort();
         } else {

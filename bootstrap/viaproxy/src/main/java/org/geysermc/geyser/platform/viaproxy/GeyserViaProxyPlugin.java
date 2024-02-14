@@ -31,6 +31,7 @@ import net.raphimc.viaproxy.plugins.PluginManager;
 import net.raphimc.viaproxy.plugins.ViaProxyPlugin;
 import net.raphimc.viaproxy.plugins.events.ConsoleCommandEvent;
 import net.raphimc.viaproxy.plugins.events.ProxyStartEvent;
+import net.raphimc.viaproxy.plugins.events.ProxyStopEvent;
 import net.raphimc.viaproxy.plugins.events.ShouldVerifyOnlineModeEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -54,7 +55,7 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin {
 
         this.bootstrap = new GeyserViaProxyBootstrap(LOGGER, ROOT_FOLDER);
         GeyserLocale.init(this.bootstrap);
-        this.bootstrap.onEnable();
+        this.bootstrap.onGeyserInitialize();
 
         ViaProxy.EVENT_MANAGER.register(this);
     }
@@ -82,8 +83,13 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin {
 
     @EventHandler
     private void onProxyStart(final ProxyStartEvent event) {
+        this.bootstrap.onGeyserEnable();
+    }
+
+    @EventHandler
+    private void onProxyStop(final ProxyStopEvent event) {
         GeyserImpl.getInstance().getSessionManager().disconnectAll("geyser.commands.reload.kick");
-        GeyserImpl.getInstance().reload();
+        this.bootstrap.onGeyserDisable();
     }
 
 }
