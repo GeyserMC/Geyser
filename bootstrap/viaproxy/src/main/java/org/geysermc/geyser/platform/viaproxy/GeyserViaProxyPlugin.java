@@ -22,11 +22,12 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.platform.viaproxy;
 
 import net.lenni0451.lambdaevents.EventHandler;
+import net.raphimc.vialegacy.api.LegacyProtocolVersion;
 import net.raphimc.viaproxy.ViaProxy;
+import net.raphimc.viaproxy.cli.options.Options;
 import net.raphimc.viaproxy.plugins.PluginManager;
 import net.raphimc.viaproxy.plugins.ViaProxyPlugin;
 import net.raphimc.viaproxy.plugins.events.ConsoleCommandEvent;
@@ -34,28 +35,46 @@ import net.raphimc.viaproxy.plugins.events.ProxyStartEvent;
 import net.raphimc.viaproxy.plugins.events.ProxyStopEvent;
 import net.raphimc.viaproxy.plugins.events.ShouldVerifyOnlineModeEvent;
 import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.api.network.AuthType;
+import org.geysermc.geyser.api.util.PlatformType;
+import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.configuration.GeyserConfiguration;
+import org.geysermc.geyser.dump.BootstrapDumpInfo;
+import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
+import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.util.LoopbackUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.UUID;
 
-public class GeyserViaProxyPlugin extends ViaProxyPlugin {
+public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootstrap {
 
-    public static final Logger LOGGER = LogManager.getLogger("Geyser");
     public static final File ROOT_FOLDER = new File(PluginManager.PLUGINS_DIR, "Geyser");
 
-    private GeyserViaProxyBootstrap bootstrap;
+    private final GeyserViaProxyLogger logger = new GeyserViaProxyLogger(LogManager.getLogger("Geyser"));
+    private GeyserViaProxyConfiguration config;
+
+    private GeyserImpl geyser;
+    private GeyserCommandManager commandManager;
+    private IGeyserPingPassthrough pingPassthrough;
 
     @Override
     public void onEnable() {
         ROOT_FOLDER.mkdirs();
 
-        this.bootstrap = new GeyserViaProxyBootstrap(LOGGER, ROOT_FOLDER);
-        GeyserLocale.init(this.bootstrap);
-        this.bootstrap.onGeyserInitialize();
+        GeyserLocale.init(this);
+        this.onGeyserInitialize();
 
         ViaProxy.EVENT_MANAGER.register(this);
     }
@@ -63,7 +82,7 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin {
     @EventHandler
     private void onConsoleCommand(final ConsoleCommandEvent event) {
         final String command = event.getCommand().startsWith("/") ? event.getCommand().substring(1) : event.getCommand();
-        if (this.bootstrap.getGeyserCommandManager().runCommand(this.bootstrap.getGeyserLogger(), command + " " + String.join(" ", event.getArgs()))) {
+        if (this.getGeyserCommandManager().runCommand(this.getGeyserLogger(), command + " " + String.join(" ", event.getArgs()))) {
             event.setCancelled(true);
         }
     }
@@ -83,13 +102,107 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin {
 
     @EventHandler
     private void onProxyStart(final ProxyStartEvent event) {
-        this.bootstrap.onGeyserEnable();
+        this.onGeyserEnable();
     }
 
     @EventHandler
     private void onProxyStop(final ProxyStopEvent event) {
         GeyserImpl.getInstance().getSessionManager().disconnectAll("geyser.commands.reload.kick");
-        this.bootstrap.onGeyserDisable();
+        this.onGeyserDisable();
+    }
+
+    @Override
+    public void onGeyserInitialize() {
+        try {
+            final File configFile = FileUtils.fileOrCopiedFromResource(new File(ROOT_FOLDER, "config.yml"), "config.yml", s -> s.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
+            this.config = FileUtils.loadConfig(configFile, GeyserViaProxyConfiguration.class);
+        } catch (IOException e) {
+            this.logger.severe(GeyserLocale.getLocaleStringLog("geyser.config.failed"), e);
+            return;
+        }
+
+        config.getRemote().setAuthType(Files.isRegularFile(this.config.getFloodgateKeyPath()) ? AuthType.FLOODGATE : AuthType.OFFLINE);
+        GeyserConfiguration.checkGeyserConfiguration(this.config, this.logger);
+
+        this.geyser = GeyserImpl.load(PlatformType.VIAPROXY, this);
+        LoopbackUtil.checkAndApplyLoopback(this.logger);
+    }
+
+    @Override
+    public void onGeyserEnable() {
+        GeyserImpl.start();
+
+        this.commandManager = new GeyserCommandManager(this.geyser);
+        this.commandManager.init();
+
+        if (Options.PROTOCOL_VERSION != null && Options.PROTOCOL_VERSION.newerThanOrEqualTo(LegacyProtocolVersion.b1_8tob1_8_1)) {
+            // Only initialize the ping passthrough if the protocol version is above beta 1.7.3, as that's when the status protocol was added
+            this.pingPassthrough = GeyserLegacyPingPassthrough.init(this.geyser);
+        }
+    }
+
+    @Override
+    public void onGeyserDisable() {
+        this.geyser.disable();
+    }
+
+    @Override
+    public void onGeyserShutdown() {
+        this.geyser.shutdown();
+    }
+
+    @Override
+    public GeyserConfiguration getGeyserConfig() {
+        return this.config;
+    }
+
+    @Override
+    public GeyserLogger getGeyserLogger() {
+        return this.logger;
+    }
+
+    @Override
+    public GeyserCommandManager getGeyserCommandManager() {
+        return this.commandManager;
+    }
+
+    @Override
+    public IGeyserPingPassthrough getGeyserPingPassthrough() {
+        return this.pingPassthrough;
+    }
+
+    @Override
+    public Path getConfigFolder() {
+        return ROOT_FOLDER.toPath();
+    }
+
+    @Override
+    public BootstrapDumpInfo getDumpInfo() {
+        return new GeyserViaProxyDumpInfo();
+    }
+
+    @NotNull
+    @Override
+    public String getServerBindAddress() {
+        if (Options.BIND_ADDRESS instanceof InetSocketAddress socketAddress) {
+            return socketAddress.getHostString();
+        } else {
+            throw new IllegalStateException("Unsupported bind address type: " + Options.BIND_ADDRESS.getClass().getName());
+        }
+    }
+
+    @Override
+    public int getServerPort() {
+        if (Options.BIND_ADDRESS instanceof InetSocketAddress socketAddress) {
+            return socketAddress.getPort();
+        } else {
+            throw new IllegalStateException("Unsupported bind address type: " + Options.BIND_ADDRESS.getClass().getName());
+        }
+    }
+
+    @Override
+    public boolean testFloodgatePluginPresent() {
+        return false;
     }
 
 }
