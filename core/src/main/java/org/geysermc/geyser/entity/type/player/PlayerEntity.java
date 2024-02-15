@@ -377,6 +377,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
 
         if (needsUpdate) {
             dirtyMetadata.put(EntityDataTypes.NAME, this.nametag);
+            dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
         }
     }
 
