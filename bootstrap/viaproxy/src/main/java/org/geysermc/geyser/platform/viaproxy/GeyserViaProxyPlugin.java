@@ -107,22 +107,14 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
 
     @EventHandler
     private void onProxyStop(final ProxyStopEvent event) {
-        GeyserImpl.getInstance().getSessionManager().disconnectAll("geyser.commands.reload.kick");
         this.onGeyserDisable();
     }
 
     @Override
     public void onGeyserInitialize() {
-        try {
-            final File configFile = FileUtils.fileOrCopiedFromResource(new File(ROOT_FOLDER, "config.yml"), "config.yml", s -> s.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
-            this.config = FileUtils.loadConfig(configFile, GeyserViaProxyConfiguration.class);
-        } catch (IOException e) {
-            this.logger.severe(GeyserLocale.getLocaleStringLog("geyser.config.failed"), e);
+        if (!this.loadConfig()) {
             return;
         }
-
-        config.getRemote().setAuthType(Files.isRegularFile(this.config.getFloodgateKeyPath()) ? AuthType.FLOODGATE : AuthType.OFFLINE);
-        GeyserConfiguration.checkGeyserConfiguration(this.config, this.logger);
 
         this.geyser = GeyserImpl.load(PlatformType.VIAPROXY, this);
         LoopbackUtil.checkAndApplyLoopback(this.logger);
@@ -130,10 +122,16 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
 
     @Override
     public void onGeyserEnable() {
-        GeyserImpl.start();
+        if (GeyserImpl.getInstance().isReloading()) {
+            if (!this.loadConfig()) {
+                return;
+            }
+        }
 
         this.commandManager = new GeyserCommandManager(this.geyser);
         this.commandManager.init();
+
+        GeyserImpl.start();
 
         if (Options.PROTOCOL_VERSION != null && Options.PROTOCOL_VERSION.newerThanOrEqualTo(LegacyProtocolVersion.b1_8tob1_8_1)) {
             // Only initialize the ping passthrough if the protocol version is above beta 1.7.3, as that's when the status protocol was added
@@ -203,6 +201,20 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
     @Override
     public boolean testFloodgatePluginPresent() {
         return false;
+    }
+
+    private boolean loadConfig() {
+        try {
+            final File configFile = FileUtils.fileOrCopiedFromResource(new File(ROOT_FOLDER, "config.yml"), "config.yml", s -> s.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
+            this.config = FileUtils.loadConfig(configFile, GeyserViaProxyConfiguration.class);
+        } catch (IOException e) {
+            this.logger.severe(GeyserLocale.getLocaleStringLog("geyser.config.failed"), e);
+            return false;
+        }
+        this.config.getRemote().setAuthType(Files.isRegularFile(this.config.getFloodgateKeyPath()) ? AuthType.FLOODGATE : AuthType.OFFLINE);
+        this.logger.setDebug(this.config.isDebugMode());
+        GeyserConfiguration.checkGeyserConfiguration(this.config, this.logger);
+        return true;
     }
 
 }

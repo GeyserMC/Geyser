@@ -1,9 +1,3 @@
-indra {
-    javaVersions {
-        target(17)
-    }
-}
-
 dependencies {
     api(projects.core)
 }
