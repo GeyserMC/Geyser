@@ -161,72 +161,7 @@ public final class Scoreboard {
     }
 
     public void onUpdate() {
-        List<ScoreInfo> addScores = new ArrayList<>(lastAddScoreCount);
-        List<ScoreInfo> removeScores = new ArrayList<>(lastRemoveScoreCount);
-        List<Objective> removedObjectives = new ArrayList<>();
-
-        Team playerTeam = getTeamFor(session.getPlayerEntity().getUsername());
-        Objective correctSidebar = null;
-
-        for (Objective objective : objectives.values()) {
-            // objective has been deleted
-            if (objective.getUpdateType() == REMOVE) {
-                removedObjectives.add(objective);
-                continue;
-            }
-
-            // there's nothing we can do with inactive objectives
-            // after checking if the objective has been deleted,
-            // except waiting for the objective to become activated (:
-            if (!objective.isActive()) {
-                continue;
-            }
-
-            if (playerTeam != null && playerTeam.getColor() == objective.getTeamColor()) {
-                correctSidebar = objective;
-            }
-        }
-
-        if (correctSidebar == null) {
-            correctSidebar = objectiveSlots.get(ScoreboardPosition.SIDEBAR);
-        }
-
-        for (Objective objective : removedObjectives) {
-            // Deletion must be handled before the active objectives are handled - otherwise if a scoreboard display is changed before the current
-            // scoreboard is removed, the client can crash
-            deleteObjective(objective, true);
-        }
-
-        handleObjective(objectiveSlots.get(ScoreboardPosition.PLAYER_LIST), addScores, removeScores);
-        handleObjective(correctSidebar, addScores, removeScores);
-        handleObjective(objectiveSlots.get(ScoreboardPosition.BELOW_NAME), addScores, removeScores);
-
-        Iterator<Team> teamIterator = teams.values().iterator();
-        while (teamIterator.hasNext()) {
-            Team current = teamIterator.next();
-
-            switch (current.getCachedUpdateType()) {
-                case ADD, UPDATE -> current.markUpdated();
-                case REMOVE -> teamIterator.remove();
-            }
-        }
-
-        if (!removeScores.isEmpty()) {
-            SetScorePacket setScorePacket = new SetScorePacket();
-            setScorePacket.setAction(SetScorePacket.Action.REMOVE);
-            setScorePacket.setInfos(removeScores);
-            session.sendUpstreamPacket(setScorePacket);
-        }
-
-        if (!addScores.isEmpty()) {
-            SetScorePacket setScorePacket = new SetScorePacket();
-            setScorePacket.setAction(SetScorePacket.Action.SET);
-            setScorePacket.setInfos(addScores);
-            session.sendUpstreamPacket(setScorePacket);
-        }
-
-        lastAddScoreCount = addScores.size();
-        lastRemoveScoreCount = removeScores.size();
+        // do nothing
     }
 
     private void handleObjective(Objective objective, List<ScoreInfo> addScores, List<ScoreInfo> removeScores) {

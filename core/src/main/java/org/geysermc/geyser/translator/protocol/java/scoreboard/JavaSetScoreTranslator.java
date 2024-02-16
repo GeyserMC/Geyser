@@ -71,10 +71,37 @@ public class JavaSetScoreTranslator extends PacketTranslator<ClientboundSetScore
         // attached to this score.
         boolean isBelowName = objective == scoreboard.getObjectiveSlots().get(ScoreboardPosition.BELOW_NAME);
 
-        objective.setScore(packet.getOwner(), packet.getValue());
-        if (isBelowName) {
-            // Update the below name score on this player
-            setBelowName(session, objective, packet.getOwner(), packet.getValue());
+        switch (packet.getAction()) {
+            case ADD_OR_UPDATE -> {
+                // logger.info("SetScore " + packet.getEntry() + "," + String.valueOf(packet.getValue()));
+                objective.setScore(packet.getEntry(), packet.getValue());
+                if (isBelowName) {
+                    // Update the below name score on this player
+                    setBelowName(session, objective, packet.getEntry(), packet.getValue());
+                }
+            }
+            case REMOVE -> {
+                if (packet.getObjective().isEmpty()) {
+                    // An empty objective name means all scores are reset for that player (/scoreboard players reset PLAYERNAME)
+                    Objective belowName = scoreboard.getObjectiveSlots().get(ScoreboardPosition.BELOW_NAME);
+                    if (belowName != null) {
+                        setBelowName(session, belowName, packet.getEntry(), 0);
+                    }
+                }
+
+                if (objective != null) {
+                    objective.removeScore(packet.getEntry());
+
+                    if (isBelowName) {
+                        // Update the score on this player to now reflect 0
+                        setBelowName(session, objective, packet.getEntry(), 0);
+                    }
+                } else {
+                    for (Objective objective1 : scoreboard.getObjectives()) {
+                        objective1.removeScore(packet.getEntry());
+                    }
+                }
+            }
         }
 
         // ScoreboardUpdater will handle it for us if the packets per second

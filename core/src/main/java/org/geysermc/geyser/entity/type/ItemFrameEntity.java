@@ -187,6 +187,15 @@ public class ItemFrameEntity extends Entity {
             // Don't send a block update packet - nothing changed
             return;
         }
+        int x = bedrockPosition.getX();
+        int y = bedrockPosition.getY();
+        int z = bedrockPosition.getZ();
+        int blockID = session.getGeyser().getWorldManager().getBlockAt(session, x, y, z);
+        if (blockID != 0) {
+            System.out.println("Putting item frame at (" + x + ", " + y + ", " + z + ") would override existing block with id " + blockID + ", ignoring");
+            return;
+        }
+
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
         updateBlockPacket.setBlockPosition(bedrockPosition);
