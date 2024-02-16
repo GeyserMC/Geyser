@@ -172,6 +172,7 @@ public class GeyserImpl implements GeyserApi {
     /**
      * Determines if Geyser is currently enabled. This is used to determine if {@link #disable()} should be called during {@link #shutdown()}.
      */
+    @Setter
     private boolean isEnabled;
 
     private GeyserImpl(PlatformType platformType, GeyserBootstrap bootstrap) {
@@ -646,7 +647,7 @@ public class GeyserImpl implements GeyserApi {
 
         Registries.RESOURCE_PACKS.get().clear();
 
-        isEnabled = false;
+        this.setEnabled(false);
     }
 
     public void shutdown() {
@@ -786,7 +787,7 @@ public class GeyserImpl implements GeyserApi {
         } else {
             instance.initialize();
         }
-        instance.isEnabled = true;
+        instance.setEnabled(true);
     }
 
     public GeyserLogger getLogger() {
