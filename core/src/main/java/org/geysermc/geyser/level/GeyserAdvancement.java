@@ -55,6 +55,11 @@ public class GeyserAdvancement {
     }
 
     @NonNull
+    public List<String> getCriteria() {
+        return this.advancement.getCriteria();
+    }
+
+    @NonNull
     public List<List<String>> getRequirements() {
         return this.advancement.getRequirements();
     }

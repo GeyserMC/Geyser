@@ -42,15 +42,15 @@ import com.github.steveice10.mc.protocol.data.game.setting.ChatVisibility;
 import com.github.steveice10.mc.protocol.data.game.setting.SkinPart;
 import com.github.steveice10.mc.protocol.data.game.statistic.CustomStatistic;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
-import com.github.steveice10.mc.protocol.packet.common.serverbound.ServerboundClientInformationPacket;
 import com.github.steveice10.mc.protocol.packet.handshake.serverbound.ClientIntentionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundChatCommandPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundChatPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundClientInformationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundUseItemPacket;
-import com.github.steveice10.mc.protocol.packet.login.serverbound.ServerboundCustomQueryAnswerPacket;
+import com.github.steveice10.mc.protocol.packet.login.serverbound.ServerboundCustomQueryPacket;
 import com.github.steveice10.packetlib.BuiltinFlags;
 import com.github.steveice10.packetlib.Session;
 import com.github.steveice10.packetlib.event.session.ConnectedEvent;
@@ -299,7 +299,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private Vector2i lastChunkPosition = null;
     @Setter
     private int clientRenderDistance = -1;
-    private int serverRenderDistance = -1;
+    private int serverRenderDistance;
 
     // Exposed for GeyserConnect usage
     protected boolean sentSpawnPacket;
@@ -1697,8 +1697,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     private void sendDownstreamPacket0(Packet packet) {
-        ProtocolState state = protocol.getState();
-        if (state == ProtocolState.GAME || state == ProtocolState.CONFIGURATION || packet.getClass() == ServerboundCustomQueryAnswerPacket.class) {
+        if (protocol.getState().equals(ProtocolState.GAME) || packet.getClass() == ServerboundCustomQueryPacket.class) {
             downstream.sendPacket(packet);
         } else {
             geyser.getLogger().debug("Tried to send downstream packet " + packet.getClass().getSimpleName() + " before connected to the server");
@@ -1857,11 +1856,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         if (clientRenderDistance != -1) {
             // The client has sent a render distance
             return clientRenderDistance;
-        } else if (serverRenderDistance != -1) {
-            // only known once ClientboundLoginPacket is received
-            return serverRenderDistance;
         }
-        return 2; // unfortunate default until we got more info
+        return serverRenderDistance;
     }
 
     // We need to send our skin parts to the server otherwise java sees us with no hat, jacket etc
