@@ -64,7 +64,6 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
 
     private final GeyserViaProxyLogger logger = new GeyserViaProxyLogger(LogManager.getLogger("Geyser"));
     private GeyserViaProxyConfiguration config;
-
     private GeyserImpl geyser;
     private GeyserCommandManager commandManager;
     private IGeyserPingPassthrough pingPassthrough;

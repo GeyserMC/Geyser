@@ -169,6 +169,11 @@ public class GeyserImpl implements GeyserApi {
      */
     private volatile boolean isReloading;
 
+    /**
+     * Determines if Geyser is currently enabled. This is used to determine if {@link #disable()} should be called during {@link #shutdown()}.
+     */
+    private boolean isEnabled;
+
     private GeyserImpl(PlatformType platformType, GeyserBootstrap bootstrap) {
         instance = this;
 
@@ -642,11 +647,14 @@ public class GeyserImpl implements GeyserApi {
         Registries.RESOURCE_PACKS.get().clear();
 
         bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.done"));
+        isEnabled = false;
     }
 
     public void shutdown() {
         shuttingDown = true;
-        this.disable();
+        if (isEnabled) {
+            this.disable();
+        }
         this.commandManager().getCommands().clear();
 
         // Disable extensions, fire the shutdown event
@@ -779,6 +787,7 @@ public class GeyserImpl implements GeyserApi {
         } else {
             instance.initialize();
         }
+        instance.isEnabled = true;
     }
 
     public GeyserLogger getLogger() {
