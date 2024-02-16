@@ -79,6 +79,11 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
         ViaProxy.EVENT_MANAGER.register(this);
     }
 
+    @Override
+    public void onDisable() {
+        this.onGeyserShutdown();
+    }
+
     @EventHandler
     private void onConsoleCommand(final ConsoleCommandEvent event) {
         final String command = event.getCommand().startsWith("/") ? event.getCommand().substring(1) : event.getCommand();
