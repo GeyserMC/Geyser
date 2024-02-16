@@ -646,7 +646,6 @@ public class GeyserImpl implements GeyserApi {
 
         Registries.RESOURCE_PACKS.get().clear();
 
-        bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.done"));
         isEnabled = false;
     }
 
