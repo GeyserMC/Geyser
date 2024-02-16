@@ -32,7 +32,6 @@ import net.minecraft.commands.CommandSourceStack;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandExecutor;
-import org.geysermc.geyser.platform.fabric.GeyserFabricMod;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -63,9 +62,6 @@ public class GeyserFabricCommandExecutor extends GeyserCommandExecutor implement
         if (!testPermission(source)) {
             sender.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", sender.locale()));
             return 0;
-        }
-        if (this.command.name().equals("reload")) {
-            GeyserFabricMod.getInstance().setReloading(true);
         }
 
         if (command.isBedrockOnly() && session == null) {
