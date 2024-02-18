@@ -30,6 +30,7 @@ import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.GeyserLocale;
 
@@ -56,7 +57,7 @@ public class VelocityCommandSource implements GeyserCommandSource {
     }
 
     @Override
-    public void sendMessage(String message) {
+    public void sendMessage(@NonNull String message) {
         handle.sendMessage(LegacyComponentSerializer.legacy('§').deserialize(message));
     }
 

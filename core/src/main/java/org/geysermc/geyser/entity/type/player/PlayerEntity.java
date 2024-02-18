@@ -36,14 +36,23 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.protocol.bedrock.data.*;
+import org.cloudburstmc.protocol.bedrock.data.Ability;
+import org.cloudburstmc.protocol.bedrock.data.AbilityLayer;
+import org.cloudburstmc.protocol.bedrock.data.AttributeData;
+import org.cloudburstmc.protocol.bedrock.data.GameType;
+import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
-import org.cloudburstmc.protocol.bedrock.packet.*;
+import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
+import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
@@ -57,7 +66,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -86,6 +94,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
     @Nullable
     private String texturesProperty;
 
+    @Nullable
     private Vector3i bedPosition;
 
     /**
@@ -142,6 +151,10 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         addPlayerPacket.setGameType(GameType.SURVIVAL); //TODO
         addPlayerPacket.setAbilityLayers(BASE_ABILITY_LAYER); // Recommended to be added since 1.19.10, but only needed here for permissions viewing
         addPlayerPacket.getMetadata().putFlags(flags);
+
+        // Since 1.20.60, the nametag does not show properly if this is not set :/
+        // The nametag does disappear properly when the player is invisible though.
+        dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
         dirtyMetadata.apply(addPlayerPacket.getMetadata());
 
         setFlagsDirty(false);
@@ -240,7 +253,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
     }
 
     @Override
-    public Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
+    public @Nullable Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
         bedPosition = super.setBedPosition(entityMetadata);
         if (bedPosition != null) {
             // Required to sync position of entity to bed
@@ -431,5 +444,10 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
      */
     public UUID getTabListUuid() {
         return getUuid();
+    }
+
+    @Override
+    public Vector3f position() {
+        return this.position.clone();
     }
 }

@@ -37,7 +37,7 @@ import org.geysermc.geyser.translator.protocol.Translator;
 
 /**
  * Pre-1.16.210: used for both survival and creative item frame item removal
- *
+ * <p>
  * 1.16.210: only used in creative.
  */
 @Translator(packet = ItemFrameDropItemPacket.class)

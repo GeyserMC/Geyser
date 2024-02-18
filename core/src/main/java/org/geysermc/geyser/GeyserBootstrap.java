@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.floodgate.core.skin.SkinApplier;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -33,8 +35,6 @@ import org.geysermc.geyser.level.GeyserWorldManager;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.InputStream;
 import java.net.SocketAddress;
 import java.nio.file.Path;
@@ -45,14 +45,28 @@ public interface GeyserBootstrap {
     GeyserWorldManager DEFAULT_CHUNK_MANAGER = new GeyserWorldManager();
 
     /**
-     * Called when the GeyserBootstrap is enabled
+     * Called when the GeyserBootstrap is initialized.
+     * This will only be called once, when Geyser is loading. Calling this must
+     * happen before {@link #onGeyserEnable()}, since this "sets up" Geyser.
      */
-    void onEnable();
+    void onGeyserInitialize();
 
     /**
-     * Called when the GeyserBootstrap is disabled
+     * Called when the GeyserBootstrap is enabled/reloaded.
+     * This starts Geyser, after which, Geyser is in a player-accepting state.
      */
-    void onDisable();
+    void onGeyserEnable();
+
+    /**
+     * Called when the GeyserBootstrap is disabled - either before a reload,
+     * of before fully shutting down.
+     */
+    void onGeyserDisable();
+
+    /**
+     * Called when the GeyserBootstrap is shutting down.
+     */
+    void onGeyserShutdown();
 
     /**
      * Returns the current GeyserConfiguration
@@ -80,6 +94,7 @@ public interface GeyserBootstrap {
      *
      * @return The current PingPassthrough manager
      */
+    @Nullable
     IGeyserPingPassthrough getGeyserPingPassthrough();
 
     /**
@@ -159,7 +174,7 @@ public interface GeyserBootstrap {
      * @param resource Resource to get
      * @return InputStream of the given resource
      */
-    default @Nonnull InputStream getResource(String resource) {
+    default @NonNull InputStream getResourceOrThrow(@NonNull String resource) {
         InputStream stream = getResourceOrNull(resource);
         if (stream == null) {
             throw new AssertionError("Unable to find resource: " + resource);
@@ -170,7 +185,7 @@ public interface GeyserBootstrap {
     /**
      * @return the bind address being used by the Java server.
      */
-    @Nonnull
+    @NonNull
     String getServerBindAddress();
 
     /**

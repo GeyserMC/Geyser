@@ -56,7 +56,7 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
             ItemFrameEntity entity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
             if (entity != null) {
                 // Check to see if the item frame has an item in it first
-                if (entity.getHeldItem() != null && entity.getHeldItem().getId() != 0) {
+                if (!InventoryUtils.isEmpty(entity.getHeldItem())) {
                     // Grab the item in the frame
                     InventoryUtils.findOrCreateItem(session, entity.getHeldItem());
                 } else {

@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
@@ -53,8 +54,6 @@ import org.geysermc.geyser.event.type.GeyserDefineCommandsEventImpl;
 import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -87,7 +86,7 @@ public class GeyserCommandManager {
             registerBuiltInCommand(new StopCommand(geyser, "stop", "geyser.commands.stop.desc", "geyser.command.stop"));
         }
 
-        if (this.geyser.extensionManager().extensions().size() > 0) {
+        if (!this.geyser.extensionManager().extensions().isEmpty()) {
             registerBuiltInCommand(new ExtensionsCommand(this.geyser, "extensions", "geyser.commands.extensions.desc", "geyser.command.extensions"));
         }
 
@@ -136,12 +135,12 @@ public class GeyserCommandManager {
         }
     }
 
-    @NotNull
+    @NonNull
     public Map<String, Command> commands() {
         return Collections.unmodifiableMap(this.commands);
     }
 
-    @NotNull
+    @NonNull
     public Map<Extension, Map<String, Command>> extensionCommands() {
         return Collections.unmodifiableMap(this.extensionCommands);
     }

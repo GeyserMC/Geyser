@@ -31,18 +31,19 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Value;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.component.GeometryComponent;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.component.PlacementConditions;
 import org.geysermc.geyser.api.block.custom.component.TransformationComponent;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Objects;
 
 @Value
 public class GeyserCustomBlockComponents implements CustomBlockComponents {
@@ -61,7 +62,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     boolean placeAir;
     Set<String> tags;
 
-    private GeyserCustomBlockComponents(CustomBlockComponentsBuilder builder) {
+    private GeyserCustomBlockComponents(Builder builder) {
         this.selectionBox = builder.selectionBox;
         this.collisionBox = builder.collisionBox;
         this.displayName = builder.displayName;
@@ -152,11 +153,11 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     }
 
     @Override
-    public @NotNull Set<String> tags() {
+    public @NonNull Set<String> tags() {
         return tags;
     }
 
-    public static class CustomBlockComponentsBuilder implements Builder {
+    public static class Builder implements CustomBlockComponents.Builder {
         protected BoxComponent selectionBox;
         protected BoxComponent collisionBox;
         protected String displayName;
@@ -170,7 +171,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         protected TransformationComponent transformation;
         protected boolean unitCube = false;
         protected boolean placeAir = false;
-        protected final Set<String> tags = new HashSet<>();
+        protected Set<String> tags = new HashSet<>();
 
         private void validateBox(BoxComponent box) {
             if (box == null) {
@@ -217,7 +218,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         }
 
         @Override
-        public Builder materialInstance(@NotNull String name, @NotNull MaterialInstance materialInstance) {
+        public Builder materialInstance(@NonNull String name, @NonNull MaterialInstance materialInstance) {
             this.materialInstances.put(name, materialInstance);
             return this;
         }
@@ -292,8 +293,8 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         }
 
         @Override
-        public Builder tags(Set<String> tags) {
-            this.tags.addAll(tags);
+        public Builder tags(@Nullable Set<String> tags) {
+            this.tags = Objects.requireNonNullElseGet(tags, Set::of);
             return this;
         }
 

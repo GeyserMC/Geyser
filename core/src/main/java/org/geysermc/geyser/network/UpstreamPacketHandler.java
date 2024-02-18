@@ -28,9 +28,14 @@ package org.geysermc.geyser.network;
 import io.netty.buffer.Unpooled;
 import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
+import org.cloudburstmc.protocol.bedrock.codec.compat.BedrockCompat;
+import org.cloudburstmc.protocol.bedrock.codec.v622.Bedrock_v622;
 import org.cloudburstmc.protocol.bedrock.data.ExperimentData;
 import org.cloudburstmc.protocol.bedrock.data.PacketCompressionAlgorithm;
 import org.cloudburstmc.protocol.bedrock.data.ResourcePackType;
+import org.cloudburstmc.protocol.bedrock.netty.codec.compression.CompressionStrategy;
+import org.cloudburstmc.protocol.bedrock.netty.codec.compression.SimpleCompressionStrategy;
+import org.cloudburstmc.protocol.bedrock.netty.codec.compression.ZlibCompression;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LoginPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ModalFormResponsePacket;
@@ -46,6 +51,7 @@ import org.cloudburstmc.protocol.bedrock.packet.ResourcePackStackPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ResourcePacksInfoPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
 import org.cloudburstmc.protocol.common.PacketSignal;
+import org.cloudburstmc.protocol.common.util.Zlib;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.network.AuthType;
@@ -75,11 +81,16 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     private boolean networkSettingsRequested = false;
     private final Deque<String> packsToSent = new ArrayDeque<>();
+    private final CompressionStrategy compressionStrategy;
 
     private SessionLoadResourcePacksEventImpl resourcePackLoadEvent;
 
     public UpstreamPacketHandler(GeyserImpl geyser, GeyserSession session) {
         super(geyser, session);
+
+        ZlibCompression compression = new ZlibCompression(Zlib.RAW);
+        compression.setLevel(this.geyser.getConfig().getBedrock().getCompressionLevel());
+        this.compressionStrategy = new SimpleCompressionStrategy(compression);
     }
 
     private PacketSignal translateAndDefault(BedrockPacket packet) {
@@ -108,8 +119,14 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 session.disconnect(disconnectMessage);
                 return false;
             } else if (protocolVersion < GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
+                if (protocolVersion < Bedrock_v622.CODEC.getProtocolVersion()) {
+                    // https://github.com/GeyserMC/Geyser/issues/4378
+                    session.getUpstream().getSession().setCodec(BedrockCompat.CODEC_LEGACY);
+                }
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.client", supportedVersions));
                 return false;
+            } else {
+                throw new IllegalStateException("Default codec of protocol version " + protocolVersion + " should have been found");
             }
         }
 
@@ -141,16 +158,15 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         responsePacket.setCompressionAlgorithm(algorithm);
         responsePacket.setCompressionThreshold(512);
         session.sendUpstreamPacketImmediately(responsePacket);
+        session.getUpstream().getSession().getPeer().setCompression(compressionStrategy);
 
-        session.getUpstream().getSession().setCompression(algorithm);
-        session.getUpstream().getSession().setCompressionLevel(this.geyser.getConfig().getBedrock().getCompressionLevel());
         networkSettingsRequested = true;
         return PacketSignal.HANDLED;
     }
 
     @Override
     public PacketSignal handle(LoginPacket loginPacket) {
-        if (geyser.isShuttingDown()) {
+        if (geyser.isShuttingDown() || geyser.isReloading()) {
             // Don't allow new players in if we're no longer operating
             session.disconnect(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.message"));
             return PacketSignal.HANDLED;
@@ -229,6 +245,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     // Allow custom items to work
                     stackPacket.getExperiments().add(new ExperimentData("data_driven_items", true));
                 }
+
+                // Required for experimental 1.21 features
+                stackPacket.getExperiments().add(new ExperimentData("updateAnnouncedLive2023", true));
 
                 session.sendUpstreamPacket(stackPacket);
                 break;

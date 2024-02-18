@@ -30,6 +30,9 @@ bedrock:
   # How much to compress network traffic to the Bedrock client. The higher the number, the more CPU usage used, but
   # the smaller the bandwidth used. Does not have any effect below -1 or above 9. Set to -1 to disable.
   compression-level: 6
+  # The port to broadcast to Bedrock clients with the MOTD that they should use to connect to the server.
+  # DO NOT uncomment and change this unless Geyser runs on a different internal port than the one that is used to connect.
+  # broadcast-port: 19132
   # Whether to enable PROXY protocol or not for clients. You DO NOT WANT this feature unless you run UDP reverse proxy
   # in front of your Geyser instance.
   enable-proxy-protocol: false
@@ -90,12 +93,9 @@ command-suggestions: true
 
 # The following three options enable "ping passthrough" - the MOTD, player count and/or protocol name gets retrieved from the Java server.
 # Relay the MOTD from the remote server to Bedrock players.
-passthrough-motd: false
-# Relay the protocol name (e.g. BungeeCord [X.X], Paper 1.X) - only really useful when using a custom protocol name!
-# This will also show up on sites like MCSrvStatus. <mcsrvstat.us>
-passthrough-protocol-name: false
+passthrough-motd: true
 # Relay the player count and max players from the remote server to Bedrock players.
-passthrough-player-counts: false
+passthrough-player-counts: true
 # Enable LEGACY ping passthrough. There is no need to enable this unless your MOTD or player count does not appear properly.
 # This option does nothing on standalone.
 legacy-ping-passthrough: false

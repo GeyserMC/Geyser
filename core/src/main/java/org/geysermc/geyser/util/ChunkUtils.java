@@ -54,19 +54,27 @@ import static org.geysermc.geyser.level.block.BlockStateValues.JAVA_AIR_ID;
 
 @UtilityClass
 public class ChunkUtils {
-    /**
-     * An empty subchunk.
-     */
-    public static final byte[] SERIALIZED_CHUNK_DATA;
+
     public static final byte[] EMPTY_BIOME_DATA;
 
+    public static final BlockStorage[] EMPTY_BLOCK_STORAGE;
+
+    public static final int EMPTY_CHUNK_SECTION_SIZE;
+
     static {
+        EMPTY_BLOCK_STORAGE = new BlockStorage[0];
+
         ByteBuf byteBuf = Unpooled.buffer();
         try {
-            new GeyserChunkSection(new BlockStorage[0], 0)
+            new GeyserChunkSection(EMPTY_BLOCK_STORAGE, 0)
                     .writeToNetwork(byteBuf);
-            SERIALIZED_CHUNK_DATA = new byte[byteBuf.readableBytes()];
-            byteBuf.readBytes(SERIALIZED_CHUNK_DATA);
+
+            byte[] emptyChunkData = new byte[byteBuf.readableBytes()];
+            byteBuf.readBytes(emptyChunkData);
+
+            EMPTY_CHUNK_SECTION_SIZE = emptyChunkData.length;
+
+            emptyChunkData = null;
         } finally {
             byteBuf.release();
         }
@@ -207,6 +215,14 @@ public class ChunkUtils {
                 break; //No block will be a part of two classes
             }
         }
+
+        if (BlockStateValues.isUpperDoor(blockState)) {
+            // Update the lower door block as Bedrock client doesn't like door to be closed from the top
+            // See https://github.com/GeyserMC/Geyser/issues/4358
+            Vector3i belowDoorPosition = position.sub(0, 1, 0);
+            int belowDoorBlockState = session.getGeyser().getWorldManager().getBlockAt(session, belowDoorPosition.getX(), belowDoorPosition.getY(), belowDoorPosition.getZ());
+            updateBlock(session, belowDoorBlockState, belowDoorPosition);
+        }
     }
 
     public static void sendEmptyChunk(GeyserSession session, int chunkX, int chunkZ, boolean forceUpdate) {
@@ -228,6 +244,7 @@ public class ChunkUtils {
             byteBuf.readBytes(payload);
 
             LevelChunkPacket data = new LevelChunkPacket();
+            data.setDimension(DimensionUtils.javaToBedrock(session.getChunkCache().getBedrockDimension()));
             data.setChunkX(chunkX);
             data.setChunkZ(chunkZ);
             data.setSubChunksLength(0);

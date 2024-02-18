@@ -28,8 +28,9 @@ package org.geysermc.geyser.inventory.recipe;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
-public record GeyserShapelessRecipe(Ingredient[] ingredients, ItemStack result) implements GeyserRecipe {
+public record GeyserShapelessRecipe(Ingredient[] ingredients, @Nullable ItemStack result) implements GeyserRecipe {
 
     public GeyserShapelessRecipe(ShapelessRecipeData data) {
         this(data.getIngredients(), data.getResult());

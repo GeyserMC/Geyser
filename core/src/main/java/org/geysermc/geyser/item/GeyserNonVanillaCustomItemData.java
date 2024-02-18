@@ -32,11 +32,11 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.OptionalInt;
 import java.util.Set;
 
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 @EqualsAndHashCode(callSuper = true)
 @ToString
 public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData implements NonVanillaCustomItemData {
@@ -59,9 +59,9 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     private final boolean canAlwaysEat;
     private final boolean isChargeable;
 
-    public GeyserNonVanillaCustomItemData(NonVanillaCustomItemDataBuilder builder) {
+    public GeyserNonVanillaCustomItemData(Builder builder) {
         super(builder.name, builder.customItemOptions, builder.displayName, builder.icon, builder.allowOffhand,
-                builder.displayHandheld, builder.textureSize, builder.renderOffsets);
+                builder.displayHandheld, builder.textureSize, builder.renderOffsets, builder.tags);
 
         this.identifier = builder.identifier;
         this.javaId = builder.javaId;
@@ -84,7 +84,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     }
 
     @Override
-    public @NotNull String identifier() {
+    public @NonNull String identifier() {
         return identifier;
     }
 
@@ -134,7 +134,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     }
 
     @Override
-    public @NotNull OptionalInt creativeCategory() {
+    public @NonNull OptionalInt creativeCategory() {
         return creativeCategory;
     }
 
@@ -168,7 +168,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         return isChargeable;
     }
 
-    public static class NonVanillaCustomItemDataBuilder extends GeyserCustomItemData.CustomItemDataBuilder implements NonVanillaCustomItemData.Builder {
+    public static class Builder extends GeyserCustomItemData.Builder implements NonVanillaCustomItemData.Builder {
         private String identifier = null;
         private int javaId = -1;
 
@@ -197,44 +197,49 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         private boolean chargeable = false;
 
         @Override
-        public NonVanillaCustomItemData.Builder name(@NonNull String name) {
-            return (NonVanillaCustomItemData.Builder) super.name(name);
+        public Builder name(@NonNull String name) {
+            return (Builder) super.name(name);
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder customItemOptions(@NonNull CustomItemOptions customItemOptions) {
+        public Builder customItemOptions(@NonNull CustomItemOptions customItemOptions) {
             //Do nothing, as that value won't be read
             return this;
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder allowOffhand(boolean allowOffhand) {
-            return (NonVanillaCustomItemData.Builder) super.allowOffhand(allowOffhand);
+        public Builder allowOffhand(boolean allowOffhand) {
+            return (Builder) super.allowOffhand(allowOffhand);
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder displayHandheld(boolean displayHandheld) {
-            return (NonVanillaCustomItemData.Builder) super.displayHandheld(displayHandheld);
+        public Builder displayHandheld(boolean displayHandheld) {
+            return (Builder) super.displayHandheld(displayHandheld);
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder displayName(@NonNull String displayName) {
-            return (NonVanillaCustomItemData.Builder) super.displayName(displayName);
+        public Builder displayName(@NonNull String displayName) {
+            return (Builder) super.displayName(displayName);
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder icon(@NonNull String icon) {
-            return (NonVanillaCustomItemData.Builder) super.icon(icon);
+        public Builder icon(@NonNull String icon) {
+            return (Builder) super.icon(icon);
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder textureSize(int textureSize) {
-            return (NonVanillaCustomItemData.Builder) super.textureSize(textureSize);
+        public Builder textureSize(int textureSize) {
+            return (Builder) super.textureSize(textureSize);
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder renderOffsets(CustomRenderOffsets renderOffsets) {
-            return (NonVanillaCustomItemData.Builder) super.renderOffsets(renderOffsets);
+        public Builder renderOffsets(CustomRenderOffsets renderOffsets) {
+            return (Builder) super.renderOffsets(renderOffsets);
+        }
+
+        @Override
+        public Builder tags(@Nullable Set<String> tags) {
+            return (Builder) super.tags(tags);
         }
 
         @Override

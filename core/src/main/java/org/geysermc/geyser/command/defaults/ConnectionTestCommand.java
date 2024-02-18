@@ -26,16 +26,19 @@
 package org.geysermc.geyser.command.defaults;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.LoopbackUtil;
 import org.geysermc.geyser.util.WebUtils;
-import org.jetbrains.annotations.Nullable;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
@@ -82,7 +85,7 @@ public class ConnectionTestCommand extends GeyserCommand {
                 return;
             }
         } else {
-            port = 19132;
+            port = geyser.getConfig().getBedrock().broadcastPort();
         }
         String ip = fullAddress[0];
 
@@ -104,30 +107,47 @@ public class ConnectionTestCommand extends GeyserCommand {
             return;
         }
 
-        // Issue: do the ports not line up?
-        if (port != geyser.getConfig().getBedrock().port()) {
-            if (fullAddress.length == 2) {
-                sender.sendMessage("The port you are testing with (" + port + ") is not the same as you set in your Geyser configuration ("
-                    + geyser.getConfig().getBedrock().port() + ")");
-                sender.sendMessage("Re-run the command with the port in the config, or change the `bedrock` `port` in the config.");
-                if (geyser.getConfig().getBedrock().isCloneRemotePort()) {
-                    sender.sendMessage("You have `clone-remote-port` enabled. This option ignores the `bedrock` `port` in the config, and uses the Java server port instead.");
+        // Issue: port out of bounds
+        if (port <= 0 || port >= 65535) {
+            sender.sendMessage("The port you specified is invalid! Please specify a valid port.");
+            return;
+        }
+
+        GeyserConfiguration config = geyser.getConfig();
+
+        // Issue: do the ports not line up? We only check this if players don't override the broadcast port - if they do, they (hopefully) know what they're doing
+        if (config.getBedrock().broadcastPort() == config.getBedrock().port()) {
+            if (port != config.getBedrock().port()) {
+                if (fullAddress.length == 2) {
+                    sender.sendMessage("The port you are testing with (" + port + ") is not the same as you set in your Geyser configuration ("
+                            + config.getBedrock().port() + ")");
+                    sender.sendMessage("Re-run the command with the port in the config, or change the `bedrock` `port` in the config.");
+                    if (config.getBedrock().isCloneRemotePort()) {
+                        sender.sendMessage("You have `clone-remote-port` enabled. This option ignores the `bedrock` `port` in the config, and uses the Java server port instead.");
+                    }
+                } else {
+                    sender.sendMessage("You did not specify the port to check (add it with \":<port>\"), " +
+                            "and the default port 19132 does not match the port in your Geyser configuration ("
+                            + config.getBedrock().port() + ")!");
+                    sender.sendMessage("Re-run the command with that port, or change the port in the config under `bedrock` `port`.");
                 }
-            } else {
-                sender.sendMessage("You did not specify the port to check (add it with \":<port>\"), " +
-                        "and the default port 19132 does not match the port in your Geyser configuration ("
-                        + geyser.getConfig().getBedrock().port() + ")!");
-                sender.sendMessage("Re-run the command with that port, or change the port in the config under `bedrock` `port`.");
+            }
+        } else {
+            if (config.getBedrock().broadcastPort() != port) {
+                sender.sendMessage("The port you are testing with (" + port + ") is not the same as the broadcast port set in your Geyser configuration ("
+                        + config.getBedrock().broadcastPort() + "). ");
+                sender.sendMessage("You ONLY need to change the broadcast port if clients connects with a port different from the port Geyser is running on.");
+                sender.sendMessage("Re-run the command with the port in the config, or change the `bedrock` `broadcast-port` in the config.");
             }
         }
 
         // Issue: is the `bedrock` `address` in the config different?
-        if (!geyser.getConfig().getBedrock().address().equals("0.0.0.0")) {
+        if (!config.getBedrock().address().equals("0.0.0.0")) {
             sender.sendMessage("The address specified in `bedrock` `address` is not \"0.0.0.0\" - this may cause issues unless this is deliberate and intentional.");
         }
 
         // Issue: did someone turn on enable-proxy-protocol, and they didn't mean it?
-        if (geyser.getConfig().getBedrock().isEnableProxyProtocol()) {
+        if (config.getBedrock().isEnableProxyProtocol()) {
             sender.sendMessage("You have the `enable-proxy-protocol` setting enabled. " +
                     "Unless you're deliberately using additional software that REQUIRES this setting, you may not need it enabled.");
         }
@@ -158,23 +178,24 @@ public class ConnectionTestCommand extends GeyserCommand {
                 String connectionTestMotd = "Geyser Connection Test " + randomStr;
                 CONNECTION_TEST_MOTD = connectionTestMotd;
 
-                sender.sendMessage("Testing server connection now. Please wait...");
+                sender.sendMessage("Testing server connection to " + ip + " with port: " + port + " now. Please wait...");
                 JsonNode output;
                 try {
-                    output = WebUtils.getJson("https://checker.geysermc.org/ping?hostname=" + ip + "&port=" + port);
+                    String hostname = URLEncoder.encode(ip, StandardCharsets.UTF_8);
+                    output = WebUtils.getJson("https://checker.geysermc.org/ping?hostname=" + hostname + "&port=" + port);
                 } finally {
                     CONNECTION_TEST_MOTD = null;
                 }
 
-                JsonNode cache = output.get("cache");
-                String when;
-                if (cache.get("fromCache").asBoolean()) {
-                    when = cache.get("secondsSince").asInt() + " seconds ago";
-                } else {
-                    when = "now";
-                }
-
                 if (output.get("success").asBoolean()) {
+                    JsonNode cache = output.get("cache");
+                    String when;
+                    if (cache.get("fromCache").asBoolean()) {
+                        when = cache.get("secondsSince").asInt() + " seconds ago";
+                    } else {
+                        when = "now";
+                    }
+
                     JsonNode ping = output.get("ping");
                     JsonNode pong = ping.get("pong");
                     String remoteMotd = pong.get("motd").asText();
@@ -196,7 +217,11 @@ public class ConnectionTestCommand extends GeyserCommand {
                     return;
                 }
 
-                sender.sendMessage("Your server is likely unreachable from outside the network as of " + when + ".");
+                sender.sendMessage("Your server is likely unreachable from outside the network!");
+                JsonNode message = output.get("message");
+                if (message != null && !message.asText().isEmpty()) {
+                    sender.sendMessage("Got the error message: " + message.asText());
+                }
                 sendLinks(sender);
             } catch (Exception e) {
                 sender.sendMessage("An error occurred while trying to check your connection! Check the console for more information.");

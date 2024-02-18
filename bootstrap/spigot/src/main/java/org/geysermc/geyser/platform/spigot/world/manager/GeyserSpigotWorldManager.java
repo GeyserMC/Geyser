@@ -34,21 +34,23 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.erosion.bukkit.BukkitLecterns;
 import org.geysermc.erosion.bukkit.BukkitUtils;
 import org.geysermc.erosion.bukkit.PickBlockUtils;
 import org.geysermc.erosion.bukkit.SchedulerUtils;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.GameRule;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
-import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -128,7 +130,7 @@ public class GeyserSpigotWorldManager extends WorldManager {
         }
     }
 
-    private Chunk getChunk(World world, int x, int z) {
+    private @Nullable Chunk getChunk(World world, int x, int z) {
         if (!world.isChunkLoaded(x, z)) {
             return null;
         }
@@ -136,6 +138,7 @@ public class GeyserSpigotWorldManager extends WorldManager {
     }
 
     private void sendLecternData(GeyserSession session, Chunk chunk, List<BlockEntityInfo> blockEntityInfos) {
+        //noinspection ForLoopReplaceableByForEach - avoid constructing Iterator
         for (int i = 0; i < blockEntityInfos.size(); i++) {
             BlockEntityInfo info = blockEntityInfos.get(i);
             Block block = chunk.getBlock(info.getX(), info.getY(), info.getZ());
@@ -156,19 +159,34 @@ public class GeyserSpigotWorldManager extends WorldManager {
     }
 
     public boolean getGameRuleBool(GeyserSession session, GameRule gameRule) {
-        String value = Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getGameRuleValue(gameRule.getJavaID());
-        if (!value.isEmpty()) {
-            return Boolean.parseBoolean(value);
+        org.bukkit.GameRule<?> bukkitGameRule = org.bukkit.GameRule.getByName(gameRule.getJavaID());
+        if (bukkitGameRule == null) {
+            GeyserImpl.getInstance().getLogger().debug("Unknown game rule " + gameRule.getJavaID());
+            return gameRule.getDefaultBooleanValue();
         }
+
+        Player bukkitPlayer = Objects.requireNonNull(Bukkit.getPlayer(session.getPlayerEntity().getUuid()));
+        Object value = bukkitPlayer.getWorld().getGameRuleValue(bukkitGameRule);
+        if (value instanceof Boolean booleanValue) {
+            return booleanValue;
+        }
+        GeyserImpl.getInstance().getLogger().debug("Expected a bool for " + gameRule + " but got " + value);
         return gameRule.getDefaultBooleanValue();
     }
 
     @Override
     public int getGameRuleInt(GeyserSession session, GameRule gameRule) {
-        String value = Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getGameRuleValue(gameRule.getJavaID());
-        if (!value.isEmpty()) {
-            return Integer.parseInt(value);
+        org.bukkit.GameRule<?> bukkitGameRule = org.bukkit.GameRule.getByName(gameRule.getJavaID());
+        if (bukkitGameRule == null) {
+            GeyserImpl.getInstance().getLogger().debug("Unknown game rule " + gameRule.getJavaID());
+            return gameRule.getDefaultIntValue();
         }
+        Player bukkitPlayer = Objects.requireNonNull(Bukkit.getPlayer(session.getPlayerEntity().getUuid()));
+        Object value = bukkitPlayer.getWorld().getGameRuleValue(bukkitGameRule);
+        if (value instanceof Integer intValue) {
+            return intValue;
+        }
+        GeyserImpl.getInstance().getLogger().debug("Expected an int for " + gameRule + " but got " + value);
         return gameRule.getDefaultIntValue();
     }
 
@@ -179,12 +197,15 @@ public class GeyserSpigotWorldManager extends WorldManager {
 
     @Override
     public boolean hasPermission(GeyserSession session, String permission) {
-        return Bukkit.getPlayer(session.getPlayerEntity().getUsername()).hasPermission(permission);
+        Player player = Bukkit.getPlayer(session.javaUuid());
+        if (player != null) {
+            return player.hasPermission(permission);
+        }
+        return false;
     }
 
-    @Nonnull
     @Override
-    public CompletableFuture<@Nullable CompoundTag> getPickItemNbt(GeyserSession session, int x, int y, int z, boolean addNbtData) {
+    public @NonNull CompletableFuture<@Nullable CompoundTag> getPickItemNbt(GeyserSession session, int x, int y, int z, boolean addNbtData) {
         CompletableFuture<@Nullable CompoundTag> future = new CompletableFuture<>();
         Player bukkitPlayer;
         if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUuid())) == null) {

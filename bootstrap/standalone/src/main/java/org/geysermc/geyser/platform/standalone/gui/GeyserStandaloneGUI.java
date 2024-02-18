@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.platform.standalone.gui;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.command.GeyserCommandManager;
@@ -64,7 +65,6 @@ public class GeyserStandaloneGUI {
     private final List<Integer> ramValues = new ArrayList<>();
 
     private final DefaultTableModel playerTableModel = new DefaultTableModel();
-    private final JTable playerTable = new JTable(playerTableModel);
 
     /**
      * Create and show the Geyser-Standalone GUI
@@ -158,6 +158,7 @@ public class GeyserStandaloneGUI {
         playerTableModel.addColumn(GeyserLocale.getLocaleStringLog("geyser.gui.table.ip"));
         playerTableModel.addColumn(GeyserLocale.getLocaleStringLog("geyser.gui.table.username"));
 
+        JTable playerTable = new JTable(playerTableModel);
         JScrollPane playerScrollPane = new JScrollPane(playerTable);
         rightContentPane.add(playerScrollPane);
 
@@ -253,12 +254,12 @@ public class GeyserStandaloneGUI {
             }
 
             @Override
-            public void write(byte[] b, int off, int len) {
+            public void write(byte @NonNull [] b, int off, int len) {
                 appendConsole(new String(b, off, len));
             }
 
             @Override
-            public void write(byte[] b) {
+            public void write(byte @NonNull[] b) {
                 write(b, 0, b.length);
             }
         };

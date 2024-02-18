@@ -26,6 +26,7 @@
 package org.geysermc.geyser.inventory.item;
 
 import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Locale;
 
@@ -84,7 +85,7 @@ public enum Potion {
         this.bedrockId = (short) bedrockId;
     }
 
-    public static Potion getByJavaIdentifier(String javaIdentifier) {
+    public static @Nullable Potion getByJavaIdentifier(String javaIdentifier) {
         for (Potion potion : VALUES) {
             if (potion.javaIdentifier.equals(javaIdentifier)) {
                 return potion;
@@ -93,7 +94,7 @@ public enum Potion {
         return null;
     }
 
-    public static Potion getByBedrockId(int bedrockId) {
+    public static @Nullable Potion getByBedrockId(int bedrockId) {
         for (Potion potion : VALUES) {
             if (potion.bedrockId == bedrockId) {
                 return potion;

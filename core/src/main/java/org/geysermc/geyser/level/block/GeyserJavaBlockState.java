@@ -18,7 +18,7 @@ public class GeyserJavaBlockState implements JavaBlockState {
     String pistonBehavior;
     boolean hasBlockEntity;
 
-    private GeyserJavaBlockState(JavaBlockStateBuilder builder) {
+    private GeyserJavaBlockState(Builder builder) {
         this.identifier = builder.identifier;
         this.javaId = builder.javaId;
         this.stateGroupId = builder.stateGroupId;
@@ -52,7 +52,7 @@ public class GeyserJavaBlockState implements JavaBlockState {
     }
 
     @Override
-    public @NonNull boolean waterlogged() {
+    public boolean waterlogged() {
         return waterlogged;
     }
 
@@ -62,7 +62,7 @@ public class GeyserJavaBlockState implements JavaBlockState {
     }
 
     @Override
-    public @NonNull boolean canBreakWithHand() {
+    public boolean canBreakWithHand() {
         return canBreakWithHand;
     }
 
@@ -77,11 +77,11 @@ public class GeyserJavaBlockState implements JavaBlockState {
     }
 
     @Override
-    public @Nullable boolean hasBlockEntity() {
+    public boolean hasBlockEntity() {
         return hasBlockEntity;
     }
 
-    public static class JavaBlockStateBuilder implements Builder {
+    public static class Builder implements JavaBlockState.Builder {
         private String identifier;
         private int javaId;
         private int stateGroupId;
@@ -118,7 +118,7 @@ public class GeyserJavaBlockState implements JavaBlockState {
         }
 
         @Override
-        public Builder waterlogged(@NonNull boolean waterlogged) {
+        public Builder waterlogged(boolean waterlogged) {
             this.waterlogged = waterlogged;
             return this;
         }
@@ -130,7 +130,7 @@ public class GeyserJavaBlockState implements JavaBlockState {
         }
 
         @Override
-        public Builder canBreakWithHand(@NonNull boolean canBreakWithHand) {
+        public Builder canBreakWithHand(boolean canBreakWithHand) {
             this.canBreakWithHand = canBreakWithHand;
             return this;
         }
@@ -148,7 +148,7 @@ public class GeyserJavaBlockState implements JavaBlockState {
         }
 
         @Override
-        public Builder hasBlockEntity(@Nullable boolean hasBlockEntity) {
+        public Builder hasBlockEntity(boolean hasBlockEntity) {
             this.hasBlockEntity = hasBlockEntity;
             return this;
         }

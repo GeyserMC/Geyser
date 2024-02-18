@@ -34,7 +34,6 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.type.ParticleMapping;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.UUID;

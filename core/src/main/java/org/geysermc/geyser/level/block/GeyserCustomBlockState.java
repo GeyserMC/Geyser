@@ -54,7 +54,7 @@ public class GeyserCustomBlockState implements CustomBlockState {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> @NonNull T property(String propertyName) {
+    public <T> @NonNull T property(@NonNull String propertyName) {
         return (T) properties.get(propertyName);
     }
 
@@ -64,7 +64,7 @@ public class GeyserCustomBlockState implements CustomBlockState {
     }
 
     @RequiredArgsConstructor
-    public static class CustomBlockStateBuilder implements CustomBlockState.Builder {
+    public static class Builder implements CustomBlockState.Builder {
         private final CustomBlockData blockData;
         private final Object2ObjectMap<String, Object> properties = new Object2ObjectOpenHashMap<>();
 

@@ -44,7 +44,7 @@ public class EnchantmentRegistryLoader implements RegistryLoader<String, Map<Jav
     @Override
     public Map<JavaEnchantment, EnchantmentData> load(String input) {
         JsonNode enchantmentsNode;
-        try (InputStream enchantmentsStream = GeyserImpl.getInstance().getBootstrap().getResource(input)) {
+        try (InputStream enchantmentsStream = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow(input)) {
             enchantmentsNode = GeyserImpl.JSON_MAPPER.readTree(enchantmentsStream);
         } catch (Exception e) {
             throw new AssertionError("Unable to load enchantment data", e);
