@@ -51,7 +51,6 @@ import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
 import org.geysermc.erosion.packet.Packets;
 import org.geysermc.floodgate.core.FloodgatePlatform;
-import org.geysermc.floodgate.news.NewsItemAction;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.event.EventRegistrar;
@@ -139,7 +138,6 @@ public class GeyserImpl implements GeyserApi {
 
     private final FloodgateProvider floodgateProvider;
     private BedrockSkinUploader skinUploader;
-    private NewsHandler newsHandler;
 
     private UnixSocketClientListener erosionUnixListener;
 
@@ -388,8 +386,6 @@ public class GeyserImpl implements GeyserApi {
 
         pendingMicrosoftAuthentication = new PendingMicrosoftAuthentication(config.getPendingAuthenticationTimeout());
 
-        this.newsHandler = new NewsHandler(BRANCH, this.buildNumber());
-
         Packets.initGeyser();
 
         if (Epoll.isAvailable()) {
@@ -560,8 +556,6 @@ public class GeyserImpl implements GeyserApi {
             savedRefreshTokens = null;
         }
 
-        newsHandler.handleNews(null, NewsItemAction.ON_SERVER_STARTED);
-
         if (isReloading) {
             this.eventBus.fire(new GeyserPostReloadEvent(this.extensionManager, this.eventBus));
         } else {
@@ -643,7 +637,6 @@ public class GeyserImpl implements GeyserApi {
         if (skinUploader != null) {
             skinUploader.close();
         }
-        newsHandler.shutdown();
 
         if (this.erosionUnixListener != null) {
             this.erosionUnixListener.close();
