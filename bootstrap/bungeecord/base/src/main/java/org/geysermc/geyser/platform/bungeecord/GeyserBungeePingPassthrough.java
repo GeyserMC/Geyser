@@ -145,6 +145,16 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
         }
 
         @Override
+        public boolean isTransferred() {
+            return false;
+        }
+
+        @Override
+        public CompletableFuture<byte[]> retrieveCookie(String s) {
+            return null;
+        }
+
+        @Override
         public InetSocketAddress getAddress() {
             return remote;
         }

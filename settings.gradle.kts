@@ -59,16 +59,23 @@ rootProject.name = "geyser-parent"
 
 include(":ap")
 include(":api")
-include(":bungeecord")
 include(":fabric")
-include(":spigot")
 include(":standalone")
-include(":velocity")
 include(":core")
 
 // Specify project dirs
-project(":bungeecord").projectDir = file("bootstrap/bungeecord")
-project(":fabric").projectDir = file("bootstrap/fabric")
-project(":spigot").projectDir = file("bootstrap/spigot")
 project(":standalone").projectDir = file("bootstrap/standalone")
-project(":velocity").projectDir = file("bootstrap/velocity")
+
+//todo see what's possible with fabric
+project(":fabric").projectDir = file("bootstrap/fabric")
+
+arrayOf("bungeecord", "spigot", "velocity").forEach { platform ->
+    arrayOf("base", "isolated").forEach {
+        var id = ":$platform-$it"
+        // isolated is the new default
+        if (id.endsWith("-isolated")) id = ":$platform"
+
+        include(id)
+        project(id).projectDir = file("bootstrap/$platform/$it")
+    }
+}

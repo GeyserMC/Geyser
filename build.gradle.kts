@@ -21,9 +21,12 @@ java {
 val platforms = setOf(
     projects.fabric,
     projects.bungeecord,
+    projects.bungeecordBase,
     projects.spigot,
+    projects.spigotBase,
     projects.standalone,
-    projects.velocity
+    projects.velocity,
+    projects.velocityBase
 ).map { it.dependencyProject }
 
 subprojects {
