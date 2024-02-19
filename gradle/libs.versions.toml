@@ -40,6 +40,7 @@ shadow = "7.1.3-SNAPSHOT"
 architectury-plugin = "3.4-SNAPSHOT"
 architectury-loom = "1.4-SNAPSHOT"
 minotaur = "2.7.5"
+lombok = "8.4"
 
 [libraries]
 base-api = { group = "org.geysermc.api", name = "base-api", version.ref = "base-api" }
@@ -123,7 +124,7 @@ architectury-loom = { group = "dev.architectury.loom", name = "dev.architectury.
 minotaur = { group = "com.modrinth.minotaur", name = "Minotaur", version.ref = "minotaur" }
 
 [plugins]
-
+lombok = { id = "io.freefair.lombok", version.ref = "lombok" }
 
 [bundles]
 jackson = [ "jackson-annotations", "jackson-core", "jackson-dataformat-yaml" ]
