@@ -34,6 +34,13 @@ fabric-api = "0.91.2+1.20.4"
 neoforge-minecraft = "20.4.48-beta"
 mixin = "0.8.5"
 
+# plugin versions
+indra = "3.1.1"
+shadow = "7.1.3-SNAPSHOT"
+architectury-plugin = "3.4-SNAPSHOT"
+architectury-loom = "1.4-SNAPSHOT"
+minotaur = "2.7.5"
+
 [libraries]
 base-api = { group = "org.geysermc.api", name = "base-api", version.ref = "base-api" }
 cumulus = { group = "org.geysermc.cumulus", name = "cumulus", version.ref = "cumulus" }
@@ -107,6 +114,16 @@ protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-con
 math = { group = "org.cloudburstmc.math", name = "immutable", version = "2.0" }
 
 blockstateupdater = { group = "org.cloudburstmc", name = "block-state-updater", version.ref = "blockstateupdater"}
+
+# plugins
+indra = { group = "net.kyori", name  = "indra-common", version.ref = "indra" }
+shadow = { group = "com.github.johnrengelman", name = "shadow", version.ref = "shadow" }
+architectury-plugin = { group = "architectury-plugin", name = "architectury-plugin.gradle.plugin", version.ref = "architectury-plugin" }
+architectury-loom = { group = "dev.architectury.loom", name = "dev.architectury.loom.gradle.plugin", version.ref = "architectury-loom" }
+minotaur = { group = "com.modrinth.minotaur", name = "Minotaur", version.ref = "minotaur" }
+
+[plugins]
+
 
 [bundles]
 jackson = [ "jackson-annotations", "jackson-core", "jackson-dataformat-yaml" ]

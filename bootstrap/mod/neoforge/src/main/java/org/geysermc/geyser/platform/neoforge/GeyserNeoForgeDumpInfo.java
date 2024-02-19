@@ -40,10 +40,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-public class GeyserNeoforgeDumpInfo extends BootstrapDumpInfo {
+public class GeyserNeoForgeDumpInfo extends BootstrapDumpInfo {
 
     private final String platformName;
-    private String platformVersion;
+    private final String platformVersion;
     private final String minecraftVersion;
     private final Dist dist;
 
@@ -53,7 +53,7 @@ public class GeyserNeoforgeDumpInfo extends BootstrapDumpInfo {
     private final boolean onlineMode;
     private final List<ModInfo> mods;
 
-    public GeyserNeoforgeDumpInfo(MinecraftServer server) {
+    public GeyserNeoForgeDumpInfo(MinecraftServer server) {
         this.platformName = FMLLoader.launcherHandlerName();
         this.platformVersion = FMLLoader.versionInfo().neoForgeVersion();
         this.minecraftVersion = FMLLoader.versionInfo().mcVersion();

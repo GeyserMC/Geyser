@@ -18,11 +18,10 @@ dependencyResolutionManagement {
             mavenContent { snapshotsOnly() }
         }
 
-        // Neoforge
+        // NeoForge
         maven("https://maven.neoforged.net/releases") {
             mavenContent { releasesOnly() }
         }
-        maven("https://maven.neoforged.net/")
 
         // Minecraft
         maven("https://libraries.minecraft.net") {

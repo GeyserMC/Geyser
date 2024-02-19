@@ -44,7 +44,8 @@ import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GeyserNeoforgePermissionHandler {
+public class GeyserNeoForgePermissionHandler {
+
     private static final Constructor<?> PERMISSION_NODE_CONSTRUCTOR;
 
     static {
@@ -120,7 +121,7 @@ public class GeyserNeoforgePermissionHandler {
     private void registerNode(String node, PermissionGatherEvent.Nodes event) {
         PermissionNode<Boolean> permissionNode = this.createNode(node);
 
-        // Neoforge likes to crash if you try and register a duplicate node
+        // NeoForge likes to crash if you try and register a duplicate node
         if (!event.getNodes().contains(permissionNode)) {
             event.addNodes(permissionNode);
             this.permissionNodes.put(node, permissionNode);

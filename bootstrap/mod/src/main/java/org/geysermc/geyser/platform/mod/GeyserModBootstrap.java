@@ -64,6 +64,7 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 public abstract class GeyserModBootstrap implements GeyserBootstrap {
+
     @Getter
     private static GeyserModBootstrap instance;
 

@@ -47,6 +47,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 public class GeyserModInjector extends GeyserInjector {
+
     private final MinecraftServer server;
     private final GeyserModPlatform platform;
     private DefaultEventLoopGroup eventLoopGroup;

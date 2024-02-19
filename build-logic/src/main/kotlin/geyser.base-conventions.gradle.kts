@@ -22,7 +22,7 @@ indra {
 
 tasks {
     processResources {
-        // Spigot, BungeeCord, Velocity, Sponge, Fabric
+        // Spigot, BungeeCord, Velocity, Fabric, NeoForge
         filesMatching(listOf("plugin.yml", "bungee.yml", "velocity-plugin.json", "fabric.mod.json", "META-INF/mods.toml")) {
             expand(
                 "id" to "geyser",

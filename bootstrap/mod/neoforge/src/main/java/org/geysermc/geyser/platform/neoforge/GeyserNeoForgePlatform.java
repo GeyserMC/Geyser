@@ -38,7 +38,7 @@ import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
 import java.io.InputStream;
 import java.nio.file.Path;
 
-public class GeyserNeoforgePlatform implements GeyserModPlatform {
+public class GeyserNeoForgePlatform implements GeyserModPlatform {
 
     @Override
     public @NonNull PlatformType platformType() {
@@ -57,7 +57,7 @@ public class GeyserNeoforgePlatform implements GeyserModPlatform {
 
     @Override
     public @NonNull BootstrapDumpInfo dumpInfo(@NonNull MinecraftServer server) {
-        return new GeyserNeoforgeDumpInfo(server);
+        return new GeyserNeoForgeDumpInfo(server);
     }
 
     @Override

@@ -39,11 +39,12 @@ import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.platform.mod.GeyserModUpdateListener;
 
 @Mod(ModConstants.MOD_ID)
-public class GeyserNeoforgeBootstrap extends GeyserModBootstrap {
-    private final GeyserNeoforgePermissionHandler permissionHandler = new GeyserNeoforgePermissionHandler();
+public class GeyserNeoForgeBootstrap extends GeyserModBootstrap {
 
-    public GeyserNeoforgeBootstrap() {
-        super(new GeyserNeoforgePlatform());
+    private final GeyserNeoForgePermissionHandler permissionHandler = new GeyserNeoForgePermissionHandler();
+
+    public GeyserNeoForgeBootstrap() {
+        super(new GeyserNeoForgePlatform());
 
         if (FMLLoader.getDist() == Dist.DEDICATED_SERVER) {
             // Set as an event so we can get the proper IP and port if needed

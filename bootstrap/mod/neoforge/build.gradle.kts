@@ -30,7 +30,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("org.geysermc.geyser.platform.forge.GeyserNeoforgeMain")
+    mainClass.set("org.geysermc.geyser.platform.forge.GeyserNeoForgeMain")
 }
 
 tasks {

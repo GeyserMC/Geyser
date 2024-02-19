@@ -41,6 +41,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 public class GeyserFabricPlatform implements GeyserModPlatform {
+    
     private final ModContainer mod;
 
     public GeyserFabricPlatform() {

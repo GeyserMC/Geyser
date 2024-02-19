@@ -12,11 +12,11 @@ repositories {
 }
 
 dependencies {
-    implementation("net.kyori", "indra-common", "3.1.1")
-    implementation("com.github.johnrengelman", "shadow", "7.1.3-SNAPSHOT")
-    implementation("architectury-plugin", "architectury-plugin.gradle.plugin", "3.4-SNAPSHOT")
-    implementation("dev.architectury.loom", "dev.architectury.loom.gradle.plugin", "1.4-SNAPSHOT")
-    implementation("com.modrinth.minotaur:Minotaur:2.7.5")
+    implementation(libs.indra)
+    implementation(libs.shadow)
+    implementation(libs.architectury.plugin)
+    implementation(libs.architectury.loom)
+    implementation(libs.minotaur)
 
     // Within the gradle plugin classpath, there is a version conflict between loom and some other
     // plugin for databind. This fixes it: minimum 2.13.2 is required by loom.
