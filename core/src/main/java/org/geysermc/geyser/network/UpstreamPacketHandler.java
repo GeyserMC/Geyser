@@ -77,16 +77,15 @@ import java.nio.channels.SeekableByteChannel;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Map;
 import java.util.OptionalInt;
-import java.util.Set;
 import java.util.UUID;
 
 public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     private boolean networkSettingsRequested = false;
     private final Deque<String> packsToSent = new ArrayDeque<>();
-    private final Set<UUID> brokenResourcePacks = new HashSet<>();
+    private final Map<UUID, String> brokenResourcePacks = new HashMap<>();
     private final CompressionStrategy compressionStrategy;
 
     private SessionLoadResourcePacksEventImpl resourcePackLoadEvent;
@@ -315,8 +314,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         // If a remote pack ends up here, that usually implies that a platform was not able to download the pack
         if (codec instanceof UrlPackCodec urlPackCodec) {
             // Ensure we don't a. spam console, and b. spam download/check requests
-            if (!brokenResourcePacks.contains(packet.getPackId())) {
-                brokenResourcePacks.add(packet.getPackId());
+            if (!brokenResourcePacks.containsKey(packet.getPackId())) {
+                brokenResourcePacks.put(packet.getPackId(), "");
                 GeyserImpl.getInstance().getLogger().warning("Received a request for a remote pack that the client should have already downloaded! " +
                         "Is the pack at the URL " + urlPackCodec.url() + " still available?");
                 // not actually interested in using the download, but this does all the checks we need
