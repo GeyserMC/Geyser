@@ -44,9 +44,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.geysermc.api.Geyser;
-import org.geysermc.geyser.api.command.CommandSource;
-import org.geysermc.geyser.api.util.MinecraftVersion;
-import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
 import org.geysermc.erosion.packet.Packets;
@@ -56,12 +53,15 @@ import org.geysermc.floodgate.crypto.Base64Topping;
 import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.floodgate.news.NewsItemAction;
 import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.event.lifecycle.*;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
+import org.geysermc.geyser.api.util.MinecraftVersion;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.entity.EntityDefinitions;
@@ -168,6 +168,12 @@ public class GeyserImpl implements GeyserApi {
      * Determines if we're currently reloading. Replaces per-bootstrap reload checks
      */
     private volatile boolean isReloading;
+
+    /**
+     * Determines if Geyser is currently enabled. This is used to determine if {@link #disable()} should be called during {@link #shutdown()}.
+     */
+    @Setter
+    private boolean isEnabled;
 
     private GeyserImpl(PlatformType platformType, GeyserBootstrap bootstrap) {
         instance = this;
@@ -344,15 +350,17 @@ public class GeyserImpl implements GeyserApi {
                 logger.info("Broadcast port set from system property: " + parsedPort);
             }
 
-            boolean floodgatePresent = bootstrap.testFloodgatePluginPresent();
-            if (config.getRemote().authType() == AuthType.FLOODGATE && !floodgatePresent) {
-                logger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " "
-                        + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
-                return;
-            } else if (config.isAutoconfiguredRemote() && floodgatePresent) {
-                // Floodgate installed means that the user wants Floodgate authentication
-                logger.debug("Auto-setting to Floodgate authentication.");
-                config.getRemote().setAuthType(AuthType.FLOODGATE);
+            if (platformType != PlatformType.VIAPROXY) {
+                boolean floodgatePresent = bootstrap.testFloodgatePluginPresent();
+                if (config.getRemote().authType() == AuthType.FLOODGATE && !floodgatePresent) {
+                    logger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " "
+                            + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
+                    return;
+                } else if (config.isAutoconfiguredRemote() && floodgatePresent) {
+                    // Floodgate installed means that the user wants Floodgate authentication
+                    logger.debug("Auto-setting to Floodgate authentication.");
+                    config.getRemote().setAuthType(AuthType.FLOODGATE);
+                }
             }
         }
 
@@ -639,12 +647,14 @@ public class GeyserImpl implements GeyserApi {
 
         Registries.RESOURCE_PACKS.get().clear();
 
-        bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.done"));
+        this.setEnabled(false);
     }
 
     public void shutdown() {
         shuttingDown = true;
-        this.disable();
+        if (isEnabled) {
+            this.disable();
+        }
         this.commandManager().getCommands().clear();
 
         // Disable extensions, fire the shutdown event
@@ -777,6 +787,7 @@ public class GeyserImpl implements GeyserApi {
         } else {
             instance.initialize();
         }
+        instance.setEnabled(true);
     }
 
     public GeyserLogger getLogger() {

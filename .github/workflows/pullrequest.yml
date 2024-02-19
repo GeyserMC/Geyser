@@ -87,3 +87,10 @@ jobs:
           name: Geyser Velocity
           path: geyser/bootstrap/velocity/build/libs/Geyser-Velocity.jar
           if-no-files-found: error
+      - name: Archive artifacts (Geyser ViaProxy)
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32
+        if: success()
+        with:
+          name: Geyser ViaProxy
+          path: geyser/bootstrap/viaproxy/build/libs/Geyser-ViaProxy.jar
+          if-no-files-found: error

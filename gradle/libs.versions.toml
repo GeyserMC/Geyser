@@ -28,6 +28,7 @@ adapters = "1.11-SNAPSHOT"
 commodore = "2.2"
 bungeecord = "a7c6ede"
 velocity = "3.1.1"
+viaproxy = "3.2.0-SNAPSHOT"
 fabric-minecraft = "1.20.4"
 fabric-loader = "0.15.2"
 fabric-api = "0.91.2+1.20.4"
@@ -91,6 +92,7 @@ mcprotocollib = { group = "com.github.steveice10", name = "mcprotocollib", versi
 raknet = { group = "org.cloudburstmc.netty", name = "netty-transport-raknet", version.ref = "raknet" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }
 velocity-api = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }
+viaproxy = { group = "net.raphimc", name = "ViaProxy", version.ref = "viaproxy" }
 viaversion = { group = "com.viaversion", name = "viaversion", version.ref = "viaversion" }
 websocket = { group = "org.java-websocket", name = "Java-WebSocket", version.ref = "websocket" }
 

@@ -23,7 +23,8 @@ val platforms = setOf(
     projects.bungeecord,
     projects.spigot,
     projects.standalone,
-    projects.velocity
+    projects.velocity,
+    projects.viaproxy
 ).map { it.dependencyProject }
 
 subprojects {
