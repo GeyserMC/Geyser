@@ -1,7 +1,8 @@
+@file:Suppress("UnstableApiUsage")
+
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 dependencyResolutionManagement {
-//    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         // Floodgate, Cumulus etc.
         maven("https://repo.opencollab.dev/main")
@@ -54,15 +55,7 @@ pluginManagement {
         maven("https://maven.fabricmc.net/")
         maven("https://maven.architectury.dev/")
         maven("https://maven.neoforged.net/releases")
-        maven("https://maven.neoforged.net/")
     }
-
-    plugins {
-        id("net.kyori.blossom") version "1.2.0"
-        id("net.kyori.indra")
-        id("net.kyori.indra.git")
-    }
-    includeBuild("build-logic")
 }
 
 rootProject.name = "geyser-parent"

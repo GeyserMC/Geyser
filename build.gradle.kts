@@ -1,7 +1,7 @@
 plugins {
     `java-library`
     // Ensure AP works in eclipse (no effect on other IDEs)
-    `eclipse`
+    eclipse
     id("geyser.build-logic")
     alias(libs.plugins.lombok) apply false
 }
