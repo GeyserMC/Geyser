@@ -6,7 +6,7 @@ modId="geyser_neoforge"
 version="${version}"
 displayName="Geyser"
 displayURL="https://geysermc.org/"
-logoFile= "../assets/geyser_neoforge/icon.png"
+logoFile= "../assets/geyser/icon.png"
 authors="GeyserMC"
 description="${description}"
 [[mixins]]

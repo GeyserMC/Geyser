@@ -12,7 +12,7 @@
     "repo": "https://github.com/GeyserMC/Geyser"
   },
   "license": "MIT",
-  "icon": "assets/geyser-fabric/icon.png",
+  "icon": "assets/geyser/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
