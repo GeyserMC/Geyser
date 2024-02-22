@@ -23,8 +23,8 @@ dependencies {
         exclude(group = "io.netty.incubator")
     }
 
-    // This should be in the libs TOML, but something about modImplementation AND include just doesn't work
-    include(modImplementation("me.lucko", "fabric-permissions-api", "0.2-SNAPSHOT"))
+    modImplementation(libs.fabric.permissions)
+    include(libs.fabric.permissions)
 }
 
 application {
