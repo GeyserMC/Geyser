@@ -1,8 +1,7 @@
 import net.kyori.blossom.BlossomExtension
 
 plugins {
-    id("net.kyori.blossom")
-    id("net.kyori.indra.git")
+    alias(libs.plugins.blossom)
     id("geyser.publish-conventions")
 }
 

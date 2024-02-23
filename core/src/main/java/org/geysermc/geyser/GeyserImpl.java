@@ -221,6 +221,7 @@ public class GeyserImpl implements GeyserApi {
             if (ex != null) {
                 return;
             }
+
             MinecraftLocale.ensureEN_US();
             String locale = GeyserLocale.getDefaultLocale();
             if (!"en_us".equals(locale)) {

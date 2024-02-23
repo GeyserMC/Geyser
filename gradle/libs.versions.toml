@@ -32,6 +32,18 @@ viaproxy = "3.2.0-SNAPSHOT"
 fabric-minecraft = "1.20.4"
 fabric-loader = "0.15.2"
 fabric-api = "0.91.2+1.20.4"
+fabric-permissions = "0.2-SNAPSHOT"
+neoforge-minecraft = "20.4.48-beta"
+mixin = "0.8.5"
+
+# plugin versions
+indra = "3.1.3"
+shadow = "7.1.3-SNAPSHOT"
+architectury-plugin = "3.4-SNAPSHOT"
+architectury-loom = "1.4-SNAPSHOT"
+minotaur = "2.8.7"
+lombok = "8.4"
+blossom = "1.2.0"
 
 [libraries]
 base-api = { group = "org.geysermc.api", name = "base-api", version.ref = "base-api" }
@@ -75,10 +87,15 @@ jline-reader = { group = "org.jline", name = "jline-reader", version.ref = "jlin
 folia-api = { group = "dev.folia", name = "folia-api", version.ref = "folia" }
 paper-mojangapi = { group = "io.papermc.paper", name = "paper-mojangapi", version.ref = "folia" }
 
-# check these on https://modmuss50.me/fabric.html
+mixin = { group = "org.spongepowered", name = "mixin", version.ref = "mixin" }
+
+# Check these on https://modmuss50.me/fabric.html
 fabric-minecraft = { group = "com.mojang", name = "minecraft", version.ref = "fabric-minecraft" }
 fabric-loader = { group = "net.fabricmc", name = "fabric-loader", version.ref = "fabric-loader" }
 fabric-api = { group = "net.fabricmc.fabric-api", name = "fabric-api", version.ref = "fabric-api" }
+fabric-permissions = { group = "me.lucko", name = "fabric-permissions-api", version.ref = "fabric-permissions" }
+
+neoforge-minecraft = { group = "net.neoforged", name = "neoforge", version.ref = "neoforge-minecraft" }
 
 adapters-spigot = { group = "org.geysermc.geyser.adapters", name = "spigot-all", version.ref = "adapters" }
 bungeecord-proxy = { group = "com.github.SpigotMC.BungeeCord", name = "bungeecord-proxy", version.ref = "bungeecord" }
@@ -103,6 +120,18 @@ protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-con
 math = { group = "org.cloudburstmc.math", name = "immutable", version = "2.0" }
 
 blockstateupdater = { group = "org.cloudburstmc", name = "block-state-updater", version.ref = "blockstateupdater"}
+
+# plugins
+indra = { group = "net.kyori", name  = "indra-common", version.ref = "indra" }
+shadow = { group = "com.github.johnrengelman", name = "shadow", version.ref = "shadow" }
+architectury-plugin = { group = "architectury-plugin", name = "architectury-plugin.gradle.plugin", version.ref = "architectury-plugin" }
+architectury-loom = { group = "dev.architectury.loom", name = "dev.architectury.loom.gradle.plugin", version.ref = "architectury-loom" }
+minotaur = { group = "com.modrinth.minotaur", name = "Minotaur", version.ref = "minotaur" }
+
+[plugins]
+lombok = { id = "io.freefair.lombok", version.ref = "lombok" }
+indra = { id = "net.kyori.indra", version.ref = "indra" }
+blossom = { id = "net.kyori.blossom", version.ref = "blossom" }
 
 [bundles]
 jackson = [ "jackson-annotations", "jackson-core", "jackson-dataformat-yaml" ]
