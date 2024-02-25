@@ -44,7 +44,7 @@ public final class GeyserVelocityConfiguration extends GeyserJacksonConfiguratio
     @JsonIgnore
     private Path floodgateKeyPath;
 
-    public void loadFloodgate(GeyserVelocityPlugin plugin, ProxyServer proxyServer, File dataFolder) {
+    public void loadFloodgate(GeyserVelocityPlatform plugin, ProxyServer proxyServer, File dataFolder) {
         Optional<PluginContainer> floodgate = proxyServer.getPluginManager().getPlugin("floodgate");
         Path floodgateDataPath = floodgate.isPresent() ? Paths.get("plugins/floodgate/") : null;
         floodgateKeyPath = FloodgateKeyLoader.getKeyPath(this, floodgateDataPath, dataFolder.toPath(), plugin.getGeyserLogger());

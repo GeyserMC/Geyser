@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,22 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.velocity.floodgate;
+package org.geysermc.geyser.platform.velocity;
 
-import com.google.inject.AbstractModule;
-import java.nio.file.Path;
-import org.geysermc.floodgate.isolation.library.LibraryManager;
+import org.geysermc.geyser.GeyserMain;
 
-public class FloodgateModule extends AbstractModule {
-    private final Path dataDirectory;
-
-    public FloodgateModule(Path dataDirectory) {
-        this.dataDirectory = dataDirectory;
+public class VelocityMain extends GeyserMain {
+    public static void main(String[] args) {
+        new VelocityMain().displayMessage();
     }
 
-    @Override
-    protected void configure() {
-        var libsDirectory = dataDirectory.resolve("libs");
-        bind(LibraryManager.class).toInstance(new LibraryManager(getClass().getClassLoader(), libsDirectory, true));
+    public String getPluginType() {
+        return "Velocity";
+    }
+
+    public String getPluginFolder() {
+        return "plugins";
     }
 }

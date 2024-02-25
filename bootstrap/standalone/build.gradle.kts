@@ -4,6 +4,7 @@ val terminalConsoleVersion = "1.2.0"
 val jlineVersion = "3.21.0"
 
 dependencies {
+    api(projects.api)
     api(projects.core)
 
     implementation(libs.terminalconsoleappender) {

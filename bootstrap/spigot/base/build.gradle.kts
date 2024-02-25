@@ -1,3 +1,7 @@
+plugins {
+    id("geyser.publish-conventions")
+}
+
 dependencies {
     api(projects.core)
     api(libs.erosion.bukkit.common) {
@@ -29,10 +33,6 @@ platformRelocate("org.yaml") // Broken as of 1.20
 // These dependencies are already present on the platform
 provided(libs.viaversion)
 provided("com.mojang", "authlib", "1.5.21")
-
-application {
-    mainClass.set("org.geysermc.geyser.platform.spigot.GeyserSpigotMain")
-}
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     archiveBaseName.set("Geyser-Spigot")

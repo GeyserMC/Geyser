@@ -1,5 +1,5 @@
 [versions]
-base-api = "feature-floodgate-merge-1.0.0-SNAPSHOT"
+base-api = "feature-floodgate-merge-1.1.0-SNAPSHOT"
 floodgate = "development-2.2.2-SNAPSHOT"
 cumulus = "1.1.2"
 erosion = "1.0-20230406.174837-8"

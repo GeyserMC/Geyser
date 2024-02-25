@@ -152,13 +152,13 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
 
         var event = new ServerDefineCommandsEvent(session, commands.keySet());
         eventBus.fire(event);
-        if (event.isCancelled()) {
+        if (event.cancelled()) {
             return;
         }
 
         var oldEvent = new org.geysermc.geyser.api.event.downstream.ServerDefineCommandsEvent(session, commands.keySet());
         eventBus.fire(oldEvent);
-        if (oldEvent.isCancelled()) {
+        if (oldEvent.cancelled()) {
             return;
         }
 

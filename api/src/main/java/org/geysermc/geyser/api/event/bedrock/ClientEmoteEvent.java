@@ -55,12 +55,24 @@ public final class ClientEmoteEvent extends ConnectionEvent implements Cancellab
      * event is cancelled, but other Bedrock players will not see.
      */
     @Override
-    public boolean isCancelled() {
+    public boolean cancelled() {
         return cancelled;
     }
 
     @Override
-    public void setCancelled(boolean cancelled) {
+    public void cancelled(boolean cancelled) {
         this.cancelled = cancelled;
+    }
+
+    @Override
+    @Deprecated
+    public boolean isCancelled() {
+        return cancelled();
+    }
+
+    @Override
+    @Deprecated
+    public void setCancelled(boolean cancelled) {
+        cancelled(cancelled);
     }
 }

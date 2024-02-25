@@ -1,3 +1,7 @@
+plugins {
+    id("geyser.publish-conventions")
+}
+
 dependencies {
     api(projects.core)
 
@@ -14,10 +18,6 @@ platformRelocate("org.yaml") // Broken as of 1.20
 
 // These dependencies are already present on the platform
 provided(libs.bungeecord.proxy)
-
-application {
-    mainClass.set("org.geysermc.geyser.platform.bungeecord.GeyserBungeeMain")
-}
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     archiveBaseName.set("Geyser-BungeeCord")

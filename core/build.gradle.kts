@@ -8,9 +8,8 @@ plugins {
 
 dependencies {
     api(libs.floodgate.core)
-    api(libs.floodgate.isolation)
-    annotationProcessor(libs.floodgate.core)
-    api(projects.api)
+    compileOnlyApi(libs.base.api)
+    compileOnlyApi(projects.isolation)
 
     // Jackson JSON and YAML serialization
     api(libs.bundles.jackson)

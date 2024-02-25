@@ -929,7 +929,7 @@ public class GeyserSession extends FloodgateConnection implements GeyserConnecti
     private void connectDownstream() {
         SessionLoginEvent loginEvent = new SessionLoginEvent(this, remoteServer);
         GeyserImpl.getInstance().eventBus().fire(loginEvent);
-        if (loginEvent.isCancelled()) {
+        if (loginEvent.cancelled()) {
             String disconnectReason = loginEvent.disconnectReason() == null ?
                     BedrockDisconnectReasons.DISCONNECTED : loginEvent.disconnectReason();
             disconnect(disconnectReason);

@@ -1,0 +1,10 @@
+# Don't remove this, it's copied from Floodgate-Core.
+# Without this file only ReactorConverterRegistrar would be in it for whatever reason, resulting in content type is null
+io.micronaut.reactor.convert.ReactorConverterRegistrar
+io.micronaut.http.client.loadbalance.LoadBalancerConverters
+io.micronaut.http.HttpTypeConverterRegistrar
+io.micronaut.http.converters.SharedHttpConvertersRegistrar
+io.micronaut.runtime.converters.time.TimeConverterRegistrar
+io.micronaut.logging.LoggingConverterRegistrar
+io.micronaut.inject.annotation.AnnotationConvertersRegistrar
+io.micronaut.core.async.converters.ReactiveTypeConverterRegistrar

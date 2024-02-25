@@ -1,7 +1,7 @@
 plugins {
     `java-library`
     // Ensure AP works in eclipse (no effect on other IDEs)
-    `eclipse`
+    eclipse
     id("geyser.build-logic")
     id("io.freefair.lombok") version "8.3" apply false
 }
@@ -21,12 +21,9 @@ java {
 val platforms = setOf(
     projects.fabric,
     projects.bungeecord,
-    projects.bungeecordBase,
     projects.spigot,
-    projects.spigotBase,
     projects.standalone,
     projects.velocity,
-    projects.velocityBase
 ).map { it.dependencyProject }
 
 subprojects {

@@ -52,7 +52,7 @@ public final class SessionLoginEvent extends ConnectionEvent implements Cancella
      * @return The cancel status of the event.
      */
     @Override
-    public boolean isCancelled() {
+    public boolean cancelled() {
         return this.cancelled;
     }
 
@@ -64,9 +64,10 @@ public final class SessionLoginEvent extends ConnectionEvent implements Cancella
      * @param cancelled If the login event should be cancelled.
      */
     @Override
-    public void setCancelled(boolean cancelled) {
+    public void cancelled(boolean cancelled) {
         this.cancelled = cancelled;
     }
+
 
     /**
      * Cancels the login event, and disconnects the player with the specified reason.
@@ -75,9 +76,26 @@ public final class SessionLoginEvent extends ConnectionEvent implements Cancella
      * @param cancelled If the login event should be cancelled.
      * @param disconnectReason The reason for the cancellation.
      */
-    public void setCancelled(boolean cancelled, @NonNull String disconnectReason) {
+    public void cancelled(boolean cancelled, @NonNull String disconnectReason) {
         this.cancelled = cancelled;
         this.disconnectReason = disconnectReason;
+    }
+
+    @Override
+    @Deprecated
+    public boolean isCancelled() {
+        return cancelled();
+    }
+
+    @Override
+    @Deprecated
+    public void setCancelled(boolean cancelled) {
+        cancelled(cancelled);
+    }
+
+    @Deprecated
+    public void setCancelled(boolean cancelled, @NonNull String disconnectReason) {
+        cancelled(cancelled, disconnectReason);
     }
 
     /**

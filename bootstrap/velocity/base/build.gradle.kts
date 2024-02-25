@@ -1,5 +1,8 @@
+plugins {
+    id("geyser.publish-conventions")
+}
+
 dependencies {
-    annotationProcessor(libs.velocity.api)
     implementation(libs.floodgate.velocity)
     api(projects.core)
 
@@ -37,10 +40,6 @@ exclude("net.kyori:examination-string:*")
 exclude("net.kyori:adventure-text-serializer-gson:*")
 exclude("net.kyori:adventure-text-serializer-legacy:*")
 exclude("net.kyori:adventure-nbt:*")
-
-application {
-    mainClass.set("org.geysermc.geyser.platform.velocity.GeyserVelocityMain")
-}
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     archiveBaseName.set("Geyser-Velocity")

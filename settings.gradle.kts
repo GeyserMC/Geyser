@@ -59,6 +59,7 @@ rootProject.name = "geyser-parent"
 
 include(":ap")
 include(":api")
+include(":isolation")
 include(":fabric")
 include(":standalone")
 include(":core")

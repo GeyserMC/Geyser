@@ -28,18 +28,22 @@ package org.geysermc.geyser.platform.velocity;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.velocitypowered.api.command.CommandManager;
-import com.velocitypowered.api.event.Subscribe;
-import com.velocitypowered.api.event.proxy.ListenerBoundEvent;
-import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
-import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
-import com.velocitypowered.api.network.ListenerType;
 import com.velocitypowered.api.network.ProtocolVersion;
-import com.velocitypowered.api.plugin.Plugin;
+import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.proxy.ProxyServer;
+import java.io.File;
+import java.io.IOException;
+import java.net.SocketAddress;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Map;
+import java.util.UUID;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.floodgate.core.FloodgatePlatform;
+import org.geysermc.floodgate.isolation.IsolatedPlatform;
+import org.geysermc.floodgate.isolation.library.LibraryManager;
 import org.geysermc.floodgate.velocity.VelocityPlatform;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
@@ -54,21 +58,11 @@ import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.velocity.command.GeyserVelocityCommandExecutor;
-import org.geysermc.geyser.platform.velocity.floodgate.FloodgateModule;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 import org.slf4j.Logger;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.SocketAddress;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Map;
-import java.util.UUID;
-
-@Plugin(id = "geyser", name = GeyserImpl.NAME + "-Velocity", version = GeyserImpl.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
-public class GeyserVelocityPlugin implements GeyserBootstrap {
+public class GeyserVelocityPlatform implements GeyserBootstrap, IsolatedPlatform {
     @Inject
     private Logger logger;
 
@@ -87,10 +81,12 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     private GeyserImpl geyser;
 
     @Getter
-    private final Path configFolder = Paths.get("plugins/" + GeyserImpl.NAME + "-Velocity/");
+    private final Path configFolder = Paths.get("plugins/" + GeyserImpl.NAME + "-Velocity/"); //todo remove
 
-    @Inject
-    private Injector guice;
+    @Inject Injector guice;
+    @Inject LibraryManager manager; // don't remove! We don't need it in Geyser, but in Floodgate. Weird Guice stuff
+
+    @Inject PluginContainer container;
 
     @Override
     public void onGeyserInitialize() {
@@ -114,7 +110,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
         FloodgatePlatform platform = null;
         if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE) {
-            platform = guice.createChildInjector(new FloodgateModule(configFolder)).getInstance(VelocityPlatform.class);
+            platform = guice.getInstance(VelocityPlatform.class);
         }
 
         this.geyser = GeyserImpl.load(PlatformType.VELOCITY, this, platform);
@@ -157,7 +153,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
             this.commandManager.register(entry.getKey().description().id(), new GeyserVelocityCommandExecutor(this.geyser, commands));
         }
 
-        proxyServer.getEventManager().register(this, new GeyserVelocityUpdateListener());
+        proxyServer.getEventManager().register(container, new GeyserVelocityUpdateListener());
     }
 
     @Override
@@ -195,29 +191,6 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     @Override
     public IGeyserPingPassthrough getGeyserPingPassthrough() {
         return geyserPingPassthrough;
-    }
-
-    @Subscribe
-    public void onInit(ProxyInitializeEvent event) {
-        this.onGeyserInitialize();
-    }
-
-    @Subscribe
-    public void onShutdown(ProxyShutdownEvent event) {
-        this.onGeyserShutdown();
-    }
-
-    @Subscribe
-    public void onProxyBound(ListenerBoundEvent event) {
-        if (event.getListenerType() == ListenerType.MINECRAFT) {
-            // Once listener is bound, do our startup process
-            this.onGeyserEnable();
-
-            if (geyserInjector != null) {
-                // After this bound, we know that the channel initializer cannot change without it being ineffective for Velocity, too
-                geyserInjector.initializeLocalChannel(this);
-            }
-        }
     }
 
     @Override
@@ -267,5 +240,25 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public void load() {
+        this.onGeyserInitialize();
+    }
+
+    @Override
+    public void enable() {
+        this.onGeyserEnable();
+
+        if (geyserInjector != null) {
+            // After this bound, we know that the channel initializer cannot change without it being ineffective for Velocity, too
+            geyserInjector.initializeLocalChannel(this);
+        }
+    }
+
+    @Override
+    public void disable() {
+        this.onGeyserDisable();
     }
 }

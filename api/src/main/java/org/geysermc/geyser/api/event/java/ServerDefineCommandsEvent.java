@@ -58,13 +58,25 @@ public class ServerDefineCommandsEvent extends ConnectionEvent implements Cancel
     }
 
     @Override
-    public boolean isCancelled() {
+    public boolean cancelled() {
         return this.cancelled;
     }
 
     @Override
-    public void setCancelled(boolean cancelled) {
+    public void cancelled(boolean cancelled) {
         this.cancelled = cancelled;
+    }
+
+    @Override
+    @Deprecated
+    public boolean isCancelled() {
+        return cancelled();
+    }
+
+    @Override
+    @Deprecated
+    public void setCancelled(boolean cancelled) {
+        cancelled(cancelled);
     }
 
     public interface CommandInfo {

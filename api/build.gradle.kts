@@ -1,5 +1,5 @@
 plugins {
-    id("geyser.publish-conventions")
+    id("geyser.shadow-conventions")
 }
 
 dependencies {
