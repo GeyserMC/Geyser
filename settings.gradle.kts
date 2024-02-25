@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 dependencyResolutionManagement {
@@ -17,6 +19,11 @@ dependencyResolutionManagement {
         // BungeeCord
         maven("https://oss.sonatype.org/content/repositories/snapshots") {
             mavenContent { snapshotsOnly() }
+        }
+
+        // NeoForge
+        maven("https://maven.neoforged.net/releases") {
+            mavenContent { releasesOnly() }
         }
 
         // Minecraft
@@ -44,13 +51,11 @@ dependencyResolutionManagement {
 pluginManagement {
     repositories {
         gradlePluginPortal()
-        maven("https://maven.fabricmc.net/")
+
         maven("https://repo.opencollab.dev/maven-snapshots")
-    }
-    plugins {
-        id("net.kyori.blossom") version "1.2.0"
-        id("net.kyori.indra")
-        id("net.kyori.indra.git")
+        maven("https://maven.fabricmc.net")
+        maven("https://maven.architectury.dev")
+        maven("https://maven.neoforged.net/releases")
     }
     includeBuild("build-logic")
 }
@@ -60,15 +65,21 @@ rootProject.name = "geyser-parent"
 include(":ap")
 include(":api")
 include(":isolation")
-include(":fabric")
-include(":standalone")
 include(":core")
 
-// Specify project dirs
+//todo probably needs to be added to the isolated platforms
+include(":viaproxy")
+project(":viaproxy").projectDir = file("bootstrap/viaproxy")
+
+include(":standalone")
 project(":standalone").projectDir = file("bootstrap/standalone")
 
+project(":mod").projectDir = file("bootstrap/mod")
 //todo see what's possible with fabric
-project(":fabric").projectDir = file("bootstrap/fabric")
+include(":fabric")
+project(":fabric").projectDir = file("bootstrap/mod/fabric")
+include(":neoforge")
+project(":neoforge").projectDir = file("bootstrap/mod/neoforge")
 
 arrayOf("bungeecord", "spigot", "velocity").forEach { platform ->
     arrayOf("base", "isolated").forEach {

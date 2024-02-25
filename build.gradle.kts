@@ -3,7 +3,7 @@ plugins {
     // Ensure AP works in eclipse (no effect on other IDEs)
     eclipse
     id("geyser.build-logic")
-    id("io.freefair.lombok") version "8.3" apply false
+    alias(libs.plugins.lombok) apply false
 }
 
 allprojects {
@@ -12,18 +12,18 @@ allprojects {
     description = properties["description"] as String
 }
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
-    }
-}
-
-val platforms = setOf(
-    projects.fabric,
+val basePlatforms = setOf(
     projects.bungeecord,
     projects.spigot,
     projects.standalone,
     projects.velocity,
+    projects.viaproxy
+).map { it.dependencyProject }
+
+val moddedPlatforms = setOf(
+    projects.fabric,
+    projects.neoforge,
+    projects.mod
 ).map { it.dependencyProject }
 
 subprojects {
@@ -34,7 +34,8 @@ subprojects {
     }
 
     when (this) {
-        in platforms -> plugins.apply("geyser.platform-conventions")
+        in basePlatforms -> plugins.apply("geyser.platform-conventions")
+        in moddedPlatforms -> plugins.apply("geyser.modded-conventions")
         else -> plugins.apply("geyser.base-conventions")
     }
 }
