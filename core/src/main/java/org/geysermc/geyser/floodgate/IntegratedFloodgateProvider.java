@@ -58,6 +58,7 @@ public class IntegratedFloodgateProvider implements FloodgateProvider {
 
     @Override
     public String onClientIntention(GeyserSession session) {
+        // we don't have to do anything here, it's done in LocalServerChannelWrapper
         return null;
     }
 }
