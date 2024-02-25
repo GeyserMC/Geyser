@@ -259,6 +259,6 @@ public class GeyserVelocityPlatform implements GeyserBootstrap, IsolatedPlatform
 
     @Override
     public void disable() {
-        this.onGeyserDisable();
+        this.onGeyserShutdown();
     }
 }
