@@ -173,6 +173,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         protected Integer lightEmission;
         protected Integer lightDampening;
         protected TransformationComponent transformation;
+        protected boolean unitCube = false;
         protected boolean placeAir = false;
         protected Set<String> tags = new HashSet<>();
 
@@ -285,11 +286,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
 
         @Override
         public Builder unitCube(boolean unitCube) {
-            if (unitCube) {
-                this.geometry = GeometryComponent.builder()
-                    .identifier("minecraft:geometry.full_block")
-                    .build();
-            }
+            this.unitCube = unitCube;
             return this;
         }
 
