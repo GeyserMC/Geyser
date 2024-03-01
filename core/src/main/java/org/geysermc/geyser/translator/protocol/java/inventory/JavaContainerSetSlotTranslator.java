@@ -65,8 +65,9 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
 
         //TODO: support window id -2, should update player inventory
         Inventory inventory = InventoryUtils.getInventory(session, packet.getContainerId());
-        if (inventory == null)
+        if (inventory == null) {
             return;
+        }
 
         InventoryTranslator translator = session.getInventoryTranslator();
         if (translator != null) {
@@ -79,9 +80,9 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                 GeyserImpl geyser = session.getGeyser();
                 geyser.getLogger().warning("ClientboundContainerSetSlotPacket sent to " + session.bedrockUsername()
                         + " that exceeds inventory size!");
-                if (geyser.getConfig().isDebugMode()) {
-                    geyser.getLogger().debug(packet);
-                    geyser.getLogger().debug(inventory);
+                if (geyser.getLogger().isDebug()) {
+                    geyser.getLogger().info(packet.toString());
+                    geyser.getLogger().info(inventory.toString());
                 }
                 // 1.19.0 behavior: the state ID will not be set due to exception
                 return;

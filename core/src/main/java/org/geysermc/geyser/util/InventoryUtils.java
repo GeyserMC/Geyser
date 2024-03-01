@@ -45,6 +45,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.LecternContainer;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.click.Click;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
@@ -123,7 +124,9 @@ public class InventoryUtils {
         if (inventory != null) {
             InventoryTranslator translator = session.getInventoryTranslator();
             translator.closeInventory(session, inventory);
-            if (confirm && inventory.isDisplayed() && !inventory.isPending() && !(translator instanceof LecternInventoryTranslator)) {
+            if (confirm && inventory.isDisplayed() && !inventory.isPending()
+                    && !(translator instanceof LecternInventoryTranslator) // TODO: double-check
+            ) {
                 session.setClosingInventory(true);
             }
         }
@@ -133,6 +136,10 @@ public class InventoryUtils {
 
     public static @Nullable Inventory getInventory(GeyserSession session, int javaId) {
         if (javaId == 0) {
+            // ugly hack: lecterns aren't their own inventory on Java, and can hence be closed with e.g. an id of 0
+            if (session.getOpenInventory() instanceof LecternContainer) {
+                return session.getOpenInventory();
+            }
             return session.getPlayerInventory();
         } else {
             Inventory openInventory = session.getOpenInventory();

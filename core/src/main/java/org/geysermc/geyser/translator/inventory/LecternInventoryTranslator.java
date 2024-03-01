@@ -36,36 +36,53 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.erosion.util.LecternUtils;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.LecternContainer;
 import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.inventory.updater.InventoryUpdater;
+import org.geysermc.geyser.inventory.updater.ContainerInventoryUpdater;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.geyser.util.InventoryUtils;
 
 import java.util.Collections;
 
-public class LecternInventoryTranslator extends BaseInventoryTranslator {
-    private final InventoryUpdater updater;
+public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator {
+
+    /**
+     * Hack: Java opens a lectern first, and then follows it up with a ClientboundContainerSetContentPacket
+     * to actually send the book contents. We delay opening the inventory until the book was sent.
+     */
+    private boolean initialized = false;
 
     public LecternInventoryTranslator() {
-        super(1);
-        this.updater = new InventoryUpdater();
+        super(1, "minecraft:lectern[facing=north,has_book=true,powered=true]", org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.LECTERN , ContainerInventoryUpdater.INSTANCE);
     }
 
     @Override
     public boolean prepareInventory(GeyserSession session, Inventory inventory) {
+        super.prepareInventory(session, inventory);
+        if (((Container) inventory).isUsingRealBlock()) {
+            initialized = false; // We have to wait until we get the Book to show to the client
+        } else {
+            updateBook(session, inventory, inventory.getItem(0)); // See JavaOpenBookTranslator; set there manually
+            initialized = true;
+        }
         return true;
     }
 
     @Override
     public void openInventory(GeyserSession session, Inventory inventory) {
-    }
-
-    @Override
-    public void closeInventory(GeyserSession session, Inventory inventory) {
+        // Hacky, but we're dealing with LECTERNS! It cannot not be hacky.
+        // "initialized" indicates whether we've received the book from the Java server yet.
+        // dropping lectern book is the fun workaround when we have to enter the gui to drop the book.
+        // Since we leave it immediately... don't open it!
+        if (initialized && !session.isDroppingLecternBook()) {
+            super.openInventory(session, inventory);
+        }
     }
 
     @Override
@@ -81,14 +98,21 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
     @Override
     public void updateInventory(GeyserSession session, Inventory inventory) {
         GeyserItemStack itemStack = inventory.getItem(0);
+        GeyserImpl.getInstance().getLogger().info("lit: updating inventory! " + itemStack.asItem().javaIdentifier());
         if (!itemStack.isEmpty()) {
             updateBook(session, inventory, itemStack);
+
+            if (!initialized) {
+                initialized = true;
+                openInventory(session, inventory);
+            }
         }
     }
 
     @Override
     public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
-        this.updater.updateSlot(this, session, inventory, slot);
+        GeyserImpl.getInstance().getLogger().info("lit: updating slot! " + slot);
+        super.updateSlot(session, inventory, slot);
         if (slot == 0) {
             updateBook(session, inventory, inventory.getItem(0));
         }
@@ -107,11 +131,14 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
             InventoryUtils.closeInventory(session, inventory.getJavaId(), false);
         } else if (lecternContainer.getBlockEntityTag() == null) {
             CompoundTag tag = book.getNbt();
-            // Position has to be the last interacted position... right?
-            Vector3i position = session.getLastInteractionBlockPosition();
+
+            Vector3i position = lecternContainer.isUsingRealBlock() ? session.getLastInteractionBlockPosition() : inventory.getHolderPosition();
+
             // If shouldExpectLecternHandled returns true, this is already handled for us
             // shouldRefresh means that we should boot out the client on our side because their lectern GUI isn't updated yet
-            boolean shouldRefresh = !session.getGeyser().getWorldManager().shouldExpectLecternHandled(session) && !session.getLecternCache().contains(position);
+            boolean shouldRefresh = !session.getGeyser().getWorldManager().shouldExpectLecternHandled(session)
+                    && !session.getLecternCache().contains(position)
+                    && !GameProtocol.is1_20_60orHigher(session.getUpstream().getProtocolVersion());
 
             NbtMap blockEntityTag;
             if (tag != null) {
@@ -147,10 +174,11 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
             // the block entity tag
             lecternContainer.setBlockEntityTag(blockEntityTag);
             lecternContainer.setPosition(position);
+
+            BlockEntityUtils.updateBlockEntity(session, blockEntityTag, position);
+            session.getLecternCache().add(position);
+
             if (shouldRefresh) {
-                // Update the lectern because it's not updated client-side
-                BlockEntityUtils.updateBlockEntity(session, blockEntityTag, position);
-                session.getLecternCache().add(position);
                 // Close the window - we will reopen it once the client has this data synced
                 ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(lecternContainer.getJavaId());
                 session.sendDownstreamGamePacket(closeWindowPacket);
