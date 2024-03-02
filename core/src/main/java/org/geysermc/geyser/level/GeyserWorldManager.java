@@ -36,14 +36,9 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.geysermc.erosion.packet.backendbound.BackendboundBatchBlockEntityPacket;
-import org.geysermc.erosion.packet.backendbound.BackendboundBatchBlockRequestPacket;
-import org.geysermc.erosion.packet.backendbound.BackendboundBlockEntityPacket;
-import org.geysermc.erosion.packet.backendbound.BackendboundBlockRequestPacket;
-import org.geysermc.erosion.packet.backendbound.BackendboundPickBlockPacket;
+import org.geysermc.erosion.packet.backendbound.*;
 import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.erosion.util.LecternUtils;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
 
@@ -134,8 +129,6 @@ public class GeyserWorldManager extends WorldManager {
                 .build());
         lecternTag.putInt("page", -1); // I'm surprisingly glad this exists - it forces Bedrock to stop reading immediately. Usually.
         BlockEntityUtils.updateBlockEntity(session, lecternTag.build(), Vector3i.from(x, y, z));
-
-        GeyserImpl.getInstance().getLogger().error("Lectern tag:" + lecternTag.build());
     }
 
     @Override

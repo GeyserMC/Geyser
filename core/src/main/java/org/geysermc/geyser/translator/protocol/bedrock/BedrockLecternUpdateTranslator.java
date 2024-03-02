@@ -64,7 +64,7 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
         } else {
             // Bedrock wants to either move a page or exit
             if (!(session.getOpenInventory() instanceof LecternContainer lecternContainer)) {
-                session.getGeyser().getLogger().error("Expected lectern but it wasn't open!");
+                session.getGeyser().getLogger().debug("Expected lectern but it wasn't open!");
                 return;
             }
 
@@ -80,7 +80,7 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
                 int currentJavaPage = (lecternContainer.getCurrentBedrockPage() * 2);
 
                 // So, fun fact: We need to separately handle fake lecterns!
-                // Since those are not actually a real lectern... the Java client won't respond to our requests.
+                // Since those are not actually a real lectern... the Java server won't respond to our requests.
                 if (!lecternContainer.isUsingRealBlock()) {
                     LecternInventoryTranslator translator = (LecternInventoryTranslator) session.getInventoryTranslator();
                     Inventory inventory = session.getOpenInventory();

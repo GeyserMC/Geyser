@@ -54,7 +54,7 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
 
     /**
      * Hack: Java opens a lectern first, and then follows it up with a ClientboundContainerSetContentPacket
-     * to actually send the book contents. We delay opening the inventory until the book was sent.
+     * to actually send the book's contents. We delay opening the inventory until the book was sent.
      */
     private boolean initialized = false;
 
@@ -66,9 +66,9 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
     public boolean prepareInventory(GeyserSession session, Inventory inventory) {
         super.prepareInventory(session, inventory);
         if (((Container) inventory).isUsingRealBlock()) {
-            initialized = false; // We have to wait until we get the Book to show to the client
+            initialized = false; // We have to wait until we get the book to show to the client
         } else {
-            updateBook(session, inventory, inventory.getItem(0)); // See JavaOpenBookTranslator; set there manually
+            updateBook(session, inventory, inventory.getItem(0)); // See JavaOpenBookTranslator; placed here manually
             initialized = true;
         }
         return true;
@@ -89,13 +89,13 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
     public void closeInventory(GeyserSession session, Inventory inventory) {
         // Of course, sending a simple ContainerClosePacket, or even breaking the block doesn't work to close a lectern.
         // Heck, the latter crashes the client xd
-        // BDS just sends an empty base lectern tag...
+        // BDS just sends an empty base lectern tag... that kicks out the client. Fine. Let's do that!
         LecternContainer lecternContainer = (LecternContainer) inventory;
         Vector3i position = lecternContainer.isUsingRealBlock() ? session.getLastInteractionBlockPosition() : inventory.getHolderPosition();
         var baseLecternTag = LecternUtils.getBaseLecternTag(position.getX(), position.getY(), position.getZ(), 0);
         BlockEntityUtils.updateBlockEntity(session, baseLecternTag.build(), position);
 
-        super.closeInventory(session, inventory); // Removes the fake blocks, if exist#
+        super.closeInventory(session, inventory); // Removes the fake blocks if need be
 
         // Now: Restore the lectern, if it actually exists
         if (lecternContainer.isUsingRealBlock()) {
