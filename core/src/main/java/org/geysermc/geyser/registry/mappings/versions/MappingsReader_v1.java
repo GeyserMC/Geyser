@@ -488,7 +488,9 @@ public class MappingsReader_v1 extends MappingsReader {
         }
 
         if (node.has("unit_cube")) {
-            builder.unitCube(node.get("unit_cube").asBoolean());
+            builder.geometry(GeometryComponent.builder()
+                .identifier("minecraft:geometry.full_block")
+                .build());
         }
 
         if (node.has("material_instances")) {

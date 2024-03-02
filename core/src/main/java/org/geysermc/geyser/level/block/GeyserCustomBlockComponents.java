@@ -58,7 +58,6 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     Integer lightEmission;
     Integer lightDampening;
     TransformationComponent transformation;
-    boolean unitCube;
     boolean placeAir;
     Set<String> tags;
 
@@ -66,7 +65,13 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         this.selectionBox = builder.selectionBox;
         this.collisionBox = builder.collisionBox;
         this.displayName = builder.displayName;
-        this.geometry = builder.geometry;
+        GeometryComponent geo = builder.geometry;
+        if (builder.unitCube && geo == null) {
+            geo = GeometryComponent.builder()
+                .identifier("minecraft:geometry.full_block")
+                .build();
+        }
+        this.geometry = geo;
         if (builder.materialInstances.isEmpty()) {
             this.materialInstances = Object2ObjectMaps.emptyMap();
         } else {
@@ -78,7 +83,6 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         this.lightEmission = builder.lightEmission;
         this.lightDampening = builder.lightDampening;
         this.transformation = builder.transformation;
-        this.unitCube = builder.unitCube;
         this.placeAir = builder.placeAir;
         if (builder.tags.isEmpty()) {
             this.tags = Set.of();
@@ -144,7 +148,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
 
     @Override
     public boolean unitCube() {
-        return unitCube;
+        return geometry.identifier().equals("minecraft:geometry.full_block");
     }
 
     @Override
