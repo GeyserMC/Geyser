@@ -38,8 +38,17 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
 
+import java.util.Objects;
+
 @Translator(packet = ClientboundOpenBookPacket.class)
 public class JavaOpenBookTranslator extends PacketTranslator<ClientboundOpenBookPacket> {
+
+    /**
+     * Unlike other fake inventories that rely on placing blocks in the world;
+     * the virtual lectern workaround for books isn't triggered the same way.
+     * Specifically, we don't get a window id - hence, we just use our own!
+     */
+    private final static int FAKE_LECTERN_WINDOW_ID = -69;
 
     @Override
     public void translate(GeyserSession session, ClientboundOpenBookPacket packet) {
@@ -69,8 +78,8 @@ public class JavaOpenBookTranslator extends PacketTranslator<ClientboundOpenBook
             session.setInventoryTranslator(translator);
 
             // Should never be null
-            assert translator != null;
-            Inventory inventory = translator.createInventory("", 69, ContainerType.LECTERN , session.getPlayerInventory());
+            Objects.requireNonNull(translator, "lectern translator must exist");
+            Inventory inventory = translator.createInventory("", FAKE_LECTERN_WINDOW_ID, ContainerType.LECTERN , session.getPlayerInventory());
             inventory.setItem(0, stack, session);
             InventoryUtils.openInventory(session, inventory);
         }
