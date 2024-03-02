@@ -148,11 +148,11 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
             InventoryUtils.closeInventory(session, inventory.getJavaId(), false);
         } else if (lecternContainer.getBlockEntityTag() == null) {
             CompoundTag tag = book.getNbt();
-
             Vector3i position = lecternContainer.isUsingRealBlock() ? session.getLastInteractionBlockPosition() : inventory.getHolderPosition();
 
             // If shouldExpectLecternHandled returns true, this is already handled for us
             // shouldRefresh means that we should boot out the client on our side because their lectern GUI isn't updated yet
+            // TODO: yeet after 1.20.60 is minimum supported version
             boolean shouldRefresh = !session.getGeyser().getWorldManager().shouldExpectLecternHandled(session)
                     && !session.getLecternCache().contains(position)
                     && !GameProtocol.is1_20_60orHigher(session.getUpstream().getProtocolVersion());
