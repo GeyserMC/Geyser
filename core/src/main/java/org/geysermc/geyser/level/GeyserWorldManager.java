@@ -131,15 +131,6 @@ public class GeyserWorldManager extends WorldManager {
                         .putString("photoname", "")
                         .putString("text", "")
                         .build())
-//               .putCompound("tag", NbtMap.builder()
-//                       .putString("author", "GeyserMC")
-//                       .putInt("generation", 0)
-//                       .putList("pages", NbtType.COMPOUND, NbtMap.builder()
-//                               .putString("photoname", "")
-//                               .putString("text", "ljhgkzcuztc")
-//                               .build())
-//                       .putString("title", "geyser is cool")
-//                       .build())
                 .build());
         lecternTag.putInt("page", -1); // I'm surprisingly glad this exists - it forces Bedrock to stop reading immediately. Usually.
         BlockEntityUtils.updateBlockEntity(session, lecternTag.build(), Vector3i.from(x, y, z));

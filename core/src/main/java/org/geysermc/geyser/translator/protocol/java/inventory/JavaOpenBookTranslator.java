@@ -28,7 +28,6 @@ package org.geysermc.geyser.translator.protocol.java.inventory;
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.ClientboundOpenBookPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.item.Items;
@@ -45,7 +44,11 @@ public class JavaOpenBookTranslator extends PacketTranslator<ClientboundOpenBook
     public void translate(GeyserSession session, ClientboundOpenBookPacket packet) {
         GeyserItemStack stack = session.getPlayerInventory().getItemInHand();
 
-        GeyserImpl.getInstance().getLogger().info("Got request to open book: " + packet.toString() + " holding: " + stack.asItem().javaIdentifier());
+        // Don't spawn a fake lectern for books already opened "normally" by the client.
+        if (stack.getItemData(session).equals(session.getCurrentBook())) {
+            session.setCurrentBook(null);
+            return;
+        }
 
         if (stack.asItem().equals(Items.WRITTEN_BOOK)) {
             Inventory openInventory = session.getOpenInventory();
@@ -61,7 +64,6 @@ public class JavaOpenBookTranslator extends PacketTranslator<ClientboundOpenBook
 
             // Should never be null
             assert translator != null;
-
             Inventory inventory = translator.createInventory("", 69, ContainerType.LECTERN , session.getPlayerInventory());
             inventory.setItem(0, stack, session);
             InventoryUtils.openInventory(session, inventory);

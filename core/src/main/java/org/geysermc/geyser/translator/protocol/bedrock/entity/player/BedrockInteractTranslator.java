@@ -37,7 +37,6 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InteractPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
 import org.geysermc.geyser.item.Items;
@@ -137,9 +136,9 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                         session.sendUpstreamPacket(containerOpenPacket);
                     }
                 } else {
-                    // Case: Player opens a player inventory, while we think it shouldnt have!
+                    // Case: Player opens a player inventory, while we think it shouldn't have!
                     // Close all inventories, reset to player inventory.
-                    InventoryUtils.closeInventory(session, session.getOpenInventory().getJavaId(), true);
+                    InventoryUtils.closeInventory(session, session.getOpenInventory().getJavaId(), false);
                 }
                 break;
         }

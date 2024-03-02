@@ -35,6 +35,7 @@ import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.LecternContainer;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -73,7 +74,6 @@ public class BlockInventoryHolder extends InventoryHolder {
 
     @Override
     public boolean prepareInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
-        GeyserImpl.getInstance().getLogger().info("Preparing inventory...");
         // Check to see if there is an existing block we can use that the player just selected.
         // First, verify that the player's position has not changed, so we don't try to select a block wildly out of range.
         // (This could be a virtual inventory that the player is opening)
@@ -95,7 +95,6 @@ public class BlockInventoryHolder extends InventoryHolder {
         }
 
         Vector3i position = InventoryUtils.findAvailableWorldSpace(session);
-        GeyserImpl.getInstance().getLogger().info("prep inv: " + position);
         if (position == null) {
             return false;
         }
@@ -154,10 +153,8 @@ public class BlockInventoryHolder extends InventoryHolder {
 
     @Override
     public void closeInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
-        GeyserImpl.getInstance().getLogger().warning("called closedInventory on block inventory holder: open inventory: "
-        + session.getOpenInventory().getContainerType() + " translator: " + session.getInventoryTranslator().getClass().getSimpleName());
         if (inventory instanceof Container container) {
-            if (container.isUsingRealBlock()) {
+            if (container.isUsingRealBlock() && !(inventory instanceof LecternContainer)) {
                 // No need to reset a block since we didn't change any blocks
                 // But send a container close packet because we aren't destroying the original.
                 ContainerClosePacket packet = new ContainerClosePacket();
@@ -172,6 +169,11 @@ public class BlockInventoryHolder extends InventoryHolder {
                 GeyserImpl.getInstance().getLogger().debug("Current inventory: " + inventory);
                 GeyserImpl.getInstance().getLogger().debug("Open inventory: " + session.getOpenInventory());
             }
+            // Try to save ourselves? maybe?
+            // https://github.com/GeyserMC/Geyser/issues/4141
+            // TODO: improve once this issue is pinned down properly
+            session.setOpenInventory(null);
+            session.setInventoryTranslator(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
             return;
         }
 

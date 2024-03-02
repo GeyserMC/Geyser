@@ -86,6 +86,24 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
     }
 
     @Override
+    public void closeInventory(GeyserSession session, Inventory inventory) {
+        // Of course, sending a simple ContainerClosePacket, or even breaking the block doesn't work to close a lectern.
+        // Heck, the latter crashes the client xd
+        // BDS just sends an empty base lectern tag...
+        LecternContainer lecternContainer = (LecternContainer) inventory;
+        Vector3i position = lecternContainer.isUsingRealBlock() ? session.getLastInteractionBlockPosition() : inventory.getHolderPosition();
+        var baseLecternTag = LecternUtils.getBaseLecternTag(position.getX(), position.getY(), position.getZ(), 0);
+        BlockEntityUtils.updateBlockEntity(session, baseLecternTag.build(), position);
+
+        super.closeInventory(session, inventory); // Removes the fake blocks, if exist#
+
+        // Now: Restore the lectern, if it actually exists
+        if (lecternContainer.isUsingRealBlock()) {
+            GeyserImpl.getInstance().getWorldManager().sendLecternData(session, position.getX(), position.getY(), position.getZ());
+        }
+    }
+
+    @Override
     public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
         if (key == 0) { // Lectern page update
             LecternContainer lecternContainer = (LecternContainer) inventory;
@@ -98,11 +116,11 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
     @Override
     public void updateInventory(GeyserSession session, Inventory inventory) {
         GeyserItemStack itemStack = inventory.getItem(0);
-        GeyserImpl.getInstance().getLogger().info("lit: updating inventory! " + itemStack.asItem().javaIdentifier());
         if (!itemStack.isEmpty()) {
+            boolean isDropping = session.isDroppingLecternBook();
             updateBook(session, inventory, itemStack);
 
-            if (!initialized) {
+            if (!initialized && !isDropping) {
                 initialized = true;
                 openInventory(session, inventory);
             }
@@ -111,7 +129,6 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
 
     @Override
     public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
-        GeyserImpl.getInstance().getLogger().info("lit: updating slot! " + slot);
         super.updateSlot(session, inventory, slot);
         if (slot == 0) {
             updateBook(session, inventory, inventory.getItem(0));
@@ -189,6 +206,6 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
 
     @Override
     public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new LecternContainer(name, windowId, this.size, containerType, playerInventory);
+        return new LecternContainer(name, windowId, this.size + playerInventory.getSize(), containerType, playerInventory);
     }
 }
