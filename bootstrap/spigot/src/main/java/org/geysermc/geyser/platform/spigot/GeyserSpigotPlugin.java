@@ -433,7 +433,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             return false;
         }
         for (int i = protocolList.size() - 1; i >= 0; i--) {
-            MappingData mappingData = protocolList.get(i).getProtocol().getMappingData();
+            MappingData mappingData = protocolList.get(i).protocol().getMappingData();
             if (mappingData != null) {
                 return true;
             }
