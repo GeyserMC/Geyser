@@ -380,6 +380,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             } else if (packet.getItemInHand().getDefinition() == session.getItemMappings().getStoredItems().glassBottle().getBedrockDefinition()) {
                                 // Handled in case 0
                                 break;
+                            } else if (packet.getItemInHand().getDefinition() == session.getItemMappings().getStoredItems().writtenBook().getBedrockDefinition()) {
+                                session.setCurrentBook(packet.getItemInHand());
                             }
                         }
 
@@ -387,7 +389,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.sendDownstreamGamePacket(useItemPacket);
 
                         List<LegacySetItemSlotData> legacySlots = packet.getLegacySlots();
-                        if (packet.getActions().size() == 1 && legacySlots.size() > 0) {
+                        if (packet.getActions().size() == 1 && !legacySlots.isEmpty()) {
                             InventoryActionData actionData = packet.getActions().get(0);
                             LegacySetItemSlotData slotData = legacySlots.get(0);
                             if (slotData.getContainerId() == 6 && !actionData.getFromItem().isNull()) {
