@@ -285,7 +285,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * See {@link WorldManager#sendLecternData(GeyserSession, int, int, int)}
      * for more information.
      */
-    private final Set<Vector3i> lecternCache;
+    private final @Nullable Set<Vector3i> lecternCache;
 
     /**
      * A list of all players that have a player head on with a custom texture.

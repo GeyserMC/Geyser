@@ -193,9 +193,11 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
             lecternContainer.setPosition(position);
 
             BlockEntityUtils.updateBlockEntity(session, blockEntityTag, position);
-            session.getLecternCache().add(position);
 
             if (shouldRefresh) {
+                // the lectern cache doesn't always exist; only when we must refresh
+                session.getLecternCache().add(position);
+
                 // Close the window - we will reopen it once the client has this data synced
                 ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(lecternContainer.getJavaId());
                 session.sendDownstreamGamePacket(closeWindowPacket);
