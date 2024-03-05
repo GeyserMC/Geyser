@@ -35,6 +35,9 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.configuration.GeyserConfiguration;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.LoopbackUtil;
 import org.geysermc.geyser.util.WebUtils;
 
@@ -81,7 +84,7 @@ public class ConnectionTestCommand extends GeyserCommand {
 
         // Replace "<" and ">" symbols if they are present to avoid the common issue of people including them
         final String ip = ipArgument.replace("<", "").replace(">", "");
-        final int port = portArgument != null ? portArgument : 19132; // default bedrock port
+        final int port = portArgument != null ? portArgument : geyser.getConfig().getBedrock().broadcastPort(); // default bedrock port
 
         // Issue: people commonly checking placeholders
         if (ip.equals("ip")) {
@@ -107,30 +110,41 @@ public class ConnectionTestCommand extends GeyserCommand {
             return;
         }
 
-        // Issue: do the ports not line up?
-        if (port != geyser.getConfig().getBedrock().port()) {
-            if (portArgument != null) {
-                source.sendMessage("The port you are testing with (" + port + ") is not the same as you set in your Geyser configuration ("
-                    + geyser.getConfig().getBedrock().port() + ")");
-                source.sendMessage("Re-run the command with the port in the config, or change the `bedrock` `port` in the config.");
-                if (geyser.getConfig().getBedrock().isCloneRemotePort()) {
-                    source.sendMessage("You have `clone-remote-port` enabled. This option ignores the `bedrock` `port` in the config, and uses the Java server port instead.");
+        GeyserConfiguration config = geyser.getConfig();
+
+        // Issue: do the ports not line up? We only check this if players don't override the broadcast port - if they do, they (hopefully) know what they're doing
+        if (config.getBedrock().broadcastPort() == config.getBedrock().port()) {
+            if (port != config.getBedrock().port()) {
+                if (portArgument != null) {
+                    source.sendMessage("The port you are testing with (" + port + ") is not the same as you set in your Geyser configuration ("
+                            + config.getBedrock().port() + ")");
+                    source.sendMessage("Re-run the command with the port in the config, or change the `bedrock` `port` in the config.");
+                    if (config.getBedrock().isCloneRemotePort()) {
+                        source.sendMessage("You have `clone-remote-port` enabled. This option ignores the `bedrock` `port` in the config, and uses the Java server port instead.");
+                    }
+                } else {
+                    source.sendMessage("You did not specify the port to check (add it with \":<port>\"), " +
+                            "and the default port 19132 does not match the port in your Geyser configuration ("
+                            + config.getBedrock().port() + ")!");
+                    source.sendMessage("Re-run the command with that port, or change the port in the config under `bedrock` `port`.");
                 }
-            } else {
-                source.sendMessage("You did not specify the port to check, " +
-                        "and the default port 19132 does not match the port in your Geyser configuration ("
-                        + geyser.getConfig().getBedrock().port() + ")!");
-                source.sendMessage("Re-run the command with that port, or change the port in the config under `bedrock` `port`.");
+            }
+        } else {
+            if (config.getBedrock().broadcastPort() != port) {
+                source.sendMessage("The port you are testing with (" + port + ") is not the same as the broadcast port set in your Geyser configuration ("
+                        + config.getBedrock().broadcastPort() + "). ");
+                source.sendMessage("You ONLY need to change the broadcast port if clients connects with a port different from the port Geyser is running on.");
+                source.sendMessage("Re-run the command with the port in the config, or change the `bedrock` `broadcast-port` in the config.");
             }
         }
 
         // Issue: is the `bedrock` `address` in the config different?
-        if (!geyser.getConfig().getBedrock().address().equals("0.0.0.0")) {
+        if (!config.getBedrock().address().equals("0.0.0.0")) {
             source.sendMessage("The address specified in `bedrock` `address` is not \"0.0.0.0\" - this may cause issues unless this is deliberate and intentional.");
         }
 
         // Issue: did someone turn on enable-proxy-protocol, and they didn't mean it?
-        if (geyser.getConfig().getBedrock().isEnableProxyProtocol()) {
+        if (config.getBedrock().isEnableProxyProtocol()) {
             source.sendMessage("You have the `enable-proxy-protocol` setting enabled. " +
                     "Unless you're deliberately using additional software that REQUIRES this setting, you may not need it enabled.");
         }
@@ -161,7 +175,7 @@ public class ConnectionTestCommand extends GeyserCommand {
                 String connectionTestMotd = "Geyser Connection Test " + randomStr;
                 CONNECTION_TEST_MOTD = connectionTestMotd;
 
-                source.sendMessage("Testing server connection now. Please wait...");
+                source.sendMessage("Testing server connection to " + ip + " with port: " + port + " now. Please wait...");
                 JsonNode output;
                 try {
                     String hostname = URLEncoder.encode(ip, StandardCharsets.UTF_8);

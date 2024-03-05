@@ -51,7 +51,7 @@ public class GeyserStandaloneLogger extends SimpleTerminalConsole implements Gey
 
     @Override
     protected void shutdown() {
-        GeyserImpl.getInstance().getBootstrap().onDisable();
+        GeyserImpl.getInstance().getBootstrap().onGeyserShutdown();
     }
 
     @Override

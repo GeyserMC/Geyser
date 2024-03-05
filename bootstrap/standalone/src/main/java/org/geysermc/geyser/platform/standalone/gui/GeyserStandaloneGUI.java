@@ -100,7 +100,7 @@ public class GeyserStandaloneGUI {
         Container cp = frame.getContentPane();
 
         // Fetch and set the icon for the frame
-        URL image = getClass().getClassLoader().getResource("icon.png");
+        URL image = getClass().getClassLoader().getResource("assets/geyser/icon.png");
         if (image != null) {
             ImageIcon icon = new ImageIcon(image);
             frame.setIconImage(icon.getImage());

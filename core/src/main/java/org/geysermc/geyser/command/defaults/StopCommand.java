@@ -45,6 +45,6 @@ public class StopCommand extends GeyserCommand {
 
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
-        geyser.getBootstrap().onDisable();
+        geyser.getBootstrap().onGeyserShutdown();
     }
 }

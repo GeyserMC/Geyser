@@ -72,6 +72,7 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.geyser.util.ChunkUtils;
+import org.geysermc.geyser.util.DimensionUtils;
 
 import java.io.IOException;
 import java.util.BitSet;
@@ -522,6 +523,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         levelChunkPacket.setChunkX(packet.getX());
         levelChunkPacket.setChunkZ(packet.getZ());
         levelChunkPacket.setData(Unpooled.wrappedBuffer(payload));
+        levelChunkPacket.setDimension(DimensionUtils.javaToBedrock(session.getChunkCache().getBedrockDimension()));
         session.sendUpstreamPacket(levelChunkPacket);
 
         if (!lecterns.isEmpty()) {
