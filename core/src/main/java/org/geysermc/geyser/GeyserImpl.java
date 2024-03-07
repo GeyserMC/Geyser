@@ -656,7 +656,6 @@ public class GeyserImpl implements GeyserApi {
         if (isEnabled) {
             this.disable();
         }
-        this.commandManager().getCommands().clear();
 
         // Disable extensions, fire the shutdown event
         this.eventBus.fire(new GeyserShutdownEvent(this.extensionManager, this.eventBus));
