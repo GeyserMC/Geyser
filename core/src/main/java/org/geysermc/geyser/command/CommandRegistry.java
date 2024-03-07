@@ -316,6 +316,7 @@ public class CommandRegistry {
                 E e = (E) exception;
                 // if cloud has a registered exception handler for this type, use it, otherwise use this handler.
                 // we register all the exception handlers to cloud, so it will likely just be cloud invoking this same handler.
+                cloud.exceptionController().handleException(,exception);
                 cloud.handleException(source, type, e, handler);
                 return true;
             }

@@ -37,12 +37,13 @@ import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
 import org.incendo.cloud.CommandManager;
-import org.incendo.cloud.annotation.specifier.Greedy;
 import org.incendo.cloud.context.CommandContext;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import static org.incendo.cloud.parser.standard.StringParser.greedyStringParser;
 
 public abstract class GeyserExtensionCommand extends GeyserCommand {
 
@@ -190,7 +191,7 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
                     // todo: if we don't find a way to expose cloud in the api, we should implement a way
                     //  to not have the [args] if its not necessary for this command. and maybe tab completion.
                     manager.command(baseBuilder(manager)
-                        .argument(StringArgument.optional("args", StringArgument.StringMode.GREEDY))
+                        .optional("args", greedyStringParser())
                         .handler(this::execute));
                 }
 

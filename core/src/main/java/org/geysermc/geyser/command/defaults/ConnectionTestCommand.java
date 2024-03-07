@@ -41,6 +41,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
+import static org.incendo.cloud.parser.standard.IntegerParser.integerParser;
+import static org.incendo.cloud.parser.standard.StringParser.stringParser;
+
 public class ConnectionTestCommand extends GeyserCommand {
 
     /*
@@ -63,11 +66,8 @@ public class ConnectionTestCommand extends GeyserCommand {
     @Override
     public void register(CommandManager<GeyserCommandSource> manager) {
         manager.command(baseBuilder(manager)
-            .argument(StringArgument.of(ADDRESS))
-            .argument(IntegerArgument.<GeyserCommandSource>builder(PORT)
-                .withMax(65535).withMin(0)
-                .asOptional()
-                .build())
+            .required(ADDRESS, stringParser())
+            .optional(PORT, integerParser(0, 65535))
             .handler(this::execute));
     }
 
