@@ -25,9 +25,6 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import cloud.commandframework.CommandManager;
-import cloud.commandframework.arguments.standard.StringArrayArgument;
-import cloud.commandframework.context.CommandContext;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -41,6 +38,9 @@ import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.WebUtils;
+import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.component.CommandComponent;
+import org.incendo.cloud.context.CommandContext;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -68,7 +68,7 @@ public class DumpCommand extends GeyserCommand {
             .handler(this::execute));
     }
 
-    private StringArrayArgument<GeyserCommandSource> createArgument() {
+    private CommandComponent<GeyserCommandSource> createArgument() {
         return StringArrayArgument.optional(ARGUMENTS, (context, currentInput) -> {
             // currentInput only provides the word currently being typed, so it's useless for checking the previous ones
             List<String> input = context.getRawInput();
@@ -88,7 +88,7 @@ public class DumpCommand extends GeyserCommand {
 
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
-        GeyserCommandSource source = context.getSender();
+        GeyserCommandSource source = context.sender();
         String[] args = context.getOrDefault(ARGUMENTS, new String[0]);
 
         boolean showSensitive = false;

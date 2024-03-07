@@ -27,7 +27,7 @@ platformRelocate("com.fasterxml.jackson")
 platformRelocate("net.kyori", "net.kyori.adventure.text.logger.slf4j.ComponentLogger")
 platformRelocate("org.objectweb.asm")
 platformRelocate("me.lucko.commodore")
-platformRelocate("cloud.commandframework")
+platformRelocate("org.incendo")
 platformRelocate("org.yaml") // Broken as of 1.20
 
 // These dependencies are already present on the platform

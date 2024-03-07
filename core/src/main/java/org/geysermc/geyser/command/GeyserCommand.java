@@ -25,15 +25,14 @@
 
 package org.geysermc.geyser.command;
 
-import cloud.commandframework.Command;
-import cloud.commandframework.CommandManager;
-import cloud.commandframework.context.CommandContext;
-import cloud.commandframework.meta.CommandMeta;
-import cloud.commandframework.permission.CommandPermission;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.incendo.cloud.Command;
+import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.context.CommandContext;
+import org.incendo.cloud.description.CommandDescription;
 import org.jetbrains.annotations.Contract;
 
 import java.util.Collections;
@@ -155,7 +154,7 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
     }
 
     /**
-     * Returns a {@link CommandPermission} that handles {@link #isBedrockOnly()}, {@link #isPlayerOnly()}, and {@link #permission()}.
+     * Returns a {@link org.incendo.cloud.permission.Permission} that handles {@link #isBedrockOnly()}, {@link #isPlayerOnly()}, and {@link #permission()}.
      *
      * @param manager the manager to be used for permission node checking
      * @return a permission that will properly restrict usage of this command
@@ -178,11 +177,11 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
     }
 
     /**
-     * @return an Applicable that applies this command's description as {@link CommandMeta#DESCRIPTION}
+     * @return an Applicable that applies this command's description
      */
     protected Command.Builder.Applicable<GeyserCommandSource> meta() {
         return builder -> builder
-            .meta(CommandMeta.DESCRIPTION, GeyserLocale.getLocaleStringLog(description)); // used in cloud-bukkit impl
+            .commandDescription(CommandDescription.commandDescription(GeyserLocale.getLocaleStringLog(description))); // used in cloud-bukkit impl
     }
 
     /**

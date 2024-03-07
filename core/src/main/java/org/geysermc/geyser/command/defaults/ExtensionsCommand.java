@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import cloud.commandframework.context.CommandContext;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.util.TriState;
@@ -33,6 +32,7 @@ import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.incendo.cloud.context.CommandContext;
 
 import java.util.Comparator;
 import java.util.List;
@@ -47,7 +47,7 @@ public class ExtensionsCommand extends GeyserCommand {
 
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
-        GeyserCommandSource source = context.getSender();
+        GeyserCommandSource source = context.sender();
 
         // TODO: Pagination
         int page = 1;

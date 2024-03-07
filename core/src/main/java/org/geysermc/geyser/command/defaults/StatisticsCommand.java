@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import cloud.commandframework.context.CommandContext;
 import com.github.steveice10.mc.protocol.data.game.ClientCommand;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundClientCommandPacket;
 import org.geysermc.geyser.GeyserImpl;
@@ -33,6 +32,7 @@ import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
+import org.incendo.cloud.context.CommandContext;
 
 import java.util.Objects;
 
@@ -44,7 +44,7 @@ public class StatisticsCommand extends GeyserCommand {
 
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
-        GeyserSession session = Objects.requireNonNull(context.getSender().connection());
+        GeyserSession session = Objects.requireNonNull(context.sender().connection());
 
         session.setWaitingForStatistics(true);
         ServerboundClientCommandPacket packet = new ServerboundClientCommandPacket(ClientCommand.STATS);

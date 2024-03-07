@@ -25,9 +25,6 @@
 
 package org.geysermc.geyser.platform.spigot;
 
-import cloud.commandframework.bukkit.BukkitCommandManager;
-import cloud.commandframework.execution.CommandExecutionCoordinator;
-import cloud.commandframework.paper.PaperCommandManager;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.data.MappingData;
 import com.viaversion.viaversion.api.protocol.ProtocolPathEntry;
@@ -44,14 +41,14 @@ import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
-import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
-import org.geysermc.geyser.command.CommandSourceConverter;
+import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
+import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
@@ -68,6 +65,10 @@ import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotNativeWorld
 import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
+import org.incendo.cloud.bukkit.BukkitCommandManager;
+import org.incendo.cloud.bukkit.CloudBukkitCapabilities;
+import org.incendo.cloud.execution.ExecutionCoordinator;
+import org.incendo.cloud.paper.PaperCommandManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -166,28 +167,26 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         var sourceConverter = new CommandSourceConverter<>(
                 CommandSender.class,
                 Bukkit::getPlayer,
-                Bukkit::getConsoleSender
+                Bukkit::getConsoleSender,
+                SpigotCommandSource::new
         );
         PaperCommandManager<GeyserCommandSource> cloud;
         try {
             cloud = new PaperCommandManager<>(
                     this,
-                    CommandExecutionCoordinator.simpleCoordinator(),
-                    SpigotCommandSource::new,
-                    sourceConverter::convert
+                    ExecutionCoordinator.simpleCoordinator(),
+                    sourceConverter
             );
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
-        try {
-            // Should always be available on 1.13 and up
-            cloud.registerBrigadier();
-        } catch (BukkitCommandManager.BrigadierFailureException e) {
-            geyserLogger.debug("Failed to initialize Brigadier support: " + e.getMessage());
-            if (e.getReason() == BukkitCommandManager.BrigadierFailureReason.VERSION_TOO_HIGH) {
-                // Commodore brig only supports Spigot 1.13 - 1.18.2
-                geyserLogger.debug("Using Paper instead of Spigot will likely fix this.");
+        if (cloud.hasCapability(CloudBukkitCapabilities.BRIGADIER)) {
+            try {
+                // Should always be available on 1.13 and up
+                cloud.registerBrigadier();
+            } catch (BukkitCommandManager.BrigadierInitializationException e) {
+                geyserLogger.debug("Failed to initialize Brigadier support: " + e.getMessage());
             }
         }
 

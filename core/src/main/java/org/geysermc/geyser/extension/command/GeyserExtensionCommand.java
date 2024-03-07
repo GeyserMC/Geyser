@@ -25,9 +25,6 @@
 
 package org.geysermc.geyser.extension.command;
 
-import cloud.commandframework.CommandManager;
-import cloud.commandframework.arguments.standard.StringArgument;
-import cloud.commandframework.context.CommandContext;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.command.Command;
@@ -39,6 +36,9 @@ import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
+import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.annotation.specifier.Greedy;
+import org.incendo.cloud.context.CommandContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -125,6 +125,7 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
             return this;
         }
 
+        @SuppressWarnings("removal") // this is our doing
         @Override
         public Builder<T> suggestedOpOnly(boolean suggestedOpOnly) {
             this.suggestedOpOnly = suggestedOpOnly;
@@ -135,6 +136,7 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
             return this;
         }
 
+        @SuppressWarnings("removal") // this is our doing
         @Override
         public Builder<T> executableOnConsole(boolean executableOnConsole) {
             this.playerOnly = !executableOnConsole;
@@ -195,7 +197,7 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
                 @SuppressWarnings("unchecked")
                 @Override
                 public void execute(CommandContext<GeyserCommandSource> context) {
-                    GeyserCommandSource source = context.getSender();
+                    GeyserCommandSource source = context.sender();
                     String[] args = context.getOrDefault("args", "").split(" ");
 
                     if (sourceType.isInstance(source)) {
@@ -215,6 +217,7 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
                     source.sendMessage("You must be a " + sourceType.getSimpleName() + " to run this command.");
                 }
 
+                @SuppressWarnings("removal") // this is our doing
                 @Override
                 public boolean isSuggestedOpOnly() {
                     return suggestedOpOnly;

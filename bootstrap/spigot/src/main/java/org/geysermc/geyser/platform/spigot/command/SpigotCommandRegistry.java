@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.platform.spigot.command;
 
-import cloud.commandframework.CommandManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
@@ -34,6 +33,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.GeyserCommandSource;
+import org.incendo.cloud.CommandManager;
 
 import java.lang.reflect.Field;
 

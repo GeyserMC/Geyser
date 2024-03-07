@@ -25,28 +25,67 @@
 
 package org.geysermc.geyser.command;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.session.GeyserSession;
+import org.incendo.cloud.SenderMapper;
 
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * Converts {@link GeyserCommandSource}s to the server's command sender type in a lenient manner.
+ * Converts {@link GeyserCommandSource}s to the server's command sender type (and back) in a lenient manner.
  *
  * @param senderType class of the server command sender type
  * @param playerLookup function for looking up a player command sender by UUID
  * @param consoleProvider supplier of the console command sender
+ * @param commandSourceLookup supplier of the platform implementation of the {@link GeyserCommandSource}
  * @param <S> server command sender type
  */
 public record CommandSourceConverter<S>(Class<S> senderType,
                                            Function<UUID, S> playerLookup,
-                                           Supplier<S> consoleProvider) {
+                                           Supplier<S> consoleProvider,
+                                           Function<S, GeyserCommandSource> commandSourceLookup
+) implements SenderMapper<S, GeyserCommandSource> {
+
+    /**
+     * Creates a new CommandSourceConverter for a server platform
+     * in which the player type is not a command sender type, and must be mapped.
+     *
+     * @param senderType class of the command sender type
+     * @param playerLookup function for looking up a player by UUID
+     * @param senderLookup function for converting a player to a command sender
+     * @param consoleProvider supplier of the console command sender
+     * @param commandSourceLookup supplier of the platform implementation of {@link GeyserCommandSource}
+     * @return a new CommandSourceConverter
+     * @param <P> server player type
+     * @param <S> server command sender type
+     */
+    public static <P, S> CommandSourceConverter<S> layered(Class<S> senderType,
+                                                           Function<UUID, P> playerLookup,
+                                                           Function<P, S> senderLookup,
+                                                           Supplier<S> consoleProvider,
+                                                           Function<S, GeyserCommandSource> commandSourceLookup) {
+        Function<UUID, S> lookup = uuid -> {
+            P player = playerLookup.apply(uuid);
+            if (player == null) {
+                return null;
+            }
+            return senderLookup.apply(player);
+        };
+        return new CommandSourceConverter<>(senderType, lookup, consoleProvider, commandSourceLookup);
+    }
+
+    @Override
+    public @NonNull GeyserCommandSource map(@NonNull S base) {
+        return commandSourceLookup.apply(base);
+    }
 
     @SuppressWarnings("unchecked")
-    public S convert(GeyserCommandSource source) throws IllegalArgumentException {
+    @Override
+    public @NonNull S reverse(GeyserCommandSource source) throws IllegalArgumentException {
         Object handle = source.handle();
         if (senderType.isInstance(handle)) {
             return (S) handle; // one of the server platform implementations
@@ -71,31 +110,5 @@ public record CommandSourceConverter<S>(Class<S> senderType,
         }
 
         throw new IllegalArgumentException("failed to find sender for name=%s, uuid=%s".formatted(source.name(), source.playerUuid()));
-    }
-
-    /**
-     * Creates a new CommandSourceConverter for a server platform
-     * in which the player type is not a command sender type, and must be mapped.
-     *
-     * @param senderType class of the command sender type
-     * @param playerLookup function for looking up a player by UUID
-     * @param senderLookup function for converting a player to a command sender
-     * @param consoleProvider supplier of the console command sender
-     * @return a new CommandSourceConverter
-     * @param <P> server player type
-     * @param <S> server command sender type
-     */
-    public static <P, S> CommandSourceConverter<S> layered(Class<S> senderType,
-                                                           Function<UUID, P> playerLookup,
-                                                           Function<P, S> senderLookup,
-                                                           Supplier<S> consoleProvider) {
-        Function<UUID, S> lookup = uuid -> {
-            P player = playerLookup.apply(uuid);
-            if (player == null) {
-                return null;
-            }
-            return senderLookup.apply(player);
-        };
-        return new CommandSourceConverter<>(senderType, lookup, consoleProvider);
     }
 }

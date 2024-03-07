@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import cloud.commandframework.context.CommandContext;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
@@ -37,6 +36,7 @@ import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.WebUtils;
+import org.incendo.cloud.context.CommandContext;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -53,7 +53,7 @@ public class VersionCommand extends GeyserCommand {
 
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
-        GeyserCommandSource source = context.getSender();
+        GeyserCommandSource source = context.sender();
 
         String bedrockVersions;
         List<BedrockCodec> supportedCodecs = GameProtocol.SUPPORTED_BEDROCK_CODECS;

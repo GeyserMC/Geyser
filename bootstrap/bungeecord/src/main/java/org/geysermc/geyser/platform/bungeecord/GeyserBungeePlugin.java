@@ -25,9 +25,6 @@
 
 package org.geysermc.geyser.platform.bungeecord;
 
-import cloud.commandframework.CommandManager;
-import cloud.commandframework.bungee.BungeeCommandManager;
-import cloud.commandframework.execution.CommandExecutionCoordinator;
 import io.netty.channel.Channel;
 import net.md_5.bungee.BungeeCord;
 import net.md_5.bungee.api.CommandSender;
@@ -39,8 +36,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.CommandRegistry;
+import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
@@ -49,6 +46,9 @@ import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.bungeecord.command.BungeeCommandSource;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
+import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.bungee.BungeeCommandManager;
+import org.incendo.cloud.execution.ExecutionCoordinator;
 
 import java.io.File;
 import java.io.IOException;
@@ -159,13 +159,13 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             var sourceConverter = new CommandSourceConverter<>(
                     CommandSender.class,
                     id -> getProxy().getPlayer(id),
-                    () -> getProxy().getConsole()
+                    () -> getProxy().getConsole(),
+                    BungeeCommandSource::new
             );
             CommandManager<GeyserCommandSource> cloud = new BungeeCommandManager<>(
                     this,
-                    CommandExecutionCoordinator.simpleCoordinator(),
-                    BungeeCommandSource::new,
-                    sourceConverter::convert
+                    ExecutionCoordinator.simpleCoordinator(),
+                    sourceConverter
             );
             this.commandRegistry = new CommandRegistry(geyser, cloud);
 

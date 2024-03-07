@@ -25,11 +25,6 @@
 
 package org.geysermc.geyser.command.standalone;
 
-import cloud.commandframework.CommandManager;
-import cloud.commandframework.execution.CommandExecutionCoordinator;
-import cloud.commandframework.internal.CommandRegistrationHandler;
-import cloud.commandframework.meta.CommandMeta;
-import cloud.commandframework.meta.SimpleCommandMeta;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
@@ -40,6 +35,11 @@ import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.util.FileUtils;
+import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.execution.ExecutionCoordinator;
+import org.incendo.cloud.internal.CommandRegistrationHandler;
+import org.incendo.cloud.meta.CommandMeta;
+import org.incendo.cloud.meta.SimpleCommandMeta;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -61,7 +61,7 @@ public class StandaloneCloudCommandManager extends CommandManager<GeyserCommandS
     private final Set<String> basePermissions = new ObjectOpenHashSet<>();
 
     public StandaloneCloudCommandManager(GeyserImpl geyser) {
-        super(CommandExecutionCoordinator.simpleCoordinator(), CommandRegistrationHandler.nullCommandRegistrationHandler());
+        super(ExecutionCoordinator.simpleCoordinator(), CommandRegistrationHandler.nullCommandRegistrationHandler());
         // simpleCoordinator: execute commands immediately on the calling thread.
         // nullCommandRegistrationHandler: cloud is not responsible for handling our CommandRegistry, which is fairly decoupled.
         this.geyser = geyser;

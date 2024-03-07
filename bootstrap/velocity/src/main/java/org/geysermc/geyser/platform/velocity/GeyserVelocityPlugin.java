@@ -25,9 +25,6 @@
 
 package org.geysermc.geyser.platform.velocity;
 
-import cloud.commandframework.CommandManager;
-import cloud.commandframework.execution.CommandExecutionCoordinator;
-import cloud.commandframework.velocity.VelocityCommandManager;
 import com.google.inject.Inject;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.event.Subscribe;
@@ -42,11 +39,11 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.CommandSourceConverter;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
+import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
@@ -56,6 +53,9 @@ import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.velocity.command.VelocityCommandSource;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
+import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.execution.ExecutionCoordinator;
+import org.incendo.cloud.velocity.VelocityCommandManager;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -123,14 +123,14 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
             var sourceConverter = new CommandSourceConverter<>(
                     CommandSource.class,
                     id -> proxyServer.getPlayer(id).orElse(null),
-                    proxyServer::getConsoleCommandSource
+                    proxyServer::getConsoleCommandSource,
+                    VelocityCommandSource::new
             );
             CommandManager<GeyserCommandSource> cloud = new VelocityCommandManager<>(
                     container,
                     proxyServer,
-                    CommandExecutionCoordinator.simpleCoordinator(),
-                    VelocityCommandSource::new,
-                    sourceConverter::convert
+                    ExecutionCoordinator.simpleCoordinator(),
+                    sourceConverter
             );
             this.commandRegistry = new CommandRegistry(geyser, cloud);
         }

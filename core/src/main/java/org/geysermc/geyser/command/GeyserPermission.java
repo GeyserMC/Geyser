@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.command;
 
-import cloud.commandframework.CommandManager;
-import cloud.commandframework.permission.PredicatePermission;
 import lombok.AllArgsConstructor;
+import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.permission.PredicatePermission;
 
 @AllArgsConstructor
 public class GeyserPermission implements PredicatePermission<GeyserCommandSource> {

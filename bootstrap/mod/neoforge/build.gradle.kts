@@ -27,6 +27,9 @@ dependencies {
         exclude(group = "org.slf4j")
         exclude(group = "io.netty.incubator")
     }
+
+    modImplementation(libs.cloud.neoforge)
+    include(libs.cloud.neoforge)
 }
 
 application {

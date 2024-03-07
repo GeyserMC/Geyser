@@ -25,24 +25,16 @@
 
 package org.geysermc.geyser.command;
 
-import cloud.commandframework.CommandManager;
-import cloud.commandframework.exceptions.ArgumentParseException;
-import cloud.commandframework.exceptions.CommandExecutionException;
-import cloud.commandframework.exceptions.InvalidCommandSenderException;
-import cloud.commandframework.exceptions.InvalidSyntaxException;
-import cloud.commandframework.exceptions.NoPermissionException;
-import cloud.commandframework.exceptions.NoSuchCommandException;
-import cloud.commandframework.execution.CommandExecutionCoordinator;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.AllArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
-import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCommandsEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.defaults.AdvancedTooltipsCommand;
 import org.geysermc.geyser.command.defaults.AdvancementsCommand;
@@ -62,7 +54,14 @@ import org.geysermc.geyser.event.type.GeyserDefineCommandsEventImpl;
 import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.jetbrains.annotations.NotNull;
+import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.exception.ArgumentParseException;
+import org.incendo.cloud.exception.CommandExecutionException;
+import org.incendo.cloud.exception.InvalidCommandSenderException;
+import org.incendo.cloud.exception.InvalidSyntaxException;
+import org.incendo.cloud.exception.NoPermissionException;
+import org.incendo.cloud.exception.NoSuchCommandException;
+import org.incendo.cloud.execution.ExecutionCoordinator;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -101,8 +100,8 @@ public class CommandRegistry {
      * For example: https://github.com/Incendo/cloud/blob/a4cc749b91564af57bb7bba36dd8011b556c2b3a/cloud-minecraft/cloud-fabric/src/main/java/cloud/commandframework/fabric/FabricExecutor.java#L94-L173
      */
     private final List<ExceptionHandler<?>> exceptionHandlers = List.of(
-        new ExceptionHandler<>(InvalidSyntaxException.class, (src, e) -> src.sendLocaleString("geyser.command.invalid_syntax", e.getCorrectSyntax())),
-        new ExceptionHandler<>(InvalidCommandSenderException.class, (src, e) -> src.sendLocaleString("geyser.command.invalid_sender", e.getCommandSender().getClass().getSimpleName(), e.getRequiredSender().getSimpleName())),
+        new ExceptionHandler<>(InvalidSyntaxException.class, (src, e) -> src.sendLocaleString("geyser.command.invalid_syntax", e.correctSyntax())),
+        new ExceptionHandler<>(InvalidCommandSenderException.class, (src, e) -> src.sendLocaleString("geyser.command.invalid_sender", e.commandSender().getClass().getSimpleName(), e.requiredSender())),
         new ExceptionHandler<>(NoPermissionException.class, this::handleNoPermission),
         new ExceptionHandler<>(NoSuchCommandException.class, (src, e) -> src.sendLocaleString("geyser.command.not_found")),
         new ExceptionHandler<>(ArgumentParseException.class, (src, e) -> src.sendLocaleString("geyser.command.invalid_argument", e.getCause().getMessage())),
@@ -174,17 +173,17 @@ public class CommandRegistry {
         geyser.eventBus().subscribe(new GeyserEventRegistrar(this), GeyserRegisterPermissionsEvent.class, this::onRegisterPermissions);
     }
 
-    @NotNull
+    @NonNull
     public CommandManager<GeyserCommandSource> cloud() {
         return cloud;
     }
 
-    @NotNull
+    @NonNull
     public Map<String, Command> commands() {
         return Collections.unmodifiableMap(this.commands);
     }
 
-    @NotNull
+    @NonNull
     public Map<Extension, Map<String, Command>> extensionCommands() {
         return Collections.unmodifiableMap(this.extensionCommands);
     }
@@ -243,10 +242,10 @@ public class CommandRegistry {
 
     /**
      * Dispatches a command into cloud and handles any thrown exceptions.
-     * This method may or may not be blocking, depending on the {@link CommandExecutionCoordinator} in use by cloud.
+     * This method may or may not be blocking, depending on the {@link ExecutionCoordinator} in use by cloud.
      */
     public void runCommand(@NonNull GeyserCommandSource source, @NonNull String command) {
-        cloud.executeCommand(source, command).whenComplete((result, throwable) -> {
+        cloud.commandExecutor().executeCommand(source, command).whenComplete((result, throwable) -> {
             if (throwable == null) {
                 return;
             }
@@ -292,7 +291,7 @@ public class CommandRegistry {
         } else {
             GeyserLogger logger = GeyserImpl.getInstance().getLogger();
             if (logger.isDebug()) {
-                logger.debug("Expected a GeyserPermission for %s but instead got %s".formatted(exception.getCurrentChain(), exception.missingPermission()));
+                logger.debug("Expected a GeyserPermission for %s but instead got %s".formatted(exception.currentChain(), exception.missingPermission()));
             }
         }
 

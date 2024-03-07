@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import cloud.commandframework.CommandManager;
-import cloud.commandframework.context.CommandContext;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.util.TriState;
@@ -34,6 +32,8 @@ import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.context.CommandContext;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -72,7 +72,7 @@ public class HelpCommand extends GeyserCommand {
 
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
-        GeyserCommandSource source = context.getSender();
+        GeyserCommandSource source = context.sender();
         boolean bedrockPlayer = source.connection() != null;
 
         // todo: pagination

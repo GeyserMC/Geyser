@@ -25,13 +25,13 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import cloud.commandframework.context.CommandContext;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.incendo.cloud.context.CommandContext;
 
 import java.util.stream.Collectors;
 
@@ -46,7 +46,7 @@ public class ListCommand extends GeyserCommand {
 
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
-        GeyserCommandSource source = context.getSender();
+        GeyserCommandSource source = context.sender();
 
         String message = GeyserLocale.getPlayerLocaleString("geyser.commands.list.message", source.locale(),
             geyser.getSessionManager().size(),

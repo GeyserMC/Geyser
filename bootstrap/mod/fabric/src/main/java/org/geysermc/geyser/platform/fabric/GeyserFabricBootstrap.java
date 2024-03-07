@@ -25,9 +25,6 @@
 
 package org.geysermc.geyser.platform.fabric;
 
-import cloud.commandframework.CommandManager;
-import cloud.commandframework.execution.CommandExecutionCoordinator;
-import cloud.commandframework.fabric.FabricServerCommandManager;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
@@ -44,6 +41,9 @@ import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.platform.mod.GeyserModUpdateListener;
 import org.geysermc.geyser.platform.mod.command.ModCommandSource;
+import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.execution.ExecutionCoordinator;
+import org.incendo.cloud.fabric.FabricServerCommandManager;
 
 public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInitializer {
 
@@ -72,12 +72,12 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
                 CommandSourceStack.class,
                 id -> getServer().getPlayerList().getPlayer(id),
                 Player::createCommandSourceStack,
-                () -> getServer().createCommandSourceStack() // NPE if method reference is used, since server is not available yet
+                () -> getServer().createCommandSourceStack(), // NPE if method reference is used, since server is not available yet
+                ModCommandSource::new
         );
         CommandManager<GeyserCommandSource> cloud = new FabricServerCommandManager<>(
-                CommandExecutionCoordinator.simpleCoordinator(),
-                ModCommandSource::new,
-                sourceConverter::convert
+                ExecutionCoordinator.simpleCoordinator(),
+                sourceConverter
         );
         this.setCommandRegistry(new CommandRegistry(GeyserImpl.getInstance(), cloud));
     }

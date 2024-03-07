@@ -25,12 +25,12 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import cloud.commandframework.context.CommandContext;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.incendo.cloud.context.CommandContext;
 
 import java.util.concurrent.TimeUnit;
 
@@ -45,7 +45,7 @@ public class ReloadCommand extends GeyserCommand {
 
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
-        GeyserCommandSource source = context.getSender();
+        GeyserCommandSource source = context.sender();
         source.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.reload.message", source.locale()));
 
         geyser.getSessionManager().disconnectAll("geyser.commands.reload.kick");

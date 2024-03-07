@@ -25,21 +25,16 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import cloud.commandframework.CommandManager;
-import cloud.commandframework.arguments.standard.IntegerArgument;
-import cloud.commandframework.arguments.standard.StringArgument;
-import cloud.commandframework.context.CommandContext;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.LoopbackUtil;
 import org.geysermc.geyser.util.WebUtils;
+import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.context.CommandContext;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -78,7 +73,7 @@ public class ConnectionTestCommand extends GeyserCommand {
 
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
-        GeyserCommandSource source = context.getSender();
+        GeyserCommandSource source = context.sender();
         String ipArgument = context.get(ADDRESS);
         Integer portArgument = context.getOrDefault(PORT, null); // null if port was not specified
 
