@@ -26,7 +26,6 @@
 package org.geysermc.geyser.platform.neoforge;
 
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLLoader;
@@ -72,12 +71,8 @@ public class GeyserNeoForgeBootstrap extends GeyserModBootstrap {
     }
 
     @Override
-    public boolean hasPermission(@NonNull Player source, @NonNull String permissionNode) {
+    public boolean hasPermission(@NonNull CommandSourceStack source, @NonNull String permissionNode) {
         return this.permissionHandler.hasPermission(source, permissionNode);
     }
 
-    @Override
-    public boolean hasPermission(@NonNull CommandSourceStack source, @NonNull String permissionNode, int permissionLevel) {
-        return this.permissionHandler.hasPermission(source, permissionNode, permissionLevel);
-    }
 }

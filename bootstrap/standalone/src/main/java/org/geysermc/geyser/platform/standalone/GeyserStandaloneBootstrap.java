@@ -43,6 +43,7 @@ import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
+import org.geysermc.geyser.command.standalone.StandaloneCloudCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.configuration.GeyserJacksonConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
@@ -225,7 +226,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         geyser = GeyserImpl.load(PlatformType.STANDALONE, this);
 
         // fire GeyserDefineCommandsEvent after PreInitEvent, before PostInitEvent, for consistency with other bootstraps
-        GeyserStandaloneCommandManager cloud = new GeyserStandaloneCommandManager(geyser);
+        StandaloneCloudCommandManager cloud = new StandaloneCloudCommandManager(geyser);
         commandRegistry = new CommandRegistry(geyser, cloud);
 
         GeyserImpl.start();
@@ -261,7 +262,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     @Override
     public void onGeyserDisable() {
         // We can re-register commands on standalone, so why not
-        GeyserImpl.getInstance().commandManager().getCommands().clear();
+        commandRegistry.commands().clear();
         geyser.disable();
     }
 

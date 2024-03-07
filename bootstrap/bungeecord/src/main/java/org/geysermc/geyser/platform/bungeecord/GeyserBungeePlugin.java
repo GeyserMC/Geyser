@@ -38,10 +38,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.command.Command;
-import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.GeyserCommandSource;
@@ -73,7 +70,6 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     private GeyserBungeeInjector geyserInjector;
     private GeyserBungeeLogger geyserLogger;
     private IGeyserPingPassthrough geyserBungeePingPassthrough;
-
     private GeyserImpl geyser;
 
     @Override
@@ -106,6 +102,9 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
         this.geyser = GeyserImpl.load(PlatformType.BUNGEECORD, this);
         this.geyserInjector = new GeyserBungeeInjector(this);
+
+        // Registration of listeners occurs only once
+        this.getProxy().getPluginManager().registerListener(this, new GeyserBungeeUpdateListener());
     }
 
     @Override

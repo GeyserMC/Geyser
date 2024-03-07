@@ -162,7 +162,12 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     @Override
     public void onEnable() {
-        var sourceConverter = new CommandSourceConverter<>(CommandSender.class, Bukkit::getPlayer, Bukkit::getConsoleSender);
+        // Create command manager early so we can add Geyser extension commands
+        var sourceConverter = new CommandSourceConverter<>(
+                CommandSender.class,
+                Bukkit::getPlayer,
+                Bukkit::getConsoleSender
+        );
         PaperCommandManager<GeyserCommandSource> cloud;
         try {
             cloud = new PaperCommandManager<>(
@@ -190,7 +195,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
         // Needs to be an anonymous inner class otherwise Bukkit complains about missing classes
         Bukkit.getPluginManager().registerEvents(new Listener() {
-
             @EventHandler
             public void onServerLoaded(ServerLoadEvent event) {
                 if (event.getType() == ServerLoadEvent.LoadType.RELOAD) {
@@ -230,7 +234,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         }
         geyserLogger.debug("Spigot ping passthrough type: " + (this.geyserSpigotPingPassthrough == null ? null : this.geyserSpigotPingPassthrough.getClass()));
 
-        // Don't need to re-create the world manager/re-register commands/reinject when reloading
+        // Don't need to re-create the world manager/reinject when reloading
         if (GeyserImpl.getInstance().isReloading()) {
             return;
         }

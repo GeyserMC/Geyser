@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.standalone;
+package org.geysermc.geyser.command.standalone;
 
 import cloud.commandframework.CommandManager;
 import cloud.commandframework.execution.CommandExecutionCoordinator;
@@ -46,7 +46,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class GeyserStandaloneCommandManager extends CommandManager<GeyserCommandSource> {
+public class StandaloneCloudCommandManager extends CommandManager<GeyserCommandSource> {
 
     private final GeyserImpl geyser;
 
@@ -60,7 +60,7 @@ public class GeyserStandaloneCommandManager extends CommandManager<GeyserCommand
      */
     private final Set<String> basePermissions = new ObjectOpenHashSet<>();
 
-    public GeyserStandaloneCommandManager(GeyserImpl geyser) {
+    public StandaloneCloudCommandManager(GeyserImpl geyser) {
         super(CommandExecutionCoordinator.simpleCoordinator(), CommandRegistrationHandler.nullCommandRegistrationHandler());
         // simpleCoordinator: execute commands immediately on the calling thread.
         // nullCommandRegistrationHandler: cloud is not responsible for handling our CommandRegistry, which is fairly decoupled.

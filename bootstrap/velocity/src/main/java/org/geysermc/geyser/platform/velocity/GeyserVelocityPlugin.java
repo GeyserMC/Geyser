@@ -143,22 +143,10 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
             this.geyserPingPassthrough = new GeyserVelocityPingPassthrough(proxyServer);
         }
 
-        // No need to re-register commands when reloading
-        if (GeyserImpl.getInstance().isReloading()) {
-            return;
+        // No need to re-register events
+        if (!GeyserImpl.getInstance().isReloading()) {
+            proxyServer.getEventManager().register(this, new GeyserVelocityUpdateListener());
         }
-
-        this.commandManager.register("geyser", new GeyserVelocityCommandExecutor(geyser, geyserCommandManager.getCommands()));
-        for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
-            Map<String, Command> commands = entry.getValue();
-            if (commands.isEmpty()) {
-                continue;
-            }
-
-            this.commandManager.register(entry.getKey().description().id(), new GeyserVelocityCommandExecutor(this.geyser, commands));
-        }
-
-        proxyServer.getEventManager().register(this, new GeyserVelocityUpdateListener());
     }
 
     @Override

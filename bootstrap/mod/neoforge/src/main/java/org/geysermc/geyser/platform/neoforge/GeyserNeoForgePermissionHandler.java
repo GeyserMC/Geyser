@@ -27,7 +27,6 @@ package org.geysermc.geyser.platform.neoforge;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.server.permission.PermissionAPI;
 import net.neoforged.neoforge.server.permission.events.PermissionGatherEvent;
 import net.neoforged.neoforge.server.permission.nodes.PermissionDynamicContextKey;
@@ -38,7 +37,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.CommandRegistry;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
@@ -69,7 +68,7 @@ public class GeyserNeoForgePermissionHandler {
     public void onPermissionGather(PermissionGatherEvent.Nodes event) {
         this.registerNode(Constants.UPDATE_PERMISSION, event);
 
-        GeyserCommandManager commandManager = GeyserImpl.getInstance().commandManager();
+        CommandRegistry commandManager = GeyserImpl.getInstance().commandRegistry();
         for (Map.Entry<String, Command> entry : commandManager.commands().entrySet()) {
             Command command = entry.getValue();
 
@@ -95,27 +94,18 @@ public class GeyserNeoForgePermissionHandler {
         }
     }
 
-    public boolean hasPermission(@NonNull Player source, @NonNull String permissionNode) {
+    public boolean hasPermission(@NonNull CommandSourceStack source, @NonNull String permissionNode) {
+        ServerPlayer player = source.getPlayer();
+        if (!source.isPlayer() || player == null) {
+            return true;
+        }
         PermissionNode<Boolean> node = this.permissionNodes.get(permissionNode);
         if (node == null) {
             GeyserImpl.getInstance().getLogger().warning("Unable to find permission node " + permissionNode);
             return false;
         }
 
-        return PermissionAPI.getPermission((ServerPlayer) source, node);
-    }
-
-    public boolean hasPermission(@NonNull CommandSourceStack source, @NonNull String permissionNode, int permissionLevel) {
-        if (!source.isPlayer()) {
-            return true;
-        }
-        assert source.getPlayer() != null;
-        boolean permission = this.hasPermission(source.getPlayer(), permissionNode);
-        if (!permission) {
-            return source.getPlayer().hasPermissions(permissionLevel);
-        }
-
-        return true;
+        return PermissionAPI.getPermission(player, node);
     }
 
     private void registerNode(String node, PermissionGatherEvent.Nodes event) {

@@ -34,8 +34,8 @@ import org.geysermc.geyser.util.VersionCheckUtils;
 public final class GeyserModUpdateListener {
     public static void onPlayReady(Player player) {
         CommandSourceStack stack = player.createCommandSourceStack();
-        if (GeyserModBootstrap.getInstance().hasPermission(stack, Constants.UPDATE_PERMISSION, 2)) {
-            VersionCheckUtils.checkForGeyserUpdate(() -> new ModCommandSender(stack));
+        if (GeyserModBootstrap.getInstance().hasPermission(stack, Constants.UPDATE_PERMISSION)) {
+            VersionCheckUtils.checkForGeyserUpdate(() -> new ModCommandSource(stack));
         }
     }
 

@@ -25,31 +25,23 @@
 
 package org.geysermc.geyser.platform.mod;
 
-import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.entity.player.Player;
 import org.apache.logging.log4j.LogManager;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.api.command.Command;
-import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.command.CommandRegistry;
-import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
-import org.geysermc.geyser.platform.mod.command.GeyserModCommandExecutor;
 import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
 import org.geysermc.geyser.platform.mod.world.GeyserModWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -59,7 +51,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.Map;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -73,9 +64,10 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     private GeyserImpl geyser;
     private Path dataFolder;
 
-    @Setter
+    @Setter @Getter
     private MinecraftServer server;
 
+    @Setter
     private CommandRegistry commandRegistry;
     private GeyserModConfiguration geyserConfig;
     private GeyserModInjector geyserInjector;
@@ -94,21 +86,6 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         this.geyserLogger = new GeyserModLogger(geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
         this.geyser = GeyserImpl.load(this.platform.platformType(), this);
-
-        // Create command manager here, since the permission handler on neo needs it
-        //TODO differentiate Fabric/NeoForge!?
-        var sourceConverter = CommandSourceConverter.layered(
-                CommandSourceStack.class,
-                id -> server.getPlayerList().getPlayer(id),
-                Player::createCommandSourceStack,
-                () -> server.createCommandSourceStack() // NPE if method reference is used, since server is not available yet
-        );
-        CommandManager<GeyserCommandSource> cloud = new FabricServerCommandManager<>(
-                CommandExecutionCoordinator.simpleCoordinator(),
-                FabricCommandSource::new,
-                sourceConverter::convert
-        );
-        commandRegistry = new CommandRegistry(geyser, cloud);
     }
 
     public void onGeyserEnable() {
@@ -224,9 +201,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         return this.platform.resolveResource(resource);
     }
 
-    public abstract boolean hasPermission(@NonNull Player source, @NonNull String permissionNode);
-
-    public abstract boolean hasPermission(@NonNull CommandSourceStack source, @NonNull String permissionNode, int permissionLevel);
+    public abstract boolean hasPermission(@NonNull CommandSourceStack source, @NonNull String permissionNode);
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean loadConfig() {

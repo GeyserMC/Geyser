@@ -112,6 +112,9 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             } else {
                 return;
             }
+        } else if (packet.getType() == EntityType.EXPERIENCE_ORB) {
+            //TODO: spawn exp orb here; we dont have a factory.
+            return;
         } else {
             entity = definition.factory().create(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
                     packet.getUuid(), definition, position, motion, yaw, pitch, headYaw);

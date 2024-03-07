@@ -48,8 +48,9 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
         // https://github.com/GeyserMC/Geyser/issues/3877
         command = command.stripTrailing();
 
-        if (session.getGeyser().getPlatformType() == PlatformType.STANDALONE) {
-            // try to handle the command within the standalone command manager
+        if (session.getGeyser().getPlatformType() == PlatformType.STANDALONE ||
+            session.getGeyser().getPlatformType() == PlatformType.VIAPROXY) {
+            // try to handle the command within the standalone/viaproxy command manager
 
             String[] args = command.split(" ");
             if (args.length > 0) {
