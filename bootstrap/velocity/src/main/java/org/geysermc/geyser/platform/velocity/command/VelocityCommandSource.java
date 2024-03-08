@@ -36,7 +36,6 @@ import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Locale;
-import java.util.Optional;
 import java.util.UUID;
 
 public class VelocityCommandSource implements GeyserCommandSource {

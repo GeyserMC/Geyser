@@ -27,6 +27,7 @@ package org.geysermc.geyser.extension.command;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.command.CommandExecutor;
 import org.geysermc.geyser.api.command.CommandSource;
@@ -110,6 +111,12 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
         @Override
         public Builder<T> permission(@NonNull String permission) {
             this.permission = Objects.requireNonNull(permission, "command permission");
+            if (!permission.contains(".")) {
+                String newPermission = extension.description().id() + "." + permission;
+                GeyserImpl.getInstance().getLogger().error("Extension " + extension.name() + " tried to register an invalid permission (" + permission + ")." +
+                        "Changing it to " + newPermission + "!");
+                this.permission = newPermission;
+            }
             return this;
         }
 
@@ -117,6 +124,12 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
         public Builder<T> permission(@NonNull String permission, @NonNull TriState defaultValue) {
             this.permission = Objects.requireNonNull(permission, "command permission");
             this.permissionDefault = Objects.requireNonNull(defaultValue, "command permission defaultValue");
+            if (!permission.contains(".")) {
+                String newPermission = extension.description().id() + "." + permission;
+                GeyserImpl.getInstance().getLogger().error("Extension " + extension.name() + " tried to register an invalid permission (" + permission + ")." +
+                        "Changing it to " + newPermission + "!");
+                this.permission = newPermission;
+            }
             return this;
         }
 

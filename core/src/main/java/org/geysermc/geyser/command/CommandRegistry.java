@@ -55,6 +55,7 @@ import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.exception.ArgumentParseException;
 import org.incendo.cloud.exception.CommandExecutionException;
 import org.incendo.cloud.exception.InvalidCommandSenderException;
@@ -256,7 +257,7 @@ public class CommandRegistry {
             }
 
             try {
-                handleThrowable(source, throwable);
+                handleThrowable(source, result.commandContext(), throwable);
             } catch (Throwable secondary) {
                 // otherwise it gets swallowed by whenComplete.
                 // we assume this won't throw.
@@ -265,8 +266,9 @@ public class CommandRegistry {
         });
     }
 
-    private void handleThrowable(@NonNull GeyserCommandSource source, @NonNull Throwable throwable) {
+    private void handleThrowable(@NonNull GeyserCommandSource source, @NonNull CommandContext<GeyserCommandSource> commandContext, @NonNull Throwable throwable) {
         if (throwable instanceof Exception exception) {
+            cloud.exceptionController().handleException(commandContext, exception);
             for (ExceptionHandler<?> handler : exceptionHandlers) {
                 if (handler.handle(source, exception)) {
                     return;
@@ -316,8 +318,7 @@ public class CommandRegistry {
                 E e = (E) exception;
                 // if cloud has a registered exception handler for this type, use it, otherwise use this handler.
                 // we register all the exception handlers to cloud, so it will likely just be cloud invoking this same handler.
-                cloud.exceptionController().handleException(,exception);
-                cloud.handleException(source, type, e, handler);
+                cloud.exceptionController().handleException(source, type, e, handler);
                 return true;
             }
             return false;

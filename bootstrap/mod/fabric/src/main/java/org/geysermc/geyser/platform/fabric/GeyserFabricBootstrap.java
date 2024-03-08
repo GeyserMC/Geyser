@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.platform.fabric;
 
-import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -33,7 +32,6 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.world.entity.player.Player;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.CommandSourceConverter;
@@ -67,7 +65,6 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
 
         this.onGeyserInitialize();
 
-        // TODO: verify
         var sourceConverter = CommandSourceConverter.layered(
                 CommandSourceStack.class,
                 id -> getServer().getPlayerList().getPlayer(id),
@@ -82,8 +79,4 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
         this.setCommandRegistry(new CommandRegistry(GeyserImpl.getInstance(), cloud));
     }
 
-    @Override
-    public boolean hasPermission(@NonNull CommandSourceStack source, @NonNull String permissionNode) {
-        return Permissions.check(source, permissionNode, source.getServer().getOperatorUserPermissionLevel());
-    }
 }

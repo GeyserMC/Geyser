@@ -26,7 +26,11 @@
 package org.geysermc.geyser.command;
 
 import lombok.AllArgsConstructor;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.key.CloudKey;
+import org.incendo.cloud.permission.Permission;
+import org.incendo.cloud.permission.PermissionResult;
 import org.incendo.cloud.permission.PredicatePermission;
 
 @AllArgsConstructor
@@ -36,11 +40,6 @@ public class GeyserPermission implements PredicatePermission<GeyserCommandSource
     private final boolean playerOnly;
     private final String permission;
     private final CommandManager<GeyserCommandSource> manager;
-
-    @Override
-    public boolean hasPermission(GeyserCommandSource source) {
-        return check(source).toBoolean();
-    }
 
     public Result check(GeyserCommandSource source) {
         if (bedrockOnly) {
@@ -58,6 +57,16 @@ public class GeyserPermission implements PredicatePermission<GeyserCommandSource
             return Result.ALLOWED;
         }
         return Result.NO_PERMISSION;
+    }
+
+    @Override
+    public @NonNull CloudKey<Void> key() {
+        return CloudKey.cloudKey(permission);
+    }
+
+    @Override
+    public @NonNull PermissionResult testPermission(@NonNull GeyserCommandSource sender) {
+        return check(sender).toPermission(permission);
     }
 
     public enum Result {
@@ -82,8 +91,8 @@ public class GeyserPermission implements PredicatePermission<GeyserCommandSource
          */
         ALLOWED;
 
-        public boolean toBoolean() {
-            return this == ALLOWED;
+        public PermissionResult toPermission(String  permission) {
+            return PermissionResult.of(this == ALLOWED, Permission.of(permission));
         }
     }
 }

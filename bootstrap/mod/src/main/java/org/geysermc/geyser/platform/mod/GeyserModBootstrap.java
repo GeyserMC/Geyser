@@ -28,7 +28,6 @@ package org.geysermc.geyser.platform.mod;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
 import org.apache.logging.log4j.LogManager;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -60,7 +59,6 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     private static GeyserModBootstrap instance;
 
     private final GeyserModPlatform platform;
-
     private GeyserImpl geyser;
     private Path dataFolder;
 
@@ -200,8 +198,6 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     public InputStream getResourceOrNull(String resource) {
         return this.platform.resolveResource(resource);
     }
-
-    public abstract boolean hasPermission(@NonNull CommandSourceStack source, @NonNull String permissionNode);
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean loadConfig() {

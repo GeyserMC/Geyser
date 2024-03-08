@@ -25,23 +25,16 @@
 
 package org.geysermc.geyser.platform.neoforge;
 
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.server.permission.PermissionAPI;
 import net.neoforged.neoforge.server.permission.events.PermissionGatherEvent;
 import net.neoforged.neoforge.server.permission.nodes.PermissionDynamicContextKey;
 import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
 import net.neoforged.neoforge.server.permission.nodes.PermissionType;
 import net.neoforged.neoforge.server.permission.nodes.PermissionTypes;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.command.Command;
-import org.geysermc.geyser.command.CommandRegistry;
+import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 
 import java.lang.reflect.Constructor;
-import java.util.HashMap;
-import java.util.Map;
 
 public class GeyserNeoForgePermissionHandler {
 
@@ -63,49 +56,10 @@ public class GeyserNeoForgePermissionHandler {
         }
     }
 
-    private final Map<String, PermissionNode<Boolean>> permissionNodes = new HashMap<>();
-
     public void onPermissionGather(PermissionGatherEvent.Nodes event) {
         this.registerNode(Constants.UPDATE_PERMISSION, event);
 
-        CommandRegistry commandManager = GeyserImpl.getInstance().commandRegistry();
-        for (Map.Entry<String, Command> entry : commandManager.commands().entrySet()) {
-            Command command = entry.getValue();
-
-            // Don't register aliases
-            if (!command.name().equals(entry.getKey())) {
-                continue;
-            }
-
-            this.registerNode(command.permission(), event);
-        }
-
-        for (Map<String, Command> commands : commandManager.extensionCommands().values()) {
-            for (Map.Entry<String, Command> entry : commands.entrySet()) {
-                Command command = entry.getValue();
-
-                // Don't register aliases
-                if (!command.name().equals(entry.getKey())) {
-                    continue;
-                }
-
-                this.registerNode(command.permission(), event);
-            }
-        }
-    }
-
-    public boolean hasPermission(@NonNull CommandSourceStack source, @NonNull String permissionNode) {
-        ServerPlayer player = source.getPlayer();
-        if (!source.isPlayer() || player == null) {
-            return true;
-        }
-        PermissionNode<Boolean> node = this.permissionNodes.get(permissionNode);
-        if (node == null) {
-            GeyserImpl.getInstance().getLogger().warning("Unable to find permission node " + permissionNode);
-            return false;
-        }
-
-        return PermissionAPI.getPermission(player, node);
+        GeyserImpl.getInstance().eventBus().fire((GeyserRegisterPermissionsEvent) (permission, defaultValue) -> this.registerNode(permission, event));
     }
 
     private void registerNode(String node, PermissionGatherEvent.Nodes event) {
@@ -114,7 +68,6 @@ public class GeyserNeoForgePermissionHandler {
         // NeoForge likes to crash if you try and register a duplicate node
         if (!event.getNodes().contains(permissionNode)) {
             event.addNodes(permissionNode);
-            this.permissionNodes.put(node, permissionNode);
         }
     }
 

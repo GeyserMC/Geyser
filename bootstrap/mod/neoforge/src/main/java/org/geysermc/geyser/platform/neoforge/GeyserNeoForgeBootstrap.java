@@ -34,7 +34,6 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.CommandSourceConverter;
@@ -49,8 +48,6 @@ import org.incendo.cloud.neoforge.NeoForgeServerCommandManager;
 @Mod(ModConstants.MOD_ID)
 public class GeyserNeoForgeBootstrap extends GeyserModBootstrap {
 
-    private final GeyserNeoForgePermissionHandler permissionHandler = new GeyserNeoForgePermissionHandler();
-
     public GeyserNeoForgeBootstrap() {
         super(new GeyserNeoForgePlatform());
 
@@ -61,11 +58,12 @@ public class GeyserNeoForgeBootstrap extends GeyserModBootstrap {
 
         NeoForge.EVENT_BUS.addListener(this::onServerStopping);
         NeoForge.EVENT_BUS.addListener(this::onPlayerJoin);
-        NeoForge.EVENT_BUS.addListener(this.permissionHandler::onPermissionGather);
+
+        GeyserNeoForgePermissionHandler permissionHandler = new GeyserNeoForgePermissionHandler();
+        NeoForge.EVENT_BUS.addListener(permissionHandler::onPermissionGather);
 
         this.onGeyserInitialize();
 
-        // TODO: verify; idek how to make permissions on neoforge work with this...
         var sourceConverter = CommandSourceConverter.layered(
                 CommandSourceStack.class,
                 id -> getServer().getPlayerList().getPlayer(id),
@@ -92,10 +90,4 @@ public class GeyserNeoForgeBootstrap extends GeyserModBootstrap {
     private void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
         GeyserModUpdateListener.onPlayReady(event.getEntity());
     }
-
-    @Override
-    public boolean hasPermission(@NonNull CommandSourceStack source, @NonNull String permissionNode) {
-        return this.permissionHandler.hasPermission(source, permissionNode);
-    }
-
 }

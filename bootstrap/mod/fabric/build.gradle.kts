@@ -23,9 +23,6 @@ dependencies {
         exclude(group = "io.netty.incubator")
     }
 
-    modImplementation(libs.fabric.permissions)
-    include(libs.fabric.permissions)
-
     modImplementation(libs.cloud.fabric)
     include(libs.cloud.fabric)
 }
