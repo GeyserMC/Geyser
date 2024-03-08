@@ -3,6 +3,8 @@ name: Build
 on:
   workflow_dispatch:
   push:
+    branches-ignore:
+      - 'gh-readonly-queue/**'
     paths-ignore:
       - '.github/ISSUE_TEMPLATE/*.yml'
       - '.github/actions/pullrequest.yml'
