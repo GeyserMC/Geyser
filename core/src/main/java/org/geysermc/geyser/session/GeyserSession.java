@@ -1464,6 +1464,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     public void setServerRenderDistance(int renderDistance) {
+        // +1 is for Fabric and Spigot
+        // Without the client misses loading some chunks per https://github.com/GeyserMC/Geyser/issues/3490
+        // Fog still appears essentially normally
+        // Ensure render distance is not above 96 as sending a larger value at any point crashes mobile clients and 96 is the max of any bedrock platform
+        renderDistance = Math.min(renderDistance, 96);
         this.serverRenderDistance = renderDistance;
 
         ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
