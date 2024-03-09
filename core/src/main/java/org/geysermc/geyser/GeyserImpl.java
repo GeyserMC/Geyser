@@ -122,6 +122,9 @@ public class GeyserImpl implements GeyserApi {
     public static final String COMMIT = "${commit}";
     public static final String REPOSITORY = "${repository}";
 
+    @SuppressWarnings("ConstantValue")
+    public static final boolean IS_DEV = Boolean.parseBoolean("${dev}");
+
     /**
      * Oauth client ID for Microsoft authentication
      */
@@ -206,6 +209,10 @@ public class GeyserImpl implements GeyserApi {
         logger.info("");
         logger.info(GeyserLocale.getLocaleStringLog("geyser.core.load", NAME, VERSION));
         logger.info("");
+        if (IS_DEV) {
+            logger.info(GeyserLocale.getLocaleStringLog("geyser.core.dev_build", "https://discord.gg/geysermc"));
+            logger.info("");
+        }
         logger.info("******************************************");
 
         /* Initialize registries */
@@ -681,6 +688,7 @@ public class GeyserImpl implements GeyserApi {
      *
      * @return true if the version number is not 'DEV'.
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isProductionEnvironment() {
         // First is if Blossom runs, second is if Blossom doesn't run
         //noinspection ConstantConditions,MismatchedStringCase - changes in production

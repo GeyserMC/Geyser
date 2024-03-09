@@ -88,16 +88,22 @@ configure<BlossomExtension> {
     val mainFile = "src/main/java/org/geysermc/geyser/GeyserImpl.java"
     val info = GitInfo()
 
-    replaceToken("\${version}", "${project.version} (${info.gitVersion})", mainFile)
+    replaceToken("\${version}", "${info.version} (${info.gitVersion})", mainFile)
     replaceToken("\${gitVersion}", info.gitVersion, mainFile)
     replaceToken("\${buildNumber}", info.buildNumber, mainFile)
     replaceToken("\${branch}", info.branch, mainFile)
     replaceToken("\${commit}", info.commit, mainFile)
     replaceToken("\${repository}", info.repository, mainFile)
+    replaceToken("\${dev}", info.isDev)
 }
 
-fun Project.buildNumber(): Int =
-    (System.getenv("GITHUB_RUN_NUMBER") ?: jenkinsBuildNumber())?.let { Integer.parseInt(it) } ?: -1
+// -1 as a fallback for local builds
+fun buildNumber(): Int = System.getenv("GITHUB_RUN_NUMBER")?.let { Integer.parseInt(it) } ?: -1
+
+fun isDevBuild(branch: String, repository: String): Boolean {
+    return branch != "master" || repository.equals("https://github.com/GeyserMC/Geyser", ignoreCase = true).not()
+}
+
 
 inner class GitInfo {
     val branch: String
@@ -111,24 +117,24 @@ inner class GitInfo {
     val commitMessage: String
     val repository: String
 
+    val isDev: Boolean
+
     init {
-        // On Jenkins, a detached head is checked out, so indra cannot determine the branch.
-        // Fortunately, this environment variable is available.
-        branch = indraGit.branchName() ?: System.getenv("BRANCH_NAME") ?: "DEV"
+        branch = indraGit.branchName() ?: "DEV"
 
         val commit = indraGit.commit()
         this.commit = commit?.name ?: "0".repeat(40)
         commitAbbrev = commit?.name?.substring(0, 7) ?: "0".repeat(7)
 
         gitVersion = "git-${branch}-${commitAbbrev}"
-        version = "${project.version} ($gitVersion)"
-        buildNumber = buildNumber()
 
         val git = indraGit.git()
         commitMessage = git?.commit()?.message ?: ""
         repository = git?.repository?.config?.getString("remote", "origin", "url") ?: ""
+
+        buildNumber = buildNumber()
+        isDev = isDevBuild(branch, repository)
+        val projectVersion = if (isDev) project.version else project.version.toString().replace("SNAPSHOT", "b${buildNumber}")
+        version = "$projectVersion ($gitVersion)"
     }
 }
-
-// todo remove this when we're not using Jenkins anymore
-fun jenkinsBuildNumber(): String? = System.getenv("BUILD_NUMBER")
