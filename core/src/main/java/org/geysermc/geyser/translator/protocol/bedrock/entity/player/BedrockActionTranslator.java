@@ -332,6 +332,21 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.setFlying(false);
                 session.sendDownstreamGamePacket(new ServerboundPlayerAbilitiesPacket(false));
                 break;
+            case DIMENSION_CHANGE_REQUEST_OR_CREATIVE_DESTROY_BLOCK: // Used by client to get book from lecterns in creative mode since 1.20.70
+                int potentialLectern = session.getGeyser().getWorldManager().getBlockAt(session, vector);
+                
+                if (BlockStateValues.getLecternBookStates().getOrDefault(potentialLectern, false)) {
+                    session.setDroppingLecternBook(true);
+
+                    ServerboundUseItemOnPacket blockPacket = new ServerboundUseItemOnPacket(
+                            vector,
+                            Direction.DOWN,
+                            Hand.MAIN_HAND,
+                            0, 0, 0,
+                            false,
+                            session.getWorldCache().nextPredictionSequence());
+                    session.sendDownstreamGamePacket(blockPacket);
+                }
         }
     }
 }
