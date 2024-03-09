@@ -25,18 +25,19 @@
 
 package org.geysermc.geyser.level.physics;
 
-import com.nukkitx.math.GenericMath;
-import com.nukkitx.math.vector.Vector3d;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.GenericMath;
+import org.cloudburstmc.math.vector.Vector3d;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import lombok.Getter;
 import lombok.Setter;
+import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.level.block.BlockPositionIterator;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.PistonCache;
@@ -133,7 +134,7 @@ public class CollisionManager {
      * @param teleported whether the Bedrock player has teleported to a new position. If true, movement correction is skipped.
      * @return the position to send to the Java server, or null to cancel sending the packet
      */
-    public Vector3d adjustBedrockPosition(Vector3f bedrockPosition, boolean onGround, boolean teleported) {
+    public @Nullable Vector3d adjustBedrockPosition(Vector3f bedrockPosition, boolean onGround, boolean teleported) {
         PistonCache pistonCache = session.getPistonCache();
         // Bedrock clients tend to fall off of honey blocks, so we need to teleport them to the new position
         if (pistonCache.isPlayerAttachedToHoney()) {
@@ -215,7 +216,7 @@ public class CollisionManager {
         int minCollisionZ = (int) Math.floor(position.getZ() - ((box.getSizeZ() / 2) + COLLISION_TOLERANCE + pistonExpand));
         int maxCollisionZ = (int) Math.floor(position.getZ() + (box.getSizeZ() / 2) + COLLISION_TOLERANCE + pistonExpand);
 
-        return new BlockPositionIterator(minCollisionX, minCollisionY, minCollisionZ, maxCollisionX, maxCollisionY, maxCollisionZ);
+        return BlockPositionIterator.fromMinMax(minCollisionX, minCollisionY, minCollisionZ, maxCollisionX, maxCollisionY, maxCollisionZ);
     }
 
     public BlockPositionIterator playerCollidableBlocksIterator() {
@@ -235,8 +236,9 @@ public class CollisionManager {
 
         // Used when correction code needs to be run before the main correction
         BlockPositionIterator iter = session.getCollisionManager().playerCollidableBlocksIterator();
-        for (; iter.hasNext(); iter.next()) {
-            BlockCollision blockCollision = BlockUtils.getCollisionAt(session, iter.getX(), iter.getY(), iter.getZ());
+        int[] blocks = session.getGeyser().getWorldManager().getBlocksAt(session, iter);
+        for (iter.reset(); iter.hasNext(); iter.next()) {
+            BlockCollision blockCollision = BlockUtils.getCollision(blocks[iter.getIteration()]);
             if (blockCollision != null) {
                 blockCollision.beforeCorrectPosition(iter.getX(), iter.getY(), iter.getZ(), playerBoundingBox);
             }
@@ -244,7 +246,7 @@ public class CollisionManager {
 
         // Main correction code
         for (iter.reset(); iter.hasNext(); iter.next()) {
-            BlockCollision blockCollision = BlockUtils.getCollisionAt(session, iter.getX(), iter.getY(), iter.getZ());
+            BlockCollision blockCollision = BlockUtils.getCollision(blocks[iter.getIteration()]);
             if (blockCollision != null) {
                 if (!blockCollision.correctPosition(session, iter.getX(), iter.getY(), iter.getZ(), playerBoundingBox)) {
                     return false;

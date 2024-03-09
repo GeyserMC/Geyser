@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.entity.type.living.animal.horse;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -41,6 +41,6 @@ public class TraderLlamaEntity extends LlamaEntity {
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
-        this.dirtyMetadata.put(EntityData.MARK_VARIANT, 1);
+        this.dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, 1);
     }
 }

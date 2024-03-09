@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.nukkitx.protocol.bedrock.packet.ServerSettingsRequestPacket;
-import com.nukkitx.protocol.bedrock.packet.ServerSettingsResponsePacket;
+import org.cloudburstmc.protocol.bedrock.packet.ServerSettingsRequestPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ServerSettingsResponsePacket;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.impl.FormDefinitions;
 import org.geysermc.geyser.session.GeyserSession;
@@ -42,6 +42,11 @@ public class BedrockServerSettingsRequestTranslator extends PacketTranslator<Ser
 
     @Override
     public void translate(GeyserSession session, ServerSettingsRequestPacket packet) {
+        // UUID is null when we're not logged in, which causes the hasPermission check to fail
+        if (!session.isLoggedIn()) {
+            return;
+        }
+
         CustomForm form = SettingsUtils.buildForm(session);
         int formId = session.getFormCache().addForm(form);
 

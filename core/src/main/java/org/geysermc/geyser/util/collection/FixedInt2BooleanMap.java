@@ -28,7 +28,13 @@ package org.geysermc.geyser.util.collection;
 import it.unimi.dsi.fastutil.ints.AbstractInt2BooleanMap;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 
+import java.io.Serial;
+
 public class FixedInt2BooleanMap extends AbstractInt2BooleanMap {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     protected boolean[] value;
     protected int start = -1;
 

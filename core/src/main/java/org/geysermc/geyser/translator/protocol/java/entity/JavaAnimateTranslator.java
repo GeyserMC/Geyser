@@ -25,11 +25,12 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.Animation;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundAnimatePacket;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.AnimateEntityPacket;
-import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
-import com.nukkitx.protocol.bedrock.packet.SpawnParticleEffectPacket;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.packet.AnimateEntityPacket;
+import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
+import org.cloudburstmc.protocol.bedrock.packet.SpawnParticleEffectPacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -44,19 +45,24 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
     @Override
     public void translate(GeyserSession session, ClientboundAnimatePacket packet) {
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
-        if (entity == null)
+        if (entity == null) {
             return;
+        }
+        Animation animation = packet.getAnimation();
+        if (animation == null) {
+            return;
+        }
 
         AnimatePacket animatePacket = new AnimatePacket();
         animatePacket.setRuntimeEntityId(entity.getGeyserId());
-        switch (packet.getAnimation()) {
-            case SWING_ARM:
+        switch (animation) {
+            case SWING_ARM -> {
                 animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
                 if (entity.getEntityId() == session.getPlayerEntity().getEntityId()) {
                     session.activateArmAnimationTicking();
                 }
-                break;
-            case SWING_OFFHAND:
+            }
+            case SWING_OFFHAND -> {
                 // Use the OptionalPack to trigger the animation
                 AnimateEntityPacket offHandPacket = new AnimateEntityPacket();
                 offHandPacket.setAnimation("animation.player.attack.rotations.offhand");
@@ -65,14 +71,13 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
                 offHandPacket.setStopExpression("query.any_animation_finished");
                 offHandPacket.setController("__runtime_controller");
                 offHandPacket.getRuntimeEntityIds().add(entity.getGeyserId());
-
                 session.sendUpstreamPacket(offHandPacket);
                 return;
-            case CRITICAL_HIT:
-                animatePacket.setAction(AnimatePacket.Action.CRITICAL_HIT);
-                break;
-            case ENCHANTMENT_CRITICAL_HIT:
+            }
+            case CRITICAL_HIT -> animatePacket.setAction(AnimatePacket.Action.CRITICAL_HIT);
+            case ENCHANTMENT_CRITICAL_HIT -> {
                 animatePacket.setAction(AnimatePacket.Action.MAGIC_CRITICAL_HIT); // Unsure if this does anything
+
                 // Spawn custom particle
                 SpawnParticleEffectPacket stringPacket = new SpawnParticleEffectPacket();
                 stringPacket.setIdentifier("geyseropt:enchanted_hit_multiple");
@@ -81,13 +86,12 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
                 stringPacket.setUniqueEntityId(entity.getGeyserId());
                 stringPacket.setMolangVariablesJson(Optional.empty());
                 session.sendUpstreamPacket(stringPacket);
-                break;
-            case LEAVE_BED:
-                animatePacket.setAction(AnimatePacket.Action.WAKE_UP);
-                break;
-            default:
-                // Unknown Animation
+            }
+            case LEAVE_BED -> animatePacket.setAction(AnimatePacket.Action.WAKE_UP);
+            default -> {
+                session.getGeyser().getLogger().debug("Unhandled java animation: " + animation);
                 return;
+            }
         }
 
         session.sendUpstreamPacket(animatePacket);

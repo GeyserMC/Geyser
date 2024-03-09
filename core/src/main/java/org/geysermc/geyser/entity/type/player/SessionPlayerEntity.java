@@ -30,20 +30,21 @@ import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeTyp
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.GlobalPos;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.AttributeData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.AttributeData;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
-import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.DimensionUtils;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -67,10 +68,6 @@ public class SessionPlayerEntity extends PlayerEntity {
      */
     @Getter
     private boolean isRidingInFront;
-    /**
-     * Used for villager inventory emulation.
-     */
-    private int fakeTradeXp;
 
     public SessionPlayerEntity(GeyserSession session) {
         super(session, -1, 1, null, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, null, null);
@@ -113,20 +110,27 @@ public class SessionPlayerEntity extends PlayerEntity {
         this.position = position;
     }
 
+    /**
+     * Sending any updated flags (sprinting, onFire, etc.) to the client while in spectator is not needed
+     * Also "fixes" <a href="https://github.com/GeyserMC/Geyser/issues/3318">issue 3318</a>
+     */
     @Override
     public void setFlags(ByteEntityMetadata entityMetadata) {
-        super.setFlags(entityMetadata);
-        session.setSwimmingInWater((entityMetadata.getPrimitiveValue() & 0x10) == 0x10 && getFlag(EntityFlag.SPRINTING));
+        // TODO: proper fix, BDS somehow does it? https://paste.gg/p/anonymous/3adfb7612f1540be80fa03a2281f93dc (BDS 1.20.13)
+        if (!this.session.getGameMode().equals(GameMode.SPECTATOR)) {
+            super.setFlags(entityMetadata);
+            session.setSwimmingInWater((entityMetadata.getPrimitiveValue() & 0x10) == 0x10 && getFlag(EntityFlag.SPRINTING));
+        }
         refreshSpeed = true;
     }
 
     /**
      * Since 1.19.40, the client must be re-informed of its bounding box on respawn
-     * See https://github.com/GeyserMC/Geyser/issues/3370
+     * See <a href="https://github.com/GeyserMC/Geyser/issues/3370">issue 3370</a>
      */
     public void updateBoundingBox() {
-        dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, getBoundingBoxHeight());
-        dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, getBoundingBoxWidth());
+        dirtyMetadata.put(EntityDataTypes.HEIGHT, getBoundingBoxHeight());
+        dirtyMetadata.put(EntityDataTypes.WIDTH, getBoundingBoxWidth());
         updateBedrockMetadata();
     }
 
@@ -175,11 +179,6 @@ public class SessionPlayerEntity extends PlayerEntity {
         this.isRidingInFront = position != null && position.getX() > 0;
     }
 
-    public void addFakeTradeExperience(int tradeXp) {
-        fakeTradeXp += tradeXp;
-        dirtyMetadata.put(EntityData.TRADE_XP, fakeTradeXp);
-    }
-
     @Override
     public AttributeData createHealthAttribute() {
         // Max health must be divisible by two in bedrock
@@ -190,12 +189,12 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
-    protected boolean hasShield(boolean offhand, ItemMapping shieldMapping) {
+    protected boolean hasShield(boolean offhand) {
         // Must be overridden to point to the player's inventory cache
         if (offhand) {
-            return session.getPlayerInventory().getOffhand().getJavaId() == shieldMapping.getJavaId();
+            return session.getPlayerInventory().getOffhand().asItem() == Items.SHIELD;
         } else {
-            return session.getPlayerInventory().getItemInHand().getJavaId() == shieldMapping.getJavaId();
+            return session.getPlayerInventory().getItemInHand().asItem() == Items.SHIELD;
         }
     }
 
@@ -243,16 +242,29 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     public void setLastDeathPosition(@Nullable GlobalPos pos) {
         if (pos != null) {
-            dirtyMetadata.put(EntityData.PLAYER_LAST_DEATH_POS, pos.getPosition());
-            dirtyMetadata.put(EntityData.PLAYER_LAST_DEATH_DIMENSION, DimensionUtils.javaToBedrock(pos.getDimension()));
-            dirtyMetadata.put(EntityData.PLAYER_HAS_DIED, (byte) 1);
+            dirtyMetadata.put(EntityDataTypes.PLAYER_LAST_DEATH_POS, pos.getPosition());
+            dirtyMetadata.put(EntityDataTypes.PLAYER_LAST_DEATH_DIMENSION, DimensionUtils.javaToBedrock(pos.getDimension()));
+            dirtyMetadata.put(EntityDataTypes.PLAYER_HAS_DIED, true);
         } else {
-            dirtyMetadata.put(EntityData.PLAYER_HAS_DIED, (byte) 0);
+            dirtyMetadata.put(EntityDataTypes.PLAYER_HAS_DIED, false);
         }
     }
 
     @Override
     public UUID getTabListUuid() {
         return session.getAuthData().uuid();
+    }
+
+    public void resetMetadata() {
+        // Reset all metadata to their default values
+        // This is used when a player respawns
+        this.initializeMetadata();
+
+        // Reset air
+        this.resetAir();
+    }
+
+    public void resetAir() {
+        this.setAirSupply(getMaxAir());
     }
 }

@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.network.netty;
 
+import com.github.steveice10.mc.protocol.codec.MinecraftCodecHelper;
 import com.github.steveice10.packetlib.BuiltinFlags;
 import com.github.steveice10.packetlib.codec.PacketCodecHelper;
 import com.github.steveice10.packetlib.packet.PacketProtocol;
@@ -36,6 +37,7 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.*;
 import io.netty.channel.unix.PreferredDirectByteBufAllocator;
 import io.netty.handler.codec.haproxy.*;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.net.Inet4Address;
 import java.net.InetSocketAddress;
@@ -52,7 +54,7 @@ public final class LocalSession extends TcpSession {
     private final String clientIp;
     private final PacketCodecHelper codecHelper;
 
-    public LocalSession(String host, int port, SocketAddress targetAddress, String clientIp, PacketProtocol protocol, PacketCodecHelper codecHelper) {
+    public LocalSession(String host, int port, SocketAddress targetAddress, String clientIp, PacketProtocol protocol, MinecraftCodecHelper codecHelper) {
         super(host, port, protocol);
         this.targetAddress = targetAddress;
         this.clientIp = clientIp;
@@ -74,7 +76,7 @@ public final class LocalSession extends TcpSession {
             bootstrap.channel(LocalChannelWithRemoteAddress.class);
             bootstrap.handler(new ChannelInitializer<LocalChannelWithRemoteAddress>() {
                 @Override
-                public void initChannel(LocalChannelWithRemoteAddress channel) {
+                public void initChannel(@NonNull LocalChannelWithRemoteAddress channel) {
                     channel.spoofedRemoteAddress(new InetSocketAddress(clientIp, 0));
                     PacketProtocol protocol = getPacketProtocol();
                     protocol.newClientSession(LocalSession.this);
@@ -108,8 +110,8 @@ public final class LocalSession extends TcpSession {
     }
 
     @Override
-    public PacketCodecHelper getCodecHelper() {
-        return this.codecHelper;
+    public MinecraftCodecHelper getCodecHelper() {
+        return (MinecraftCodecHelper) this.codecHelper;
     }
 
     // TODO duplicate code
@@ -118,7 +120,7 @@ public final class LocalSession extends TcpSession {
         if (getFlag(BuiltinFlags.ENABLE_CLIENT_PROXY_PROTOCOL, false) && clientAddress != null) {
             pipeline.addFirst("proxy-protocol-packet-sender", new ChannelInboundHandlerAdapter() {
                 @Override
-                public void channelActive(ChannelHandlerContext ctx) throws Exception {
+                public void channelActive(@NonNull ChannelHandlerContext ctx) throws Exception {
                     HAProxyProxiedProtocol proxiedProtocol = clientAddress.getAddress() instanceof Inet4Address ? HAProxyProxiedProtocol.TCP4 : HAProxyProxiedProtocol.TCP6;
                     InetSocketAddress remoteAddress;
                     if (ctx.channel().remoteAddress() instanceof InetSocketAddress) {

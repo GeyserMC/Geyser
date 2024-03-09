@@ -31,11 +31,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
-import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.floodgate.util.FloodgateInfoHolder;
 import org.geysermc.geyser.GeyserImpl;
@@ -57,7 +56,12 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 @Getter
@@ -101,8 +105,8 @@ public class DumpInfo {
             // https://stackoverflow.com/questions/304268/getting-a-files-md5-checksum-in-java
             File file = new File(DumpInfo.class.getProtectionDomain().getCodeSource().getLocation().toURI());
             ByteSource byteSource = Files.asByteSource(file);
-            // Jenkins uses MD5 for its hash
-            //noinspection UnstableApiUsage
+            // Jenkins uses MD5 for its hash - TODO remove
+            //noinspection UnstableApiUsage,deprecation
             md5Hash = byteSource.hash(Hashing.md5()).toString();
             //noinspection UnstableApiUsage
             sha256Hash = byteSource.hash(Hashing.sha256()).toString();
@@ -113,7 +117,7 @@ public class DumpInfo {
         }
         this.hashInfo = new HashInfo(md5Hash, sha256Hash);
 
-        this.ramInfo = new DumpInfo.RamInfo();
+        this.ramInfo = new RamInfo();
 
         if (addLog) {
             this.logsInfo = new LogsInfo();
@@ -197,7 +201,7 @@ public class DumpInfo {
         private boolean checkDockerBasic() {
             try {
                 String OS = System.getProperty("os.name").toLowerCase();
-                if (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0) {
+                if (OS.contains("nix") || OS.contains("nux") || OS.indexOf("aix") > 0) {
                     String output = new String(java.nio.file.Files.readAllBytes(Paths.get("/proc/1/cgroup")));
 
                     if (output.contains("docker")) {
@@ -219,8 +223,8 @@ public class DumpInfo {
         private final int javaProtocol;
 
         MCInfo() {
-            this.bedrockVersions = GameProtocol.SUPPORTED_BEDROCK_CODECS.stream().map(BedrockPacketCodec::getMinecraftVersion).toList();
-            this.bedrockProtocols = GameProtocol.SUPPORTED_BEDROCK_CODECS.stream().map(BedrockPacketCodec::getProtocolVersion).toList();
+            this.bedrockVersions = GameProtocol.SUPPORTED_BEDROCK_CODECS.stream().map(BedrockCodec::getMinecraftVersion).toList();
+            this.bedrockProtocols = GameProtocol.SUPPORTED_BEDROCK_CODECS.stream().map(BedrockCodec::getProtocolVersion).toList();
             this.defaultBedrockProtocol = GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion();
             this.javaVersions = GameProtocol.getJavaVersions();
             this.javaProtocol = GameProtocol.getJavaProtocolVersion();
@@ -254,60 +258,30 @@ public class DumpInfo {
         }
     }
 
-    @AllArgsConstructor
-    @Getter
-    public static class HashInfo {
-        private final String md5Hash;
-        private final String sha256Hash;
+    public record HashInfo(String md5Hash, String sha256Hash) {
     }
 
-    @Getter
-    public static class RamInfo {
-        private final long free;
-        private final long total;
-        private final long max;
-
-        RamInfo() {
-            this.free = Runtime.getRuntime().freeMemory() / MEGABYTE;
-            this.total = Runtime.getRuntime().totalMemory() / MEGABYTE;
-            this.max = Runtime.getRuntime().maxMemory() / MEGABYTE;
+    public record RamInfo(long free, long total, long max) {
+        public RamInfo() {
+            this(Runtime.getRuntime().freeMemory() / MEGABYTE,
+                    Runtime.getRuntime().totalMemory() / MEGABYTE,
+                    Runtime.getRuntime().maxMemory() / MEGABYTE);
         }
     }
 
     /**
      * E.G. `-Xmx1024M` - all runtime JVM flags on this machine
      */
-    @Getter
-    public static class FlagsInfo {
-        private final List<String> flags;
-
-        FlagsInfo() {
-            this.flags = ManagementFactory.getRuntimeMXBean().getInputArguments();
+    public record FlagsInfo(List<String> flags) {
+        public FlagsInfo() {
+            this(ManagementFactory.getRuntimeMXBean().getInputArguments());
         }
     }
 
-    @Getter
-    @AllArgsConstructor
-    public static class ExtensionInfo {
-        public boolean enabled;
-        public String name;
-        public String version;
-        public String apiVersion;
-        public String main;
-        public List<String> authors;
+    public record ExtensionInfo(boolean enabled, String name, String version, String apiVersion, String main, List<String> authors) {
     }
 
-    @Getter
-    @AllArgsConstructor
-    public static class GitInfo {
-        private final String buildNumber;
-        @JsonProperty("git.commit.id.abbrev")
-        private final String commitHashAbbrev;
-        @JsonProperty("git.commit.id")
-        private final String commitHash;
-        @JsonProperty("git.branch")
-        private final String branchName;
-        @JsonProperty("git.remote.origin.url")
-        private final String originUrl;
+    public record GitInfo(String buildNumber, @JsonProperty("git.commit.id.abbrev") String commitHashAbbrev, @JsonProperty("git.commit.id") String commitHash,
+                              @JsonProperty("git.branch") String branchName, @JsonProperty("git.remote.origin.url") String originUrl) {
     }
 }

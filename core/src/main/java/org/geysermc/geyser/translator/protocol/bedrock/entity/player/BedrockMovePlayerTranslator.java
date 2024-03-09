@@ -29,9 +29,9 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.Server
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerRotPacket;
 import com.github.steveice10.packetlib.packet.Packet;
-import com.nukkitx.math.vector.Vector3d;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
+import org.cloudburstmc.math.vector.Vector3d;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.level.BedrockDimension;
@@ -83,7 +83,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             entity.setHeadYaw(headYaw);
             entity.setOnGround(packet.isOnGround());
 
-            session.sendDownstreamPacket(playerRotationPacket);
+            session.sendDownstreamGamePacket(playerRotationPacket);
         } else {
             if (session.getWorldBorder().isPassingIntoBorderBoundaries(packet.getPosition(), true)) {
                 return;
@@ -130,7 +130,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                     entity.setOnGround(onGround);
 
                     // Send final movement changes
-                    session.sendDownstreamPacket(movePacket);
+                    session.sendDownstreamGamePacket(movePacket);
 
                     if (teleportThroughVoidFloor) {
                         // Work around there being a floor at the bottom of the world and teleport the player below it

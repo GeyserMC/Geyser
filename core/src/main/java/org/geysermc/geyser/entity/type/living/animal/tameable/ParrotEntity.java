@@ -26,45 +26,48 @@
 package org.geysermc.geyser.entity.type.living.animal.tameable;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 
-import javax.annotation.Nonnull;
+import java.util.Set;
 import java.util.UUID;
 
 public class ParrotEntity extends TameableEntity {
+    // Note: is the same as chicken. Reuse?
+    private static final Set<Item> TAMING_FOOD = Set.of(Items.WHEAT_SEEDS, Items.MELON_SEEDS, Items.PUMPKIN_SEEDS, Items.BEETROOT_SEEDS);
 
     public ParrotEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override
-    public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
+    public boolean canEat(Item item) {
         return false;
     }
 
-    private boolean isTameFood(String javaIdentifierStripped) {
-        return javaIdentifierStripped.contains("seeds");
+    private boolean isTameFood(Item item) {
+        return TAMING_FOOD.contains(item);
     }
 
-    private boolean isPoisonousFood(String javaIdentifierStripped) {
-        return javaIdentifierStripped.equals("cookie");
+    private boolean isPoisonousFood(Item item) {
+        return item == Items.COOKIE;
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        String javaIdentifierStripped = itemInHand.getMapping(session).getJavaIdentifier().replace("minecraft:", "");
+    protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         boolean tame = getFlag(EntityFlag.TAMED);
-        if (!tame && isTameFood(javaIdentifierStripped)) {
+        if (!tame && isTameFood(itemInHand.asItem())) {
             return InteractiveTag.FEED;
-        } else if (isPoisonousFood(javaIdentifierStripped)) {
+        } else if (isPoisonousFood(itemInHand.asItem())) {
             return InteractiveTag.FEED;
         } else if (onGround && tame && ownerBedrockId == session.getPlayerEntity().getGeyserId()) {
             // Sitting/standing
@@ -73,14 +76,13 @@ public class ParrotEntity extends TameableEntity {
         return super.testMobInteraction(hand, itemInHand);
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        String javaIdentifierStripped = itemInHand.getMapping(session).getJavaIdentifier().replace("minecraft:", "");
+    protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         boolean tame = getFlag(EntityFlag.TAMED);
-        if (!tame && isTameFood(javaIdentifierStripped)) {
+        if (!tame && isTameFood(itemInHand.asItem())) {
             return InteractionResult.SUCCESS;
-        } else if (isPoisonousFood(javaIdentifierStripped)) {
+        } else if (isPoisonousFood(itemInHand.asItem())) {
             return InteractionResult.SUCCESS;
         } else if (onGround && tame && ownerBedrockId == session.getPlayerEntity().getGeyserId()) {
             // Sitting/standing

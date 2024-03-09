@@ -27,9 +27,9 @@ package org.geysermc.geyser.translator.protocol.bedrock.world;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
-import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -57,7 +57,7 @@ public class BedrockLevelSoundEventTranslator extends PacketTranslator<LevelSoun
             // ATTACK_NODAMAGE = player clicked air
             // This should only be revisited if Bedrock packets get full Java parity, or Bedrock starts sending arm
             // animation packets after ATTACK_NODAMAGE, OR ATTACK_NODAMAGE gets removed/isn't sent in the same spot
-            session.sendDownstreamPacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
+            session.sendDownstreamGamePacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
             session.activateArmAnimationTicking();
 
             // Send packet to Bedrock so it knows

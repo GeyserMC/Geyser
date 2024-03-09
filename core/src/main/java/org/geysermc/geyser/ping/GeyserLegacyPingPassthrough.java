@@ -27,7 +27,8 @@ package org.geysermc.geyser.ping;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.nukkitx.nbt.util.VarInts;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.nbt.util.VarInts;
 import io.netty.handler.codec.haproxy.HAProxyCommand;
 import io.netty.handler.codec.haproxy.HAProxyProxiedProtocol;
 import io.netty.util.NetUtil;
@@ -57,7 +58,7 @@ public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runn
      * @param geyser Geyser
      * @return GeyserPingPassthrough, or null if not initialized
      */
-    public static IGeyserPingPassthrough init(GeyserImpl geyser) {
+    public static @Nullable IGeyserPingPassthrough init(GeyserImpl geyser) {
         if (geyser.getConfig().isPassthroughMotd() || geyser.getConfig().isPassthroughPlayerCounts()) {
             GeyserLegacyPingPassthrough pingPassthrough = new GeyserLegacyPingPassthrough(geyser);
             // Ensure delay is not zero
@@ -79,7 +80,8 @@ public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runn
         try (Socket socket = new Socket()) {
             String address = geyser.getConfig().getRemote().address();
             int port = geyser.getConfig().getRemote().port();
-            socket.connect(new InetSocketAddress(address, port), 5000);
+            InetSocketAddress endpoint = new InetSocketAddress(address, port);
+            socket.connect(endpoint, 5000);
 
             ByteArrayOutputStream byteArrayStream = new ByteArrayOutputStream();
             try (DataOutputStream handshake = new DataOutputStream(byteArrayStream)) {
@@ -103,7 +105,8 @@ public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runn
                             HAProxyProxiedProtocol.TCP4.byteValue() : HAProxyProxiedProtocol.TCP6.byteValue());
                     byte[] srcAddrBytes = NetUtil.createByteArrayFromIpAddressString(
                             ((InetSocketAddress) socket.getLocalSocketAddress()).getAddress().getHostAddress());
-                    byte[] dstAddrBytes = NetUtil.createByteArrayFromIpAddressString(address);
+                    byte[] dstAddrBytes = NetUtil.createByteArrayFromIpAddressString(
+                            endpoint.getAddress().getHostAddress());
                     dataOutputStream.writeShort(srcAddrBytes.length + dstAddrBytes.length + 4);
                     dataOutputStream.write(srcAddrBytes);
                     dataOutputStream.write(dstAddrBytes);
@@ -136,6 +139,9 @@ public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runn
             this.geyser.getLogger().debug("Connection timeout for ping passthrough.");
         } catch (JsonParseException | JsonMappingException ex) {
             this.geyser.getLogger().error("Failed to parse json when pinging server!", ex);
+        } catch (UnknownHostException ex) {
+            // Don't reset pingInfo, as we want to keep the last known value
+            this.geyser.getLogger().warning("Unable to resolve remote host! Is the remote server down or invalid?");
         } catch (IOException e) {
             this.geyser.getLogger().error("IO error while trying to use legacy ping passthrough", e);
         }

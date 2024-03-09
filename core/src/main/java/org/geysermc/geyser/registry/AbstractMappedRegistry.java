@@ -25,12 +25,12 @@
 
 package org.geysermc.geyser.registry;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.registry.loader.RegistryLoader;
 
-import javax.annotation.Nullable;
 import java.util.Map;
-import java.util.OptionalInt;
-import java.util.function.ToIntFunction;
+import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * An abstract registry holding a map of various registrations as defined by {@link M}.
@@ -62,14 +62,15 @@ public abstract class AbstractMappedRegistry<K, V, M extends Map<K, V>> extends 
      *
      * @param key the key
      * @param mapper the mapper
+     * @param <U> the type
      * @return the mapped value from the given key if present
      */
-    public OptionalInt map(K key, ToIntFunction<? super V> mapper) {
+    public <U> Optional<U> map(K key, Function<? super V, ? extends U> mapper) {
         V value = this.get(key);
         if (value == null) {
-            return OptionalInt.empty();
+            return Optional.empty();
         } else {
-            return OptionalInt.of(mapper.applyAsInt(value));
+            return Optional.ofNullable(mapper.apply(value));
         }
     }
 

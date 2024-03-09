@@ -26,7 +26,7 @@
 package org.geysermc.geyser.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
-import com.nukkitx.protocol.bedrock.data.inventory.EnchantOptionData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.EnchantOptionData;
 import lombok.Getter;
 
 public class EnchantingContainer extends Container {

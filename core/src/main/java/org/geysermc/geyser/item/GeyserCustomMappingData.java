@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.item;
 
-import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
-import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
+import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
 
-public record GeyserCustomMappingData(ComponentItemData componentItemData, StartGamePacket.ItemEntry startGamePacketItemEntry, String stringId, int integerId) {
+public record GeyserCustomMappingData(ComponentItemData componentItemData, ItemDefinition itemDefinition, String stringId, int integerId) {
 }

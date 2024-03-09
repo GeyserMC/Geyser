@@ -28,19 +28,19 @@ package org.geysermc.geyser.entity.type.living.animal.tameable;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.google.common.collect.ImmutableSet;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.DyeItem;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
-import org.geysermc.geyser.util.ItemUtils;
 
-import javax.annotation.Nonnull;
 import java.util.Set;
 import java.util.UUID;
 
@@ -48,10 +48,11 @@ public class WolfEntity extends TameableEntity {
     /**
      * A list of all foods a wolf can eat on Java Edition.
      * Used to display interactive tag or particles if needed.
+     * TODO generate
      */
-    private static final Set<String> WOLF_FOODS = ImmutableSet.of("pufferfish", "tropical_fish", "chicken", "cooked_chicken",
-            "porkchop", "beef", "rabbit", "cooked_porkchop", "cooked_beef", "rotten_flesh", "mutton", "cooked_mutton",
-            "cooked_rabbit");
+    private static final Set<Item> WOLF_FOODS = Set.of(Items.PUFFERFISH, Items.TROPICAL_FISH, Items.CHICKEN, Items.COOKED_CHICKEN,
+            Items.PORKCHOP, Items.BEEF, Items.RABBIT, Items.COOKED_PORKCHOP, Items.COOKED_BEEF, Items.ROTTEN_FLESH, Items.MUTTON, Items.COOKED_MUTTON,
+            Items.COOKED_RABBIT);
 
     private byte collarColor;
 
@@ -66,7 +67,7 @@ public class WolfEntity extends TameableEntity {
         byte xd = entityMetadata.getPrimitiveValue();
         boolean angry = (xd & 0x02) == 0x02;
         if (angry) {
-            dirtyMetadata.put(EntityData.COLOR, (byte) 0);
+            dirtyMetadata.put(EntityDataTypes.COLOR, (byte) 0);
         }
     }
 
@@ -76,11 +77,11 @@ public class WolfEntity extends TameableEntity {
             return;
         }
 
-        dirtyMetadata.put(EntityData.COLOR, collarColor);
+        dirtyMetadata.put(EntityDataTypes.COLOR, collarColor);
         if (ownerBedrockId == 0) {
             // If a color is set and there is no owner entity ID, set one.
             // Otherwise, the entire wolf is set to that color: https://user-images.githubusercontent.com/9083212/99209989-92691200-2792-11eb-911d-9a315c955be9.png
-            dirtyMetadata.put(EntityData.OWNER_EID, session.getPlayerEntity().getGeyserId());
+            dirtyMetadata.put(EntityDataTypes.OWNER_EID, session.getPlayerEntity().getGeyserId());
         }
     }
 
@@ -88,13 +89,13 @@ public class WolfEntity extends TameableEntity {
     public void setWolfAngerTime(IntEntityMetadata entityMetadata) {
         int time = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.ANGRY, time != 0);
-        dirtyMetadata.put(EntityData.COLOR, time != 0 ? (byte) 0 : collarColor);
+        dirtyMetadata.put(EntityDataTypes.COLOR, time != 0 ? (byte) 0 : collarColor);
     }
 
     @Override
-    public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
+    public boolean canEat(Item item) {
         // Cannot be a baby to eat these foods
-        return WOLF_FOODS.contains(javaIdentifierStripped) && !isBaby();
+        return WOLF_FOODS.contains(item) && !isBaby();
     }
 
     @Override
@@ -102,20 +103,19 @@ public class WolfEntity extends TameableEntity {
         return !getFlag(EntityFlag.ANGRY) && super.canBeLeashed();
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (getFlag(EntityFlag.ANGRY)) {
             return InteractiveTag.NONE;
         }
-        if (itemInHand.getMapping(session).getJavaIdentifier().equals("minecraft:bone") && !getFlag(EntityFlag.TAMED)) {
+        if (itemInHand.asItem() == Items.BONE && !getFlag(EntityFlag.TAMED)) {
             // Bone and untamed - can tame
             return InteractiveTag.TAME;
         } else {
-            int color = ItemUtils.dyeColorFor(itemInHand.getJavaId());
-            if (color != -1) {
+            if (itemInHand.asItem() instanceof DyeItem item) {
                 // If this fails, as of Java Edition 1.18.1, you cannot toggle sit/stand
-                if (color != this.collarColor) {
+                if (item.dyeColor() != this.collarColor) {
                     return InteractiveTag.DYE;
                 }
             } else if (getFlag(EntityFlag.TAMED) && ownerBedrockId == session.getPlayerEntity().getGeyserId()) {
@@ -126,11 +126,11 @@ public class WolfEntity extends TameableEntity {
         return super.testMobInteraction(hand, itemInHand);
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (ownerBedrockId == session.getPlayerEntity().getGeyserId() || getFlag(EntityFlag.TAMED)
-                || itemInHand.getMapping(session).getJavaIdentifier().equals("minecraft:bone") && !getFlag(EntityFlag.ANGRY)) {
+                || itemInHand.asItem() == Items.BONE && !getFlag(EntityFlag.ANGRY)) {
             // Sitting toggle or feeding; not angry
             return InteractionResult.CONSUME;
         } else {

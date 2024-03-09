@@ -29,7 +29,7 @@ import com.github.steveice10.mc.protocol.packet.login.clientbound.ClientboundLog
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TranslatableComponent;
-import org.geysermc.common.PlatformType;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -51,7 +51,7 @@ public class JavaLoginDisconnectTranslator extends PacketTranslator<ClientboundL
         if (testForOutdatedServer(disconnectReason)) {
             String locale = session.locale();
             PlatformType platform = session.getGeyser().getPlatformType();
-            String outdatedType = (platform == PlatformType.BUNGEECORD || platform == PlatformType.VELOCITY) ?
+            String outdatedType = (platform == PlatformType.BUNGEECORD || platform == PlatformType.VELOCITY || platform == PlatformType.VIAPROXY) ?
                     "geyser.network.remote.outdated.proxy" : "geyser.network.remote.outdated.server";
             disconnectMessage = GeyserLocale.getPlayerLocaleString(outdatedType, locale, GameProtocol.getJavaVersions().get(0)) + '\n'
                     + GeyserLocale.getPlayerLocaleString("geyser.network.remote.original_disconnect_message", locale, serverDisconnectMessage);
@@ -83,8 +83,8 @@ public class JavaLoginDisconnectTranslator extends PacketTranslator<ClientboundL
                     return true;
                 } else {
                     List<Component> children = component.children();
-                    for (int i = 0; i < children.size(); i++) {
-                        if (children.get(i) instanceof TextComponent child && child.content().startsWith("Outdated server!")) {
+                    for (Component value : children) {
+                        if (value instanceof TextComponent child && child.content().startsWith("Outdated server!")) {
                             // Reproduced on Paper 1.17.1
                             return true;
                         }

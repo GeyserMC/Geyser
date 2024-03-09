@@ -28,12 +28,15 @@ package org.geysermc.geyser.translator.protocol.java.level;
 import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
 import com.github.steveice10.mc.protocol.data.game.level.event.*;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelEventPacket;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import com.nukkitx.protocol.bedrock.packet.*;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.protocol.bedrock.data.ParticleType;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
@@ -51,10 +54,16 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
 
     @Override
     public void translate(GeyserSession session, ClientboundLevelEventPacket packet) {
+        if (!(packet.getEvent() instanceof LevelEventType levelEvent)) {
+            return;
+        }
         // Separate case since each RecordEventData in Java is an individual track in Bedrock
-        if (packet.getEvent() == LevelEvent.RECORD) {
+        if (levelEvent == LevelEventType.RECORD) {
             RecordEventData recordEventData = (RecordEventData) packet.getData();
-            SoundEvent soundEvent = Registries.RECORDS.getOrDefault(recordEventData.getRecordId(), SoundEvent.STOP_RECORD);
+            SoundEvent soundEvent = Registries.RECORDS.get(recordEventData.getRecordId());
+            if (soundEvent == null) {
+                return;
+            }
             Vector3i origin = packet.getPosition();
             Vector3f pos = Vector3f.from(origin.getX() + 0.5f, origin.getY() + 0.5f, origin.getZ() + 0.5f);
 
@@ -67,19 +76,17 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             levelSoundEvent.setBabySound(false);
             session.sendUpstreamPacket(levelSoundEvent);
 
-            if (soundEvent != SoundEvent.STOP_RECORD) {
-                // Send text packet as it seems to be handled in Java Edition client-side.
-                TextPacket textPacket = new TextPacket();
-                textPacket.setType(TextPacket.Type.JUKEBOX_POPUP);
-                textPacket.setNeedsTranslation(true);
-                textPacket.setXuid("");
-                textPacket.setPlatformChatId("");
-                textPacket.setSourceName(null);
-                textPacket.setMessage("record.nowPlaying");
-                String recordString = "%item." + soundEvent.name().toLowerCase(Locale.ROOT) + ".desc";
-                textPacket.setParameters(Collections.singletonList(MinecraftLocale.getLocaleString(recordString, session.locale())));
-                session.sendUpstreamPacket(textPacket);
-            }
+            // Send text packet as it seems to be handled in Java Edition client-side.
+            TextPacket textPacket = new TextPacket();
+            textPacket.setType(TextPacket.Type.JUKEBOX_POPUP);
+            textPacket.setNeedsTranslation(true);
+            textPacket.setXuid("");
+            textPacket.setPlatformChatId("");
+            textPacket.setSourceName(null);
+            textPacket.setMessage("record.nowPlaying");
+            String recordString = "%item." + soundEvent.name().toLowerCase(Locale.ROOT) + ".desc";
+            textPacket.setParameters(Collections.singletonList(MinecraftLocale.getLocaleString(recordString, session.locale())));
+            session.sendUpstreamPacket(textPacket);
             return;
         }
 
@@ -96,9 +103,13 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
         LevelEventPacket effectPacket = new LevelEventPacket();
         effectPacket.setPosition(pos);
         effectPacket.setData(0);
-        switch (packet.getEvent()) {
+        switch (levelEvent) {
+            case BRUSH_BLOCK_COMPLETE -> {
+                effectPacket.setType(ParticleType.BRUSH_DUST);
+                session.playSoundEvent(SoundEvent.BRUSH_COMPLETED, pos); // todo 1.20.2 verify this
+            }
             case COMPOSTER -> {
-                effectPacket.setType(LevelEventType.PARTICLE_CROP_GROWTH);
+                effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_CROP_GROWTH);
 
                 ComposterEventData composterEventData = (ComposterEventData) packet.getData();
                 LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
@@ -114,7 +125,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 session.sendUpstreamPacket(soundEventPacket);
             }
             case BLOCK_LAVA_EXTINGUISH -> {
-                effectPacket.setType(LevelEventType.PARTICLE_EVAPORATE);
+                effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_EVAPORATE);
                 effectPacket.setPosition(pos.add(-0.5f, 0.7f, -0.5f));
 
                 LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
@@ -127,7 +138,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 session.sendUpstreamPacket(soundEventPacket);
             }
             case BLOCK_REDSTONE_TORCH_BURNOUT -> {
-                effectPacket.setType(LevelEventType.PARTICLE_EVAPORATE);
+                effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_EVAPORATE);
                 effectPacket.setPosition(pos.add(-0.5f, 0, -0.5f));
 
                 LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
@@ -140,7 +151,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 session.sendUpstreamPacket(soundEventPacket);
             }
             case BLOCK_END_PORTAL_FRAME_FILL -> {
-                effectPacket.setType(LevelEventType.PARTICLE_EVAPORATE);
+                effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_EVAPORATE);
                 effectPacket.setPosition(pos.add(-0.5f, 0.3125f, -0.5f));
 
                 LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
@@ -152,12 +163,16 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 soundEventPacket.setRelativeVolumeDisabled(false);
                 session.sendUpstreamPacket(soundEventPacket);
             }
-            case SMOKE -> {
-                effectPacket.setType(LevelEventType.PARTICLE_SHOOT);
+            case SMOKE, WHITE_SMOKE -> {
+                if (levelEvent == LevelEventType.SMOKE) {
+                    effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_SHOOT);
+                } else {
+                    effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_SHOOT_WHITE_SMOKE);
+                }
 
                 SmokeEventData smokeEventData = (SmokeEventData) packet.getData();
                 int data = 0;
-                switch (smokeEventData) {
+                switch (smokeEventData.getDirection()) {
                     case DOWN -> {
                         data = 4;
                         pos = pos.add(0, -0.9f, 0);
@@ -189,13 +204,13 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
 
             //TODO: Block break particles when under fire
             case BREAK_BLOCK -> {
-                effectPacket.setType(LevelEventType.PARTICLE_DESTROY_BLOCK);
+                effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_DESTROY_BLOCK);
 
                 BreakBlockEventData breakBlockEventData = (BreakBlockEventData) packet.getData();
                 effectPacket.setData(session.getBlockMappings().getBedrockBlockId(breakBlockEventData.getBlockState()));
             }
             case BREAK_SPLASH_POTION, BREAK_SPLASH_POTION2 -> {
-                effectPacket.setType(LevelEventType.PARTICLE_POTION_SPLASH);
+                effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_POTION_SPLASH);
                 effectPacket.setPosition(pos.add(0, -0.5f, 0));
 
                 BreakPotionEventData splashPotionData = (BreakPotionEventData) packet.getData();
@@ -210,16 +225,17 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 soundEventPacket.setRelativeVolumeDisabled(false);
                 session.sendUpstreamPacket(soundEventPacket);
             }
-            case BREAK_EYE_OF_ENDER -> effectPacket.setType(LevelEventType.PARTICLE_EYE_OF_ENDER_DEATH);
-            case MOB_SPAWN -> effectPacket.setType(LevelEventType.PARTICLE_MOB_BLOCK_SPAWN); // TODO: Check, but I don't think I really verified this ever went into effect on Java
+            case BREAK_EYE_OF_ENDER -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_EYE_OF_ENDER_DEATH);
+            case MOB_SPAWN -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_MOB_BLOCK_SPAWN); // TODO: Check, but I don't think I really verified this ever went into effect on Java
             case BONEMEAL_GROW_WITH_SOUND, BONEMEAL_GROW -> {
-                effectPacket.setType(packet.getEvent() == LevelEvent.BONEMEAL_GROW ? LevelEventType.PARTICLE_TURTLE_EGG : LevelEventType.PARTICLE_CROP_GROWTH);
+                effectPacket.setType(levelEvent == LevelEventType.BONEMEAL_GROW ? org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TURTLE_EGG : org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_CROP_GROWTH);
 
                 BonemealGrowEventData growEventData = (BonemealGrowEventData) packet.getData();
                 effectPacket.setData(growEventData.getParticleCount());
             }
+            case EGG_CRACK -> effectPacket.setType(ParticleType.VILLAGER_HAPPY); // both the lil green sparkle
             case ENDERDRAGON_FIREBALL_EXPLODE -> {
-                effectPacket.setType(LevelEventType.PARTICLE_EYE_OF_ENDER_DEATH); // TODO
+                effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_EYE_OF_ENDER_DEATH); // TODO
 
                 DragonFireballEventData fireballEventData = (DragonFireballEventData) packet.getData();
                 if (fireballEventData == DragonFireballEventData.HAS_SOUND) {
@@ -234,15 +250,15 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 }
             }
             case EXPLOSION -> {
-                effectPacket.setType(LevelEventType.PARTICLE_GENERIC_SPAWN);
+                effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_GENERIC_SPAWN);
                 effectPacket.setData(61);
             }
             case EVAPORATE -> {
-                effectPacket.setType(LevelEventType.PARTICLE_EVAPORATE_WATER);
+                effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_EVAPORATE_WATER);
                 effectPacket.setPosition(pos.add(-0.5f, 0.5f, -0.5f));
             }
             case END_GATEWAY_SPAWN -> {
-                effectPacket.setType(LevelEventType.PARTICLE_EXPLOSION);
+                effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_EXPLOSION);
 
                 LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
                 soundEventPacket.setSound(SoundEvent.EXPLODE);
@@ -253,17 +269,17 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 soundEventPacket.setRelativeVolumeDisabled(false);
                 session.sendUpstreamPacket(soundEventPacket);
             }
-            case DRIPSTONE_DRIP -> effectPacket.setType(LevelEventType.PARTICLE_DRIPSTONE_DRIP);
-            case ELECTRIC_SPARK -> effectPacket.setType(LevelEventType.PARTICLE_ELECTRIC_SPARK); // Matches with a Bedrock server but doesn't seem to match up with Java
-            case WAX_ON -> effectPacket.setType(LevelEventType.PARTICLE_WAX_ON);
-            case WAX_OFF -> effectPacket.setType(LevelEventType.PARTICLE_WAX_OFF);
-            case SCRAPE -> effectPacket.setType(LevelEventType.PARTICLE_SCRAPE);
+            case DRIPSTONE_DRIP -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_DRIPSTONE_DRIP);
+            case ELECTRIC_SPARK -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_ELECTRIC_SPARK); // Matches with a Bedrock server but doesn't seem to match up with Java
+            case WAX_ON -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_WAX_ON);
+            case WAX_OFF -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_WAX_OFF);
+            case SCRAPE -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_SCRAPE);
             case SCULK_BLOCK_CHARGE -> {
                 SculkBlockChargeEventData eventData = (SculkBlockChargeEventData) packet.getData();
                 LevelEventGenericPacket levelEventPacket = new LevelEventGenericPacket();
                 // TODO add SCULK_BLOCK_CHARGE sound
                 if (eventData.getCharge() > 0) {
-                    levelEventPacket.setEventId(2037/*LevelEventType.SCULK_CHARGE*/);
+                    levelEventPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.SCULK_CHARGE);
                     levelEventPacket.setTag(
                             NbtMap.builder()
                                     .putInt("x", packet.getPosition().getX())
@@ -274,7 +290,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                                     .build()
                     );
                 } else {
-                    levelEventPacket.setEventId(2038/*LevelEventType.SCULK_CHARGE_POP*/);
+                    levelEventPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.SCULK_CHARGE_POP);
                     levelEventPacket.setTag(
                             NbtMap.builder()
                                     .putInt("x", packet.getPosition().getX())
@@ -288,7 +304,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             }
             case SCULK_SHRIEKER_SHRIEK -> {
                 LevelEventGenericPacket levelEventPacket = new LevelEventGenericPacket();
-                levelEventPacket.setEventId(2035/*LevelEventType.PARTICLE_SCULK_SHRIEK*/);
+                levelEventPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_SCULK_SHRIEK);
                 levelEventPacket.setTag(
                         NbtMap.builder()
                                 .putInt("originX", packet.getPosition().getX())
@@ -306,6 +322,17 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 soundEventPacket.setBabySound(false);
                 soundEventPacket.setRelativeVolumeDisabled(false);
                 session.sendUpstreamPacket(soundEventPacket);
+                return;
+            }
+            case STOP_RECORD -> {
+                LevelSoundEventPacket levelSoundEvent = new LevelSoundEventPacket();
+                levelSoundEvent.setIdentifier("");
+                levelSoundEvent.setSound(SoundEvent.STOP_RECORD);
+                levelSoundEvent.setPosition(pos);
+                levelSoundEvent.setRelativeVolumeDisabled(false);
+                levelSoundEvent.setExtraData(-1);
+                levelSoundEvent.setBabySound(false);
+                session.sendUpstreamPacket(levelSoundEvent);
                 return;
             }
             default -> {

@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.protocol.java.entity;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundUpdateMobEffectPacket;
-import com.nukkitx.protocol.bedrock.packet.MobEffectPacket;
+import org.cloudburstmc.protocol.bedrock.packet.MobEffectPacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -42,12 +42,19 @@ public class JavaUpdateMobEffectTranslator extends PacketTranslator<ClientboundU
         if (entity == session.getPlayerEntity()) {
             session.getEffectCache().setEffect(packet.getEffect(), packet.getAmplifier());
         }
-        if (entity == null)
+        if (entity == null) {
             return;
+        }
+
+        int duration = packet.getDuration();
+        if (duration < 0) {
+            // java edition uses -1 for infinite, but bedrock doesn't have infinite
+            duration = Integer.MAX_VALUE;
+        }
 
         MobEffectPacket mobEffectPacket = new MobEffectPacket();
         mobEffectPacket.setAmplifier(packet.getAmplifier());
-        mobEffectPacket.setDuration(packet.getDuration());
+        mobEffectPacket.setDuration(duration);
         mobEffectPacket.setEvent(MobEffectPacket.Event.ADD);
         mobEffectPacket.setRuntimeEntityId(entity.getGeyserId());
         mobEffectPacket.setParticles(packet.isShowParticles());

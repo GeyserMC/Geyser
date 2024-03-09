@@ -29,15 +29,17 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.LivingEntity;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.MathUtils;
@@ -68,7 +70,7 @@ public class ArmorStandEntity extends LivingEntity {
     private boolean primaryEntity = true;
     /**
      * Whether the entity's position must be updated to included the offset.
-     *
+     * <p>
      * This should be true when the Java server marks the armor stand as invisible, but we shrink the entity
      * to allow the nametag to appear. Basically:
      * - Is visible: this is irrelevant (false)
@@ -171,27 +173,27 @@ public class ArmorStandEntity extends LivingEntity {
     }
 
     public void setHeadRotation(EntityMetadata<Vector3f, ?> entityMetadata) {
-        onRotationUpdate(EntityData.MARK_VARIANT, EntityFlag.INTERESTED, EntityFlag.CHARGED, EntityFlag.POWERED, entityMetadata.getValue());
+        onRotationUpdate(EntityDataTypes.MARK_VARIANT, EntityFlag.INTERESTED, EntityFlag.CHARGED, EntityFlag.POWERED, entityMetadata.getValue());
     }
 
     public void setBodyRotation(EntityMetadata<Vector3f, ?> entityMetadata) {
-        onRotationUpdate(EntityData.VARIANT, EntityFlag.IN_LOVE, EntityFlag.CELEBRATING, EntityFlag.CELEBRATING_SPECIAL, entityMetadata.getValue());
+        onRotationUpdate(EntityDataTypes.VARIANT, EntityFlag.IN_LOVE, EntityFlag.CELEBRATING, EntityFlag.CELEBRATING_SPECIAL, entityMetadata.getValue());
     }
 
     public void setLeftArmRotation(EntityMetadata<Vector3f, ?> entityMetadata) {
-        onRotationUpdate(EntityData.TRADE_TIER, EntityFlag.CHARGING, EntityFlag.CRITICAL, EntityFlag.DANCING, entityMetadata.getValue());
+        onRotationUpdate(EntityDataTypes.TRADE_TIER, EntityFlag.CHARGING, EntityFlag.CRITICAL, EntityFlag.DANCING, entityMetadata.getValue());
     }
 
     public void setRightArmRotation(EntityMetadata<Vector3f, ?> entityMetadata) {
-        onRotationUpdate(EntityData.MAX_TRADE_TIER, EntityFlag.ELDER, EntityFlag.EMOTING, EntityFlag.IDLING, entityMetadata.getValue());
+        onRotationUpdate(EntityDataTypes.MAX_TRADE_TIER, EntityFlag.ELDER, EntityFlag.EMOTING, EntityFlag.IDLING, entityMetadata.getValue());
     }
 
     public void setLeftLegRotation(EntityMetadata<Vector3f, ?> entityMetadata) {
-        onRotationUpdate(EntityData.SKIN_ID, EntityFlag.IS_ILLAGER_CAPTAIN, EntityFlag.IS_IN_UI, EntityFlag.LINGERING, entityMetadata.getValue());
+        onRotationUpdate(EntityDataTypes.SKIN_ID, EntityFlag.IS_ILLAGER_CAPTAIN, EntityFlag.IS_IN_UI, EntityFlag.LINGERING, entityMetadata.getValue());
     }
 
     public void setRightLegRotation(EntityMetadata<Vector3f, ?> entityMetadata) {
-        onRotationUpdate(EntityData.HURT_DIRECTION, EntityFlag.IS_PREGNANT, EntityFlag.SHEARED, EntityFlag.STALKING, entityMetadata.getValue());
+        onRotationUpdate(EntityDataTypes.HURT_DIRECTION, EntityFlag.IS_PREGNANT, EntityFlag.SHEARED, EntityFlag.STALKING, entityMetadata.getValue());
     }
 
     /**
@@ -205,7 +207,7 @@ public class ArmorStandEntity extends LivingEntity {
      * @param negativeZToggle the flag to set true if the Z value of rotation is negative
      * @param rotation the Java rotation value
      */
-    private void onRotationUpdate(EntityData dataLeech, EntityFlag negativeXToggle, EntityFlag negativeYToggle, EntityFlag negativeZToggle, Vector3f rotation) {
+    private void onRotationUpdate(EntityDataType<Integer> dataLeech, EntityFlag negativeXToggle, EntityFlag negativeYToggle, EntityFlag negativeZToggle, Vector3f rotation) {
         // Indicate that rotation should be checked
         setFlag(EntityFlag.BRIBED, true);
 
@@ -246,8 +248,8 @@ public class ArmorStandEntity extends LivingEntity {
 
     @Override
     public InteractionResult interactAt(Hand hand) {
-        if (!isMarker && session.getPlayerInventory().getItemInHand(hand).getJavaId() != session.getItemMappings().getStoredItems().nameTag()) {
-            // Java Edition returns SUCCESS if in spectator mode, but this is overrided with an earlier check on the client
+        if (!isMarker && session.getPlayerInventory().getItemInHand(hand).asItem() != Items.NAME_TAG) {
+            // Java Edition returns SUCCESS if in spectator mode, but this is overridden with an earlier check on the client
             return InteractionResult.CONSUME;
         } else {
             return InteractionResult.PASS;
@@ -308,7 +310,7 @@ public class ArmorStandEntity extends LivingEntity {
         if (!isInvisible) {
             // The armor stand isn't invisible. We good.
             setFlag(EntityFlag.INVISIBLE, false);
-            dirtyMetadata.put(EntityData.SCALE, getScale());
+            dirtyMetadata.put(EntityDataTypes.SCALE, getScale());
             updateOffsetRequirement(false);
 
             if (secondEntity != null) {
@@ -324,7 +326,7 @@ public class ArmorStandEntity extends LivingEntity {
         if (!isNametagEmpty && (!helmet.equals(ItemData.AIR) || !chestplate.equals(ItemData.AIR) || !leggings.equals(ItemData.AIR)
                 || !boots.equals(ItemData.AIR) || !hand.equals(ItemData.AIR) || !offHand.equals(ItemData.AIR))) {
             // Reset scale of the proper armor stand
-            this.dirtyMetadata.put(EntityData.SCALE, getScale());
+            this.dirtyMetadata.put(EntityDataTypes.SCALE, getScale());
             // Set the proper armor stand to invisible to show armor
             setFlag(EntityFlag.INVISIBLE, true);
             // Update the position of the armor stand
@@ -341,23 +343,23 @@ public class ArmorStandEntity extends LivingEntity {
             secondEntity.isSmall = isSmall;
             secondEntity.isMarker = isMarker;
             secondEntity.positionRequiresOffset = true; // Offset should always be applied
-            secondEntity.getDirtyMetadata().put(EntityData.NAMETAG, nametag);
-            secondEntity.getDirtyMetadata().put(EntityData.NAMETAG_ALWAYS_SHOW, isNameTagVisible ? (byte) 1 : (byte) 0);
-            secondEntity.flags.merge(this.flags);
+            secondEntity.getDirtyMetadata().put(EntityDataTypes.NAME, nametag);
+            secondEntity.getDirtyMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, isNameTagVisible ? (byte) 1 : (byte) 0);
+            secondEntity.flags.addAll(this.flags);
             // Guarantee this copy is NOT invisible
             secondEntity.setFlag(EntityFlag.INVISIBLE, false);
             // Scale to 0 to show nametag
-            secondEntity.getDirtyMetadata().put(EntityData.SCALE, 0.0f);
+            secondEntity.getDirtyMetadata().put(EntityDataTypes.SCALE, 0.0f);
             // No bounding box as we don't want to interact with this entity
-            secondEntity.getDirtyMetadata().put(EntityData.BOUNDING_BOX_WIDTH, 0.0f);
-            secondEntity.getDirtyMetadata().put(EntityData.BOUNDING_BOX_HEIGHT, 0.0f);
+            secondEntity.getDirtyMetadata().put(EntityDataTypes.WIDTH, 0.0f);
+            secondEntity.getDirtyMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
             if (!secondEntity.valid) { // Spawn the entity once
                 secondEntity.spawnEntity();
             }
         } else if (isNametagEmpty) {
             // We can just make an invisible entity
             // Reset scale of the proper armor stand
-            dirtyMetadata.put(EntityData.SCALE, getScale());
+            dirtyMetadata.put(EntityDataTypes.SCALE, getScale());
             // Set the proper armor stand to invisible to show armor
             setFlag(EntityFlag.INVISIBLE, true);
             // Update offset
@@ -371,7 +373,7 @@ public class ArmorStandEntity extends LivingEntity {
             // Nametag is not empty and there is no armor
             // We don't need to make a new entity
             setFlag(EntityFlag.INVISIBLE, false);
-            dirtyMetadata.put(EntityData.SCALE, 0.0f);
+            dirtyMetadata.put(EntityDataTypes.SCALE, 0.0f);
             // As the above is applied, we need an offset
             updateOffsetRequirement(!isMarker);
 

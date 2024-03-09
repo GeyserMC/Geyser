@@ -1,16 +1,29 @@
 plugins {
     `java-library`
-    `maven-publish`
+    id("net.kyori.indra")
 }
 
 dependencies {
     compileOnly("org.checkerframework", "checker-qual", "3.19.0")
 }
 
+indra {
+    github("GeyserMC", "Geyser") {
+        ci(true)
+        issues(true)
+        scm(true)
+    }
+    mitLicense()
+
+    javaVersions {
+        target(17)
+    }
+}
+
 tasks {
     processResources {
-        // Spigot, BungeeCord, Velocity, Sponge, Fabric
-        filesMatching(listOf("plugin.yml", "bungee.yml", "velocity-plugin.json", "META-INF/sponge_plugins.json", "fabric.mod.json")) {
+        // Spigot, BungeeCord, Velocity, Fabric, ViaProxy, NeoForge
+        filesMatching(listOf("plugin.yml", "bungee.yml", "velocity-plugin.json", "fabric.mod.json", "viaproxy.yml", "META-INF/mods.toml")) {
             expand(
                 "id" to "geyser",
                 "name" to "Geyser",
@@ -21,14 +34,4 @@ tasks {
             )
         }
     }
-    compileJava {
-        options.encoding = Charsets.UTF_8.name()
-    }
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_16
-    targetCompatibility = JavaVersion.VERSION_16
-
-    withSourcesJar()
 }

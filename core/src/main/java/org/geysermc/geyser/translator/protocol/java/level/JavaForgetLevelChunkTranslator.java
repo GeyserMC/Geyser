@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.protocol.java.level;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundForgetLevelChunkPacket;
-import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -52,7 +52,7 @@ public class JavaForgetLevelChunkTranslator extends PacketTranslator<Clientbound
         }
         removedSkulls.forEach(session.getSkullCache()::removeSkull);
 
-        if (!session.getGeyser().getWorldManager().shouldExpectLecternHandled()) {
+        if (!session.getGeyser().getWorldManager().shouldExpectLecternHandled(session)) {
             // Do the same thing with lecterns
             Iterator<Vector3i> iterator = session.getLecternCache().iterator();
             while (iterator.hasNext()) {

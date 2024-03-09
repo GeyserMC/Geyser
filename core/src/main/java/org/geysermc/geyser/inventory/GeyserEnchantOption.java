@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.inventory;
 
-import com.nukkitx.protocol.bedrock.data.inventory.EnchantData;
-import com.nukkitx.protocol.bedrock.data.inventory.EnchantOptionData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.EnchantData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.EnchantOptionData;
 import lombok.Getter;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -40,7 +40,7 @@ import java.util.List;
 public class GeyserEnchantOption {
     private static final List<EnchantData> EMPTY = Collections.emptyList();
     /**
-     * This: https://cdn.discordapp.com/attachments/613168850925649981/791030657169227816/unknown.png
+     * This <a href="https://cdn.discordapp.com/attachments/613168850925649981/791030657169227816/unknown.png">text</a>
      * is controlled by the server.
      * So, of course, we have to throw in some easter eggs. ;)
      */

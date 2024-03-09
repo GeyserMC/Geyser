@@ -29,21 +29,17 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.PositionElement
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.player.ClientboundPlayerPositionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundAcceptTeleportationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
-import com.nukkitx.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
-import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
-import com.nukkitx.protocol.bedrock.packet.RespawnPacket;
-import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
+import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
+import org.cloudburstmc.protocol.bedrock.packet.RespawnPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.TeleportCache;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.ChunkUtils;
-import org.geysermc.geyser.util.EntityUtils;
 
 @Translator(packet = ClientboundPlayerPositionPacket.class)
 public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPlayerPositionPacket> {
@@ -101,27 +97,6 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             return;
         }
 
-        Entity vehicle;
-        if (packet.isDismountVehicle() && (vehicle = session.getPlayerEntity().getVehicle()) != null) {
-            SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
-            linkPacket.setEntityLink(new EntityLinkData(vehicle.getGeyserId(), entity.getGeyserId(), EntityLinkData.Type.REMOVE, false, false));
-            session.sendUpstreamPacket(linkPacket);
-
-            vehicle.getPassengers().remove(entity);
-            session.getPlayerEntity().setVehicle(null);
-
-            EntityUtils.updateRiderRotationLock(entity, null, false);
-            EntityUtils.updateMountOffset(entity, null, false, false, entity.getPassengers().size() > 1);
-            entity.updateBedrockMetadata();
-
-            if (session.getMountVehicleScheduledFuture() != null) {
-                // Cancel this task as it is now unnecessary.
-                // Note that this isn't present in JavaSetPassengersTranslator as that code is not called for players
-                // as of Java 1.19.3, but the scheduled future checks for the vehicle being null anyway.
-                session.getMountVehicleScheduledFuture().cancel(false);
-            }
-        }
-
         // If coordinates are relative, then add to the existing coordinate
         double newX = packet.getX() +
                 (packet.getRelative().contains(PositionElement.X) ? entity.getPosition().getX() : 0);
@@ -158,9 +133,9 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
     private void acceptTeleport(GeyserSession session, double x, double y, double z, float yaw, float pitch, int id) {
         // Confirm the teleport when we receive it to match Java edition
         ServerboundAcceptTeleportationPacket teleportConfirmPacket = new ServerboundAcceptTeleportationPacket(id);
-        session.sendDownstreamPacket(teleportConfirmPacket);
+        session.sendDownstreamGamePacket(teleportConfirmPacket);
         // Servers (especially ones like Hypixel) expect exact coordinates given back to them.
         ServerboundMovePlayerPosRotPacket positionPacket = new ServerboundMovePlayerPosRotPacket(false, x, y, z, yaw, pitch);
-        session.sendDownstreamPacket(positionPacket);
+        session.sendDownstreamGamePacket(positionPacket);
     }
 }

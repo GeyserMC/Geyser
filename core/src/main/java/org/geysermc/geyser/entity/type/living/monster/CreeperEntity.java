@@ -28,16 +28,16 @@ package org.geysermc.geyser.entity.type.living.monster;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 
-import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class CreeperEntity extends MonsterEntity {
@@ -62,21 +62,21 @@ public class CreeperEntity extends MonsterEntity {
         setFlag(EntityFlag.IGNITED, ignitedByFlintAndSteel);
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().flintAndSteel()) {
+    protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
+        if (session.getTagCache().isCreeperIgniter(itemInHand.asItem())) {
             return InteractiveTag.IGNITE_CREEPER;
         } else {
             return super.testMobInteraction(hand, itemInHand);
         }
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().flintAndSteel()) {
-            // Ignite creeper
+    protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
+        if (session.getTagCache().isCreeperIgniter(itemInHand.asItem())) {
+            // Ignite creeper - as of 1.19.3
             session.playSoundEvent(SoundEvent.IGNITE, position);
             return InteractionResult.SUCCESS;
         } else {

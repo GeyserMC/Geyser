@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.protocol.bedrock;
 
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
-import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
+import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.MerchantContainer;
 import org.geysermc.geyser.session.GeyserSession;
@@ -55,7 +55,7 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
         if (openInventory != null) {
             if (bedrockId == openInventory.getBedrockId()) {
                 ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(openInventory.getJavaId());
-                session.sendDownstreamPacket(closeWindowPacket);
+                session.sendDownstreamGamePacket(closeWindowPacket);
                 InventoryUtils.closeInventory(session, openInventory.getJavaId(), false);
             } else if (openInventory.isPending()) {
                 InventoryUtils.displayInventory(session, openInventory);

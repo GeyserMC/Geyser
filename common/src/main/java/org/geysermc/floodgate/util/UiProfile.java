@@ -25,6 +25,8 @@
 
 package org.geysermc.floodgate.util;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 public enum UiProfile {
     CLASSIC,
     POCKET;
@@ -37,7 +39,7 @@ public enum UiProfile {
      * @param id the UiProfile identifier
      * @return The UiProfile or {@link #CLASSIC} if the UiProfile wasn't found
      */
-    public static UiProfile fromId(int id) {
+    public static @NonNull UiProfile fromId(int id) {
         return VALUES.length > id ? VALUES[id] : VALUES[0];
     }
 }

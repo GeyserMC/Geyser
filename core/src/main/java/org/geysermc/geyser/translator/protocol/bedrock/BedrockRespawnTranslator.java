@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.protocol.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.ClientCommand;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundClientCommandPacket;
-import com.nukkitx.protocol.bedrock.packet.RespawnPacket;
+import org.cloudburstmc.protocol.bedrock.packet.RespawnPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -39,7 +39,7 @@ public class BedrockRespawnTranslator extends PacketTranslator<RespawnPacket> {
     public void translate(GeyserSession session, RespawnPacket packet) {
         if (packet.getState() == RespawnPacket.State.CLIENT_READY) {
             ServerboundClientCommandPacket javaRespawnPacket = new ServerboundClientCommandPacket(ClientCommand.RESPAWN);
-            session.sendDownstreamPacket(javaRespawnPacket);
+            session.sendDownstreamGamePacket(javaRespawnPacket);
         }
     }
 }

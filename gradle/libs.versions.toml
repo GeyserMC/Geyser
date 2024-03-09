@@ -1,36 +1,58 @@
 [versions]
-jackson = "2.14.0"
+base-api = "1.0.0-SNAPSHOT"
+cumulus = "1.1.2"
+erosion = "1.0-20230406.174837-8"
+events = "1.1-SNAPSHOT"
+jackson = { strictly = "2.14.0" } # Don't let other dependencies override
 fastutil = "8.5.2"
-netty = "4.1.80.Final"
+netty = "4.1.103.Final"
 guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8
 websocket = "1.5.1"
-protocol = "2.9.15-20230106.005737-3"
-raknet = "1.6.28-20220125.214016-6"
+protocol = "3.0.0.Beta1-20240204.134050-120"
+protocol-connection = "3.0.0.Beta1-20240204.134050-119"
+raknet = "1.0.0.CR1-20231206.145325-12"
+blockstateupdater="1.20.60-20240129.140535-1"
 mcauthlib = "d9d773e"
-mcprotocollib = "1.19.3-20230107.194116-10"
-packetlib = "3.0.1"
-adventure = "4.12.0-20220629.025215-9"
-adventure-platform = "4.1.2"
-junit = "4.13.1"
+mcprotocollib = "1.20.4-2-20240116.220521-7"
+adventure = "4.14.0"
+adventure-platform = "4.3.0"
+junit = "5.9.2"
 checkerframework = "3.19.0"
-cumulus  = "1.1.1"
-events = "1.0-SNAPSHOT"
-log4j  = "2.17.1"
+log4j = "2.20.0"
 jline = "3.21.0"
 terminalconsoleappender = "1.2.0"
-paper = "1.19-R0.1-SNAPSHOT"
-viaversion = "4.0.0"
-adapters = "1.6-SNAPSHOT"
+folia = "1.19.4-R0.1-SNAPSHOT"
+viaversion = "4.9.2"
+adapters = "1.11-SNAPSHOT"
 commodore = "2.2"
 bungeecord = "a7c6ede"
-velocity = "3.0.0"
-sponge = "8.0.0"
-fabric-minecraft = "1.19.1"
-fabric-loader = "0.14.8"
-fabric-api = "0.58.5+1.19.1"
+velocity = "3.1.1"
+viaproxy = "3.2.0-SNAPSHOT"
+fabric-minecraft = "1.20.4"
+fabric-loader = "0.15.2"
+fabric-api = "0.91.2+1.20.4"
+fabric-permissions = "0.2-SNAPSHOT"
+neoforge-minecraft = "20.4.48-beta"
+mixin = "0.8.5"
+
+# plugin versions
+indra = "3.1.3"
+shadow = "7.1.3-SNAPSHOT"
+architectury-plugin = "3.4-SNAPSHOT"
+architectury-loom = "1.4-SNAPSHOT"
+minotaur = "2.8.7"
+lombok = "8.4"
+blossom = "1.2.0"
 
 [libraries]
+base-api = { group = "org.geysermc.api", name = "base-api", version.ref = "base-api" }
+cumulus = { group = "org.geysermc.cumulus", name = "cumulus", version.ref = "cumulus" }
+events = { group = "org.geysermc.event", name = "events", version.ref = "events" }
+
+erosion-bukkit-common = { group = "org.geysermc.erosion", name = "bukkit-common", version.ref = "erosion" }
+erosion-common = { group = "org.geysermc.erosion", name = "common", version.ref = "erosion" }
+
 jackson-annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson" }
 jackson-core = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
 jackson-dataformat-yaml = { group = "com.fasterxml.jackson.dataformat", name = "jackson-dataformat-yaml", version.ref = "jackson" }
@@ -56,43 +78,65 @@ netty-transport-native-kqueue = { group = "io.netty", name = "netty-transport-na
 
 log4j-api = { group = "org.apache.logging.log4j", name = "log4j-api", version.ref = "log4j" }
 log4j-core = { group = "org.apache.logging.log4j", name = "log4j-core", version.ref = "log4j" }
-log4j-slf4j18-impl = { group = "org.apache.logging.log4j", name = "log4j-slf4j18-impl", version.ref = "log4j" }
+log4j-slf4j2-impl = { group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version.ref = "log4j" }
 
 jline-terminal = { group = "org.jline", name = "jline-terminal", version.ref = "jline" }
 jline-terminal-jna = { group = "org.jline", name = "jline-terminal-jna", version.ref = "jline" }
 jline-reader = { group = "org.jline", name = "jline-reader", version.ref = "jline" }
 
-paper-api = { group = "io.papermc.paper", name = "paper-api", version.ref = "paper" }
-paper-mojangapi = { group = "io.papermc.paper", name = "paper-mojangapi", version.ref = "paper" }
+folia-api = { group = "dev.folia", name = "folia-api", version.ref = "folia" }
+paper-mojangapi = { group = "io.papermc.paper", name = "paper-mojangapi", version.ref = "folia" }
 
-# check these on https://modmuss50.me/fabric.html
+mixin = { group = "org.spongepowered", name = "mixin", version.ref = "mixin" }
+
+# Check these on https://modmuss50.me/fabric.html
 fabric-minecraft = { group = "com.mojang", name = "minecraft", version.ref = "fabric-minecraft" }
 fabric-loader = { group = "net.fabricmc", name = "fabric-loader", version.ref = "fabric-loader" }
 fabric-api = { group = "net.fabricmc.fabric-api", name = "fabric-api", version.ref = "fabric-api" }
+fabric-permissions = { group = "me.lucko", name = "fabric-permissions-api", version.ref = "fabric-permissions" }
+
+neoforge-minecraft = { group = "net.neoforged", name = "neoforge", version.ref = "neoforge-minecraft" }
 
 adapters-spigot = { group = "org.geysermc.geyser.adapters", name = "spigot-all", version.ref = "adapters" }
 bungeecord-proxy = { group = "com.github.SpigotMC.BungeeCord", name = "bungeecord-proxy", version.ref = "bungeecord" }
 checker-qual = { group = "org.checkerframework", name = "checker-qual", version.ref = "checkerframework" }
 commodore = { group = "me.lucko", name = "commodore", version.ref = "commodore" }
-cumulus = { group = "org.geysermc.cumulus", name = "cumulus", version.ref = "cumulus" }
-events = { group = "org.geysermc.event", name = "events", version.ref = "events" }
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
-junit = { group = "junit", name = "junit", version.ref = "junit" }
+junit = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
 mcauthlib = { group = "com.github.GeyserMC", name = "MCAuthLib", version.ref = "mcauthlib" }
 mcprotocollib = { group = "com.github.steveice10", name = "mcprotocollib", version.ref = "mcprotocollib" }
-packetlib = { group = "com.github.steveice10", name = "packetlib", version.ref = "packetlib" }
-protocol = { group = "com.nukkitx.protocol", name = "bedrock-v560", version.ref = "protocol" }
-raknet = { group = "com.nukkitx.network", name = "raknet", version.ref = "raknet" }
-sponge-api = { group = "org.spongepowered", name = "spongeapi", version.ref = "sponge" }
+raknet = { group = "org.cloudburstmc.netty", name = "netty-transport-raknet", version.ref = "raknet" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }
 velocity-api = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }
+viaproxy = { group = "net.raphimc", name = "ViaProxy", version.ref = "viaproxy" }
 viaversion = { group = "com.viaversion", name = "viaversion", version.ref = "viaversion" }
 websocket = { group = "org.java-websocket", name = "Java-WebSocket", version.ref = "websocket" }
+
+protocol-common = { group = "org.cloudburstmc.protocol", name = "common", version.ref = "protocol-connection" }
+protocol-codec = { group = "org.cloudburstmc.protocol", name = "bedrock-codec", version.ref = "protocol" }
+protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol-connection" }
+
+math = { group = "org.cloudburstmc.math", name = "immutable", version = "2.0" }
+
+blockstateupdater = { group = "org.cloudburstmc", name = "block-state-updater", version.ref = "blockstateupdater"}
+
+# plugins
+indra = { group = "net.kyori", name  = "indra-common", version.ref = "indra" }
+shadow = { group = "com.github.johnrengelman", name = "shadow", version.ref = "shadow" }
+architectury-plugin = { group = "architectury-plugin", name = "architectury-plugin.gradle.plugin", version.ref = "architectury-plugin" }
+architectury-loom = { group = "dev.architectury.loom", name = "dev.architectury.loom.gradle.plugin", version.ref = "architectury-loom" }
+minotaur = { group = "com.modrinth.minotaur", name = "Minotaur", version.ref = "minotaur" }
+
+[plugins]
+lombok = { id = "io.freefair.lombok", version.ref = "lombok" }
+indra = { id = "net.kyori.indra", version.ref = "indra" }
+blossom = { id = "net.kyori.blossom", version.ref = "blossom" }
 
 [bundles]
 jackson = [ "jackson-annotations", "jackson-core", "jackson-dataformat-yaml" ]
 fastutil = [ "fastutil-int-int-maps", "fastutil-int-long-maps", "fastutil-int-byte-maps", "fastutil-int-boolean-maps", "fastutil-object-int-maps", "fastutil-object-object-maps" ]
 adventure = [ "adventure-text-serializer-gson", "adventure-text-serializer-legacy", "adventure-text-serializer-plain" ]
-log4j = [ "log4j-api", "log4j-core", "log4j-slf4j18-impl" ]
+log4j = [ "log4j-api", "log4j-core", "log4j-slf4j2-impl" ]
 jline = [ "jline-terminal", "jline-terminal-jna", "jline-reader" ]
+protocol = [ "protocol-common", "protocol-codec", "protocol-connection" ]

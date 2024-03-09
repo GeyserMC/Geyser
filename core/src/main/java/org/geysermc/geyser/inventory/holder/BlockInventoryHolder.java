@@ -25,16 +25,19 @@
 
 package org.geysermc.geyser.inventory.holder;
 
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
-import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
-import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
-import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
-import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
+import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
+import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.LecternContainer;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.util.BlockUtils;
@@ -57,7 +60,7 @@ public class BlockInventoryHolder extends InventoryHolder {
     private final Set<String> validBlocks;
 
     public BlockInventoryHolder(String javaBlockIdentifier, ContainerType containerType, String... validBlocks) {
-        this.defaultJavaBlockState = BlockRegistries.JAVA_IDENTIFIERS.get(javaBlockIdentifier);
+        this.defaultJavaBlockState = BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().getInt(javaBlockIdentifier);
         this.containerType = containerType;
         if (validBlocks != null) {
             Set<String> validBlocksTemp = new HashSet<>(validBlocks.length + 1);
@@ -76,15 +79,18 @@ public class BlockInventoryHolder extends InventoryHolder {
         // (This could be a virtual inventory that the player is opening)
         if (checkInteractionPosition(session)) {
             // Then, check to see if the interacted block is valid for this inventory by ensuring the block state identifier is valid
+            // and the bedrock block is vanilla
             int javaBlockId = session.getGeyser().getWorldManager().getBlockAt(session, session.getLastInteractionBlockPosition());
-            String[] javaBlockString = BlockRegistries.JAVA_IDENTIFIERS.get().getOrDefault(javaBlockId, "minecraft:air").split("\\[");
-            if (isValidBlock(javaBlockString)) {
-                // We can safely use this block
-                inventory.setHolderPosition(session.getLastInteractionBlockPosition());
-                ((Container) inventory).setUsingRealBlock(true, javaBlockString[0]);
-                setCustomName(session, session.getLastInteractionBlockPosition(), inventory, javaBlockId);
+            if (!BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get().containsKey(javaBlockId)) {
+                String[] javaBlockString = BlockRegistries.JAVA_BLOCKS.getOrDefault(javaBlockId, BlockMapping.DEFAULT).getJavaIdentifier().split("\\[");
+                if (isValidBlock(javaBlockString)) {
+                    // We can safely use this block
+                    inventory.setHolderPosition(session.getLastInteractionBlockPosition());
+                    ((Container) inventory).setUsingRealBlock(true, javaBlockString[0]);
+                    setCustomName(session, session.getLastInteractionBlockPosition(), inventory, javaBlockId);
 
-                return true;
+                    return true;
+                }
             }
         }
 
@@ -96,7 +102,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(position);
-        blockPacket.setRuntimeId(session.getBlockMappings().getBedrockBlockId(defaultJavaBlockState));
+        blockPacket.setDefinition(session.getBlockMappings().getVanillaBedrockBlock(defaultJavaBlockState));
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
         inventory.setHolderPosition(position);
@@ -147,13 +153,27 @@ public class BlockInventoryHolder extends InventoryHolder {
 
     @Override
     public void closeInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
-        if (((Container) inventory).isUsingRealBlock()) {
-            // No need to reset a block since we didn't change any blocks
-            // But send a container close packet because we aren't destroying the original.
-            ContainerClosePacket packet = new ContainerClosePacket();
-            packet.setId((byte) inventory.getBedrockId());
-            packet.setUnknownBool0(true); //TODO needs to be changed in Protocol to "server-side" or something
-            session.sendUpstreamPacket(packet);
+        if (inventory instanceof Container container) {
+            if (container.isUsingRealBlock() && !(inventory instanceof LecternContainer)) {
+                // No need to reset a block since we didn't change any blocks
+                // But send a container close packet because we aren't destroying the original.
+                ContainerClosePacket packet = new ContainerClosePacket();
+                packet.setId((byte) inventory.getBedrockId());
+                packet.setServerInitiated(true);
+                session.sendUpstreamPacket(packet);
+                return;
+            }
+        } else {
+            GeyserImpl.getInstance().getLogger().warning("Tried to close a non-container inventory in a block inventory holder! ");
+            if (GeyserImpl.getInstance().getLogger().isDebug()) {
+                GeyserImpl.getInstance().getLogger().debug("Current inventory: " + inventory);
+                GeyserImpl.getInstance().getLogger().debug("Open inventory: " + session.getOpenInventory());
+            }
+            // Try to save ourselves? maybe?
+            // https://github.com/GeyserMC/Geyser/issues/4141
+            // TODO: improve once this issue is pinned down properly
+            session.setOpenInventory(null);
+            session.setInventoryTranslator(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
             return;
         }
 
@@ -162,7 +182,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(holderPos);
-        blockPacket.setRuntimeId(session.getBlockMappings().getBedrockBlockId(realBlock));
+        blockPacket.setDefinition(session.getBlockMappings().getBedrockBlock(realBlock));
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
     }

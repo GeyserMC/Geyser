@@ -26,9 +26,9 @@
 package org.geysermc.geyser.translator.protocol.java.entity;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundSetPassengersPacket;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
-import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -91,6 +91,16 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
                 EntityUtils.updateMountOffset(passenger, entity, false, false, (packet.getPassengerIds().length > 1));
                 // Force an update to the passenger metadata
                 passenger.updateBedrockMetadata();
+
+                if (passenger == session.getPlayerEntity()) {
+                    //TODO test
+                    if (session.getMountVehicleScheduledFuture() != null) {
+                        // Cancel this task as it is now unnecessary.
+                        // Note that this isn't present in JavaSetPassengersTranslator as that code is not called for players
+                        // as of Java 1.19.3, but the scheduled future checks for the vehicle being null anyway.
+                        session.getMountVehicleScheduledFuture().cancel(false);
+                    }
+                }
             }
         }
 
@@ -98,7 +108,7 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
 
         switch (entity.getDefinition().entityType()) {
             case HORSE, SKELETON_HORSE, DONKEY, MULE, RAVAGER -> {
-                entity.getDirtyMetadata().put(EntityData.RIDER_MAX_ROTATION, 181.0f);
+                entity.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, 181.0f);
                 entity.updateBedrockMetadata();
             }
         }

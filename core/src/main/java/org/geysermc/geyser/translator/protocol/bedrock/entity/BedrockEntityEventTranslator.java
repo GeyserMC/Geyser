@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.protocol.bedrock.entity;
 
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSelectTradePacket;
-import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.MerchantContainer;
 import org.geysermc.geyser.session.GeyserSession;
@@ -49,7 +49,7 @@ public class BedrockEntityEventTranslator extends PacketTranslator<EntityEventPa
             case COMPLETE_TRADE -> {
                 // Not sent as of 1.18.10
                 ServerboundSelectTradePacket selectTradePacket = new ServerboundSelectTradePacket(packet.getData());
-                session.sendDownstreamPacket(selectTradePacket);
+                session.sendDownstreamGamePacket(selectTradePacket);
 
                 session.scheduleInEventLoop(() -> {
                     Inventory openInventory = session.getOpenInventory();
@@ -60,6 +60,6 @@ public class BedrockEntityEventTranslator extends PacketTranslator<EntityEventPa
                 return;
             }
         }
-        session.getGeyser().getLogger().debug("Did not translate incoming EntityEventPacket: " + packet.toString());
+        session.getGeyser().getLogger().debug("Did not translate incoming EntityEventPacket: " + packet);
     }
 }

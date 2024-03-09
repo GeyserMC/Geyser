@@ -27,6 +27,7 @@ package org.geysermc.geyser.extension;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.extension.ExtensionDescription;
 import org.geysermc.geyser.api.extension.exception.InvalidExtensionException;
@@ -39,14 +40,17 @@ import java.nio.file.Path;
 
 public class GeyserExtensionClassLoader extends URLClassLoader {
     private final GeyserExtensionLoader loader;
+    private final ExtensionDescription description;
     private final Object2ObjectMap<String, Class<?>> classes = new Object2ObjectOpenHashMap<>();
+    private boolean warnedForExternalClassAccess;
 
-    public GeyserExtensionClassLoader(GeyserExtensionLoader loader, ClassLoader parent, Path path) throws MalformedURLException {
+    public GeyserExtensionClassLoader(GeyserExtensionLoader loader, ClassLoader parent, Path path, ExtensionDescription description) throws MalformedURLException {
         super(new URL[] { path.toUri().toURL() }, parent);
         this.loader = loader;
+        this.description = description;
     }
 
-    public Extension load(ExtensionDescription description) throws InvalidExtensionException {
+    public Extension load() throws InvalidExtensionException {
         try {
             Class<?> jarClass;
             try {
@@ -76,24 +80,32 @@ public class GeyserExtensionClassLoader extends URLClassLoader {
     }
 
     protected Class<?> findClass(String name, boolean checkGlobal) throws ClassNotFoundException {
-        if (name.startsWith("org.geysermc.geyser.") || name.startsWith("net.minecraft.")) {
-            throw new ClassNotFoundException(name);
-        }
-
         Class<?> result = this.classes.get(name);
         if (result == null) {
-            if (checkGlobal) {
-                result = this.loader.classByName(name);
-            }
-
-            if (result == null) {
+            // Try to find class in current extension
+            try {
                 result = super.findClass(name);
-                if (result != null) {
-                    this.loader.setClass(name, result);
+            } catch (ClassNotFoundException ignored) {
+                // If class is not found in current extension, check in the global class loader
+                // This is used for classes that are not in the extension, but are in other extensions
+                if (checkGlobal) {
+                    if (!warnedForExternalClassAccess) {
+                        GeyserImpl.getInstance().getLogger().warning("Extension " + this.description.name() + " loads class " + name + " from an external source. " +
+                                "This can change at any time and break the extension, additionally to potentially causing unexpected behaviour!");
+                        warnedForExternalClassAccess = true;
+                    }
+                    result = this.loader.classByName(name);
                 }
             }
 
-            this.classes.put(name, result);
+            if (result != null) {
+                // If class is found, cache it
+                this.loader.setClass(name, result);
+                this.classes.put(name, result);
+            } else {
+                // If class is not found, throw exception
+                throw new ClassNotFoundException(name);
+            }
         }
         return result;
     }

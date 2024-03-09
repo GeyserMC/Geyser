@@ -25,15 +25,28 @@
 
 package org.geysermc.geyser.registry;
 
+import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.geysermc.geyser.api.block.custom.CustomBlockData;
+import org.geysermc.geyser.api.block.custom.CustomBlockState;
+import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
+import org.geysermc.geyser.registry.loader.CollisionRegistryLoader;
 import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.registry.populator.BlockRegistryPopulator;
+import org.geysermc.geyser.registry.populator.CustomBlockRegistryPopulator;
+import org.geysermc.geyser.registry.populator.CustomSkullRegistryPopulator;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.BlockMappings;
-import org.geysermc.geyser.util.collection.Object2IntBiMap;
+import org.geysermc.geyser.registry.type.CustomSkull;
+import org.geysermc.geyser.translator.collision.BlockCollision;
+
+import java.util.BitSet;
+
+import java.util.Set;
 
 /**
  * Holds all the block registries in Geyser.
@@ -54,39 +67,84 @@ public class BlockRegistries {
      * A registry which stores Java IDs to {@link BlockMapping}, containing miscellaneous information about
      * blocks and their behavior in many cases.
      */
-    public static final ArrayRegistry<BlockMapping> JAVA_BLOCKS = ArrayRegistry.create(RegistryLoaders.empty(() -> new BlockMapping[] {}));
+    public static final ArrayRegistry<BlockMapping> JAVA_BLOCKS = ArrayRegistry.create(RegistryLoaders.uninitialized());
 
     /**
-     * A (bi)mapped registry containing the Java IDs to identifiers.
+     * A mapped registry containing which holds block IDs to its {@link BlockCollision}.
      */
-    public static final MappedRegistry<String, Integer, Object2IntBiMap<String>> JAVA_IDENTIFIERS = MappedRegistry.create(RegistryLoaders.empty(Object2IntBiMap::new));
+    public static final IntMappedRegistry<BlockCollision> COLLISIONS;
+
+    /**
+     * A mapped registry containing the Java identifiers to IDs.
+     */
+    public static final MappedRegistry<String, Integer, Object2IntMap<String>> JAVA_IDENTIFIER_TO_ID = MappedRegistry.create(RegistryLoaders.empty(Object2IntOpenHashMap::new));
 
     /**
      * A registry which stores unique Java IDs to its clean identifier
      * This is used in the statistics form.
      */
-    public static final ArrayRegistry<String> CLEAN_JAVA_IDENTIFIERS = ArrayRegistry.create(RegistryLoaders.empty(() -> new String[] {}));
+    public static final ArrayRegistry<String> CLEAN_JAVA_IDENTIFIERS = ArrayRegistry.create(RegistryLoaders.uninitialized());
 
     /**
      * A registry containing all the waterlogged blockstates.
      */
-    public static final SimpleRegistry<IntSet> WATERLOGGED = SimpleRegistry.create(RegistryLoaders.empty(IntOpenHashSet::new));
+    public static final SimpleRegistry<BitSet> WATERLOGGED = SimpleRegistry.create(RegistryLoaders.empty(BitSet::new));
 
     /**
      * A registry containing all blockstates which are always interactive.
      */
-    public static final SimpleRegistry<IntSet> INTERACTIVE = SimpleRegistry.create(RegistryLoaders.empty(IntOpenHashSet::new));
+    public static final SimpleRegistry<BitSet> INTERACTIVE = SimpleRegistry.create(RegistryLoaders.uninitialized());
 
     /**
      * A registry containing all blockstates which are interactive if the player has the may build permission.
      */
-    public static final SimpleRegistry<IntSet> INTERACTIVE_MAY_BUILD = SimpleRegistry.create(RegistryLoaders.empty(IntOpenHashSet::new));
+    public static final SimpleRegistry<BitSet> INTERACTIVE_MAY_BUILD = SimpleRegistry.create(RegistryLoaders.uninitialized());
+
+    /**
+     * A registry containing all the custom blocks.
+     */
+    public static final ArrayRegistry<CustomBlockData> CUSTOM_BLOCKS = ArrayRegistry.create(RegistryLoaders.empty(() -> new CustomBlockData[] {}));
+
+    /**
+     * A registry which stores Java Ids and the custom block state it should be replaced with.
+     */
+    public static final MappedRegistry<Integer, CustomBlockState, Int2ObjectMap<CustomBlockState>> CUSTOM_BLOCK_STATE_OVERRIDES = MappedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
+
+    /**
+     * A registry which stores non vanilla java blockstates and the custom block state it should be replaced with.
+     */
+    public static final SimpleMappedRegistry<JavaBlockState, CustomBlockState> NON_VANILLA_BLOCK_STATE_OVERRIDES = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
+
+    /**
+     * A registry which stores clean Java Ids and the custom block it should be replaced with in the context of items.
+     */
+    public static final SimpleMappedRegistry<String, CustomBlockData> CUSTOM_BLOCK_ITEM_OVERRIDES = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
+
+    /**
+     * A registry which stores Custom Block Data for extended collision boxes and the Java IDs of blocks that will have said extended collision boxes placed above them.
+     */
+    public static final SimpleMappedRegistry<CustomBlockData, Set<Integer>> EXTENDED_COLLISION_BOXES = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
+
+    /**
+     * A registry which stores skin texture hashes to custom skull blocks.
+     */
+    public static final SimpleMappedRegistry<String, CustomSkull> CUSTOM_SKULLS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     static {
-        BlockRegistryPopulator.populate();
+        CustomSkullRegistryPopulator.populate();
+        BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.PRE_INIT);
+        CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.DEFINITION);
+        CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.NON_VANILLA_REGISTRATION);
+        BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.INIT_JAVA);
+        COLLISIONS = IntMappedRegistry.create(Pair.of("org.geysermc.geyser.translator.collision.CollisionRemapper", "mappings/collision.json"), CollisionRegistryLoader::new);
+        CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.VANILLA_REGISTRATION);
+        CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.CUSTOM_REGISTRATION);
+        BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.INIT_BEDROCK);
+        BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.POST_INIT);
     }
 
     public static void init() {
         // no-op
     }
+
 }

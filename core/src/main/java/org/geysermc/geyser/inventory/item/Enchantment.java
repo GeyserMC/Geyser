@@ -26,6 +26,7 @@
 package org.geysermc.geyser.inventory.item;
 
 import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Locale;
 
@@ -78,7 +79,7 @@ public enum Enchantment {
         this.javaIdentifier = "minecraft:" + this.name().toLowerCase(Locale.ENGLISH);
     }
 
-    public static Enchantment getByJavaIdentifier(String javaIdentifier) {
+    public static @Nullable Enchantment getByJavaIdentifier(String javaIdentifier) {
         for (Enchantment enchantment : VALUES) {
             if (enchantment.javaIdentifier.equals(javaIdentifier) || enchantment.name().toLowerCase(Locale.ENGLISH).equalsIgnoreCase(javaIdentifier)) {
                 return enchantment;
@@ -87,7 +88,7 @@ public enum Enchantment {
         return null;
     }
 
-    public static Enchantment getByBedrockId(int bedrockId) {
+    public static @Nullable Enchantment getByBedrockId(int bedrockId) {
         if (bedrockId >= 0 && bedrockId < VALUES.length) {
             return VALUES[bedrockId];
         }
@@ -149,7 +150,7 @@ public enum Enchantment {
          */
         public static final String[] ALL_JAVA_IDENTIFIERS;
 
-        public static JavaEnchantment getByJavaIdentifier(String javaIdentifier) {
+        public static @Nullable JavaEnchantment getByJavaIdentifier(String javaIdentifier) {
             if (!javaIdentifier.startsWith("minecraft:")) {
                 javaIdentifier = "minecraft:" + javaIdentifier;
             }

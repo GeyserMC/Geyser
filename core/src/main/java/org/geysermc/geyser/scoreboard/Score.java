@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.scoreboard;
 
-import com.nukkitx.protocol.bedrock.data.ScoreInfo;
+import org.cloudburstmc.protocol.bedrock.data.ScoreInfo;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 

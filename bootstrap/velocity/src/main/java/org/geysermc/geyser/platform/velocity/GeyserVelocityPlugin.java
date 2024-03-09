@@ -32,30 +32,30 @@ import com.velocitypowered.api.event.proxy.ListenerBoundEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.network.ListenerType;
+import com.velocitypowered.api.network.ProtocolVersion;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
-import net.kyori.adventure.util.Codec;
-import org.geysermc.common.PlatformType;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.extension.Extension;
-import org.geysermc.geyser.api.network.AuthType;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.velocity.command.GeyserVelocityCommandExecutor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -64,7 +64,6 @@ import java.util.UUID;
 
 @Plugin(id = "geyser", name = GeyserImpl.NAME + "-Velocity", version = GeyserImpl.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
 public class GeyserVelocityPlugin implements GeyserBootstrap {
-
     @Inject
     private Logger logger;
 
@@ -86,84 +85,54 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     private final Path configFolder = Paths.get("plugins/" + GeyserImpl.NAME + "-Velocity/");
 
     @Override
-    public void onEnable() {
-        try {
-            Codec.class.getMethod("codec", Codec.Decoder.class, Codec.Encoder.class);
-        } catch (NoSuchMethodException e) {
-            // velocitypowered.com has a build that is very outdated
-            logger.error("Please download Velocity from https://papermc.io/downloads#Velocity - the 'stable' Velocity version " +
-                    "that has likely been downloaded is very outdated and does not support 1.19.");
-            return;
-        }
-
+    public void onGeyserInitialize() {
         GeyserLocale.init(this);
 
-        try {
-            if (!configFolder.toFile().exists())
-                //noinspection ResultOfMethodCallIgnored
-                configFolder.toFile().mkdirs();
-            File configFile = FileUtils.fileOrCopiedFromResource(configFolder.resolve("config.yml").toFile(),
-                    "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
-            this.geyserConfig = FileUtils.loadConfig(configFile, GeyserVelocityConfiguration.class);
-        } catch (IOException ex) {
-            logger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
-            ex.printStackTrace();
+        if (!ProtocolVersion.isSupported(GameProtocol.getJavaProtocolVersion())) {
+            logger.error("      / \\");
+            logger.error("     /   \\");
+            logger.error("    /  |  \\");
+            logger.error("   /   |   \\    " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_proxy", proxyServer.getVersion().getName()));
+            logger.error("  /         \\   " + GeyserLocale.getLocaleStringLog("geyser.may_not_work_as_intended_all_caps"));
+            logger.error(" /     o     \\");
+            logger.error("/_____________\\");
+        }
+
+        if (!loadConfig()) {
             return;
         }
-
-        InetSocketAddress javaAddr = proxyServer.getBoundAddress();
-
-        // By default this should be localhost but may need to be changed in some circumstances
-        if (this.geyserConfig.getRemote().address().equalsIgnoreCase("auto")) {
-            this.geyserConfig.setAutoconfiguredRemote(true);
-            // Don't use localhost if not listening on all interfaces
-            if (!javaAddr.getHostString().equals("0.0.0.0") && !javaAddr.getHostString().equals("")) {
-                this.geyserConfig.getRemote().setAddress(javaAddr.getHostString());
-            }
-            geyserConfig.getRemote().setPort(javaAddr.getPort());
-        }
-
-        if (geyserConfig.getBedrock().isCloneRemotePort()) {
-            geyserConfig.getBedrock().setPort(javaAddr.getPort());
-        }
-
         this.geyserLogger = new GeyserVelocityLogger(logger, geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
         this.geyser = GeyserImpl.load(PlatformType.VELOCITY, this);
-
-        // Remove this in like a year
-        try {
-            // Should only exist on 1.0
-            Class.forName("org.geysermc.floodgate.FloodgateAPI");
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.outdated",
-                    "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/"));
-            return;
-        } catch (ClassNotFoundException ignored) {
-        }
-
-        if (geyserConfig.getRemote().authType() == AuthType.FLOODGATE && proxyServer.getPluginManager().getPlugin("floodgate").isEmpty()) {
-            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " "
-                    + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
-            return;
-        } else if (geyserConfig.isAutoconfiguredRemote() && proxyServer.getPluginManager().getPlugin("floodgate").isPresent()) {
-            // Floodgate installed means that the user wants Floodgate authentication
-            geyserLogger.debug("Auto-setting to Floodgate authentication.");
-            geyserConfig.getRemote().setAuthType(AuthType.FLOODGATE);
-        }
-
-        geyserConfig.loadFloodgate(this, proxyServer, configFolder.toFile());
-
+        this.geyserInjector = new GeyserVelocityInjector(proxyServer);
     }
 
-    private void postStartup() {
+    @Override
+    public void onGeyserEnable() {
+        if (GeyserImpl.getInstance().isReloading()) {
+            if (!loadConfig()) {
+                return;
+            }
+            this.geyserLogger.setDebug(geyserConfig.isDebugMode());
+            GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
+        } else {
+            this.geyserCommandManager = new GeyserCommandManager(geyser);
+            this.geyserCommandManager.init();
+        }
+
         GeyserImpl.start();
 
-        this.geyserInjector = new GeyserVelocityInjector(proxyServer);
-        // Will be initialized after the proxy has been bound
+        if (geyserConfig.isLegacyPingPassthrough()) {
+            this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
+        } else {
+            this.geyserPingPassthrough = new GeyserVelocityPingPassthrough(proxyServer);
+        }
 
-        this.geyserCommandManager = new GeyserCommandManager(geyser);
-        this.geyserCommandManager.init();
+        // No need to re-register commands when reloading
+        if (GeyserImpl.getInstance().isReloading()) {
+            return;
+        }
 
         this.commandManager.register("geyser", new GeyserVelocityCommandExecutor(geyser, geyserCommandManager.getCommands()));
         for (Map.Entry<Extension, Map<String, Command>> entry : this.geyserCommandManager.extensionCommands().entrySet()) {
@@ -175,17 +144,18 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
             this.commandManager.register(entry.getKey().description().id(), new GeyserVelocityCommandExecutor(this.geyser, commands));
         }
 
-        if (geyserConfig.isLegacyPingPassthrough()) {
-            this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
-        } else {
-            this.geyserPingPassthrough = new GeyserVelocityPingPassthrough(proxyServer);
-        }
-
         proxyServer.getEventManager().register(this, new GeyserVelocityUpdateListener());
     }
 
     @Override
-    public void onDisable() {
+    public void onGeyserDisable() {
+        if (geyser != null) {
+            geyser.disable();
+        }
+    }
+
+    @Override
+    public void onGeyserShutdown() {
         if (geyser != null) {
             geyser.shutdown();
         }
@@ -216,19 +186,19 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     @Subscribe
     public void onInit(ProxyInitializeEvent event) {
-        onEnable();
+        this.onGeyserInitialize();
     }
 
     @Subscribe
     public void onShutdown(ProxyShutdownEvent event) {
-        onDisable();
+        this.onGeyserShutdown();
     }
 
     @Subscribe
     public void onProxyBound(ListenerBoundEvent event) {
         if (event.getListenerType() == ListenerType.MINECRAFT) {
             // Once listener is bound, do our startup process
-            this.postStartup();
+            this.onGeyserEnable();
 
             if (geyserInjector != null) {
                 // After this bound, we know that the channel initializer cannot change without it being ineffective for Velocity, too
@@ -246,5 +216,43 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     @Override
     public SocketAddress getSocketAddress() {
         return this.geyserInjector.getServerSocketAddress();
+    }
+
+    @NonNull
+    @Override
+    public String getServerBindAddress() {
+        return proxyServer.getBoundAddress().getHostString();
+    }
+
+    @Override
+    public int getServerPort() {
+        return proxyServer.getBoundAddress().getPort();
+    }
+
+    @Override
+    public boolean testFloodgatePluginPresent() {
+        var floodgate = proxyServer.getPluginManager().getPlugin("floodgate");
+        if (floodgate.isPresent()) {
+            geyserConfig.loadFloodgate(this, proxyServer, configFolder.toFile());
+            return true;
+        }
+        return false;
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean loadConfig() {
+        try {
+            if (!configFolder.toFile().exists())
+                //noinspection ResultOfMethodCallIgnored
+                configFolder.toFile().mkdirs();
+            File configFile = FileUtils.fileOrCopiedFromResource(configFolder.resolve("config.yml").toFile(),
+                    "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
+            this.geyserConfig = FileUtils.loadConfig(configFile, GeyserVelocityConfiguration.class);
+        } catch (IOException ex) {
+            logger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
+            ex.printStackTrace();
+            return false;
+        }
+        return true;
     }
 }

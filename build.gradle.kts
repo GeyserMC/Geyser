@@ -1,29 +1,30 @@
 plugins {
     `java-library`
+    // Ensure AP works in eclipse (no effect on other IDEs)
+    eclipse
     id("geyser.build-logic")
-    id("io.freefair.lombok") version "6.3.0" apply false
+    alias(libs.plugins.lombok) apply false
 }
 
 allprojects {
-    group = "org.geysermc"
-    version = "2.1.0-SNAPSHOT"
-    description = "Allows for players from Minecraft: Bedrock Edition to join Minecraft: Java Edition servers."
-
-    tasks.withType<JavaCompile> {
-        options.encoding = "UTF-8"
-    }
+    group = properties["group"] as String + "." + properties["id"] as String
+    version = properties["version"] as String
+    description = properties["description"] as String
 }
 
-val platforms = setOf(
-    projects.fabric,
+val basePlatforms = setOf(
     projects.bungeecord,
     projects.spigot,
-    projects.sponge,
     projects.standalone,
-    projects.velocity
+    projects.velocity,
+    projects.viaproxy
 ).map { it.dependencyProject }
 
-val api: Project = projects.api.dependencyProject
+val moddedPlatforms = setOf(
+    projects.fabric,
+    projects.neoforge,
+    projects.mod
+).map { it.dependencyProject }
 
 subprojects {
     apply {
@@ -32,16 +33,9 @@ subprojects {
         plugin("geyser.build-logic")
     }
 
-    val relativePath = projectDir.relativeTo(rootProject.projectDir).path
-
-    if (relativePath.contains("api")) {
-        plugins.apply("geyser.api-conventions")
-    } else {
-        group = rootProject.group as String + ".geyser"
-        when (this) {
-            in platforms -> plugins.apply("geyser.platform-conventions")
-            api -> plugins.apply("geyser.publish-conventions")
-            else -> plugins.apply("geyser.base-conventions")
-        }
+    when (this) {
+        in basePlatforms -> plugins.apply("geyser.platform-conventions")
+        in moddedPlatforms -> plugins.apply("geyser.modded-conventions")
+        else -> plugins.apply("geyser.base-conventions")
     }
 }

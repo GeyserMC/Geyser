@@ -25,23 +25,24 @@
 
 package org.geysermc.geyser.translator.inventory;
 
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
-import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 
 public class SmithingInventoryTranslator extends AbstractBlockInventoryTranslator {
     public SmithingInventoryTranslator() {
-        super(3, "minecraft:smithing_table", ContainerType.SMITHING_TABLE, UIInventoryUpdater.INSTANCE);
+        super(4, "minecraft:smithing_table", ContainerType.SMITHING_TABLE, UIInventoryUpdater.INSTANCE);
     }
 
     @Override
-    public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
+    public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
         return switch (slotInfoData.getContainer()) {
-            case SMITHING_TABLE_INPUT -> 0;
-            case SMITHING_TABLE_MATERIAL -> 1;
-            case SMITHING_TABLE_RESULT, CREATIVE_OUTPUT -> 2;
+            case SMITHING_TABLE_TEMPLATE -> 0;
+            case SMITHING_TABLE_INPUT -> 1;
+            case SMITHING_TABLE_MATERIAL -> 2;
+            case SMITHING_TABLE_RESULT, CREATED_OUTPUT -> 3;
             default -> super.bedrockSlotToJava(slotInfoData);
         };
     }
@@ -49,9 +50,10 @@ public class SmithingInventoryTranslator extends AbstractBlockInventoryTranslato
     @Override
     public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
         return switch (slot) {
-            case 0 -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_INPUT, 51);
-            case 1 -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_MATERIAL, 52);
-            case 2 -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_RESULT, 50);
+            case 0 -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_TEMPLATE, 53);
+            case 1 -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_INPUT, 51);
+            case 2 -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_MATERIAL, 52);
+            case 3 -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_RESULT, 50);
             default -> super.javaSlotToBedrockContainer(slot);
         };
     }
@@ -59,9 +61,10 @@ public class SmithingInventoryTranslator extends AbstractBlockInventoryTranslato
     @Override
     public int javaSlotToBedrock(int slot) {
         return switch (slot) {
-            case 0 -> 51;
-            case 1 -> 52;
-            case 2 -> 50;
+            case 0 -> 53;
+            case 1 -> 51;
+            case 2 -> 52;
+            case 3 -> 50;
             default -> super.javaSlotToBedrock(slot);
         };
     }

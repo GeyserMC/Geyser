@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import org.geysermc.common.PlatformType;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.command.GeyserCommand;
@@ -63,7 +63,8 @@ public class HelpCommand extends GeyserCommand {
     public void execute(GeyserSession session, GeyserCommandSource sender, String[] args) {
         int page = 1;
         int maxPage = 1;
-        String header = GeyserLocale.getPlayerLocaleString("geyser.commands.help.header", sender.locale(), page, maxPage);
+        String translationKey = this.baseCommand.equals("geyser") ? "geyser.commands.help.header" : "geyser.commands.extensions.header";
+        String header = GeyserLocale.getPlayerLocaleString(translationKey, sender.locale(), page, maxPage);
         sender.sendMessage(header);
 
         this.commands.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {

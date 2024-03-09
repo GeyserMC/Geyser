@@ -27,8 +27,8 @@ package org.geysermc.geyser.translator.protocol.java.level;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundBlockDestructionPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
+import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -45,7 +45,7 @@ public class JavaBlockDestructionTranslator extends PacketTranslator<Clientbound
         int breakTime = (int) (65535 / Math.ceil(BlockUtils.getBreakTime(session, BlockRegistries.JAVA_BLOCKS.get(state), ItemMapping.AIR, new CompoundTag(""), false) * 20));
         LevelEventPacket levelEventPacket = new LevelEventPacket();
         levelEventPacket.setPosition(packet.getPosition().toFloat());
-        levelEventPacket.setType(LevelEventType.BLOCK_START_BREAK);
+        levelEventPacket.setType(LevelEvent.BLOCK_START_BREAK);
 
         switch (packet.getStage()) {
             case STAGE_1 -> levelEventPacket.setData(breakTime);
@@ -59,7 +59,7 @@ public class JavaBlockDestructionTranslator extends PacketTranslator<Clientbound
             case STAGE_9 -> levelEventPacket.setData(breakTime * 9);
             case STAGE_10 -> levelEventPacket.setData(breakTime * 10);
             case RESET -> {
-                levelEventPacket.setType(LevelEventType.BLOCK_STOP_BREAK);
+                levelEventPacket.setType(LevelEvent.BLOCK_STOP_BREAK);
                 levelEventPacket.setData(0);
             }
         }

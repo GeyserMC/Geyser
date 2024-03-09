@@ -25,19 +25,8 @@
 
 package org.geysermc.geyser.registry.type;
 
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import org.geysermc.geyser.session.GeyserSession;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
 
-import javax.annotation.ParametersAreNullableByDefault;
-
-@ParametersAreNullableByDefault
-public record ParticleMapping(LevelEventType levelEventType, String identifier) {
-
-    public int getParticleId(GeyserSession session) {
-        if (this.levelEventType == null) {
-            return -1;
-        }
-
-        return session.getUpstream().getSession().getPacketCodec().getHelper().getLevelEventId(this.levelEventType) & ~0x4000;
-    }
+public record ParticleMapping(@Nullable LevelEventType levelEventType, @Nullable String identifier) {
 }

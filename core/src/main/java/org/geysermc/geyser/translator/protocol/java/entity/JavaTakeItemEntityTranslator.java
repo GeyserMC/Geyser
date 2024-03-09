@@ -26,9 +26,9 @@
 package org.geysermc.geyser.translator.protocol.java.entity;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundTakeItemEntityPacket;
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
-import com.nukkitx.protocol.bedrock.packet.TakeItemEntityPacket;
+import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
+import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.TakeItemEntityPacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ExpOrbEntity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -54,7 +54,7 @@ public class JavaTakeItemEntityTranslator extends PacketTranslator<ClientboundTa
         if (collectedEntity instanceof ExpOrbEntity) {
             // Player just picked up an experience orb
             LevelEventPacket xpPacket = new LevelEventPacket();
-            xpPacket.setType(LevelEventType.SOUND_EXPERIENCE_ORB_PICKUP);
+            xpPacket.setType(LevelEvent.SOUND_EXPERIENCE_ORB_PICKUP);
             xpPacket.setPosition(collectedEntity.getPosition());
             xpPacket.setData(0);
             session.sendUpstreamPacket(xpPacket);

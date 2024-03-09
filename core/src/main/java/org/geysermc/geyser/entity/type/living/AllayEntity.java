@@ -27,15 +27,16 @@ package org.geysermc.geyser.entity.type.living;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 
-import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class AllayEntity extends MobEntity {
@@ -53,9 +54,9 @@ public class AllayEntity extends MobEntity {
         this.canDuplicate = entityMetadata.getPrimitiveValue();
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    protected InteractiveTag testMobInteraction(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (this.canDuplicate && getFlag(EntityFlag.DANCING) && isDuplicationItem(itemInHand)) {
             // Maybe better as another tag?
             return InteractiveTag.GIVE_ITEM_TO_ALLAY;
@@ -69,9 +70,9 @@ public class AllayEntity extends MobEntity {
         }
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    protected InteractionResult mobInteract(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (this.canDuplicate && getFlag(EntityFlag.DANCING) && isDuplicationItem(itemInHand)) {
             //TOCHECK sound
             return InteractionResult.SUCCESS;
@@ -87,6 +88,6 @@ public class AllayEntity extends MobEntity {
     }
 
     private boolean isDuplicationItem(GeyserItemStack itemStack) {
-        return itemStack.getJavaId() == session.getItemMappings().getStoredItems().amethystShard();
+        return itemStack.asItem() == Items.AMETHYST_SHARD;
     }
 }

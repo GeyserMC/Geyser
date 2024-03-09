@@ -29,8 +29,8 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.packet.BlockPickRequestPacket;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.bedrock.packet.BlockPickRequestPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.level.block.BlockStateValues;
@@ -56,7 +56,7 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
             ItemFrameEntity entity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
             if (entity != null) {
                 // Check to see if the item frame has an item in it first
-                if (entity.getHeldItem() != null && entity.getHeldItem().getId() != 0) {
+                if (!InventoryUtils.isEmpty(entity.getHeldItem())) {
                     // Grab the item in the frame
                     InventoryUtils.findOrCreateItem(session, entity.getHeldItem());
                 } else {
@@ -67,34 +67,32 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
             return;
         }
 
-        BlockMapping blockMapping = BlockRegistries.JAVA_BLOCKS.getOrDefault(blockToPick, BlockMapping.AIR);
+        BlockMapping blockMapping = BlockRegistries.JAVA_BLOCKS.getOrDefault(blockToPick, BlockMapping.DEFAULT);
         boolean addNbtData = packet.isAddUserData() && blockMapping.isBlockEntity(); // Holding down CTRL
         if (BlockStateValues.getBannerColor(blockToPick) != -1 || addNbtData) {
             session.getGeyser().getWorldManager().getPickItemNbt(session, vector.getX(), vector.getY(), vector.getZ(), addNbtData)
-                    .whenComplete((tag, ex) -> {
+                    .whenComplete((tag, ex) -> session.ensureInEventLoop(() -> {
                         if (tag == null) {
                             pickItem(session, blockMapping);
                             return;
                         }
 
-                        session.ensureInEventLoop(() -> {
-                            if (addNbtData) {
-                                ListTag lore = new ListTag("Lore");
-                                lore.add(new StringTag("", "\"(+NBT)\""));
-                                CompoundTag display = tag.get("display");
-                                if (display == null) {
-                                    display = new CompoundTag("display");
-                                    tag.put(display);
-                                }
-                                display.put(lore);
+                        if (addNbtData) {
+                            ListTag lore = new ListTag("Lore");
+                            lore.add(new StringTag("", "\"(+NBT)\""));
+                            CompoundTag display = tag.get("display");
+                            if (display == null) {
+                                display = new CompoundTag("display");
+                                tag.put(display);
                             }
-                            // I don't really like this... I'd rather get an ID from the block mapping I think
-                            ItemMapping mapping = session.getItemMappings().getMapping(blockMapping.getPickItem());
+                            display.put(lore);
+                        }
+                        // I don't really like this... I'd rather get an ID from the block mapping I think
+                        ItemMapping mapping = session.getItemMappings().getMapping(blockMapping.getPickItem());
 
-                            ItemStack itemStack = new ItemStack(mapping.getJavaId(), 1, tag);
-                            InventoryUtils.findOrCreateItem(session, itemStack);
-                        });
-                    });
+                        ItemStack itemStack = new ItemStack(mapping.getJavaItem().javaId(), 1, tag);
+                        InventoryUtils.findOrCreateItem(session, itemStack);
+                    }));
             return;
         }
 

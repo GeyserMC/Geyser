@@ -28,26 +28,27 @@ package org.geysermc.geyser.translator.inventory;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtType;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemStackRequest;
-import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.CraftLoomStackRequestActionData;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.CraftResultsDeprecatedStackRequestActionData;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionData;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionType;
-import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.CraftLoomAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.CraftResultsDeprecatedAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestActionType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.SlotType;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
+import org.geysermc.geyser.item.type.BannerItem;
+import org.geysermc.geyser.item.type.DyeItem;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.item.nbt.BannerTranslator;
 
 import java.util.Collections;
 import java.util.List;
@@ -113,23 +114,23 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
         }
 
         // Reject the item if Bedrock is attempting to put in a dye that is not a dye in Java Edition
-        return !itemStack.getMapping(session).getJavaIdentifier().endsWith("_dye");
+        return !(itemStack.asItem() instanceof DyeItem);
     }
 
     @Override
-    protected boolean shouldHandleRequestFirst(StackRequestActionData action, Inventory inventory) {
+    protected boolean shouldHandleRequestFirst(ItemStackRequestAction action, Inventory inventory) {
         // If the LOOM_MATERIAL slot is not empty, we are crafting a pattern that does not come from an item
-        return action.getType() == StackRequestActionType.CRAFT_LOOM && inventory.getItem(2).isEmpty();
+        return action.getType() == ItemStackRequestActionType.CRAFT_LOOM && inventory.getItem(2).isEmpty();
     }
 
     @Override
-    public ItemStackResponsePacket.Response translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
-        StackRequestActionData headerData = request.getActions()[0];
-        StackRequestActionData data = request.getActions()[1];
-        if (!(headerData instanceof CraftLoomStackRequestActionData)) {
+    public ItemStackResponse translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+        ItemStackRequestAction headerData = request.getActions()[0];
+        ItemStackRequestAction data = request.getActions()[1];
+        if (!(headerData instanceof CraftLoomAction)) {
             return rejectRequest(request);
         }
-        if (!(data instanceof CraftResultsDeprecatedStackRequestActionData craftData)) {
+        if (!(data instanceof CraftResultsDeprecatedAction craftData)) {
             return rejectRequest(request);
         }
 
@@ -137,7 +138,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
         List<NbtMap> newBlockEntityTag = craftData.getResultItems()[0].getTag().getList("Patterns", NbtType.COMPOUND);
         // Get the pattern that the Bedrock client requests - the last pattern in the Patterns list
         NbtMap pattern = newBlockEntityTag.get(newBlockEntityTag.size() - 1);
-        String bedrockPattern = ((CraftLoomStackRequestActionData) headerData).getPatternId();
+        String bedrockPattern = ((CraftLoomAction) headerData).getPatternId();
 
         // Get the Java index of this pattern
         int index = PATTERN_TO_INDEX.getOrDefault(bedrockPattern, -1);
@@ -148,7 +149,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
         // And the Java loom window has a fixed row/width of four
         // So... Number / 4 = row (so we don't have to bother there), and number % 4 is our column, which leads us back to our index. :)
         ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(inventory.getJavaId(), index);
-        session.sendDownstreamPacket(packet);
+        session.sendDownstreamGamePacket(packet);
 
         GeyserItemStack inputCopy = inventory.getItem(0).copy(1);
         inputCopy.setNetId(session.getNextItemNetId());
@@ -157,7 +158,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
             inputCopy.setNbt(new CompoundTag(""));
         }
         CompoundTag blockEntityTag = inputCopy.getNbt().get("BlockEntityTag");
-        CompoundTag javaBannerPattern = BannerTranslator.getJavaBannerPattern(pattern);
+        CompoundTag javaBannerPattern = BannerItem.getJavaBannerPattern(pattern);
 
         if (blockEntityTag != null) {
             ListTag patternsList = blockEntityTag.get("Patterns");
@@ -181,12 +182,12 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
     }
 
     @Override
-    public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
+    public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
         return switch (slotInfoData.getContainer()) {
             case LOOM_INPUT -> 0;
             case LOOM_DYE -> 1;
             case LOOM_MATERIAL -> 2;
-            case LOOM_RESULT, CREATIVE_OUTPUT -> 3;
+            case LOOM_RESULT, CREATED_OUTPUT -> 3;
             default -> super.bedrockSlotToJava(slotInfoData);
         };
     }

@@ -26,14 +26,16 @@
 package org.geysermc.geyser.level;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.session.GeyserSession;
-import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
@@ -68,6 +70,23 @@ public abstract class WorldManager {
      */
     public abstract int getBlockAt(GeyserSession session, int x, int y, int z);
 
+    public final CompletableFuture<Integer> getBlockAtAsync(GeyserSession session, Vector3i vector) {
+        return this.getBlockAtAsync(session, vector.getX(), vector.getY(), vector.getZ());
+    }
+
+    public CompletableFuture<Integer> getBlockAtAsync(GeyserSession session, int x, int y, int z) {
+        return CompletableFuture.completedFuture(this.getBlockAt(session, x, y, z));
+    }
+
+    public int[] getBlocksAt(GeyserSession session, BlockPositionIterator iter) {
+        int[] blocks = new int[iter.getMaxIterations()];
+        for (; iter.hasNext(); iter.next()) {
+            int networkId = this.getBlockAt(session, iter.getX(), iter.getY(), iter.getZ());
+            blocks[iter.getIteration()] = networkId;
+        }
+        return blocks;
+    }
+
     /**
      * Checks whether or not this world manager requires a separate chunk cache/has access to more block data than the chunk cache.
      * <p>
@@ -88,21 +107,29 @@ public abstract class WorldManager {
      *
      * We solve this problem by querying all loaded lecterns, where possible, and sending their information in a block entity
      * tag.
+     * <p>
+     * Note that the lectern data may be sent asynchronously.
      *
      * @param session the session of the player
      * @param x the x coordinate of the lectern
      * @param y the y coordinate of the lectern
      * @param z the z coordinate of the lectern
-     * @param isChunkLoad if this is called during a chunk load or not. Changes behavior in certain instances.
-     * @return the Bedrock lectern block entity tag. This may not be the exact block entity tag - for example, Spigot's
-     * block handled must be done on the server thread, so we send the tag manually there.
      */
-    public abstract NbtMap getLecternDataAt(GeyserSession session, int x, int y, int z, boolean isChunkLoad);
+    public abstract void sendLecternData(GeyserSession session, int x, int y, int z);
+
+    /**
+     * {@link #sendLecternData(GeyserSession, int, int, int)} but batched for chunks.
+     *
+     * @param x chunk x
+     * @param z chunk z
+     * @param blockEntityInfos a list of coordinates (chunk local) to grab lecterns from.
+     */
+    public abstract void sendLecternData(GeyserSession session, int x, int z, List<BlockEntityInfo> blockEntityInfos);
 
     /**
      * @return whether we should expect lectern data to update, or if we have to fall back on a workaround.
      */
-    public abstract boolean shouldExpectLecternHandled();
+    public abstract boolean shouldExpectLecternHandled(GeyserSession session);
 
     /**
      * Updates a gamerule value on the Java server
@@ -144,6 +171,24 @@ public abstract class WorldManager {
     }
 
     /**
+     * Get the default game mode of the server
+     *
+     * @param session the player requesting the default game mode
+     * @return the default game mode of the server, or Survival if unknown.
+     */
+    public abstract GameMode getDefaultGameMode(GeyserSession session);
+
+    /**
+     * Change the default game mode of the session's server
+     *
+     * @param session the player making the change
+     * @param gameMode the new default game mode
+     */
+    public void setDefaultGameMode(GeyserSession session, GameMode gameMode) {
+        session.sendCommand("defaultgamemode " + gameMode.name().toLowerCase(Locale.ROOT));
+    }
+
+    /**
      * Change the difficulty of the Java server
      *
      * @param session The session of the user that requested the change
@@ -165,8 +210,7 @@ public abstract class WorldManager {
     /**
      * Returns a list of biome identifiers available on the server.
      */
-    @Nullable
-    public String[] getBiomeIdentifiers(boolean withTags) {
+    public String @Nullable [] getBiomeIdentifiers(boolean withTags) {
         return null;
     }
 
@@ -175,7 +219,7 @@ public abstract class WorldManager {
      *
      * @return expected NBT for this item.
      */
-    @Nonnull
+    @NonNull
     public CompletableFuture<@Nullable CompoundTag> getPickItemNbt(GeyserSession session, int x, int y, int z, boolean addNbtData) {
         return CompletableFuture.completedFuture(null);
     }

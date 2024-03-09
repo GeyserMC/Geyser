@@ -26,15 +26,16 @@
 package org.geysermc.geyser.entity.type.living;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 
-import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class IronGolemEntity extends GolemEntity {
@@ -44,16 +45,16 @@ public class IronGolemEntity extends GolemEntity {
         // Indicate that we should show cracks through a resource pack
         setFlag(EntityFlag.BRIBED, true);
         // Required, or else the overlay is black
-        dirtyMetadata.put(EntityData.COLOR_2, (byte) 0);
+        dirtyMetadata.put(EntityDataTypes.COLOR_2, (byte) 0);
         // Default max health. Ensures correct cracked texture is used
         // Bug reproducible in 1.19.0 JE vanilla/fabric when spawning a new iron golem
         maxHealth = 100f;
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().ironIngot()) {
+    protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
+        if (itemInHand.asItem() == Items.IRON_INGOT) {
             if (health < maxHealth) {
                 // Healing the iron golem
                 return InteractionResult.SUCCESS;

@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.entity.type.living.animal;
 
-import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.UUID;
@@ -39,7 +39,7 @@ public class PolarBearEntity extends AnimalEntity {
     }
 
     @Override
-    public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
+    public boolean canEat(Item item) {
         return false;
     }
 }

@@ -28,7 +28,9 @@ package org.geysermc.geyser.translator.inventory.item;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
-import it.unimi.dsi.fastutil.objects.ObjectIntPair;
+import it.unimi.dsi.fastutil.Pair;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -39,23 +41,24 @@ import java.util.OptionalInt;
 /**
  * This is only a separate class for testing purposes so we don't have to load in GeyserImpl in ItemTranslator.
  */
-final class CustomItemTranslator {
+public final class CustomItemTranslator {
 
-    static int getCustomItem(CompoundTag nbt, ItemMapping mapping) {
+    @Nullable
+    public static ItemDefinition getCustomItem(CompoundTag nbt, ItemMapping mapping) {
         if (nbt == null) {
-            return -1;
+            return null;
         }
-        List<ObjectIntPair<CustomItemOptions>> customMappings = mapping.getCustomItemOptions();
+        List<Pair<CustomItemOptions, ItemDefinition>> customMappings = mapping.getCustomItemOptions();
         if (customMappings.isEmpty()) {
-            return -1;
+            return null;
         }
 
         int customModelData = nbt.get("CustomModelData") instanceof IntTag customModelDataTag ? customModelDataTag.getValue() : 0;
-        boolean checkDamage = mapping.getMaxDamage() > 0;
+        boolean checkDamage = mapping.getJavaItem().maxDamage() > 0;
         int damage = !checkDamage ? 0 : nbt.get("Damage") instanceof IntTag damageTag ? damageTag.getValue() : 0;
         boolean unbreakable = checkDamage && !isDamaged(nbt, damage);
 
-        for (ObjectIntPair<CustomItemOptions> mappingTypes : customMappings) {
+        for (Pair<CustomItemOptions, ItemDefinition> mappingTypes : customMappings) {
             CustomItemOptions options = mappingTypes.key();
 
             // Code note: there may be two or more conditions that a custom item must follow, hence the "continues"
@@ -90,9 +93,14 @@ final class CustomItemTranslator {
                 continue;
             }
 
-            return mappingTypes.valueInt();
+            if (options.defaultItem()) {
+                return null;
+            }
+
+            return mappingTypes.value();
         }
-        return -1;
+
+        return null;
     }
 
     /* These two functions are based off their Mojmap equivalents from 1.19.2 */

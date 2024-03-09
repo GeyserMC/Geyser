@@ -26,8 +26,9 @@
 package org.geysermc.geyser.entity.type.living.monster;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -43,22 +44,22 @@ public class WitherEntity extends MonsterEntity {
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
-        dirtyMetadata.put(EntityData.WITHER_AERIAL_ATTACK, (short) 1);
+        dirtyMetadata.put(EntityDataTypes.WITHER_AERIAL_ATTACK, (short) 1);
     }
 
     public void setTarget1(IntEntityMetadata entityMetadata) {
-        setTargetId(EntityData.WITHER_TARGET_1, entityMetadata);
+        setTargetId(EntityDataTypes.WITHER_TARGET_A, entityMetadata);
     }
 
     public void setTarget2(IntEntityMetadata entityMetadata) {
-        setTargetId(EntityData.WITHER_TARGET_2, entityMetadata);
+        setTargetId(EntityDataTypes.WITHER_TARGET_B, entityMetadata);
     }
 
     public void setTarget3(IntEntityMetadata entityMetadata) {
-        setTargetId(EntityData.WITHER_TARGET_3, entityMetadata);
+        setTargetId(EntityDataTypes.WITHER_TARGET_C, entityMetadata);
     }
 
-    private void setTargetId(EntityData entityData, IntEntityMetadata entityMetadata) {
+    private void setTargetId(EntityDataType<Long> entityData, IntEntityMetadata entityMetadata) {
         int entityId = entityMetadata.getPrimitiveValue();
         Entity entity = session.getEntityCache().getEntityByJavaId(entityId);
         if (entity != null) {
@@ -70,13 +71,13 @@ public class WitherEntity extends MonsterEntity {
 
     public void setInvulnerableTicks(IntEntityMetadata entityMetadata) {
         int value = entityMetadata.getPrimitiveValue();
-        dirtyMetadata.put(EntityData.WITHER_INVULNERABLE_TICKS, value);
+        dirtyMetadata.put(EntityDataTypes.WITHER_INVULNERABLE_TICKS, value);
 
         // Show the shield for the first few seconds of spawning (like Java)
         if (value >= 165) {
-            dirtyMetadata.put(EntityData.WITHER_AERIAL_ATTACK, (short) 0);
+            dirtyMetadata.put(EntityDataTypes.WITHER_AERIAL_ATTACK, (short) 0);
         } else {
-            dirtyMetadata.put(EntityData.WITHER_AERIAL_ATTACK, (short) 1);
+            dirtyMetadata.put(EntityDataTypes.WITHER_AERIAL_ATTACK, (short) 1);
         }
     }
 }

@@ -26,14 +26,15 @@
 package org.geysermc.geyser.translator.protocol.java.level;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundExplodePacket;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import com.nukkitx.protocol.bedrock.packet.LevelEventGenericPacket;
-import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
-import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -45,8 +46,9 @@ public class JavaExplodeTranslator extends PacketTranslator<ClientboundExplodePa
 
     @Override
     public void translate(GeyserSession session, ClientboundExplodePacket packet) {
+        // todo 1.20.3 handle the 4 new fields
         LevelEventGenericPacket levelEventPacket = new LevelEventGenericPacket();
-        levelEventPacket.setEventId(2026/*LevelEventType.PARTICLE_BLOCK_EXPLOSION*/);
+        levelEventPacket.setType(LevelEvent.PARTICLE_BLOCK_EXPLOSION);
         NbtMapBuilder builder = NbtMap.builder();
         builder.putFloat("originX", (float) packet.getX());
         builder.putFloat("originY", (float) packet.getY());

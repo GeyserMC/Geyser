@@ -25,13 +25,14 @@
 
 package org.geysermc.geyser.session.cache;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateTagsPacket;
+import com.github.steveice10.mc.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.BlockMapping;
-import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -58,11 +59,13 @@ public class TagCache {
 
     /* Items */
     private IntList axolotlTemptItems;
+    private IntList creeperIgniters;
     private IntList fishes;
     private IntList flowers;
     private IntList foxFood;
     private IntList piglinLoved;
     private IntList smallFlowers;
+    private IntList snifferFood;
 
     public TagCache() {
         // Ensure all lists are non-null
@@ -94,11 +97,13 @@ public class TagCache {
 
         Map<String, int[]> itemTags = packet.getTags().get("minecraft:item");
         this.axolotlTemptItems = IntList.of(itemTags.get("minecraft:axolotl_tempt_items"));
+        this.creeperIgniters = load(itemTags.get("minecraft:creeper_igniters"));
         this.fishes = IntList.of(itemTags.get("minecraft:fishes"));
         this.flowers = IntList.of(itemTags.get("minecraft:flowers"));
         this.foxFood = IntList.of(itemTags.get("minecraft:fox_food"));
         this.piglinLoved = IntList.of(itemTags.get("minecraft:piglin_loved"));
         this.smallFlowers = IntList.of(itemTags.get("minecraft:small_flowers"));
+        this.snifferFood = load(itemTags.get("minecraft:sniffer_food"));
 
         // Hack btw
         boolean emulatePost1_13Logic = itemTags.get("minecraft:signs").length > 1;
@@ -106,6 +111,13 @@ public class TagCache {
         if (logger.isDebug()) {
             logger.debug("Emulating post 1.13 villager logic for " + session.bedrockUsername() + "? " + emulatePost1_13Logic);
         }
+    }
+
+    private IntList load(int @Nullable[] tags) {
+        if (tags == null) {
+            return IntLists.EMPTY_LIST;
+        }
+        return IntList.of(tags);
     }
 
     public void clear() {
@@ -122,35 +134,45 @@ public class TagCache {
         this.requiresDiamondTool = IntLists.emptyList();
 
         this.axolotlTemptItems = IntLists.emptyList();
+        this.creeperIgniters = IntLists.emptyList();
         this.fishes = IntLists.emptyList();
         this.flowers = IntLists.emptyList();
         this.foxFood = IntLists.emptyList();
         this.piglinLoved = IntLists.emptyList();
         this.smallFlowers = IntLists.emptyList();
+        this.snifferFood = IntLists.emptyList();
     }
 
-    public boolean isAxolotlTemptItem(ItemMapping itemMapping) {
-        return axolotlTemptItems.contains(itemMapping.getJavaId());
+    public boolean isAxolotlTemptItem(Item item) {
+        return axolotlTemptItems.contains(item.javaId());
+    }
+
+    public boolean isCreeperIgniter(Item item) {
+        return creeperIgniters.contains(item.javaId());
     }
 
     public boolean isFish(GeyserItemStack itemStack) {
         return fishes.contains(itemStack.getJavaId());
     }
 
-    public boolean isFlower(ItemMapping mapping) {
-        return flowers.contains(mapping.getJavaId());
+    public boolean isFlower(Item item) {
+        return flowers.contains(item.javaId());
     }
 
-    public boolean isFoxFood(ItemMapping mapping) {
-        return foxFood.contains(mapping.getJavaId());
+    public boolean isFoxFood(Item item) {
+        return foxFood.contains(item.javaId());
     }
 
-    public boolean shouldPiglinAdmire(ItemMapping mapping) {
-        return piglinLoved.contains(mapping.getJavaId());
+    public boolean shouldPiglinAdmire(Item item) {
+        return piglinLoved.contains(item.javaId());
     }
 
     public boolean isSmallFlower(GeyserItemStack itemStack) {
         return smallFlowers.contains(itemStack.getJavaId());
+    }
+
+    public boolean isSnifferFood(Item item) {
+        return snifferFood.contains(item.javaId());
     }
 
     public boolean isAxeEffective(BlockMapping blockMapping) {

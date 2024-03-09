@@ -28,7 +28,7 @@ package org.geysermc.geyser.translator.protocol.bedrock;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.InteractAction;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
-import com.nukkitx.protocol.bedrock.packet.ItemFrameDropItemPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ItemFrameDropItemPacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -37,7 +37,7 @@ import org.geysermc.geyser.translator.protocol.Translator;
 
 /**
  * Pre-1.16.210: used for both survival and creative item frame item removal
- *
+ * <p>
  * 1.16.210: only used in creative.
  */
 @Translator(packet = ItemFrameDropItemPacket.class)
@@ -49,7 +49,7 @@ public class BedrockItemFrameDropItemTranslator extends PacketTranslator<ItemFra
         if (entity != null) {
             ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(entity.getEntityId(),
                     InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
-            session.sendDownstreamPacket(interactPacket);
+            session.sendDownstreamGamePacket(interactPacket);
         }
     }
 }

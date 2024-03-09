@@ -25,16 +25,18 @@
 
 package org.geysermc.geyser.util;
 
-import com.nukkitx.math.vector.Vector2i;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
-import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
-import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.ints.IntLists;
 import lombok.experimental.UtilityClass;
+import org.cloudburstmc.math.GenericMath;
+import org.cloudburstmc.math.vector.Vector2i;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
+import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
+import org.cloudburstmc.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
@@ -44,6 +46,7 @@ import org.geysermc.geyser.level.chunk.GeyserChunkSection;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.level.block.entity.BedrockOnlyBlockEntity;
 
@@ -51,19 +54,27 @@ import static org.geysermc.geyser.level.block.BlockStateValues.JAVA_AIR_ID;
 
 @UtilityClass
 public class ChunkUtils {
-    /**
-     * An empty subchunk.
-     */
-    public static final byte[] SERIALIZED_CHUNK_DATA;
+
     public static final byte[] EMPTY_BIOME_DATA;
 
+    public static final BlockStorage[] EMPTY_BLOCK_STORAGE;
+
+    public static final int EMPTY_CHUNK_SECTION_SIZE;
+
     static {
+        EMPTY_BLOCK_STORAGE = new BlockStorage[0];
+
         ByteBuf byteBuf = Unpooled.buffer();
         try {
-            new GeyserChunkSection(new BlockStorage[0])
+            new GeyserChunkSection(EMPTY_BLOCK_STORAGE, 0)
                     .writeToNetwork(byteBuf);
-            SERIALIZED_CHUNK_DATA = new byte[byteBuf.readableBytes()];
-            byteBuf.readBytes(SERIALIZED_CHUNK_DATA);
+
+            byte[] emptyChunkData = new byte[byteBuf.readableBytes()];
+            byteBuf.readBytes(emptyChunkData);
+
+            EMPTY_CHUNK_SECTION_SIZE = emptyChunkData.length;
+
+            emptyChunkData = null;
         } finally {
             byteBuf.release();
         }
@@ -91,7 +102,9 @@ public class ChunkUtils {
         if (chunkPos == null || !chunkPos.equals(newChunkPos)) {
             NetworkChunkPublisherUpdatePacket chunkPublisherUpdatePacket = new NetworkChunkPublisherUpdatePacket();
             chunkPublisherUpdatePacket.setPosition(position);
-            chunkPublisherUpdatePacket.setRadius(session.getServerRenderDistance() << 4);
+            // Mitigates chunks not loading on 1.17.1 Paper and 1.19.3 Fabric. As of Bedrock 1.19.60.
+            // https://github.com/GeyserMC/Geyser/issues/3490
+            chunkPublisherUpdatePacket.setRadius(GenericMath.ceil((session.getServerRenderDistance() + 1) * MathUtils.SQRT_OF_TWO) << 4);
             session.sendUpstreamPacket(chunkPublisherUpdatePacket);
 
             session.setLastChunkPosition(newChunkPos);
@@ -125,20 +138,27 @@ public class ChunkUtils {
             // Otherwise, let's still store our reference to the item frame, but let the new block take precedence for now
         }
 
-        if (BlockStateValues.getSkullVariant(blockState) == -1) {
+        BlockDefinition definition = session.getBlockMappings().getBedrockBlock(blockState);
+
+        int skullVariant = BlockStateValues.getSkullVariant(blockState);
+        if (skullVariant == -1) {
             // Skull is gone
             session.getSkullCache().removeSkull(position);
+        } else if (skullVariant == 3) {
+            // The changed block was a player skull so check if a custom block was defined for this skull
+            SkullCache.Skull skull = session.getSkullCache().updateSkull(position, blockState);
+            if (skull != null && skull.getBlockDefinition() != null) {
+                definition = skull.getBlockDefinition();
+            }
         }
 
         // Prevent moving_piston from being placed
         // It's used for extending piston heads, but it isn't needed on Bedrock and causes pistons to flicker
         if (!BlockStateValues.isMovingPiston(blockState)) {
-            int blockId = session.getBlockMappings().getBedrockBlockId(blockState);
-
             UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
             updateBlockPacket.setDataLayer(0);
             updateBlockPacket.setBlockPosition(position);
-            updateBlockPacket.setRuntimeId(blockId);
+            updateBlockPacket.setDefinition(definition);
             updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
             updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
             session.sendUpstreamPacket(updateBlockPacket);
@@ -146,12 +166,42 @@ public class ChunkUtils {
             UpdateBlockPacket waterPacket = new UpdateBlockPacket();
             waterPacket.setDataLayer(1);
             waterPacket.setBlockPosition(position);
-            if (BlockRegistries.WATERLOGGED.get().contains(blockState)) {
-                waterPacket.setRuntimeId(session.getBlockMappings().getBedrockWaterId());
+            if (BlockRegistries.WATERLOGGED.get().get(blockState)) {
+                waterPacket.setDefinition(session.getBlockMappings().getBedrockWater());
             } else {
-                waterPacket.setRuntimeId(session.getBlockMappings().getBedrockAirId());
+                waterPacket.setDefinition(session.getBlockMappings().getBedrockAir());
             }
             session.sendUpstreamPacket(waterPacket);
+        }
+
+        // Extended collision boxes for custom blocks
+        if (!session.getBlockMappings().getExtendedCollisionBoxes().isEmpty()) {
+            int aboveBlock = session.getGeyser().getWorldManager().getBlockAt(session, position.getX(), position.getY() + 1, position.getZ());
+            BlockDefinition aboveBedrockExtendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes().get(blockState);
+            int belowBlock = session.getGeyser().getWorldManager().getBlockAt(session, position.getX(), position.getY() - 1, position.getZ());
+            BlockDefinition belowBedrockExtendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes().get(belowBlock);
+            if (belowBedrockExtendedCollisionDefinition != null && blockState == BlockStateValues.JAVA_AIR_ID) {
+                UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+                updateBlockPacket.setDataLayer(0);
+                updateBlockPacket.setBlockPosition(position);
+                updateBlockPacket.setDefinition(belowBedrockExtendedCollisionDefinition);
+                updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+                session.sendUpstreamPacket(updateBlockPacket);
+            } else if (aboveBedrockExtendedCollisionDefinition != null && aboveBlock == BlockStateValues.JAVA_AIR_ID) {
+                UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+                updateBlockPacket.setDataLayer(0);
+                updateBlockPacket.setBlockPosition(position.add(0, 1, 0));
+                updateBlockPacket.setDefinition(aboveBedrockExtendedCollisionDefinition);
+                updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+                session.sendUpstreamPacket(updateBlockPacket);
+            } else if (aboveBlock == BlockStateValues.JAVA_AIR_ID) {
+                UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+                updateBlockPacket.setDataLayer(0);
+                updateBlockPacket.setBlockPosition(position.add(0, 1, 0));
+                updateBlockPacket.setDefinition(session.getBlockMappings().getBedrockAir());
+                updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+                session.sendUpstreamPacket(updateBlockPacket);
+            }
         }
 
         BlockStateValues.getLecternBookStates().handleBlockChange(session, blockState, position);
@@ -165,6 +215,14 @@ public class ChunkUtils {
                 break; //No block will be a part of two classes
             }
         }
+
+        if (BlockStateValues.isUpperDoor(blockState)) {
+            // Update the lower door block as Bedrock client doesn't like door to be closed from the top
+            // See https://github.com/GeyserMC/Geyser/issues/4358
+            Vector3i belowDoorPosition = position.sub(0, 1, 0);
+            int belowDoorBlockState = session.getGeyser().getWorldManager().getBlockAt(session, belowDoorPosition.getX(), belowDoorPosition.getY(), belowDoorPosition.getZ());
+            updateBlock(session, belowDoorBlockState, belowDoorPosition);
+        }
     }
 
     public static void sendEmptyChunk(GeyserSession session, int chunkX, int chunkZ, boolean forceUpdate) {
@@ -172,7 +230,6 @@ public class ChunkUtils {
         int bedrockSubChunkCount = bedrockDimension.height() >> 4;
 
         byte[] payload;
-
         // Allocate output buffer
         ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer(ChunkUtils.EMPTY_BIOME_DATA.length * bedrockSubChunkCount + 1); // Consists only of biome data and border blocks
         try {
@@ -185,24 +242,25 @@ public class ChunkUtils {
 
             payload = new byte[byteBuf.readableBytes()];
             byteBuf.readBytes(payload);
+
+            LevelChunkPacket data = new LevelChunkPacket();
+            data.setDimension(DimensionUtils.javaToBedrock(session.getChunkCache().getBedrockDimension()));
+            data.setChunkX(chunkX);
+            data.setChunkZ(chunkZ);
+            data.setSubChunksLength(0);
+            data.setData(Unpooled.wrappedBuffer(payload));
+            data.setCachingEnabled(false);
+            session.sendUpstreamPacket(data);
         } finally {
             byteBuf.release();
         }
-
-        LevelChunkPacket data = new LevelChunkPacket();
-        data.setChunkX(chunkX);
-        data.setChunkZ(chunkZ);
-        data.setSubChunksLength(0);
-        data.setData(payload);
-        data.setCachingEnabled(false);
-        session.sendUpstreamPacket(data);
 
         if (forceUpdate) {
             Vector3i pos = Vector3i.from(chunkX << 4, 80, chunkZ << 4);
             UpdateBlockPacket blockPacket = new UpdateBlockPacket();
             blockPacket.setBlockPosition(pos);
             blockPacket.setDataLayer(0);
-            blockPacket.setRuntimeId(1);
+            blockPacket.setDefinition(session.getBlockMappings().getBedrockBlock(1));
             session.sendUpstreamPacket(blockPacket);
         }
     }

@@ -1,0 +1,155 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore:
+      - 'gh-readonly-queue/**'
+    paths-ignore:
+      - '.github/ISSUE_TEMPLATE/*.yml'
+      - '.github/actions/pullrequest.yml'
+      - '.idea/copyright/*.xml'
+      - '.gitignore'
+      - 'CONTRIBUTING.md'
+      - 'LICENSE'
+      - 'Jenkinsfile '
+      - 'README.md'
+      - 'licenseheader.txt'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository and submodules
+        # See https://github.com/actions/checkout/commits
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          submodules: recursive
+
+      - name: Validate Gradle Wrapper
+        # See https://github.com/gradle/wrapper-validation-action/commits
+        uses: gradle/wrapper-validation-action@699bb18358f12c5b78b37bb0111d3a0e2276e0e2 # v2.1.1
+
+        # See https://github.com/actions/setup-java/commits
+      - uses: actions/setup-java@387ac29b308b003ca37ba93a6cab5eb57c8f5f93 # v4.0.0
+        with:
+          java-version: 17
+          distribution: temurin
+          
+      - name: Build
+        # See https://github.com/gradle/gradle-build-action/commits
+        uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0 from https://github.com/gradle/actions/commits
+        with:
+          arguments: build
+          gradle-home-cache-cleanup: true
+          
+      - name: Archive artifacts (Geyser Fabric)
+        # See https://github.com/actions/upload-artifact/commits
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        if: success()
+        with:
+          name: Geyser Fabric
+          path: bootstrap/mod/fabric/build/libs/Geyser-Fabric.jar
+          if-no-files-found: error
+      - name: Archive artifacts (Geyser NeoForge)
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3
+        if: success()
+        with:
+          name: Geyser NeoForge
+          path: bootstrap/mod/neoforge/build/libs/Geyser-NeoForge.jar
+          if-no-files-found: error
+      - name: Archive artifacts (Geyser Standalone)
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3
+        if: success()
+        with:
+          name: Geyser Standalone
+          path: bootstrap/standalone/build/libs/Geyser-Standalone.jar
+          if-no-files-found: error
+      - name: Archive artifacts (Geyser Spigot)
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3
+        if: success()
+        with:
+          name: Geyser Spigot
+          path: bootstrap/spigot/build/libs/Geyser-Spigot.jar
+          if-no-files-found: error
+      - name: Archive artifacts (Geyser BungeeCord)
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3
+        if: success()
+        with:
+          name: Geyser BungeeCord
+          path: bootstrap/bungeecord/build/libs/Geyser-BungeeCord.jar
+          if-no-files-found: error
+      - name: Archive artifacts (Geyser Velocity)
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3
+        if: success()
+        with:
+          name: Geyser Velocity
+          path: bootstrap/velocity/build/libs/Geyser-Velocity.jar
+          if-no-files-found: error
+      - name: Archive artifacts (Geyser ViaProxy)
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3
+        if: success()
+        with:
+          name: Geyser ViaProxy
+          path: bootstrap/viaproxy/build/libs/Geyser-ViaProxy.jar
+          if-no-files-found: error
+
+      - name: Publish to Maven Repository
+        if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
+        uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5
+        env:
+          ORG_GRADLE_PROJECT_geysermcUsername: ${{ vars.DEPLOY_USER }}
+          ORG_GRADLE_PROJECT_geysermcPassword: ${{ secrets.DEPLOY_PASS }}
+        with:
+          arguments: publish
+
+      - name: Publish to Downloads API
+        if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
+        shell: bash
+        env:
+          DOWNLOADS_USERNAME: ${{ vars.DOWNLOADS_USERNAME }}
+          DOWNLOADS_PRIVATE_KEY: ${{ secrets.DOWNLOADS_PRIVATE_KEY }}
+          DOWNLOADS_SERVER_IP: ${{ secrets.DOWNLOADS_SERVER_IP }}
+        run: |
+          # Save the private key to a file
+          echo "$DOWNLOADS_PRIVATE_KEY" > id_ecdsa
+          chmod 600 id_ecdsa
+          # Set the project
+          project=geyser
+          # Get the version from gradle.properties
+          version=$(cat gradle.properties | grep -o "version=[0-9\\.]*" | cut -d"=" -f2)
+          # Create the build folder
+          ssh -o StrictHostKeyChecking=no -i id_ecdsa $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP mkdir -p "~/uploads/$project/$GITHUB_RUN_NUMBER/"
+          # Copy over artifacts
+          rsync -P -e "ssh -o StrictHostKeyChecking=no -i id_ecdsa" bootstrap/**/build/libs/Geyser-*.jar $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP:~/uploads/$project/$GITHUB_RUN_NUMBER/
+          rsync -P -e "ssh -o StrictHostKeyChecking=no -i id_ecdsa" bootstrap/mod/**/build/libs/Geyser-*.jar $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP:~/uploads/$project/$GITHUB_RUN_NUMBER/
+          # Run the build script
+          # Push the metadata
+          echo "{\"project\": \"$project\", \"version\": \"$version\", \"id\": $GITHUB_RUN_NUMBER, \"commit\": \"$GITHUB_SHA\"}" > metadata.json
+          rsync -P -e "ssh -o StrictHostKeyChecking=no -i id_ecdsa" metadata.json $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP:~/uploads/$project/$GITHUB_RUN_NUMBER/
+
+      - name: Publish to Modrinth (Fabric)
+        uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5
+        if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+        with:
+          arguments: fabric:modrinth
+          gradle-home-cache-cleanup: true
+
+      - name: Publish to Modrinth (NeoForge)
+        uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5
+        if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+        with:
+          arguments: neoforge:modrinth
+          gradle-home-cache-cleanup: true
+
+      - name: Notify Discord
+        if: ${{ (success() || failure()) && github.repository == 'GeyserMC/Geyser' }}
+        # See https://github.com/Tim203/actions-git-discord-webhook/commits
+        uses: Tim203/actions-git-discord-webhook@70f38ded3aca51635ec978ab4e1a58cd4cd0c2ff
+        with:
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
+          status: ${{ job.status }}
