@@ -119,10 +119,10 @@ public final class BlockRegistryPopulator {
     private static void registerBedrockBlocks() {
         var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
                 .put(ObjectIntPair.of("1_20_40", Bedrock_v622.CODEC.getProtocolVersion()), Conversion630_622::remapBlock)
-                .put(ObjectIntPair.of("1_20_50", Bedrock_v630.CODEC.getProtocolVersion()), tag -> tag)
+                .put(ObjectIntPair.of("1_20_50", Bedrock_v630.CODEC.getProtocolVersion()), Conversion649_630::remapBlock)
                 // Only changes in 1.20.60 are hard_stained_glass (an EDU only block)
-                .put(ObjectIntPair.of("1_20_60", Bedrock_v649.CODEC.getProtocolVersion()), tag -> tag)
-                .put(ObjectIntPair.of("1_20_70", Bedrock_v662.CODEC.getProtocolVersion()), Conversion649_662::remapBlock)
+                .put(ObjectIntPair.of("1_20_60", Bedrock_v649.CODEC.getProtocolVersion()), Conversion662_649::remapBlock)
+                .put(ObjectIntPair.of("1_20_70", Bedrock_v662.CODEC.getProtocolVersion()), tag -> tag)
                 .build();
 
         // We can keep this strong as nothing should be garbage collected
