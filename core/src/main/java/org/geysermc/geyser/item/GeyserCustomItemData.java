@@ -47,7 +47,6 @@ public class GeyserCustomItemData implements CustomItemData {
     private final String icon;
     private final boolean allowOffhand;
     private final boolean displayHandheld;
-    private final boolean includedInCreativeInventory;
     private final OptionalInt creativeCategory;
     private final String creativeGroup;
     private final int textureSize;
@@ -60,7 +59,6 @@ public class GeyserCustomItemData implements CustomItemData {
                                 String icon,
                                 boolean allowOffhand,
                                 boolean displayHandheld,
-                                boolean includedInCreativeInventory,
                                 OptionalInt creativeCategory,
                                 String creativeGroup,
                                 int textureSize,
@@ -72,7 +70,6 @@ public class GeyserCustomItemData implements CustomItemData {
         this.icon = icon;
         this.allowOffhand = allowOffhand;
         this.displayHandheld = displayHandheld;
-        this.includedInCreativeInventory = includedInCreativeInventory;
         this.creativeCategory = creativeCategory;
         this.creativeGroup = creativeGroup;
         this.textureSize = textureSize;
@@ -111,11 +108,6 @@ public class GeyserCustomItemData implements CustomItemData {
     }
 
     @Override
-    public boolean includedInCreativeInventory() {
-        return this.includedInCreativeInventory;
-    }
-
-    @Override
     public @NonNull OptionalInt creativeCategory() {
         return this.creativeCategory;
     }
@@ -147,7 +139,6 @@ public class GeyserCustomItemData implements CustomItemData {
         protected String icon = null;
         protected boolean allowOffhand = true; // Bedrock doesn't give items offhand allowance unless they serve gameplay purpose, but we want to be friendly with Java
         protected boolean displayHandheld = false;
-        protected boolean includedInCreativeInventory = false;
         protected OptionalInt creativeCategory = OptionalInt.empty();
         protected String creativeGroup = null;
         protected int textureSize = 16;
@@ -187,12 +178,6 @@ public class GeyserCustomItemData implements CustomItemData {
         @Override
         public Builder displayHandheld(boolean displayHandheld) {
             this.displayHandheld = displayHandheld;
-            return this;
-        }
-
-        @Override
-        public CustomItemData.Builder includedInCreativeInventory(boolean includedInCreativeInventory) {
-            this.includedInCreativeInventory = includedInCreativeInventory;
             return this;
         }
 
@@ -239,7 +224,7 @@ public class GeyserCustomItemData implements CustomItemData {
                 this.icon = this.name;
             }
             return new GeyserCustomItemData(this.name, this.customItemOptions, this.displayName, this.icon, this.allowOffhand,
-                    this.displayHandheld, this.includedInCreativeInventory, this.creativeCategory, this.creativeGroup, this.textureSize, this.renderOffsets, this.tags);
+                    this.displayHandheld, this.creativeCategory, this.creativeGroup, this.textureSize, this.renderOffsets, this.tags);
         }
     }
 }

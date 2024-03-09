@@ -426,8 +426,7 @@ public class ItemRegistryPopulator {
                                 customItemName, javaItem, mappingItem, customItem, customProtocolId, palette.protocolVersion
                         );
 
-                        if (customItem.includedInCreativeInventory() &&
-                                (customItem.creativeCategory().isPresent() || customItem.creativeGroup() != null)) {
+                        if (customItem.creativeCategory().isPresent()) {
                             creativeItems.add(ItemData.builder()
                                     .netId(creativeNetId.incrementAndGet())
                                     .definition(customMapping.itemDefinition())
@@ -534,8 +533,7 @@ public class ItemRegistryPopulator {
                     mappings.set(javaItem.javaId(), mapping);
                     registry.put(customItemId, mapping.getBedrockDefinition());
 
-                    if (customItem.includedInCreativeInventory() &&
-                            (customItem.creativeGroup() != null || customItem.creativeCategory().isPresent())) {
+                    if (customItem.creativeCategory().isPresent()) {
                         creativeItems.add(ItemData.builder()
                                 .definition(registration.mapping().getBedrockDefinition())
                                 .netId(creativeNetId.incrementAndGet())

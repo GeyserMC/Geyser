@@ -200,9 +200,6 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         }
 
         @Override
-        CustomItemData.Builder includedInCreativeInventory(boolean includedInCreativeInventory);
-
-        @Override
         Builder creativeCategory(int creativeCategory);
 
         @Override

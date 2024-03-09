@@ -79,15 +79,6 @@ public interface CustomItemData {
     boolean displayHandheld();
 
     /**
-     * Gets if the custom item is included in the creative inventory.
-     * This must be enabled for custom recipes that have this custom item
-     * as the output to be shown in the Bedrock crafting recipe book.
-     *
-     * @return If the custom item is included in the creative inventory.
-     */
-    boolean includedInCreativeInventory();
-
-    /**
      * Gets the item's creative category, or tab id.
      *
      * @return the item's creative category
@@ -142,8 +133,6 @@ public interface CustomItemData {
         Builder allowOffhand(boolean allowOffhand);
 
         Builder displayHandheld(boolean displayHandheld);
-
-        Builder includedInCreativeInventory(boolean includedInCreativeInventory);
 
         Builder creativeCategory(int creativeCategory);
 

@@ -57,7 +57,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
 
     public GeyserNonVanillaCustomItemData(Builder builder) {
         super(builder.name, builder.customItemOptions, builder.displayName, builder.icon, builder.allowOffhand,
-                builder.displayHandheld, builder.includedInCreativeInventory, builder.creativeCategory, builder.creativeGroup,
+                builder.displayHandheld, builder.creativeCategory, builder.creativeGroup,
                 builder.textureSize, builder.renderOffsets, builder.tags);
 
         this.identifier = builder.identifier;
@@ -282,11 +282,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         public Builder repairMaterials(@Nullable Set<String> repairMaterials) {
             this.repairMaterials = repairMaterials;
             return this;
-        }
-
-        @Override
-        public Builder includedInCreativeInventory(boolean includedInCreativeInventory) {
-            return (Builder) super.includedInCreativeInventory(includedInCreativeInventory);
         }
 
         @Override

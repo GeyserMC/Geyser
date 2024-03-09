@@ -271,10 +271,9 @@ public class CustomItemRegistryPopulator {
         }
         itemProperties.putCompound("minecraft:icon", iconMap);
 
-        if (customItemData.includedInCreativeInventory()) {
-            if (customItemData.creativeCategory().isPresent()) {
-                itemProperties.putInt("creative_category", customItemData.creativeCategory().getAsInt());
-            }
+        if (customItemData.creativeCategory().isPresent()) {
+            itemProperties.putInt("creative_category", customItemData.creativeCategory().getAsInt());
+
             if (customItemData.creativeGroup() != null) {
                 itemProperties.putString("creative_group", customItemData.creativeGroup());
             }
