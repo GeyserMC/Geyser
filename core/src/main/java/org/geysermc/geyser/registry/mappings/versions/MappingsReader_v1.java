@@ -193,6 +193,18 @@ public class MappingsReader_v1 extends MappingsReader {
             customItemData.icon(node.get("icon").asText());
         }
 
+        if (node.has("includedInCreativeInventory")) {
+            customItemData.includedInCreativeInventory(node.get("includedInCreativeInventory").asBoolean());
+        }
+
+        if (node.has("creativeCategory")) {
+            customItemData.creativeCategory(node.get("creativeCategory").asInt());
+        }
+
+        if (node.has("creativeGroup")) {
+            customItemData.creativeGroup(node.get("creativeGroup").asText());
+        }
+
         if (node.has("allow_offhand")) {
             customItemData.allowOffhand(node.get("allow_offhand").asBoolean());
         }

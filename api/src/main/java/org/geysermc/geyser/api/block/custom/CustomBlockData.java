@@ -61,16 +61,16 @@ public interface CustomBlockData {
     boolean includedInCreativeInventory();
 
     /**
-     * Gets the item's creative category, or tab id.
+     * Gets the block's creative category, or tab id.
      *
-     * @return the item's creative category
+     * @return the block's creative category
      */
     @Nullable CreativeCategory creativeCategory();
 
     /**
-     * Gets the item's creative group.
+     * Gets the block's creative group.
      *
-     * @return the item's creative group
+     * @return the block's creative group
      */
     @Nullable String creativeGroup();
 
