@@ -27,7 +27,6 @@ package org.geysermc.geyser.translator.protocol.java;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundRecipePacket;
 import org.cloudburstmc.protocol.bedrock.packet.UnlockedRecipesPacket;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -48,10 +47,20 @@ public class JavaClientboundRecipesTranslator extends PacketTranslator<Clientbou
             }
             case ADD -> {
                 recipesPacket.setAction(UnlockedRecipesPacket.ActionType.NEWLY_UNLOCKED);
-                recipesPacket.getUnlockedRecipes().addAll(getBedrockRecipes(session, packet.getRecipes()));
+                List<String> recipes = getBedrockRecipes(session, packet.getRecipes());
+                if (recipes.isEmpty()) {
+                    // Sending an empty list here packet will crash the client as of 1.20.60
+                    return;
+                }
+                recipesPacket.getUnlockedRecipes().addAll(recipes);
             }
             case REMOVE -> {
                 recipesPacket.setAction(UnlockedRecipesPacket.ActionType.REMOVE_UNLOCKED);
+                List<String> recipes = getBedrockRecipes(session, packet.getRecipes());
+                if (recipes.isEmpty()) {
+                    // Sending an empty list here will crash the client as of 1.20.60
+                    return;
+                }
                 recipesPacket.getUnlockedRecipes().addAll(getBedrockRecipes(session, packet.getRecipes()));
             }
         }
@@ -71,4 +80,3 @@ public class JavaClientboundRecipesTranslator extends PacketTranslator<Clientbou
         return recipes;
     }
 }
-
