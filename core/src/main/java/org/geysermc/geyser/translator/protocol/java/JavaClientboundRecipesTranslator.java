@@ -46,21 +46,21 @@ public class JavaClientboundRecipesTranslator extends PacketTranslator<Clientbou
                 recipesPacket.getUnlockedRecipes().addAll(getBedrockRecipes(session, packet.getAlreadyKnownRecipes()));
             }
             case ADD -> {
-                recipesPacket.setAction(UnlockedRecipesPacket.ActionType.NEWLY_UNLOCKED);
                 List<String> recipes = getBedrockRecipes(session, packet.getRecipes());
                 if (recipes.isEmpty()) {
                     // Sending an empty list here packet will crash the client as of 1.20.60
                     return;
                 }
+                recipesPacket.setAction(UnlockedRecipesPacket.ActionType.NEWLY_UNLOCKED);
                 recipesPacket.getUnlockedRecipes().addAll(recipes);
             }
             case REMOVE -> {
-                recipesPacket.setAction(UnlockedRecipesPacket.ActionType.REMOVE_UNLOCKED);
                 List<String> recipes = getBedrockRecipes(session, packet.getRecipes());
                 if (recipes.isEmpty()) {
                     // Sending an empty list here will crash the client as of 1.20.60
                     return;
                 }
+                recipesPacket.setAction(UnlockedRecipesPacket.ActionType.REMOVE_UNLOCKED);
                 recipesPacket.getUnlockedRecipes().addAll(getBedrockRecipes(session, packet.getRecipes()));
             }
         }
