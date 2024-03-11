@@ -44,7 +44,7 @@ import org.geysermc.geyser.translator.protocol.Translator;
 @Translator(packet = ItemFrameDropItemPacket.class)
 public class BedrockItemFrameDropItemTranslator extends PacketTranslator<ItemFrameDropItemPacket> {
 
-    // TODO: Remove when <= 1.20.60 is no longer supported
+    // TODO: Remove when 1.20.60 is no longer supported
     @Override
     public void translate(GeyserSession session, ItemFrameDropItemPacket packet) {
         Entity entity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
