@@ -46,6 +46,7 @@ import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -333,6 +334,10 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.sendDownstreamGamePacket(new ServerboundPlayerAbilitiesPacket(false));
                 break;
             case DIMENSION_CHANGE_REQUEST_OR_CREATIVE_DESTROY_BLOCK: // Used by client to get book from lecterns and items from item frame in creative mode since 1.20.70
+                if (GameProtocol.isPre1_20_70(session)) {
+                    break;
+                }
+                
                 int interactedBlock = session.getGeyser().getWorldManager().getBlockAt(session, vector);
                 
                 if (BlockStateValues.getLecternBookStates().getOrDefault(interactedBlock, false)) {
