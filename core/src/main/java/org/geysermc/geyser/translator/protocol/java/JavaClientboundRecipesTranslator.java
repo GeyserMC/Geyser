@@ -61,7 +61,7 @@ public class JavaClientboundRecipesTranslator extends PacketTranslator<Clientbou
                     return;
                 }
                 recipesPacket.setAction(UnlockedRecipesPacket.ActionType.REMOVE_UNLOCKED);
-                recipesPacket.getUnlockedRecipes().addAll(getBedrockRecipes(session, packet.getRecipes()));
+                recipesPacket.getUnlockedRecipes().addAll(recipes);
             }
         }
         session.sendUpstreamPacket(recipesPacket);
