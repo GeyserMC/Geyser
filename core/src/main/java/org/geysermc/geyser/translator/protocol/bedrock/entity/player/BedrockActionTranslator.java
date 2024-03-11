@@ -46,6 +46,7 @@ import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -299,39 +300,70 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 }
                 break;
             case START_FLYING: // Since 1.20.30
-                 if (session.isCanFly()) {
-                     if (session.getGameMode() == GameMode.SPECTATOR) {
+                if (session.isCanFly()) {
+                    if (session.getGameMode() == GameMode.SPECTATOR) {
                          // should already be flying
-                         session.sendAdventureSettings();
-                         break;
-                     }
+                        session.sendAdventureSettings();
+                        break;
+                    }
 
-                     if (session.getPlayerEntity().getFlag(EntityFlag.SWIMMING) && session.getCollisionManager().isPlayerInWater()) {
+                    if (session.getPlayerEntity().getFlag(EntityFlag.SWIMMING) && session.getCollisionManager().isPlayerInWater()) {
                          // As of 1.18.1, Java Edition cannot fly while in water, but it can fly while crawling
                          // If this isn't present, swimming on a 1.13.2 server and then attempting to fly will put you into a flying/swimming state that is invalid on JE
-                         session.sendAdventureSettings();
-                         break;
-                     }
+                        session.sendAdventureSettings();
+                        break;
+                    }
 
-                     session.setFlying(true);
-                     session.sendDownstreamGamePacket(new ServerboundPlayerAbilitiesPacket(true));
-                 } else {
+                    session.setFlying(true);
+                    session.sendDownstreamGamePacket(new ServerboundPlayerAbilitiesPacket(true));
+                } else {
                      // update whether we can fly
-                     session.sendAdventureSettings();
+                    session.sendAdventureSettings();
                      // stop flying
-                     PlayerActionPacket stopFlyingPacket = new PlayerActionPacket();
-                     stopFlyingPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
-                     stopFlyingPacket.setAction(PlayerActionType.STOP_FLYING);
-                     stopFlyingPacket.setBlockPosition(Vector3i.ZERO);
-                     stopFlyingPacket.setResultPosition(Vector3i.ZERO);
-                     stopFlyingPacket.setFace(0);
-                     session.sendUpstreamPacket(stopFlyingPacket);
-                 }
-                 break;
+                    PlayerActionPacket stopFlyingPacket = new PlayerActionPacket();
+                    stopFlyingPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+                    stopFlyingPacket.setAction(PlayerActionType.STOP_FLYING);
+                    stopFlyingPacket.setBlockPosition(Vector3i.ZERO);
+                    stopFlyingPacket.setResultPosition(Vector3i.ZERO);
+                    stopFlyingPacket.setFace(0);
+                    session.sendUpstreamPacket(stopFlyingPacket);
+                }
+                break;
             case STOP_FLYING:
                 session.setFlying(false);
                 session.sendDownstreamGamePacket(new ServerboundPlayerAbilitiesPacket(false));
                 break;
+            case DIMENSION_CHANGE_REQUEST_OR_CREATIVE_DESTROY_BLOCK: // Used by client to get book from lecterns and items from item frame in creative mode since 1.20.70
+                if (GameProtocol.isPre1_20_70(session)) {
+                    break;
+                }
+                
+                int interactedBlock = session.getGeyser().getWorldManager().getBlockAt(session, vector);
+                
+                if (BlockStateValues.getLecternBookStates().getOrDefault(interactedBlock, false)) {
+                    session.setDroppingLecternBook(true);
+
+                    ServerboundUseItemOnPacket blockPacket = new ServerboundUseItemOnPacket(
+                            vector,
+                            Direction.DOWN,
+                            Hand.MAIN_HAND,
+                            0, 0, 0,
+                            false,
+                            session.getWorldCache().nextPredictionSequence());
+                    session.sendDownstreamGamePacket(blockPacket);
+                    break;
+                }
+
+                if (session.getItemFrameCache().containsKey(vector)) {
+                    Entity itemFrame = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
+
+                    if (itemFrame != null) {
+                        ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(itemFrame.getEntityId(),
+                                InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
+                        session.sendDownstreamGamePacket(interactPacket);
+                    }
+                    break;
+                }
         }
     }
 }

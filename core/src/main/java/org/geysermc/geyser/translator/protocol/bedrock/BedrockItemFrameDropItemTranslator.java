@@ -39,10 +39,12 @@ import org.geysermc.geyser.translator.protocol.Translator;
  * Pre-1.16.210: used for both survival and creative item frame item removal
  * <p>
  * 1.16.210: only used in creative.
+ * 1.20.70: no longer used.
  */
 @Translator(packet = ItemFrameDropItemPacket.class)
 public class BedrockItemFrameDropItemTranslator extends PacketTranslator<ItemFrameDropItemPacket> {
 
+    // TODO: Remove when 1.20.60 is no longer supported
     @Override
     public void translate(GeyserSession session, ItemFrameDropItemPacket packet) {
         Entity entity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());

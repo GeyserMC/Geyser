@@ -132,3 +132,19 @@ inner class GitInfo {
 
 // todo remove this when we're not using Jenkins anymore
 fun jenkinsBuildNumber(): String? = System.getenv("BUILD_NUMBER")
+
+// Manual task to download the bedrock data files from the CloudburstMC/Data repository
+// Invoke with ./gradlew :core:downloadBedrockData --suffix=1_20_70
+// Set suffix to the current Bedrock version
+tasks.register<DownloadFilesTask>("downloadBedrockData") {
+    urls = listOf(
+        "https://raw.githubusercontent.com/CloudburstMC/Data/master/entity_identifiers.dat",
+        "https://raw.githubusercontent.com/CloudburstMC/Data/master/biome_definitions.dat",
+        "https://raw.githubusercontent.com/CloudburstMC/Data/master/block_palette.nbt",
+        "https://raw.githubusercontent.com/CloudburstMC/Data/master/creative_items.json",
+        "https://raw.githubusercontent.com/CloudburstMC/Data/master/runtime_item_states.json"
+    )
+    suffixedFiles = listOf("block_palette.nbt", "creative_items.json", "runtime_item_states.json")
+
+    destinationDir = "$projectDir/src/main/resources/bedrock"
+}

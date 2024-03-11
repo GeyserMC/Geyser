@@ -47,6 +47,7 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
 
     @Override
     public void translate(GeyserSession session, LecternUpdatePacket packet) {
+        // TODO: Remove dropping book check here when 1.20.60 is no longer supported
         if (packet.isDroppingBook()) {
             // Bedrock drops the book outside of the GUI. Java drops it in the GUI
             // So, we enter the GUI and then drop it! :)
