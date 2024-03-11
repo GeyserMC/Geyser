@@ -33,10 +33,8 @@ import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 
-import java.util.OptionalInt;
 import java.util.Set;
 
-@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 @EqualsAndHashCode(callSuper = true)
 @ToString
 public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData implements NonVanillaCustomItemData {
@@ -50,8 +48,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     private final int protectionValue;
     private final String translationString;
     private final Set<String> repairMaterials;
-    private final OptionalInt creativeCategory;
-    private final String creativeGroup;
     private final boolean isHat;
     private final boolean isFoil;
     private final boolean isTool;
@@ -61,7 +57,8 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
 
     public GeyserNonVanillaCustomItemData(Builder builder) {
         super(builder.name, builder.customItemOptions, builder.displayName, builder.icon, builder.allowOffhand,
-                builder.displayHandheld, builder.textureSize, builder.renderOffsets, builder.tags);
+                builder.displayHandheld, builder.creativeCategory, builder.creativeGroup,
+                builder.textureSize, builder.renderOffsets, builder.tags);
 
         this.identifier = builder.identifier;
         this.javaId = builder.javaId;
@@ -73,8 +70,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         this.protectionValue = builder.protectionValue;
         this.translationString = builder.translationString;
         this.repairMaterials = builder.repairMaterials;
-        this.creativeCategory = builder.creativeCategory;
-        this.creativeGroup = builder.creativeGroup;
         this.isHat = builder.hat;
         this.isFoil = builder.foil;
         this.isTool = builder.tool;
@@ -134,16 +129,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     }
 
     @Override
-    public @NonNull OptionalInt creativeCategory() {
-        return creativeCategory;
-    }
-
-    @Override
-    public String creativeGroup() {
-        return creativeGroup;
-    }
-
-    @Override
     public boolean isHat() {
         return isHat;
     }
@@ -185,9 +170,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         private String translationString;
 
         private Set<String> repairMaterials;
-
-        private OptionalInt creativeCategory = OptionalInt.empty();
-        private String creativeGroup = null;
 
         private boolean hat = false;
         private boolean foil = false;
@@ -243,103 +225,101 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder identifier(@NonNull String identifier) {
+        public Builder identifier(@NonNull String identifier) {
             this.identifier = identifier;
             return this;
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder javaId(int javaId) {
+        public Builder javaId(int javaId) {
             this.javaId = javaId;
             return this;
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder stackSize(int stackSize) {
+        public Builder stackSize(int stackSize) {
             this.stackSize = stackSize;
             return this;
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder maxDamage(int maxDamage) {
+        public Builder maxDamage(int maxDamage) {
             this.maxDamage = maxDamage;
             return this;
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder toolType(@Nullable String toolType) {
+        public Builder toolType(@Nullable String toolType) {
             this.toolType = toolType;
             return this;
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder toolTier(@Nullable String toolTier) {
+        public Builder toolTier(@Nullable String toolTier) {
             this.toolTier = toolTier;
             return this;
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder armorType(@Nullable String armorType) {
+        public Builder armorType(@Nullable String armorType) {
             this.armorType = armorType;
             return this;
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder protectionValue(int protectionValue) {
+        public Builder protectionValue(int protectionValue) {
             this.protectionValue = protectionValue;
             return this;
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder translationString(@Nullable String translationString) {
+        public Builder translationString(@Nullable String translationString) {
             this.translationString = translationString;
             return this;
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder repairMaterials(@Nullable Set<String> repairMaterials) {
+        public Builder repairMaterials(@Nullable Set<String> repairMaterials) {
             this.repairMaterials = repairMaterials;
             return this;
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder creativeCategory(int creativeCategory) {
-            this.creativeCategory = OptionalInt.of(creativeCategory);
-            return this;
+        public Builder creativeCategory(int creativeCategory) {
+            return (Builder) super.creativeCategory(creativeCategory);
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder creativeGroup(@Nullable String creativeGroup) {
-            this.creativeGroup = creativeGroup;
-            return this;
+        public Builder creativeGroup(@Nullable String creativeGroup) {
+            return (Builder) super.creativeGroup(creativeGroup);
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder hat(boolean isHat) {
+        public Builder hat(boolean isHat) {
             this.hat = isHat;
             return this;
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder foil(boolean isFoil) {
+        public Builder foil(boolean isFoil) {
             this.foil = isFoil;
             return this;
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder edible(boolean isEdible) {
+        public Builder edible(boolean isEdible) {
             this.edible = isEdible;
             return this;
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder canAlwaysEat(boolean canAlwaysEat) {
+        public Builder canAlwaysEat(boolean canAlwaysEat) {
             this.canAlwaysEat = canAlwaysEat;
             return this;
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder chargeable(boolean isChargeable) {
+        public Builder chargeable(boolean isChargeable) {
             this.chargeable = isChargeable;
             return this;
         }

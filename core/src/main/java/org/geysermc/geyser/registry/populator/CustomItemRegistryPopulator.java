@@ -246,13 +246,6 @@ public class CustomItemRegistryPopulator {
 
         computeRenderOffsets(isHat, customItemData, componentBuilder);
 
-        if (creativeGroup != null) {
-            itemProperties.putString("creative_group", creativeGroup);
-        }
-        if (creativeCategory.isPresent()) {
-            itemProperties.putInt("creative_category", creativeCategory.getAsInt());
-        }
-
         if (customItemData.isFoil()) {
             itemProperties.putBoolean("foil", true);
         }
@@ -277,6 +270,14 @@ public class CustomItemRegistryPopulator {
                     .build();
         }
         itemProperties.putCompound("minecraft:icon", iconMap);
+
+        if (customItemData.creativeCategory().isPresent()) {
+            itemProperties.putInt("creative_category", customItemData.creativeCategory().getAsInt());
+
+            if (customItemData.creativeGroup() != null) {
+                itemProperties.putString("creative_group", customItemData.creativeGroup());
+            }
+        }
 
         componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", customItemData.displayName()).build());
 
@@ -370,21 +371,33 @@ public class CustomItemRegistryPopulator {
                 componentBuilder.putString("minecraft:render_offsets", "boots");
                 componentBuilder.putCompound("minecraft:wearable", WearableSlot.FEET.getSlotNbt());
                 componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", protectionValue).build());
+
+                itemProperties.putString("enchantable_slot", "armor_feet");
+                itemProperties.putInt("enchantable_value", 15);
             }
             case "chestplate" -> {
                 componentBuilder.putString("minecraft:render_offsets", "chestplates");
                 componentBuilder.putCompound("minecraft:wearable", WearableSlot.CHEST.getSlotNbt());
                 componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", protectionValue).build());
+
+                itemProperties.putString("enchantable_slot", "armor_torso");
+                itemProperties.putInt("enchantable_value", 15);
             }
             case "leggings" -> {
                 componentBuilder.putString("minecraft:render_offsets", "leggings");
                 componentBuilder.putCompound("minecraft:wearable", WearableSlot.LEGS.getSlotNbt());
                 componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", protectionValue).build());
+
+                itemProperties.putString("enchantable_slot", "armor_legs");
+                itemProperties.putInt("enchantable_value", 15);
             }
             case "helmet" -> {
                 componentBuilder.putString("minecraft:render_offsets", "helmets");
                 componentBuilder.putCompound("minecraft:wearable", WearableSlot.HEAD.getSlotNbt());
                 componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", protectionValue).build());
+
+                itemProperties.putString("enchantable_slot", "armor_head");
+                itemProperties.putInt("enchantable_value", 15);
             }
         }
     }

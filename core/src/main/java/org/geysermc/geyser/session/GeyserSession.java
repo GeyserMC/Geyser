@@ -113,8 +113,6 @@ import org.geysermc.geyser.api.event.bedrock.SessionLoginEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.impl.camera.CameraDefinitions;
-import org.geysermc.geyser.impl.camera.GeyserCameraData;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -127,6 +125,8 @@ import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.erosion.AbstractGeyserboundPacketHandler;
 import org.geysermc.geyser.erosion.GeyserboundHandshakePacketHandler;
+import org.geysermc.geyser.impl.camera.CameraDefinitions;
+import org.geysermc.geyser.impl.camera.GeyserCameraData;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
@@ -1464,9 +1464,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     public void setServerRenderDistance(int renderDistance) {
-        // +1 is for Fabric and Spigot
-        // Without the client misses loading some chunks per https://github.com/GeyserMC/Geyser/issues/3490
-        // Fog still appears essentially normally
         // Ensure render distance is not above 96 as sending a larger value at any point crashes mobile clients and 96 is the max of any bedrock platform
         renderDistance = Math.min(renderDistance, 96);
         this.serverRenderDistance = renderDistance;
