@@ -134,13 +134,15 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
 
                     List<String> bedrockRecipeIDs = new ArrayList<>();
                     for (ItemDescriptorWithCount[] inputs : inputCombinations) {
-                        UUID uuid = UUID.randomUUID();
-                        bedrockRecipeIDs.add(uuid.toString());
-                        craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData.shapeless(uuid.toString(),
-                                Arrays.asList(inputs), Collections.singletonList(output), uuid, "crafting_table", 0, netId));
-                        recipeMap.put(netId++, new GeyserShapelessRecipe(shapelessRecipeData));
+                        if (Arrays.stream(inputs).noneMatch(it -> (it.getDescriptor() instanceof InvalidDescriptor))) {
+                            UUID uuid = UUID.randomUUID();
+                            bedrockRecipeIDs.add(uuid.toString());
+                            craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData.shapeless(uuid.toString(),
+                                    Arrays.asList(inputs), Collections.singletonList(output), uuid, "crafting_table", 0, netId));
+                            recipeMap.put(netId++, new GeyserShapelessRecipe(shapelessRecipeData));
+                            addRecipeIdentifier(session, recipe.getIdentifier(), bedrockRecipeIDs);
+                        }
                     }
-                    addRecipeIdentifier(session, recipe.getIdentifier(), bedrockRecipeIDs);
                 }
                 case CRAFTING_SHAPED -> {
                     ShapedRecipeData shapedRecipeData = (ShapedRecipeData) recipe.getData();
