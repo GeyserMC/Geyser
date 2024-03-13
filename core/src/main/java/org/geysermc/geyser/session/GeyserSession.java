@@ -602,13 +602,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private @Nullable ItemData currentBook = null;
 
-    /**
-     * Stores if we've sent AvailibleCommandsPacket to the client due to it crashing if sent twice on 1.20.70/71
-     * Hopefully bedrock will have a hotfix so we can remove this
-     */
-    @Setter
-    private boolean sentAvailibleCommands = false;
-
     private final GeyserCameraData cameraData;
 
     private final GeyserEntityData entityData;
