@@ -67,6 +67,17 @@ public class Conversion662_649 {
             }
         }
 
+        if (NEW_SLABS.contains(identifer)) {
+            switch (identifer) {
+                case "minecraft:oak_slab" -> { return mapping.withBedrockIdentifier("minecraft:wooden_slab").withBedrockData(0); }
+                case "minecraft:spruce_slab" -> { return mapping.withBedrockIdentifier("minecraft:wooden_slab").withBedrockData(1); }
+                case "minecraft:birch_slab" -> { return mapping.withBedrockIdentifier("minecraft:wooden_slab").withBedrockData(2); }
+                case "minecraft:jungle_slab" -> { return mapping.withBedrockIdentifier("minecraft:wooden_slab").withBedrockData(3); }
+                case "minecraft:acacia_slab" -> { return mapping.withBedrockIdentifier("minecraft:wooden_slab").withBedrockData(4); }
+                case "minecraft:dark_oak_slab" -> { return mapping.withBedrockIdentifier("minecraft:wooden_slab").withBedrockData(5); }
+            }
+        }
+
         if (NEW_LEAVES.contains(identifer) || NEW_LEAVES2.contains(identifer)) {
             switch (identifer) {
                 case "minecraft:oak_leaves" -> { return mapping.withBedrockIdentifier("minecraft:leaves").withBedrockData(0); }
