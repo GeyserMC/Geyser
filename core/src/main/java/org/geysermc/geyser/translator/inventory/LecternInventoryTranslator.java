@@ -129,6 +129,11 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
 
     @Override
     public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
+        // If we're not in a real lectern, the Java server thinks we are still in the player inventory.
+        if (((LecternContainer) inventory).isFakeLectern()) {
+            InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), slot);
+            return;
+        }
         super.updateSlot(session, inventory, slot);
         if (slot == 0) {
             updateBook(session, inventory, inventory.getItem(0));
