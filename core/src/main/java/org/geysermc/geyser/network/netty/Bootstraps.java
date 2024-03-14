@@ -31,14 +31,12 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.epoll.Native;
 import io.netty.channel.unix.UnixChannelOption;
 import lombok.experimental.UtilityClass;
+import org.geysermc.geyser.GeyserImpl;
 
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 @UtilityClass
 public final class Bootstraps {
-    private static final Optional<int[]> KERNEL_VERSION;
 
     // The REUSEPORT_AVAILABLE socket option is available starting from kernel version 3.9.
     // This option allows multiple sockets to listen on the same IP address and port without conflict.
@@ -46,28 +44,43 @@ public final class Bootstraps {
     private static final boolean REUSEPORT_AVAILABLE;
 
     static {
+        boolean available;
         String kernelVersion;
         try {
             kernelVersion = Native.KERNEL_VERSION;
         } catch (Throwable e) {
+            GeyserImpl.getInstance().getLogger().debug("Could not determine kernel version! " + e);
             kernelVersion = null;
         }
-        if (kernelVersion != null && kernelVersion.contains("-")) {
-            int index = kernelVersion.indexOf('-');
-            if (index > -1) {
-                kernelVersion = kernelVersion.substring(0, index);
-            }
-            int[] kernelVer = fromString(kernelVersion);
-            KERNEL_VERSION = Optional.of(kernelVer);
-            REUSEPORT_AVAILABLE = checkVersion(kernelVer, 0);
-        } else {
-            KERNEL_VERSION = Optional.empty();
-            REUSEPORT_AVAILABLE = false;
-        }
-    }
 
-    public static Optional<int[]> getKernelVersion() {
-        return KERNEL_VERSION;
+        if (kernelVersion == null) {
+            available = false;
+        } else {
+            // Some kernel versions contain a fun `-`.
+            if (kernelVersion.contains("-")) {
+                int index = kernelVersion.indexOf('-');
+                if (index > -1) {
+                    kernelVersion = kernelVersion.substring(0, index);
+                }
+            }
+            // Then, e.g. raspberry pi's contain a `+`! (example: 6.6.20+rpt-rpi-2712)
+            if (kernelVersion.contains("+")) {
+                int index = kernelVersion.indexOf('+');
+                if (index > -1) {
+                    kernelVersion = kernelVersion.substring(0, index);
+                }
+            }
+
+            try {
+                int[] kernelVer = fromString(kernelVersion);
+                available = checkVersion(kernelVer, 0);
+            } catch (IllegalArgumentException e) {
+                GeyserImpl.getInstance().getLogger().warning("Unable to determine kernel version! Defaulting to no port reusing.");
+                GeyserImpl.getInstance().getLogger().debug("kernel version: " + kernelVersion + " exception: " + e);
+                available = false;
+            }
+        }
+        REUSEPORT_AVAILABLE = available;
     }
 
     public static boolean isReusePortAvailable() {
@@ -81,7 +94,7 @@ public final class Bootstraps {
         }
     }
 
-    private static int[] fromString(String ver) {
+    private static int[] fromString(String ver) throws IllegalArgumentException {
         String[] parts = ver.split("\\.");
         if (parts.length < 2) {
             throw new IllegalArgumentException("At least 2 version numbers required");
