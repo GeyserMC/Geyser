@@ -50,7 +50,7 @@ public final class Bootstraps {
         try {
             kernelVersion = Native.KERNEL_VERSION;
         } catch (Throwable e) {
-            GeyserImpl.getInstance().getLogger().debug("Could not determine kernel version! " + e);
+            GeyserImpl.getInstance().getLogger().debug("Could not determine kernel version! " + e.getMessage());
             kernelVersion = null;
         }
 
