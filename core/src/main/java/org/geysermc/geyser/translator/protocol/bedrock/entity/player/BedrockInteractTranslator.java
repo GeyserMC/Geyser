@@ -35,12 +35,10 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.InteractPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
@@ -129,14 +127,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                         InventoryUtils.openInventory(session, session.getPlayerInventory());
                     }
                 } else {
-                    // Case: Player opens a player inventory, while we think it shouldn't have!
-                    // Close all inventories, reset to player inventory.
-                    GeyserImpl.getInstance().getLogger().debug("Player tried to open player inventory despite the current inventory supposed to be " + session.getOpenInventory().getClass().getName());
-                    GeyserImpl.getInstance().getLogger().debug("Current inventory translator: " + session.getInventoryTranslator().getClass().getName());
-                    // Close player inventory
-                    InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.closeInventory(session, session.getPlayerInventory());
-                    // Since we are closing the inventory forcefully, wait until the client confirmed it being closed
-                    session.setClosingInventory(true);
+                    // Case: Player tries to open a player inventory, while we think it should be in a different inventory
                     // Now: Open the inventory that we're supposed to be in.
                     InventoryUtils.openInventory(session, session.getOpenInventory());
                 }
