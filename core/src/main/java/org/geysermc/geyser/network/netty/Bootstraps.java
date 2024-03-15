@@ -34,17 +34,18 @@ import lombok.experimental.UtilityClass;
 import org.geysermc.geyser.GeyserImpl;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @UtilityClass
 public final class Bootstraps {
 
     // The REUSEPORT_AVAILABLE socket option is available starting from kernel version 3.9.
     // This option allows multiple sockets to listen on the same IP address and port without conflict.
-    private static final int[] REUSEPORT_VERSION = new int[]{3, 9, 0};
+    private static final int[] REUSEPORT_VERSION = new int[]{3, 9};
     private static final boolean REUSEPORT_AVAILABLE;
 
     static {
-        boolean available;
         String kernelVersion;
         try {
             kernelVersion = Native.KERNEL_VERSION;
@@ -54,33 +55,12 @@ public final class Bootstraps {
         }
 
         if (kernelVersion == null) {
-            available = false;
+            REUSEPORT_AVAILABLE = false;
         } else {
-            // Some kernel versions contain a fun `-`.
-            if (kernelVersion.contains("-")) {
-                int index = kernelVersion.indexOf('-');
-                if (index > -1) {
-                    kernelVersion = kernelVersion.substring(0, index);
-                }
-            }
-            // Then, e.g. raspberry pi's contain a `+`! (example: 6.6.20+rpt-rpi-2712)
-            if (kernelVersion.contains("+")) {
-                int index = kernelVersion.indexOf('+');
-                if (index > -1) {
-                    kernelVersion = kernelVersion.substring(0, index);
-                }
-            }
-
-            try {
-                int[] kernelVer = fromString(kernelVersion);
-                available = checkVersion(kernelVer, 0);
-            } catch (IllegalArgumentException e) {
-                GeyserImpl.getInstance().getLogger().warning("Unable to determine kernel version! Defaulting to no port reusing.");
-                GeyserImpl.getInstance().getLogger().debug("kernel version: " + kernelVersion + " exception: " + e);
-                available = false;
-            }
+            GeyserImpl.getInstance().getLogger().warning("kernel version: " + kernelVersion);
+            int[] kernelVer = fromString(kernelVersion);
+            REUSEPORT_AVAILABLE = checkVersion(kernelVer, 0);
         }
-        REUSEPORT_AVAILABLE = available;
     }
 
     public static boolean isReusePortAvailable() {
@@ -94,17 +74,19 @@ public final class Bootstraps {
         }
     }
 
-    private static int[] fromString(String ver) throws IllegalArgumentException {
-        String[] parts = ver.split("\\.");
-        if (parts.length < 2) {
-            throw new IllegalArgumentException("At least 2 version numbers required");
+    private static int[] fromString(String input) {
+        // Match only beginning of string for at least two digits separated by dot
+        Pattern pattern = Pattern.compile("^(\\d+)\\.(\\d+)");
+        Matcher matcher = pattern.matcher(input);
+
+        int[] version = {0, 0};
+
+        if (matcher.find()) {
+            version[0] = Integer.parseInt(matcher.group(1));
+            version[1] = Integer.parseInt(matcher.group(2));
         }
 
-        return new int[]{
-                Integer.parseInt(parts[0]),
-                Integer.parseInt(parts[1]),
-                parts.length == 2 ? 0 : Integer.parseInt(parts[2])
-        };
+        return version;
     }
 
     private static boolean checkVersion(int[] ver, int i) {
