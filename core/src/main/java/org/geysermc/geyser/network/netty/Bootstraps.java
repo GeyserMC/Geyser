@@ -57,7 +57,6 @@ public final class Bootstraps {
         if (kernelVersion == null) {
             REUSEPORT_AVAILABLE = false;
         } else {
-            GeyserImpl.getInstance().getLogger().warning("kernel version: " + kernelVersion);
             int[] kernelVer = fromString(kernelVersion);
             REUSEPORT_AVAILABLE = checkVersion(kernelVer, 0);
         }
