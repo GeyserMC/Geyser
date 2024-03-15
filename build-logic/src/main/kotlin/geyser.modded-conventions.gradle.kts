@@ -81,22 +81,22 @@ tasks {
 }
 
 afterEvaluate {
-    val dependenciesSet = providedDependencies[project.name]
+    val dependenciesSet = getProvidedDependenciesForProject(project.name)
 
     // We shadow e.g. geyser-core in. The resolved configuration however would JiJ core once more, leading to duplicates
     // Hence: Remove the initially provided dependencies.
     configurations["includeTransitive"].dependencies.forEach{ initDependency ->
-        dependenciesSet!!.add("${initDependency.group}:${initDependency.name}")
+        dependenciesSet.add("${initDependency.group}:${initDependency.name}")
     }
 
     // Now: Include all transitive dependencies that aren't excluded
     configurations["includeTransitive"].resolvedConfiguration.resolvedArtifacts.forEach { dep ->
-        if (!dependenciesSet!!.contains("${dep.moduleVersion.id.group}:${dep.moduleVersion.id.name}")
+        if (!dependenciesSet.contains("${dep.moduleVersion.id.group}:${dep.moduleVersion.id.name}")
             and !dependenciesSet.contains("${dep.moduleVersion.id.group}:*")) {
             println("Including dependency via JiJ: ${dep.id}")
             dependencies.add("include", dep.moduleVersion.id.toString())
         } else {
-            println("Not including ${dep.id} as it is already provided on the ${project.name} platform!")
+            println("Not including ${dep.id}, already provided on ${project.name}!")
         }
     }
 }

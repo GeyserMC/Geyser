@@ -2,6 +2,10 @@ plugins {
     application
 }
 
+// This is provided by "org.cloudburstmc.math.mutable" too, so yeet.
+// NeoForge's class loader is *really* annoying.
+provided("org.cloudburstmc.math", "api")
+
 architectury {
     platformSetupLoomIde()
     neoForge()
@@ -34,10 +38,6 @@ application {
 }
 
 tasks {
-    shadowJar {
-        relocate("it.unimi.dsi.fastutil", "org.geysermc.relocate.fastutil")
-    }
-
     remapJar {
         archiveBaseName.set("Geyser-NeoForge")
     }

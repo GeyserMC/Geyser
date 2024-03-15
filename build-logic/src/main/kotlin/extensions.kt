@@ -58,6 +58,10 @@ fun Project.platformRelocate(pattern: String, exclusion: String = "") {
 
 val providedDependencies = mutableMapOf<String, MutableSet<String>>()
 
+fun getProvidedDependenciesForProject(projectName: String): MutableSet<String> {
+    return providedDependencies.getOrDefault(projectName, emptySet()).toMutableSet()
+}
+
 fun Project.provided(pattern: String, name: String, excludedOn: Int = 0b110) {
     providedDependencies.getOrPut(project.name) { mutableSetOf() }
         .add("${calcExclusion(pattern, 0b100, excludedOn)}:${calcExclusion(name, 0b10, excludedOn)}")
