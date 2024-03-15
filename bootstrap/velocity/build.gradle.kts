@@ -1,6 +1,8 @@
 dependencies {
     annotationProcessor(libs.velocity.api)
     api(projects.core)
+
+    compileOnlyApi(libs.velocity.api)
 }
 
 platformRelocate("com.fasterxml.jackson")

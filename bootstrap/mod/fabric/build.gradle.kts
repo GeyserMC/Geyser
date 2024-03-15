@@ -7,6 +7,8 @@ architectury {
     fabric()
 }
 
+val includeTransitive: Configuration = configurations.getByName("includeTransitive")
+
 dependencies {
     modImplementation(libs.fabric.loader)
     modApi(libs.fabric.api)
@@ -15,13 +17,9 @@ dependencies {
     shadow(project(path = ":mod", configuration = "transformProductionFabric")) {
         isTransitive = false
     }
-    shadow(projects.core) {
-        exclude(group = "com.google.guava", module = "guava")
-        exclude(group = "com.google.code.gson", module = "gson")
-        exclude(group = "org.slf4j")
-        exclude(group = "com.nukkitx.fastutil")
-        exclude(group = "io.netty.incubator")
-    }
+
+    includeTransitive(projects.core)
+    shadow(project(path = ":core")) { isTransitive = false }
 
     modImplementation(libs.fabric.permissions)
     include(libs.fabric.permissions)

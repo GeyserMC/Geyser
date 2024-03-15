@@ -11,18 +11,11 @@ dependencies {
     implementation(libs.commodore)
 
     implementation(libs.adventure.text.serializer.bungeecord)
-    
-    // Both folia-api and paper-mojangapi only provide Java 17 versions for 1.19
-    compileOnly(libs.folia.api) {
-        attributes {
-            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
-        }
-    }
-    compileOnly(libs.paper.mojangapi) {
-        attributes {
-            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
-        }
-    }
+
+    compileOnly(libs.folia.api)
+    compileOnly(libs.paper.mojangapi)
+
+    compileOnlyApi(libs.viaversion)
 }
 
 platformRelocate("it.unimi.dsi.fastutil")

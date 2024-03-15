@@ -1,7 +1,7 @@
 dependencies {
     api(projects.core)
-
     implementation(libs.adventure.text.serializer.bungeecord)
+    compileOnlyApi(libs.bungeecord.proxy)
 }
 
 platformRelocate("net.md_5.bungee.jni")
