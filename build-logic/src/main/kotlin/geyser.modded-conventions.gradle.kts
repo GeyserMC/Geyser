@@ -81,22 +81,22 @@ tasks {
 }
 
 afterEvaluate {
-    val dependenciesSet = getProvidedDependenciesForProject(project.name)
+    val providedDependencies = getProvidedDependenciesForProject(project.name)
 
-    // We shadow e.g. geyser-core in. The resolved configuration however would JiJ core once more, leading to duplicates
-    // Hence: Remove the initially provided dependencies.
-    configurations["includeTransitive"].dependencies.forEach{ initDependency ->
-        dependenciesSet.add("${initDependency.group}:${initDependency.name}")
+    // These are shaded, no need to JiJ them
+    configurations["shadow"].dependencies.forEach {shadowed ->
+        println("Not including shadowed dependency: ${shadowed.group}:${shadowed.name}")
+        providedDependencies.add("${shadowed.group}:${shadowed.name}")
     }
 
     // Now: Include all transitive dependencies that aren't excluded
     configurations["includeTransitive"].resolvedConfiguration.resolvedArtifacts.forEach { dep ->
-        if (!dependenciesSet.contains("${dep.moduleVersion.id.group}:${dep.moduleVersion.id.name}")
-            and !dependenciesSet.contains("${dep.moduleVersion.id.group}:*")) {
+        if (!providedDependencies.contains("${dep.moduleVersion.id.group}:${dep.moduleVersion.id.name}")
+            and !providedDependencies.contains("${dep.moduleVersion.id.group}:*")) {
             println("Including dependency via JiJ: ${dep.id}")
             dependencies.add("include", dep.moduleVersion.id.toString())
         } else {
-            println("Not including ${dep.id}, already provided on ${project.name}!")
+            println("Not including ${dep.id} for ${project.name}!")
         }
     }
 }

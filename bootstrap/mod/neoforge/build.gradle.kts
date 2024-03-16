@@ -30,7 +30,6 @@ dependencies {
     shadow(project(path = ":core")) { isTransitive = false }
 
     includeTransitive(projects.core)
-
 }
 
 application {
