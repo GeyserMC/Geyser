@@ -88,9 +88,6 @@ public class SkinProvider {
      */
     private static final Predicate<UUID> IS_NPC = uuid -> uuid.version() == 2;
 
-    private static final boolean ALLOW_THIRD_PARTY_EARS = GeyserImpl.getInstance().getConfig().isAllowThirdPartyEars();
-    private static final String EARS_GEOMETRY;
-    private static final String EARS_GEOMETRY_SLIM;
     static final SkinGeometry SKULL_GEOMETRY;
     static final SkinGeometry WEARING_CUSTOM_SKULL;
     static final SkinGeometry WEARING_CUSTOM_SKULL_SLIM;
@@ -115,12 +112,6 @@ public class SkinProvider {
             }
         }
         EMPTY_SKIN = new Skin(-1, "geysermc:empty", outputStream.toByteArray());
-
-        /* Load in the normal ears geometry */
-        EARS_GEOMETRY = new String(FileUtils.readAllBytes("bedrock/skin/geometry.humanoid.ears.json"), StandardCharsets.UTF_8);
-
-        /* Load in the slim ears geometry */
-        EARS_GEOMETRY_SLIM = new String(FileUtils.readAllBytes("bedrock/skin/geometry.humanoid.earsSlim.json"), StandardCharsets.UTF_8);
 
         /* Load in the custom skull geometry */
         String skullData = new String(FileUtils.readAllBytes("bedrock/skin/geometry.humanoid.customskull.json"), StandardCharsets.UTF_8);
@@ -260,41 +251,6 @@ public class SkinProvider {
                             cape = getCachedBedrockCape(entity.getUuid());
                         }
 
-                        if (cape.failed() && ALLOW_THIRD_PARTY_CAPES) {
-                            cape = getOrDefault(requestUnofficialCape(
-                                    cape, entity.getUuid(),
-                                    entity.getUsername(), false
-                            ), EMPTY_CAPE, CapeProvider.VALUES.length * 3);
-                        }
-
-                        boolean isDeadmau5 = "deadmau5".equals(entity.getUsername());
-                        // Not a bedrock player check for ears
-                        if (geometry.failed() && (ALLOW_THIRD_PARTY_EARS || isDeadmau5)) {
-                            boolean isEars;
-
-                            // Its deadmau5, gotta support his skin :)
-                            if (isDeadmau5) {
-                                isEars = true;
-                            } else {
-                                // Get the ears texture for the player
-                                skin = getOrDefault(requestUnofficialEars(
-                                        skin, entity.getUuid(), entity.getUsername(), false
-                                ), skin, 3);
-
-                                isEars = skin.isEars();
-                            }
-
-                            // Does the skin have an ears texture
-                            if (isEars) {
-                                // Get the new geometry
-                                geometry = SkinGeometry.getEars(data.isAlex());
-
-                                // Store the skin and geometry for the ears
-                                storeEarSkin(skin);
-                                storeEarGeometry(entity.getUuid(), data.isAlex());
-                            }
-                        }
-
                         return new SkinData(skin, cape, geometry);
                     } catch (Exception e) {
                         GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), e);
@@ -377,67 +333,6 @@ public class SkinProvider {
         return future;
     }
 
-    private static CompletableFuture<Cape> requestUnofficialCape(Cape officialCape, UUID playerId,
-                                                                String username, boolean newThread) {
-        if (officialCape.failed() && ALLOW_THIRD_PARTY_CAPES) {
-            for (CapeProvider provider : CapeProvider.VALUES) {
-                if (provider.type != CapeUrlType.USERNAME && IS_NPC.test(playerId)) {
-                    continue;
-                }
-
-                Cape cape1 = getOrDefault(
-                        requestCape(provider.getUrlFor(playerId, username), provider, newThread),
-                        EMPTY_CAPE, 4
-                );
-                if (!cape1.failed()) {
-                    return CompletableFuture.completedFuture(cape1);
-                }
-            }
-        }
-        return CompletableFuture.completedFuture(officialCape);
-    }
-
-    private static CompletableFuture<Skin> requestEars(String earsUrl, boolean newThread, Skin skin) {
-        if (earsUrl == null || earsUrl.isEmpty()) return CompletableFuture.completedFuture(skin);
-
-        CompletableFuture<Skin> future;
-        if (newThread) {
-            future = CompletableFuture.supplyAsync(() -> supplyEars(skin, earsUrl), getExecutorService())
-                    .whenCompleteAsync((outSkin, throwable) -> { });
-        } else {
-            Skin ears = supplyEars(skin, earsUrl); // blocking
-            future = CompletableFuture.completedFuture(ears);
-        }
-        return future;
-    }
-
-    /**
-     * Try and find an ear texture for a Java player
-     *
-     * @param officialSkin The current players skin
-     * @param playerId The players UUID
-     * @param username The players username
-     * @param newThread Should we start in a new thread
-     * @return The updated skin with ears
-     */
-    private static CompletableFuture<Skin> requestUnofficialEars(Skin officialSkin, UUID playerId, String username, boolean newThread) {
-        for (EarsProvider provider : EarsProvider.VALUES) {
-            if (provider.type != CapeUrlType.USERNAME && IS_NPC.test(playerId)) {
-                continue;
-            }
-
-            Skin skin1 = getOrDefault(
-                    requestEars(provider.getUrlFor(playerId, username), newThread, officialSkin),
-                    officialSkin, 4
-            );
-            if (skin1.isEars()) {
-                return CompletableFuture.completedFuture(skin1);
-            }
-        }
-
-        return CompletableFuture.completedFuture(officialSkin);
-    }
-
     static void storeBedrockSkin(UUID playerID, String skinId, byte[] skinData) {
         Skin skin = new Skin(playerID, skinId, skinData, System.currentTimeMillis(), true, false);
         CACHED_BEDROCK_SKINS.put(skin.getTextureUrl(), skin);
@@ -453,32 +348,13 @@ public class SkinProvider {
         cachedGeometry.put(playerID, geometry);
     }
 
-    /**
-     * Stores the adjusted skin with the ear texture to the cache
-     *
-     * @param skin The skin to cache
-     */
-    public static void storeEarSkin(Skin skin) {
-        CACHED_JAVA_SKINS.put(skin.getTextureUrl(), skin);
-    }
-
-    /**
-     * Stores the geometry for a Java player with ears
-     *
-     * @param playerID The UUID to cache it against
-     * @param isSlim If the player is using an slim base
-     */
-    private static void storeEarGeometry(UUID playerID, boolean isSlim) {
-        cachedGeometry.put(playerID, SkinGeometry.getEars(isSlim));
-    }
-
     private static Skin supplySkin(UUID uuid, String textureUrl) {
         try {
             byte[] skin = requestImageData(textureUrl, null);
-            return new Skin(uuid, textureUrl, skin, System.currentTimeMillis(), false, false);
+            return new Skin(uuid, textureUrl, skin, System.currentTimeMillis(), false);
         } catch (Exception ignored) {} // just ignore I guess
 
-        return new Skin(uuid, "empty", EMPTY_SKIN.getSkinData(), System.currentTimeMillis(), false, false);
+        return new Skin(uuid, "empty", EMPTY_SKIN.getSkinData(), System.currentTimeMillis(), false);
     }
 
     private static Cape supplyCape(String capeUrl, CapeProvider provider) {
@@ -532,7 +408,6 @@ public class SkinProvider {
                     existingSkin.getTextureUrl(),
                     data,
                     System.currentTimeMillis(),
-                    true,
                     true
             );
         } catch (Exception ignored) {} // just ignore I guess
@@ -669,32 +544,17 @@ public class SkinProvider {
     }
 
     private static BufferedImage downloadImage(String imageUrl, CapeProvider provider) throws IOException {
-        BufferedImage image;
-        if (provider == CapeProvider.FIVEZIG) {
-            image = readFiveZigCape(imageUrl);
-        } else {
-            HttpURLConnection con = (HttpURLConnection) new URL(imageUrl).openConnection();
-            con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION);
-            con.setConnectTimeout(10000);
-            con.setReadTimeout(10000);
+        HttpURLConnection con = (HttpURLConnection) new URL(imageUrl).openConnection();
+        con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION);
+        con.setConnectTimeout(10000);
+        con.setReadTimeout(10000);
 
-            image = ImageIO.read(con.getInputStream());
-        }
+        BufferedImage image = ImageIO.read(con.getInputStream());
 
         if (image == null) {
             throw new IllegalArgumentException("Failed to read image from: %s (cape provider=%s)".formatted(imageUrl, provider));
         }
         return image;
-    }
-
-    private static @Nullable BufferedImage readFiveZigCape(String url) throws IOException {
-        JsonNode element = GeyserImpl.JSON_MAPPER.readTree(WebUtils.getBody(url));
-        if (element != null && element.isObject()) {
-            JsonNode capeElement = element.get("d");
-            if (capeElement == null || capeElement.isNull()) return null;
-            return ImageIO.read(new ByteArrayInputStream(Base64.getDecoder().decode(capeElement.textValue())));
-        }
-        return null;
     }
 
     public static BufferedImage scale(BufferedImage bufferedImage, int newWidth, int newHeight) {
@@ -784,7 +644,6 @@ public class SkinProvider {
         private final byte[] skinData;
         private final long requestedOn;
         private boolean updated;
-        private boolean ears;
 
         Skin(long requestedOn, String textureUrl, byte[] skinData) {
             this.requestedOn = requestedOn;
@@ -809,16 +668,6 @@ public class SkinProvider {
         private static SkinGeometry getLegacy(boolean isSlim) {
             return new SkinProvider.SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.custom" + (isSlim ? "Slim" : "") + "\"}}", "", true);
         }
-
-        /**
-         * Generate basic geometry with ears
-         *
-         * @param isSlim Should it be the alex model
-         * @return The generated geometry for the ears model
-         */
-        private static SkinGeometry getEars(boolean isSlim) {
-            return new SkinProvider.SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.ears" + (isSlim ? "Slim" : "") + "\"}}", (isSlim ? EARS_GEOMETRY_SLIM : EARS_GEOMETRY), false);
-        }
     }
 
     /*
@@ -828,11 +677,7 @@ public class SkinProvider {
     @NoArgsConstructor
     @Getter
     public enum CapeProvider {
-        MINECRAFT,
-        OPTIFINE("https://optifine.net/capes/%s.png", CapeUrlType.USERNAME),
-        LABYMOD("https://dl.labymod.net/capes/%s", CapeUrlType.UUID_DASHED),
-        FIVEZIG("https://textures.5zigreborn.eu/profile/%s", CapeUrlType.UUID_DASHED),
-        MINECRAFTCAPES("https://api.minecraftcapes.net/profile/%s/cape", CapeUrlType.UUID);
+        MINECRAFT;
 
         public static final CapeProvider[] VALUES = Arrays.copyOfRange(values(), 1, 5);
         private String url;
@@ -859,35 +704,5 @@ public class SkinProvider {
         USERNAME,
         UUID,
         UUID_DASHED
-    }
-
-    /*
-     * Sorted by 'priority'
-     */
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Getter
-    public enum EarsProvider {
-        MINECRAFTCAPES("https://api.minecraftcapes.net/profile/%s/ears", CapeUrlType.UUID);
-
-        public static final EarsProvider[] VALUES = values();
-        private String url;
-        private CapeUrlType type;
-
-        public String getUrlFor(String type) {
-            return String.format(url, type);
-        }
-
-        public String getUrlFor(UUID uuid, String username) {
-            return getUrlFor(toRequestedType(type, uuid, username));
-        }
-
-        public static String toRequestedType(CapeUrlType type, UUID uuid, String username) {
-            return switch (type) {
-                case UUID -> uuid.toString().replace("-", "");
-                case UUID_DASHED -> uuid.toString();
-                default -> username;
-            };
-        }
     }
 }
