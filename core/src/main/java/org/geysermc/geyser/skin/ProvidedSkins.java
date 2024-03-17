@@ -95,7 +95,7 @@ public final class ProvidedSkins {
                             image.flush();
 
                             String identifier = "geysermc:" + assetName + "_" + (slim ? "slim" : "wide");
-                            this.data = new Skin(identifier, byteData);
+                            this.data = new Skin(identifier, byteData, true);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }

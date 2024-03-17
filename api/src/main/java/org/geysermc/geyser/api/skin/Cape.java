@@ -26,4 +26,7 @@
 package org.geysermc.geyser.api.skin;
 
 public record Cape(String textureUrl, String capeId, byte[] capeData, boolean failed) {
+    public Cape(String textureUrl, String capeId, byte[] capeData) {
+        this(textureUrl, capeId, capeData, false);
+    }
 }

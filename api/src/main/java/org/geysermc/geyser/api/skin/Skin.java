@@ -25,5 +25,8 @@
 
 package org.geysermc.geyser.api.skin;
 
-public record Skin(String textureUrl, byte[] skinData) {
+public record Skin(String textureUrl, byte[] skinData, boolean failed) {
+    public Skin(String textureUrl, byte[] skinData) {
+        this(textureUrl, skinData, false);
+    }
 }

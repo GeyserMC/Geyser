@@ -115,7 +115,7 @@ public class SkinProvider {
                 outputStream.write((rgba >> 24) & 0xFF); // Alpha
             }
         }
-        EMPTY_SKIN = new Skin("geysermc:empty", outputStream.toByteArray());
+        EMPTY_SKIN = new Skin("geysermc:empty", outputStream.toByteArray(), true);
 
         /* Load in the custom skull geometry */
         String skullData = new String(FileUtils.readAllBytes("bedrock/skin/geometry.humanoid.customskull.json"), StandardCharsets.UTF_8);
@@ -366,7 +366,7 @@ public class SkinProvider {
     }
 
     static void storeBedrockCape(String capeId, byte[] capeData) {
-        Cape cape = new Cape(capeId, capeId, capeData, false);
+        Cape cape = new Cape(capeId, capeId, capeData);
         CACHED_BEDROCK_CAPES.put(capeId, cape);
     }
 
@@ -381,7 +381,7 @@ public class SkinProvider {
             return new Skin(textureUrl, skin);
         } catch (Exception ignored) {} // just ignore I guess
 
-        return new Skin("empty", EMPTY_SKIN.skinData());
+        return new Skin("empty", EMPTY_SKIN.skinData(), true);
     }
 
     private static Cape supplyCape(String capeUrl, CapeProvider provider) {
