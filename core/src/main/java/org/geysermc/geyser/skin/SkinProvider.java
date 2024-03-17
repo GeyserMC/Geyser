@@ -375,46 +375,6 @@ public class SkinProvider {
         );
     }
 
-    /**
-     * Get the ears texture and place it on the skin from the given URL
-     *
-     * @param existingSkin The players current skin
-     * @param earsUrl The URL to get the ears texture from
-     * @return The updated skin with ears
-     */
-    private static Skin supplyEars(Skin existingSkin, String earsUrl) {
-        try {
-            // Get the ears texture
-            BufferedImage ears = ImageIO.read(new URL(earsUrl));
-            if (ears == null) throw new NullPointerException();
-
-            // Convert the skin data to a BufferedImage
-            int height = (existingSkin.getSkinData().length / 4 / 64);
-            BufferedImage skinImage = imageDataToBufferedImage(existingSkin.getSkinData(), 64, height);
-
-            // Create a new image with the ears texture over it
-            BufferedImage newSkin = new BufferedImage(skinImage.getWidth(), skinImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g = (Graphics2D) newSkin.getGraphics();
-            g.drawImage(skinImage, 0, 0, null);
-            g.drawImage(ears, 24, 0, null);
-
-            // Turn the buffered image back into an array of bytes
-            byte[] data = bufferedImageToImageData(newSkin);
-            skinImage.flush();
-
-            // Create a new skin object with the new infomation
-            return new Skin(
-                    existingSkin.getSkinOwner(),
-                    existingSkin.getTextureUrl(),
-                    data,
-                    System.currentTimeMillis(),
-                    true
-            );
-        } catch (Exception ignored) {} // just ignore I guess
-
-        return existingSkin;
-    }
-
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static BufferedImage requestImage(String imageUrl, CapeProvider provider) throws IOException {
         BufferedImage image = null;
