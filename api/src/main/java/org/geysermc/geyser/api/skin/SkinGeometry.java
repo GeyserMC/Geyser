@@ -33,7 +33,7 @@ public record SkinGeometry(String geometryName, String geometryData) {
     /**
      * Generate generic geometry
      *
-     * @param isSlim Should it be the alex model
+     * @param isSlim if true, it will be the slimmer alex model
      * @return The generic geometry object
      */
     private static SkinGeometry getLegacy(boolean isSlim) {
