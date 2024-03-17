@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
 package org.geysermc.geyser.api.skin;
 
 /**
- * Represents a full package of skin, cape, and geometry.
+ * Represents a full package of {@link Skin}, {@link Cape}, and {@link SkinGeometry}.
  */
 public record SkinData(Skin skin, Cape cape, SkinGeometry geometry) {
 }

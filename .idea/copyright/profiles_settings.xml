@@ -1,5 +1,5 @@
 <component name="CopyrightManager">
-  <settings>
+  <settings default="Geyser">
     <module2copyright>
       <element module="All" copyright="Geyser" />
     </module2copyright>

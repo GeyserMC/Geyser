@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,14 @@
 
 package org.geysermc.geyser.api.skin;
 
+/**
+ * Represents a cape.
+ *
+ * @param textureUrl The URL of the cape texture
+ * @param capeId The ID of the cape
+ * @param capeData The raw cape image data
+ * @param failed If the cape failed to load, this is for things like fallback capes
+ */
 public record Cape(String textureUrl, String capeId, byte[] capeData, boolean failed) {
     public Cape(String textureUrl, String capeId, byte[] capeData) {
         this(textureUrl, capeId, capeData, false);

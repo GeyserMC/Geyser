@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,12 @@
 
 package org.geysermc.geyser.api.skin;
 
+/**
+ * Represents geometry of a skin.
+ *
+ * @param geometryName The name of the geometry (JSON)
+ * @param geometryData The geometry data (JSON)
+ */
 public record SkinGeometry(String geometryName, String geometryData) {
 
     public static SkinGeometry WIDE = getLegacy(false);
