@@ -35,7 +35,12 @@ import lombok.NoArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.event.lifecycle.SkinApplyEvent;
 import org.geysermc.geyser.api.network.AuthType;
+import org.geysermc.geyser.api.skin.Cape;
+import org.geysermc.geyser.api.skin.Skin;
+import org.geysermc.geyser.api.skin.SkinData;
+import org.geysermc.geyser.api.skin.SkinGeometry;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -45,7 +50,6 @@ import org.geysermc.geyser.util.WebUtils;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -61,7 +65,7 @@ public class SkinProvider {
     private static ExecutorService EXECUTOR_SERVICE;
 
     static final Skin EMPTY_SKIN;
-    static final Cape EMPTY_CAPE = new Cape("", "no-cape", ByteArrays.EMPTY_ARRAY, -1, true);
+    static final Cape EMPTY_CAPE = new Cape("", "no-cape", ByteArrays.EMPTY_ARRAY, true);
 
     private static final Cache<String, Cape> CACHED_JAVA_CAPES = CacheBuilder.newBuilder()
             .expireAfterAccess(1, TimeUnit.HOURS)
@@ -111,17 +115,17 @@ public class SkinProvider {
                 outputStream.write((rgba >> 24) & 0xFF); // Alpha
             }
         }
-        EMPTY_SKIN = new Skin(-1, "geysermc:empty", outputStream.toByteArray());
+        EMPTY_SKIN = new Skin("geysermc:empty", outputStream.toByteArray());
 
         /* Load in the custom skull geometry */
         String skullData = new String(FileUtils.readAllBytes("bedrock/skin/geometry.humanoid.customskull.json"), StandardCharsets.UTF_8);
-        SKULL_GEOMETRY = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.customskull\"}}", skullData, false);
+        SKULL_GEOMETRY = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.customskull\"}}", skullData);
 
         /* Load in the player head skull geometry */
         String wearingCustomSkull = new String(FileUtils.readAllBytes("bedrock/skin/geometry.humanoid.wearingCustomSkull.json"), StandardCharsets.UTF_8);
-        WEARING_CUSTOM_SKULL = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.wearingCustomSkull\"}}", wearingCustomSkull, false);
+        WEARING_CUSTOM_SKULL = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.wearingCustomSkull\"}}", wearingCustomSkull);
         String wearingCustomSkullSlim = new String(FileUtils.readAllBytes("bedrock/skin/geometry.humanoid.wearingCustomSkullSlim.json"), StandardCharsets.UTF_8);
-        WEARING_CUSTOM_SKULL_SLIM = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.wearingCustomSkullSlim\"}}", wearingCustomSkullSlim, false);
+        WEARING_CUSTOM_SKULL_SLIM = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.wearingCustomSkullSlim\"}}", wearingCustomSkullSlim);
     }
 
     public static ExecutorService getExecutorService() {
@@ -195,7 +199,7 @@ public class SkinProvider {
             // We don't have a skin for the player right now. Fall back to a default.
             ProvidedSkins.ProvidedSkin providedSkin = ProvidedSkins.getDefaultPlayerSkin(uuid);
             skin = providedSkin.getData();
-            geometry = providedSkin.isSlim() ? SkinProvider.SkinGeometry.SLIM : SkinProvider.SkinGeometry.WIDE;
+            geometry = providedSkin.isSlim() ? SkinGeometry.SLIM : SkinGeometry.WIDE;
         }
 
         if (cape == null) {
@@ -229,7 +233,7 @@ public class SkinProvider {
         return CACHED_JAVA_CAPES.getIfPresent(capeUrl);
     }
 
-    static CompletableFuture<SkinProvider.SkinData> requestSkinData(PlayerEntity entity) {
+    static CompletableFuture<SkinData> requestSkinData(PlayerEntity entity) {
         SkinManager.GameProfileData data = SkinManager.GameProfileData.from(entity);
         if (data == null) {
             // This player likely does not have a textures property
@@ -251,7 +255,31 @@ public class SkinProvider {
                             cape = getCachedBedrockCape(entity.getUuid());
                         }
 
-                        return new SkinData(skin, cape, geometry);
+                        // TODO: Call event to allow extensions to modify the skin, cape and geo
+                        // Pass in if the skin is from a Bedrock player or java
+                        GeyserImpl geyser = GeyserImpl.getInstance();
+                        geyser.getLogger().debug("Processing skin, isBedrock: " + (geyser.connectionByUuid(entity.getUuid()) != null));
+                        boolean isBedrock = geyser.connectionByUuid(entity.getUuid()) != null;
+                        final SkinData[] skinData = {new SkinData(skin, cape, geometry)};
+                        GeyserImpl.getInstance().eventBus().fire(new SkinApplyEvent(entity.getUsername(), entity.getUuid(), data.isAlex(), isBedrock, skinData[0]) {
+
+                            @Override
+                            public void skin(@NonNull Skin newSkin) {
+                                skinData[0] = new SkinData(newSkin, skinData[0].cape(), skinData[0].geometry());
+                            }
+
+                            @Override
+                            public void cape(@NonNull Cape newCape) {
+                                skinData[0] = new SkinData(skinData[0].skin(), newCape, skinData[0].geometry());
+                            }
+
+                            @Override
+                            public void geometry(@NonNull SkinGeometry newGeometry) {
+                                skinData[0] = new SkinData(skinData[0].skin(), skinData[0].cape(), newGeometry);
+                            }
+                        });
+
+                        return skinData[0];
                     } catch (Exception e) {
                         GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), e);
                     }
@@ -292,7 +320,6 @@ public class SkinProvider {
         if (newThread) {
             future = CompletableFuture.supplyAsync(() -> supplySkin(playerId, textureUrl), getExecutorService())
                     .whenCompleteAsync((skin, throwable) -> {
-                        skin.updated = true;
                         CACHED_JAVA_SKINS.put(textureUrl, skin);
                         requestedSkins.remove(textureUrl);
                     });
@@ -334,27 +361,27 @@ public class SkinProvider {
     }
 
     static void storeBedrockSkin(UUID playerID, String skinId, byte[] skinData) {
-        Skin skin = new Skin(playerID, skinId, skinData, System.currentTimeMillis(), true, false);
-        CACHED_BEDROCK_SKINS.put(skin.getTextureUrl(), skin);
+        Skin skin = new Skin(skinId, skinData);
+        CACHED_BEDROCK_SKINS.put(skin.textureUrl(), skin);
     }
 
     static void storeBedrockCape(String capeId, byte[] capeData) {
-        Cape cape = new Cape(capeId, capeId, capeData, System.currentTimeMillis(), false);
+        Cape cape = new Cape(capeId, capeId, capeData, false);
         CACHED_BEDROCK_CAPES.put(capeId, cape);
     }
 
     static void storeBedrockGeometry(UUID playerID, byte[] geometryName, byte[] geometryData) {
-        SkinGeometry geometry = new SkinGeometry(new String(geometryName), new String(geometryData), false);
+        SkinGeometry geometry = new SkinGeometry(new String(geometryName), new String(geometryData));
         cachedGeometry.put(playerID, geometry);
     }
 
     private static Skin supplySkin(UUID uuid, String textureUrl) {
         try {
             byte[] skin = requestImageData(textureUrl, null);
-            return new Skin(uuid, textureUrl, skin, System.currentTimeMillis(), false);
+            return new Skin(textureUrl, skin);
         } catch (Exception ignored) {} // just ignore I guess
 
-        return new Skin(uuid, "empty", EMPTY_SKIN.getSkinData(), System.currentTimeMillis(), false);
+        return new Skin("empty", EMPTY_SKIN.skinData());
     }
 
     private static Cape supplyCape(String capeUrl, CapeProvider provider) {
@@ -370,7 +397,6 @@ public class SkinProvider {
                 capeUrl,
                 urlSection[urlSection.length - 1], // get the texture id and use it as cape id
                 cape,
-                System.currentTimeMillis(),
                 cape.length == 0
         );
     }
@@ -588,46 +614,6 @@ public class SkinProvider {
     }
 
     public record SkinAndCape(Skin skin, Cape cape) {
-    }
-
-    /**
-     * Represents a full package of skin, cape, and geometry.
-     */
-    public record SkinData(Skin skin, Cape cape, SkinGeometry geometry) {
-    }
-
-    @AllArgsConstructor
-    @Getter
-    public static class Skin {
-        private UUID skinOwner;
-        private final String textureUrl;
-        private final byte[] skinData;
-        private final long requestedOn;
-        private boolean updated;
-
-        Skin(long requestedOn, String textureUrl, byte[] skinData) {
-            this.requestedOn = requestedOn;
-            this.textureUrl = textureUrl;
-            this.skinData = skinData;
-        }
-    }
-
-    public record Cape(String textureUrl, String capeId, byte[] capeData, long requestedOn, boolean failed) {
-    }
-
-    public record SkinGeometry(String geometryName, String geometryData, boolean failed) {
-        public static SkinGeometry WIDE = getLegacy(false);
-        public static SkinGeometry SLIM = getLegacy(true);
-
-        /**
-         * Generate generic geometry
-         *
-         * @param isSlim Should it be the alex model
-         * @return The generic geometry object
-         */
-        private static SkinGeometry getLegacy(boolean isSlim) {
-            return new SkinProvider.SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.custom" + (isSlim ? "Slim" : "") + "\"}}", "", true);
-        }
     }
 
     /*
