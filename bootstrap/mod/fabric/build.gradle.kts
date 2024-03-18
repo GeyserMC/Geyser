@@ -30,6 +30,7 @@ dependencies {
     shadow(libs.netty.codec.haproxy) { isTransitive = false }
     shadow("org.cloudburstmc:nbt:3.0.2.Final") { isTransitive = false }
     shadow("io.netty:netty-codec-dns:4.1.103.Final") { isTransitive = false }
+    shadow("io.netty:netty-resolver-dns-classes-macos:4.1.103.Final") { isTransitive = false }
 
     modImplementation(libs.fabric.permissions)
     include(libs.fabric.permissions)
@@ -41,8 +42,11 @@ application {
 
 tasks {
     shadowJar {
-        relocate("org.cloudburstmc", "org.geysermc.relocate.cloudburst")
-        relocate("com.github.steveice10.mc.auth", "org.geysermc.relocate.mcauth")
+        relocate("org.cloudburstmc.nbt", "org.geysermc.relocate.cloudburst.nbt")
+        relocate("org.cloudburstmc.netty", "org.geysermc.relocate.cloudburst.netty")
+        relocate("org.cloudburstmc.protocol", "org.geysermc.relocate.cloudburst.protocol")
+        relocate("io.netty.handler.codec.dns", "org.geysermc.relocate.netty")
+        relocate("io.netty.handler.codec.haproxy", "org.geysermc.relocate.netty")
     }
     remapJar {
         archiveBaseName.set("Geyser-Fabric")
