@@ -34,6 +34,11 @@ import org.geysermc.geyser.api.skin.SkinGeometry;
 
 import java.util.UUID;
 
+/**
+ * Called when a skin is applied to a player.
+ * <p>
+ * Won't be called when a fake player is spawned for a player skull.
+ */
 public abstract class SkinApplyEvent implements Event {
 
     private final String username;

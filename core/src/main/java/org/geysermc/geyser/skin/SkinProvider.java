@@ -61,7 +61,6 @@ import java.util.concurrent.*;
 import java.util.function.Predicate;
 
 public class SkinProvider {
-    private static final boolean ALLOW_THIRD_PARTY_CAPES = GeyserImpl.getInstance().getConfig().isAllowThirdPartyCapes();
     private static ExecutorService EXECUTOR_SERVICE;
 
     static final Skin EMPTY_SKIN;
@@ -130,7 +129,7 @@ public class SkinProvider {
 
     public static ExecutorService getExecutorService() {
         if (EXECUTOR_SERVICE == null) {
-            EXECUTOR_SERVICE = Executors.newFixedThreadPool(ALLOW_THIRD_PARTY_CAPES ? 21 : 14);
+            EXECUTOR_SERVICE = Executors.newFixedThreadPool(14);
         }
         return EXECUTOR_SERVICE;
     }
