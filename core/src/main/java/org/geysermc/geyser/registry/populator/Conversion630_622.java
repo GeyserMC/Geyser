@@ -121,6 +121,8 @@ class Conversion630_622 {
     }
 
     static GeyserMappingItem remapItem(@SuppressWarnings("unused") Item item, GeyserMappingItem mapping) {
+        mapping = Conversion649_630.remapItem(item, mapping);
+
         String replacement = ITEMS.get(mapping.getBedrockIdentifier());
         if (replacement == null) {
             return mapping;
@@ -130,6 +132,8 @@ class Conversion630_622 {
     }
 
     static NbtMap remapBlock(NbtMap tag) {
+        tag = Conversion649_630.remapBlock(tag);
+
         final String name = tag.getString("name");
 
         String replacement;

@@ -124,6 +124,7 @@ import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.AvailableEntityIdentifiersPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BiomeDefinitionListPacket;
@@ -335,7 +336,7 @@ public class GeyserSession extends FloodgateConnection implements GeyserConnecti
      * See {@link WorldManager#sendLecternData(GeyserSession, int, int, int)}
      * for more information.
      */
-    private final Set<Vector3i> lecternCache;
+    private final @Nullable Set<Vector3i> lecternCache;
 
     /**
      * A list of all players that have a player head on with a custom texture.
@@ -645,6 +646,12 @@ public class GeyserSession extends FloodgateConnection implements GeyserConnecti
      * Only used if {@link GeyserConfiguration#isForwardPlayerPing()} is enabled.
      */
     private final Queue<Long> keepAliveCache = new ConcurrentLinkedQueue<>();
+
+    /**
+     * Stores the book that is currently being read. Used in {@link org.geysermc.geyser.translator.protocol.java.inventory.JavaOpenBookTranslator}
+     */
+    @Setter
+    private @Nullable ItemData currentBook = null;
 
     private final GeyserCameraData cameraData;
 
@@ -1487,6 +1494,8 @@ public class GeyserSession extends FloodgateConnection implements GeyserConnecti
     }
 
     public void setServerRenderDistance(int renderDistance) {
+        // Ensure render distance is not above 96 as sending a larger value at any point crashes mobile clients and 96 is the max of any bedrock platform
+        renderDistance = Math.min(renderDistance, 96);
         this.serverRenderDistance = renderDistance;
 
         ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();

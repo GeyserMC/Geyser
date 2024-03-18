@@ -30,7 +30,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
 
-import java.util.OptionalInt;
 import java.util.Set;
 
 /**
@@ -108,20 +107,6 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     @Nullable Set<String> repairMaterials();
 
     /**
-     * Gets the item's creative category, or tab id.
-     *
-     * @return the item's creative category
-     */
-    @NonNull OptionalInt creativeCategory();
-
-    /**
-     * Gets the item's creative group.
-     *
-     * @return the item's creative group
-     */
-    @Nullable String creativeGroup();
-
-    /**
      * Gets if the item is a hat. This is used to determine if the item should be rendered on the player's head, and
      * normally allow the player to equip it. This is not meant for armor.
      *
@@ -196,10 +181,6 @@ public interface NonVanillaCustomItemData extends CustomItemData {
 
         Builder repairMaterials(@Nullable Set<String> repairMaterials);
 
-        Builder creativeCategory(int creativeCategory);
-
-        Builder creativeGroup(@Nullable String creativeGroup);
-
         Builder hat(boolean isHat);
 
         Builder foil(boolean isFoil);
@@ -217,6 +198,12 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         default Builder tool(boolean isTool) {
             return displayHandheld(isTool);
         }
+
+        @Override
+        Builder creativeCategory(int creativeCategory);
+
+        @Override
+        Builder creativeGroup(@Nullable String creativeGroup);
 
         @Override
         Builder customItemOptions(@NonNull CustomItemOptions customItemOptions);

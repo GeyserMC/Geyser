@@ -422,10 +422,6 @@ public class CustomBlockRegistryPopulator {
                     .build());
         }
 
-        if (components.unitCube()) {
-            builder.putCompound("minecraft:unit_cube", NbtMap.EMPTY);
-        }
-
         // place_air is not an actual component
         // We just apply a dummy event to prevent the client from trying to place a block
         // This mitigates the issue with the client sometimes double placing blocks

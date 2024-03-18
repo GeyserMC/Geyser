@@ -44,6 +44,8 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.SwapAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.TransferItemStackRequestAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
+import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
+import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.geyser.inventory.*;
@@ -534,10 +536,20 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
 
     @Override
     public void openInventory(GeyserSession session, Inventory inventory) {
+        ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
+        containerOpenPacket.setId((byte) 0);
+        containerOpenPacket.setType(org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.INVENTORY);
+        containerOpenPacket.setUniqueEntityId(-1);
+        containerOpenPacket.setBlockPosition(session.getPlayerEntity().getPosition().toInt());
+        session.sendUpstreamPacket(containerOpenPacket);
     }
 
     @Override
     public void closeInventory(GeyserSession session, Inventory inventory) {
+        ContainerClosePacket packet = new ContainerClosePacket();
+        packet.setServerInitiated(true);
+        packet.setId((byte) ContainerId.INVENTORY);
+        session.sendUpstreamPacket(packet);
     }
 
     @Override

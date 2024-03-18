@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.cloudburstmc.protocol.bedrock.codec.v622.Bedrock_v622;
 import org.cloudburstmc.protocol.bedrock.codec.v630.Bedrock_v630;
 import org.cloudburstmc.protocol.bedrock.codec.v649.Bedrock_v649;
+import org.cloudburstmc.protocol.bedrock.codec.v662.Bedrock_v662;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -47,7 +48,7 @@ public final class GameProtocol {
      * Default Bedrock codec that should act as a fallback. Should represent the latest available
      * release of the game that Geyser supports.
      */
-    public static final BedrockCodec DEFAULT_BEDROCK_CODEC = Bedrock_v649.CODEC;
+    public static final BedrockCodec DEFAULT_BEDROCK_CODEC = Bedrock_v662.CODEC;
 
     /**
      * A list of all supported Bedrock versions that can join Geyser
@@ -67,8 +68,11 @@ public final class GameProtocol {
         SUPPORTED_BEDROCK_CODECS.add(Bedrock_v630.CODEC.toBuilder()
             .minecraftVersion("1.20.50/1.20.51")
             .build());
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v649.CODEC.toBuilder()
+            .minecraftVersion("1.20.60/1.20.62")
+            .build());
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC.toBuilder()
-            .minecraftVersion("1.20.60/1.20.61")
+            .minecraftVersion("1.20.70/1.20.71")
             .build());
     }
 
@@ -90,6 +94,10 @@ public final class GameProtocol {
 
     public static boolean isPre1_20_50(GeyserSession session) {
         return session.getUpstream().getProtocolVersion() < Bedrock_v630.CODEC.getProtocolVersion();
+    }
+
+    public static boolean isPre1_20_70(GeyserSession session) {
+        return session.getUpstream().getProtocolVersion() < Bedrock_v662.CODEC.getProtocolVersion();
     }
 
     public static boolean is1_20_60orHigher(int protocolVersion) {

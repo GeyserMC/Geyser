@@ -32,8 +32,10 @@ import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.LecternContainer;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -151,13 +153,27 @@ public class BlockInventoryHolder extends InventoryHolder {
 
     @Override
     public void closeInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
-        if (((Container) inventory).isUsingRealBlock()) {
-            // No need to reset a block since we didn't change any blocks
-            // But send a container close packet because we aren't destroying the original.
-            ContainerClosePacket packet = new ContainerClosePacket();
-            packet.setId((byte) inventory.getBedrockId());
-            packet.setServerInitiated(true);
-            session.sendUpstreamPacket(packet);
+        if (inventory instanceof Container container) {
+            if (container.isUsingRealBlock() && !(inventory instanceof LecternContainer)) {
+                // No need to reset a block since we didn't change any blocks
+                // But send a container close packet because we aren't destroying the original.
+                ContainerClosePacket packet = new ContainerClosePacket();
+                packet.setId((byte) inventory.getBedrockId());
+                packet.setServerInitiated(true);
+                session.sendUpstreamPacket(packet);
+                return;
+            }
+        } else {
+            GeyserImpl.getInstance().getLogger().warning("Tried to close a non-container inventory in a block inventory holder! ");
+            if (GeyserImpl.getInstance().getLogger().isDebug()) {
+                GeyserImpl.getInstance().getLogger().debug("Current inventory: " + inventory);
+                GeyserImpl.getInstance().getLogger().debug("Open inventory: " + session.getOpenInventory());
+            }
+            // Try to save ourselves? maybe?
+            // https://github.com/GeyserMC/Geyser/issues/4141
+            // TODO: improve once this issue is pinned down properly
+            session.setOpenInventory(null);
+            session.setInventoryTranslator(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
             return;
         }
 

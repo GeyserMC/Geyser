@@ -31,8 +31,10 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.Ser
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LecternUpdatePacket;
+import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.LecternContainer;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
@@ -45,6 +47,7 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
 
     @Override
     public void translate(GeyserSession session, LecternUpdatePacket packet) {
+        // TODO: Remove dropping book check here when 1.20.60 is no longer supported
         if (packet.isDroppingBook()) {
             // Bedrock drops the book outside of the GUI. Java drops it in the GUI
             // So, we enter the GUI and then drop it! :)
@@ -76,6 +79,15 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
                 // Each "page" on Java is just one page (think a spiral notebook folded back to only show one page)
                 int newJavaPage = (packet.getPage() * 2);
                 int currentJavaPage = (lecternContainer.getCurrentBedrockPage() * 2);
+
+                // So, fun fact: We need to separately handle fake lecterns!
+                // Since those are not actually a real lectern... the Java server won't respond to our requests.
+                if (!lecternContainer.isUsingRealBlock()) {
+                    LecternInventoryTranslator translator = (LecternInventoryTranslator) session.getInventoryTranslator();
+                    Inventory inventory = session.getOpenInventory();
+                    translator.updateProperty(session, inventory, 0, newJavaPage);
+                    return;
+                }
 
                 // Send as many click button packets as we need to
                 // Java has the option to specify exact page numbers by adding 100 to the number, but buttonId variable
