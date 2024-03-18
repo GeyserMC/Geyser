@@ -153,7 +153,7 @@ public class CustomItemRegistryPopulator {
                 .build();
 
         NbtMapBuilder builder = createComponentNbt(customItemData, customItemData.identifier(), customItemId,
-                customItemData.creativeCategory(), customItemData.creativeGroup(), customItemData.isHat(), customItemData.displayHandheld(), protocolVersion);
+                customItemData.isHat(), customItemData.displayHandheld(), protocolVersion);
         ComponentItemData componentItemData = new ComponentItemData(customIdentifier, builder.build());
 
         return new NonVanillaItemRegistration(componentItemData, item, customItemMapping);
@@ -172,7 +172,7 @@ public class CustomItemRegistryPopulator {
 
         boolean canDestroyInCreative = true;
         if (mapping.getToolType() != null) { // This is not using the isTool boolean because it is not just a render type here.
-            canDestroyInCreative = computeToolProperties(mapping.getToolType(), itemProperties, componentBuilder);
+            canDestroyInCreative = computeToolProperties(mapping.getToolType(), itemProperties, componentBuilder, javaItem.attackDamage());
         }
         itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
 
@@ -208,10 +208,8 @@ public class CustomItemRegistryPopulator {
         return builder;
     }
 
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private static NbtMapBuilder createComponentNbt(NonVanillaCustomItemData customItemData, String customItemName,
-                                                    int customItemId, OptionalInt creativeCategory,
-                                                    String creativeGroup, boolean isHat, boolean displayHandheld, int protocolVersion) {
+                                                    int customItemId, boolean isHat, boolean displayHandheld, int protocolVersion) {
         NbtMapBuilder builder = NbtMap.builder();
         builder.putString("name", customItemName)
                 .putInt("id", customItemId);
@@ -223,7 +221,7 @@ public class CustomItemRegistryPopulator {
 
         boolean canDestroyInCreative = true;
         if (customItemData.toolType() != null) { // This is not using the isTool boolean because it is not just a render type here.
-            canDestroyInCreative = computeToolProperties(Objects.requireNonNull(customItemData.toolType()), itemProperties, componentBuilder);
+            canDestroyInCreative = computeToolProperties(Objects.requireNonNull(customItemData.toolType()), itemProperties, componentBuilder, customItemData.attackDamage());
         }
         itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
 
@@ -311,7 +309,7 @@ public class CustomItemRegistryPopulator {
     /**
      * @return can destroy in creative
      */
-    private static boolean computeToolProperties(String toolType, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
+    private static boolean computeToolProperties(String toolType, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder, int attackDamage) {
         boolean canDestroyInCreative = true;
         float miningSpeed = 1.0f;
 
@@ -361,6 +359,11 @@ public class CustomItemRegistryPopulator {
         // This allows custom tools - shears, swords, shovels, axes etc to be enchanted or combined in the anvil
         itemProperties.putInt("enchantable_value", 1);
         itemProperties.putString("enchantable_slot", toolType);
+
+        // Adds a "attack damage" indicator. Purely visual!
+        if (attackDamage > 0) {
+            itemProperties.putInt("damage", attackDamage);
+        }
 
         return canDestroyInCreative;
     }

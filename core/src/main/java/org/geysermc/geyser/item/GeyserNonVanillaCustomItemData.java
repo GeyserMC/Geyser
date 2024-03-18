@@ -42,6 +42,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     private final int javaId;
     private final int stackSize;
     private final int maxDamage;
+    private final int attackDamage;
     private final String toolType;
     private final String toolTier;
     private final String armorType;
@@ -64,6 +65,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         this.javaId = builder.javaId;
         this.stackSize = builder.stackSize;
         this.maxDamage = builder.maxDamage;
+        this.attackDamage = builder.attackDamage;
         this.toolType = builder.toolType;
         this.toolTier = builder.toolTier;
         this.armorType = builder.armorType;
@@ -96,6 +98,11 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     @Override
     public int maxDamage() {
         return maxDamage;
+    }
+
+    @Override
+    public int attackDamage() {
+        return attackDamage;
     }
 
     @Override
@@ -160,6 +167,8 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         private int stackSize = 64;
 
         private int maxDamage = 0;
+
+        private int attackDamage = 0;
 
         private String toolType = null;
         private String toolTier = null;
@@ -245,6 +254,12 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         @Override
         public Builder maxDamage(int maxDamage) {
             this.maxDamage = maxDamage;
+            return this;
+        }
+
+        @Override
+        public NonVanillaCustomItemData.Builder attackDamage(int attackDamage) {
+            this.attackDamage = attackDamage;
             return this;
         }
 

@@ -65,6 +65,14 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     int maxDamage();
 
     /**
+     * Gets the attack damage of the item.
+     * This is purely visual, and only applied to tools
+     *
+     * @return the attack damage of the item
+     */
+    int attackDamage();
+
+    /**
      * Gets the tool type of the item.
      *
      * @return the tool type of the item
@@ -168,6 +176,8 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         Builder stackSize(@NonNegative int stackSize);
 
         Builder maxDamage(int maxDamage);
+
+        Builder attackDamage(int attackDamage);
 
         Builder toolType(@Nullable String toolType);
 
