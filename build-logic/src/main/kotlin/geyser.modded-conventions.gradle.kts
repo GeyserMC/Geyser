@@ -11,15 +11,15 @@ plugins {
     id("com.modrinth.minotaur")
 }
 
-// These are provided by Minecraft already, no need to include them
+// These are provided by Minecraft/modded platforms already, no need to include them
 provided("com.google.code.gson", "gson")
-provided("com.google.guava", "*")
+provided("com.google.guava", ".*")
 provided("org.slf4j", "slf4j-api")
-provided("com.nukkitx.fastutil", "*")
-provided("org.cloudburstmc.fastutil.maps", "*")
-provided("org.cloudburstmc.fastutil.sets", "*")
-provided("org.cloudburstmc.fastutil.commons", "*")
-provided("org.cloudburstmc.fastutil", "*")
+provided("com.nukkitx.fastutil", ".*")
+provided("org.cloudburstmc.fastutil.maps", ".*")
+provided("org.cloudburstmc.fastutil.sets", ".*")
+provided("org.cloudburstmc.fastutil.commons", ".*")
+provided("org.cloudburstmc.fastutil", ".*")
 provided("org.checkerframework", "checker-qual")
 provided("io.netty", "netty-transport-classes-epoll")
 provided("io.netty", "netty-transport-native-epoll")
@@ -92,7 +92,7 @@ afterEvaluate {
     // Now: Include all transitive dependencies that aren't excluded
     configurations["includeTransitive"].resolvedConfiguration.resolvedArtifacts.forEach { dep ->
         if (!providedDependencies.contains("${dep.moduleVersion.id.group}:${dep.moduleVersion.id.name}")
-            and !providedDependencies.contains("${dep.moduleVersion.id.group}:*")) {
+            and !providedDependencies.contains("${dep.moduleVersion.id.group}:.*")) {
             println("Including dependency via JiJ: ${dep.id}")
             dependencies.add("include", dep.moduleVersion.id.toString())
         } else {
