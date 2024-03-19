@@ -46,7 +46,6 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.inventory.item.Enchantment;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
@@ -113,12 +112,6 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             // Send an empty packet so Bedrock doesn't override /help with its own, built-in help command.
             AvailableCommandsPacket emptyPacket = new AvailableCommandsPacket();
             session.sendUpstreamPacket(emptyPacket);
-            return;
-        }
-
-        // Don't send command suggestions if they are already sent and the client is 1.20.70 or higher due to crash bug
-        // TODO: Remove this check when the crash bug is fixed
-        if (session.isSentAvailibleCommands() && !GameProtocol.isPre1_20_70(session)) {
             return;
         }
 
@@ -198,7 +191,6 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
 
         // Finally, send the commands to the client
         session.sendUpstreamPacket(availableCommandsPacket);
-        session.setSentAvailibleCommands(true);
     }
 
     /**
