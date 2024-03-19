@@ -48,18 +48,17 @@ application {
     mainClass.set("org.geysermc.geyser.platform.fabric.GeyserFabricMain")
 }
 
+relocate("org.cloudburstmc.nbt")
+relocate("org.cloudburstmc.netty")
+relocate("org.cloudburstmc.protocol")
+relocate("io.netty.handler.codec.dns")
+relocate("io.netty.handler.codec.haproxy")
+relocate("io.netty.resolver.dns.macos")
+relocate("com.github.steveice10.mc.protocol")
+relocate("com.github.steveice10.mc.auth")
+relocate("com.github.steveice10.packetlib")
+
 tasks {
-    shadowJar {
-        relocate("org.cloudburstmc.nbt", "org.geysermc.relocate.cloudburst.nbt")
-        relocate("org.cloudburstmc.netty", "org.geysermc.relocate.cloudburst.netty")
-        relocate("org.cloudburstmc.protocol", "org.geysermc.relocate.cloudburst.protocol")
-        relocate("io.netty.handler.codec.dns", "org.geysermc.relocate.netty.codec-dns")
-        relocate("io.netty.handler.codec.haproxy", "org.geysermc.relocate.netty.codec-haproxy")
-        relocate("io.netty.resolver.dns.macos", "org.geysermc.relocate.netty.dns-macos")
-        relocate("com.github.steveice10.mc.protocol", "org.geysermc.relocate.mcpl")
-        relocate("com.github.steveice10.mc.auth", "org.geysermc.relocate.authlib")
-        relocate("com.github.steveice10.packetlib", "org.geysermc.relocate.packetlib")
-    }
     remapJar {
         archiveBaseName.set("Geyser-Fabric")
     }
