@@ -2,10 +2,16 @@ plugins {
     application
 }
 
+// This is provided by "org.cloudburstmc.math.mutable" too, so yeet.
+// NeoForge's class loader is *really* annoying.
+provided("org.cloudburstmc.math", "api")
+
 architectury {
     platformSetupLoomIde()
     neoForge()
 }
+
+val includeTransitive: Configuration = configurations.getByName("includeTransitive")
 
 dependencies {
     // See https://github.com/google/guava/issues/6618
@@ -21,12 +27,9 @@ dependencies {
     shadow(project(path = ":mod", configuration = "transformProductionNeoForge")) {
         isTransitive = false
     }
-    shadow(projects.core) {
-        exclude(group = "com.google.guava", module = "guava")
-        exclude(group = "com.google.code.gson", module = "gson")
-        exclude(group = "org.slf4j")
-        exclude(group = "io.netty.incubator")
-    }
+    shadow(project(path = ":core")) { isTransitive = false }
+
+    includeTransitive(projects.core)
 }
 
 application {
@@ -34,10 +37,6 @@ application {
 }
 
 tasks {
-    shadowJar {
-        relocate("it.unimi.dsi.fastutil", "org.geysermc.relocate.fastutil")
-    }
-
     remapJar {
         archiveBaseName.set("Geyser-NeoForge")
     }
