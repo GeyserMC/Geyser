@@ -23,10 +23,11 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event.lifecycle;
+package org.geysermc.geyser.api.event.bedrock;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.event.Event;
+import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 import org.geysermc.geyser.api.skin.Cape;
 import org.geysermc.geyser.api.skin.Skin;
 import org.geysermc.geyser.api.skin.SkinData;
@@ -39,7 +40,7 @@ import java.util.UUID;
  * <p>
  * Won't be called when a fake player is spawned for a player skull.
  */
-public abstract class SkinApplyEvent implements Event {
+public abstract class SessionSkinApplyEvent extends ConnectionEvent {
 
     private final String username;
     private final UUID uuid;
@@ -47,7 +48,8 @@ public abstract class SkinApplyEvent implements Event {
     private final boolean isBedrock;
     private final SkinData skinData;
 
-    public SkinApplyEvent(String username, UUID uuid, boolean slim, boolean isBedrock, SkinData skinData) {
+    public SessionSkinApplyEvent(@NonNull GeyserConnection connection, String username, UUID uuid, boolean slim, boolean isBedrock, SkinData skinData) {
+        super(connection);
         this.username = username;
         this.uuid = uuid;
         this.slim = slim;

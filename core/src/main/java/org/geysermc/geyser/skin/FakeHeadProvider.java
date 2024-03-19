@@ -63,7 +63,7 @@ public class FakeHeadProvider {
             .build(new CacheLoader<>() {
                 @Override
                 public SkinData load(@NonNull FakeHeadEntry fakeHeadEntry) throws Exception {
-                    SkinData skinData = SkinProvider.getOrDefault(SkinProvider.requestSkinData(fakeHeadEntry.getEntity()), null, 5);
+                    SkinData skinData = SkinProvider.getOrDefault(SkinProvider.requestSkinData(fakeHeadEntry.getEntity(), fakeHeadEntry.getSession()), null, 5);
 
                     if (skinData == null) {
                         throw new Exception("Couldn't load player's original skin");
@@ -140,7 +140,7 @@ public class FakeHeadProvider {
         String texturesProperty = entity.getTexturesProperty();
         SkinProvider.getExecutorService().execute(() -> {
             try {
-                SkinData mergedSkinData = MERGED_SKINS_LOADING_CACHE.get(new FakeHeadEntry(texturesProperty, fakeHeadSkinUrl, entity));
+                SkinData mergedSkinData = MERGED_SKINS_LOADING_CACHE.get(new FakeHeadEntry(texturesProperty, fakeHeadSkinUrl, entity, session));
                 SkinManager.sendSkinPacket(session, entity, mergedSkinData);
             } catch (ExecutionException e) {
                 GeyserImpl.getInstance().getLogger().error("Couldn't merge skin of " + entity.getUsername() + " with head skin url " + fakeHeadSkinUrl, e);
@@ -157,7 +157,7 @@ public class FakeHeadProvider {
             return;
         }
 
-        SkinProvider.requestSkinData(entity).whenCompleteAsync((skinData, throwable) -> {
+        SkinProvider.requestSkinData(entity, session).whenCompleteAsync((skinData, throwable) -> {
             if (throwable != null) {
                 GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), throwable);
                 return;
@@ -174,6 +174,7 @@ public class FakeHeadProvider {
         private final String texturesProperty;
         private final String fakeHeadSkinUrl;
         private PlayerEntity entity;
+        private GeyserSession session;
 
         @Override
         public boolean equals(Object o) {

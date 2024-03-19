@@ -35,7 +35,7 @@ import lombok.NoArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.event.lifecycle.SkinApplyEvent;
+import org.geysermc.geyser.api.event.bedrock.SessionSkinApplyEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.skin.Cape;
 import org.geysermc.geyser.api.skin.Skin;
@@ -232,7 +232,7 @@ public class SkinProvider {
         return CACHED_JAVA_CAPES.getIfPresent(capeUrl);
     }
 
-    static CompletableFuture<SkinData> requestSkinData(PlayerEntity entity) {
+    static CompletableFuture<SkinData> requestSkinData(PlayerEntity entity, GeyserSession session) {
         SkinManager.GameProfileData data = SkinManager.GameProfileData.from(entity);
         if (data == null) {
             // This player likely does not have a textures property
@@ -257,8 +257,7 @@ public class SkinProvider {
                         // Call event to allow extensions to modify the skin, cape and geo
                         boolean isBedrock = GeyserImpl.getInstance().connectionByUuid(entity.getUuid()) != null;
                         final SkinData[] skinData = {new SkinData(skin, cape, geometry)};
-                        GeyserImpl.getInstance().eventBus().fire(new SkinApplyEvent(entity.getUsername(), entity.getUuid(), data.isAlex(), isBedrock, skinData[0]) {
-
+                        GeyserImpl.getInstance().eventBus().fire(new SessionSkinApplyEvent(session, entity.getUsername(), entity.getUuid(), data.isAlex(), isBedrock, skinData[0]) {
                             @Override
                             public void skin(@NonNull Skin newSkin) {
                                 skinData[0] = new SkinData(newSkin, skinData[0].cape(), skinData[0].geometry());

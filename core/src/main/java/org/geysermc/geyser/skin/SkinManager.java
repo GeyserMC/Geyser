@@ -173,7 +173,7 @@ public class SkinManager {
 
     public static void requestAndHandleSkinAndCape(PlayerEntity entity, GeyserSession session,
                                                    Consumer<SkinProvider.SkinAndCape> skinAndCapeConsumer) {
-        SkinProvider.requestSkinData(entity).whenCompleteAsync((skinData, throwable) -> {
+        SkinProvider.requestSkinData(entity, session).whenCompleteAsync((skinData, throwable) -> {
             if (skinData == null) {
                 if (skinAndCapeConsumer != null) {
                     skinAndCapeConsumer.accept(null);
