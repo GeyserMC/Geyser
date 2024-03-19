@@ -125,6 +125,15 @@ public class SkinProvider {
         WEARING_CUSTOM_SKULL = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.wearingCustomSkull\"}}", wearingCustomSkull);
         String wearingCustomSkullSlim = new String(FileUtils.readAllBytes("bedrock/skin/geometry.humanoid.wearingCustomSkullSlim.json"), StandardCharsets.UTF_8);
         WEARING_CUSTOM_SKULL_SLIM = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.wearingCustomSkullSlim\"}}", wearingCustomSkullSlim);
+
+        GeyserImpl geyser = GeyserImpl.getInstance();
+        if (geyser.getConfig().isAllowThirdPartyEars()) {
+            geyser.getLogger().warning("Third-party ears have been removed from Geyser, if you still want this functionality please use the extension: https://github.com/GeyserMC/EarsExtension");
+        }
+        if (geyser.getConfig().isAllowThirdPartyCapes()) {
+            // TODO Update warning once an extension is available
+            geyser.getLogger().warning("Third-party capes have been removed from Geyser, there is currently no replacement for this functionality");
+        }
     }
 
     public static ExecutorService getExecutorService() {

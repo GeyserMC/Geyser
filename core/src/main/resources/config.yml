@@ -220,4 +220,4 @@ use-direct-connection: true
 # This requires use-direct-connection to be true.
 disable-compression: true
 
-config-version: 5
+config-version: 4

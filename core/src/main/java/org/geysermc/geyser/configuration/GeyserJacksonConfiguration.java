@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -91,6 +91,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("debug-mode")
     private boolean debugMode = false;
 
+    @JsonProperty("allow-third-party-capes")
+    private boolean allowThirdPartyCapes = true;
+
     @JsonProperty("show-cooldown")
     private String showCooldown = "title";
 
@@ -103,6 +106,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonDeserialize(using = EmoteOffhandWorkaroundOption.Deserializer.class)
     @JsonProperty("emote-offhand-workaround")
     private EmoteOffhandWorkaroundOption emoteOffhandWorkaround = EmoteOffhandWorkaroundOption.DISABLED;
+
+    @JsonProperty("allow-third-party-ears")
+    private boolean allowThirdPartyEars = false;
 
     @JsonProperty("default-locale")
     private String defaultLocale = null; // is null by default so system language takes priority

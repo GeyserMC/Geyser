@@ -44,7 +44,7 @@ public interface GeyserConfiguration {
     void setAutoconfiguredRemote(boolean autoconfiguredRemote);
 
     // Modify this when you introduce breaking changes into the config
-    int CURRENT_CONFIG_VERSION = 5;
+    int CURRENT_CONFIG_VERSION = 4;
 
     IBedrockConfiguration getBedrock();
 
@@ -71,6 +71,12 @@ public interface GeyserConfiguration {
     int getMaxPlayers();
 
     boolean isDebugMode();
+
+    @Deprecated
+    boolean isAllowThirdPartyCapes();
+
+    @Deprecated
+    boolean isAllowThirdPartyEars();
 
     String getShowCooldown();
 
