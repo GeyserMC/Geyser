@@ -3,7 +3,7 @@ base-api = "1.0.0-SNAPSHOT"
 cumulus = "1.1.2"
 erosion = "1.0-20230406.174837-8"
 events = "1.1-SNAPSHOT"
-jackson = { strictly = "2.14.0" } # Don't let other dependencies override
+jackson = "2.17.0"
 fastutil = "8.5.2"
 netty = "4.1.107.Final"
 guava = "29.0-jre"
@@ -38,7 +38,7 @@ mixin = "0.8.5"
 
 # plugin versions
 indra = "3.1.3"
-shadow = "7.1.3-SNAPSHOT"
+shadow = "8.1.1"
 architectury-plugin = "3.4-SNAPSHOT"
 architectury-loom = "1.4-SNAPSHOT"
 minotaur = "2.8.7"
