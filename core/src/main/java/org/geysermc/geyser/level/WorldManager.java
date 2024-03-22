@@ -32,6 +32,7 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataRequestPacket;
 import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -125,6 +126,14 @@ public abstract class WorldManager {
      * @param blockEntityInfos a list of coordinates (chunk local) to grab lecterns from.
      */
     public abstract void sendLecternData(GeyserSession session, int x, int z, List<BlockEntityInfo> blockEntityInfos);
+
+    /**
+     * Handle Bedrock requesting data for a structure.
+     *
+     * @param session the session of the player requested structure information
+     * @param packet the packet the Bedrock client has sent
+     */
+    public abstract void handleStructureDataRequest(StructureTemplateDataRequestPacket packet, GeyserSession session);
 
     /**
      * @return whether we should expect lectern data to update, or if we have to fall back on a workaround.

@@ -61,6 +61,7 @@ public class BlockMappings implements DefinitionRegistry<GeyserBedrockBlock> {
     Map<String, NbtMap> flowerPotBlocks;
 
     Set<BlockDefinition> jigsawStates;
+    Set<BlockDefinition> structureBlockStates;
 
     List<BlockPropertyData> blockProperties;
     Object2ObjectMap<CustomBlockState, GeyserBedrockBlock> customBlockStateDefinitions;
