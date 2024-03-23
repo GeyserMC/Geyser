@@ -36,13 +36,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.protocol.bedrock.data.structure.StructureTemplateResponseType;
-import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataRequestPacket;
-import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataResponsePacket;
 import org.geysermc.erosion.bukkit.BukkitLecterns;
 import org.geysermc.erosion.bukkit.BukkitUtils;
 import org.geysermc.erosion.bukkit.PickBlockUtils;
@@ -65,19 +59,6 @@ import java.util.concurrent.CompletableFuture;
 public class GeyserSpigotWorldManager extends WorldManager {
     private final Plugin plugin;
     private final BukkitLecterns lecterns;
-    private static final NbtMap EMPTY_STRUCTURE_DATA;
-
-    static {
-        NbtMapBuilder builder = NbtMap.builder();
-        builder.putInt("format_version", 1);
-        builder.putCompound("structure", NbtMap.builder()
-                .putList("block_indices", NbtType.LIST, NbtList.EMPTY, NbtList.EMPTY)
-                .putList("entities", NbtType.COMPOUND)
-                .putCompound("palette", NbtMap.EMPTY)
-                .build());
-        builder.putList("structure_world_origin", NbtType.INT, 0, 0, 0);
-        EMPTY_STRUCTURE_DATA = builder.build();
-    }
 
     public GeyserSpigotWorldManager(Plugin plugin) {
         this.plugin = plugin;
@@ -147,27 +128,6 @@ public class GeyserSpigotWorldManager extends WorldManager {
                 sendLecternData(session, chunk, blockEntityInfos);
             });
         }
-    }
-
-    // TODO adapt to actually send the requests
-    @Override
-    public void handleStructureDataRequest(StructureTemplateDataRequestPacket packet, GeyserSession session) {
-        // Always send a blank form
-        sendEmptyStructureData(session, packet);
-    }
-
-    /**
-     * Send an empty structure data that tricks Bedrock into thinking it loaded successfully
-     */
-    protected void sendEmptyStructureData(GeyserSession session, StructureTemplateDataRequestPacket packet) {
-        StructureTemplateDataResponsePacket responsePacket = new StructureTemplateDataResponsePacket();
-        responsePacket.setName(packet.getName());
-        responsePacket.setSave(true);
-        responsePacket.setTag(EMPTY_STRUCTURE_DATA.toBuilder()
-                .putList("size", NbtType.INT, packet.getSettings().getSize().getX(), packet.getSettings().getSize().getY(), packet.getSettings().getSize().getZ())
-                .build());
-        responsePacket.setType(StructureTemplateResponseType.QUERY);
-        session.sendUpstreamPacket(responsePacket);
     }
 
     private @Nullable Chunk getChunk(World world, int x, int z) {

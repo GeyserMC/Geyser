@@ -27,12 +27,8 @@ package org.geysermc.geyser.platform.mod.world;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.ByteArrayTag;
 import net.minecraft.nbt.ByteTag;
 import net.minecraft.nbt.CompoundTag;
@@ -44,12 +40,10 @@ import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.LongArrayTag;
 import net.minecraft.nbt.LongTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.ShortTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagVisitor;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -60,23 +54,15 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BannerBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
-import net.minecraft.world.level.block.entity.StructureBlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
-import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.protocol.bedrock.data.structure.StructureTemplateResponseType;
-import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataRequestPacket;
-import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataResponsePacket;
 import org.geysermc.erosion.util.LecternUtils;
 import org.geysermc.geyser.level.GeyserWorldManager;
 import org.geysermc.geyser.network.GameProtocol;
@@ -87,7 +73,6 @@ import org.geysermc.geyser.util.BlockEntityUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class GeyserModWorldManager extends GeyserWorldManager {
@@ -226,131 +211,6 @@ public class GeyserModWorldManager extends GeyserWorldManager {
         lecternTag.putCompound("book", bookTag.build());
         NbtMap blockEntityTag = lecternTag.build();
         BlockEntityUtils.updateBlockEntity(session, blockEntityTag, Vector3i.from(x, y, z));
-    }
-    @Override
-    public void handleStructureDataRequest(StructureTemplateDataRequestPacket packet, GeyserSession session) {
-        server.execute(() -> {
-           ResourceLocation location = ResourceLocation.tryParse(packet.getName());
-            if (location == null) {
-                sendNoStructureFound(session);
-                return;
-            }
-
-            Optional<StructureTemplate> structure = server.getStructureManager().get(location);
-            if (structure.isEmpty()) {
-                sendNoStructureFound(session);
-                return;
-            }
-
-            // Required to find structure block
-            ServerPlayer player = this.getPlayer(session);
-            if (player == null) {
-                sendNoStructureFound(session);
-                return;
-            }
-            BlockEntity blockEntity = player.level().getBlockEntity(new BlockPos(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
-            if (!(blockEntity instanceof StructureBlockEntity)) {
-                sendNoStructureFound(session);
-                return;
-            }
-
-            StructureTemplate structureTemplate = structure.get();
-            // Easiest to use a tag, I guess
-            CompoundTag tag = structure.get().save(new CompoundTag());
-            int sizeX = structureTemplate.getSize().getX();
-            int sizeY = structureTemplate.getSize().getY();
-            int sizeZ = structureTemplate.getSize().getZ();
-
-            NbtMapBuilder builder = NbtMap.builder();
-            builder.putInt("format_version", 1);
-            builder.putList("structure_world_origin", NbtType.INT, packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()); // ???
-            builder.putList("size", NbtType.INT, sizeX, sizeY, sizeZ);
-
-            IntList layerZero = new IntArrayList();
-            //layerZero.add(0); // ??
-            IntList layerOne = new IntArrayList();
-            //layerOne.add(-1); // palette header???
-            List<NbtMap> bedrockPalette = new ObjectArrayList<>();
-
-            ListTag javaPalette = tag.getList("palette", 10);
-            ListTag blocks = tag.getList("blocks", 10);
-            for (int y = 0; y < sizeY; y++) {
-                for (int x = 0; x < sizeX; x++) {
-                    for (int z = 0; z < sizeZ; z++) {
-                        boolean hasAppliedBlock = false;
-                        for (int i = 0; i < blocks.size(); i++) {
-                            CompoundTag currentBlock = blocks.getCompound(i);
-                            ListTag pos = currentBlock.getList("pos", 6);
-                            if (pos.getInt(0) != x && pos.getInt(1) != y && pos.getInt(2) != z) {
-                                // Position doesn't match
-                                continue;
-                            }
-                            // Lookup the table of which Java block this is mapped to
-                            CompoundTag javaBlock = javaPalette.getCompound(currentBlock.getInt("state"));
-                            BlockState blockState = NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), javaBlock);
-                            int javaId = Block.getId(blockState);
-                            int bedrockIndex = getOrAddToBedrockPalette(session, javaId, bedrockPalette);
-                            layerZero.add(bedrockIndex);
-
-                            var optional = blockState.getOptionalValue(BlockStateProperties.WATERLOGGED);
-                            if (optional.isPresent() && optional.get()) {
-                                layerOne.add(1);
-                            } else {
-                                layerOne.add(0);
-                            }
-
-                            blocks.remove(i); // Already used
-                            hasAppliedBlock = true;
-                            break;
-                        }
-                        if (!hasAppliedBlock) {
-                            // Not found - air?
-                            layerZero.add(getOrAddToBedrockPalette(session,0, bedrockPalette));
-                            layerOne.add(-1);
-                        }
-                    }
-                }
-            }
-
-            NbtMapBuilder structureBuilder = NbtMap.builder();
-            structureBuilder.putList("block_indices", NbtType.LIST, new NbtList<>(NbtType.INT, layerZero), new NbtList<>(NbtType.INT, layerOne));
-
-            structureBuilder.putList("entities", NbtType.COMPOUND);
-
-            structureBuilder.putCompound("palette", NbtMap.builder().putCompound("default",
-                    NbtMap.builder().putList("block_palette", NbtType.COMPOUND, bedrockPalette)
-                            .putCompound("block_position_data", NbtMap.EMPTY).build()).build());
-
-            builder.putCompound("structure", structureBuilder.build());
-
-            System.out.println(builder);
-
-            StructureTemplateDataResponsePacket responsePacket = new StructureTemplateDataResponsePacket();
-            responsePacket.setName(packet.getName());
-            responsePacket.setSave(true);
-            responsePacket.setTag(builder.build());
-            responsePacket.setType(StructureTemplateResponseType.QUERY);
-            session.sendUpstreamPacket(responsePacket);
-        });
-    }
-    protected int getOrAddToBedrockPalette(GeyserSession session, int javaState, List<NbtMap> bedrockPalette) {
-        NbtMap tag = session.getBlockMappings().getBedrockBlock(javaState).getState();
-
-        for (int i = 0; i < bedrockPalette.size(); i++) {
-            if (tag == bedrockPalette.get(i)) {
-                return i;
-            }
-        }
-        bedrockPalette.add(tag);
-        return bedrockPalette.size() - 1;
-    }
-
-    protected void sendNoStructureFound(GeyserSession session) {
-        StructureTemplateDataResponsePacket packet = new StructureTemplateDataResponsePacket();
-        packet.setName("");
-        packet.setSave(false);
-        packet.setType(StructureTemplateResponseType.NONE);
-        session.sendUpstreamPacket(packet);
     }
 
     @Override

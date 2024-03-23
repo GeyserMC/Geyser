@@ -37,8 +37,6 @@ public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
-        GeyserImpl.getInstance().getLogger().info("structure block tag: " +
-                tag.toString() + " " + builder.toString() + " " + blockState);
         if (tag.size() < 5) {
             return; // These values aren't here
         }

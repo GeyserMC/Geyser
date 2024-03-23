@@ -602,6 +602,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private @Nullable ItemData currentBook = null;
 
+    /**
+     * Stores the current structure block position, if we are in one
+     */
+    @Setter @Getter
+    private @Nullable Vector3i currentStructureBlock;
+
     private final GeyserCameraData cameraData;
 
     private final GeyserEntityData entityData;

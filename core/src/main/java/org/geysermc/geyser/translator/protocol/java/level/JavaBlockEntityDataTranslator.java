@@ -28,11 +28,19 @@ package org.geysermc.geyser.translator.protocol.java.level;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundBlockEntityDataPacket;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtList;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
+import org.cloudburstmc.protocol.bedrock.data.structure.StructureTemplateResponseType;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
+import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataResponsePacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
@@ -44,6 +52,20 @@ import org.geysermc.geyser.util.BlockEntityUtils;
 
 @Translator(packet = ClientboundBlockEntityDataPacket.class)
 public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundBlockEntityDataPacket> {
+
+    private static final NbtMap EMPTY_STRUCTURE_DATA;
+
+    static {
+        NbtMapBuilder builder = NbtMap.builder();
+        builder.putInt("format_version", 1);
+        builder.putCompound("structure", NbtMap.builder()
+                .putList("block_indices", NbtType.LIST, NbtList.EMPTY, NbtList.EMPTY)
+                .putList("entities", NbtType.COMPOUND)
+                .putCompound("palette", NbtMap.EMPTY)
+                .build());
+        builder.putList("structure_world_origin", NbtType.INT, 0, 0, 0);
+        EMPTY_STRUCTURE_DATA = builder.build();
+    }
 
     @Override
     public void translate(GeyserSession session, ClientboundBlockEntityDataPacket packet) {
@@ -94,6 +116,31 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
             openPacket.setType(ContainerType.COMMAND_BLOCK);
             openPacket.setUniqueEntityId(-1);
             session.sendUpstreamPacket(openPacket);
+        }
+
+        // On Java edition, if we are trying to load a structure, we expect the server to send us the size of the structure.
+        // On 1.20.4, the server does here - we can pass that through to Bedrock so we're properly selecting the area selection
+        if (type == BlockEntityType.STRUCTURE_BLOCK && session.getGameMode() == GameMode.CREATIVE &&
+                packet.getPosition().equals(session.getCurrentStructureBlock()) && packet.getNbt() != null && packet.getNbt().size() > 5) {
+            CompoundTag map = packet.getNbt();
+
+            String mode = (String) map.get("mode").getValue();
+            if (!mode.equalsIgnoreCase("LOAD")) {
+                GeyserImpl.getInstance().getLogger().info(mode);
+                return;
+            }
+
+            StructureTemplateDataResponsePacket responsePacket = new StructureTemplateDataResponsePacket();
+            responsePacket.setName((String) map.get("name").getValue());
+            responsePacket.setSave(true);
+            responsePacket.setTag(EMPTY_STRUCTURE_DATA.toBuilder()
+                    .putList("size", NbtType.INT, (int) map.get("sizeX").getValue(), (int) map.get("sizeY").getValue(), (int) map.get("sizeZ").getValue())
+                    .build());
+            responsePacket.setType(StructureTemplateResponseType.QUERY);
+            GeyserImpl.getInstance().getLogger().info(responsePacket.toString());
+            session.sendUpstreamPacket(responsePacket);
+
+            session.setCurrentStructureBlock(null);
         }
     }
 }
