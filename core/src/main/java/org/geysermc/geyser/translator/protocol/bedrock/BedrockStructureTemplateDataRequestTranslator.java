@@ -39,6 +39,7 @@ import org.cloudburstmc.protocol.bedrock.data.structure.StructureTemplateRequest
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureTemplateResponseType;
 import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataResponsePacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -67,9 +68,12 @@ public class BedrockStructureTemplateDataRequestTranslator extends PacketTransla
 
     @Override
     public void translate(GeyserSession session, StructureTemplateDataRequestPacket packet) {
+        GeyserImpl.getInstance().getLogger().info(packet.toString());
         if (packet.getOperation().equals(StructureTemplateRequestOperation.QUERY_SAVED_STRUCTURE)) {
             // If we send a load packet to the Java server when the structure size is known, we place the structure.
             if (!packet.getSettings().getSize().equals(Vector3i.ZERO)) {
+                // Otherwise, the Bedrock client can't load the structure in
+                sendEmptyStructureData(session, packet);
                 return;
             }
             session.setCurrentStructureBlock(packet.getPosition());
@@ -101,15 +105,19 @@ public class BedrockStructureTemplateDataRequestTranslator extends PacketTransla
             );
             session.sendDownstreamPacket(structureBlockPacket);
         } else {
-            StructureTemplateDataResponsePacket responsePacket = new StructureTemplateDataResponsePacket();
-            responsePacket.setName(packet.getName());
-            responsePacket.setSave(true);
-            responsePacket.setTag(EMPTY_STRUCTURE_DATA.toBuilder()
-                    .putList("size", NbtType.INT, packet.getSettings().getSize().getX(),
-                            packet.getSettings().getSize().getY(), packet.getSettings().getSize().getZ())
-                    .build());
-            responsePacket.setType(StructureTemplateResponseType.QUERY);
-            session.sendUpstreamPacket(responsePacket);
+            sendEmptyStructureData(session, packet);
         }
+    }
+
+    private void sendEmptyStructureData(GeyserSession session, StructureTemplateDataRequestPacket packet) {
+        StructureTemplateDataResponsePacket responsePacket = new StructureTemplateDataResponsePacket();
+        responsePacket.setName(packet.getName());
+        responsePacket.setSave(true);
+        responsePacket.setTag(EMPTY_STRUCTURE_DATA.toBuilder()
+                .putList("size", NbtType.INT, packet.getSettings().getSize().getX(),
+                        packet.getSettings().getSize().getY(), packet.getSettings().getSize().getZ())
+                .build());
+        responsePacket.setType(StructureTemplateResponseType.QUERY);
+        session.sendUpstreamPacket(responsePacket);
     }
 }
