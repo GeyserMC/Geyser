@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.level.block.entity;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureMirror;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureRotation;
 import org.geysermc.geyser.GeyserImpl;
@@ -37,6 +38,7 @@ public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+        GeyserImpl.getInstance().getLogger().info(NbtUtils.toString(tag));
         if (tag.size() < 5) {
             return; // These values aren't here
         }
@@ -147,5 +149,6 @@ public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
         builder.putFloat("integrity", getOrDefault(tag.get("integrity"), 0f)); // Is 1.0f by default on Java but 100.0f on Bedrock
 
         // Java's "showair" is unrepresented
+        GeyserImpl.getInstance().getLogger().error(builder.toString());
     }
 }

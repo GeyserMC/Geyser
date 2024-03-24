@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundBlockEntityDataPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
@@ -124,18 +125,17 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
                 packet.getPosition().equals(session.getCurrentStructureBlock()) && packet.getNbt() != null && packet.getNbt().size() > 5) {
             CompoundTag map = packet.getNbt();
 
-            String mode = (String) map.get("mode").getValue();
+            String mode = getOrDefault(map.get("mode"), "");
             if (!mode.equalsIgnoreCase("LOAD")) {
-                GeyserImpl.getInstance().getLogger().info(mode);
                 return;
             }
 
-            int x = (int) map.get("sizeX").getValue();
-            int y = (int) map.get("sizeY").getValue();
-            int z = (int) map.get("sizeZ").getValue();
+            int x = getOrDefault(map.get("sizeX"), 0);
+            int y = getOrDefault(map.get("sizeY"), 0);
+            int z = getOrDefault(map.get("sizeZ"), 0);
 
             StructureTemplateDataResponsePacket responsePacket = new StructureTemplateDataResponsePacket();
-            responsePacket.setName((String) map.get("name").getValue());
+            responsePacket.setName(getOrDefault(map.get("name"), " "));
             responsePacket.setSave(true);
             responsePacket.setTag(EMPTY_STRUCTURE_DATA.toBuilder()
                     .putList("size", NbtType.INT, x, y, z)
@@ -146,5 +146,11 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
 
             session.setCurrentStructureBlock(null);
         }
+    }
+
+
+    protected <T> T getOrDefault(Tag tag, T defaultValue) {
+        //noinspection unchecked
+        return (tag != null && tag.getValue() != null) ? (T) tag.getValue() : defaultValue;
     }
 }
