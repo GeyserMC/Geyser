@@ -56,7 +56,7 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
             ItemFrameEntity entity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
             if (entity != null) {
                 // Check to see if the item frame has an item in it first
-                if (entity.getHeldItem() != null && entity.getHeldItem().getId() != 0) {
+                if (!InventoryUtils.isEmpty(entity.getHeldItem())) {
                     // Grab the item in the frame
                     InventoryUtils.findOrCreateItem(session, entity.getHeldItem());
                 } else {
@@ -67,7 +67,7 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
             return;
         }
 
-        BlockMapping blockMapping = BlockRegistries.JAVA_BLOCKS.getOrDefault(blockToPick, BlockMapping.AIR);
+        BlockMapping blockMapping = BlockRegistries.JAVA_BLOCKS.getOrDefault(blockToPick, BlockMapping.DEFAULT);
         boolean addNbtData = packet.isAddUserData() && blockMapping.isBlockEntity(); // Holding down CTRL
         if (BlockStateValues.getBannerColor(blockToPick) != -1 || addNbtData) {
             session.getGeyser().getWorldManager().getPickItemNbt(session, vector.getX(), vector.getY(), vector.getZ(), addNbtData)

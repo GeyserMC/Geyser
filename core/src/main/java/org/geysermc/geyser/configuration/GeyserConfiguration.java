@@ -36,7 +36,6 @@ import org.geysermc.geyser.text.GeyserLocale;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 
 public interface GeyserConfiguration {
     /**
@@ -53,16 +52,11 @@ public interface GeyserConfiguration {
 
     List<String> getSavedUserLogins();
 
-    @Deprecated
-    Map<String, ? extends IUserAuthenticationInfo> getUserAuths();
-
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     boolean isCommandSuggestions();
 
     @JsonIgnore
     boolean isPassthroughMotd();
-
-    @JsonIgnore
-    boolean isPassthroughProtocolName();
 
     @JsonIgnore
     boolean isPassthroughPlayerCounts();
@@ -100,6 +94,7 @@ public interface GeyserConfiguration {
 
     boolean isForceResourcePacks();
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     boolean isXboxAchievementsEnabled();
 
     int getCacheImages();
@@ -127,6 +122,8 @@ public interface GeyserConfiguration {
 
         void setPort(int port);
 
+        void setBroadcastPort(int broadcastPort);
+
         boolean isCloneRemotePort();
 
         int getCompressionLevel();
@@ -147,8 +144,6 @@ public interface GeyserConfiguration {
 
         void setPort(int port);
 
-        boolean isPasswordAuthentication();
-
         boolean isUseProxyProtocol();
 
         boolean isForwardHost();
@@ -162,18 +157,6 @@ public interface GeyserConfiguration {
         }
 
         void setAuthType(AuthType authType);
-    }
-
-    interface IUserAuthenticationInfo {
-        String getEmail();
-
-        String getPassword();
-
-        /**
-         * Will be removed after Microsoft accounts are fully migrated
-         */
-        @Deprecated
-        boolean isMicrosoftAccount();
     }
 
     interface IMetricsInfo {

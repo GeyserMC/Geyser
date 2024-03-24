@@ -30,8 +30,10 @@ import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeTyp
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.GlobalPos;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
@@ -43,7 +45,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.DimensionUtils;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -67,10 +68,6 @@ public class SessionPlayerEntity extends PlayerEntity {
      */
     @Getter
     private boolean isRidingInFront;
-    /**
-     * Used for villager inventory emulation.
-     */
-    private int fakeTradeXp;
 
     public SessionPlayerEntity(GeyserSession session) {
         super(session, -1, 1, null, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, null, null);
@@ -113,16 +110,23 @@ public class SessionPlayerEntity extends PlayerEntity {
         this.position = position;
     }
 
+    /**
+     * Sending any updated flags (sprinting, onFire, etc.) to the client while in spectator is not needed
+     * Also "fixes" <a href="https://github.com/GeyserMC/Geyser/issues/3318">issue 3318</a>
+     */
     @Override
     public void setFlags(ByteEntityMetadata entityMetadata) {
-        super.setFlags(entityMetadata);
-        session.setSwimmingInWater((entityMetadata.getPrimitiveValue() & 0x10) == 0x10 && getFlag(EntityFlag.SPRINTING));
+        // TODO: proper fix, BDS somehow does it? https://paste.gg/p/anonymous/3adfb7612f1540be80fa03a2281f93dc (BDS 1.20.13)
+        if (!this.session.getGameMode().equals(GameMode.SPECTATOR)) {
+            super.setFlags(entityMetadata);
+            session.setSwimmingInWater((entityMetadata.getPrimitiveValue() & 0x10) == 0x10 && getFlag(EntityFlag.SPRINTING));
+        }
         refreshSpeed = true;
     }
 
     /**
      * Since 1.19.40, the client must be re-informed of its bounding box on respawn
-     * See https://github.com/GeyserMC/Geyser/issues/3370
+     * See <a href="https://github.com/GeyserMC/Geyser/issues/3370">issue 3370</a>
      */
     public void updateBoundingBox() {
         dirtyMetadata.put(EntityDataTypes.HEIGHT, getBoundingBoxHeight());
@@ -173,11 +177,6 @@ public class SessionPlayerEntity extends PlayerEntity {
     public void setRiderSeatPosition(Vector3f position) {
         super.setRiderSeatPosition(position);
         this.isRidingInFront = position != null && position.getX() > 0;
-    }
-
-    public void addFakeTradeExperience(int tradeXp) {
-        fakeTradeXp += tradeXp;
-        dirtyMetadata.put(EntityDataTypes.TRADE_EXPERIENCE, fakeTradeXp);
     }
 
     @Override
@@ -254,5 +253,18 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Override
     public UUID getTabListUuid() {
         return session.getAuthData().uuid();
+    }
+
+    public void resetMetadata() {
+        // Reset all metadata to their default values
+        // This is used when a player respawns
+        this.initializeMetadata();
+
+        // Reset air
+        this.resetAir();
+    }
+
+    public void resetAir() {
+        this.setAirSupply(getMaxAir());
     }
 }

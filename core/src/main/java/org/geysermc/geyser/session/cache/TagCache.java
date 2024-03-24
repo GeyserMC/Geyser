@@ -25,9 +25,10 @@
 
 package org.geysermc.geyser.session.cache;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateTagsPacket;
+import com.github.steveice10.mc.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.Item;
@@ -64,6 +65,7 @@ public class TagCache {
     private IntList foxFood;
     private IntList piglinLoved;
     private IntList smallFlowers;
+    private IntList snifferFood;
 
     public TagCache() {
         // Ensure all lists are non-null
@@ -101,6 +103,7 @@ public class TagCache {
         this.foxFood = IntList.of(itemTags.get("minecraft:fox_food"));
         this.piglinLoved = IntList.of(itemTags.get("minecraft:piglin_loved"));
         this.smallFlowers = IntList.of(itemTags.get("minecraft:small_flowers"));
+        this.snifferFood = load(itemTags.get("minecraft:sniffer_food"));
 
         // Hack btw
         boolean emulatePost1_13Logic = itemTags.get("minecraft:signs").length > 1;
@@ -110,7 +113,7 @@ public class TagCache {
         }
     }
 
-    private IntList load(int[] tags) {
+    private IntList load(int @Nullable[] tags) {
         if (tags == null) {
             return IntLists.EMPTY_LIST;
         }
@@ -137,6 +140,7 @@ public class TagCache {
         this.foxFood = IntLists.emptyList();
         this.piglinLoved = IntLists.emptyList();
         this.smallFlowers = IntLists.emptyList();
+        this.snifferFood = IntLists.emptyList();
     }
 
     public boolean isAxolotlTemptItem(Item item) {
@@ -165,6 +169,10 @@ public class TagCache {
 
     public boolean isSmallFlower(GeyserItemStack itemStack) {
         return smallFlowers.contains(itemStack.getJavaId());
+    }
+
+    public boolean isSnifferFood(Item item) {
+        return snifferFood.contains(item.javaId());
     }
 
     public boolean isAxeEffective(BlockMapping blockMapping) {

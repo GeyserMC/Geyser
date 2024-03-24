@@ -27,11 +27,11 @@ package org.geysermc.geyser.registry.loader;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
@@ -45,7 +45,7 @@ import java.util.Set;
  * Generates a collection of {@link PotionMixData} that enables the
  * Bedrock client to place brewing items into the brewing stand.
  * (Does not contain actual potion mixes.)
- *
+ * <p>
  * Designed to replicate Java Edition behavior.
  * (Ex: Bedrock cannot normally place glass bottles or fully upgraded
  * potions into the brewing stand, but Java can.)
@@ -115,7 +115,7 @@ public class PotionMixRegistryLoader implements RegistryLoader<Object, Int2Objec
     }
 
     private static ItemMapping getNonNull(ItemMappings mappings, Item javaItem) {
-        ItemMapping itemMapping = Registries.ITEMS.forVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getMapping(javaItem);
+        ItemMapping itemMapping = mappings.getMapping(javaItem);
         if (itemMapping == null)
             throw new NullPointerException("No item entry exists for java identifier: " + javaItem.javaIdentifier());
 

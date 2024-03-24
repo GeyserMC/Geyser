@@ -33,14 +33,15 @@ public class SignUtils {
 
     // TODO: If we send the Java font via resource pack, does width change?
     /**
-     * The maximum character width that a sign can hold in Bedrock
+     * The maximum character width that a non-hanging sign can hold in both Java and Bedrock
      */
-    public static final int BEDROCK_CHARACTER_WIDTH_MAX = 88;
+    public static final int SIGN_WIDTH_MAX = 90;
 
     /**
-     * The maximum character width that a sign can hold in Java
+     * The maximum character width that a hanging sign can hold in both Java and Bedrock. Hanging signs are narrower.
      */
-    public static final int JAVA_CHARACTER_WIDTH_MAX = 90;
+    public static final int HANGING_SIGN_WIDTH_MAX = 60;
+
 
     /**
      * Gets the Minecraft width of a character
@@ -58,4 +59,10 @@ public class SignUtils {
         };
     }
 
+    public static int getSignWidthMax(boolean hanging) {
+        if (hanging) {
+            return HANGING_SIGN_WIDTH_MAX;
+        }
+        return SIGN_WIDTH_MAX;
+    }
 }

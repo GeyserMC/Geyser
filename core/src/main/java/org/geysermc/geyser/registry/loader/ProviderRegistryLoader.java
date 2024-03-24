@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,14 @@
 
 package org.geysermc.geyser.registry.loader;
 
+import org.geysermc.geyser.api.bedrock.camera.CameraFade;
+import org.geysermc.geyser.api.bedrock.camera.CameraPosition;
+import org.geysermc.geyser.api.block.custom.CustomBlockData;
+import org.geysermc.geyser.api.block.custom.NonVanillaCustomBlockData;
+import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
+import org.geysermc.geyser.api.block.custom.component.GeometryComponent;
+import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
+import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.entity.EntityDefinition;
 import org.geysermc.geyser.api.entity.EntityIdentifier;
@@ -33,6 +41,9 @@ import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
+import org.geysermc.geyser.api.pack.PathPackCodec;
+import org.geysermc.geyser.impl.camera.GeyserCameraFade;
+import org.geysermc.geyser.impl.camera.GeyserCameraPosition;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.entity.GeyserEntityDefinition;
 import org.geysermc.geyser.entity.GeyserEntityIdentifier;
@@ -41,8 +52,16 @@ import org.geysermc.geyser.event.GeyserEventRegistrar;
 import org.geysermc.geyser.item.GeyserCustomItemData;
 import org.geysermc.geyser.item.GeyserCustomItemOptions;
 import org.geysermc.geyser.item.GeyserNonVanillaCustomItemData;
+import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
+import org.geysermc.geyser.level.block.GeyserCustomBlockData;
+import org.geysermc.geyser.level.block.GeyserGeometryComponent;
+import org.geysermc.geyser.level.block.GeyserJavaBlockState;
+import org.geysermc.geyser.level.block.GeyserMaterialInstance;
+import org.geysermc.geyser.level.block.GeyserNonVanillaCustomBlockData;
+import org.geysermc.geyser.pack.path.GeyserPathPackCodec;
 import org.geysermc.geyser.registry.provider.ProviderSupplier;
 
+import java.nio.file.Path;
 import java.util.Map;
 
 /**
@@ -52,11 +71,29 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
 
     @Override
     public Map<Class<?>, ProviderSupplier> load(Map<Class<?>, ProviderSupplier> providers) {
+        // misc
         providers.put(Command.Builder.class, args -> new GeyserCommandManager.CommandBuilder<>((Extension) args[0]));
-        providers.put(CustomItemData.Builder.class, args -> new GeyserCustomItemData.CustomItemDataBuilder());
-        providers.put(CustomItemOptions.Builder.class, args -> new GeyserCustomItemOptions.CustomItemOptionsBuilder());
-        providers.put(NonVanillaCustomItemData.Builder.class, args -> new GeyserNonVanillaCustomItemData.NonVanillaCustomItemDataBuilder());
+
+        providers.put(CustomBlockComponents.Builder.class, args -> new GeyserCustomBlockComponents.Builder());
+        providers.put(CustomBlockData.Builder.class, args -> new GeyserCustomBlockData.Builder());
+        providers.put(JavaBlockState.Builder.class, args -> new GeyserJavaBlockState.Builder());
+        providers.put(NonVanillaCustomBlockData.Builder.class, args -> new GeyserNonVanillaCustomBlockData.Builder());
+        providers.put(MaterialInstance.Builder.class, args -> new GeyserMaterialInstance.Builder());
+        providers.put(GeometryComponent.Builder.class, args -> new GeyserGeometryComponent.Builder());
+
         providers.put(EventRegistrar.class, args -> new GeyserEventRegistrar(args[0]));
+        providers.put(PathPackCodec.class, args -> new GeyserPathPackCodec((Path) args[0]));
+
+        // items
+        providers.put(CustomItemData.Builder.class, args -> new GeyserCustomItemData.Builder());
+        providers.put(CustomItemOptions.Builder.class, args -> new GeyserCustomItemOptions.Builder());
+        providers.put(NonVanillaCustomItemData.Builder.class, args -> new GeyserNonVanillaCustomItemData.Builder());
+
+        // cameras
+        providers.put(CameraFade.Builder.class, args -> new GeyserCameraFade.Builder());
+        providers.put(CameraPosition.Builder.class, args -> new GeyserCameraPosition.Builder());
+
+        // entities
         providers.put(EntityIdentifier.Builder.class, args -> new GeyserEntityIdentifier.EntityIdentifierBuilder());
         providers.put(EntityDefinition.Builder.class, args -> new GeyserEntityDefinition.EntityDefinitionBuilder<>(Entity::new, true));
 

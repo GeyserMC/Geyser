@@ -29,6 +29,8 @@ import org.geysermc.geyser.item.components.ToolTier;
 import org.geysermc.geyser.item.type.*;
 import org.geysermc.geyser.registry.Registries;
 
+import java.util.Collections;
+
 import static org.geysermc.geyser.item.type.Item.builder;
 
 /**
@@ -49,6 +51,19 @@ public final class Items {
     public static final Item POLISHED_DEEPSLATE = register(new BlockItem("polished_deepslate", builder()));
     public static final Item CALCITE = register(new BlockItem("calcite", builder()));
     public static final Item TUFF = register(new BlockItem("tuff", builder()));
+    public static final Item TUFF_SLAB = register(new BlockItem("tuff_slab", builder()));
+    public static final Item TUFF_STAIRS = register(new BlockItem("tuff_stairs", builder()));
+    public static final Item TUFF_WALL = register(new BlockItem("tuff_wall", builder()));
+    public static final Item CHISELED_TUFF = register(new BlockItem("chiseled_tuff", builder()));
+    public static final Item POLISHED_TUFF = register(new BlockItem("polished_tuff", builder()));
+    public static final Item POLISHED_TUFF_SLAB = register(new BlockItem("polished_tuff_slab", builder()));
+    public static final Item POLISHED_TUFF_STAIRS = register(new BlockItem("polished_tuff_stairs", builder()));
+    public static final Item POLISHED_TUFF_WALL = register(new BlockItem("polished_tuff_wall", builder()));
+    public static final Item TUFF_BRICKS = register(new BlockItem("tuff_bricks", builder()));
+    public static final Item TUFF_BRICK_SLAB = register(new BlockItem("tuff_brick_slab", builder()));
+    public static final Item TUFF_BRICK_STAIRS = register(new BlockItem("tuff_brick_stairs", builder()));
+    public static final Item TUFF_BRICK_WALL = register(new BlockItem("tuff_brick_wall", builder()));
+    public static final Item CHISELED_TUFF_BRICKS = register(new BlockItem("chiseled_tuff_bricks", builder()));
     public static final Item DRIPSTONE_BLOCK = register(new BlockItem("dripstone_block", builder()));
     public static final Item GRASS_BLOCK = register(new BlockItem("grass_block", builder()));
     public static final Item DIRT = register(new BlockItem("dirt", builder()));
@@ -82,6 +97,7 @@ public final class Items {
     public static final Item BEDROCK = register(new BlockItem("bedrock", builder()));
     public static final Item SAND = register(new BlockItem("sand", builder()));
     public static final Item SUSPICIOUS_SAND = register(new BlockItem("suspicious_sand", builder()));
+    public static final Item SUSPICIOUS_GRAVEL = register(new BlockItem("suspicious_gravel", builder()));
     public static final Item RED_SAND = register(new BlockItem("red_sand", builder()));
     public static final Item GRAVEL = register(new BlockItem("gravel", builder()));
     public static final Item COAL_ORE = register(new BlockItem("coal_ore", builder()));
@@ -117,6 +133,10 @@ public final class Items {
     public static final Item EXPOSED_COPPER = register(new BlockItem("exposed_copper", builder()));
     public static final Item WEATHERED_COPPER = register(new BlockItem("weathered_copper", builder()));
     public static final Item OXIDIZED_COPPER = register(new BlockItem("oxidized_copper", builder()));
+    public static final Item CHISELED_COPPER = register(new BlockItem("chiseled_copper", builder()));
+    public static final Item EXPOSED_CHISELED_COPPER = register(new BlockItem("exposed_chiseled_copper", builder()));
+    public static final Item WEATHERED_CHISELED_COPPER = register(new BlockItem("weathered_chiseled_copper", builder()));
+    public static final Item OXIDIZED_CHISELED_COPPER = register(new BlockItem("oxidized_chiseled_copper", builder()));
     public static final Item CUT_COPPER = register(new BlockItem("cut_copper", builder()));
     public static final Item EXPOSED_CUT_COPPER = register(new BlockItem("exposed_cut_copper", builder()));
     public static final Item WEATHERED_CUT_COPPER = register(new BlockItem("weathered_cut_copper", builder()));
@@ -133,6 +153,10 @@ public final class Items {
     public static final Item WAXED_EXPOSED_COPPER = register(new BlockItem("waxed_exposed_copper", builder()));
     public static final Item WAXED_WEATHERED_COPPER = register(new BlockItem("waxed_weathered_copper", builder()));
     public static final Item WAXED_OXIDIZED_COPPER = register(new BlockItem("waxed_oxidized_copper", builder()));
+    public static final Item WAXED_CHISELED_COPPER = register(new BlockItem("waxed_chiseled_copper", builder()));
+    public static final Item WAXED_EXPOSED_CHISELED_COPPER = register(new BlockItem("waxed_exposed_chiseled_copper", builder()));
+    public static final Item WAXED_WEATHERED_CHISELED_COPPER = register(new BlockItem("waxed_weathered_chiseled_copper", builder()));
+    public static final Item WAXED_OXIDIZED_CHISELED_COPPER = register(new BlockItem("waxed_oxidized_chiseled_copper", builder()));
     public static final Item WAXED_CUT_COPPER = register(new BlockItem("waxed_cut_copper", builder()));
     public static final Item WAXED_EXPOSED_CUT_COPPER = register(new BlockItem("waxed_exposed_cut_copper", builder()));
     public static final Item WAXED_WEATHERED_CUT_COPPER = register(new BlockItem("waxed_weathered_cut_copper", builder()));
@@ -208,7 +232,7 @@ public final class Items {
     public static final Item CHISELED_SANDSTONE = register(new BlockItem("chiseled_sandstone", builder()));
     public static final Item CUT_SANDSTONE = register(new BlockItem("cut_sandstone", builder()));
     public static final Item COBWEB = register(new BlockItem("cobweb", builder()));
-    public static final Item GRASS = register(new BlockItem("grass", builder()));
+    public static final Item SHORT_GRASS = register(new BlockItem("short_grass", builder()));
     public static final Item FERN = register(new BlockItem("fern", builder()));
     public static final Item AZALEA = register(new BlockItem("azalea", builder()));
     public static final Item FLOWERING_AZALEA = register(new BlockItem("flowering_azalea", builder()));
@@ -245,6 +269,7 @@ public final class Items {
     public static final Item LILY_OF_THE_VALLEY = register(new FlowerItem("lily_of_the_valley", builder()));
     public static final Item WITHER_ROSE = register(new FlowerItem("wither_rose", builder()));
     public static final Item TORCHFLOWER = register(new FlowerItem("torchflower", builder()));
+    public static final Item PITCHER_PLANT = register(new BlockItem("pitcher_plant", builder()));
     public static final Item SPORE_BLOSSOM = register(new BlockItem("spore_blossom", builder()));
     public static final Item BROWN_MUSHROOM = register(new BlockItem("brown_mushroom", builder()));
     public static final Item RED_MUSHROOM = register(new BlockItem("red_mushroom", builder()));
@@ -300,7 +325,7 @@ public final class Items {
     public static final Item BRICKS = register(new BlockItem("bricks", builder()));
     public static final Item BOOKSHELF = register(new BlockItem("bookshelf", builder()));
     public static final Item CHISELED_BOOKSHELF = register(new BlockItem("chiseled_bookshelf", builder()));
-    public static final Item DECORATED_POT = register(new BlockItem("decorated_pot", builder().stackSize(1)));
+    public static final Item DECORATED_POT = register(new DecoratedPotItem("decorated_pot", builder()));
     public static final Item MOSSY_COBBLESTONE = register(new BlockItem("mossy_cobblestone", builder()));
     public static final Item OBSIDIAN = register(new BlockItem("obsidian", builder()));
     public static final Item TORCH = register(new BlockItem("torch", builder()));
@@ -311,7 +336,7 @@ public final class Items {
     public static final Item PURPUR_PILLAR = register(new BlockItem("purpur_pillar", builder()));
     public static final Item PURPUR_STAIRS = register(new BlockItem("purpur_stairs", builder()));
     public static final Item SPAWNER = register(new BlockItem("spawner", builder()));
-    public static final Item CHEST = register(new BlockItem("chest", builder()));
+    public static final Item CHEST = register(new ChestItem("chest", builder()));
     public static final Item CRAFTING_TABLE = register(new BlockItem("crafting_table", builder()));
     public static final Item FARMLAND = register(new BlockItem("farmland", builder()));
     public static final Item FURNACE = register(new BlockItem("furnace", builder()));
@@ -393,7 +418,7 @@ public final class Items {
     public static final Item END_STONE_BRICKS = register(new BlockItem("end_stone_bricks", builder()));
     public static final Item DRAGON_EGG = register(new BlockItem("dragon_egg", builder()));
     public static final Item SANDSTONE_STAIRS = register(new BlockItem("sandstone_stairs", builder()));
-    public static final Item ENDER_CHEST = register(new BlockItem("ender_chest", builder()));
+    public static final Item ENDER_CHEST = register(new ChestItem("ender_chest", builder()));
     public static final Item EMERALD_BLOCK = register(new BlockItem("emerald_block", builder()));
     public static final Item OAK_STAIRS = register(new BlockItem("oak_stairs", builder()));
     public static final Item SPRUCE_STAIRS = register(new BlockItem("spruce_stairs", builder()));
@@ -600,6 +625,7 @@ public final class Items {
     public static final Item RED_CONCRETE_POWDER = register(new BlockItem("red_concrete_powder", builder()));
     public static final Item BLACK_CONCRETE_POWDER = register(new BlockItem("black_concrete_powder", builder()));
     public static final Item TURTLE_EGG = register(new BlockItem("turtle_egg", builder()));
+    public static final Item SNIFFER_EGG = register(new BlockItem("sniffer_egg", builder()));
     public static final Item DEAD_TUBE_CORAL_BLOCK = register(new BlockItem("dead_tube_coral_block", builder()));
     public static final Item DEAD_BRAIN_CORAL_BLOCK = register(new BlockItem("dead_brain_coral_block", builder()));
     public static final Item DEAD_BUBBLE_CORAL_BLOCK = register(new BlockItem("dead_bubble_coral_block", builder()));
@@ -687,8 +713,9 @@ public final class Items {
     public static final Item LIGHTNING_ROD = register(new BlockItem("lightning_rod", builder()));
     public static final Item DAYLIGHT_DETECTOR = register(new BlockItem("daylight_detector", builder()));
     public static final Item SCULK_SENSOR = register(new BlockItem("sculk_sensor", builder()));
+    public static final Item CALIBRATED_SCULK_SENSOR = register(new BlockItem("calibrated_sculk_sensor", builder()));
     public static final Item TRIPWIRE_HOOK = register(new BlockItem("tripwire_hook", builder()));
-    public static final Item TRAPPED_CHEST = register(new BlockItem("trapped_chest", builder()));
+    public static final Item TRAPPED_CHEST = register(new ChestItem("trapped_chest", builder()));
     public static final Item TNT = register(new BlockItem("tnt", builder()));
     public static final Item REDSTONE_LAMP = register(new BlockItem("redstone_lamp", builder()));
     public static final Item NOTE_BLOCK = register(new BlockItem("note_block", builder()));
@@ -732,6 +759,14 @@ public final class Items {
     public static final Item BAMBOO_DOOR = register(new BlockItem("bamboo_door", builder()));
     public static final Item CRIMSON_DOOR = register(new BlockItem("crimson_door", builder()));
     public static final Item WARPED_DOOR = register(new BlockItem("warped_door", builder()));
+    public static final Item COPPER_DOOR = register(new BlockItem("copper_door", builder()));
+    public static final Item EXPOSED_COPPER_DOOR = register(new BlockItem("exposed_copper_door", builder()));
+    public static final Item WEATHERED_COPPER_DOOR = register(new BlockItem("weathered_copper_door", builder()));
+    public static final Item OXIDIZED_COPPER_DOOR = register(new BlockItem("oxidized_copper_door", builder()));
+    public static final Item WAXED_COPPER_DOOR = register(new BlockItem("waxed_copper_door", builder()));
+    public static final Item WAXED_EXPOSED_COPPER_DOOR = register(new BlockItem("waxed_exposed_copper_door", builder()));
+    public static final Item WAXED_WEATHERED_COPPER_DOOR = register(new BlockItem("waxed_weathered_copper_door", builder()));
+    public static final Item WAXED_OXIDIZED_COPPER_DOOR = register(new BlockItem("waxed_oxidized_copper_door", builder()));
     public static final Item IRON_TRAPDOOR = register(new BlockItem("iron_trapdoor", builder()));
     public static final Item OAK_TRAPDOOR = register(new BlockItem("oak_trapdoor", builder()));
     public static final Item SPRUCE_TRAPDOOR = register(new BlockItem("spruce_trapdoor", builder()));
@@ -744,6 +779,14 @@ public final class Items {
     public static final Item BAMBOO_TRAPDOOR = register(new BlockItem("bamboo_trapdoor", builder()));
     public static final Item CRIMSON_TRAPDOOR = register(new BlockItem("crimson_trapdoor", builder()));
     public static final Item WARPED_TRAPDOOR = register(new BlockItem("warped_trapdoor", builder()));
+    public static final Item COPPER_TRAPDOOR = register(new BlockItem("copper_trapdoor", builder()));
+    public static final Item EXPOSED_COPPER_TRAPDOOR = register(new BlockItem("exposed_copper_trapdoor", builder()));
+    public static final Item WEATHERED_COPPER_TRAPDOOR = register(new BlockItem("weathered_copper_trapdoor", builder()));
+    public static final Item OXIDIZED_COPPER_TRAPDOOR = register(new BlockItem("oxidized_copper_trapdoor", builder()));
+    public static final Item WAXED_COPPER_TRAPDOOR = register(new BlockItem("waxed_copper_trapdoor", builder()));
+    public static final Item WAXED_EXPOSED_COPPER_TRAPDOOR = register(new BlockItem("waxed_exposed_copper_trapdoor", builder()));
+    public static final Item WAXED_WEATHERED_COPPER_TRAPDOOR = register(new BlockItem("waxed_weathered_copper_trapdoor", builder()));
+    public static final Item WAXED_OXIDIZED_COPPER_TRAPDOOR = register(new BlockItem("waxed_oxidized_copper_trapdoor", builder()));
     public static final Item OAK_FENCE_GATE = register(new BlockItem("oak_fence_gate", builder()));
     public static final Item SPRUCE_FENCE_GATE = register(new BlockItem("spruce_fence_gate", builder()));
     public static final Item BIRCH_FENCE_GATE = register(new BlockItem("birch_fence_gate", builder()));
@@ -809,36 +852,36 @@ public final class Items {
     public static final Item GOLD_INGOT = register(new Item("gold_ingot", builder()));
     public static final Item NETHERITE_INGOT = register(new Item("netherite_ingot", builder()));
     public static final Item NETHERITE_SCRAP = register(new Item("netherite_scrap", builder()));
-    public static final Item WOODEN_SWORD = register(new TieredItem("wooden_sword", ToolTier.WOODEN, builder().stackSize(1).maxDamage(59)));
-    public static final Item WOODEN_SHOVEL = register(new TieredItem("wooden_shovel", ToolTier.WOODEN, builder().stackSize(1).maxDamage(59)));
-    public static final Item WOODEN_PICKAXE = register(new TieredItem("wooden_pickaxe", ToolTier.WOODEN, builder().stackSize(1).maxDamage(59)));
-    public static final Item WOODEN_AXE = register(new TieredItem("wooden_axe", ToolTier.WOODEN, builder().stackSize(1).maxDamage(59)));
-    public static final Item WOODEN_HOE = register(new TieredItem("wooden_hoe", ToolTier.WOODEN, builder().stackSize(1).maxDamage(59)));
-    public static final Item STONE_SWORD = register(new TieredItem("stone_sword", ToolTier.STONE, builder().stackSize(1).maxDamage(131)));
-    public static final Item STONE_SHOVEL = register(new TieredItem("stone_shovel", ToolTier.STONE, builder().stackSize(1).maxDamage(131)));
-    public static final Item STONE_PICKAXE = register(new TieredItem("stone_pickaxe", ToolTier.STONE, builder().stackSize(1).maxDamage(131)));
-    public static final Item STONE_AXE = register(new TieredItem("stone_axe", ToolTier.STONE, builder().stackSize(1).maxDamage(131)));
-    public static final Item STONE_HOE = register(new TieredItem("stone_hoe", ToolTier.STONE, builder().stackSize(1).maxDamage(131)));
-    public static final Item GOLDEN_SWORD = register(new TieredItem("golden_sword", ToolTier.GOLDEN, builder().stackSize(1).maxDamage(32)));
-    public static final Item GOLDEN_SHOVEL = register(new TieredItem("golden_shovel", ToolTier.GOLDEN, builder().stackSize(1).maxDamage(32)));
-    public static final Item GOLDEN_PICKAXE = register(new TieredItem("golden_pickaxe", ToolTier.GOLDEN, builder().stackSize(1).maxDamage(32)));
-    public static final Item GOLDEN_AXE = register(new TieredItem("golden_axe", ToolTier.GOLDEN, builder().stackSize(1).maxDamage(32)));
-    public static final Item GOLDEN_HOE = register(new TieredItem("golden_hoe", ToolTier.GOLDEN, builder().stackSize(1).maxDamage(32)));
-    public static final Item IRON_SWORD = register(new TieredItem("iron_sword", ToolTier.IRON, builder().stackSize(1).maxDamage(250)));
-    public static final Item IRON_SHOVEL = register(new TieredItem("iron_shovel", ToolTier.IRON, builder().stackSize(1).maxDamage(250)));
-    public static final Item IRON_PICKAXE = register(new TieredItem("iron_pickaxe", ToolTier.IRON, builder().stackSize(1).maxDamage(250)));
-    public static final Item IRON_AXE = register(new TieredItem("iron_axe", ToolTier.IRON, builder().stackSize(1).maxDamage(250)));
-    public static final Item IRON_HOE = register(new TieredItem("iron_hoe", ToolTier.IRON, builder().stackSize(1).maxDamage(250)));
-    public static final Item DIAMOND_SWORD = register(new TieredItem("diamond_sword", ToolTier.DIAMOND, builder().stackSize(1).maxDamage(1561)));
-    public static final Item DIAMOND_SHOVEL = register(new TieredItem("diamond_shovel", ToolTier.DIAMOND, builder().stackSize(1).maxDamage(1561)));
-    public static final Item DIAMOND_PICKAXE = register(new TieredItem("diamond_pickaxe", ToolTier.DIAMOND, builder().stackSize(1).maxDamage(1561)));
-    public static final Item DIAMOND_AXE = register(new TieredItem("diamond_axe", ToolTier.DIAMOND, builder().stackSize(1).maxDamage(1561)));
-    public static final Item DIAMOND_HOE = register(new TieredItem("diamond_hoe", ToolTier.DIAMOND, builder().stackSize(1).maxDamage(1561)));
-    public static final Item NETHERITE_SWORD = register(new TieredItem("netherite_sword", ToolTier.NETHERITE, builder().stackSize(1).maxDamage(2031)));
-    public static final Item NETHERITE_SHOVEL = register(new TieredItem("netherite_shovel", ToolTier.NETHERITE, builder().stackSize(1).maxDamage(2031)));
-    public static final Item NETHERITE_PICKAXE = register(new TieredItem("netherite_pickaxe", ToolTier.NETHERITE, builder().stackSize(1).maxDamage(2031)));
-    public static final Item NETHERITE_AXE = register(new TieredItem("netherite_axe", ToolTier.NETHERITE, builder().stackSize(1).maxDamage(2031)));
-    public static final Item NETHERITE_HOE = register(new TieredItem("netherite_hoe", ToolTier.NETHERITE, builder().stackSize(1).maxDamage(2031)));
+    public static final Item WOODEN_SWORD = register(new TieredItem("wooden_sword", ToolTier.WOODEN, builder().stackSize(1).attackDamage(4).maxDamage(59)));
+    public static final Item WOODEN_SHOVEL = register(new TieredItem("wooden_shovel", ToolTier.WOODEN, builder().stackSize(1).attackDamage(2.5).maxDamage(59)));
+    public static final Item WOODEN_PICKAXE = register(new TieredItem("wooden_pickaxe", ToolTier.WOODEN, builder().stackSize(1).attackDamage(2).maxDamage(59)));
+    public static final Item WOODEN_AXE = register(new TieredItem("wooden_axe", ToolTier.WOODEN, builder().stackSize(1).attackDamage(7).maxDamage(59)));
+    public static final Item WOODEN_HOE = register(new TieredItem("wooden_hoe", ToolTier.WOODEN, builder().stackSize(1).attackDamage(1).maxDamage(59)));
+    public static final Item STONE_SWORD = register(new TieredItem("stone_sword", ToolTier.STONE, builder().stackSize(1).attackDamage(5).maxDamage(131)));
+    public static final Item STONE_SHOVEL = register(new TieredItem("stone_shovel", ToolTier.STONE, builder().stackSize(1).attackDamage(3.5).maxDamage(131)));
+    public static final Item STONE_PICKAXE = register(new TieredItem("stone_pickaxe", ToolTier.STONE, builder().stackSize(1).attackDamage(3).maxDamage(131)));
+    public static final Item STONE_AXE = register(new TieredItem("stone_axe", ToolTier.STONE, builder().stackSize(1).attackDamage(9).maxDamage(131)));
+    public static final Item STONE_HOE = register(new TieredItem("stone_hoe", ToolTier.STONE, builder().stackSize(1).attackDamage(1).maxDamage(131)));
+    public static final Item GOLDEN_SWORD = register(new TieredItem("golden_sword", ToolTier.GOLDEN, builder().stackSize(1).attackDamage(4).maxDamage(32)));
+    public static final Item GOLDEN_SHOVEL = register(new TieredItem("golden_shovel", ToolTier.GOLDEN, builder().stackSize(1).attackDamage(2.5).maxDamage(32)));
+    public static final Item GOLDEN_PICKAXE = register(new TieredItem("golden_pickaxe", ToolTier.GOLDEN, builder().stackSize(1).attackDamage(2).maxDamage(32)));
+    public static final Item GOLDEN_AXE = register(new TieredItem("golden_axe", ToolTier.GOLDEN, builder().stackSize(1).attackDamage(7).maxDamage(32)));
+    public static final Item GOLDEN_HOE = register(new TieredItem("golden_hoe", ToolTier.GOLDEN, builder().stackSize(1).attackDamage(1).maxDamage(32)));
+    public static final Item IRON_SWORD = register(new TieredItem("iron_sword", ToolTier.IRON, builder().stackSize(1).attackDamage(6).maxDamage(250)));
+    public static final Item IRON_SHOVEL = register(new TieredItem("iron_shovel", ToolTier.IRON, builder().stackSize(1).attackDamage(4.5).maxDamage(250)));
+    public static final Item IRON_PICKAXE = register(new TieredItem("iron_pickaxe", ToolTier.IRON, builder().stackSize(1).attackDamage(4).maxDamage(250)));
+    public static final Item IRON_AXE = register(new TieredItem("iron_axe", ToolTier.IRON, builder().stackSize(1).attackDamage(9).maxDamage(250)));
+    public static final Item IRON_HOE = register(new TieredItem("iron_hoe", ToolTier.IRON, builder().stackSize(1).attackDamage(1).maxDamage(250)));
+    public static final Item DIAMOND_SWORD = register(new TieredItem("diamond_sword", ToolTier.DIAMOND, builder().stackSize(1).attackDamage(7).maxDamage(1561)));
+    public static final Item DIAMOND_SHOVEL = register(new TieredItem("diamond_shovel", ToolTier.DIAMOND, builder().stackSize(1).attackDamage(5.5).maxDamage(1561)));
+    public static final Item DIAMOND_PICKAXE = register(new TieredItem("diamond_pickaxe", ToolTier.DIAMOND, builder().stackSize(1).attackDamage(5).maxDamage(1561)));
+    public static final Item DIAMOND_AXE = register(new TieredItem("diamond_axe", ToolTier.DIAMOND, builder().stackSize(1).attackDamage(9).maxDamage(1561)));
+    public static final Item DIAMOND_HOE = register(new TieredItem("diamond_hoe", ToolTier.DIAMOND, builder().stackSize(1).attackDamage(1).maxDamage(1561)));
+    public static final Item NETHERITE_SWORD = register(new TieredItem("netherite_sword", ToolTier.NETHERITE, builder().stackSize(1).attackDamage(8).maxDamage(2031)));
+    public static final Item NETHERITE_SHOVEL = register(new TieredItem("netherite_shovel", ToolTier.NETHERITE, builder().stackSize(1).attackDamage(6.5).maxDamage(2031)));
+    public static final Item NETHERITE_PICKAXE = register(new TieredItem("netherite_pickaxe", ToolTier.NETHERITE, builder().stackSize(1).attackDamage(6).maxDamage(2031)));
+    public static final Item NETHERITE_AXE = register(new TieredItem("netherite_axe", ToolTier.NETHERITE, builder().stackSize(1).attackDamage(10).maxDamage(2031)));
+    public static final Item NETHERITE_HOE = register(new TieredItem("netherite_hoe", ToolTier.NETHERITE, builder().stackSize(1).attackDamage(1).maxDamage(2031)));
     public static final Item STICK = register(new Item("stick", builder()));
     public static final Item BOWL = register(new Item("bowl", builder()));
     public static final Item MUSHROOM_STEW = register(new Item("mushroom_stew", builder().stackSize(1)));
@@ -973,6 +1016,7 @@ public final class Items {
     public static final Item RED_BED = register(new BlockItem("red_bed", builder().stackSize(1)));
     public static final Item BLACK_BED = register(new BlockItem("black_bed", builder().stackSize(1)));
     public static final Item COOKIE = register(new Item("cookie", builder()));
+    public static final Item CRAFTER = register(new BlockItem("crafter", builder()));
     public static final Item FILLED_MAP = register(new FilledMapItem("filled_map", builder()));
     public static final Item SHEARS = register(new Item("shears", builder().stackSize(1).maxDamage(238)));
     public static final Item MELON_SLICE = register(new Item("melon_slice", builder()));
@@ -1004,6 +1048,7 @@ public final class Items {
     public static final Item BAT_SPAWN_EGG = register(new SpawnEggItem("bat_spawn_egg", builder()));
     public static final Item BEE_SPAWN_EGG = register(new SpawnEggItem("bee_spawn_egg", builder()));
     public static final Item BLAZE_SPAWN_EGG = register(new SpawnEggItem("blaze_spawn_egg", builder()));
+    public static final Item BREEZE_SPAWN_EGG = register(new SpawnEggItem("breeze_spawn_egg", builder()));
     public static final Item CAT_SPAWN_EGG = register(new SpawnEggItem("cat_spawn_egg", builder()));
     public static final Item CAMEL_SPAWN_EGG = register(new SpawnEggItem("camel_spawn_egg", builder()));
     public static final Item CAVE_SPIDER_SPAWN_EGG = register(new SpawnEggItem("cave_spider_spawn_egg", builder()));
@@ -1078,8 +1123,8 @@ public final class Items {
     public static final Item ZOMBIFIED_PIGLIN_SPAWN_EGG = register(new SpawnEggItem("zombified_piglin_spawn_egg", builder()));
     public static final Item EXPERIENCE_BOTTLE = register(new Item("experience_bottle", builder()));
     public static final Item FIRE_CHARGE = register(new Item("fire_charge", builder()));
-    public static final Item WRITABLE_BOOK = register(new ReadableBookItem("writable_book", builder().stackSize(1)));
-    public static final Item WRITTEN_BOOK = register(new ReadableBookItem("written_book", builder().stackSize(16)));
+    public static final Item WRITABLE_BOOK = register(new WritableBookItem("writable_book", builder().stackSize(1)));
+    public static final Item WRITTEN_BOOK = register(new WrittenBookItem("written_book", builder().stackSize(16)));
     public static final Item ITEM_FRAME = register(new Item("item_frame", builder()));
     public static final Item GLOW_ITEM_FRAME = register(new Item("glow_item_frame", builder()));
     public static final Item FLOWER_POT = register(new BlockItem("flower_pot", builder()));
@@ -1139,6 +1184,7 @@ public final class Items {
     public static final Item CHORUS_FRUIT = register(new Item("chorus_fruit", builder()));
     public static final Item POPPED_CHORUS_FRUIT = register(new Item("popped_chorus_fruit", builder()));
     public static final Item TORCHFLOWER_SEEDS = register(new BlockItem("torchflower_seeds", builder()));
+    public static final Item PITCHER_POD = register(new BlockItem("pitcher_pod", builder()));
     public static final Item BEETROOT = register(new Item("beetroot", builder()));
     public static final Item BEETROOT_SEEDS = register(new BlockItem("beetroot_seeds", builder()));
     public static final Item BEETROOT_SOUP = register(new Item("beetroot_soup", builder().stackSize(1)));
@@ -1166,10 +1212,11 @@ public final class Items {
     public static final Item MUSIC_DISC_11 = register(new Item("music_disc_11", builder().stackSize(1)));
     public static final Item MUSIC_DISC_WAIT = register(new Item("music_disc_wait", builder().stackSize(1)));
     public static final Item MUSIC_DISC_OTHERSIDE = register(new Item("music_disc_otherside", builder().stackSize(1)));
+    public static final Item MUSIC_DISC_RELIC = register(new Item("music_disc_relic", builder().stackSize(1)));
     public static final Item MUSIC_DISC_5 = register(new Item("music_disc_5", builder().stackSize(1)));
     public static final Item MUSIC_DISC_PIGSTEP = register(new Item("music_disc_pigstep", builder().stackSize(1)));
     public static final Item DISC_FRAGMENT_5 = register(new Item("disc_fragment_5", builder()));
-    public static final Item TRIDENT = register(new Item("trident", builder().stackSize(1).maxDamage(250)));
+    public static final Item TRIDENT = register(new Item("trident", builder().stackSize(1).attackDamage(9).maxDamage(250)));
     public static final Item PHANTOM_MEMBRANE = register(new Item("phantom_membrane", builder()));
     public static final Item NAUTILUS_SHELL = register(new Item("nautilus_shell", builder()));
     public static final Item HEART_OF_THE_SEA = register(new Item("heart_of_the_sea", builder()));
@@ -1184,7 +1231,7 @@ public final class Items {
     public static final Item PIGLIN_BANNER_PATTERN = register(new Item("piglin_banner_pattern", builder().stackSize(1)));
     public static final Item GOAT_HORN = register(new GoatHornItem("goat_horn", builder().stackSize(1)));
     public static final Item COMPOSTER = register(new BlockItem("composter", builder()));
-    public static final Item BARREL = register(new BlockItem("barrel", builder()));
+    public static final Item BARREL = register(new ChestItem("barrel", builder()));
     public static final Item SMOKER = register(new BlockItem("smoker", builder()));
     public static final Item BLAST_FURNACE = register(new BlockItem("blast_furnace", builder()));
     public static final Item CARTOGRAPHY_TABLE = register(new BlockItem("cartography_table", builder()));
@@ -1260,10 +1307,51 @@ public final class Items {
     public static final Item SNOUT_ARMOR_TRIM_SMITHING_TEMPLATE = register(new Item("snout_armor_trim_smithing_template", builder()));
     public static final Item RIB_ARMOR_TRIM_SMITHING_TEMPLATE = register(new Item("rib_armor_trim_smithing_template", builder()));
     public static final Item SPIRE_ARMOR_TRIM_SMITHING_TEMPLATE = register(new Item("spire_armor_trim_smithing_template", builder()));
-    public static final Item POTTERY_SHARD_ARCHER = register(new Item("pottery_shard_archer", builder()));
-    public static final Item POTTERY_SHARD_PRIZE = register(new Item("pottery_shard_prize", builder()));
-    public static final Item POTTERY_SHARD_ARMS_UP = register(new Item("pottery_shard_arms_up", builder()));
-    public static final Item POTTERY_SHARD_SKULL = register(new Item("pottery_shard_skull", builder()));
+    public static final Item WAYFINDER_ARMOR_TRIM_SMITHING_TEMPLATE = register(new Item("wayfinder_armor_trim_smithing_template", builder()));
+    public static final Item SHAPER_ARMOR_TRIM_SMITHING_TEMPLATE = register(new Item("shaper_armor_trim_smithing_template", builder()));
+    public static final Item SILENCE_ARMOR_TRIM_SMITHING_TEMPLATE = register(new Item("silence_armor_trim_smithing_template", builder()));
+    public static final Item RAISER_ARMOR_TRIM_SMITHING_TEMPLATE = register(new Item("raiser_armor_trim_smithing_template", builder()));
+    public static final Item HOST_ARMOR_TRIM_SMITHING_TEMPLATE = register(new Item("host_armor_trim_smithing_template", builder()));
+    public static final Item ANGLER_POTTERY_SHERD = register(new Item("angler_pottery_sherd", builder()));
+    public static final Item ARCHER_POTTERY_SHERD = register(new Item("archer_pottery_sherd", builder()));
+    public static final Item ARMS_UP_POTTERY_SHERD = register(new Item("arms_up_pottery_sherd", builder()));
+    public static final Item BLADE_POTTERY_SHERD = register(new Item("blade_pottery_sherd", builder()));
+    public static final Item BREWER_POTTERY_SHERD = register(new Item("brewer_pottery_sherd", builder()));
+    public static final Item BURN_POTTERY_SHERD = register(new Item("burn_pottery_sherd", builder()));
+    public static final Item DANGER_POTTERY_SHERD = register(new Item("danger_pottery_sherd", builder()));
+    public static final Item EXPLORER_POTTERY_SHERD = register(new Item("explorer_pottery_sherd", builder()));
+    public static final Item FRIEND_POTTERY_SHERD = register(new Item("friend_pottery_sherd", builder()));
+    public static final Item HEART_POTTERY_SHERD = register(new Item("heart_pottery_sherd", builder()));
+    public static final Item HEARTBREAK_POTTERY_SHERD = register(new Item("heartbreak_pottery_sherd", builder()));
+    public static final Item HOWL_POTTERY_SHERD = register(new Item("howl_pottery_sherd", builder()));
+    public static final Item MINER_POTTERY_SHERD = register(new Item("miner_pottery_sherd", builder()));
+    public static final Item MOURNER_POTTERY_SHERD = register(new Item("mourner_pottery_sherd", builder()));
+    public static final Item PLENTY_POTTERY_SHERD = register(new Item("plenty_pottery_sherd", builder()));
+    public static final Item PRIZE_POTTERY_SHERD = register(new Item("prize_pottery_sherd", builder()));
+    public static final Item SHEAF_POTTERY_SHERD = register(new Item("sheaf_pottery_sherd", builder()));
+    public static final Item SHELTER_POTTERY_SHERD = register(new Item("shelter_pottery_sherd", builder()));
+    public static final Item SKULL_POTTERY_SHERD = register(new Item("skull_pottery_sherd", builder()));
+    public static final Item SNORT_POTTERY_SHERD = register(new Item("snort_pottery_sherd", builder()));
+    public static final Item COPPER_GRATE = register(new BlockItem("copper_grate", builder()));
+    public static final Item EXPOSED_COPPER_GRATE = register(new BlockItem("exposed_copper_grate", builder()));
+    public static final Item WEATHERED_COPPER_GRATE = register(new BlockItem("weathered_copper_grate", builder()));
+    public static final Item OXIDIZED_COPPER_GRATE = register(new BlockItem("oxidized_copper_grate", builder()));
+    public static final Item WAXED_COPPER_GRATE = register(new BlockItem("waxed_copper_grate", builder()));
+    public static final Item WAXED_EXPOSED_COPPER_GRATE = register(new BlockItem("waxed_exposed_copper_grate", builder()));
+    public static final Item WAXED_WEATHERED_COPPER_GRATE = register(new BlockItem("waxed_weathered_copper_grate", builder()));
+    public static final Item WAXED_OXIDIZED_COPPER_GRATE = register(new BlockItem("waxed_oxidized_copper_grate", builder()));
+    public static final Item COPPER_BULB = register(new BlockItem("copper_bulb", builder()));
+    public static final Item EXPOSED_COPPER_BULB = register(new BlockItem("exposed_copper_bulb", builder()));
+    public static final Item WEATHERED_COPPER_BULB = register(new BlockItem("weathered_copper_bulb", builder()));
+    public static final Item OXIDIZED_COPPER_BULB = register(new BlockItem("oxidized_copper_bulb", builder()));
+    public static final Item WAXED_COPPER_BULB = register(new BlockItem("waxed_copper_bulb", builder()));
+    public static final Item WAXED_EXPOSED_COPPER_BULB = register(new BlockItem("waxed_exposed_copper_bulb", builder()));
+    public static final Item WAXED_WEATHERED_COPPER_BULB = register(new BlockItem("waxed_weathered_copper_bulb", builder()));
+    public static final Item WAXED_OXIDIZED_COPPER_BULB = register(new BlockItem("waxed_oxidized_copper_bulb", builder()));
+    public static final Item TRIAL_SPAWNER = register(new BlockItem("trial_spawner", builder()));
+    public static final Item TRIAL_KEY = register(new Item("trial_key", builder()));
+
+    public static final int AIR_ID = AIR.javaId();
 
     private static <T extends Item> T register(T item) {
         return register(item, Registries.JAVA_ITEMS.get().size());
@@ -1271,7 +1359,11 @@ public final class Items {
 
     public static <T extends Item> T register(T item, int id) {
         item.setJavaId(id);
-        Registries.JAVA_ITEMS.get().add(item);
+        // This makes sure that the array is large enough to put the java item at the correct location
+        if (Registries.JAVA_ITEMS.get().size() <= id) {
+            Registries.JAVA_ITEMS.get().addAll(Collections.nCopies(id - Registries.JAVA_ITEMS.get().size() + 1, AIR));
+        }
+        Registries.JAVA_ITEMS.get().set(id, item);
         Registries.JAVA_ITEM_IDENTIFIERS.register(item.javaIdentifier(), item);
         return item;
     }

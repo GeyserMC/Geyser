@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -104,6 +104,7 @@ public final class EntityDefinitions {
     public static final GeyserEntityDefinition<HorseEntity> HORSE;
     public static final GeyserEntityDefinition<ZombieEntity> HUSK;
     public static final GeyserEntityDefinition<SpellcasterIllagerEntity> ILLUSIONER; // Not present on Bedrock
+    public static final GeyserEntityDefinition<InteractionEntity> INTERACTION;
     public static final GeyserEntityDefinition<IronGolemEntity> IRON_GOLEM;
     public static final GeyserEntityDefinition<ItemEntity> ITEM;
     public static final GeyserEntityDefinition<ItemFrameEntity> ITEM_FRAME;
@@ -133,6 +134,7 @@ public final class EntityDefinitions {
     public static final GeyserEntityDefinition<AbstractFishEntity> SALMON;
     public static final GeyserEntityDefinition<SheepEntity> SHEEP;
     public static final GeyserEntityDefinition<ShulkerEntity> SHULKER;
+    public static final GeyserEntityDefinition<SnifferEntity> SNIFFER;
     public static final GeyserEntityDefinition<ThrowableEntity> SHULKER_BULLET;
     public static final GeyserEntityDefinition<MonsterEntity> SILVERFISH;
     public static final GeyserEntityDefinition<SkeletonEntity> SKELETON;
@@ -235,7 +237,7 @@ public final class EntityDefinitions {
                     .type(EntityType.EXPERIENCE_ORB)
                     .identifier("minecraft:xp_orb")
                     .build();
-            EVOKER_FANGS = GeyserEntityDefinition.builder(EvokerFangsEntity::new) // No entity metadata to listen to as of 1.18.1
+            EVOKER_FANGS = GeyserEntityDefinition.inherited(EvokerFangsEntity::new, entityBase)
                     .type(EntityType.EVOKER_FANGS)
                     .height(0.8f).width(0.5f)
                     .identifier("minecraft:evocation_fang")
@@ -297,8 +299,9 @@ public final class EntityDefinitions {
                     .build();
 
             GeyserEntityDefinition<Entity> displayBase = GeyserEntityDefinition.inherited(entityBase.factory(), entityBase)
-                    .addTranslator(null) // Interpolation start ticks
-                    .addTranslator(null) // Interpolation duration ID
+                    .addTranslator(null) // Interpolation delay
+                    .addTranslator(null) // Transformation interpolation duration
+                    .addTranslator(null) // Position/Rotation interpolation duration
                     .addTranslator(null) // Translation
                     .addTranslator(null) // Scale
                     .addTranslator(null) // Left rotation
@@ -316,6 +319,19 @@ public final class EntityDefinitions {
                     .type(EntityType.TEXT_DISPLAY)
                     .identifier("minecraft:armor_stand")
                     .addTranslator(MetadataType.CHAT, TextDisplayEntity::setText)
+                    .addTranslator(null) // Line width
+                    .addTranslator(null) // Background color
+                    .addTranslator(null) // Text opacity
+                    .addTranslator(null) // Bit mask
+                    .build();
+
+            INTERACTION = GeyserEntityDefinition.inherited(InteractionEntity::new, entityBase)
+                    .type(EntityType.INTERACTION)
+                    .heightAndWidth(1.0f) // default size until server specifies otherwise
+                    .identifier("minecraft:armor_stand")
+                    .addTranslator(MetadataType.FLOAT, InteractionEntity::setWidth)
+                    .addTranslator(MetadataType.FLOAT, InteractionEntity::setHeight)
+                    .addTranslator(MetadataType.BOOLEAN, InteractionEntity::setResponse)
                     .build();
 
             GeyserEntityDefinition<FireballEntity> fireballBase = GeyserEntityDefinition.inherited(FireballEntity::new, entityBase)
@@ -777,7 +793,7 @@ public final class EntityDefinitions {
                     .build();
             FOX = GeyserEntityDefinition.inherited(FoxEntity::new, ageableEntityBase)
                     .type(EntityType.FOX)
-                    .height(0.5f).width(1.25f)
+                    .height(0.7f).width(0.6f)
                     .addTranslator(MetadataType.INT, FoxEntity::setFoxVariant)
                     .addTranslator(MetadataType.BYTE, FoxEntity::setFoxFlags)
                     .addTranslator(null) // Trusted player 1
@@ -842,6 +858,12 @@ public final class EntityDefinitions {
                     .height(1.3f).width(0.9f)
                     .addTranslator(MetadataType.BYTE, SheepEntity::setSheepFlags)
                     .build();
+            SNIFFER = GeyserEntityDefinition.inherited(SnifferEntity::new, ageableEntityBase)
+                    .type(EntityType.SNIFFER)
+                    .height(1.75f).width(1.9f)
+                    .addTranslator(MetadataType.SNIFFER_STATE, SnifferEntity::setSnifferState)
+                    .addTranslator(null) // Integer, drop seed at tick
+                    .build();
             STRIDER = GeyserEntityDefinition.inherited(StriderEntity::new, ageableEntityBase)
                     .type(EntityType.STRIDER)
                     .height(1.7f).width(0.9f)
@@ -884,7 +906,6 @@ public final class EntityDefinitions {
                     .build();
             CAMEL = GeyserEntityDefinition.inherited(CamelEntity::new, abstractHorseEntityBase)
                     .type(EntityType.CAMEL)
-                    .identifier("minecraft:llama") // todo 1.20
                     .height(2.375f).width(1.7f)
                     .addTranslator(MetadataType.BOOLEAN, CamelEntity::setDashing)
                     .addTranslator(null) // Last pose change tick

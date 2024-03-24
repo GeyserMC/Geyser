@@ -44,6 +44,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.MathUtils;
 
 import java.util.ArrayList;
@@ -73,9 +74,17 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
     public static void openMerchant(GeyserSession session, ClientboundMerchantOffersPacket packet, MerchantContainer merchantInventory) {
         // Retrieve the fake villager involved in the trade, and update its metadata to match with the window information
         merchantInventory.setVillagerTrades(packet.getTrades());
+        merchantInventory.setTradeExperience(packet.getExperience());
+
         Entity villager = merchantInventory.getVillager();
-        villager.getDirtyMetadata().put(EntityDataTypes.TRADE_TIER, packet.getVillagerLevel() - 1);
-        villager.getDirtyMetadata().put(EntityDataTypes.MAX_TRADE_TIER, 4);
+        if (packet.isRegularVillager()) {
+            villager.getDirtyMetadata().put(EntityDataTypes.TRADE_TIER, packet.getVillagerLevel() - 1);
+            villager.getDirtyMetadata().put(EntityDataTypes.MAX_TRADE_TIER, 4);
+        } else {
+            // Don't show trade level for wandering traders
+            villager.getDirtyMetadata().put(EntityDataTypes.TRADE_TIER, 0);
+            villager.getDirtyMetadata().put(EntityDataTypes.MAX_TRADE_TIER, 0);
+        }
         villager.getDirtyMetadata().put(EntityDataTypes.TRADE_EXPERIENCE, packet.getExperience());
         villager.updateBedrockMetadata();
 
@@ -150,14 +159,14 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
     }
 
     private static NbtMap getItemTag(GeyserSession session, ItemStack stack) {
-        if (stack == null || stack.getAmount() <= 0) { // Negative item counts appear as air on Java
+        if (InventoryUtils.isEmpty(stack)) { // Negative item counts appear as air on Java
             return NbtMap.EMPTY;
         }
         return getItemTag(session, stack, session.getItemMappings().getMapping(stack), stack.getAmount());
     }
 
     private static NbtMap getItemTag(GeyserSession session, ItemStack stack, int specialPrice, int demand, float priceMultiplier) {
-        if (stack == null || stack.getAmount() <= 0) { // Negative item counts appear as air on Java
+        if (InventoryUtils.isEmpty(stack)) { // Negative item counts appear as air on Java
             return NbtMap.EMPTY;
         }
         ItemMapping mapping = session.getItemMappings().getMapping(stack);

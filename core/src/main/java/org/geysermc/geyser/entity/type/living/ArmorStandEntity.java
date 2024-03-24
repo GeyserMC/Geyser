@@ -70,7 +70,7 @@ public class ArmorStandEntity extends LivingEntity {
     private boolean primaryEntity = true;
     /**
      * Whether the entity's position must be updated to included the offset.
-     *
+     * <p>
      * This should be true when the Java server marks the armor stand as invisible, but we shrink the entity
      * to allow the nametag to appear. Basically:
      * - Is visible: this is irrelevant (false)
@@ -207,7 +207,7 @@ public class ArmorStandEntity extends LivingEntity {
      * @param negativeZToggle the flag to set true if the Z value of rotation is negative
      * @param rotation the Java rotation value
      */
-    private void onRotationUpdate(EntityDataType dataLeech, EntityFlag negativeXToggle, EntityFlag negativeYToggle, EntityFlag negativeZToggle, Vector3f rotation) {
+    private void onRotationUpdate(EntityDataType<Integer> dataLeech, EntityFlag negativeXToggle, EntityFlag negativeYToggle, EntityFlag negativeZToggle, Vector3f rotation) {
         // Indicate that rotation should be checked
         setFlag(EntityFlag.BRIBED, true);
 
@@ -249,7 +249,7 @@ public class ArmorStandEntity extends LivingEntity {
     @Override
     public InteractionResult interactAt(Hand hand) {
         if (!isMarker && session.getPlayerInventory().getItemInHand(hand).asItem() != Items.NAME_TAG) {
-            // Java Edition returns SUCCESS if in spectator mode, but this is overrided with an earlier check on the client
+            // Java Edition returns SUCCESS if in spectator mode, but this is overridden with an earlier check on the client
             return InteractionResult.CONSUME;
         } else {
             return InteractionResult.PASS;

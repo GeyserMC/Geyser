@@ -38,10 +38,10 @@ import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
-import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
@@ -121,7 +121,7 @@ public class LivingEntity extends Entity {
         session.sendUpstreamPacket(attributesPacket);
     }
 
-    public Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
+    public @Nullable Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
         Optional<Vector3i> optionalPos = entityMetadata.getValue();
         if (optionalPos.isPresent()) {
             Vector3i bedPosition = optionalPos.get();
@@ -211,10 +211,10 @@ public class LivingEntity extends Entity {
         // If an entity has a banner on them, it will be in the helmet slot in Java but the chestplate spot in Bedrock
         // But don't overwrite the chestplate if it isn't empty
         ItemMapping banner = session.getItemMappings().getStoredItems().banner();
-        if (ItemDefinition.AIR.equals(chestplate.getDefinition()) && helmet.getDefinition().equals(banner)) {
+        if (ItemData.AIR.equals(chestplate) && helmet.getDefinition().equals(banner.getBedrockDefinition())) {
             chestplate = this.helmet;
             helmet = ItemData.AIR;
-        } else if (chestplate.getDefinition().equals(banner)) {
+        } else if (chestplate.getDefinition().equals(banner.getBedrockDefinition())) {
             // Prevent chestplate banners from showing erroneously
             chestplate = ItemData.AIR;
         }

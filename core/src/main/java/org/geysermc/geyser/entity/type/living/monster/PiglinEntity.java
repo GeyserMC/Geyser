@@ -27,6 +27,7 @@ package org.geysermc.geyser.entity.type.living.monster;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
@@ -37,7 +38,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 
-import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class PiglinEntity extends BasePiglinEntity {
@@ -71,9 +71,9 @@ public class PiglinEntity extends BasePiglinEntity {
         super.updateOffHand(session);
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    protected InteractiveTag testMobInteraction(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         InteractiveTag tag = super.testMobInteraction(hand, itemInHand);
         if (tag != InteractiveTag.NONE) {
             return tag;
@@ -82,9 +82,9 @@ public class PiglinEntity extends BasePiglinEntity {
         }
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    protected InteractionResult mobInteract(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         InteractionResult superResult = super.mobInteract(hand, itemInHand);
         if (superResult.consumesAction()) {
             return superResult;
@@ -93,7 +93,7 @@ public class PiglinEntity extends BasePiglinEntity {
         }
     }
 
-    private boolean canGiveGoldTo(@Nonnull GeyserItemStack itemInHand) {
+    private boolean canGiveGoldTo(@NonNull GeyserItemStack itemInHand) {
         return !getFlag(EntityFlag.BABY) && itemInHand.asItem() == Items.GOLD_INGOT && !getFlag(EntityFlag.ADMIRING);
     }
 }

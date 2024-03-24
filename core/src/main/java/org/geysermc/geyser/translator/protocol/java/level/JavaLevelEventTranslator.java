@@ -31,6 +31,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.Clientb
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.protocol.bedrock.data.ParticleType;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
@@ -103,6 +104,10 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
         effectPacket.setPosition(pos);
         effectPacket.setData(0);
         switch (levelEvent) {
+            case BRUSH_BLOCK_COMPLETE -> {
+                effectPacket.setType(ParticleType.BRUSH_DUST);
+                session.playSoundEvent(SoundEvent.BRUSH_COMPLETED, pos); // todo 1.20.2 verify this
+            }
             case COMPOSTER -> {
                 effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_CROP_GROWTH);
 
@@ -158,8 +163,12 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 soundEventPacket.setRelativeVolumeDisabled(false);
                 session.sendUpstreamPacket(soundEventPacket);
             }
-            case SMOKE -> {
-                effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_SHOOT);
+            case SMOKE, WHITE_SMOKE -> {
+                if (levelEvent == LevelEventType.SMOKE) {
+                    effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_SHOOT);
+                } else {
+                    effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_SHOOT_WHITE_SMOKE);
+                }
 
                 SmokeEventData smokeEventData = (SmokeEventData) packet.getData();
                 int data = 0;
@@ -224,6 +233,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 BonemealGrowEventData growEventData = (BonemealGrowEventData) packet.getData();
                 effectPacket.setData(growEventData.getParticleCount());
             }
+            case EGG_CRACK -> effectPacket.setType(ParticleType.VILLAGER_HAPPY); // both the lil green sparkle
             case ENDERDRAGON_FIREBALL_EXPLODE -> {
                 effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_EYE_OF_ENDER_DEATH); // TODO
 

@@ -29,6 +29,9 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
 
+import java.util.OptionalInt;
+import java.util.Set;
+
 /**
  * This is used to store data for a custom item.
  */
@@ -76,6 +79,20 @@ public interface CustomItemData {
     boolean displayHandheld();
 
     /**
+     * Gets the item's creative category, or tab id.
+     *
+     * @return the item's creative category
+     */
+    @NonNull OptionalInt creativeCategory();
+
+    /**
+     * Gets the item's creative group.
+     *
+     * @return the item's creative group
+     */
+    @Nullable String creativeGroup();
+
+    /**
      * Gets the item's texture size. This is to resize the item if the texture is not 16x16.
      *
      * @return the item's texture size
@@ -88,6 +105,14 @@ public interface CustomItemData {
      * @return the item's render offsets
      */
     @Nullable CustomRenderOffsets renderOffsets();
+
+    /**
+     * Gets the item's set of tags that can be used in Molang.
+     * Equivalent to "tag:some_tag"
+     *
+     * @return the item's tags, if they exist
+     */
+    @NonNull Set<String> tags();
 
     static CustomItemData.Builder builder() {
         return GeyserApi.api().provider(CustomItemData.Builder.class);
@@ -109,9 +134,15 @@ public interface CustomItemData {
 
         Builder displayHandheld(boolean displayHandheld);
 
+        Builder creativeCategory(int creativeCategory);
+
+        Builder creativeGroup(@Nullable String creativeGroup);
+
         Builder textureSize(int textureSize);
 
         Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets);
+
+        Builder tags(@Nullable Set<String> tags);
 
         CustomItemData build();
     }

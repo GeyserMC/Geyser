@@ -81,7 +81,7 @@ public class JavaUpdateAdvancementsTranslator extends PacketTranslator<Clientbou
             GeyserAdvancement advancement = session.getAdvancementsCache().getStoredAdvancements().get(advancementId);
             if (advancement != null && advancement.getDisplayData() != null) {
                 if (advancement.getDisplayData().isShowToast() && session.getAdvancementsCache().isEarned(advancement)) {
-                    String frameType = advancement.getDisplayData().getFrameType().toString().toLowerCase(Locale.ROOT);
+                    String frameType = advancement.getDisplayData().getAdvancementType().toString().toLowerCase(Locale.ROOT);
                     String frameTitle = advancement.getDisplayColor() + MinecraftLocale.getLocaleString("advancements.toast." + frameType, session.locale());
                     String advancementName = MessageTranslator.convertMessage(advancement.getDisplayData().getTitle(), session.locale());
 

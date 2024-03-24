@@ -47,6 +47,7 @@ public final class BlockStateValues {
     private static final IntSet ALL_CAULDRONS = new IntOpenHashSet();
     private static final Int2IntMap BANNER_COLORS = new FixedInt2IntMap();
     private static final Int2ByteMap BED_COLORS = new FixedInt2ByteMap();
+    private static final Int2IntMap BRUSH_PROGRESS = new Int2IntOpenHashMap();
     private static final Int2ByteMap COMMAND_BLOCK_VALUES = new Int2ByteOpenHashMap();
     private static final Int2ObjectMap<DoubleChestValue> DOUBLE_CHEST_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Int2ObjectMap<String> FLOWER_POT_VALUES = new Int2ObjectOpenHashMap<>();
@@ -61,10 +62,12 @@ public final class BlockStateValues {
     private static final IntSet ALL_PISTON_HEADS = new IntOpenHashSet();
     private static final IntSet MOVING_PISTONS = new IntOpenHashSet();
     private static final Int2ByteMap SKULL_VARIANTS = new FixedInt2ByteMap();
+    private static final IntSet SKULL_POWERED = new IntOpenHashSet();
     private static final Int2ByteMap SKULL_ROTATIONS = new Int2ByteOpenHashMap();
     private static final Int2IntMap SKULL_WALL_DIRECTIONS = new Int2IntOpenHashMap();
     private static final Int2ByteMap SHULKERBOX_DIRECTIONS = new FixedInt2ByteMap();
     private static final Int2IntMap WATER_LEVEL = new Int2IntOpenHashMap();
+    private static final IntSet UPPER_DOORS = new IntOpenHashSet();
 
     public static final int JAVA_AIR_ID = 0;
 
@@ -96,6 +99,15 @@ public final class BlockStateValues {
         if (bedColor != null) {
             BED_COLORS.put(javaBlockState, (byte) bedColor.intValue());
             return;
+        }
+
+        JsonNode bedrockStates = blockData.get("bedrock_states");
+        if (bedrockStates != null) {
+            JsonNode brushedProgress = bedrockStates.get("brushed_progress");
+            if (brushedProgress != null) {
+                BRUSH_PROGRESS.put(javaBlockState, brushedProgress.intValue());
+                return;
+            }
         }
 
         if (javaId.contains("command_block")) {
@@ -162,9 +174,16 @@ public final class BlockStateValues {
             SKULL_ROTATIONS.put(javaBlockState, (byte) skullRotation.intValue());
         }
 
+        if (javaId.startsWith("minecraft:dragon_head[") || javaId.startsWith("minecraft:piglin_head[")
+                || javaId.startsWith("minecraft:dragon_wall_head[") || javaId.startsWith("minecraft:piglin_wall_head[")) {
+            if (javaId.contains("powered=true")) {
+                SKULL_POWERED.add(javaBlockState);
+            }
+        }
+
         if (javaId.contains("wall_skull") || javaId.contains("wall_head")) {
-            String direction = javaId.substring(javaId.lastIndexOf("facing=") + 7);
-            int rotation = switch (direction.substring(0, direction.length() - 1)) {
+            String direction = javaId.substring(javaId.lastIndexOf("facing=") + 7, javaId.lastIndexOf("powered=") - 1);
+            int rotation = switch (direction) {
                 case "north" -> 180;
                 case "west" -> 90;
                 case "east" -> 270;
@@ -201,6 +220,10 @@ public final class BlockStateValues {
         if (javaId.contains("_cauldron") && !javaId.contains("water_")) {
              NON_WATER_CAULDRONS.add(javaBlockState);
         }
+
+        if (javaId.contains("_door[") && javaId.contains("half=upper")) {
+            UPPER_DOORS.add(javaBlockState);
+        }
     }
 
     /**
@@ -223,6 +246,17 @@ public final class BlockStateValues {
      */
     public static byte getBedColor(int state) {
         return BED_COLORS.getOrDefault(state, (byte) -1);
+    }
+
+    /**
+     * The brush progress of suspicious sand/gravel is not sent by the java server when it updates the block entity.
+     * Although brush progress is part of the bedrock block state, it must be included in the block entity update.
+     *
+     * @param state BlockState of the block
+     * @return brush progress or 0 if the lookup failed
+     */
+    public static int getBrushProgress(int state) {
+        return BRUSH_PROGRESS.getOrDefault(state, 0);
     }
 
     /**
@@ -382,7 +416,7 @@ public final class BlockStateValues {
      * @return true if a piston can break the block
      */
     public static boolean canPistonDestroyBlock(int state)  {
-        return BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.AIR).getPistonBehavior() == PistonBehavior.DESTROY;
+        return BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.DEFAULT).getPistonBehavior() == PistonBehavior.DESTROY;
     }
 
     public static boolean canPistonMoveBlock(int javaId, boolean isPushing) {
@@ -393,7 +427,7 @@ public final class BlockStateValues {
         if (PistonBlockEntityTranslator.isBlock(javaId)) {
             return !PISTON_VALUES.get(javaId);
         }
-        BlockMapping block = BlockRegistries.JAVA_BLOCKS.getOrDefault(javaId, BlockMapping.AIR);
+        BlockMapping block = BlockRegistries.JAVA_BLOCKS.getOrDefault(javaId, BlockMapping.DEFAULT);
         // Bedrock, End portal frames, etc. can't be moved
         if (block.getHardness() == -1.0d) {
             return false;
@@ -428,6 +462,17 @@ public final class BlockStateValues {
     }
 
     /**
+     * As of Java 1.20.2:
+     * Skull powered states are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
+     *
+     * @param state BlockState of the block
+     * @return true if this skull is currently being powered.
+     */
+    public static boolean isSkullPowered(int state) {
+        return SKULL_POWERED.contains(state);
+    }
+
+    /**
      * Skull rotations are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
      * This gives a integer rotation that Bedrock can use.
      *
@@ -456,6 +501,16 @@ public final class BlockStateValues {
      */
     public static int getWaterLevel(int state) {
         return WATER_LEVEL.getOrDefault(state, -1);
+    }
+
+    /**
+     * Check if a block is the upper half of a door.
+     *
+     * @param state BlockState of the block
+     * @return True if the block is the upper half of a door
+     */
+    public static boolean isUpperDoor(int state) {
+        return UPPER_DOORS.contains(state);
     }
 
     /**
@@ -490,7 +545,7 @@ public final class BlockStateValues {
      * @return The block's slipperiness
      */
     public static float getSlipperiness(int state) {
-        String blockIdentifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.AIR).getJavaIdentifier();
+        String blockIdentifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.DEFAULT).getJavaIdentifier();
         return switch (blockIdentifier) {
             case "minecraft:slime_block" -> 0.8f;
             case "minecraft:ice", "minecraft:packed_ice" -> 0.98f;

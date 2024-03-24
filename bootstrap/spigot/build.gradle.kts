@@ -4,23 +4,18 @@ dependencies {
         isTransitive = false
     }
 
-    implementation(libs.adapters.spigot)
+    implementation(variantOf(libs.adapters.spigot) {
+        classifier("all") // otherwise the unshaded jar is used without the shaded NMS implementations
+    })
 
     implementation(libs.commodore)
 
     implementation(libs.adventure.text.serializer.bungeecord)
-    
-    // Both folia-api and paper-mojangapi only provide Java 17 versions for 1.19
-    compileOnly(libs.folia.api) {
-        attributes {
-            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
-        }
-    }
-    compileOnly(libs.paper.mojangapi) {
-        attributes {
-            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
-        }
-    }
+
+    compileOnly(libs.folia.api)
+    compileOnly(libs.paper.mojangapi)
+
+    compileOnlyApi(libs.viaversion)
 }
 
 platformRelocate("it.unimi.dsi.fastutil")
@@ -29,6 +24,7 @@ platformRelocate("com.fasterxml.jackson")
 platformRelocate("net.kyori", "net.kyori.adventure.text.logger.slf4j.ComponentLogger")
 platformRelocate("org.objectweb.asm")
 platformRelocate("me.lucko.commodore")
+platformRelocate("org.yaml") // Broken as of 1.20
 
 // These dependencies are already present on the platform
 provided(libs.viaversion)
@@ -42,7 +38,6 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
 
     dependencies {
         exclude(dependency("com.google.*:.*"))
-        exclude(dependency("org.yaml:.*"))
 
         // We cannot shade Netty, or else native libraries will not load
         // Needed because older Spigot builds do not provide the haproxy module

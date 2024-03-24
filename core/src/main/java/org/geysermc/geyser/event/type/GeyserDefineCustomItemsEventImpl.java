@@ -51,7 +51,7 @@ public abstract class GeyserDefineCustomItemsEventImpl implements GeyserDefineCu
      * @return a multimap of all the already registered custom items
      */
     @Override
-    public Map<String, Collection<CustomItemData>> getExistingCustomItems() {
+    public @NonNull Map<String, Collection<CustomItemData>> getExistingCustomItems() {
         return Collections.unmodifiableMap(this.customItems.asMap());
     }
 
@@ -61,7 +61,7 @@ public abstract class GeyserDefineCustomItemsEventImpl implements GeyserDefineCu
      * @return the list of the already registered non-vanilla custom items
      */
     @Override
-    public List<NonVanillaCustomItemData> getExistingNonVanillaCustomItems() {
+    public @NonNull List<NonVanillaCustomItemData> getExistingNonVanillaCustomItems() {
         return Collections.unmodifiableList(this.nonVanillaCustomItems);
     }
 

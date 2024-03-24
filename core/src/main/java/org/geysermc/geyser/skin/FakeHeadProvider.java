@@ -26,22 +26,26 @@
 package org.geysermc.geyser.skin;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.StringTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 
-import javax.annotation.Nonnull;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -54,7 +58,7 @@ public class FakeHeadProvider {
             .maximumSize(10000)
             .build(new CacheLoader<>() {
                 @Override
-                public SkinProvider.SkinData load(@Nonnull FakeHeadEntry fakeHeadEntry) throws Exception {
+                public SkinProvider.SkinData load(@NonNull FakeHeadEntry fakeHeadEntry) throws Exception {
                     SkinProvider.SkinData skinData = SkinProvider.getOrDefault(SkinProvider.requestSkinData(fakeHeadEntry.getEntity()), null, 5);
 
                     if (skinData == null) {
@@ -91,21 +95,48 @@ public class FakeHeadProvider {
                 }
             });
 
-    public static void setHead(GeyserSession session, PlayerEntity entity, CompoundTag profileTag) {
-        SkinManager.GameProfileData gameProfileData = SkinManager.GameProfileData.from(profileTag);
-        if (gameProfileData == null) {
+    public static void setHead(GeyserSession session, PlayerEntity entity, Tag skullOwner) {
+        if (skullOwner == null) {
             return;
         }
+        if (skullOwner instanceof CompoundTag profileTag) {
+            SkinManager.GameProfileData gameProfileData = SkinManager.GameProfileData.from(profileTag);
+            if (gameProfileData == null) {
+                return;
+            }
+            loadHead(session, entity, gameProfileData);
+        } else if (skullOwner instanceof StringTag ownerTag) {
+            String owner = ownerTag.getValue();
+            if (owner.isEmpty()) {
+                return;
+            }
+            CompletableFuture<String> completableFuture = SkinProvider.requestTexturesFromUsername(owner);
+            completableFuture.whenCompleteAsync((encodedJson, throwable) -> {
+                if (throwable != null) {
+                    GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), throwable);
+                    return;
+                }
+                try {
+                    SkinManager.GameProfileData gameProfileData = SkinManager.GameProfileData.loadFromJson(encodedJson);
+                    if (gameProfileData == null) {
+                        return;
+                    }
+                    loadHead(session, entity, gameProfileData);
+                } catch (IOException e) {
+                    GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid(), e.getMessage()));
+                }
+            });
+        }
+    }
+
+    public static void loadHead(GeyserSession session, PlayerEntity entity, SkinManager.GameProfileData gameProfileData) {
         String fakeHeadSkinUrl = gameProfileData.skinUrl();
 
         session.getPlayerWithCustomHeads().add(entity.getUuid());
-
         String texturesProperty = entity.getTexturesProperty();
-
-        SkinProvider.EXECUTOR_SERVICE.execute(() -> {
+        SkinProvider.getExecutorService().execute(() -> {
             try {
                 SkinProvider.SkinData mergedSkinData = MERGED_SKINS_LOADING_CACHE.get(new FakeHeadEntry(texturesProperty, fakeHeadSkinUrl, entity));
-
                 SkinManager.sendSkinPacket(session, entity, mergedSkinData);
             } catch (ExecutionException e) {
                 GeyserImpl.getInstance().getLogger().error("Couldn't merge skin of " + entity.getUsername() + " with head skin url " + fakeHeadSkinUrl, e);

@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.inventory.VillagerTrade;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.ClientboundMerchantOffersPacket;
 import lombok.Getter;
 import lombok.Setter;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -40,6 +41,8 @@ public class MerchantContainer extends Container {
     private VillagerTrade[] villagerTrades;
     @Getter @Setter
     private ClientboundMerchantOffersPacket pendingOffersPacket;
+    @Getter @Setter
+    private int tradeExperience;
 
     public MerchantContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory) {
         super(title, id, size, containerType, playerInventory);
@@ -49,9 +52,10 @@ public class MerchantContainer extends Container {
         if (villagerTrades != null && slot >= 0 && slot < villagerTrades.length) {
             VillagerTrade trade = villagerTrades[slot];
             setItem(2, GeyserItemStack.from(trade.getOutput()), session);
-            // TODO this logic doesn't add up
-            session.getPlayerEntity().addFakeTradeExperience(trade.getXp());
-            session.getPlayerEntity().updateBedrockMetadata();
+
+            tradeExperience += trade.getXp();
+            villager.getDirtyMetadata().put(EntityDataTypes.TRADE_EXPERIENCE, tradeExperience);
+            villager.updateBedrockMetadata();
         }
     }
 }

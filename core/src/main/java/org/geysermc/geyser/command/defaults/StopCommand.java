@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import org.geysermc.common.PlatformType;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
@@ -52,7 +52,7 @@ public class StopCommand extends GeyserCommand {
             return;
         }
 
-        geyser.getBootstrap().onDisable();
+        geyser.getBootstrap().onGeyserShutdown();
     }
 
     @Override

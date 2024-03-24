@@ -28,6 +28,7 @@ package org.geysermc.geyser.entity.type.living.animal;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
@@ -38,7 +39,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
 
-import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class AxolotlEntity extends AnimalEntity {
@@ -74,9 +74,9 @@ public class AxolotlEntity extends AnimalEntity {
         return true;
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    protected InteractionResult mobInteract(@Nonnull Hand hand, @Nonnull GeyserItemStack itemInHand) {
+    protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (EntityUtils.attemptToBucket(itemInHand)) {
             return InteractionResult.SUCCESS;
         } else {

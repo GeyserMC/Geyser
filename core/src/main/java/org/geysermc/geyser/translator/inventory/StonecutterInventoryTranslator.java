@@ -62,19 +62,20 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
         }
 
         StonecutterContainer container = (StonecutterContainer) inventory;
+        ItemStack javaOutput = craftingData.output();
         int button = craftingData.buttonId();
+
         // If we've already pressed the button with this item, no need to press it again!
         if (container.getStonecutterButton() != button) {
-            ItemStack javaOutput = craftingData.output();
-
             // Getting the index of the item in the Java stonecutter list
             ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(inventory.getJavaId(), button);
-            session.sendDownstreamPacket(packet);
+            session.sendDownstreamGamePacket(packet);
             container.setStonecutterButton(button);
-            if (inventory.getItem(1).getJavaId() != javaOutput.getId()) {
-                // We don't know there is an output here, so we tell ourselves that there is
-                inventory.setItem(1, GeyserItemStack.from(javaOutput), session);
-            }
+        }
+
+        if (inventory.getItem(1).getJavaId() != javaOutput.getId()) {
+            // We don't know there is an output here, so we tell ourselves that there is
+            inventory.setItem(1, GeyserItemStack.from(javaOutput), session);
         }
 
         return translateRequest(session, inventory, request);

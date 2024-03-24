@@ -29,7 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanE
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
+import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEvent2Packet;

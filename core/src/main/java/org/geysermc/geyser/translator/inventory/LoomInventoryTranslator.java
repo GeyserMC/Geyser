@@ -149,7 +149,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
         // And the Java loom window has a fixed row/width of four
         // So... Number / 4 = row (so we don't have to bother there), and number % 4 is our column, which leads us back to our index. :)
         ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(inventory.getJavaId(), index);
-        session.sendDownstreamPacket(packet);
+        session.sendDownstreamGamePacket(packet);
 
         GeyserItemStack inputCopy = inventory.getItem(0).copy(1);
         inputCopy.setNetId(session.getNextItemNetId());

@@ -26,7 +26,9 @@
 package org.geysermc.geyser.level;
 
 import com.github.steveice10.mc.protocol.data.game.advancement.Advancement;
-import lombok.NonNull;
+import com.github.steveice10.mc.protocol.data.game.advancement.Advancement.DisplayData;
+import com.github.steveice10.mc.protocol.data.game.advancement.Advancement.DisplayData.AdvancementType;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.session.cache.AdvancementsCache;
 import org.geysermc.geyser.text.ChatColor;
 
@@ -53,11 +55,6 @@ public class GeyserAdvancement {
     }
 
     @NonNull
-    public List<String> getCriteria() {
-        return this.advancement.getCriteria();
-    }
-
-    @NonNull
     public List<List<String>> getRequirements() {
         return this.advancement.getRequirements();
     }
@@ -66,7 +63,7 @@ public class GeyserAdvancement {
         return this.advancement.getParentId();
     }
 
-    public Advancement.DisplayData getDisplayData() {
+    public DisplayData getDisplayData() {
         return this.advancement.getDisplayData();
     }
 
@@ -74,11 +71,11 @@ public class GeyserAdvancement {
      * @return Purple for challenges and green for normal advancements
      */
     public String getDisplayColor() {
-        Advancement.DisplayData displayData = getDisplayData();
-        return displayData != null && displayData.getFrameType() == Advancement.DisplayData.FrameType.CHALLENGE ? ChatColor.LIGHT_PURPLE : ChatColor.GREEN;
+        DisplayData displayData = getDisplayData();
+        return displayData != null && displayData.getAdvancementType() == AdvancementType.CHALLENGE ? ChatColor.LIGHT_PURPLE : ChatColor.GREEN;
     }
 
-    public String getRootId(AdvancementsCache advancementsCache) {
+    public @NonNull String getRootId(AdvancementsCache advancementsCache) {
         if (rootId == null) {
             if (this.advancement.getParentId() == null) {
                 // We are the root ID

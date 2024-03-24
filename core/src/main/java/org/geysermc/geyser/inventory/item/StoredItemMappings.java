@@ -27,11 +27,11 @@ package org.geysermc.geyser.inventory.item;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.ItemMapping;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
 
 /**
@@ -45,12 +45,15 @@ public class StoredItemMappings {
     private final ItemMapping barrier;
     private final ItemMapping compass;
     private final ItemMapping crossbow;
+    private final ItemMapping egg;
     private final ItemMapping glassBottle;
     private final ItemMapping milkBucket;
     private final ItemMapping powderSnowBucket;
-    private final ItemMapping egg;
     private final ItemMapping shield;
+    private final ItemMapping upgradeTemplate;
     private final ItemMapping wheat;
+    private final ItemMapping writableBook;
+    private final ItemMapping writtenBook;
 
     public StoredItemMappings(Map<Item, ItemMapping> itemMappings) {
         this.bamboo = load(itemMappings, Items.BAMBOO);
@@ -58,15 +61,18 @@ public class StoredItemMappings {
         this.barrier = load(itemMappings, Items.BARRIER);
         this.compass = load(itemMappings, Items.COMPASS);
         this.crossbow = load(itemMappings, Items.CROSSBOW);
+        this.egg = load(itemMappings, Items.EGG);
         this.glassBottle = load(itemMappings, Items.GLASS_BOTTLE);
         this.milkBucket = load(itemMappings, Items.MILK_BUCKET);
         this.powderSnowBucket = load(itemMappings, Items.POWDER_SNOW_BUCKET);
-        this.egg = load(itemMappings, Items.EGG);
         this.shield = load(itemMappings, Items.SHIELD);
+        this.upgradeTemplate = load(itemMappings, Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE);
         this.wheat = load(itemMappings, Items.WHEAT);
+        this.writableBook = load(itemMappings, Items.WRITABLE_BOOK);
+        this.writtenBook = load(itemMappings, Items.WRITTEN_BOOK);
     }
 
-    @Nonnull
+    @NonNull
     private ItemMapping load(Map<Item, ItemMapping> itemMappings, Item item) {
         ItemMapping mapping = itemMappings.get(item);
         if (mapping == null) {

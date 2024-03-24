@@ -26,13 +26,14 @@
 package org.geysermc.geyser.scoreboard;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.ScoreInfo;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumConstraint;
 import org.cloudburstmc.protocol.bedrock.packet.RemoveObjectivePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetDisplayObjectivePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetScorePacket;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import lombok.Getter;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.type.Entity;
@@ -41,17 +42,20 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.jetbrains.annotations.Contract;
 
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static org.geysermc.geyser.scoreboard.UpdateType.*;
+import static org.geysermc.geyser.scoreboard.UpdateType.ADD;
+import static org.geysermc.geyser.scoreboard.UpdateType.NOTHING;
+import static org.geysermc.geyser.scoreboard.UpdateType.REMOVE;
+import static org.geysermc.geyser.scoreboard.UpdateType.UPDATE;
 
 public final class Scoreboard {
     private static final boolean SHOW_SCOREBOARD_LOGS = Boolean.parseBoolean(System.getProperty("Geyser.ShowScoreboardLogs", "true"));
+    private static final boolean ADD_TEAM_SUGGESTIONS = Boolean.parseBoolean(System.getProperty("Geyser.AddTeamSuggestions", "true"));
 
     private final GeyserSession session;
     private final GeyserLogger logger;
@@ -88,7 +92,7 @@ public final class Scoreboard {
         }
     }
 
-    public Objective registerNewObjective(String objectiveId) {
+    public @Nullable Objective registerNewObjective(String objectiveId) {
         Objective objective = objectives.get(objectiveId);
         if (objective != null) {
             // we have no other choice, or we have to make a new map?
@@ -150,8 +154,9 @@ public final class Scoreboard {
         teams.put(teamName, team);
 
         // Update command parameters - is safe to send even if the command enum doesn't exist on the client (as of 1.19.51)
-        session.addCommandEnum("Geyser_Teams", team.getId());
-
+        if (ADD_TEAM_SUGGESTIONS) {
+            session.addCommandEnum("Geyser_Teams", team.getId());
+        }
         return team;
     }
 
@@ -253,7 +258,12 @@ public final class Scoreboard {
 
         for (Score score : objective.getScores().values()) {
             if (score.getUpdateType() == REMOVE) {
-                removeScores.add(score.getCachedInfo());
+                ScoreInfo cachedInfo = score.getCachedInfo();
+                // cachedInfo can be null here when ScoreboardUpdater is being used and a score is added and
+                // removed before a single update cycle is performed
+                if (cachedInfo != null) {
+                    removeScores.add(cachedInfo);
+                }
                 // score is pending to be removed, so we can remove it from the objective
                 objective.removeScore0(score.getName());
                 break;

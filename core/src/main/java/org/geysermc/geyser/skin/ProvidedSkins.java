@@ -30,10 +30,9 @@ import org.geysermc.geyser.util.AssetUtils;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.UUID;
@@ -80,14 +79,14 @@ public final class ProvidedSkins {
                     .resolve(slim ? "slim" : "wide");
             String assetName = asset.substring(asset.lastIndexOf('/') + 1);
 
-            File location = folder.resolve(assetName).toFile();
-            AssetUtils.addTask(!location.exists(), new AssetUtils.ClientJarTask("assets/minecraft/" + asset,
+            Path location = folder.resolve(assetName);
+            AssetUtils.addTask(!Files.exists(location), new AssetUtils.ClientJarTask("assets/minecraft/" + asset,
                     (stream) -> AssetUtils.saveFile(location, stream),
                     () -> {
                         try {
                             // TODO lazy initialize?
                             BufferedImage image;
-                            try (InputStream stream = new FileInputStream(location)) {
+                            try (InputStream stream = Files.newInputStream(location)) {
                                 image = ImageIO.read(stream);
                             }
 

@@ -28,8 +28,8 @@ package org.geysermc.geyser.platform.spigot;
 import com.github.steveice10.mc.protocol.data.DefaultComponentSerializer;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
-import org.jetbrains.annotations.Nullable;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -39,8 +39,8 @@ import java.lang.reflect.Method;
 
 /**
  * Utility class for converting our shaded Adventure into the Adventure bundled in Paper.
- *
- * Code mostly taken from https://github.com/KyoriPowered/adventure-platform/blob/94d5821f2e755170f42bd8a5fe1d5bf6f66d04ad/platform-bukkit/src/main/java/net/kyori/adventure/platform/bukkit/PaperFacet.java#L46
+ * <p>
+ * Code mostly taken from <a href="https://github.com/KyoriPowered/adventure-platform/blob/94d5821f2e755170f42bd8a5fe1d5bf6f66d04ad/platform-bukkit/src/main/java/net/kyori/adventure/platform/bukkit/PaperFacet.java#L46">here</a>
  * and the MinecraftReflection class.
  */
 public final class PaperAdventure {
@@ -102,7 +102,7 @@ public final class PaperAdventure {
         SEND_MESSAGE_COMPONENT = playerComponentSendMessage;
     }
 
-    public static Object toNativeComponent(final Component component) {
+    public static @Nullable Object toNativeComponent(final Component component) {
         if (NATIVE_GSON_COMPONENT_SERIALIZER_DESERIALIZE_METHOD_BOUND == null) {
             GeyserImpl.getInstance().getLogger().error("Illegal state where Component serialization was called when it wasn't available!");
             return null;

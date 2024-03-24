@@ -49,7 +49,9 @@ import org.geysermc.geyser.inventory.click.ClickPlan;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.skin.FakeHeadProvider;
 import org.geysermc.geyser.translator.inventory.chest.DoubleChestInventoryTranslator;
 import org.geysermc.geyser.translator.inventory.chest.SingleChestInventoryTranslator;
 import org.geysermc.geyser.translator.inventory.furnace.BlastFurnaceInventoryTranslator;
@@ -84,6 +86,7 @@ public abstract class InventoryTranslator {
             put(ContainerType.BEACON, new BeaconInventoryTranslator());
             put(ContainerType.BREWING_STAND, new BrewingInventoryTranslator());
             put(ContainerType.CARTOGRAPHY, new CartographyInventoryTranslator());
+            //put(ContainerType.CRAFTER_3x3, new CrafterInventoryTranslator()); todo Output slot is currently broken
             put(ContainerType.CRAFTING, new CraftingInventoryTranslator());
             put(ContainerType.ENCHANTMENT, new EnchantingInventoryTranslator());
             put(ContainerType.HOPPER, new HopperInventoryTranslator());
@@ -92,7 +95,7 @@ public abstract class InventoryTranslator {
             put(ContainerType.LOOM, new LoomInventoryTranslator());
             put(ContainerType.MERCHANT, new MerchantInventoryTranslator());
             put(ContainerType.SHULKER_BOX, new ShulkerInventoryTranslator());
-            put(ContainerType.LEGACY_SMITHING, new SmithingInventoryTranslator());
+            put(ContainerType.SMITHING, new SmithingInventoryTranslator());
             put(ContainerType.STONECUTTER, new StonecutterInventoryTranslator());
 
             /* Lectern */
@@ -127,7 +130,7 @@ public abstract class InventoryTranslator {
     /**
      * Should be overwritten in cases where specific inventories should reject an item being in a specific spot.
      * For examples, looms use this to reject items that are dyes in Bedrock but not in Java.
-     *
+     * <p>
      * The source/destination slot will be -1 if the cursor is the slot
      *
      * @return true if this transfer should be rejected
@@ -215,6 +218,20 @@ public abstract class InventoryTranslator {
                     int destSlot = bedrockSlotToJava(transferAction.getDestination());
                     boolean isSourceCursor = isCursor(transferAction.getSource());
                     boolean isDestCursor = isCursor(transferAction.getDestination());
+
+                    if ((this) instanceof PlayerInventoryTranslator) {
+                        if (destSlot == 5) {
+                            //only set the head if the destination is the head slot
+                            GeyserItemStack javaItem = inventory.getItem(sourceSlot);
+                            if (javaItem.asItem() == Items.PLAYER_HEAD
+                                    && javaItem.getNbt() != null) {
+                                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getNbt().get("SkullOwner"));
+                            }
+                        } else if (sourceSlot == 5) {
+                            //we are probably removing the head, so restore the original skin
+                            FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
+                        }
+                    }
 
                     if (shouldRejectItemPlace(session, inventory, transferAction.getSource().getContainer(),
                             isSourceCursor ? -1 : sourceSlot,
@@ -509,10 +526,28 @@ public abstract class InventoryTranslator {
 
                         int remainder = transferAction.getCount() % resultSize;
                         int timesToCraft = transferAction.getCount() / resultSize;
-                        for (int i = 0; i < timesToCraft; i++) {
-                            plan.add(Click.LEFT, sourceSlot);
-                            plan.add(Click.LEFT, destSlot);
+
+                        if (plan.getCursor().isEmpty()) {
+                            // No carried items - move to destination
+                            for (int i = 0; i < timesToCraft; i++) {
+                                plan.add(Click.LEFT, sourceSlot);
+                                plan.add(Click.LEFT, destSlot);
+                            }
+                        } else {
+                            GeyserItemStack cursor = session.getPlayerInventory().getCursor();
+                            int tempSlot = findTempSlot(inventory, cursor, true, sourceSlot, destSlot);
+                            if (tempSlot == -1) {
+                                return rejectRequest(request);
+                            }
+
+                            plan.add(Click.LEFT, tempSlot); //place cursor into temp slot
+                            for (int i = 0; i < timesToCraft; i++) {
+                                plan.add(Click.LEFT, sourceSlot); //pick up source item
+                                plan.add(Click.LEFT, destSlot); //place source item into dest slot
+                            }
+                            plan.add(Click.LEFT, tempSlot); //pick up original item
                         }
+
                         if (remainder > 0) {
                             plan.add(Click.LEFT, 0);
                             for (int i = 0; i < remainder; i++) {

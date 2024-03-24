@@ -79,8 +79,8 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             if (!a.description().equals(b.description())) return false;
             if (a.paramData().length != b.paramData().length) return false;
             for (int i = 0; i < a.paramData().length; i++) {
-                CommandParamData[] a1 = a.paramData()[i];
-                CommandParamData[] b1 = b.paramData()[i];
+                CommandParamData[] a1 = a.paramData()[i].getOverloads();
+                CommandParamData[] b1 = b.paramData()[i].getOverloads();
                 if (a1.length != b1.length) return false;
 
                 for (int j = 0; j < a1.length; j++) {
@@ -141,7 +141,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             }
 
             // Get and parse all params
-            CommandParamData[][] params = getParams(session, nodes[nodeIndex], nodes);
+            CommandOverloadData[] params = getParams(session, nodes[nodeIndex], nodes);
 
             // Insert the alias name into the command list
             commands.computeIfAbsent(new BedrockCommandInfo(node.getName().toLowerCase(Locale.ROOT), manager.description(node.getName().toLowerCase(Locale.ROOT)), params),
@@ -179,7 +179,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             CommandEnumData aliases = new CommandEnumData(commandName + "Aliases", values, false);
 
             // Build the completed command and add it to the final list
-            CommandData data = new CommandData(commandName, entry.getKey().description(), flags, (byte) 0, aliases, entry.getKey().paramData());
+            CommandData data = new CommandData(commandName, entry.getKey().description(), flags, CommandPermission.ANY, aliases, Collections.emptyList(), entry.getKey().paramData());
             commandData.add(data);
         }
 
@@ -201,7 +201,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
      * @param allNodes    Every command node
      * @return An array of parameter option arrays
      */
-    private static CommandParamData[][] getParams(GeyserSession session, CommandNode commandNode, CommandNode[] allNodes) {
+    private static CommandOverloadData[] getParams(GeyserSession session, CommandNode commandNode, CommandNode[] allNodes) {
         // Check if the command is an alias and redirect it
         if (commandNode.getRedirectIndex().isPresent()) {
             int redirectIndex = commandNode.getRedirectIndex().getAsInt();
@@ -214,12 +214,12 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             ParamInfo rootParam = new ParamInfo(commandNode, null);
             rootParam.buildChildren(new CommandBuilderContext(session), allNodes);
 
-            List<CommandParamData[]> treeData = rootParam.getTree();
+            List<CommandOverloadData> treeData = rootParam.getTree();
 
-            return treeData.toArray(new CommandParamData[0][]);
+            return treeData.toArray(new CommandOverloadData[0]);
         }
 
-        return new CommandParamData[0][0];
+        return new CommandOverloadData[0];
     }
 
     /**
@@ -272,7 +272,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
     /**
      * Stores the command description and parameter data for best optimizing the Bedrock commands packet.
      */
-    private record BedrockCommandInfo(String name, String description, CommandParamData[][] paramData) implements
+    private record BedrockCommandInfo(String name, String description, CommandOverloadData[] paramData) implements
             org.geysermc.geyser.api.event.downstream.ServerDefineCommandsEvent.CommandInfo,
             ServerDefineCommandsEvent.CommandInfo
     {
@@ -465,7 +465,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         }
 
         /**
-         * Mitigates https://github.com/GeyserMC/Geyser/issues/3411. Not a perfect solution.
+         * Mitigates <a href="https://github.com/GeyserMC/Geyser/issues/3411">issue 3411</a>. Not a perfect solution.
          */
         private static String getEnumDataName(CommandNode node) {
             if (node.getProperties() instanceof ResourceProperties properties) {
@@ -542,25 +542,26 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
          *
          * @return List of parameter options arrays for the command
          */
-        public List<CommandParamData[]> getTree() {
-            List<CommandParamData[]> treeParamData = new ArrayList<>();
+        public List<CommandOverloadData> getTree() {
+            List<CommandOverloadData> treeParamData = new ArrayList<>();
 
             for (ParamInfo child : children) {
                 // Get the tree from the child
-                List<CommandParamData[]> childTree = child.getTree();
+                List<CommandOverloadData> childTree = child.getTree();
 
                 // Un-pack the tree append the child node to it and push into the list
-                for (CommandParamData[] subChild : childTree) {
+                for (CommandOverloadData subChildData : childTree) {
+                    CommandParamData[] subChild = subChildData.getOverloads();
                     CommandParamData[] tmpTree = new CommandParamData[subChild.length + 1];
                     tmpTree[0] = child.getParamData();
                     System.arraycopy(subChild, 0, tmpTree, 1, subChild.length);
 
-                    treeParamData.add(tmpTree);
+                    treeParamData.add(new CommandOverloadData(false, tmpTree));
                 }
 
                 // If we have no more child parameters just the child
                 if (childTree.size() == 0) {
-                    treeParamData.add(new CommandParamData[] { child.getParamData() });
+                    treeParamData.add(new CommandOverloadData(false, new CommandParamData[] { child.getParamData() }));
                 }
             }
 

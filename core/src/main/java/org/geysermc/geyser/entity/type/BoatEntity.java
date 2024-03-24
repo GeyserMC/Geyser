@@ -66,7 +66,7 @@ public class BoatEntity extends Entity {
     private int variant;
 
     // Looks too fast and too choppy with 0.1f, which is how I believe the Microsoftian client handles it
-    private final float ROWING_SPEED = 0.05f;
+    private final float ROWING_SPEED = 0.1f;
 
     public BoatEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, GeyserEntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         // Initial rotation is incorrect
@@ -125,8 +125,8 @@ public class BoatEntity extends Entity {
     public void setVariant(IntEntityMetadata entityMetadata) {
         variant = entityMetadata.getPrimitiveValue();
         dirtyMetadata.put(EntityDataTypes.VARIANT, switch (variant) {
-            case 6, 7 -> variant - 1; // Dark oak and mangrove
-            case 5, 8 -> 0; // TODO temp until 1.20. Cherry and bamboo
+            case 6, 7, 8 -> variant - 1; // dark_oak, mangrove, bamboo
+            case 5 -> 8; // cherry
             default -> variant;
         });
     }

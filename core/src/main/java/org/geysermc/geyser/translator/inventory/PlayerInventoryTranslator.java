@@ -29,7 +29,6 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetCreativeModeSlotPacket;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -45,6 +44,8 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.SwapAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.TransferItemStackRequestAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
+import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
+import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.geyser.inventory.*;
@@ -94,7 +95,13 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         armorContentPacket.setContainerId(ContainerId.ARMOR);
         contents = new ItemData[4];
         for (int i = 5; i < 9; i++) {
-            contents[i - 5] = inventory.getItem(i).getItemData(session);
+            GeyserItemStack item = inventory.getItem(i);
+            contents[i - 5] = item.getItemData(session);
+            if (i == 5 &&
+                    item.asItem() == Items.PLAYER_HEAD &&
+                    item.getNbt() != null) {
+                FakeHeadProvider.setHead(session, session.getPlayerEntity(), item.getNbt().get("SkullOwner"));
+            }
         }
         armorContentPacket.setContents(Arrays.asList(contents));
         session.sendUpstreamPacket(armorContentPacket);
@@ -136,9 +143,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         if (slot == 5) {
             // Check for custom skull
             if (javaItem.asItem() == Items.PLAYER_HEAD
-                    && javaItem.getNbt() != null
-                    && javaItem.getNbt().get("SkullOwner") instanceof CompoundTag profile) {
-                FakeHeadProvider.setHead(session, session.getPlayerEntity(), profile);
+                    && javaItem.getNbt() != null) {
+                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getNbt().get("SkullOwner"));
             } else {
                 FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
             }
@@ -355,7 +361,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     }
 
                     ServerboundSetCreativeModeSlotPacket creativeDropPacket = new ServerboundSetCreativeModeSlotPacket(-1, sourceItem.getItemStack(dropAction.getCount()));
-                    session.sendDownstreamPacket(creativeDropPacket);
+                    session.sendDownstreamGamePacket(creativeDropPacket);
 
                     sourceItem.sub(dropAction.getCount());
                 }
@@ -490,7 +496,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         dropStack = new ItemStack(javaCreativeItem.getId(), dropAction.getCount(), javaCreativeItem.getNbt());
                     }
                     ServerboundSetCreativeModeSlotPacket creativeDropPacket = new ServerboundSetCreativeModeSlotPacket(-1, dropStack);
-                    session.sendDownstreamPacket(creativeDropPacket);
+                    session.sendDownstreamGamePacket(creativeDropPacket);
                     break;
                 }
                 default:
@@ -511,7 +517,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         ItemStack itemStack = item.isEmpty() ? new ItemStack(-1, 0, null) : item.getItemStack();
 
         ServerboundSetCreativeModeSlotPacket creativePacket = new ServerboundSetCreativeModeSlotPacket(slot, itemStack);
-        session.sendDownstreamPacket(creativePacket);
+        session.sendDownstreamGamePacket(creativePacket);
     }
 
     private static boolean isCraftingGrid(ItemStackRequestSlotData slotInfoData) {
@@ -530,10 +536,20 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
 
     @Override
     public void openInventory(GeyserSession session, Inventory inventory) {
+        ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
+        containerOpenPacket.setId((byte) 0);
+        containerOpenPacket.setType(org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.INVENTORY);
+        containerOpenPacket.setUniqueEntityId(-1);
+        containerOpenPacket.setBlockPosition(session.getPlayerEntity().getPosition().toInt());
+        session.sendUpstreamPacket(containerOpenPacket);
     }
 
     @Override
     public void closeInventory(GeyserSession session, Inventory inventory) {
+        ContainerClosePacket packet = new ContainerClosePacket();
+        packet.setServerInitiated(true);
+        packet.setId((byte) ContainerId.INVENTORY);
+        session.sendUpstreamPacket(packet);
     }
 
     @Override

@@ -30,7 +30,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
 
-import java.util.OptionalInt;
 import java.util.Set;
 
 /**
@@ -64,6 +63,14 @@ public interface NonVanillaCustomItemData extends CustomItemData {
      * @return the max damage of the item
      */
     int maxDamage();
+
+    /**
+     * Gets the attack damage of the item.
+     * This is purely visual, and only applied to tools
+     *
+     * @return the attack damage of the item
+     */
+    int attackDamage();
 
     /**
      * Gets the tool type of the item.
@@ -108,26 +115,40 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     @Nullable Set<String> repairMaterials();
 
     /**
-     * Gets the item's creative category, or tab id.
-     *
-     * @return the item's creative category
-     */
-    @NonNull OptionalInt creativeCategory();
-
-    /**
-     * Gets the item's creative group.
-     *
-     * @return the item's creative group
-     */
-    @Nullable String creativeGroup();
-
-    /**
      * Gets if the item is a hat. This is used to determine if the item should be rendered on the player's head, and
      * normally allow the player to equip it. This is not meant for armor.
      *
      * @return if the item is a hat
      */
     boolean isHat();
+
+    /**
+     * Gets if the item is a foil. This is used to determine if the item should be rendered with an enchantment glint effect.
+     *
+     * @return if the item is a foil
+     */
+    boolean isFoil();
+
+    /**
+     * Gets if the item is edible.
+     *
+     * @return if the item is edible
+     */
+    boolean isEdible();
+
+    /**
+     * Gets if the food item can always be eaten.
+     *
+     * @return if the item is allowed to be eaten all the time
+     */
+    boolean canAlwaysEat();
+
+    /**
+     * Gets if the item is chargable, like a bow.
+     *
+     * @return if the item should act like a chargable item
+     */
+    boolean isChargeable();
 
     /**
      * @deprecated Use {@link #displayHandheld()} instead.
@@ -156,6 +177,8 @@ public interface NonVanillaCustomItemData extends CustomItemData {
 
         Builder maxDamage(int maxDamage);
 
+        Builder attackDamage(int attackDamage);
+
         Builder toolType(@Nullable String toolType);
 
         Builder toolTier(@Nullable String toolTier);
@@ -168,11 +191,15 @@ public interface NonVanillaCustomItemData extends CustomItemData {
 
         Builder repairMaterials(@Nullable Set<String> repairMaterials);
 
-        Builder creativeCategory(int creativeCategory);
-
-        Builder creativeGroup(@Nullable String creativeGroup);
-
         Builder hat(boolean isHat);
+
+        Builder foil(boolean isFoil);
+
+        Builder edible(boolean isEdible);
+
+        Builder canAlwaysEat(boolean canAlwaysEat);
+
+        Builder chargeable(boolean isChargeable);
 
         /**
          * @deprecated Use {@link #displayHandheld(boolean)} instead.
@@ -181,6 +208,12 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         default Builder tool(boolean isTool) {
             return displayHandheld(isTool);
         }
+
+        @Override
+        Builder creativeCategory(int creativeCategory);
+
+        @Override
+        Builder creativeGroup(@Nullable String creativeGroup);
 
         @Override
         Builder customItemOptions(@NonNull CustomItemOptions customItemOptions);
@@ -202,6 +235,9 @@ public interface NonVanillaCustomItemData extends CustomItemData {
 
         @Override
         Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets);
+
+        @Override
+        Builder tags(@Nullable Set<String> tags);
 
         NonVanillaCustomItemData build();
     }
