@@ -130,11 +130,15 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
                 return;
             }
 
+            int x = (int) map.get("sizeX").getValue();
+            int y = (int) map.get("sizeY").getValue();
+            int z = (int) map.get("sizeZ").getValue();
+
             StructureTemplateDataResponsePacket responsePacket = new StructureTemplateDataResponsePacket();
             responsePacket.setName((String) map.get("name").getValue());
             responsePacket.setSave(true);
             responsePacket.setTag(EMPTY_STRUCTURE_DATA.toBuilder()
-                    .putList("size", NbtType.INT, (int) map.get("sizeX").getValue(), (int) map.get("sizeY").getValue(), (int) map.get("sizeZ").getValue())
+                    .putList("size", NbtType.INT, x, y, z)
                     .build());
             responsePacket.setType(StructureTemplateResponseType.QUERY);
             GeyserImpl.getInstance().getLogger().info(responsePacket.toString());

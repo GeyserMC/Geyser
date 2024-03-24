@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.inventory.UpdateStructureBloc
 import com.github.steveice10.mc.protocol.data.game.level.block.StructureMirror;
 import com.github.steveice10.mc.protocol.data.game.level.block.StructureRotation;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetStructureBlockPacket;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -38,7 +39,6 @@ import org.cloudburstmc.protocol.bedrock.data.structure.StructureTemplateRequest
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureTemplateResponseType;
 import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataResponsePacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -67,8 +67,11 @@ public class BedrockStructureTemplateDataRequestTranslator extends PacketTransla
 
     @Override
     public void translate(GeyserSession session, StructureTemplateDataRequestPacket packet) {
-        GeyserImpl.getInstance().getLogger().error(packet.toString());
         if (packet.getOperation().equals(StructureTemplateRequestOperation.QUERY_SAVED_STRUCTURE)) {
+            // If we send a load packet to the Java server when the structure size is known, we place the structure.
+            if (!packet.getSettings().getSize().equals(Vector3i.ZERO)) {
+                return;
+            }
             session.setCurrentStructureBlock(packet.getPosition());
 
             // Request a "load" from Java server so it sends us the structures size :p
