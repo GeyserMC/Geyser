@@ -90,6 +90,7 @@ import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.structure.StructureSettings;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.cloudburstmc.protocol.common.util.OptionalBoolean;
@@ -607,6 +608,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter @Getter
     private @Nullable Vector3i currentStructureBlock;
+
+    /**
+     * Stores current structure block settings so we know what rotation to undo
+     * if Bedrock decides to change the rotation
+     */
+    @Setter @Getter
+    private @Nullable StructureSettings structureSettings;
 
     private final GeyserCameraData cameraData;
 

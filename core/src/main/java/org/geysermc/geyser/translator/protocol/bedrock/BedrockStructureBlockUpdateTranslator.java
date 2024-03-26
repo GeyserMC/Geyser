@@ -30,19 +30,23 @@ import com.github.steveice10.mc.protocol.data.game.inventory.UpdateStructureBloc
 import com.github.steveice10.mc.protocol.data.game.level.block.StructureMirror;
 import com.github.steveice10.mc.protocol.data.game.level.block.StructureRotation;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetStructureBlockPacket;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureBlockType;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureEditorData;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureSettings;
 import org.cloudburstmc.protocol.bedrock.packet.StructureBlockUpdatePacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.StructureBlockUtils;
 
 @Translator(packet = StructureBlockUpdatePacket.class)
 public class BedrockStructureBlockUpdateTranslator extends PacketTranslator<StructureBlockUpdatePacket> {
 
     @Override
     public void translate(GeyserSession session, StructureBlockUpdatePacket packet) {
+        GeyserImpl.getInstance().getLogger().info(packet.toString());
         StructureEditorData data = packet.getEditorData();
         StructureSettings settings = data.getSettings();
 
@@ -63,7 +67,11 @@ public class BedrockStructureBlockUpdateTranslator extends PacketTranslator<Stru
         };
 
         // Ignore mirror - Java appears to mirror on an axis, while Bedrock mirrors in place
-        StructureMirror mirror = StructureMirror.NONE;
+        StructureMirror mirror = switch (data.getSettings().getMirror()) {
+            case X -> StructureMirror.FRONT_BACK;
+            case XZ -> StructureMirror.LEFT_RIGHT;
+            default -> StructureMirror.NONE;
+        };
 
         com.github.steveice10.mc.protocol.data.game.level.block.StructureRotation rotation = switch (settings.getRotation()) {
             case ROTATE_90 -> StructureRotation.CLOCKWISE_90;
@@ -72,13 +80,15 @@ public class BedrockStructureBlockUpdateTranslator extends PacketTranslator<Stru
             default -> StructureRotation.NONE;
         };
 
+        Vector3i[] offsetAndSize = StructureBlockUtils.getStructureOffsetAndRotation(session, settings);
+
         ServerboundSetStructureBlockPacket structureBlockPacket = new ServerboundSetStructureBlockPacket(
                 packet.getBlockPosition(),
                 action,
                 mode,
                 data.getName(),
-                settings.getOffset(),
-                settings.getSize(),
+                offsetAndSize[0],
+                offsetAndSize[1],
                 mirror,
                 rotation,
                 "",
@@ -89,6 +99,7 @@ public class BedrockStructureBlockUpdateTranslator extends PacketTranslator<Stru
                 data.isBoundingBoxVisible()
         );
 
+        session.setStructureSettings(null);
         session.sendDownstreamPacket(structureBlockPacket);
     }
 }

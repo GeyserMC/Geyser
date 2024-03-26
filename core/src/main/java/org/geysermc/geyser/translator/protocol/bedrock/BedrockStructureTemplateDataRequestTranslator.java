@@ -31,18 +31,13 @@ import com.github.steveice10.mc.protocol.data.game.level.block.StructureMirror;
 import com.github.steveice10.mc.protocol.data.game.level.block.StructureRotation;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetStructureBlockPacket;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtList;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureTemplateRequestOperation;
-import org.cloudburstmc.protocol.bedrock.data.structure.StructureTemplateResponseType;
 import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataRequestPacket;
-import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataResponsePacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.StructureBlockUtils;
 
 /**
  * Packet used in Bedrock to load structure size into the structure block GUI.
@@ -52,33 +47,25 @@ import org.geysermc.geyser.translator.protocol.Translator;
 @Translator(packet = StructureTemplateDataRequestPacket.class)
 public class BedrockStructureTemplateDataRequestTranslator extends PacketTranslator<StructureTemplateDataRequestPacket> {
 
-    private static final NbtMap EMPTY_STRUCTURE_DATA;
-
-    static {
-        NbtMapBuilder builder = NbtMap.builder();
-        builder.putInt("format_version", 1);
-        builder.putCompound("structure", NbtMap.builder()
-                .putList("block_indices", NbtType.LIST, NbtList.EMPTY, NbtList.EMPTY)
-                .putList("entities", NbtType.COMPOUND)
-                .putCompound("palette", NbtMap.EMPTY)
-                .build());
-        builder.putList("structure_world_origin", NbtType.INT, 0, 0, 0);
-        EMPTY_STRUCTURE_DATA = builder.build();
-    }
-
     @Override
     public void translate(GeyserSession session, StructureTemplateDataRequestPacket packet) {
+        // This packet is actually rather neat. Each time Bedrock players open the structure block,
+        // it is sent. Which allows us to cache what rotation operation we might need to (un)do :p
         GeyserImpl.getInstance().getLogger().info(packet.toString());
         if (packet.getOperation().equals(StructureTemplateRequestOperation.QUERY_SAVED_STRUCTURE)) {
             // If we send a load packet to the Java server when the structure size is known, we place the structure.
             if (!packet.getSettings().getSize().equals(Vector3i.ZERO)) {
+                if (session.getStructureSettings() == null) {
+                    // This ensures we don't add more rotation offsetting than needed
+                    session.setStructureSettings(packet.getSettings());
+                }
                 // Otherwise, the Bedrock client can't load the structure in
-                sendEmptyStructureData(session, packet);
+                StructureBlockUtils.sendEmptyStructureData(session, packet);
                 return;
             }
             session.setCurrentStructureBlock(packet.getPosition());
 
-            // Request a "load" from Java server so it sends us the structures size :p
+            // Request a "load" from Java server, so it sends us the structure's size :p
             var settings = packet.getSettings();
             com.github.steveice10.mc.protocol.data.game.level.block.StructureRotation rotation = switch (settings.getRotation()) {
                 case ROTATE_90 -> StructureRotation.CLOCKWISE_90;
@@ -105,19 +92,7 @@ public class BedrockStructureTemplateDataRequestTranslator extends PacketTransla
             );
             session.sendDownstreamPacket(structureBlockPacket);
         } else {
-            sendEmptyStructureData(session, packet);
+            StructureBlockUtils.sendEmptyStructureData(session, packet);
         }
-    }
-
-    private void sendEmptyStructureData(GeyserSession session, StructureTemplateDataRequestPacket packet) {
-        StructureTemplateDataResponsePacket responsePacket = new StructureTemplateDataResponsePacket();
-        responsePacket.setName(packet.getName());
-        responsePacket.setSave(true);
-        responsePacket.setTag(EMPTY_STRUCTURE_DATA.toBuilder()
-                .putList("size", NbtType.INT, packet.getSettings().getSize().getX(),
-                        packet.getSettings().getSize().getY(), packet.getSettings().getSize().getZ())
-                .build());
-        responsePacket.setType(StructureTemplateResponseType.QUERY);
-        session.sendUpstreamPacket(responsePacket);
     }
 }

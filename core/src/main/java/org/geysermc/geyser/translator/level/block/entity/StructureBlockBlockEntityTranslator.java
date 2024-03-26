@@ -27,18 +27,15 @@ package org.geysermc.geyser.translator.level.block.entity;
 
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtUtils;
-import org.cloudburstmc.protocol.bedrock.data.structure.StructureMirror;
-import org.cloudburstmc.protocol.bedrock.data.structure.StructureRotation;
-import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.util.StructureBlockUtils;
 
 @BlockEntity(type = BlockEntityType.STRUCTURE_BLOCK)
 public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
-        GeyserImpl.getInstance().getLogger().info(NbtUtils.toString(tag));
         if (tag.size() < 5) {
             return; // These values aren't here
         }
@@ -81,12 +78,19 @@ public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
 
         int xStructureSize = getOrDefault(tag.get("sizeX"), 0);
         int zStructureSize = getOrDefault(tag.get("sizeZ"), 0);
-        int newXStructureSize = xStructureSize;
-        int newZStructureSize = zStructureSize;
 
         // The "positions" are also offsets on Java
         int posX = getOrDefault(tag.get("posX"), 0);
         int posZ = getOrDefault(tag.get("posZ"), 0);
+
+        Vector3i[] sizeAndOffset = StructureBlockUtils.addOffsets(bedrockRotation, bedrockMirror,
+                xStructureSize, getOrDefault(tag.get("sizeY"), 0), zStructureSize,
+                posX, getOrDefault(tag.get("posY"), 0), posZ);
+
+        /*
+
+        int newXStructureSize = xStructureSize;
+        int newZStructureSize = zStructureSize;
 
         // Modify positions if mirrored - Bedrock doesn't have this
         if (bedrockMirror == (byte) StructureMirror.Z.ordinal()) {
@@ -138,17 +142,20 @@ public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
             }
         }
 
-        builder.putInt("xStructureSize", newXStructureSize);
-        builder.putInt("yStructureSize", getOrDefault(tag.get("sizeY"), 0));
-        builder.putInt("zStructureSize", newZStructureSize);
+         */
 
-        builder.putInt("xStructureOffset", posX);
-        builder.putInt("yStructureOffset", getOrDefault(tag.get("posY"), 0));
-        builder.putInt("zStructureOffset", posZ);
+        Vector3i size = sizeAndOffset[1];
+        builder.putInt("xStructureSize", size.getX());
+        builder.putInt("yStructureSize", size.getY());
+        builder.putInt("zStructureSize", size.getZ());
+
+        Vector3i offset = sizeAndOffset[0];
+        builder.putInt("xStructureOffset", offset.getX());
+        builder.putInt("yStructureOffset", offset.getY());
+        builder.putInt("zStructureOffset", offset.getZ());
 
         builder.putFloat("integrity", getOrDefault(tag.get("integrity"), 0f)); // Is 1.0f by default on Java but 100.0f on Bedrock
 
         // Java's "showair" is unrepresented
-        GeyserImpl.getInstance().getLogger().error(builder.toString());
     }
 }
