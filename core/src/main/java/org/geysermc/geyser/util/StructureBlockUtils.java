@@ -36,8 +36,8 @@ import org.cloudburstmc.protocol.bedrock.data.structure.StructureSettings;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureTemplateResponseType;
 import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataResponsePacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.ChatColor;
 
 public class StructureBlockUtils {
 
@@ -67,7 +67,7 @@ public class StructureBlockUtils {
         responsePacket.setName(name);
         responsePacket.setSave(true);
         responsePacket.setTag(EMPTY_STRUCTURE_DATA.toBuilder()
-                .putList("size", NbtType.INT, x, y, z)
+                .putList("size", NbtType.INT, Math.abs(x), y, Math.abs(z)) // Use absolute numbers, Bedrock complains about negatives
                 .build());
         responsePacket.setType(StructureTemplateResponseType.QUERY);
         session.sendUpstreamPacket(responsePacket);
@@ -77,6 +77,7 @@ public class StructureBlockUtils {
         StructureSettings old = session.getStructureSettings();
 
         if (old == null) {
+            GeyserImpl.getInstance().getLogger().info("old structure null");
             return new Vector3i[] {newSettings.getOffset(), newSettings.getSize()};
         }
 
@@ -91,15 +92,14 @@ public class StructureBlockUtils {
         int originalSizeZ = size.getZ();
 
         switch (old.getMirror()) {
-            case X -> {
-                originalSizeX *= -1;
-                offsetX = offsetX - originalSizeX;
-            }
             case Z -> {
-                originalSizeZ *= -1;
-                offsetZ = offsetZ - originalSizeZ;
+                originalSizeX *= -1;
+                offsetX = offsetX - originalSizeX - 1;
             }
-            case XZ -> session.sendMessage(ChatColor.RED + "Mirroring on both axis is not possible on Java. Not mirroring!");
+            case X -> {
+                originalSizeZ *= -1;
+                offsetZ = offsetZ - originalSizeZ - 1;
+            }
         }
 
         switch (old.getRotation()) {
@@ -145,8 +145,6 @@ public class StructureBlockUtils {
         Vector3i originalSize = Vector3i.from(originalSizeX, size.getY(), originalSizeZ);
 
         return new Vector3i[]{originalOffset, originalSize};
-
-
     }
 
     public static Vector3i[] addOffsets(byte bedrockRotation, byte bedrockMirror,
@@ -156,10 +154,10 @@ public class StructureBlockUtils {
 
         // Modify positions if mirrored - Bedrock doesn't have this
         if (bedrockMirror == (byte) StructureMirror.Z.ordinal()) {
-            offsetX = offsetX + sizeX;
+            offsetX = offsetX + sizeX + 1;
             newXStructureSize = sizeX * -1;
         } else if (bedrockMirror == (byte) StructureMirror.X.ordinal()) {
-            offsetZ = offsetZ + sizeZ;
+            offsetZ = offsetZ + sizeZ + 1;
             newZStructureSize = sizeZ * -1;
         }
 

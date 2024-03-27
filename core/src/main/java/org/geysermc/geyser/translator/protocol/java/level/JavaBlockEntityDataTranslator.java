@@ -117,8 +117,8 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
 
             String mirror = getOrDefault(map.get("mirror"), "");
             byte bedrockMirror = switch (mirror) {
-                case "LEFT_RIGHT" -> 1;
-                case "FRONT_BACK" -> 2;
+                case "FRONT_BACK" -> (byte) StructureMirror.X.ordinal();
+                case "LEFT_RIGHT" -> (byte) StructureMirror.Z.ordinal();
                 default -> 0; // Or NONE
             };
 

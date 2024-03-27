@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.bedrock.data.structure.StructureMirror;
 import org.geysermc.geyser.util.StructureBlockUtils;
 
 @BlockEntity(type = BlockEntityType.STRUCTURE_BLOCK)
@@ -56,8 +57,8 @@ public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
         // Mirror behaves different in Java and Bedrock - it requires modifying the position in space as well
         String mirror = getOrDefault(tag.get("mirror"), "");
         byte bedrockMirror = switch (mirror) {
-            case "LEFT_RIGHT" -> 1;
-            case "FRONT_BACK" -> 2;
+            case "FRONT_BACK" -> (byte) StructureMirror.X.ordinal();
+            case "LEFT_RIGHT" -> (byte) StructureMirror.Z.ordinal();
             default -> 0; // Or NONE
         };
         builder.putByte("mirror", bedrockMirror);
