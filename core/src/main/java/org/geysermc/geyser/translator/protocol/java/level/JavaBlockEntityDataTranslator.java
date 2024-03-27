@@ -28,9 +28,16 @@ package org.geysermc.geyser.translator.protocol.java.level;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundBlockEntityDataPacket;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
+import org.cloudburstmc.protocol.bedrock.data.structure.StructureAnimationMode;
+import org.cloudburstmc.protocol.bedrock.data.structure.StructureMirror;
+import org.cloudburstmc.protocol.bedrock.data.structure.StructureRotation;
+import org.cloudburstmc.protocol.bedrock.data.structure.StructureSettings;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.level.block.BlockStateValues;
@@ -41,6 +48,7 @@ import org.geysermc.geyser.translator.level.block.entity.SkullBlockEntityTransla
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.BlockEntityUtils;
+import org.geysermc.geyser.util.StructureBlockUtils;
 
 @Translator(packet = ClientboundBlockEntityDataPacket.class)
 public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundBlockEntityDataPacket> {
@@ -95,5 +103,66 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
             openPacket.setUniqueEntityId(-1);
             session.sendUpstreamPacket(openPacket);
         }
+
+        // When a Java client is trying to load a structure, it expects the server to send it the size of the structure.
+        // On 1.20.4, the server does so here - we can pass that through to Bedrock, so we're properly selecting the area.
+        if (type == BlockEntityType.STRUCTURE_BLOCK && session.getGameMode() == GameMode.CREATIVE &&
+                packet.getPosition().equals(session.getCurrentStructureBlock()) && packet.getNbt() != null && packet.getNbt().size() > 5) {
+            CompoundTag map = packet.getNbt();
+
+            String mode = getOrDefault(map.get("mode"), "");
+            if (!mode.equalsIgnoreCase("LOAD")) {
+                return;
+            }
+
+            String mirror = getOrDefault(map.get("mirror"), "");
+            byte bedrockMirror = switch (mirror) {
+                case "LEFT_RIGHT" -> 1;
+                case "FRONT_BACK" -> 2;
+                default -> 0; // Or NONE
+            };
+
+            String rotation = getOrDefault(map.get("rotation"), "");
+            byte bedrockRotation = switch (rotation) {
+                case "CLOCKWISE_90" -> 1;
+                case "CLOCKWISE_180" -> 2;
+                case "COUNTERCLOCKWISE_90" -> 3;
+                default -> 0; // Or NONE keep it as 0
+            };
+
+            // The "positions" are also offsets on Java
+            int posX = getOrDefault(map.get("posX"), 0);
+            int posZ = getOrDefault(map.get("posZ"), 0);
+
+            Vector3i[] sizeAndOffset = StructureBlockUtils.addOffsets(bedrockRotation, bedrockMirror,
+                    getOrDefault(map.get("sizeX"), 0), getOrDefault(map.get("sizeY"), 0),
+                    getOrDefault(map.get("sizeZ"), 0), posX, getOrDefault(map.get("posY"), 0), posZ);
+
+            String name = getOrDefault(map.get("name"), "");
+
+            Vector3i size = sizeAndOffset[1];
+            StructureBlockUtils.sendStructureData(session, size.getX(), size.getY(), size.getZ(), name);
+
+            // Create dummy structure settings that store size, offset, mirror and rotation.
+            StructureSettings settings = new StructureSettings("",
+                    false,
+                    false,
+                    false,
+                    size,
+                    sizeAndOffset[0],
+                    -1,
+                    StructureRotation.from(bedrockRotation),
+                    StructureMirror.from(bedrockMirror),
+                    StructureAnimationMode.NONE,
+                    0, 0, 0, Vector3f.ZERO);
+            session.setStructureSettings(settings);
+            session.setCurrentStructureBlock(null);
+        }
+    }
+
+
+    protected <T> T getOrDefault(Tag tag, T defaultValue) {
+        //noinspection unchecked
+        return (tag != null && tag.getValue() != null) ? (T) tag.getValue() : defaultValue;
     }
 }

@@ -90,6 +90,7 @@ import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.structure.StructureSettings;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.cloudburstmc.protocol.common.util.OptionalBoolean;
@@ -601,6 +602,19 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private @Nullable ItemData currentBook = null;
+
+    /**
+     * Stores the current structure block position, if we are in one
+     */
+    @Setter @Getter
+    private @Nullable Vector3i currentStructureBlock;
+
+    /**
+     * Is stored so we know which rotation/mirror offsetting to undo when sending
+     * the structure load request to the Java server.
+     */
+    @Setter @Getter
+    private @Nullable StructureSettings structureSettings;
 
     private final GeyserCameraData cameraData;
 
