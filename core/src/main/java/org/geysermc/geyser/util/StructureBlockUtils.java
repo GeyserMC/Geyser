@@ -37,6 +37,7 @@ import org.cloudburstmc.protocol.bedrock.data.structure.StructureTemplateRespons
 import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataResponsePacket;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.ChatColor;
 
 public class StructureBlockUtils {
 
@@ -79,57 +80,73 @@ public class StructureBlockUtils {
             return new Vector3i[] {newSettings.getOffset(), newSettings.getSize()};
         }
 
-        // Remove offsets for old
-        return removeOffset(old.getRotation(), old.getMirror(), old.getOffset(), old.getSize());
-
-        // Remove offsets for new
-        //return removeOffset(newSettings.getRotation(), newSettings.getMirror(), temp[0], temp[1]);
-
-    }
-
-    private static Vector3i[] removeOffset(StructureRotation rotation, StructureMirror mirror,
-                                                    Vector3i offset, Vector3i size) {
-        int sizeX = size.getX();
-        int sizeY = size.getY();
-        int sizeZ = size.getZ();
+        Vector3i offset = old.getOffset();
+        Vector3i size = old.getSize();
 
         int offsetX = offset.getX();
-        int offsetY = offset.getY();
         int offsetZ = offset.getZ();
 
-        // Undo mirror/rotation changes
-        switch (rotation) {
-            case NONE:
-                break;
-            case ROTATE_90:
-                int tempX = offsetX;
-                offsetX = offsetZ;
-                offsetZ = sizeX - 1 - tempX;
-                int tempSizeX = sizeX;
-                sizeX = sizeZ;
-                sizeZ = tempSizeX;
-                break;
-            case ROTATE_180:
-                offsetX = sizeX - 1 - offsetX;
-                offsetZ = sizeZ - 1 - offsetZ;
-                break;
-            case ROTATE_270:
-                int tempY = offsetY;
-                offsetY = offsetZ;
-                offsetZ = sizeZ - 1 - tempY;
-                int tempSizeZ = sizeZ;
-                sizeZ = sizeX;
-                sizeX = tempSizeZ;
-                break;
+        // First: Let's get the original size. It's not modified when rotating, just with mirroring
+        int originalSizeX = size.getX();
+        int originalSizeZ = size.getZ();
+
+        switch (old.getMirror()) {
+            case X -> {
+                originalSizeX *= -1;
+                offsetX = offsetX - originalSizeX;
+            }
+            case Z -> {
+                originalSizeZ *= -1;
+                offsetZ = offsetZ - originalSizeZ;
+            }
+            case XZ -> session.sendMessage(ChatColor.RED + "Mirroring on both axis is not possible on Java. Not mirroring!");
         }
 
-        if (mirror == StructureMirror.Z) {
-            offsetX = sizeX - 1 - offsetX;
-        } else if (mirror == StructureMirror.X) {
-            offsetZ = sizeZ - 1 - offsetZ;
+        switch (old.getRotation()) {
+            case ROTATE_90 -> {
+                if (originalSizeX >= 0) {
+                    offsetX -= 1;
+                }
+                if (originalSizeZ < 0) {
+                    offsetZ -= 1;
+                }
+                offsetX += originalSizeZ;
+            }
+            case ROTATE_180 -> {
+                if (originalSizeX >= 0) {
+                    offsetX -= 1;
+                }
+                if (originalSizeZ >= 0) {
+                    offsetZ -= 1;
+                }
+                offsetX += originalSizeX;
+                offsetZ += originalSizeZ;
+            }
+            case ROTATE_270 -> {
+                if (originalSizeX < 0) {
+                    offsetX -= 1;
+                }
+                if (originalSizeZ >= 0) {
+                    offsetZ -= 1;
+                }
+                offsetZ += originalSizeX;
+            }
+            default -> {
+                if (originalSizeX < 0) {
+                    offsetX -= 1;
+                }
+                if (originalSizeZ < 0) {
+                    offsetZ -= 1;
+                }
+            }
         }
 
-        return new Vector3i[]{Vector3i.from(offsetX, offsetY, offsetZ), Vector3i.from(sizeX, sizeY, sizeZ)};
+        Vector3i originalOffset = Vector3i.from(offsetX, offset.getY(), offsetZ);
+        Vector3i originalSize = Vector3i.from(originalSizeX, size.getY(), originalSizeZ);
+
+        return new Vector3i[]{originalOffset, originalSize};
+
+
     }
 
     public static Vector3i[] addOffsets(byte bedrockRotation, byte bedrockMirror,
@@ -187,6 +204,9 @@ public class StructureBlockUtils {
             }
         }
 
-        return new Vector3i[]{Vector3i.from(offsetX, offsetY, offsetZ), Vector3i.from(newXStructureSize, sizeY, newZStructureSize)};
+        Vector3i offset = Vector3i.from(offsetX, offsetY, offsetZ);
+        Vector3i size = Vector3i.from(newXStructureSize, sizeY, newZStructureSize);
+
+        return new Vector3i[]{offset, size};
     }
 }

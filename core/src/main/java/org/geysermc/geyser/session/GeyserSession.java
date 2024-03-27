@@ -610,8 +610,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private @Nullable Vector3i currentStructureBlock;
 
     /**
-     * Stores current structure block settings so we know what rotation to undo
-     * if Bedrock decides to change the rotation
+     * Is stored so we know which rotation/mirror offsetting to undo when sending
+     * the structure load request to the Java server.
      */
     @Setter @Getter
     private @Nullable StructureSettings structureSettings;

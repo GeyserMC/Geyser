@@ -33,14 +33,14 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.Ser
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureTemplateRequestOperation;
 import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataRequestPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.StructureBlockUtils;
 
 /**
- * Packet used in Bedrock to load structure size into the structure block GUI.
+ * Packet used in Bedrock to load structure size into the structure block GUI. It is sent every time the GUI is opened.
+ * Or, if the player updates the structure name. Which we can use to request the structure size from the Java server!
  * <p>
  * Java does not have this preview, instead, Java clients are forced out of the GUI to look at the area.
  */
@@ -49,14 +49,10 @@ public class BedrockStructureTemplateDataRequestTranslator extends PacketTransla
 
     @Override
     public void translate(GeyserSession session, StructureTemplateDataRequestPacket packet) {
-        // This packet is actually rather neat. Each time Bedrock players open the structure block,
-        // it is sent. Which allows us to cache what rotation operation we might need to (un)do :p
-        GeyserImpl.getInstance().getLogger().info(packet.toString());
         if (packet.getOperation().equals(StructureTemplateRequestOperation.QUERY_SAVED_STRUCTURE)) {
             // If we send a load packet to the Java server when the structure size is known, we place the structure.
             if (!packet.getSettings().getSize().equals(Vector3i.ZERO)) {
                 if (session.getStructureSettings() == null) {
-                    // This ensures we don't add more rotation offsetting than needed
                     session.setStructureSettings(packet.getSettings());
                 }
                 // Otherwise, the Bedrock client can't load the structure in

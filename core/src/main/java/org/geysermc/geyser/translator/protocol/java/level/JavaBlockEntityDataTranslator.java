@@ -104,8 +104,8 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
             session.sendUpstreamPacket(openPacket);
         }
 
-        // On Java edition, if we are trying to load a structure, we expect the server to send us the size of the structure.
-        // On 1.20.4, the server does here - we can pass that through to Bedrock so we're properly selecting the area selection
+        // When a Java client is trying to load a structure, it expects the server to send it the size of the structure.
+        // On 1.20.4, the server does so here - we can pass that through to Bedrock, so we're properly selecting the area.
         if (type == BlockEntityType.STRUCTURE_BLOCK && session.getGameMode() == GameMode.CREATIVE &&
                 packet.getPosition().equals(session.getCurrentStructureBlock()) && packet.getNbt() != null && packet.getNbt().size() > 5) {
             CompoundTag map = packet.getNbt();
@@ -143,12 +143,13 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
             Vector3i size = sizeAndOffset[1];
             StructureBlockUtils.sendStructureData(session, size.getX(), size.getY(), size.getZ(), name);
 
+            // Create dummy structure settings that store size, offset, mirror and rotation.
             StructureSettings settings = new StructureSettings("",
                     false,
                     false,
                     false,
                     size,
-                    sizeAndOffset[1],
+                    sizeAndOffset[0],
                     -1,
                     StructureRotation.from(bedrockRotation),
                     StructureMirror.from(bedrockMirror),

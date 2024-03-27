@@ -87,72 +87,15 @@ public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
                 xStructureSize, getOrDefault(tag.get("sizeY"), 0), zStructureSize,
                 posX, getOrDefault(tag.get("posY"), 0), posZ);
 
-        /*
-
-        int newXStructureSize = xStructureSize;
-        int newZStructureSize = zStructureSize;
-
-        // Modify positions if mirrored - Bedrock doesn't have this
-        if (bedrockMirror == (byte) StructureMirror.Z.ordinal()) {
-            posX = posX + xStructureSize;
-            newXStructureSize = xStructureSize * -1;
-        } else if (bedrockMirror == (byte) StructureMirror.X.ordinal()) {
-            posZ = posZ + zStructureSize;
-            newZStructureSize = zStructureSize * -1;
-        }
-
-        // Bedrock rotates with the same origin; Java does not
-        StructureRotation structureRotation = StructureRotation.values()[bedrockRotation];
-        switch (structureRotation) {
-            case ROTATE_90 -> {
-                if (xStructureSize >= 0) {
-                    posX += 1;
-                }
-                if (zStructureSize < 0) {
-                    posZ += 1;
-                }
-                posX -= zStructureSize;
-            }
-            case ROTATE_180 -> {
-                if (xStructureSize >= 0) {
-                    posX += 1;
-                }
-                if (zStructureSize >= 0) {
-                    posZ += 1;
-                }
-                posX -= xStructureSize;
-                posZ -= zStructureSize;
-            }
-            case ROTATE_270 -> {
-                if (xStructureSize < 0) {
-                    posX += 1;
-                }
-                if (zStructureSize >= 0) {
-                    posZ += 1;
-                }
-                posZ -= xStructureSize;
-            }
-            default -> {
-                if (xStructureSize < 0) {
-                    posX += 1;
-                }
-                if (zStructureSize < 0) {
-                    posZ += 1;
-                }
-            }
-        }
-
-         */
+        Vector3i offset = sizeAndOffset[0];
+        builder.putInt("xStructureOffset", offset.getX());
+        builder.putInt("yStructureOffset", offset.getY());
+        builder.putInt("zStructureOffset", offset.getZ());
 
         Vector3i size = sizeAndOffset[1];
         builder.putInt("xStructureSize", size.getX());
         builder.putInt("yStructureSize", size.getY());
         builder.putInt("zStructureSize", size.getZ());
-
-        Vector3i offset = sizeAndOffset[0];
-        builder.putInt("xStructureOffset", offset.getX());
-        builder.putInt("yStructureOffset", offset.getY());
-        builder.putInt("zStructureOffset", offset.getZ());
 
         builder.putFloat("integrity", getOrDefault(tag.get("integrity"), 0f)); // Is 1.0f by default on Java but 100.0f on Bedrock
 

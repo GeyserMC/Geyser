@@ -35,7 +35,6 @@ import org.cloudburstmc.protocol.bedrock.data.structure.StructureBlockType;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureEditorData;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureSettings;
 import org.cloudburstmc.protocol.bedrock.packet.StructureBlockUpdatePacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -46,7 +45,6 @@ public class BedrockStructureBlockUpdateTranslator extends PacketTranslator<Stru
 
     @Override
     public void translate(GeyserSession session, StructureBlockUpdatePacket packet) {
-        GeyserImpl.getInstance().getLogger().info(packet.toString());
         StructureEditorData data = packet.getEditorData();
         StructureSettings settings = data.getSettings();
 
@@ -66,10 +64,9 @@ public class BedrockStructureBlockUpdateTranslator extends PacketTranslator<Stru
             default -> UpdateStructureBlockMode.SAVE;
         };
 
-        // Ignore mirror - Java appears to mirror on an axis, while Bedrock mirrors in place
         StructureMirror mirror = switch (data.getSettings().getMirror()) {
             case X -> StructureMirror.FRONT_BACK;
-            case XZ -> StructureMirror.LEFT_RIGHT;
+            case Z -> StructureMirror.LEFT_RIGHT;
             default -> StructureMirror.NONE;
         };
 
