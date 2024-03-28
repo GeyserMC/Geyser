@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,8 @@ import org.cloudburstmc.protocol.bedrock.data.skin.ImageData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerSkinPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.skin.Skin;
+import org.geysermc.geyser.api.skin.SkinData;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -50,14 +52,14 @@ public class SkullSkinManager extends SkinManager {
     }
 
     public static void requestAndHandleSkin(SkullPlayerEntity entity, GeyserSession session,
-                                            Consumer<SkinProvider.Skin> skinConsumer) {
-        BiConsumer<SkinProvider.Skin, Throwable> applySkin = (skin, throwable) -> {
+                                            Consumer<Skin> skinConsumer) {
+        BiConsumer<Skin, Throwable> applySkin = (skin, throwable) -> {
             try {
                 PlayerSkinPacket packet = new PlayerSkinPacket();
                 packet.setUuid(entity.getUuid());
                 packet.setOldSkinName("");
-                packet.setNewSkinName(skin.getTextureUrl());
-                packet.setSkin(buildSkullEntryManually(skin.getTextureUrl(), skin.getSkinData()));
+                packet.setNewSkinName(skin.textureUrl());
+                packet.setSkin(buildSkullEntryManually(skin.textureUrl(), skin.skinData()));
                 packet.setTrustedSkin(true);
                 session.sendUpstreamPacket(packet);
             } catch (Exception e) {
@@ -74,7 +76,7 @@ public class SkullSkinManager extends SkinManager {
             GeyserImpl.getInstance().getLogger().debug("Using fallback skin for skull at " + entity.getSkullPosition() +
                     " with texture value: " + entity.getTexturesProperty() + " and UUID: " + entity.getSkullUUID());
             // No texture available, fallback using the UUID
-            SkinProvider.SkinData fallback = SkinProvider.determineFallbackSkinData(entity.getSkullUUID());
+            SkinData fallback = SkinProvider.determineFallbackSkinData(entity.getSkullUUID());
             applySkin.accept(fallback.skin(), null);
         } else {
             SkinProvider.requestSkin(entity.getUuid(), data.skinUrl(), true)
