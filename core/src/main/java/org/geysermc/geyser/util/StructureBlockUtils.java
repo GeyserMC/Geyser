@@ -36,7 +36,6 @@ import org.cloudburstmc.protocol.bedrock.data.structure.StructureSettings;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureTemplateResponseType;
 import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataResponsePacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 
 public class StructureBlockUtils {
@@ -250,10 +249,6 @@ public class StructureBlockUtils {
                         offsetZ += sizeX;
                     }
                     case Z -> {
-                        GeyserImpl.getInstance().getLogger().info("current offsets: " +
-                                offsetX + " " + offsetY + " " + offsetZ);
-                        GeyserImpl.getInstance().getLogger().info("size: " +
-                                sizeX + " " + sizeY + " " + sizeZ);
                         newZStructureSize = sizeZ * -1;
                         newXStructureSize = sizeX * -1;
                         offsetZ += sizeX + 1;
