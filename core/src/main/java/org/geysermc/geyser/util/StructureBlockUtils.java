@@ -77,7 +77,6 @@ public class StructureBlockUtils {
         StructureSettings old = session.getStructureSettings();
 
         if (old == null) {
-            GeyserImpl.getInstance().getLogger().info("old structure null");
             return new Vector3i[] {newSettings.getOffset(), newSettings.getSize()};
         }
 
@@ -91,47 +90,85 @@ public class StructureBlockUtils {
         int originalSizeX = size.getX();
         int originalSizeZ = size.getZ();
 
-        switch (old.getMirror()) {
-            case Z -> {
-                originalSizeX *= -1;
-                offsetX = offsetX - originalSizeX - 1;
-            }
-            case X -> {
-                originalSizeZ *= -1;
-                offsetZ = offsetZ - originalSizeZ - 1;
-            }
-        }
+        StructureMirror structureMirror = old.getMirror();
+        StructureRotation structureRotation = old.getRotation();
 
-        switch (old.getRotation()) {
+        switch (structureRotation) {
             case ROTATE_90 -> {
-                if (originalSizeX >= 0) {
-                    offsetX -= 1;
+                switch (structureMirror) {
+                    case NONE -> {
+                        originalSizeZ *= -1;
+                        if (originalSizeX >= 0) {
+                            offsetX -= 1;
+                        }
+                        if (originalSizeZ < 0) {
+                            offsetZ -= 1;
+                        }
+                        offsetX -= originalSizeZ;
+                    }
+                    case X -> {
+                        originalSizeZ *= -1;
+                        originalSizeX *= -1;
+                        offsetZ -= originalSizeX + 1;
+                        offsetX -= 2 * originalSizeX;
+                    }
                 }
-                if (originalSizeZ < 0) {
-                    offsetZ -= 1;
-                }
-                offsetX += originalSizeZ;
             }
             case ROTATE_180 -> {
-                if (originalSizeX >= 0) {
-                    offsetX -= 1;
+                switch (structureMirror) {
+                    case NONE -> {
+                        originalSizeZ *= -1;
+                        originalSizeX *= -1;
+                        if (originalSizeX >= 0) {
+                            offsetX -= 1;
+                        }
+                        if (originalSizeZ >= 0) {
+                            offsetZ -= 1;
+                        }
+                        offsetX -= originalSizeX;
+                        offsetZ -= originalSizeZ;
+                    }
+                    case Z -> {
+                        originalSizeX *= -1;
+                        offsetX -= originalSizeX + 1;
+                    }
+                    case X -> {
+                        originalSizeZ *= -1;
+                        offsetZ -= originalSizeZ + 1;
+                    }
                 }
-                if (originalSizeZ >= 0) {
-                    offsetZ -= 1;
-                }
-                offsetX += originalSizeX;
-                offsetZ += originalSizeZ;
             }
             case ROTATE_270 -> {
-                if (originalSizeX < 0) {
-                    offsetX -= 1;
+                switch (structureMirror) {
+                    case NONE -> {
+                        originalSizeX *= -1;
+                        if (originalSizeX < 0) {
+                            offsetX -= 1;
+                        }
+                        if (originalSizeZ >= 0) {
+                            offsetZ -= 1;
+                        }
+                        offsetZ -= originalSizeX;
+                    }
+                    case Z -> {
+                        originalSizeZ *= -1;
+                        originalSizeX *= -1;
+                        offsetZ -= originalSizeX + 1;
+                        offsetX -= originalSizeZ + 1;
+                    }
                 }
-                if (originalSizeZ >= 0) {
-                    offsetZ -= 1;
-                }
-                offsetZ += originalSizeX;
             }
             default -> {
+                switch (structureMirror) {
+                    case Z -> {
+                        originalSizeZ *= -1;
+                        offsetZ = offsetZ - originalSizeZ - 1;
+                    }
+                    case X -> {
+                        originalSizeX *= -1;
+                        offsetX = offsetX - originalSizeX - 1;
+                    }
+                }
                 if (originalSizeX < 0) {
                     offsetX -= 1;
                 }
@@ -148,51 +185,93 @@ public class StructureBlockUtils {
     }
 
     public static Vector3i[] addOffsets(byte bedrockRotation, byte bedrockMirror,
-            int sizeX, int sizeY, int sizeZ, int offsetX, int offsetY, int offsetZ) {
+                                        int sizeX, int sizeY, int sizeZ, int offsetX, int offsetY, int offsetZ) {
         int newXStructureSize = sizeX;
         int newZStructureSize = sizeZ;
 
-        // Modify positions if mirrored - Bedrock doesn't have this
-        if (bedrockMirror == (byte) StructureMirror.Z.ordinal()) {
-            offsetX = offsetX + sizeX + 1;
-            newXStructureSize = sizeX * -1;
-        } else if (bedrockMirror == (byte) StructureMirror.X.ordinal()) {
-            offsetZ = offsetZ + sizeZ + 1;
-            newZStructureSize = sizeZ * -1;
-        }
-
-        // Bedrock rotates with the same origin; Java does not
+        StructureMirror structureMirror = StructureMirror.values()[bedrockMirror];
         StructureRotation structureRotation = StructureRotation.values()[bedrockRotation];
+
         switch (structureRotation) {
             case ROTATE_90 -> {
-                if (sizeX >= 0) {
-                    offsetX += 1;
+                switch (structureMirror) {
+                    case NONE -> {
+                        newZStructureSize = sizeZ * -1;
+                        if (sizeX >= 0) {
+                            offsetX += 1;
+                        }
+                        if (sizeZ < 0) {
+                            offsetZ += 1;
+                        }
+                        offsetX += sizeZ;
+                    }
+                    case X -> {
+                        newXStructureSize = sizeX * -1;
+                        newZStructureSize = sizeZ * -1;
+                        offsetZ += sizeX + 1;
+                        offsetX += 2 * sizeX;
+                    }
                 }
-                if (sizeZ < 0) {
-                    offsetZ += 1;
-                }
-                offsetX -= sizeZ;
             }
             case ROTATE_180 -> {
-                if (sizeX >= 0) {
-                    offsetX += 1;
+                switch (structureMirror) {
+                    case NONE -> {
+                        newZStructureSize = sizeZ * -1;
+                        newXStructureSize = sizeX * -1;
+                        if (sizeX >= 0) {
+                            offsetX += 1;
+                        }
+                        if (sizeZ >= 0) {
+                            offsetZ += 1;
+                        }
+                        offsetX += sizeX;
+                        offsetZ += sizeZ;
+                    }
+                    case Z -> {
+                        newXStructureSize = sizeX * -1;
+                        offsetX += sizeX + 1;
+                    }
+                    case X -> {
+                        newZStructureSize = sizeZ * -1;
+                        offsetZ += sizeZ + 1;
+                    }
                 }
-                if (sizeZ >= 0) {
-                    offsetZ += 1;
-                }
-                offsetX -= sizeX;
-                offsetZ -= sizeZ;
             }
             case ROTATE_270 -> {
-                if (sizeX < 0) {
-                    offsetX += 1;
+                switch (structureMirror) {
+                    case NONE -> {
+                        newXStructureSize = sizeX * -1;
+                        if (sizeX < 0) {
+                            offsetX += 1;
+                        }
+                        if (sizeZ >= 0) {
+                            offsetZ += 1;
+                        }
+                        offsetZ += sizeX;
+                    }
+                    case Z -> {
+                        GeyserImpl.getInstance().getLogger().info("current offsets: " +
+                                offsetX + " " + offsetY + " " + offsetZ);
+                        GeyserImpl.getInstance().getLogger().info("size: " +
+                                sizeX + " " + sizeY + " " + sizeZ);
+                        newZStructureSize = sizeZ * -1;
+                        newXStructureSize = sizeX * -1;
+                        offsetZ += sizeX + 1;
+                        offsetX += sizeZ + 1;
+                    }
                 }
-                if (sizeZ >= 0) {
-                    offsetZ += 1;
-                }
-                offsetZ -= sizeX;
             }
             default -> {
+                switch (structureMirror) {
+                    case Z -> {
+                        offsetZ = offsetZ + sizeZ + 1;
+                        newZStructureSize = sizeZ * -1;
+                    }
+                    case X -> {
+                        offsetX = offsetX + sizeX + 1;
+                        newXStructureSize = sizeX * -1;
+                    }
+                }
                 if (sizeX < 0) {
                     offsetX += 1;
                 }
