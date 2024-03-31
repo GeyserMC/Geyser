@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.event.connection;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.event.Cancellable;
 import org.geysermc.event.Event;
 
@@ -40,7 +41,7 @@ public final class ConnectionRequestEvent implements Event, Cancellable {
     private final InetSocketAddress ip;
     private final InetSocketAddress proxyIp;
 
-    public ConnectionRequestEvent(@NonNull InetSocketAddress ip, @NonNull InetSocketAddress proxyIp) {
+    public ConnectionRequestEvent(@NonNull InetSocketAddress ip, @Nullable InetSocketAddress proxyIp) {
         this.ip = ip;
         this.proxyIp = proxyIp;
     }
@@ -54,9 +55,9 @@ public final class ConnectionRequestEvent implements Event, Cancellable {
     }
 
     /**
-     * @return the IP address of the proxy handling the connection, if available, otherwise also the client IP.
+     * @return the IP address of the proxy handling the connection, otherwise null if there is no proxy.
      */
-    @NonNull
+    @Nullable
     public InetSocketAddress getProxyIp() {
         return proxyIp;
     }
