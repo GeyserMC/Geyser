@@ -213,19 +213,15 @@ public final class GeyserServer {
         playerGroup = serverInitializer.getEventLoopGroup();
         this.geyser.getLogger().debug("Setting MTU to " + this.geyser.getConfig().getMtu());
 
-        String geyserRakPacketLimit = System.getProperty("Geyser.RakPacketLimit");
-        int rakPacketLimit = geyserRakPacketLimit != null ? Integer.parseInt(geyserRakPacketLimit) : DEFAULT_PACKET_LIMIT;
+        int rakPacketLimit = positivePropOrDefault("Geyser.RakPacketLimit", DEFAULT_PACKET_LIMIT);
         this.geyser.getLogger().debug("Setting RakNet packet limit to " + rakPacketLimit);
 
-        String geyserRakOfflinePacketLimit = System.getProperty("Geyser.RakOfflinePacketLimit");
         boolean isWhitelistedProxyProtocol = this.geyser.getConfig().getBedrock().isEnableProxyProtocol() 
             && !this.geyser.getConfig().getBedrock().getProxyProtocolWhitelistedIPs().isEmpty();
-        int rakOfflinePacketLimit = geyserRakOfflinePacketLimit != null ? Integer.parseInt(geyserRakOfflinePacketLimit)
-            : isWhitelistedProxyProtocol ? Integer.MAX_VALUE : DEFAULT_OFFLINE_PACKET_LIMIT;
+        int rakOfflinePacketLimit = positivePropOrDefault("Geyser.RakOfflinePacketLimit", isWhitelistedProxyProtocol ? Integer.MAX_VALUE : DEFAULT_OFFLINE_PACKET_LIMIT);
         this.geyser.getLogger().debug("Setting RakNet offline packet limit to " + rakOfflinePacketLimit);
 
-        String geyserRakGlobalPacketLimit = System.getProperty("Geyser.RakGlobalPacketLimit");
-        int rakGlobalPacketLimit = geyserRakGlobalPacketLimit != null ? Integer.parseInt(geyserRakGlobalPacketLimit) : DEFAULT_GLOBAL_PACKET_LIMIT;
+        int rakGlobalPacketLimit = positivePropOrDefault("Geyser.RakGlobalPacketLimit", DEFAULT_GLOBAL_PACKET_LIMIT);
         this.geyser.getLogger().debug("Setting RakNet global packet limit to " + rakGlobalPacketLimit);
 
         return new ServerBootstrap()
@@ -381,6 +377,27 @@ public final class GeyserServer {
             return supplier.get();
         } catch (Throwable throwable) {
             return throwable;
+        }
+    }
+
+    private static int positivePropOrDefault(String property, int defaultValue) {
+        String value = System.getProperty(property);
+        try {
+            int parsed = value != null ? Integer.parseInt(value) : defaultValue;
+
+            if (parsed < 1) {
+                GeyserImpl.getInstance().getLogger().warning(
+                    "Non-postive integer value for " + property + ": " + value + ". Using default value: " + defaultValue
+                );
+                return defaultValue;
+            }
+
+            return parsed;
+        } catch (NumberFormatException e) {
+            GeyserImpl.getInstance().getLogger().warning(
+                "Invalid integer value for " + property + ": " + value + ". Using default value: " + defaultValue
+            );
+            return defaultValue;
         }
     }
 
