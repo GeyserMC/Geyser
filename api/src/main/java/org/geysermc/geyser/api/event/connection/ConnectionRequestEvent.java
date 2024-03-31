@@ -29,15 +29,17 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Cancellable;
 import org.geysermc.event.Event;
 
+import java.net.InetSocketAddress;
+
 /**
  * Called whenever a client attempts to connect to the server, before the connection is accepted.
  */
 public final class ConnectionRequestEvent implements Event, Cancellable {
 
     private boolean cancelled;
-    private final String ip;
+    private final InetSocketAddress ip;
 
-    public ConnectionRequestEvent(@NonNull String ip) {
+    public ConnectionRequestEvent(@NonNull InetSocketAddress ip) {
         this.ip = ip;
     }
 
@@ -45,7 +47,7 @@ public final class ConnectionRequestEvent implements Event, Cancellable {
      * @return the IP address of the client attempting to connect.
      */
     @NonNull
-    public String getIp() {
+    public InetSocketAddress getInetSocketAddress() {
         return ip;
     }
 
