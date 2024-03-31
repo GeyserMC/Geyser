@@ -48,6 +48,7 @@ import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
 import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerOfflineHandler;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.event.connection.ConnectionRequestEvent;
 import org.geysermc.geyser.command.defaults.ConnectionTestCommand;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.event.type.GeyserBedrockPingEventImpl;
@@ -233,6 +234,13 @@ public final class GeyserServer {
         } else {
             ip = "<IP address withheld>";
         }
+
+        ConnectionRequestEvent requestEvent = new ConnectionRequestEvent(ip);
+        geyser.eventBus().fire(requestEvent);
+        if (requestEvent.isCancelled()) {
+            return false;
+        }
+
         geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.attempt_connect", ip));
         return true;
     }
