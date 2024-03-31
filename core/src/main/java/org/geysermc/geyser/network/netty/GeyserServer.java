@@ -235,7 +235,7 @@ public final class GeyserServer {
             ip = "<IP address withheld>";
         }
 
-        ConnectionRequestEvent requestEvent = new ConnectionRequestEvent(inetSocketAddress);
+        ConnectionRequestEvent requestEvent = new ConnectionRequestEvent(inetSocketAddress, this.proxiedAddresses.getOrDefault(inetSocketAddress, inetSocketAddress));
         geyser.eventBus().fire(requestEvent);
         if (requestEvent.isCancelled()) {
             geyser.getLogger().debug("Connection request from " + ip + " was cancelled using the API!");

@@ -38,9 +38,11 @@ public final class ConnectionRequestEvent implements Event, Cancellable {
 
     private boolean cancelled;
     private final InetSocketAddress ip;
+    private final InetSocketAddress proxyIp;
 
-    public ConnectionRequestEvent(@NonNull InetSocketAddress ip) {
+    public ConnectionRequestEvent(@NonNull InetSocketAddress ip, @NonNull InetSocketAddress proxyIp) {
         this.ip = ip;
+        this.proxyIp = proxyIp;
     }
 
     /**
@@ -52,13 +54,26 @@ public final class ConnectionRequestEvent implements Event, Cancellable {
     }
 
     /**
-     * @return the cancel status of this event. If this event is cancelled, the connection will be rejected.
+     * @return the IP address of the proxy handling the connection, if available, otherwise also the client IP.
+     */
+    @NonNull
+    public InetSocketAddress getProxyIp() {
+        return proxyIp;
+    }
+
+    /**
+     * @return the cancel status of this event. If this event is canceled, the connection will be rejected.
      */
     @Override
     public boolean isCancelled() {
         return cancelled;
     }
 
+    /**
+     * Sets the cancel status of this event. If this event is canceled, the connection will be rejected.
+     *
+     * @param cancelled the cancel status of this event.
+     */
     @Override
     public void setCancelled(boolean cancelled) {
         this.cancelled = cancelled;
