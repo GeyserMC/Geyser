@@ -55,7 +55,9 @@ public final class ConnectionRequestEvent implements Event, Cancellable {
     }
 
     /**
-     * @return the IP address of the proxy handling the connection, otherwise null if there is no proxy.
+     * The IP address of the proxy handling the connection. It will return null if there is no proxy.
+     *
+     * @return the IP address of the proxy handling the connection
      */
     @Nullable
     public InetSocketAddress getProxyIp() {
