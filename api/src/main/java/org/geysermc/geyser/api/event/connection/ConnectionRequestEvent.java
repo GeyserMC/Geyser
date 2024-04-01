@@ -65,7 +65,9 @@ public final class ConnectionRequestEvent implements Event, Cancellable {
     }
 
     /**
-     * @return the cancel status of this event. If this event is canceled, the connection will be rejected.
+     * The cancel status of this event. If this event is cancelled, the connection will be rejected.
+     *
+     * @return the cancel status of this event
      */
     @Override
     public boolean isCancelled() {
