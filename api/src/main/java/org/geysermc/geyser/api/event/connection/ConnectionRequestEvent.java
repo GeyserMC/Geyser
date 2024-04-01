@@ -47,7 +47,9 @@ public final class ConnectionRequestEvent implements Event, Cancellable {
     }
 
     /**
-     * @return the IP address of the client attempting to connect.
+     * The IP address of the client attempting to connect
+     *
+     * @return the IP address of the client attempting to connect
      */
     @NonNull
     public InetSocketAddress getInetSocketAddress() {
