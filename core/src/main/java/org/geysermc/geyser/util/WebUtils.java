@@ -40,6 +40,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class WebUtils {
 
@@ -176,6 +177,13 @@ public class WebUtils {
         return connectionToString(con);
     }
 
+    /**
+     * Find a SRV record for the given address
+     *
+     * @param geyser Geyser instance
+     * @param remoteAddress Address to find the SRV record for
+     * @return The SRV record or null if not found
+     */
     public static String @Nullable [] findSrvRecord(GeyserImpl geyser, String remoteAddress) {
         try {
             // Searches for a server address and a port from a SRV record of the specified host name
@@ -192,5 +200,27 @@ public class WebUtils {
             }
         }
         return null;
+    }
+
+    /**
+     * Get a stream of lines from the given URL
+     *
+     * @param reqURL URL to fetch
+     * @return Stream of lines from the URL or an empty stream if the request fails
+     */
+    public static Stream<String> getLineStream(String reqURL) {
+        try {
+            URL url = new URL(reqURL);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION); // Otherwise Java 8 fails on checking updates
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(10000);
+
+            return connectionToString(con).lines();
+        } catch (Exception e) {
+            GeyserImpl.getInstance().getLogger().error("Error while trying to get a stream from " + reqURL, e);
+            return Stream.empty();
+        }
     }
 }

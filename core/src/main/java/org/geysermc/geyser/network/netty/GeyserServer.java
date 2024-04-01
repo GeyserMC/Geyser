@@ -46,6 +46,7 @@ import net.jodah.expiringmap.ExpiringMap;
 import org.cloudburstmc.netty.channel.raknet.RakChannelFactory;
 import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
 import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerOfflineHandler;
+import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerRateLimiter;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.defaults.ConnectionTestCommand;
@@ -70,6 +71,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
+
+import static org.cloudburstmc.netty.channel.raknet.RakConstants.DEFAULT_GLOBAL_PACKET_LIMIT;
+import static org.cloudburstmc.netty.channel.raknet.RakConstants.DEFAULT_OFFLINE_PACKET_LIMIT;
+import static org.cloudburstmc.netty.channel.raknet.RakConstants.DEFAULT_PACKET_LIMIT;
 
 public final class GeyserServer {
     private static final boolean PRINT_DEBUG_PINGS = Boolean.parseBoolean(System.getProperty("Geyser.PrintPingsInDebugMode", "true"));
@@ -141,22 +146,30 @@ public final class GeyserServer {
         bootstrapFutures = new ChannelFuture[listenCount];
         for (int i = 0; i < listenCount; i++) {
             ChannelFuture future = bootstrap.bind(address);
-            addHandlers(future);
+            modifyHandlers(future);
             bootstrapFutures[i] = future;
         }
 
         return Bootstraps.allOf(bootstrapFutures);
     }
 
-    private void addHandlers(ChannelFuture future) {
+    private void modifyHandlers(ChannelFuture future) {
         Channel channel = future.channel();
         // Add our ping handler
         channel.pipeline()
                 .addFirst(RakConnectionRequestHandler.NAME, new RakConnectionRequestHandler(this))
                 .addAfter(RakServerOfflineHandler.NAME, RakPingHandler.NAME, new RakPingHandler(this));
+
         // Add proxy handler
-        if (this.geyser.getConfig().getBedrock().isEnableProxyProtocol()) {
+        boolean isProxyProtocol = this.geyser.getConfig().getBedrock().isEnableProxyProtocol();
+        if (isProxyProtocol) {
             channel.pipeline().addFirst("proxy-protocol-decoder", new ProxyServerHandler());
+        }
+
+        boolean isWhitelistedProxyProtocol = isProxyProtocol && !this.geyser.getConfig().getBedrock().getProxyProtocolWhitelistedIPs().isEmpty();
+        if (Boolean.parseBoolean(System.getProperty("Geyser.RakRateLimitingDisabled", "false")) || isWhitelistedProxyProtocol) {
+            // We would already block any non-whitelisted IP addresses in onConnectionRequest so we can remove the rate limiter
+            channel.pipeline().remove(RakServerRateLimiter.NAME);
         }
     }
 
@@ -199,11 +212,26 @@ public final class GeyserServer {
         GeyserServerInitializer serverInitializer = new GeyserServerInitializer(this.geyser);
         playerGroup = serverInitializer.getEventLoopGroup();
         this.geyser.getLogger().debug("Setting MTU to " + this.geyser.getConfig().getMtu());
+
+        int rakPacketLimit = positivePropOrDefault("Geyser.RakPacketLimit", DEFAULT_PACKET_LIMIT);
+        this.geyser.getLogger().debug("Setting RakNet packet limit to " + rakPacketLimit);
+
+        boolean isWhitelistedProxyProtocol = this.geyser.getConfig().getBedrock().isEnableProxyProtocol() 
+            && !this.geyser.getConfig().getBedrock().getProxyProtocolWhitelistedIPs().isEmpty();
+        int rakOfflinePacketLimit = positivePropOrDefault("Geyser.RakOfflinePacketLimit", isWhitelistedProxyProtocol ? Integer.MAX_VALUE : DEFAULT_OFFLINE_PACKET_LIMIT);
+        this.geyser.getLogger().debug("Setting RakNet offline packet limit to " + rakOfflinePacketLimit);
+
+        int rakGlobalPacketLimit = positivePropOrDefault("Geyser.RakGlobalPacketLimit", DEFAULT_GLOBAL_PACKET_LIMIT);
+        this.geyser.getLogger().debug("Setting RakNet global packet limit to " + rakGlobalPacketLimit);
+
         return new ServerBootstrap()
                 .channelFactory(RakChannelFactory.server(TRANSPORT.datagramChannel()))
                 .group(group, childGroup)
                 .option(RakChannelOption.RAK_HANDLE_PING, true)
                 .option(RakChannelOption.RAK_MAX_MTU, this.geyser.getConfig().getMtu())
+                .option(RakChannelOption.RAK_PACKET_LIMIT, rakPacketLimit)
+                .option(RakChannelOption.RAK_OFFLINE_PACKET_LIMIT, rakOfflinePacketLimit)
+                .option(RakChannelOption.RAK_GLOBAL_PACKET_LIMIT, rakGlobalPacketLimit)
                 .childHandler(serverInitializer);
     }
 
@@ -349,6 +377,27 @@ public final class GeyserServer {
             return supplier.get();
         } catch (Throwable throwable) {
             return throwable;
+        }
+    }
+
+    private static int positivePropOrDefault(String property, int defaultValue) {
+        String value = System.getProperty(property);
+        try {
+            int parsed = value != null ? Integer.parseInt(value) : defaultValue;
+
+            if (parsed < 1) {
+                GeyserImpl.getInstance().getLogger().warning(
+                    "Non-postive integer value for " + property + ": " + value + ". Using default value: " + defaultValue
+                );
+                return defaultValue;
+            }
+
+            return parsed;
+        } catch (NumberFormatException e) {
+            GeyserImpl.getInstance().getLogger().warning(
+                "Invalid integer value for " + property + ": " + value + ". Using default value: " + defaultValue
+            );
+            return defaultValue;
         }
     }
 
