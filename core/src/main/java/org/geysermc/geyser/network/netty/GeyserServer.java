@@ -79,6 +79,7 @@ import static org.cloudburstmc.netty.channel.raknet.RakConstants.DEFAULT_PACKET_
 
 public final class GeyserServer {
     private static final boolean PRINT_DEBUG_PINGS = Boolean.parseBoolean(System.getProperty("Geyser.PrintPingsInDebugMode", "true"));
+    private static final boolean PRINT_CONNECTION_ATTEMPTS = Boolean.parseBoolean(System.getProperty("Geyser.PrintConnectionAttempts", "true"));
 
     /*
     The following constants are all used to ensure the ping does not reach a length where it is unparsable by the Bedrock client
@@ -273,7 +274,11 @@ public final class GeyserServer {
             return false;
         }
 
-        geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.attempt_connect", ip));
+        if (PRINT_CONNECTION_ATTEMPTS) {
+            geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.attempt_connect", ip));
+        } else {
+            geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.network.attempt_connect", ip));
+        }
         return true;
     }
 
