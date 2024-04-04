@@ -33,7 +33,6 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 
 public class ArmorItem extends Item {
-    private static final String MINECRAFT_NAMESPACE = "minecraft:";
     private final ArmorMaterial material;
 
     public ArmorItem(String javaIdentifier, ArmorMaterial material, Builder builder) {
@@ -50,8 +49,8 @@ public class ArmorItem extends Item {
             StringTag pattern = trim.remove("pattern");
 
             // discard custom trim patterns/materials to prevent visual glitches on bedrock
-            if (!material.getValue().startsWith(MINECRAFT_NAMESPACE)
-                    || !pattern.getValue().startsWith(MINECRAFT_NAMESPACE)) {
+            if (!material.getValue().startsWith("minecraft:")
+                    || !pattern.getValue().startsWith("minecraft:")) {
                 tag.remove("Trim");
                 return;
             }
