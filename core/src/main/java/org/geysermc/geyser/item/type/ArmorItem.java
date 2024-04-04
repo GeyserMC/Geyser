@@ -52,6 +52,7 @@ public class ArmorItem extends Item {
             // discard custom trim patterns/materials to prevent visual glitches on bedrock
             if (!material.getValue().startsWith(MINECRAFT_NAMESPACE)
                     || !pattern.getValue().startsWith(MINECRAFT_NAMESPACE)) {
+                tag.remove("Trim");
                 return;
             }
 
