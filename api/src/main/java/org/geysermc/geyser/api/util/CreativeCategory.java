@@ -35,7 +35,7 @@ public enum CreativeCategory {
     NATURE("nature", 2),
     EQUIPMENT("equipment", 3),
     ITEMS("items", 4),
-    NONE("none", 5);
+    NONE("none", 6);
 
     private final String internalName;
     private final int id;
