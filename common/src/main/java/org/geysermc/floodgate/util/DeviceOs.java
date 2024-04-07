@@ -39,15 +39,18 @@ public enum DeviceOs {
     OSX("macOS"),
     AMAZON("Amazon"),
     GEARVR("Gear VR"),
-    HOLOLENS("Hololens"), // Removed from protocol but kept to keep numbers the same
+    @Deprecated HOLOLENS("Hololens"),
     UWP("Windows"),
     WIN32("Windows x86"),
     DEDICATED("Dedicated"),
-    TVOS("Apple TV"),
-    SONY("PlayStation"),
+    @Deprecated TVOS("Apple TV"),
+    /**
+     * This is for all PlayStation platforms not just PS4
+     */
+    PS4("PlayStation"),
     NX("Switch"),
     XBOX("Xbox"),
-    WINDOWS_PHONE("Windows Phone"),
+    @Deprecated WINDOWS_PHONE("Windows Phone"),
     LINUX("Linux");
 
     private static final DeviceOs[] VALUES = values();
