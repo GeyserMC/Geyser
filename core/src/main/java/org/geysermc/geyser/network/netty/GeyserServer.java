@@ -74,7 +74,6 @@ import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
 import static org.cloudburstmc.netty.channel.raknet.RakConstants.DEFAULT_GLOBAL_PACKET_LIMIT;
-import static org.cloudburstmc.netty.channel.raknet.RakConstants.DEFAULT_OFFLINE_PACKET_LIMIT;
 import static org.cloudburstmc.netty.channel.raknet.RakConstants.DEFAULT_PACKET_LIMIT;
 
 public final class GeyserServer {
@@ -110,6 +109,10 @@ public final class GeyserServer {
     private final int listenCount;
 
     private ChannelFuture[] bootstrapFutures;
+
+    // Keep track of connection attempts for dump info
+    @Getter
+    private int connectionAttempts = 0;
 
     /**
      * The port to broadcast in the pong. This can be different from the port the server is bound to, e.g. due to port forwarding.
@@ -217,11 +220,6 @@ public final class GeyserServer {
         int rakPacketLimit = positivePropOrDefault("Geyser.RakPacketLimit", DEFAULT_PACKET_LIMIT);
         this.geyser.getLogger().debug("Setting RakNet packet limit to " + rakPacketLimit);
 
-        boolean isWhitelistedProxyProtocol = this.geyser.getConfig().getBedrock().isEnableProxyProtocol() 
-            && !this.geyser.getConfig().getBedrock().getProxyProtocolWhitelistedIPs().isEmpty();
-        int rakOfflinePacketLimit = positivePropOrDefault("Geyser.RakOfflinePacketLimit", isWhitelistedProxyProtocol ? Integer.MAX_VALUE : DEFAULT_OFFLINE_PACKET_LIMIT);
-        this.geyser.getLogger().debug("Setting RakNet offline packet limit to " + rakOfflinePacketLimit);
-
         int rakGlobalPacketLimit = positivePropOrDefault("Geyser.RakGlobalPacketLimit", DEFAULT_GLOBAL_PACKET_LIMIT);
         this.geyser.getLogger().debug("Setting RakNet global packet limit to " + rakGlobalPacketLimit);
 
@@ -231,8 +229,8 @@ public final class GeyserServer {
                 .option(RakChannelOption.RAK_HANDLE_PING, true)
                 .option(RakChannelOption.RAK_MAX_MTU, this.geyser.getConfig().getMtu())
                 .option(RakChannelOption.RAK_PACKET_LIMIT, rakPacketLimit)
-                .option(RakChannelOption.RAK_OFFLINE_PACKET_LIMIT, rakOfflinePacketLimit)
                 .option(RakChannelOption.RAK_GLOBAL_PACKET_LIMIT, rakGlobalPacketLimit)
+                .option(RakChannelOption.RAK_SEND_COOKIE, true)
                 .childHandler(serverInitializer);
     }
 
@@ -248,6 +246,7 @@ public final class GeyserServer {
             }
 
             if (!isWhitelistedIP) {
+                connectionAttempts++;
                 return false;
             }
         }
@@ -270,10 +269,12 @@ public final class GeyserServer {
         geyser.eventBus().fire(requestEvent);
         if (requestEvent.isCancelled()) {
             geyser.getLogger().debug("Connection request from " + ip + " was cancelled using the API!");
+            connectionAttempts++;
             return false;
         }
 
-        geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.attempt_connect", ip));
+        geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.network.attempt_connect", ip));
+        connectionAttempts++;
         return true;
     }
 
