@@ -27,17 +27,15 @@ package org.geysermc.geyser.network;
 
 import com.github.steveice10.mc.protocol.codec.MinecraftCodec;
 import com.github.steveice10.mc.protocol.codec.PacketCodec;
-import io.netty.buffer.ByteBuf;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
-import org.cloudburstmc.protocol.bedrock.codec.BedrockCodecHelper;
-import org.cloudburstmc.protocol.bedrock.codec.v582.serializer.TrimDataSerializer_v582;
 import org.cloudburstmc.protocol.bedrock.codec.v622.Bedrock_v622;
 import org.cloudburstmc.protocol.bedrock.codec.v630.Bedrock_v630;
 import org.cloudburstmc.protocol.bedrock.codec.v649.Bedrock_v649;
 import org.cloudburstmc.protocol.bedrock.codec.v662.Bedrock_v662;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
-import org.cloudburstmc.protocol.bedrock.packet.TrimDataPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LabTablePacket;
+import org.cloudburstmc.protocol.bedrock.packet.PhotoTransferPacket;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.ArrayList;
@@ -170,11 +168,9 @@ public final class GameProtocol {
 
     private static BedrockCodec processCodec(BedrockCodec codec) {
         return codec.toBuilder()
-                .updateSerializer(TrimDataPacket.class, new TrimDataSerializer_v582() {
-                    @Override
-                    public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, TrimDataPacket packet) {
-                    }
-                })
+                // De-register unused serverbound EDU packets
+                .deregisterPacket(PhotoTransferPacket.class)
+                .deregisterPacket(LabTablePacket.class)
                 .build();
     }
 

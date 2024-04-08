@@ -25,12 +25,16 @@
 
 package org.geysermc.geyser.network;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.DefaultEventLoopGroup;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.BedrockPeer;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
+import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.cloudburstmc.protocol.bedrock.netty.initializer.BedrockServerInitializer;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.bedrock.SessionInitializeEvent;
@@ -63,6 +67,10 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
 
             bedrockServerSession.setLogging(true);
             GeyserSession session = new GeyserSession(this.geyser, bedrockServerSession, this.eventLoopGroup.next());
+
+            Channel channel = bedrockServerSession.getPeer().getChannel();
+            channel.pipeline().addAfter(BedrockPacketCodec.NAME, InvalidPacketHandler.NAME, new InvalidPacketHandler(session));
+
             bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(this.geyser, session));
             this.geyser.eventBus().fire(new SessionInitializeEvent(session));
         } catch (Throwable e) {
@@ -70,6 +78,38 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
             this.geyser.getLogger().error("Error occurred while initializing player!", e);
             bedrockServerSession.disconnect(e.getMessage());
         }
+    }
+
+    @Override
+    protected void postInitChannel(Channel channel) throws Exception {
+        super.postInitChannel(channel);
+
+        channel.pipeline().addLast(new SimpleChannelInboundHandler<ByteBuf>() {
+            private static final int allowedExceptions = 5;
+            private static final long delayUntilExceptionsReset = 60;
+
+            private long lastException;
+            private int exceptionCounts;
+
+            @Override
+            protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
+                ctx.fireChannelRead(msg);
+            }
+
+            @Override
+            public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+                final long currentTime = System.currentTimeMillis();
+                if (currentTime >= lastException + (delayUntilExceptionsReset * 1000)) {
+                    exceptionCounts = 0;
+                }
+                lastException = currentTime;
+                if (exceptionCounts++ > allowedExceptions) {
+                    ctx.pipeline().get(GeyserBedrockPeer.class).close("Too many exceptions created.");
+                    return;
+                }
+                super.exceptionCaught(ctx, cause);
+            }
+        });
     }
 
     @Override
