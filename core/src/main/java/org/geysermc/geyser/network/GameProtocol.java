@@ -27,13 +27,17 @@ package org.geysermc.geyser.network;
 
 import com.github.steveice10.mc.protocol.codec.MinecraftCodec;
 import com.github.steveice10.mc.protocol.codec.PacketCodec;
+import io.netty.buffer.ByteBuf;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
+import org.cloudburstmc.protocol.bedrock.codec.BedrockCodecHelper;
+import org.cloudburstmc.protocol.bedrock.codec.v582.serializer.TrimDataSerializer_v582;
 import org.cloudburstmc.protocol.bedrock.codec.v622.Bedrock_v622;
 import org.cloudburstmc.protocol.bedrock.codec.v630.Bedrock_v630;
 import org.cloudburstmc.protocol.bedrock.codec.v649.Bedrock_v649;
 import org.cloudburstmc.protocol.bedrock.codec.v662.Bedrock_v662;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
+import org.cloudburstmc.protocol.bedrock.packet.TrimDataPacket;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.ArrayList;
@@ -48,7 +52,7 @@ public final class GameProtocol {
      * Default Bedrock codec that should act as a fallback. Should represent the latest available
      * release of the game that Geyser supports.
      */
-    public static final BedrockCodec DEFAULT_BEDROCK_CODEC = Bedrock_v662.CODEC;
+    public static final BedrockCodec DEFAULT_BEDROCK_CODEC = processCodec(Bedrock_v662.CODEC);
 
     /**
      * A list of all supported Bedrock versions that can join Geyser
@@ -62,18 +66,18 @@ public final class GameProtocol {
     private static final PacketCodec DEFAULT_JAVA_CODEC = MinecraftCodec.CODEC;
 
     static {
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v622.CODEC.toBuilder()
+        SUPPORTED_BEDROCK_CODECS.add(processCodec(Bedrock_v622.CODEC.toBuilder()
             .minecraftVersion("1.20.40/1.20.41")
-            .build());
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v630.CODEC.toBuilder()
+            .build()));
+        SUPPORTED_BEDROCK_CODECS.add(processCodec(Bedrock_v630.CODEC.toBuilder()
             .minecraftVersion("1.20.50/1.20.51")
-            .build());
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v649.CODEC.toBuilder()
+            .build()));
+        SUPPORTED_BEDROCK_CODECS.add(processCodec(Bedrock_v649.CODEC.toBuilder()
             .minecraftVersion("1.20.60/1.20.62")
-            .build());
-        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC.toBuilder()
+            .build()));
+        SUPPORTED_BEDROCK_CODECS.add(processCodec(DEFAULT_BEDROCK_CODEC.toBuilder()
             .minecraftVersion("1.20.70/1.20.73")
-            .build());
+            .build()));
     }
 
     /**
@@ -162,6 +166,16 @@ public final class GameProtocol {
         }
 
         return joiner.toString();
+    }
+
+    private static BedrockCodec processCodec(BedrockCodec codec) {
+        return codec.toBuilder()
+                .updateSerializer(TrimDataPacket.class, new TrimDataSerializer_v582() {
+                    @Override
+                    public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, TrimDataPacket packet) {
+                    }
+                })
+                .build();
     }
 
     private GameProtocol() {
