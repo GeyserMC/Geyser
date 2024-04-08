@@ -34,8 +34,13 @@ import org.cloudburstmc.protocol.bedrock.codec.v630.Bedrock_v630;
 import org.cloudburstmc.protocol.bedrock.codec.v649.Bedrock_v649;
 import org.cloudburstmc.protocol.bedrock.codec.v662.Bedrock_v662;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
+import org.cloudburstmc.protocol.bedrock.packet.ClientCheatAbilityPacket;
+import org.cloudburstmc.protocol.bedrock.packet.CreatePhotoPacket;
+import org.cloudburstmc.protocol.bedrock.packet.EditorNetworkPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LabTablePacket;
+import org.cloudburstmc.protocol.bedrock.packet.PhotoInfoRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PhotoTransferPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PurchaseReceiptPacket;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.ArrayList;
@@ -171,6 +176,14 @@ public final class GameProtocol {
                 // De-register unused serverbound EDU packets
                 .deregisterPacket(PhotoTransferPacket.class)
                 .deregisterPacket(LabTablePacket.class)
+                .deregisterPacket(CreatePhotoPacket.class)
+                .deregisterPacket(PhotoInfoRequestPacket.class)
+                // De-register unused serverbound packets for featured servers
+                .deregisterPacket(PurchaseReceiptPacket.class)
+                // De-register unused serverbound packets for editor
+                .deregisterPacket(EditorNetworkPacket.class)
+                // De-register unused serverbound packets that are deprecated
+                .deregisterPacket(ClientCheatAbilityPacket.class)
                 .build();
     }
 
