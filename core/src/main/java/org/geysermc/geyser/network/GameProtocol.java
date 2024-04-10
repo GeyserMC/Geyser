@@ -246,7 +246,10 @@ public final class GameProtocol {
      * @param buffer
      */
     private static void fakeItemRead(ByteBuf buffer) {
-        VarInts.readInt(buffer); // Runtime ID
+        int id = VarInts.readInt(buffer); // Runtime ID
+        if (id == 0) { // nothing more to read
+            return;
+        }
         buffer.skipBytes(2); // count
         VarInts.readUnsignedInt(buffer); // damage
         boolean hasNetId = buffer.readBoolean();
