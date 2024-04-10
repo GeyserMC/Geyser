@@ -35,6 +35,7 @@ import org.cloudburstmc.protocol.bedrock.data.structure.StructureBlockType;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureEditorData;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureSettings;
 import org.cloudburstmc.protocol.bedrock.packet.StructureBlockUpdatePacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -77,7 +78,8 @@ public class BedrockStructureBlockUpdateTranslator extends PacketTranslator<Stru
             default -> StructureRotation.NONE;
         };
 
-        Vector3i[] offsetAndSize = StructureBlockUtils.getStructureOffsetAndRotation(session, settings);
+        Vector3i[] offsetAndSize = StructureBlockUtils.removeOffsets(session, settings);
+        GeyserImpl.getInstance().getLogger().error("New Offset/Size after removal: " + offsetAndSize[0] + " " + offsetAndSize[1]);
 
         ServerboundSetStructureBlockPacket structureBlockPacket = new ServerboundSetStructureBlockPacket(
                 packet.getBlockPosition(),
@@ -97,6 +99,7 @@ public class BedrockStructureBlockUpdateTranslator extends PacketTranslator<Stru
         );
 
         session.setStructureSettings(null);
+        session.setCurrentStructureBlock(null);
         session.sendDownstreamPacket(structureBlockPacket);
     }
 }

@@ -40,6 +40,7 @@ import org.cloudburstmc.protocol.bedrock.data.structure.StructureRotation;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureSettings;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
@@ -134,13 +135,13 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
             int posX = getOrDefault(map.get("posX"), 0);
             int posZ = getOrDefault(map.get("posZ"), 0);
 
-            Vector3i[] sizeAndOffset = StructureBlockUtils.addOffsets(bedrockRotation, bedrockMirror,
+            Vector3i[] offsetAndSize = StructureBlockUtils.addOffsets(bedrockRotation, bedrockMirror,
                     getOrDefault(map.get("sizeX"), 0), getOrDefault(map.get("sizeY"), 0),
                     getOrDefault(map.get("sizeZ"), 0), posX, getOrDefault(map.get("posY"), 0), posZ);
 
             String name = getOrDefault(map.get("name"), "");
 
-            Vector3i size = sizeAndOffset[1];
+            Vector3i size = offsetAndSize[1];
             StructureBlockUtils.sendStructureData(session, size.getX(), size.getY(), size.getZ(), name);
 
             // Create dummy structure settings that store size, offset, mirror and rotation.
@@ -149,12 +150,13 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
                     false,
                     false,
                     size,
-                    sizeAndOffset[0],
+                    offsetAndSize[0],
                     -1,
                     StructureRotation.from(bedrockRotation),
                     StructureMirror.from(bedrockMirror),
                     StructureAnimationMode.NONE,
                     0, 0, 0, Vector3f.ZERO);
+            GeyserImpl.getInstance().getLogger().info("Block entity data translator: setting " + settings);
             session.setStructureSettings(settings);
             session.setCurrentStructureBlock(null);
         }
@@ -164,5 +166,109 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
     protected <T> T getOrDefault(Tag tag, T defaultValue) {
         //noinspection unchecked
         return (tag != null && tag.getValue() != null) ? (T) tag.getValue() : defaultValue;
+    }
+
+    public static Vector3i[] addOffsets(byte bedrockRotation, byte bedrockMirror,
+                                        int sizeX, int sizeY, int sizeZ, int offsetX, int offsetY, int offsetZ) {
+        int newXStructureSize = sizeX;
+        int newZStructureSize = sizeZ;
+
+        Vector3i old = Vector3i.from(offsetX, offsetY, offsetZ).clone();
+
+        StructureMirror structureMirror = StructureMirror.values()[bedrockMirror];
+        StructureRotation structureRotation = StructureRotation.values()[bedrockRotation];
+
+        switch (structureRotation) {
+            case ROTATE_90 -> {
+                switch (structureMirror) {
+                    case NONE -> {
+                        newZStructureSize = sizeZ * -1;
+                        if (sizeX >= 0) {
+                            offsetX += 1;
+                        }
+                        if (sizeZ < 0) {
+                            offsetZ += 1;
+                        }
+                        offsetX += sizeZ;
+                    }
+                    case X -> {
+                        newXStructureSize = sizeX * -1;
+                        newZStructureSize = sizeZ * -1;
+                        offsetZ += sizeX + 1;
+                        offsetX += 2 * sizeX;
+                    }
+                }
+            }
+            case ROTATE_180 -> {
+                switch (structureMirror) {
+                    case NONE -> {
+                        newZStructureSize = sizeZ * -1;
+                        newXStructureSize = sizeX * -1;
+                        if (sizeX >= 0) {
+                            offsetX += 1;
+                        }
+                        if (sizeZ >= 0) {
+                            offsetZ += 1;
+                        }
+                        offsetX += sizeX;
+                        offsetZ += sizeZ;
+                    }
+                    case Z -> {
+                        newXStructureSize = sizeX * -1;
+                        offsetX += sizeX + 1;
+                    }
+                    case X -> {
+                        newZStructureSize = sizeZ * -1;
+                        offsetZ += sizeZ + 1;
+                    }
+                }
+            }
+            case ROTATE_270 -> {
+                switch (structureMirror) {
+                    case NONE -> {
+                        newXStructureSize = sizeX * -1;
+                        if (sizeX < 0) {
+                            offsetX += 1;
+                        }
+                        if (sizeZ >= 0) {
+                            offsetZ += 1;
+                        }
+                        offsetZ += sizeX;
+                    }
+                    case Z -> {
+                        newZStructureSize = sizeZ * -1;
+                        newXStructureSize = sizeX * -1;
+                        offsetZ += sizeX + 1;
+                        offsetX += sizeZ + 1;
+                    }
+                }
+            }
+            default -> {
+                switch (structureMirror) {
+                    case Z -> {
+                        offsetZ = offsetZ + sizeZ + 1;
+                        newZStructureSize = sizeZ * -1;
+                    }
+                    case X -> {
+                        offsetX = offsetX + sizeX + 1;
+                        newXStructureSize = sizeX * -1;
+                    }
+                }
+                if (sizeX < 0) {
+                    offsetX += 1;
+                }
+                if (sizeZ < 0) {
+                    offsetZ += 1;
+                }
+            }
+        }
+
+        Vector3i offset = Vector3i.from(offsetX, offsetY, offsetZ);
+        Vector3i size = Vector3i.from(newXStructureSize, sizeY, newZStructureSize);
+
+        GeyserImpl.getInstance().getLogger().info("ADD: original size " + sizeX + " " + sizeY + " " + sizeZ + " bedrock size: " + size.toString());
+        GeyserImpl.getInstance().getLogger().info("ADD: original offset " + old.toString() + " bedrock offset: " + offset.toString());
+
+        return new Vector3i[]{offset, size};
     }
 }

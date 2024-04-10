@@ -84,16 +84,16 @@ public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
         int posX = getOrDefault(tag.get("posX"), 0);
         int posZ = getOrDefault(tag.get("posZ"), 0);
 
-        Vector3i[] sizeAndOffset = StructureBlockUtils.addOffsets(bedrockRotation, bedrockMirror,
+        Vector3i[] offsetAndSize = StructureBlockUtils.addOffsets(bedrockRotation, bedrockMirror,
                 xStructureSize, getOrDefault(tag.get("sizeY"), 0), zStructureSize,
                 posX, getOrDefault(tag.get("posY"), 0), posZ);
 
-        Vector3i offset = sizeAndOffset[0];
+        Vector3i offset = offsetAndSize[0];
         builder.putInt("xStructureOffset", offset.getX());
         builder.putInt("yStructureOffset", offset.getY());
         builder.putInt("zStructureOffset", offset.getZ());
 
-        Vector3i size = sizeAndOffset[1];
+        Vector3i size = offsetAndSize[1];
         builder.putInt("xStructureSize", size.getX());
         builder.putInt("yStructureSize", size.getY());
         builder.putInt("zStructureSize", size.getZ());

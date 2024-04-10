@@ -36,6 +36,7 @@ import org.cloudburstmc.protocol.bedrock.data.structure.StructureSettings;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureTemplateResponseType;
 import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataResponsePacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 
 public class StructureBlockUtils {
@@ -66,13 +67,13 @@ public class StructureBlockUtils {
         responsePacket.setName(name);
         responsePacket.setSave(true);
         responsePacket.setTag(EMPTY_STRUCTURE_DATA.toBuilder()
-                .putList("size", NbtType.INT, Math.abs(x), y, Math.abs(z)) // Use absolute numbers, Bedrock complains about negatives
+                .putList("size", NbtType.INT, Math.abs(x), y, Math.abs(z))
                 .build());
         responsePacket.setType(StructureTemplateResponseType.QUERY);
         session.sendUpstreamPacket(responsePacket);
     }
 
-    public static Vector3i[] getStructureOffsetAndRotation(GeyserSession session, StructureSettings newSettings) {
+    public static Vector3i[] removeOffsets(GeyserSession session, StructureSettings newSettings) {
         StructureSettings old = session.getStructureSettings();
 
         if (old == null) {
@@ -80,12 +81,10 @@ public class StructureBlockUtils {
         }
 
         Vector3i offset = old.getOffset();
-        Vector3i size = old.getSize();
+        Vector3i size = old.getSize().abs();
 
         int offsetX = offset.getX();
         int offsetZ = offset.getZ();
-
-        // First: Let's get the original size. It's not modified when rotating, just with mirroring
         int originalSizeX = size.getX();
         int originalSizeZ = size.getZ();
 
@@ -96,19 +95,10 @@ public class StructureBlockUtils {
             case ROTATE_90 -> {
                 switch (structureMirror) {
                     case NONE -> {
-                        originalSizeZ *= -1;
-                        if (originalSizeX >= 0) {
-                            offsetX -= 1;
-                        }
-                        if (originalSizeZ < 0) {
-                            offsetZ -= 1;
-                        }
-                        offsetX -= originalSizeZ;
+                        //offsetX -= 1;
                     }
                     case X -> {
-                        originalSizeZ *= -1;
-                        originalSizeX *= -1;
-                        offsetZ -= originalSizeX + 1;
+                        offsetZ -= originalSizeX - 1;
                         offsetX -= 2 * originalSizeX;
                     }
                 }
@@ -116,31 +106,22 @@ public class StructureBlockUtils {
             case ROTATE_180 -> {
                 switch (structureMirror) {
                     case NONE -> {
-                        originalSizeZ *= -1;
-                        originalSizeX *= -1;
-                        if (originalSizeX >= 0) {
-                            offsetX -= 1;
-                        }
-                        if (originalSizeZ >= 0) {
-                            offsetZ -= 1;
-                        }
+                        offsetX -= 1;
+                        offsetZ -= 1;
                         offsetX -= originalSizeX;
                         offsetZ -= originalSizeZ;
                     }
                     case Z -> {
-                        originalSizeX *= -1;
-                        offsetX -= originalSizeX + 1;
+                        offsetX -= originalSizeX - 1;
                     }
                     case X -> {
-                        originalSizeZ *= -1;
-                        offsetZ -= originalSizeZ + 1;
+                        offsetZ -= originalSizeZ - 1;
                     }
                 }
             }
             case ROTATE_270 -> {
                 switch (structureMirror) {
                     case NONE -> {
-                        originalSizeX *= -1;
                         if (originalSizeX < 0) {
                             offsetX -= 1;
                         }
@@ -150,37 +131,32 @@ public class StructureBlockUtils {
                         offsetZ -= originalSizeX;
                     }
                     case Z -> {
-                        originalSizeZ *= -1;
-                        originalSizeX *= -1;
-                        offsetZ -= originalSizeX + 1;
-                        offsetX -= originalSizeZ + 1;
+                        offsetZ -= originalSizeX - 1;
+                        offsetX -= originalSizeZ - 1;
                     }
                 }
             }
             default -> {
+                GeyserImpl.getInstance().getLogger().warning(structureMirror.name() + " " + structureRotation.name() + " ");
                 switch (structureMirror) {
                     case Z -> {
-                        originalSizeZ *= -1;
                         offsetZ = offsetZ - originalSizeZ - 1;
                     }
                     case X -> {
-                        originalSizeX *= -1;
                         offsetX = offsetX - originalSizeX - 1;
                     }
-                }
-                if (originalSizeX < 0) {
-                    offsetX -= 1;
-                }
-                if (originalSizeZ < 0) {
-                    offsetZ -= 1;
                 }
             }
         }
 
+        // These are the size/offsets for the OLD rotation (with our changes for Bedrock undone).
         Vector3i originalOffset = Vector3i.from(offsetX, offset.getY(), offsetZ);
         Vector3i originalSize = Vector3i.from(originalSizeX, size.getY(), originalSizeZ);
 
-        return new Vector3i[]{originalOffset, originalSize};
+        // Now: Add changes done by the player to these
+        Vector3i changeOffset = newSettings.getOffset().sub(originalOffset);
+
+        return new Vector3i[]{originalOffset.add(changeOffset), originalSize};
     }
 
     public static Vector3i[] addOffsets(byte bedrockRotation, byte bedrockMirror,
@@ -195,20 +171,16 @@ public class StructureBlockUtils {
             case ROTATE_90 -> {
                 switch (structureMirror) {
                     case NONE -> {
-                        newZStructureSize = sizeZ * -1;
-                        if (sizeX >= 0) {
-                            offsetX += 1;
-                        }
-                        if (sizeZ < 0) {
-                            offsetZ += 1;
-                        }
+                        //newZStructureSize = sizeZ * -1;
+                        offsetZ -= sizeZ; // todo test
+                        offsetX += 1;
                         offsetX += sizeZ;
                     }
                     case X -> {
                         newXStructureSize = sizeX * -1;
                         newZStructureSize = sizeZ * -1;
                         offsetZ += sizeX + 1;
-                        offsetX += 2 * sizeX;
+                        offsetX += sizeX;
                     }
                 }
             }
@@ -217,14 +189,8 @@ public class StructureBlockUtils {
                     case NONE -> {
                         newZStructureSize = sizeZ * -1;
                         newXStructureSize = sizeX * -1;
-                        if (sizeX >= 0) {
-                            offsetX += 1;
-                        }
-                        if (sizeZ >= 0) {
-                            offsetZ += 1;
-                        }
-                        offsetX += sizeX;
-                        offsetZ += sizeZ;
+                        offsetX += sizeX + 1;
+                        offsetZ += sizeZ + 1;
                     }
                     case Z -> {
                         newXStructureSize = sizeX * -1;
@@ -240,13 +206,7 @@ public class StructureBlockUtils {
                 switch (structureMirror) {
                     case NONE -> {
                         newXStructureSize = sizeX * -1;
-                        if (sizeX < 0) {
-                            offsetX += 1;
-                        }
-                        if (sizeZ >= 0) {
-                            offsetZ += 1;
-                        }
-                        offsetZ += sizeX;
+                        offsetZ += sizeX + 1;
                     }
                     case Z -> {
                         newZStructureSize = sizeZ * -1;
@@ -266,12 +226,6 @@ public class StructureBlockUtils {
                         offsetX = offsetX + sizeX + 1;
                         newXStructureSize = sizeX * -1;
                     }
-                }
-                if (sizeX < 0) {
-                    offsetX += 1;
-                }
-                if (sizeZ < 0) {
-                    offsetZ += 1;
                 }
             }
         }

@@ -31,8 +31,10 @@ import com.github.steveice10.mc.protocol.data.game.level.block.StructureMirror;
 import com.github.steveice10.mc.protocol.data.game.level.block.StructureRotation;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetStructureBlockPacket;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.bedrock.data.structure.StructureSettings;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureTemplateRequestOperation;
 import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataRequestPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -50,9 +52,10 @@ public class BedrockStructureTemplateDataRequestTranslator extends PacketTransla
     @Override
     public void translate(GeyserSession session, StructureTemplateDataRequestPacket packet) {
         if (packet.getOperation().equals(StructureTemplateRequestOperation.QUERY_SAVED_STRUCTURE)) {
-            // If we send a load packet to the Java server when the structure size is known, we place the structure.
+            // If we send a load packet to the Java server when the structure size is known, it would place the structure.
             if (!packet.getSettings().getSize().equals(Vector3i.ZERO)) {
                 if (session.getStructureSettings() == null) {
+                    GeyserImpl.getInstance().getLogger().info("saving old settings!" + packet.getSettings());
                     session.setStructureSettings(packet.getSettings());
                 }
                 // Otherwise, the Bedrock client can't load the structure in
@@ -62,12 +65,18 @@ public class BedrockStructureTemplateDataRequestTranslator extends PacketTransla
             session.setCurrentStructureBlock(packet.getPosition());
 
             // Request a "load" from Java server, so it sends us the structure's size :p
-            var settings = packet.getSettings();
+            StructureSettings settings = packet.getSettings();
             com.github.steveice10.mc.protocol.data.game.level.block.StructureRotation rotation = switch (settings.getRotation()) {
                 case ROTATE_90 -> StructureRotation.CLOCKWISE_90;
                 case ROTATE_180 -> StructureRotation.CLOCKWISE_180;
                 case ROTATE_270 -> StructureRotation.COUNTERCLOCKWISE_90;
                 default -> StructureRotation.NONE;
+            };
+
+            StructureMirror mirror = switch (settings.getMirror()) {
+                case X -> StructureMirror.FRONT_BACK;
+                case Z -> StructureMirror.LEFT_RIGHT;
+                default -> StructureMirror.NONE;
             };
 
             ServerboundSetStructureBlockPacket structureBlockPacket = new ServerboundSetStructureBlockPacket(
@@ -77,7 +86,7 @@ public class BedrockStructureTemplateDataRequestTranslator extends PacketTransla
                     packet.getName(),
                     settings.getOffset(),
                     settings.getSize(),
-                    StructureMirror.NONE,
+                    mirror,
                     rotation,
                     "",
                     settings.getIntegrityValue(),
