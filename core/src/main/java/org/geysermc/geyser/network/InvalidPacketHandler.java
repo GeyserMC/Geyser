@@ -27,9 +27,10 @@ package org.geysermc.geyser.network;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.DecoderException;
 import lombok.RequiredArgsConstructor;
 import org.geysermc.geyser.session.GeyserSession;
+
+import java.util.stream.Stream;
 
 @RequiredArgsConstructor
 public class InvalidPacketHandler extends ChannelInboundHandlerAdapter {
@@ -39,19 +40,19 @@ public class InvalidPacketHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        if (!(cause instanceof DecoderException)) {
+        Throwable rootCause = Stream.iterate(cause, Throwable::getCause)
+                .filter(element -> element.getCause() == null)
+                .findFirst()
+                .orElse(cause);
+
+
+        if (!(rootCause instanceof IllegalArgumentException)) {
             super.exceptionCaught(ctx, cause);
             return;
         }
 
-        Throwable actualCause = cause.getCause();
-
-        if (!(actualCause instanceof IllegalArgumentException)) {
-            super.exceptionCaught(ctx, actualCause);
-            return;
-        }
-
-        // Kick users that try to send Clientbound packets
+        // Kick users that try to send illegal packets
+        session.getGeyser().getLogger().warning(rootCause.getMessage());
         session.disconnect("Invalid packet received!");
     }
 }

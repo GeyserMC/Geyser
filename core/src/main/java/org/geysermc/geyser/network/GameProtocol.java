@@ -27,23 +27,37 @@ package org.geysermc.geyser.network;
 
 import com.github.steveice10.mc.protocol.codec.MinecraftCodec;
 import com.github.steveice10.mc.protocol.codec.PacketCodec;
+import io.netty.buffer.ByteBuf;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
+import org.cloudburstmc.protocol.bedrock.codec.BedrockCodecHelper;
+import org.cloudburstmc.protocol.bedrock.codec.BedrockPacketSerializer;
+import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MobArmorEquipmentSerializer_v291;
+import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MobEquipmentSerializer_v291;
+import org.cloudburstmc.protocol.bedrock.codec.v407.serializer.InventoryContentSerializer_v407;
+import org.cloudburstmc.protocol.bedrock.codec.v407.serializer.InventorySlotSerializer_v407;
 import org.cloudburstmc.protocol.bedrock.codec.v622.Bedrock_v622;
 import org.cloudburstmc.protocol.bedrock.codec.v630.Bedrock_v630;
 import org.cloudburstmc.protocol.bedrock.codec.v649.Bedrock_v649;
 import org.cloudburstmc.protocol.bedrock.codec.v662.Bedrock_v662;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ClientCacheBlobStatusPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ClientCheatAbilityPacket;
+import org.cloudburstmc.protocol.bedrock.packet.CraftingEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CreatePhotoPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EditorNetworkPacket;
+import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket;
+import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LabTablePacket;
+import org.cloudburstmc.protocol.bedrock.packet.MobArmorEquipmentPacket;
+import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PhotoInfoRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PhotoTransferPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PurchaseReceiptPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SubClientLoginPacket;
+import org.cloudburstmc.protocol.common.util.VarInts;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.ArrayList;
@@ -176,23 +190,101 @@ public final class GameProtocol {
 
     private static BedrockCodec processCodec(BedrockCodec codec) {
         return codec.toBuilder()
-                // De-register unused serverbound EDU packets
-                .deregisterPacket(PhotoTransferPacket.class)
-                .deregisterPacket(LabTablePacket.class)
-                .deregisterPacket(CreatePhotoPacket.class)
-                .deregisterPacket(PhotoInfoRequestPacket.class)
-                // De-register unused serverbound packets for featured servers
-                .deregisterPacket(PurchaseReceiptPacket.class)
-                // De-register unused serverbound packets for editor
-                .deregisterPacket(EditorNetworkPacket.class)
-                // De-register unused serverbound packets that are deprecated
-                .deregisterPacket(ClientCheatAbilityPacket.class)
-                // De-register unused serverbound packets that relate to unused features
-                .deregisterPacket(PlayerAuthInputPacket.class)
-                .deregisterPacket(ClientCacheBlobStatusPacket.class)
-                .deregisterPacket(SubClientLoginPacket.class)
+                // Illegal unused serverbound EDU packets
+                .updateSerializer(PhotoTransferPacket.class, setIllegalSerializer())
+                .updateSerializer(LabTablePacket.class, setIllegalSerializer())
+                .updateSerializer(CreatePhotoPacket.class, setIllegalSerializer())
+                .updateSerializer(PhotoInfoRequestPacket.class, setIllegalSerializer())
+                // Illegal unused serverbound packets for featured servers
+                .updateSerializer(PurchaseReceiptPacket.class, setIllegalSerializer())
+                // Illegal unused serverbound packets for editor
+                .updateSerializer(EditorNetworkPacket.class, setIllegalSerializer())
+                // Illegal unused serverbound packets that are deprecated
+                .updateSerializer(ClientCheatAbilityPacket.class, setIllegalSerializer())
+                // Illegal unusued serverbound packets that relate to unused features
+                .updateSerializer(PlayerAuthInputPacket.class, setIllegalSerializer())
+                .updateSerializer(ClientCacheBlobStatusPacket.class, setIllegalSerializer())
+                .updateSerializer(SubClientLoginPacket.class, setIllegalSerializer())
+                // Illegal serverbound packets due to Geyser specific setup
+                .updateSerializer(InventoryContentPacket.class, new InventoryContentSerializer_v407() {
+                    @Override
+                    public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventoryContentPacket packet) {
+                        throw new IllegalArgumentException("Client cannot send InventoryContentPacket in server-auth inventory environment!");
+                    }
+                })
+                .updateSerializer(InventorySlotPacket.class, new InventorySlotSerializer_v407() {
+                    @Override
+                    public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventorySlotPacket packet) {
+                        throw new IllegalArgumentException("Client cannot send InventorySlotPacket in server-auth inventory environment!");
+                    }
+                })
+                // Ignored serverbound packets
+                .updateSerializer(CraftingEventPacket.class, getIgnoredSerializer()) // Make illegal when 1.20.40 is removed
+                // Ignored only when serverbound
+                .updateSerializer(MobArmorEquipmentPacket.class, new MobArmorEquipmentSerializer_v291() {
+                    @Override
+                    public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MobArmorEquipmentPacket packet) {
+                    }
+                })
+                // Valid serverbound packets where reading of some fields can be skipped
+                .updateSerializer(MobEquipmentPacket.class, new MobEquipmentSerializer_v291() {
+                    @Override
+                    public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MobEquipmentPacket packet) {
+                        packet.setRuntimeEntityId(VarInts.readUnsignedLong(buffer));
+                        fakeItemRead(buffer);
+                        packet.setInventorySlot(buffer.readUnsignedByte());
+                        packet.setHotbarSlot(buffer.readUnsignedByte());
+                        packet.setContainerId(buffer.readByte());
+                    }
+                })
                 .build();
     }
+
+    /**
+     * Fake reading an item from the buffer to improve performance.
+     * 
+     * @param buffer
+     */
+    private static void fakeItemRead(ByteBuf buffer) {
+        VarInts.readInt(buffer); // Runtime ID
+        buffer.skipBytes(2); // count
+        VarInts.readUnsignedInt(buffer); // damage
+        boolean hasNetId = buffer.readBoolean();
+        if (hasNetId) {
+            VarInts.readInt(buffer);
+        }
+
+        VarInts.readInt(buffer); // Block runtime ID
+        int streamSize = VarInts.readInt(buffer);
+        buffer.skipBytes(streamSize);
+    }
+
+    private static <T extends BedrockPacket> BedrockPacketSerializer<T> setIllegalSerializer() {
+        return new BedrockPacketSerializer<T>() {
+            @Override
+            public void serialize(ByteBuf buffer, BedrockCodecHelper helper, T packet) {
+                throw new IllegalArgumentException("Server tried to send unused packet " + packet.getClass().getSimpleName() + "!");
+            }
+    
+            @Override
+            public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, T packet) {
+                throw new IllegalArgumentException("Client tried to send unused packet " + packet.getClass().getSimpleName() + "!");
+            }
+        };
+    }
+
+    private static <T extends BedrockPacket> BedrockPacketSerializer<T> getIgnoredSerializer() {
+        return new BedrockPacketSerializer<T>() {
+            @Override
+            public void serialize(ByteBuf buffer, BedrockCodecHelper helper, BedrockPacket packet) {
+            }
+    
+            @Override
+            public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, BedrockPacket packet) {
+            }
+        };
+    }
+    
 
     private GameProtocol() {
     }
