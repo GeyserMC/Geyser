@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,7 +55,7 @@ public class WebUtils {
             URL url = new URL(reqURL);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
-            con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION); // Otherwise Java 8 fails on checking updates
+            con.setRequestProperty("User-Agent", getUserAgent()); // Otherwise Java 8 fails on checking updates
             con.setConnectTimeout(10000);
             con.setReadTimeout(10000);
 
@@ -73,7 +73,7 @@ public class WebUtils {
      */
     public static JsonNode getJson(String reqURL) throws IOException {
         HttpURLConnection con = (HttpURLConnection) new URL(reqURL).openConnection();
-        con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION);
+        con.setRequestProperty("User-Agent", getUserAgent());
         con.setConnectTimeout(10000);
         con.setReadTimeout(10000);
         return GeyserImpl.JSON_MAPPER.readTree(con.getInputStream());
@@ -88,7 +88,7 @@ public class WebUtils {
     public static void downloadFile(String reqURL, String fileLocation) {
         try {
             HttpURLConnection con = (HttpURLConnection) new URL(reqURL).openConnection();
-            con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION);
+            con.setRequestProperty("User-Agent", getUserAgent());
             InputStream in = con.getInputStream();
             Files.copy(in, Paths.get(fileLocation), StandardCopyOption.REPLACE_EXISTING);
         } catch (Exception e) {
@@ -109,7 +109,7 @@ public class WebUtils {
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "text/plain");
-        con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION);
+        con.setRequestProperty("User-Agent", getUserAgent());
         con.setDoOutput(true);
 
         OutputStream out = con.getOutputStream();
@@ -164,7 +164,7 @@ public class WebUtils {
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-        con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION);
+        con.setRequestProperty("User-Agent", getUserAgent());
         con.setDoOutput(true);
 
         try (OutputStream out = con.getOutputStream()) {
@@ -213,7 +213,7 @@ public class WebUtils {
             URL url = new URL(reqURL);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
-            con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION); // Otherwise Java 8 fails on checking updates
+            con.setRequestProperty("User-Agent", getUserAgent()); // Otherwise Java 8 fails on checking updates
             con.setConnectTimeout(10000);
             con.setReadTimeout(10000);
 
@@ -222,5 +222,9 @@ public class WebUtils {
             GeyserImpl.getInstance().getLogger().error("Error while trying to get a stream from " + reqURL, e);
             return Stream.empty();
         }
+    }
+
+    public static String getUserAgent() {
+        return "Geyser-" + GeyserImpl.getInstance().getPlatformType().platformName() + "/" + GeyserImpl.VERSION;
     }
 }
