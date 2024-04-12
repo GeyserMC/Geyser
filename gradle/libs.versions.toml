@@ -9,10 +9,10 @@ netty = "4.1.107.Final"
 guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8
 websocket = "1.5.1"
-protocol = "3.0.0.Beta1-20240313.120922-126"
-protocol-connection = "3.0.0.Beta1-20240313.120922-125"
+protocol = "3.0.0.Beta1-20240411.165033-129"
+protocol-connection = "3.0.0.Beta1-20240411.165033-128"
 raknet = "1.0.0.CR1-20240330.103819-16"
-blockstateupdater="1.20.70-20240303.125052-2"
+blockstateupdater="1.20.80-20240411.142413-1"
 mcauthlib = "d9d773e"
 mcprotocollib = "1.20.4-2-20240116.220521-7"
 adventure = "4.14.0"
@@ -116,9 +116,9 @@ websocket = { group = "org.java-websocket", name = "Java-WebSocket", version.ref
 #protocol-common = { group = "org.cloudburstmc.protocol", name = "common", version.ref = "protocol-connection" }
 #protocol-codec = { group = "org.cloudburstmc.protocol", name = "bedrock-codec", version.ref = "protocol" }
 #protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol-connection" }
-protocol-common = { group = "com.github.CloudburstMC.Protocol", name = "common", version = "a344da4" }
-protocol-codec = { group = "com.github.CloudburstMC.Protocol", name = "bedrock-codec", version = "a344da4" }
-protocol-connection = { group = "com.github.CloudburstMC.Protocol", name = "bedrock-connection", version = "a344da4" }
+protocol-common = { group = "com.github.Kas-tle.Protocol", name = "common", version = "d497426" }
+protocol-codec = { group = "com.github.Kas-tle.Protocol", name = "bedrock-codec", version = "d497426" }
+protocol-connection = { group = "com.github.Kas-tle.Protocol", name = "bedrock-connection", version = "d497426" }
 
 math = { group = "org.cloudburstmc.math", name = "immutable", version = "2.0" }
 

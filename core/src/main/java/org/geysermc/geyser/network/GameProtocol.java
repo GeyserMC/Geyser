@@ -40,6 +40,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v622.Bedrock_v622;
 import org.cloudburstmc.protocol.bedrock.codec.v630.Bedrock_v630;
 import org.cloudburstmc.protocol.bedrock.codec.v649.Bedrock_v649;
 import org.cloudburstmc.protocol.bedrock.codec.v662.Bedrock_v662;
+import org.cloudburstmc.protocol.bedrock.codec.v671.Bedrock_v671;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ClientCacheBlobStatusPacket;
@@ -72,7 +73,7 @@ public final class GameProtocol {
      * Default Bedrock codec that should act as a fallback. Should represent the latest available
      * release of the game that Geyser supports.
      */
-    public static final BedrockCodec DEFAULT_BEDROCK_CODEC = processCodec(Bedrock_v662.CODEC);
+    public static final BedrockCodec DEFAULT_BEDROCK_CODEC = processCodec(Bedrock_v671.CODEC);
 
     /**
      * A list of all supported Bedrock versions that can join Geyser
@@ -95,8 +96,11 @@ public final class GameProtocol {
         SUPPORTED_BEDROCK_CODECS.add(processCodec(Bedrock_v649.CODEC.toBuilder()
             .minecraftVersion("1.20.60/1.20.62")
             .build()));
-        SUPPORTED_BEDROCK_CODECS.add(processCodec(DEFAULT_BEDROCK_CODEC.toBuilder()
+        SUPPORTED_BEDROCK_CODECS.add(processCodec(Bedrock_v662.CODEC.toBuilder()
             .minecraftVersion("1.20.70/1.20.73")
+            .build()));
+        SUPPORTED_BEDROCK_CODECS.add(processCodec(DEFAULT_BEDROCK_CODEC.toBuilder()
+            .minecraftVersion("1.20.80")
             .build()));
     }
 
@@ -219,7 +223,7 @@ public final class GameProtocol {
                     }
                 })
                 // Ignored serverbound packets
-                .updateSerializer(CraftingEventPacket.class, getIgnoredSerializer()) // Make illegal when 1.20.40 is removed
+                .updateSerializer(CraftingEventPacket.class, setIgnoredSerializer()) // Make illegal when 1.20.40 is removed
                 // Ignored only when serverbound
                 .updateSerializer(MobArmorEquipmentPacket.class, new MobArmorEquipmentSerializer_v291() {
                     @Override
@@ -258,7 +262,7 @@ public final class GameProtocol {
         }
 
         VarInts.readInt(buffer); // Block runtime ID
-        int streamSize = VarInts.readInt(buffer);
+        int streamSize = VarInts.readUnsignedInt(buffer);
         buffer.skipBytes(streamSize);
     }
 
@@ -276,7 +280,7 @@ public final class GameProtocol {
         };
     }
 
-    private static <T extends BedrockPacket> BedrockPacketSerializer<T> getIgnoredSerializer() {
+    private static <T extends BedrockPacket> BedrockPacketSerializer<T> setIgnoredSerializer() {
         return new BedrockPacketSerializer<T>() {
             @Override
             public void serialize(ByteBuf buffer, BedrockCodecHelper helper, BedrockPacket packet) {
