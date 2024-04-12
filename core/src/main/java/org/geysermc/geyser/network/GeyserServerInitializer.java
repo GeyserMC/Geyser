@@ -81,38 +81,6 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
     }
 
     @Override
-    protected void postInitChannel(Channel channel) throws Exception {
-        super.postInitChannel(channel);
-
-        channel.pipeline().addLast(new SimpleChannelInboundHandler<ByteBuf>() {
-            private static final int allowedExceptions = 5;
-            private static final long delayUntilExceptionsReset = 60;
-
-            private long lastException;
-            private int exceptionCounts;
-
-            @Override
-            protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-                ctx.fireChannelRead(msg);
-            }
-
-            @Override
-            public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-                final long currentTime = System.currentTimeMillis();
-                if (currentTime >= lastException + (delayUntilExceptionsReset * 1000)) {
-                    exceptionCounts = 0;
-                }
-                lastException = currentTime;
-                if (exceptionCounts++ > allowedExceptions) {
-                    ctx.pipeline().get(GeyserBedrockPeer.class).close("Too many exceptions created.");
-                    return;
-                }
-                super.exceptionCaught(ctx, cause);
-            }
-        });
-    }
-
-    @Override
     protected BedrockPeer createPeer(Channel channel) {
         return new GeyserBedrockPeer(channel, this::createSession);
     }
