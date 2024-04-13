@@ -33,7 +33,6 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureMirror;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureRotation;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureTemplateResponseType;
-import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataResponsePacket;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -53,18 +52,11 @@ public class StructureBlockUtils {
         EMPTY_STRUCTURE_DATA = builder.build();
     }
 
-    public static void sendEmptyStructureData(GeyserSession session, StructureTemplateDataRequestPacket packet) {
+    public static void sendEmptyStructureData(GeyserSession session) {
         StructureTemplateDataResponsePacket responsePacket = new StructureTemplateDataResponsePacket();
-        responsePacket.setName(packet.getName());
-        responsePacket.setSave(true);
-        responsePacket.setTag(EMPTY_STRUCTURE_DATA.toBuilder()
-                // Bedrock does not like negative sizes here
-                .putList("size", NbtType.INT,
-                        packet.getSettings().getSize().getX(),
-                        packet.getSettings().getSize().getY(),
-                        packet.getSettings().getSize().getZ())
-                .build());
-        responsePacket.setType(StructureTemplateResponseType.NONE);
+        responsePacket.setName("");
+        responsePacket.setSave(false);
+        responsePacket.setType(StructureTemplateResponseType.QUERY);
         session.sendUpstreamPacket(responsePacket);
     }
 

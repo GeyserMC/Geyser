@@ -34,6 +34,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureSettings;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureTemplateRequestOperation;
 import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataRequestPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -56,7 +57,7 @@ public class BedrockStructureTemplateDataRequestTranslator extends PacketTransla
             StructureSettings settings = packet.getSettings();
 
             // If we send a load packet to the Java server when the structure size is known, it would place the structure.
-            String currentStructureName = session.getStructureBlockCache().getCurrentStructure();
+            String currentStructureName = session.getStructureBlockCache().getCurrentStructureName();
 
             // Case 1: Opening a structure block with information about structure size, but not yet saved by us
             // Case 2: Getting an update from Bedrock with new information, doesn't bother us if it's the same structure
@@ -65,7 +66,7 @@ public class BedrockStructureTemplateDataRequestTranslator extends PacketTransla
                     Vector3i offset = StructureBlockUtils.calculateOffset(settings.getRotation(), settings.getMirror(),
                             settings.getSize().getX(), settings.getSize().getZ());
                     session.getStructureBlockCache().setBedrockOffset(offset);
-                    session.getStructureBlockCache().setCurrentStructure(packet.getName());
+                    session.getStructureBlockCache().setCurrentStructureName(packet.getName());
                     StructureBlockUtils.sendStructureData(session, size, packet.getName());
                     return;
                 } else if (packet.getName().equals(currentStructureName)) {
@@ -74,9 +75,10 @@ public class BedrockStructureTemplateDataRequestTranslator extends PacketTransla
                 }
             }
 
+            // Request a "structure load" from Java server, so it sends us the structure's size
+            // See the block entity translator for more info
             session.getStructureBlockCache().setCurrentStructureBlock(packet.getPosition());
 
-            // Request a "load" from Java server, so it sends us the structure's size :p
             com.github.steveice10.mc.protocol.data.game.level.block.StructureRotation rotation = switch (settings.getRotation()) {
                 case ROTATE_90 -> StructureRotation.CLOCKWISE_90;
                 case ROTATE_180 -> StructureRotation.CLOCKWISE_180;
@@ -100,8 +102,8 @@ public class BedrockStructureTemplateDataRequestTranslator extends PacketTransla
                     UpdateStructureBlockAction.LOAD_STRUCTURE,
                     UpdateStructureBlockMode.LOAD,
                     packet.getName(),
-                    settings.getOffset(),
-                    size,
+                    offset,
+                    Vector3i.ZERO, // We expect the Java server to tell us the correct size
                     mirror,
                     rotation,
                     "",
@@ -113,7 +115,7 @@ public class BedrockStructureTemplateDataRequestTranslator extends PacketTransla
             );
             session.sendDownstreamPacket(structureBlockPacket);
         } else {
-            StructureBlockUtils.sendEmptyStructureData(session, packet);
+            StructureBlockUtils.sendEmptyStructureData(session);
         }
     }
 }

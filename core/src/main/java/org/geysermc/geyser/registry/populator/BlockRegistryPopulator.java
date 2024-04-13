@@ -229,7 +229,7 @@ public final class BlockRegistryPopulator {
             Map<NbtMap, BlockDefinition> itemFrames = new Object2ObjectOpenHashMap<>();
 
             Set<BlockDefinition> jigsawDefinitions = new ObjectOpenHashSet<>();
-            Set<BlockDefinition> structureBlockDefinitions = new ObjectOpenHashSet<>();
+            Map<String, BlockDefinition> structureBlockDefinitions = new Object2ObjectOpenHashMap<>();
 
             BlockMappings.BlockMappingsBuilder builder = BlockMappings.builder();
             while (blocksIterator.hasNext()) {
@@ -274,7 +274,15 @@ public final class BlockRegistryPopulator {
                 }
 
                 if (javaId.contains("structure_block")) {
-                    structureBlockDefinitions.add(bedrockDefinition);
+                    int modeIndex = javaId.indexOf("mode=");
+                    if (modeIndex != -1) {
+                        int startIndex = modeIndex + 5; // Length of "mode=" is 5
+                        int endIndex = javaId.indexOf("]", startIndex);
+                        if (endIndex != -1) {
+                            String modeValue = javaId.substring(startIndex, endIndex);
+                            structureBlockDefinitions.put(modeValue.toUpperCase(), bedrockDefinition);
+                        }
+                    }
                 }
 
                 boolean waterlogged = entry.getKey().contains("waterlogged=true")

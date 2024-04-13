@@ -36,7 +36,7 @@ public final class StructureBlockCache {
     /**
      * Stores the current structure's name to be able to detect changes in the loaded structure
      */
-    private @Nullable String currentStructure;
+    private @Nullable String currentStructureName;
 
     /**
      * Stores the offset changes added by Geyser that ensure that structure bounds
@@ -51,7 +51,7 @@ public final class StructureBlockCache {
     private @Nullable Vector3i currentStructureBlock;
 
     public void clear() {
-        this.currentStructure = null;
+        this.currentStructureName = null;
         this.currentStructureBlock = null;
         this.bedrockOffset = null;
     }

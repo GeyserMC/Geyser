@@ -348,7 +348,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                     openPacket.setType(ContainerType.JIGSAW_EDITOR);
                                     openPacket.setUniqueEntityId(-1);
                                     session.sendUpstreamPacket(openPacket);
-                                } else if (session.getBlockMappings().getStructureBlockStates().contains(packet.getBlockDefinition())) {
+                                } else if (session.getBlockMappings().getStructureBlockStates().containsValue(packet.getBlockDefinition())) {
                                     ContainerOpenPacket openPacket = new ContainerOpenPacket();
                                     openPacket.setBlockPosition(packet.getBlockPosition());
                                     openPacket.setId((byte) 1);

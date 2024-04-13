@@ -135,16 +135,17 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
             int sizeZ = getOrDefault(map.get("sizeZ"), 0);
 
             session.getStructureBlockCache().setCurrentStructureBlock(null);
-            session.getStructureBlockCache().setCurrentStructure(name);
 
             Vector3i size = Vector3i.from(sizeX, sizeY, sizeZ);
             if (size.equals(Vector3i.ZERO)) {
+                StructureBlockUtils.sendEmptyStructureData(session);
                 return;
             }
 
             Vector3i offset = StructureBlockUtils.calculateOffset(bedrockRotation, bedrockMirror,
                     sizeX, sizeZ);
             session.getStructureBlockCache().setBedrockOffset(offset);
+            session.getStructureBlockCache().setCurrentStructureName(name);
             StructureBlockUtils.sendStructureData(session, size, name);
         }
     }
