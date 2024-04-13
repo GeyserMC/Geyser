@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.Cli
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.LecternContainer;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
@@ -79,8 +80,8 @@ public class JavaOpenBookTranslator extends PacketTranslator<ClientboundOpenBook
 
             // Should never be null
             Objects.requireNonNull(translator, "lectern translator must exist");
-            Inventory inventory = translator.createInventory("", FAKE_LECTERN_WINDOW_ID, ContainerType.LECTERN , session.getPlayerInventory());
-            inventory.setItem(0, stack, session);
+            Inventory inventory = translator.createInventory("", FAKE_LECTERN_WINDOW_ID, ContainerType.LECTERN, session.getPlayerInventory());
+            ((LecternContainer) inventory).setFakeLecternBook(stack, session);
             InventoryUtils.openInventory(session, inventory);
         }
     }

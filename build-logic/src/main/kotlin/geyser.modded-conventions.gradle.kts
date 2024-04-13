@@ -11,12 +11,41 @@ plugins {
     id("com.modrinth.minotaur")
 }
 
+// These are provided by Minecraft/modded platforms already, no need to include them
+provided("com.google.code.gson", "gson")
+provided("com.google.guava", ".*")
+provided("org.slf4j", "slf4j-api")
+provided("com.nukkitx.fastutil", ".*")
+provided("org.cloudburstmc.fastutil.maps", ".*")
+provided("org.cloudburstmc.fastutil.sets", ".*")
+provided("org.cloudburstmc.fastutil.commons", ".*")
+provided("org.cloudburstmc.fastutil", ".*")
+provided("org.checkerframework", "checker-qual")
+provided("io.netty", "netty-transport-classes-epoll")
+provided("io.netty", "netty-transport-native-epoll")
+provided("io.netty", "netty-transport-native-unix-common")
+provided("io.netty", "netty-transport-classes-kqueue")
+provided("io.netty", "netty-transport-native-kqueue")
+provided("io.netty", "netty-handler")
+provided("io.netty", "netty-common")
+provided("io.netty", "netty-buffer")
+provided("io.netty", "netty-resolver")
+provided("io.netty", "netty-transport")
+provided("io.netty", "netty-codec")
+provided("io.netty", "netty-resolver-dns")
+provided("io.netty", "netty-resolver-dns-native-macos")
+provided("org.ow2.asm", "asm")
+
 architectury {
     minecraft = "1.20.4"
 }
 
 loom {
     silentMojangMappingsLicense()
+}
+
+configurations {
+    create("includeTransitive").isTransitive = true
 }
 
 tasks {
@@ -34,28 +63,6 @@ tasks {
         // The remapped shadowJar is the final desired mod jar
         archiveVersion.set(project.version.toString())
         archiveClassifier.set("shaded")
-
-        relocate("org.objectweb.asm", "org.geysermc.relocate.asm")
-        relocate("org.yaml", "org.geysermc.relocate.yaml") // https://github.com/CardboardPowered/cardboard/issues/139
-        relocate("com.fasterxml.jackson", "org.geysermc.relocate.jackson")
-        relocate("net.kyori", "org.geysermc.relocate.kyori")
-
-        dependencies {
-            // Exclude everything EXCEPT some DNS stuff required for HAProxy
-            exclude(dependency("io.netty:netty-transport-classes-epoll:.*"))
-            exclude(dependency("io.netty:netty-transport-native-epoll:.*"))
-            exclude(dependency("io.netty:netty-transport-native-unix-common:.*"))
-            exclude(dependency("io.netty:netty-transport-classes-kqueue:.*"))
-            exclude(dependency("io.netty:netty-transport-native-kqueue:.*"))
-            exclude(dependency("io.netty:netty-handler:.*"))
-            exclude(dependency("io.netty:netty-common:.*"))
-            exclude(dependency("io.netty:netty-buffer:.*"))
-            exclude(dependency("io.netty:netty-resolver:.*"))
-            exclude(dependency("io.netty:netty-transport:.*"))
-            exclude(dependency("io.netty:netty-codec:.*"))
-            exclude(dependency("io.netty:netty-resolver-dns:.*"))
-            exclude(dependency("io.netty:netty-resolver-dns-native-macos:.*"))
-        }
     }
 
     remapJar {
@@ -70,6 +77,27 @@ tasks {
         inputFile.set(shadowJar.get().archiveFile)
         archiveVersion.set(project.version.toString() + "+build."  + System.getenv("GITHUB_RUN_NUMBER"))
         archiveClassifier.set("")
+    }
+}
+
+afterEvaluate {
+    val providedDependencies = getProvidedDependenciesForProject(project.name)
+
+    // These are shaded, no need to JiJ them
+    configurations["shadow"].dependencies.forEach {shadowed ->
+        println("Not including shadowed dependency: ${shadowed.group}:${shadowed.name}")
+        providedDependencies.add("${shadowed.group}:${shadowed.name}")
+    }
+
+    // Now: Include all transitive dependencies that aren't excluded
+    configurations["includeTransitive"].resolvedConfiguration.resolvedArtifacts.forEach { dep ->
+        if (!providedDependencies.contains("${dep.moduleVersion.id.group}:${dep.moduleVersion.id.name}")
+            and !providedDependencies.contains("${dep.moduleVersion.id.group}:.*")) {
+            println("Including dependency via JiJ: ${dep.id}")
+            dependencies.add("include", dep.moduleVersion.id.toString())
+        } else {
+            println("Not including ${dep.id} for ${project.name}!")
+        }
     }
 }
 

@@ -1,5 +1,7 @@
 dependencies {
     api(projects.core)
+
+    compileOnlyApi(libs.viaproxy)
 }
 
 platformRelocate("net.kyori")

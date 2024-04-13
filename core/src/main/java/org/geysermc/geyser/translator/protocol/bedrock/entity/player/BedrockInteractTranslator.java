@@ -33,8 +33,6 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.Server
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
-import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InteractPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.geysermc.geyser.entity.type.Entity;
@@ -126,21 +124,9 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                         ServerboundPlayerCommandPacket openVehicleWindowPacket = new ServerboundPlayerCommandPacket(session.getPlayerEntity().getEntityId(), PlayerState.OPEN_VEHICLE_INVENTORY);
                         session.sendDownstreamGamePacket(openVehicleWindowPacket);
                     } else {
-                        session.setOpenInventory(session.getPlayerInventory());
-
-                        ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
-                        containerOpenPacket.setId((byte) 0);
-                        containerOpenPacket.setType(ContainerType.INVENTORY);
-                        containerOpenPacket.setUniqueEntityId(-1);
-                        containerOpenPacket.setBlockPosition(entity.getPosition().toInt());
-                        session.sendUpstreamPacket(containerOpenPacket);
+                        InventoryUtils.openInventory(session, session.getPlayerInventory());
                     }
-                } else {
-                    // Case: Player opens a player inventory, while we think it shouldn't have!
-                    // Close all inventories, reset to player inventory.
-                    InventoryUtils.closeInventory(session, session.getOpenInventory().getJavaId(), false);
                 }
-                break;
         }
     }
 }

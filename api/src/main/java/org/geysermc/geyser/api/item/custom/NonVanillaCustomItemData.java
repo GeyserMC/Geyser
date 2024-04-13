@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
 
-import java.util.OptionalInt;
 import java.util.Set;
 
 /**
@@ -64,6 +63,14 @@ public interface NonVanillaCustomItemData extends CustomItemData {
      * @return the max damage of the item
      */
     int maxDamage();
+
+    /**
+     * Gets the attack damage of the item.
+     * This is purely visual, and only applied to tools
+     *
+     * @return the attack damage of the item
+     */
+    int attackDamage();
 
     /**
      * Gets the tool type of the item.
@@ -106,20 +113,6 @@ public interface NonVanillaCustomItemData extends CustomItemData {
      * @return the repair materials of the item
      */
     @Nullable Set<String> repairMaterials();
-
-    /**
-     * Gets the item's creative category, or tab id.
-     *
-     * @return the item's creative category
-     */
-    @NonNull OptionalInt creativeCategory();
-
-    /**
-     * Gets the item's creative group.
-     *
-     * @return the item's creative group
-     */
-    @Nullable String creativeGroup();
 
     /**
      * Gets if the item is a hat. This is used to determine if the item should be rendered on the player's head, and
@@ -168,6 +161,13 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         return displayHandheld();
     }
 
+    /**
+     * Gets the block the item places.
+     *
+     * @return the block the item places
+     */
+    String block();
+
     static NonVanillaCustomItemData.Builder builder() {
         return GeyserApi.api().provider(NonVanillaCustomItemData.Builder.class);
     }
@@ -184,6 +184,8 @@ public interface NonVanillaCustomItemData extends CustomItemData {
 
         Builder maxDamage(int maxDamage);
 
+        Builder attackDamage(int attackDamage);
+
         Builder toolType(@Nullable String toolType);
 
         Builder toolTier(@Nullable String toolTier);
@@ -196,10 +198,6 @@ public interface NonVanillaCustomItemData extends CustomItemData {
 
         Builder repairMaterials(@Nullable Set<String> repairMaterials);
 
-        Builder creativeCategory(int creativeCategory);
-
-        Builder creativeGroup(@Nullable String creativeGroup);
-
         Builder hat(boolean isHat);
 
         Builder foil(boolean isFoil);
@@ -210,6 +208,8 @@ public interface NonVanillaCustomItemData extends CustomItemData {
 
         Builder chargeable(boolean isChargeable);
 
+        Builder block(String block);
+
         /**
          * @deprecated Use {@link #displayHandheld(boolean)} instead.
          */
@@ -217,6 +217,12 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         default Builder tool(boolean isTool) {
             return displayHandheld(isTool);
         }
+
+        @Override
+        Builder creativeCategory(int creativeCategory);
+
+        @Override
+        Builder creativeGroup(@Nullable String creativeGroup);
 
         @Override
         Builder customItemOptions(@NonNull CustomItemOptions customItemOptions);

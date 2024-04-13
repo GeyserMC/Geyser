@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -62,13 +62,17 @@ public class BedrockEntityPickRequestTranslator extends PacketTranslator<EntityP
                     case 2 -> "birch";
                     case 3 -> "jungle";
                     case 4 -> "acacia";
-                    //case 5 -> "cherry"; TODO
+                    case 5 -> "cherry";
                     case 6 -> "dark_oak";
                     case 7 -> "mangrove";
-                    //case 8 -> "bamboo";
+                    case 8 -> "bamboo";
                     default -> "oak";
                 };
                 itemName = typeOfBoat + "_" + entity.getDefinition().entityType().name().toLowerCase(Locale.ROOT);
+                // Bamboo boat is a raft
+                if (variant == 8) {
+                    itemName = itemName.replace("boat", "raft");
+                }
             }
             case LEASH_KNOT -> itemName = "lead";
             case CHEST_MINECART, COMMAND_BLOCK_MINECART, FURNACE_MINECART, HOPPER_MINECART, TNT_MINECART ->
