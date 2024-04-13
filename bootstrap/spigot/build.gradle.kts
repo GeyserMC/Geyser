@@ -14,7 +14,6 @@ dependencies {
     implementation(libs.adventure.text.serializer.bungeecord)
 
     compileOnly(libs.folia.api)
-    compileOnly(libs.paper.mojangapi)
 
     compileOnlyApi(libs.viaversion)
 }
