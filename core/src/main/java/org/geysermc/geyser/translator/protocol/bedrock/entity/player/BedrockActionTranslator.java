@@ -163,7 +163,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 LevelEventPacket startBreak = new LevelEventPacket();
                 startBreak.setType(LevelEvent.BLOCK_START_BREAK);
                 startBreak.setPosition(vector.toFloat());
-                double breakTime = BlockUtils.getSessionBreakTime(session, BlockRegistries.JAVA_BLOCKS.get(blockState)) * 20;
+                double breakTime = BlockUtils.getSessionBreakTime(session, BlockRegistries.JAVA_BLOCKS.getOrDefault(blockState, BlockMapping.DEFAULT)) * 20;
 
                 // If the block is custom or the breaking item is custom, we must keep track of break time ourselves
                 GeyserItemStack item = session.getPlayerInventory().getItemInHand();
@@ -215,7 +215,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 LevelEventPacket updateBreak = new LevelEventPacket();
                 updateBreak.setType(LevelEvent.BLOCK_UPDATE_BREAK);
                 updateBreak.setPosition(vectorFloat);
-                double breakTime = BlockUtils.getSessionBreakTime(session, BlockRegistries.JAVA_BLOCKS.get(breakingBlock)) * 20;
+                double breakTime = BlockUtils.getSessionBreakTime(session, BlockRegistries.JAVA_BLOCKS.getOrDefault(breakingBlock, BlockMapping.DEFAULT)) * 20;
 
 
                 // If the block is custom, we must keep track of when it should break ourselves

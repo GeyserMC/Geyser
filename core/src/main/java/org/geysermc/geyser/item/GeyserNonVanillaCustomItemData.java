@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,6 +55,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     private final boolean isEdible;
     private final boolean canAlwaysEat;
     private final boolean isChargeable;
+    private final String block;
 
     public GeyserNonVanillaCustomItemData(Builder builder) {
         super(builder.name, builder.customItemOptions, builder.displayName, builder.icon, builder.allowOffhand,
@@ -78,6 +79,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         this.isEdible = builder.edible;
         this.canAlwaysEat = builder.canAlwaysEat;
         this.isChargeable = builder.chargeable;
+        this.block = builder.block;
     }
 
     @Override
@@ -160,6 +162,11 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         return isChargeable;
     }
 
+    @Override
+    public String block() {
+        return block;
+    }
+
     public static class Builder extends GeyserCustomItemData.Builder implements NonVanillaCustomItemData.Builder {
         private String identifier = null;
         private int javaId = -1;
@@ -186,6 +193,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         private boolean edible = false;
         private boolean canAlwaysEat = false;
         private boolean chargeable = false;
+        private String block = null;
 
         @Override
         public Builder name(@NonNull String name) {
@@ -336,6 +344,12 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         @Override
         public Builder chargeable(boolean isChargeable) {
             this.chargeable = isChargeable;
+            return this;
+        }
+
+        @Override
+        public Builder block(String block) {
+            this.block = block;
             return this;
         }
 
