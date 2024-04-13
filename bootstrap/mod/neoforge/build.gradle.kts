@@ -31,6 +31,7 @@ dependencies {
 
     // Let's shade in our own api
     shadow(projects.api) { isTransitive = false }
+    shadow(projects.common) { isTransitive = false }
 
     // Include all transitive deps of core via JiJ
     includeTransitive(projects.core)
