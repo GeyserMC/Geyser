@@ -39,18 +39,20 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.WebUtils;
 import org.incendo.cloud.CommandManager;
-import org.incendo.cloud.component.CommandComponent;
 import org.incendo.cloud.context.CommandContext;
+import org.incendo.cloud.suggestion.SuggestionProvider;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.incendo.cloud.parser.standard.StringArrayParser.stringArrayParser;
+
 public class DumpCommand extends GeyserCommand {
 
     private static final String ARGUMENTS = "args";
-    private static final List<String> SUGGESTIONS = List.of("full", "offline", "logs");
+    private static final Iterable<String> SUGGESTIONS = List.of("full", "offline", "logs");
 
     private final GeyserImpl geyser;
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -61,30 +63,31 @@ public class DumpCommand extends GeyserCommand {
         this.geyser = geyser;
     }
 
-    @Override
-    public void register(CommandManager<GeyserCommandSource> manager) {
-        manager.command(baseBuilder(manager)
-            .argument(createArgument())
-            .handler(this::execute));
-    }
+        @Override
+        public void register(CommandManager<GeyserCommandSource> manager) {
+            manager.command(baseBuilder(manager)
+                .optional(ARGUMENTS, stringArrayParser(), SuggestionProvider.blockingStrings((ctx, input) -> {
+                    // parse suggestions here
+                    List<String> inputs = new ArrayList<>();
+                    while (input.hasRemainingInput()) {
+                        inputs.add(input.readStringSkipWhitespace());
+                    }
 
-    private CommandComponent<GeyserCommandSource> createArgument() {
-        return StringArrayArgument.optional(ARGUMENTS, (context, currentInput) -> {
-            // currentInput only provides the word currently being typed, so it's useless for checking the previous ones
-            List<String> input = context.getRawInput();
-            if (input.size() <= 2) {
-                return SUGGESTIONS; // only `geyser dump` was typed (2 literals)
-            }
+                    if (inputs.size() <= 2) {
+                        return SUGGESTIONS; // only `geyser dump` was typed (2 literals)
+                    }
 
-            // the rest of the input after `geyser dump` is for this argument
-            input = input.subList(2, input.size());
+                    // the rest of the input after `geyser dump` is for this argument
+                    inputs = inputs.subList(2, inputs.size());
 
-            // don't suggest any words they have already typed
-            List<String> suggestions = new ArrayList<>(SUGGESTIONS);
-            suggestions.removeAll(input);
-            return suggestions;
-        });
-    }
+                    // don't suggest any words they have already typed
+                    List<String> suggestions = new ArrayList<>();
+                    SUGGESTIONS.forEach(suggestions::add);
+                    suggestions.removeAll(inputs);
+                    return suggestions;
+                }))
+                .handler(this::execute));
+        }
 
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
