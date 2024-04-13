@@ -35,11 +35,11 @@ import org.cloudburstmc.protocol.bedrock.data.structure.StructureBlockType;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureEditorData;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureSettings;
 import org.cloudburstmc.protocol.bedrock.packet.StructureBlockUpdatePacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.util.StructureBlockUtils;
+
+import java.util.Objects;
 
 @Translator(packet = StructureBlockUpdatePacket.class)
 public class BedrockStructureBlockUpdateTranslator extends PacketTranslator<StructureBlockUpdatePacket> {
@@ -78,16 +78,15 @@ public class BedrockStructureBlockUpdateTranslator extends PacketTranslator<Stru
             default -> StructureRotation.NONE;
         };
 
-        Vector3i[] offsetAndSize = StructureBlockUtils.removeOffsets(session, settings);
-        GeyserImpl.getInstance().getLogger().error("New Offset/Size after removal: " + offsetAndSize[0] + " " + offsetAndSize[1]);
+        Vector3i offset = settings.getOffset().sub(Objects.requireNonNull(session.getStructureBlockCache().getBedrockOffset()));
 
         ServerboundSetStructureBlockPacket structureBlockPacket = new ServerboundSetStructureBlockPacket(
                 packet.getBlockPosition(),
                 action,
                 mode,
                 data.getName(),
-                offsetAndSize[0],
-                offsetAndSize[1],
+                offset,
+                settings.getSize(),
                 mirror,
                 rotation,
                 "",
@@ -98,8 +97,7 @@ public class BedrockStructureBlockUpdateTranslator extends PacketTranslator<Stru
                 data.isBoundingBoxVisible()
         );
 
-        session.setStructureSettings(null);
-        session.setCurrentStructureBlock(null);
+        session.getStructureBlockCache().clear();
         session.sendDownstreamPacket(structureBlockPacket);
     }
 }

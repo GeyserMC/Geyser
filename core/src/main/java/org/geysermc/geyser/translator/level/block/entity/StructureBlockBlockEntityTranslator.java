@@ -30,6 +30,7 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureMirror;
+import org.cloudburstmc.protocol.bedrock.data.structure.StructureRotation;
 import org.geysermc.geyser.util.StructureBlockUtils;
 
 @BlockEntity(type = BlockEntityType.STRUCTURE_BLOCK)
@@ -56,12 +57,12 @@ public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
 
         // Mirror behaves different in Java and Bedrock - it requires modifying the position in space as well
         String mirror = getOrDefault(tag.get("mirror"), "");
-        byte bedrockMirror = switch (mirror) {
-            case "FRONT_BACK" -> (byte) StructureMirror.X.ordinal();
-            case "LEFT_RIGHT" -> (byte) StructureMirror.Z.ordinal();
-            default -> 0; // Or NONE
+        StructureMirror bedrockMirror = switch (mirror) {
+            case "FRONT_BACK" -> StructureMirror.X;
+            case "LEFT_RIGHT" -> StructureMirror.Z;
+            default -> StructureMirror.NONE;
         };
-        builder.putByte("mirror", bedrockMirror);
+        builder.putByte("mirror", (byte) bedrockMirror.ordinal());
 
         builder.putByte("ignoreEntities", getOrDefault(tag.get("ignoreEntities"), (byte) 0));
         builder.putByte("isPowered", getOrDefault(tag.get("powered"), (byte) 0));
@@ -69,34 +70,33 @@ public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
         builder.putByte("showBoundingBox", getOrDefault(tag.get("showboundingbox"), (byte) 0));
 
         String rotation = getOrDefault(tag.get("rotation"), "");
-        byte bedrockRotation = switch (rotation) {
-            case "CLOCKWISE_90" -> 1;
-            case "CLOCKWISE_180" -> 2;
-            case "COUNTERCLOCKWISE_90" -> 3;
-            default -> 0; // Or NONE keep it as 0
+        StructureRotation bedrockRotation = switch (rotation) {
+            case "CLOCKWISE_90" -> StructureRotation.ROTATE_90;
+            case "CLOCKWISE_180" -> StructureRotation.ROTATE_180;
+            case "COUNTERCLOCKWISE_90" -> StructureRotation.ROTATE_270;
+            default -> StructureRotation.NONE;
         };
-        builder.putByte("rotation", bedrockRotation);
+        builder.putByte("rotation", (byte) bedrockRotation.ordinal());
 
         int xStructureSize = getOrDefault(tag.get("sizeX"), 0);
+        int yStructureSize = getOrDefault(tag.get("sizeY"), 0);
         int zStructureSize = getOrDefault(tag.get("sizeZ"), 0);
 
         // The "positions" are also offsets on Java
         int posX = getOrDefault(tag.get("posX"), 0);
+        int posY = getOrDefault(tag.get("posY"), 0);
         int posZ = getOrDefault(tag.get("posZ"), 0);
 
-        Vector3i[] offsetAndSize = StructureBlockUtils.addOffsets(bedrockRotation, bedrockMirror,
-                xStructureSize, getOrDefault(tag.get("sizeY"), 0), zStructureSize,
-                posX, getOrDefault(tag.get("posY"), 0), posZ);
+        Vector3i offset = StructureBlockUtils.calculateOffset(bedrockRotation, bedrockMirror,
+                xStructureSize, zStructureSize);
 
-        Vector3i offset = offsetAndSize[0];
-        builder.putInt("xStructureOffset", offset.getX());
-        builder.putInt("yStructureOffset", offset.getY());
-        builder.putInt("zStructureOffset", offset.getZ());
+        builder.putInt("xStructureOffset", posX + offset.getX());
+        builder.putInt("yStructureOffset", posY);
+        builder.putInt("zStructureOffset", posZ + offset.getZ());
 
-        Vector3i size = offsetAndSize[1];
-        builder.putInt("xStructureSize", size.getX());
-        builder.putInt("yStructureSize", size.getY());
-        builder.putInt("zStructureSize", size.getZ());
+        builder.putInt("xStructureSize", xStructureSize);
+        builder.putInt("yStructureSize", yStructureSize);
+        builder.putInt("zStructureSize", zStructureSize);
 
         builder.putFloat("integrity", getOrDefault(tag.get("integrity"), 0f)); // Is 1.0f by default on Java but 100.0f on Bedrock
 

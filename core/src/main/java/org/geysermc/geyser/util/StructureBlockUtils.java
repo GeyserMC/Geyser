@@ -32,11 +32,9 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureMirror;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureRotation;
-import org.cloudburstmc.protocol.bedrock.data.structure.StructureSettings;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureTemplateResponseType;
 import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataResponsePacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 
 public class StructureBlockUtils {
@@ -67,172 +65,55 @@ public class StructureBlockUtils {
         responsePacket.setName(name);
         responsePacket.setSave(true);
         responsePacket.setTag(EMPTY_STRUCTURE_DATA.toBuilder()
+                // Bedrock does not like negative sizes here
                 .putList("size", NbtType.INT, Math.abs(x), y, Math.abs(z))
                 .build());
         responsePacket.setType(StructureTemplateResponseType.QUERY);
         session.sendUpstreamPacket(responsePacket);
     }
 
-    public static Vector3i[] removeOffsets(GeyserSession session, StructureSettings newSettings) {
-        StructureSettings old = session.getStructureSettings();
-
-        if (old == null) {
-            return new Vector3i[] {newSettings.getOffset(), newSettings.getSize()};
-        }
-
-        Vector3i offset = old.getOffset();
-        Vector3i size = old.getSize().abs();
-
-        int offsetX = offset.getX();
-        int offsetZ = offset.getZ();
-        int originalSizeX = size.getX();
-        int originalSizeZ = size.getZ();
-
-        StructureMirror structureMirror = old.getMirror();
-        StructureRotation structureRotation = old.getRotation();
+    public static Vector3i calculateOffset(StructureRotation structureRotation, StructureMirror structureMirror,
+                                           int sizeX, int sizeZ) {
+        int newOffsetX = 0;
+        int newOffsetZ = 0;
 
         switch (structureRotation) {
             case ROTATE_90 -> {
                 switch (structureMirror) {
-                    case NONE -> {
-                        //offsetX -= 1;
-                    }
+                    case NONE -> newOffsetX -= sizeZ - 1;
                     case X -> {
-                        offsetZ -= originalSizeX - 1;
-                        offsetX -= 2 * originalSizeX;
+                        newOffsetZ -= sizeZ;
+                        newOffsetX -= sizeZ - 1;
                     }
                 }
             }
             case ROTATE_180 -> {
                 switch (structureMirror) {
                     case NONE -> {
-                        offsetX -= 1;
-                        offsetZ -= 1;
-                        offsetX -= originalSizeX;
-                        offsetZ -= originalSizeZ;
+                        newOffsetX -= sizeX - 1;
+                        newOffsetZ -= sizeZ - 1;
                     }
-                    case Z -> {
-                        offsetX -= originalSizeX - 1;
-                    }
-                    case X -> {
-                        offsetZ -= originalSizeZ - 1;
-                    }
+                    case Z -> newOffsetX -= sizeX - 1;
+                    case X -> newOffsetZ -= sizeZ - 1;
                 }
             }
             case ROTATE_270 -> {
                 switch (structureMirror) {
-                    case NONE -> {
-                        if (originalSizeX < 0) {
-                            offsetX -= 1;
-                        }
-                        if (originalSizeZ >= 0) {
-                            offsetZ -= 1;
-                        }
-                        offsetZ -= originalSizeX;
-                    }
+                    case NONE -> newOffsetZ -= sizeX - 1;
                     case Z -> {
-                        offsetZ -= originalSizeX - 1;
-                        offsetX -= originalSizeZ - 1;
-                    }
-                }
-            }
-            default -> {
-                GeyserImpl.getInstance().getLogger().warning(structureMirror.name() + " " + structureRotation.name() + " ");
-                switch (structureMirror) {
-                    case Z -> {
-                        offsetZ = offsetZ - originalSizeZ - 1;
-                    }
-                    case X -> {
-                        offsetX = offsetX - originalSizeX - 1;
-                    }
-                }
-            }
-        }
-
-        // These are the size/offsets for the OLD rotation (with our changes for Bedrock undone).
-        Vector3i originalOffset = Vector3i.from(offsetX, offset.getY(), offsetZ);
-        Vector3i originalSize = Vector3i.from(originalSizeX, size.getY(), originalSizeZ);
-
-        // Now: Add changes done by the player to these
-        Vector3i changeOffset = newSettings.getOffset().sub(originalOffset);
-
-        return new Vector3i[]{originalOffset.add(changeOffset), originalSize};
-    }
-
-    public static Vector3i[] addOffsets(byte bedrockRotation, byte bedrockMirror,
-                                        int sizeX, int sizeY, int sizeZ, int offsetX, int offsetY, int offsetZ) {
-        int newXStructureSize = sizeX;
-        int newZStructureSize = sizeZ;
-
-        StructureMirror structureMirror = StructureMirror.values()[bedrockMirror];
-        StructureRotation structureRotation = StructureRotation.values()[bedrockRotation];
-
-        switch (structureRotation) {
-            case ROTATE_90 -> {
-                switch (structureMirror) {
-                    case NONE -> {
-                        //newZStructureSize = sizeZ * -1;
-                        offsetZ -= sizeZ; // todo test
-                        offsetX += 1;
-                        offsetX += sizeZ;
-                    }
-                    case X -> {
-                        newXStructureSize = sizeX * -1;
-                        newZStructureSize = sizeZ * -1;
-                        offsetZ += sizeX + 1;
-                        offsetX += sizeX;
-                    }
-                }
-            }
-            case ROTATE_180 -> {
-                switch (structureMirror) {
-                    case NONE -> {
-                        newZStructureSize = sizeZ * -1;
-                        newXStructureSize = sizeX * -1;
-                        offsetX += sizeX + 1;
-                        offsetZ += sizeZ + 1;
-                    }
-                    case Z -> {
-                        newXStructureSize = sizeX * -1;
-                        offsetX += sizeX + 1;
-                    }
-                    case X -> {
-                        newZStructureSize = sizeZ * -1;
-                        offsetZ += sizeZ + 1;
-                    }
-                }
-            }
-            case ROTATE_270 -> {
-                switch (structureMirror) {
-                    case NONE -> {
-                        newXStructureSize = sizeX * -1;
-                        offsetZ += sizeX + 1;
-                    }
-                    case Z -> {
-                        newZStructureSize = sizeZ * -1;
-                        newXStructureSize = sizeX * -1;
-                        offsetZ += sizeX + 1;
-                        offsetX += sizeZ + 1;
+                        newOffsetZ -= sizeX - 1;
+                        newOffsetX -= sizeZ - 1;
                     }
                 }
             }
             default -> {
                 switch (structureMirror) {
-                    case Z -> {
-                        offsetZ = offsetZ + sizeZ + 1;
-                        newZStructureSize = sizeZ * -1;
-                    }
-                    case X -> {
-                        offsetX = offsetX + sizeX + 1;
-                        newXStructureSize = sizeX * -1;
-                    }
+                    case Z -> newOffsetZ -= sizeZ - 1;
+                    case X -> newOffsetX -= sizeX - 1;
                 }
             }
         }
 
-        Vector3i offset = Vector3i.from(offsetX, offsetY, offsetZ);
-        Vector3i size = Vector3i.from(newXStructureSize, sizeY, newZStructureSize);
-
-        return new Vector3i[]{offset, size};
+        return Vector3i.from(newOffsetX, 0, newOffsetZ);
     }
 }

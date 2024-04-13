@@ -34,7 +34,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureSettings;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureTemplateRequestOperation;
 import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataRequestPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -51,21 +50,33 @@ public class BedrockStructureTemplateDataRequestTranslator extends PacketTransla
 
     @Override
     public void translate(GeyserSession session, StructureTemplateDataRequestPacket packet) {
+        // All other operation types are ignored by Geyser since we do not support exporting/importing structures
         if (packet.getOperation().equals(StructureTemplateRequestOperation.QUERY_SAVED_STRUCTURE)) {
+            Vector3i size = packet.getSettings().getSize();
+            StructureSettings settings = packet.getSettings();
+
             // If we send a load packet to the Java server when the structure size is known, it would place the structure.
+            String currentStructureName = session.getStructureBlockCache().getCurrentStructure();
+
+            // Case 1: Opening a structure block with information about structure size, but not yet saved by us
+            // Case 2: Getting an update from Bedrock with new information, doesn't bother us if it's the same structure
             if (!packet.getSettings().getSize().equals(Vector3i.ZERO)) {
-                if (session.getStructureSettings() == null) {
-                    GeyserImpl.getInstance().getLogger().info("saving old settings!" + packet.getSettings());
-                    session.setStructureSettings(packet.getSettings());
+                if (currentStructureName == null) {
+                    Vector3i offset = StructureBlockUtils.calculateOffset(settings.getRotation(), settings.getMirror(),
+                            settings.getSize().getX(), settings.getSize().getZ());
+                    session.getStructureBlockCache().setBedrockOffset(offset);
+                    session.getStructureBlockCache().setCurrentStructure(packet.getName());
+                    StructureBlockUtils.sendStructureData(session, size.getX(), size.getY(), size.getZ(), packet.getName());
+                    return;
+                } else if (packet.getName().equals(currentStructureName)) {
+                    StructureBlockUtils.sendStructureData(session, size.getX(), size.getY(), size.getZ(), packet.getName());
+                    return;
                 }
-                // Otherwise, the Bedrock client can't load the structure in
-                StructureBlockUtils.sendEmptyStructureData(session, packet);
-                return;
             }
-            session.setCurrentStructureBlock(packet.getPosition());
+
+            session.getStructureBlockCache().setCurrentStructureBlock(packet.getPosition());
 
             // Request a "load" from Java server, so it sends us the structure's size :p
-            StructureSettings settings = packet.getSettings();
             com.github.steveice10.mc.protocol.data.game.level.block.StructureRotation rotation = switch (settings.getRotation()) {
                 case ROTATE_90 -> StructureRotation.CLOCKWISE_90;
                 case ROTATE_180 -> StructureRotation.CLOCKWISE_180;
@@ -79,13 +90,18 @@ public class BedrockStructureTemplateDataRequestTranslator extends PacketTransla
                 default -> StructureMirror.NONE;
             };
 
+            Vector3i offset = settings.getOffset();
+            if (currentStructureName != null && session.getStructureBlockCache().getBedrockOffset() != null) {
+                offset = offset.sub(session.getStructureBlockCache().getBedrockOffset());
+            }
+
             ServerboundSetStructureBlockPacket structureBlockPacket = new ServerboundSetStructureBlockPacket(
                     packet.getPosition(),
                     UpdateStructureBlockAction.LOAD_STRUCTURE,
                     UpdateStructureBlockMode.LOAD,
                     packet.getName(),
                     settings.getOffset(),
-                    settings.getSize(),
+                    size,
                     mirror,
                     rotation,
                     "",
