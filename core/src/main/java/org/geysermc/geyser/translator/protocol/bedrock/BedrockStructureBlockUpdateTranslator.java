@@ -39,8 +39,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
-import java.util.Objects;
-
 @Translator(packet = StructureBlockUpdatePacket.class)
 public class BedrockStructureBlockUpdateTranslator extends PacketTranslator<StructureBlockUpdatePacket> {
 
@@ -78,7 +76,10 @@ public class BedrockStructureBlockUpdateTranslator extends PacketTranslator<Stru
             default -> StructureRotation.NONE;
         };
 
-        Vector3i offset = settings.getOffset().sub(Objects.requireNonNull(session.getStructureBlockCache().getBedrockOffset()));
+        Vector3i offset = settings.getOffset();
+        if (session.getStructureBlockCache().getBedrockOffset() != null) {
+            offset = settings.getOffset().sub(session.getStructureBlockCache().getBedrockOffset());
+        }
 
         ServerboundSetStructureBlockPacket structureBlockPacket = new ServerboundSetStructureBlockPacket(
                 packet.getBlockPosition(),

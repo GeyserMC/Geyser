@@ -54,19 +54,27 @@ public class StructureBlockUtils {
     }
 
     public static void sendEmptyStructureData(GeyserSession session, StructureTemplateDataRequestPacket packet) {
-        sendStructureData(session, packet.getSettings().getSize().getX(),
-                packet.getSettings().getSize().getY(),
-                packet.getSettings().getSize().getZ(),
-                packet.getName());
+        StructureTemplateDataResponsePacket responsePacket = new StructureTemplateDataResponsePacket();
+        responsePacket.setName(packet.getName());
+        responsePacket.setSave(true);
+        responsePacket.setTag(EMPTY_STRUCTURE_DATA.toBuilder()
+                // Bedrock does not like negative sizes here
+                .putList("size", NbtType.INT,
+                        packet.getSettings().getSize().getX(),
+                        packet.getSettings().getSize().getY(),
+                        packet.getSettings().getSize().getZ())
+                .build());
+        responsePacket.setType(StructureTemplateResponseType.NONE);
+        session.sendUpstreamPacket(responsePacket);
     }
 
-    public static void sendStructureData(GeyserSession session, int x, int y, int z, String name) {
+    public static void sendStructureData(GeyserSession session,Vector3i size, String name) {
         StructureTemplateDataResponsePacket responsePacket = new StructureTemplateDataResponsePacket();
         responsePacket.setName(name);
         responsePacket.setSave(true);
         responsePacket.setTag(EMPTY_STRUCTURE_DATA.toBuilder()
                 // Bedrock does not like negative sizes here
-                .putList("size", NbtType.INT, Math.abs(x), y, Math.abs(z))
+                .putList("size", NbtType.INT, Math.abs(size.getX()), size.getY(), Math.abs(size.getZ()))
                 .build());
         responsePacket.setType(StructureTemplateResponseType.QUERY);
         session.sendUpstreamPacket(responsePacket);

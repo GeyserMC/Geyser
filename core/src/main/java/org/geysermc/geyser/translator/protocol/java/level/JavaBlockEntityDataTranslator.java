@@ -129,23 +129,23 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
                 default -> StructureRotation.NONE;
             };
 
-            // The "positions" are also offsets on Java
-            int posX = getOrDefault(map.get("posX"), 0);
-            int posZ = getOrDefault(map.get("posZ"), 0);
-
+            String name = getOrDefault(map.get("name"), "");
             int sizeX = getOrDefault(map.get("sizeX"), 0);
             int sizeY = getOrDefault(map.get("sizeY"), 0);
             int sizeZ = getOrDefault(map.get("sizeZ"), 0);
 
-            Vector3i offset = StructureBlockUtils.calculateOffset(bedrockRotation, bedrockMirror,
-                    sizeX, sizeZ);
-            String name = getOrDefault(map.get("name"), "");
-
             session.getStructureBlockCache().setCurrentStructureBlock(null);
             session.getStructureBlockCache().setCurrentStructure(name);
-            session.getStructureBlockCache().setBedrockOffset(offset);
 
-            StructureBlockUtils.sendStructureData(session, sizeX, sizeY, sizeZ, name);
+            Vector3i size = Vector3i.from(sizeX, sizeY, sizeZ);
+            if (size.equals(Vector3i.ZERO)) {
+                return;
+            }
+
+            Vector3i offset = StructureBlockUtils.calculateOffset(bedrockRotation, bedrockMirror,
+                    sizeX, sizeZ);
+            session.getStructureBlockCache().setBedrockOffset(offset);
+            StructureBlockUtils.sendStructureData(session, size, name);
         }
     }
 

@@ -66,10 +66,10 @@ public class BedrockStructureTemplateDataRequestTranslator extends PacketTransla
                             settings.getSize().getX(), settings.getSize().getZ());
                     session.getStructureBlockCache().setBedrockOffset(offset);
                     session.getStructureBlockCache().setCurrentStructure(packet.getName());
-                    StructureBlockUtils.sendStructureData(session, size.getX(), size.getY(), size.getZ(), packet.getName());
+                    StructureBlockUtils.sendStructureData(session, size, packet.getName());
                     return;
                 } else if (packet.getName().equals(currentStructureName)) {
-                    StructureBlockUtils.sendStructureData(session, size.getX(), size.getY(), size.getZ(), packet.getName());
+                    StructureBlockUtils.sendStructureData(session, size, packet.getName());
                     return;
                 }
             }
