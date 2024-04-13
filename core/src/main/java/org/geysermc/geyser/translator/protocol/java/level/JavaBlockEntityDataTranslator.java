@@ -155,6 +155,4 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
         //noinspection unchecked
         return (tag != null && tag.getValue() != null) ? (T) tag.getValue() : defaultValue;
     }
-
-
 }
