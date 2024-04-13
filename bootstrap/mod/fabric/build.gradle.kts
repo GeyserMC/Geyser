@@ -39,6 +39,9 @@ dependencies {
     // Since we also relocate cloudburst protocol: shade erosion common
     shadow(libs.erosion.common) { isTransitive = false }
 
+    // Let's shade in our own api
+    shadow(projects.api) { isTransitive = false }
+
     // Permissions
     modImplementation(libs.fabric.permissions)
     include(libs.fabric.permissions)

@@ -8,6 +8,7 @@ dependencies {
 platformRelocate("com.fasterxml.jackson")
 platformRelocate("it.unimi.dsi.fastutil")
 platformRelocate("net.kyori.adventure.text.serializer.gson.legacyimpl")
+platformRelocate("org.yaml")
 
 exclude("com.google.*:*")
 
