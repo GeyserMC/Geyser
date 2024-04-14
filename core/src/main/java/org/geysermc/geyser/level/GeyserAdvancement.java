@@ -82,11 +82,15 @@ public class GeyserAdvancement {
                 this.rootId = this.advancement.getId();
             } else {
                 // Go through our cache, and descend until we find the root ID
-                GeyserAdvancement advancement = advancementsCache.getStoredAdvancements().get(this.advancement.getParentId());
-                if (advancement.getParentId() == null) {
-                    this.rootId = advancement.getId();
+                GeyserAdvancement parent = advancementsCache.getStoredAdvancements().get(this.advancement.getParentId());
+                if (parent == null) {
+                    // Parent doesn't exist, is invalid, or couldn't be found for another reason
+                    // So assuming there is no parent and this is the root
+                    this.rootId = this.advancement.getId();
+                } else if (parent.getParentId() == null) {
+                    this.rootId = parent.getId();
                 } else {
-                    this.rootId = advancement.getRootId(advancementsCache);
+                    this.rootId = parent.getRootId(advancementsCache);
                 }
             }
         }
