@@ -68,6 +68,7 @@ public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
 
         return super.getBlockEntityTag(session, type, x, y, z, tag, blockState);
     }
+
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
         if (tag.size() < 5) {
