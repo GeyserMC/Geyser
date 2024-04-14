@@ -69,7 +69,7 @@ public class BedrockStructureBlockUpdateTranslator extends PacketTranslator<Stru
             default -> StructureMirror.NONE;
         };
 
-        com.github.steveice10.mc.protocol.data.game.level.block.StructureRotation rotation = switch (settings.getRotation()) {
+        StructureRotation rotation = switch (settings.getRotation()) {
             case ROTATE_90 -> StructureRotation.CLOCKWISE_90;
             case ROTATE_180 -> StructureRotation.CLOCKWISE_180;
             case ROTATE_270 -> StructureRotation.COUNTERCLOCKWISE_90;
