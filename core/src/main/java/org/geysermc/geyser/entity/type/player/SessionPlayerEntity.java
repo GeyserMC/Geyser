@@ -271,15 +271,14 @@ public class SessionPlayerEntity extends PlayerEntity {
         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
         attributesPacket.setRuntimeEntityId(geyserId);
         attributesPacket.setAttributes(Collections.singletonList(
-                new AttributeData("minecraft:absorption", 0.0f, 1024f, 0.0f, 0.0f)));
+                GeyserAttributeType.ABSORPTION.getAttribute(0f, 1024f)));
         session.sendUpstreamPacket(attributesPacket);
 
         dirtyMetadata.put(EntityDataTypes.EFFECT_COLOR, 0);
         dirtyMetadata.put(EntityDataTypes.EFFECT_AMBIENCE, (byte) 0);
+        dirtyMetadata.put(EntityDataTypes.FREEZING_EFFECT_STRENGTH, 0f);
 
         silent = false;
-
-        dirtyMetadata.put(EntityDataTypes.FREEZING_EFFECT_STRENGTH, 0f);
     }
 
     public void resetAir() {
