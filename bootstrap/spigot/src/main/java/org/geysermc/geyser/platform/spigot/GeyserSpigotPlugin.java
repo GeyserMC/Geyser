@@ -172,6 +172,8 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         );
         PaperCommandManager<GeyserCommandSource> cloud;
         try {
+            // PaperCommandManager is a cloud impl for all Bukkit based platforms
+            // https://github.com/Incendo/cloud-minecraft/blob/master/cloud-paper/src/main/java/org/incendo/cloud/paper/PaperCommandManager.java#L47-L49
             cloud = new PaperCommandManager<>(
                     this,
                     ExecutionCoordinator.simpleCoordinator(),
@@ -217,7 +219,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
         GeyserImpl.start();
 
-        PluginManager pluginManager = Bukkit.getPluginManager();
 
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserSpigotPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
@@ -279,6 +280,8 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
         // Register permissions so they appear in, for example, LuckPerms' UI
         // Re-registering permissions without removing it throws an error
+
+        PluginManager pluginManager = Bukkit.getPluginManager();
 
         // todo: this can probably always be run regardless if geyser has been initialized once or not, since we are removing the permission
         geyser.eventBus().fire((GeyserRegisterPermissionsEvent) (permission, def) -> {
