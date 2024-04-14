@@ -191,7 +191,9 @@ public class AdvancementsCache {
 
         if (advancementHasProgress) {
             // Only display progress with multiple requirements
-            String progress = advancementProgress + "/" + advancementRequirements;
+            String progress = MinecraftLocale.getLocaleString("advancements.progress", language)
+                    .replaceFirst("%s", String.valueOf(advancementProgress))
+                    .replaceFirst("%s", String.valueOf(advancementRequirements));
             content += GeyserLocale.getPlayerLocaleString("geyser.advancements.progress", language, progress) + "\n";
         }
 
