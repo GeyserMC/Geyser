@@ -54,9 +54,7 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
         }
 
         if (!packet.isKeepAttributes()) {
-            entity.getAttributes().clear();
-            entity.setMaxHealth(GeyserAttributeType.MAX_HEALTH.getDefaultValue());
-            // Relying on the server to resend speed attribute
+            entity.resetAttributes();
         }
 
         session.setSpawned(false);

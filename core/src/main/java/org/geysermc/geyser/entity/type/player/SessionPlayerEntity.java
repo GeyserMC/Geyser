@@ -281,6 +281,13 @@ public class SessionPlayerEntity extends PlayerEntity {
         silent = false;
     }
 
+    public void resetAttributes() {
+        attributes.clear();
+        maxHealth = GeyserAttributeType.MAX_HEALTH.getDefaultValue();
+        // Relying on the server to resend speed attribute
+        // Armor attribute reset would go here
+    }
+
     public void resetAir() {
         this.setAirSupply(getMaxAir());
     }
