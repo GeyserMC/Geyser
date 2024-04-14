@@ -238,13 +238,7 @@ public class CommandRegistry {
      * This method may or may not be blocking, depending on the {@link ExecutionCoordinator} in use by cloud.
      */
     public void runCommand(@NonNull GeyserCommandSource source, @NonNull String command) {
-        cloud.commandExecutor().executeCommand(source, command).whenComplete((result, throwable) -> {
-            if (throwable == null) {
-                return;
-            }
-
-            // todo check if we need to do anything here?
-        });
+        cloud.commandExecutor().executeCommand(source, command);
     }
 
     private void handleNoPermission(GeyserCommandSource source, NoPermissionException exception) {

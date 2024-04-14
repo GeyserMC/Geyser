@@ -103,6 +103,7 @@ public class DumpCommand extends GeyserCommand {
                     case "full" -> showSensitive = true;
                     case "offline" -> offlineDump = true;
                     case "logs" -> addLog = true;
+                    default -> context.sender().sendMessage("Invalid geyser dump option " + arg + "! Fallback to no arguments.");
                 }
             }
         }

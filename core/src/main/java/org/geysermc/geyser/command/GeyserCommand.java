@@ -187,7 +187,7 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
     /**
      * Registers this command to the given command manager.
      * This method may be overridden to register more than one command.
-     * <br><br>
+     * <p>
      * The default implementation is that {@link #baseBuilder(CommandManager)} with {@link #execute(CommandContext)}
      * applied as the handler is registered to the manager.
      */
