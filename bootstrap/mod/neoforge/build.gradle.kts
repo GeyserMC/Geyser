@@ -45,6 +45,14 @@ application {
 }
 
 tasks {
+    // Cloud-NeoForge is currently providing cloud-core twice (once directly, once indirectly via modded-common)
+    distTar {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+    distZip {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+
     remapJar {
         archiveBaseName.set("Geyser-NeoForge")
     }
