@@ -30,7 +30,8 @@ import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 
-@Setter @Getter
+@Setter
+@Getter
 public final class StructureBlockCache {
 
     /**
