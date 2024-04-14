@@ -49,6 +49,16 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
         SessionPlayerEntity entity = session.getPlayerEntity();
         PlayerSpawnInfo spawnInfo = packet.getCommonPlayerSpawnInfo();
 
+        if (!packet.isKeepMetadata()) {
+            entity.resetMetadata();
+        }
+
+        if (!packet.isKeepAttributes()) {
+            entity.getAttributes().clear();
+            entity.setMaxHealth(GeyserAttributeType.MAX_HEALTH.getDefaultValue());
+            // Relying on the server to resend speed attribute
+        }
+
         session.setSpawned(false);
 
         entity.setHealth(entity.getMaxHealth());

@@ -258,10 +258,28 @@ public class SessionPlayerEntity extends PlayerEntity {
     public void resetMetadata() {
         // Reset all metadata to their default values
         // This is used when a player respawns
+        this.flags.clear();
         this.initializeMetadata();
 
         // Reset air
         this.resetAir();
+
+        // Explicitly reset all metadata not handled by initializeMetadata
+        setParrot(null, true);
+        setParrot(null, false);
+
+        UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+        attributesPacket.setRuntimeEntityId(geyserId);
+        attributesPacket.setAttributes(Collections.singletonList(
+                new AttributeData("minecraft:absorption", 0.0f, 1024f, 0.0f, 0.0f)));
+        session.sendUpstreamPacket(attributesPacket);
+
+        dirtyMetadata.put(EntityDataTypes.EFFECT_COLOR, 0);
+        dirtyMetadata.put(EntityDataTypes.EFFECT_AMBIENCE, (byte) 0);
+
+        silent = false;
+
+        dirtyMetadata.put(EntityDataTypes.FREEZING_EFFECT_STRENGTH, 0f);
     }
 
     public void resetAir() {
