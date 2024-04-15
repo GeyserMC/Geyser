@@ -284,7 +284,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         attributesPacket.setRuntimeEntityId(geyserId);
         // Setting to a higher maximum since plugins/datapacks can probably extend the Bedrock soft limit
         attributesPacket.setAttributes(Collections.singletonList(
-                GeyserAttributeType.ABSORPTION.getAttribute(entityMetadata.getPrimitiveValue(), 1024f)));
+                GeyserAttributeType.ABSORPTION.getAttribute(entityMetadata.getPrimitiveValue())));
         session.sendUpstreamPacket(attributesPacket);
     }
 

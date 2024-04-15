@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeTyp
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.GlobalPos;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
@@ -255,6 +256,14 @@ public class SessionPlayerEntity extends PlayerEntity {
         return session.getAuthData().uuid();
     }
 
+    @Override
+    public void setAbsorptionHearts(FloatEntityMetadata entityMetadata) {
+        // The bedrock client can glitch when sending a health and absorption attribute in the same tick
+        // This can happen when switching servers. Resending the absorption attribute fixes the issue
+        attributes.put(GeyserAttributeType.ABSORPTION, GeyserAttributeType.ABSORPTION.getAttribute(entityMetadata.getPrimitiveValue()));
+        super.setAbsorptionHearts(entityMetadata);
+    }
+
     public void resetMetadata() {
         // Reset all metadata to their default values
         // This is used when a player respawns
@@ -268,10 +277,12 @@ public class SessionPlayerEntity extends PlayerEntity {
         setParrot(null, true);
         setParrot(null, false);
 
+        // Absorption is metadata in java edition
+        attributes.remove(GeyserAttributeType.ABSORPTION);
         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
         attributesPacket.setRuntimeEntityId(geyserId);
         attributesPacket.setAttributes(Collections.singletonList(
-                GeyserAttributeType.ABSORPTION.getAttribute(0f, 1024f)));
+                GeyserAttributeType.ABSORPTION.getAttribute(0f)));
         session.sendUpstreamPacket(attributesPacket);
 
         dirtyMetadata.put(EntityDataTypes.EFFECT_COLOR, 0);
@@ -284,8 +295,12 @@ public class SessionPlayerEntity extends PlayerEntity {
     public void resetAttributes() {
         attributes.clear();
         maxHealth = GeyserAttributeType.MAX_HEALTH.getDefaultValue();
-        // Relying on the server to resend speed attribute
-        // Armor attribute reset would go here
+
+        UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+        attributesPacket.setRuntimeEntityId(geyserId);
+        attributesPacket.setAttributes(Collections.singletonList(
+                GeyserAttributeType.MOVEMENT_SPEED.getAttribute()));
+        session.sendUpstreamPacket(attributesPacket);
     }
 
     public void resetAir() {
