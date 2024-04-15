@@ -30,8 +30,8 @@ platformRelocate("org.yaml") // Broken as of 1.20
 // These dependencies are already present on the platform
 provided(libs.viaversion)
 
-application {
-    mainClass.set("org.geysermc.geyser.platform.spigot.GeyserSpigotMain")
+tasks.withType<Jar> {
+    manifest.attributes["Main-Class"] = "org.geysermc.geyser.platform.spigot.GeyserSpigotMain"
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

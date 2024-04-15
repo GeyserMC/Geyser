@@ -39,8 +39,8 @@ exclude("net.kyori:adventure-nbt:*")
 // These dependencies are already present on the platform
 provided(libs.velocity.api)
 
-application {
-    mainClass.set("org.geysermc.geyser.platform.velocity.GeyserVelocityMain")
+tasks.withType<Jar> {
+    manifest.attributes["Main-Class"] = "org.geysermc.geyser.platform.velocity.GeyserVelocityMain"
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
