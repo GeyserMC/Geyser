@@ -66,18 +66,20 @@ public class HelpCommand extends GeyserCommand {
         // but it's fine because the help command can be executed by non-bedrock players and by the console.
         manager.command(manager.commandBuilder(rootCommand)
             .apply(meta()) // shouldn't be necessary - just for consistency
-            .handler(this::execute));
+            .handler((commandContext -> {
+                GeyserCommandSource source = commandContext.sender();
+                if (!source.hasPermission(this.permission())) {
+                    source.sendLocaleString("geyser.command.permission_fail");
+                    return;
+                }
+                this.execute(commandContext);
+            })));
     }
 
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
         GeyserCommandSource source = context.sender();
         boolean bedrockPlayer = source.connection() != null;
-
-        if (!source.hasPermission("geyser.command.help")) {
-            source.sendLocaleString("geyser.command.permission_fail");
-            return;
-        }
 
         // todo: pagination
         int page = 1;
