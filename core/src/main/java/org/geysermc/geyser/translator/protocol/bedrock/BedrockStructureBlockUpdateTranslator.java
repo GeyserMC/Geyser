@@ -27,17 +27,13 @@ package org.geysermc.geyser.translator.protocol.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.inventory.UpdateStructureBlockAction;
 import com.github.steveice10.mc.protocol.data.game.inventory.UpdateStructureBlockMode;
-import com.github.steveice10.mc.protocol.data.game.level.block.StructureMirror;
-import com.github.steveice10.mc.protocol.data.game.level.block.StructureRotation;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetStructureBlockPacket;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureBlockType;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureEditorData;
-import org.cloudburstmc.protocol.bedrock.data.structure.StructureSettings;
 import org.cloudburstmc.protocol.bedrock.packet.StructureBlockUpdatePacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.StructureBlockUtils;
 
 @Translator(packet = StructureBlockUpdatePacket.class)
 public class BedrockStructureBlockUpdateTranslator extends PacketTranslator<StructureBlockUpdatePacket> {
@@ -45,7 +41,6 @@ public class BedrockStructureBlockUpdateTranslator extends PacketTranslator<Stru
     @Override
     public void translate(GeyserSession session, StructureBlockUpdatePacket packet) {
         StructureEditorData data = packet.getEditorData();
-        StructureSettings settings = data.getSettings();
 
         UpdateStructureBlockAction action = UpdateStructureBlockAction.UPDATE_DATA;
         if (packet.isPowered()) {
@@ -63,42 +58,8 @@ public class BedrockStructureBlockUpdateTranslator extends PacketTranslator<Stru
             default -> UpdateStructureBlockMode.SAVE;
         };
 
-        StructureMirror mirror = switch (data.getSettings().getMirror()) {
-            case X -> StructureMirror.FRONT_BACK;
-            case Z -> StructureMirror.LEFT_RIGHT;
-            default -> StructureMirror.NONE;
-        };
-
-        StructureRotation rotation = switch (settings.getRotation()) {
-            case ROTATE_90 -> StructureRotation.CLOCKWISE_90;
-            case ROTATE_180 -> StructureRotation.CLOCKWISE_180;
-            case ROTATE_270 -> StructureRotation.COUNTERCLOCKWISE_90;
-            default -> StructureRotation.NONE;
-        };
-
-        Vector3i offset = settings.getOffset();
-        if (session.getStructureBlockCache().getBedrockOffset() != null) {
-            offset = settings.getOffset().sub(session.getStructureBlockCache().getBedrockOffset());
-        }
-
-        ServerboundSetStructureBlockPacket structureBlockPacket = new ServerboundSetStructureBlockPacket(
-                packet.getBlockPosition(),
-                action,
-                mode,
-                data.getName(),
-                offset,
-                settings.getSize(),
-                mirror,
-                rotation,
-                "",
-                settings.getIntegrityValue(),
-                settings.getIntegritySeed(),
-                settings.isIgnoringEntities(),
-                false,
-                data.isBoundingBoxVisible()
-        );
-
+        StructureBlockUtils.sendJavaStructurePacket(session, packet.getBlockPosition(), data.getSettings().getSize(), mode, action, data.getSettings(),
+                data.isBoundingBoxVisible(), data.getName());
         session.getStructureBlockCache().clear();
-        session.sendDownstreamPacket(structureBlockPacket);
     }
 }

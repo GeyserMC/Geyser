@@ -25,6 +25,9 @@
 
 package org.geysermc.geyser.util;
 
+import com.github.steveice10.mc.protocol.data.game.inventory.UpdateStructureBlockAction;
+import com.github.steveice10.mc.protocol.data.game.inventory.UpdateStructureBlockMode;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetStructureBlockPacket;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
@@ -32,6 +35,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureMirror;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureRotation;
+import org.cloudburstmc.protocol.bedrock.data.structure.StructureSettings;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureTemplateResponseType;
 import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataResponsePacket;
 import org.geysermc.geyser.session.GeyserSession;
@@ -82,7 +86,7 @@ public class StructureBlockUtils {
                 switch (structureMirror) {
                     case NONE -> newOffsetX -= sizeZ - 1;
                     case X -> {
-                        newOffsetZ -= sizeZ;
+                        newOffsetZ -= sizeX - 1;
                         newOffsetX -= sizeZ - 1;
                     }
                 }
@@ -115,5 +119,46 @@ public class StructureBlockUtils {
         }
 
         return Vector3i.from(newOffsetX, 0, newOffsetZ);
+    }
+
+    public static void sendJavaStructurePacket(GeyserSession session, Vector3i blockPosition, Vector3i size, UpdateStructureBlockMode mode, UpdateStructureBlockAction action,
+                                               StructureSettings settings, boolean boundingBoxVisible, String structureName) {
+
+        com.github.steveice10.mc.protocol.data.game.level.block.StructureMirror mirror = switch (settings.getMirror()) {
+            case X -> com.github.steveice10.mc.protocol.data.game.level.block.StructureMirror.FRONT_BACK;
+            case Z -> com.github.steveice10.mc.protocol.data.game.level.block.StructureMirror.LEFT_RIGHT;
+            default -> com.github.steveice10.mc.protocol.data.game.level.block.StructureMirror.NONE;
+        };
+
+        com.github.steveice10.mc.protocol.data.game.level.block.StructureRotation rotation = switch (settings.getRotation()) {
+            case ROTATE_90 -> com.github.steveice10.mc.protocol.data.game.level.block.StructureRotation.CLOCKWISE_90;
+            case ROTATE_180 -> com.github.steveice10.mc.protocol.data.game.level.block.StructureRotation.CLOCKWISE_180;
+            case ROTATE_270 -> com.github.steveice10.mc.protocol.data.game.level.block.StructureRotation.COUNTERCLOCKWISE_90;
+            default -> com.github.steveice10.mc.protocol.data.game.level.block.StructureRotation.NONE;
+        };
+
+        Vector3i offset = settings.getOffset();
+        if (session.getStructureBlockCache().getBedrockOffset() != null) {
+            offset = settings.getOffset().sub(session.getStructureBlockCache().getBedrockOffset());
+        }
+
+        ServerboundSetStructureBlockPacket structureBlockPacket = new ServerboundSetStructureBlockPacket(
+                blockPosition,
+                action,
+                mode,
+                structureName,
+                offset,
+                settings.getSize(),
+                mirror,
+                rotation,
+                "",
+                settings.getIntegrityValue(),
+                settings.getIntegritySeed(),
+                settings.isIgnoringEntities(),
+                false,
+                boundingBoxVisible
+        );
+
+        session.sendDownstreamPacket(structureBlockPacket);
     }
 }

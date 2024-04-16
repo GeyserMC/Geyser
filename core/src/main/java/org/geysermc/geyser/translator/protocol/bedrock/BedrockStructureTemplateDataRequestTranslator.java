@@ -27,14 +27,10 @@ package org.geysermc.geyser.translator.protocol.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.inventory.UpdateStructureBlockAction;
 import com.github.steveice10.mc.protocol.data.game.inventory.UpdateStructureBlockMode;
-import com.github.steveice10.mc.protocol.data.game.level.block.StructureMirror;
-import com.github.steveice10.mc.protocol.data.game.level.block.StructureRotation;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetStructureBlockPacket;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureSettings;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureTemplateRequestOperation;
 import org.cloudburstmc.protocol.bedrock.packet.StructureTemplateDataRequestPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -79,41 +75,15 @@ public class BedrockStructureTemplateDataRequestTranslator extends PacketTransla
             // See the block entity translator for more info
             session.getStructureBlockCache().setCurrentStructureBlock(packet.getPosition());
 
-            StructureRotation rotation = switch (settings.getRotation()) {
-                case ROTATE_90 -> StructureRotation.CLOCKWISE_90;
-                case ROTATE_180 -> StructureRotation.CLOCKWISE_180;
-                case ROTATE_270 -> StructureRotation.COUNTERCLOCKWISE_90;
-                default -> StructureRotation.NONE;
-            };
-
-            StructureMirror mirror = switch (settings.getMirror()) {
-                case X -> StructureMirror.FRONT_BACK;
-                case Z -> StructureMirror.LEFT_RIGHT;
-                default -> StructureMirror.NONE;
-            };
-
-            Vector3i offset = settings.getOffset();
-            if (currentStructureName != null && session.getStructureBlockCache().getBedrockOffset() != null) {
-                offset = offset.sub(session.getStructureBlockCache().getBedrockOffset());
-            }
-
-            ServerboundSetStructureBlockPacket structureBlockPacket = new ServerboundSetStructureBlockPacket(
+            StructureBlockUtils.sendJavaStructurePacket(session,
                     packet.getPosition(),
-                    UpdateStructureBlockAction.LOAD_STRUCTURE,
+                    Vector3i.ZERO, // We expect the Java server to tell us the size
                     UpdateStructureBlockMode.LOAD,
-                    packet.getName(),
-                    offset,
-                    Vector3i.ZERO, // We expect the Java server to tell us the correct size
-                    mirror,
-                    rotation,
-                    "",
-                    settings.getIntegrityValue(),
-                    settings.getIntegritySeed(),
-                    settings.isIgnoringEntities(),
-                    false,
-                    true
+                    UpdateStructureBlockAction.LOAD_STRUCTURE,
+                    settings,
+                    true,
+                    packet.getName()
             );
-            session.sendDownstreamPacket(structureBlockPacket);
         } else {
             StructureBlockUtils.sendEmptyStructureData(session);
         }
