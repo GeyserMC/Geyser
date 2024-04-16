@@ -102,3 +102,21 @@ jobs:
           name: Geyser ViaProxy
           path: geyser/bootstrap/viaproxy/build/libs/Geyser-ViaProxy.jar
           if-no-files-found: error
+
+      - name: Trigger Preview Deployment
+        if: >-
+          contains(github.event.pull_request.labels.*.name, 'PR: Needs Testing')
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        with:
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'preview.yml',
+              ref: 'master',
+              inputs: {
+                runId: '${{ github.run_id }}',
+                build: '${{ github.run_number }}',
+                version: 'pr.${{ github.event.pull_request.number }}'
+              }
+            });
