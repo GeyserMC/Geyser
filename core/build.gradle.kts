@@ -43,8 +43,8 @@ dependencies {
     implementation(libs.netty.transport.native.epoll) { artifact { classifier = "linux-x86_64" } }
     implementation(libs.netty.transport.native.epoll) { artifact { classifier = "linux-aarch_64" } }
     implementation(libs.netty.transport.native.kqueue) { artifact { classifier = "osx-x86_64" } }
-    implementation(libs.netty.transport.native.io.uring) { artifact { classifier = "linux-x86_64" } }
-    implementation(libs.netty.transport.native.io.uring) { artifact { classifier = "linux-aarch_64" } }
+//    implementation(libs.netty.transport.native.io.uring) { artifact { classifier = "linux-x86_64" } }
+//    implementation(libs.netty.transport.native.io.uring) { artifact { classifier = "linux-aarch_64" } }
 
     // Adventure text serialization
     api(libs.bundles.adventure)
