@@ -28,9 +28,13 @@ package org.geysermc.geyser.translator.protocol.java.level;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundBlockEntityDataPacket;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
+import org.cloudburstmc.protocol.bedrock.data.structure.StructureMirror;
+import org.cloudburstmc.protocol.bedrock.data.structure.StructureRotation;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.level.block.BlockStateValues;
@@ -41,6 +45,7 @@ import org.geysermc.geyser.translator.level.block.entity.SkullBlockEntityTransla
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.BlockEntityUtils;
+import org.geysermc.geyser.util.StructureBlockUtils;
 
 @Translator(packet = ClientboundBlockEntityDataPacket.class)
 public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundBlockEntityDataPacket> {
@@ -95,5 +100,59 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
             openPacket.setUniqueEntityId(-1);
             session.sendUpstreamPacket(openPacket);
         }
+
+        // When a Java client is trying to load a structure, it expects the server to send it the size of the structure.
+        // On 1.20.4, the server does so here - we can pass that through to Bedrock, so we're properly selecting the area.
+        if (type == BlockEntityType.STRUCTURE_BLOCK && session.getGameMode() == GameMode.CREATIVE
+                && packet.getPosition().equals(session.getStructureBlockCache().getCurrentStructureBlock())
+                && packet.getNbt() != null && packet.getNbt().size() > 5
+        ) {
+            CompoundTag map = packet.getNbt();
+
+            String mode = getOrDefault(map.get("mode"), "");
+            if (!mode.equalsIgnoreCase("LOAD")) {
+                return;
+            }
+
+            String mirror = getOrDefault(map.get("mirror"), "");
+            StructureMirror bedrockMirror = switch (mirror) {
+                case "FRONT_BACK" -> StructureMirror.X;
+                case "LEFT_RIGHT" -> StructureMirror.Z;
+                default -> StructureMirror.NONE;
+            };
+
+            String rotation = getOrDefault(map.get("rotation"), "");
+            StructureRotation bedrockRotation = switch (rotation) {
+                case "CLOCKWISE_90" -> StructureRotation.ROTATE_90;
+                case "CLOCKWISE_180" -> StructureRotation.ROTATE_180;
+                case "COUNTERCLOCKWISE_90" -> StructureRotation.ROTATE_270;
+                default -> StructureRotation.NONE;
+            };
+
+            String name = getOrDefault(map.get("name"), "");
+            int sizeX = getOrDefault(map.get("sizeX"), 0);
+            int sizeY = getOrDefault(map.get("sizeY"), 0);
+            int sizeZ = getOrDefault(map.get("sizeZ"), 0);
+
+            session.getStructureBlockCache().setCurrentStructureBlock(null);
+
+            Vector3i size = Vector3i.from(sizeX, sizeY, sizeZ);
+            if (size.equals(Vector3i.ZERO)) {
+                StructureBlockUtils.sendEmptyStructureData(session);
+                return;
+            }
+
+            Vector3i offset = StructureBlockUtils.calculateOffset(bedrockRotation, bedrockMirror,
+                    sizeX, sizeZ);
+            session.getStructureBlockCache().setBedrockOffset(offset);
+            session.getStructureBlockCache().setCurrentStructureName(name);
+            StructureBlockUtils.sendStructureData(session, size, name);
+        }
+    }
+
+
+    protected <T> T getOrDefault(Tag tag, T defaultValue) {
+        //noinspection unchecked
+        return (tag != null && tag.getValue() != null) ? (T) tag.getValue() : defaultValue;
     }
 }

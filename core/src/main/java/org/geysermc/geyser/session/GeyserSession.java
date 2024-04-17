@@ -214,6 +214,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final PistonCache pistonCache;
     private final PreferencesCache preferencesCache;
     private final SkullCache skullCache;
+    private final StructureBlockCache structureBlockCache;
     private final TagCache tagCache;
     private final WorldCache worldCache;
 
@@ -625,6 +626,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.pistonCache = new PistonCache(this);
         this.preferencesCache = new PreferencesCache(this);
         this.skullCache = new SkullCache(this);
+        this.structureBlockCache = new StructureBlockCache();
         this.tagCache = new TagCache();
         this.worldCache = new WorldCache(this);
         this.cameraData = new GeyserCameraData(this);
