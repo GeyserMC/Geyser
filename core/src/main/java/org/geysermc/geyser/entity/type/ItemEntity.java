@@ -74,7 +74,7 @@ public class ItemEntity extends ThrowableEntity {
 
     @Override
     public void tick() {
-        if (isInWater()) {
+        if (removedInVoid() || isInWater()) {
             return;
         }
         if (!isOnGround() || (motion.getX() * motion.getX() + motion.getZ() * motion.getZ()) > 0.00001) {

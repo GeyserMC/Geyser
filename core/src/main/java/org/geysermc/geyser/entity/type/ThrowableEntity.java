@@ -55,6 +55,9 @@ public class ThrowableEntity extends Entity implements Tickable {
      */
     @Override
     public void tick() {
+        if (removedInVoid()) {
+            return;
+        }
         moveAbsoluteImmediate(position.add(motion), getYaw(), getPitch(), getHeadYaw(), isOnGround(), false);
         float drag = getDrag();
         float gravity = getGravity();
@@ -170,14 +173,14 @@ public class ThrowableEntity extends Entity implements Tickable {
     }
 
     @Override
-    public boolean despawnEntity() {
+    public void despawnEntity() {
         if (definition.entityType() == EntityType.ENDER_PEARL) {
             LevelEventPacket particlePacket = new LevelEventPacket();
             particlePacket.setType(LevelEvent.PARTICLE_TELEPORT);
             particlePacket.setPosition(position);
             session.sendUpstreamPacket(particlePacket);
         }
-        return super.despawnEntity();
+        super.despawnEntity();
     }
 
     @Override
@@ -190,5 +193,18 @@ public class ThrowableEntity extends Entity implements Tickable {
     public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         moveAbsoluteImmediate(position, yaw, pitch, headYaw, isOnGround, teleported);
         lastJavaPosition = position;
+    }
+
+    /**
+     * Removes the entity if it is 64 blocks below the world.
+     *
+     * @return true if the entity was removed
+     */
+    public boolean removedInVoid() {
+        if (position.getY() < session.getDimensionType().minY() - 64) {
+            session.getEntityCache().removeEntity(this);
+            return true;
+        }
+        return false;
     }
 }
