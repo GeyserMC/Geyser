@@ -107,7 +107,7 @@ public final class GeyserServer {
 
     @Getter
     private final ExpiringMap<InetSocketAddress, InetSocketAddress> proxiedAddresses;
-    private final int listenCount;
+    private int listenCount;
 
     private ChannelFuture[] bootstrapFutures;
 
@@ -124,8 +124,11 @@ public final class GeyserServer {
         this.childGroup = TRANSPORT.eventLoopGroupFactory().apply(threadCount);
 
         this.bootstrap = this.createBootstrap();
-        // setup SO_REUSEPORT if exists
-        Bootstraps.setupBootstrap(this.bootstrap);
+        // setup SO_REUSEPORT if exists - or, if the option does not actually exist, reset listen count
+        // otherwise, we try to bind multiple times which wont work if so_reuseport is not valid
+        if (!Bootstraps.setupBootstrap(this.bootstrap)) {
+            this.listenCount = 1;
+        }
 
         if (this.geyser.getConfig().getBedrock().isEnableProxyProtocol()) {
             this.proxiedAddresses = ExpiringMap.builder()
