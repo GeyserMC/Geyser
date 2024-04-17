@@ -170,14 +170,14 @@ public class ThrowableEntity extends Entity implements Tickable {
     }
 
     @Override
-    public boolean despawnEntity() {
+    public void despawnEntity() {
         if (definition.entityType() == EntityType.ENDER_PEARL) {
             LevelEventPacket particlePacket = new LevelEventPacket();
             particlePacket.setType(LevelEvent.PARTICLE_TELEPORT);
             particlePacket.setPosition(position);
             session.sendUpstreamPacket(particlePacket);
         }
-        return super.despawnEntity();
+        super.despawnEntity();
     }
 
     @Override
