@@ -110,6 +110,10 @@ public final class GeyserServer {
 
     private ChannelFuture[] bootstrapFutures;
 
+    // Keep track of connection attempts for dump info
+    @Getter
+    private int connectionAttempts = 0;
+
     /**
      * The port to broadcast in the pong. This can be different from the port the server is bound to, e.g. due to port forwarding.
      */
@@ -226,6 +230,7 @@ public final class GeyserServer {
                 .option(RakChannelOption.RAK_MAX_MTU, this.geyser.getConfig().getMtu())
                 .option(RakChannelOption.RAK_PACKET_LIMIT, rakPacketLimit)
                 .option(RakChannelOption.RAK_GLOBAL_PACKET_LIMIT, rakGlobalPacketLimit)
+                .option(RakChannelOption.RAK_SEND_COOKIE, true)
                 .childHandler(serverInitializer);
     }
 
@@ -241,6 +246,7 @@ public final class GeyserServer {
             }
 
             if (!isWhitelistedIP) {
+                connectionAttempts++;
                 return false;
             }
         }
@@ -263,10 +269,12 @@ public final class GeyserServer {
         geyser.eventBus().fire(requestEvent);
         if (requestEvent.isCancelled()) {
             geyser.getLogger().debug("Connection request from " + ip + " was cancelled using the API!");
+            connectionAttempts++;
             return false;
         }
 
-        geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.attempt_connect", ip));
+        geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.network.attempt_connect", ip));
+        connectionAttempts++;
         return true;
     }
 
