@@ -99,11 +99,11 @@ public class ArmorStandEntity extends LivingEntity {
     }
 
     @Override
-    public boolean despawnEntity() {
+    public void despawnEntity() {
         if (secondEntity != null) {
             secondEntity.despawnEntity();
         }
-        return super.despawnEntity();
+        super.despawnEntity();
     }
 
     @Override

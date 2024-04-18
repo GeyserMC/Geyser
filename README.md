@@ -32,7 +32,6 @@ Take a look [here](https://wiki.geysermc.org/geyser/setup/) for how to set up Ge
 ## What's Left to be Added/Fixed
 - Near-perfect movement (to the point where anticheat on large servers is unlikely to ban you)
 - Some Entity Flags
-- Structure block UI
 
 ## What can't be fixed
 There are a few things Geyser is unable to support due to various differences between Minecraft Bedrock and Java. For a list of these limitations, see the [Current Limitations](https://wiki.geysermc.org/geyser/current-limitations/) page.
