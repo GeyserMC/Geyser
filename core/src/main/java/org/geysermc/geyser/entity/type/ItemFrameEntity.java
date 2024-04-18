@@ -148,7 +148,7 @@ public class ItemFrameEntity extends Entity {
     }
 
     @Override
-    public boolean despawnEntity() {
+    public void despawnEntity() {
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
         updateBlockPacket.setBlockPosition(bedrockPosition);
@@ -161,7 +161,6 @@ public class ItemFrameEntity extends Entity {
         session.getItemFrameCache().remove(bedrockPosition, this);
 
         valid = false;
-        return true;
     }
 
     private NbtMap getDefaultTag() {

@@ -39,7 +39,7 @@ public class JavaRemoveEntitiesTranslator extends PacketTranslator<ClientboundRe
         for (int entityId : packet.getEntityIds()) {
             Entity entity = session.getEntityCache().getEntityByJavaId(entityId);
             if (entity != null) {
-                session.getEntityCache().removeEntity(entity, false);
+                session.getEntityCache().removeEntity(entity);
             }
         }
     }

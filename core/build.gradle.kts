@@ -6,6 +6,10 @@ plugins {
 }
 
 dependencies {
+    constraints {
+        implementation(libs.raknet) // Ensure protocol does not override the RakNet version
+    }
+
     api(projects.common)
     api(projects.api)
 
