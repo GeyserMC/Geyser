@@ -1,0 +1,73 @@
+name: Upload Preview
+
+on:
+  workflow_dispatch:
+    inputs:
+      runId:
+        required: true
+        description: 'ID of the action to pull artifacts from'
+      build:
+        required: true
+        description: 'Build number for the release'
+      version:
+        required: true
+        description: 'Version under which to upload to the Downloads API'
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    env:
+      PROJECT: 'geyserpreview'
+      BUILD: ${{ github.event.inputs.build }}
+      VERSION: ${{ github.event.inputs.version }}
+    steps:
+      - uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # https://github.com/actions/download-artifact/releases/tag/v4.1.4
+        with:
+          run-id: ${{ github.event.inputs.runId }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          merge-multiple: true
+      - name: Get Preview Metadata
+        if: success()
+        uses: Kas-tle/base-release-action@b863fa0f89bd15267a96a72efb84aec25f168d4c # https://github.com/Kas-tle/base-release-action/releases/tag/main-11
+        with:
+          appID: ${{ secrets.RELEASE_APP_ID }}
+          appPrivateKey: ${{ secrets.RELEASE_APP_PK }}
+          files: |
+            bungeecord:Geyser-BungeeCord.jar
+            fabric:Geyser-Fabric.jar
+            neoforge:Geyser-NeoForge.jar
+            spigot:Geyser-Spigot.jar
+            standalone:Geyser-Standalone.jar
+            velocity:Geyser-Velocity.jar
+            viaproxy:Geyser-ViaProxy.jar
+          releaseEnabled: false
+          saveMetadata: true
+          updateReleaseData: false
+      - name: Update Generated Metadata
+        if: success()
+        run: |
+          cat metadata.json
+          echo
+          cat metadata.json | jq --arg project "${PROJECT}" --arg version "${VERSION}" --arg number "${BUILD}" '
+            .
+            | .downloads |= map_values({"name", "sha256"})
+            | {$project, "repo", $version, "number": $number | tonumber, "changes": [], "downloads"}
+          ' | tee metadata.json
+      - name: Publish to Downloads API
+        if: success()
+        shell: bash
+        env:
+          DOWNLOADS_USERNAME: ${{ vars.DOWNLOADS_USERNAME }}
+          DOWNLOADS_PRIVATE_KEY: ${{ secrets.DOWNLOADS_PRIVATE_KEY }}
+          DOWNLOADS_SERVER_IP: ${{ secrets.DOWNLOADS_SERVER_IP }}
+        run: |
+          # Save the private key to a file
+          echo "$DOWNLOADS_PRIVATE_KEY" > id_ecdsa
+          chmod 600 id_ecdsa
+          # Create the build folder
+          ssh -o StrictHostKeyChecking=no -i id_ecdsa $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP mkdir -p "~/uploads/$PROJECT/$BUILD/"
+          # Copy over artifacts
+          rsync -P -e "ssh -o StrictHostKeyChecking=no -i id_ecdsa" Geyser-*.jar $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP:~/uploads/$PROJECT/$BUILD/
+          # Run the build script
+          # Push the metadata
+          rsync -P -e "ssh -o StrictHostKeyChecking=no -i id_ecdsa" metadata.json $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP:~/uploads/$PROJECT/$BUILD/
