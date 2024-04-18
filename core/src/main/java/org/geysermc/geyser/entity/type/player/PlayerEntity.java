@@ -55,6 +55,7 @@ import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
@@ -283,7 +284,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         attributesPacket.setRuntimeEntityId(geyserId);
         // Setting to a higher maximum since plugins/datapacks can probably extend the Bedrock soft limit
         attributesPacket.setAttributes(Collections.singletonList(
-                new AttributeData("minecraft:absorption", 0.0f, 1024f, entityMetadata.getPrimitiveValue(), 0.0f)));
+                GeyserAttributeType.ABSORPTION.getAttribute(entityMetadata.getPrimitiveValue())));
         session.sendUpstreamPacket(attributesPacket);
     }
 
@@ -307,7 +308,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
      * Sets the parrot occupying the shoulder. Bedrock Edition requires a full entity whereas Java Edition just
      * spawns it from the NBT data provided
      */
-    private void setParrot(CompoundTag tag, boolean isLeft) {
+    protected void setParrot(CompoundTag tag, boolean isLeft) {
         if (tag != null && !tag.isEmpty()) {
             if ((isLeft && leftParrot != null) || (!isLeft && rightParrot != null)) {
                 // No need to update a parrot's data when it already exists
