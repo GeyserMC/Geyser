@@ -133,6 +133,9 @@ public class FishingHookEntity extends ThrowableEntity {
 
     @Override
     public void tick() {
+        if (removedInVoid()) {
+            return;
+        }
         if (hooked || !isInAir() && !isInWater() || isOnGround()) {
             motion = Vector3f.ZERO;
             return;
