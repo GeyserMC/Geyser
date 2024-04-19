@@ -44,6 +44,8 @@ public class Conversion662_649 {
 
 
     static GeyserMappingItem remapItem(@SuppressWarnings("unused") Item item, GeyserMappingItem mapping) {
+        mapping = Conversion671_662.remapItem(item, mapping);
+
         String identifer = mapping.getBedrockIdentifier();
 
         if (identifer.equals("minecraft:grass_block")) {
@@ -93,6 +95,8 @@ public class Conversion662_649 {
     }
 
     static NbtMap remapBlock(NbtMap tag) {
+        tag = Conversion671_662.remapBlock(tag);
+
         final String name = tag.getString("name");
         
         if (!NEW_BLOCKS.contains(name)) {
