@@ -54,7 +54,7 @@ public class JavaResetScorePacket extends PacketTranslator<ClientboundResetScore
 
             // as described below
             if (belowName != null) {
-                JavaSetScoreTranslator.setBelowName(session, belowName, packet.getOwner(), 0);
+                JavaSetScoreTranslator.setBelowName(session, belowName, packet.getOwner());
             }
         } else {
             Objective objective = scoreboard.getObjective(packet.getObjective());
@@ -64,7 +64,7 @@ public class JavaResetScorePacket extends PacketTranslator<ClientboundResetScore
             // attached to this score.
             if (objective == belowName) {
                 // Update the score on this player to now reflect 0
-                JavaSetScoreTranslator.setBelowName(session, objective, packet.getOwner(), 0);
+                JavaSetScoreTranslator.setBelowName(session, objective, packet.getOwner());
             }
         }
 
