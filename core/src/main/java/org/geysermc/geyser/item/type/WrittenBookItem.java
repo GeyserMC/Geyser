@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.item.type;
 
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentPatch;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
@@ -32,6 +33,7 @@ import com.github.steveice10.opennbt.tag.builtin.Tag;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
@@ -48,13 +50,13 @@ public class WrittenBookItem extends WritableBookItem {
     }
 
     @Override
-    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag) {
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponentPatch components, @NonNull NbtMapBuilder builder) {
         boolean isValid = isValidWrittenBook(tag);
         if (!isValid) {
             tag.remove("pages");
         }
 
-        super.translateNbtToBedrock(session, tag);
+        super.translateComponentsToBedrock(session, components, builder);
 
         if (!isValid) {
             CompoundTag invalidTagPage = new CompoundTag("");
