@@ -36,6 +36,7 @@ provided("io.netty", "netty-transport")
 provided("io.netty", "netty-codec")
 provided("io.netty", "netty-resolver-dns")
 provided("io.netty", "netty-resolver-dns-native-macos")
+provided("org.incendo", ".*") // fabric-cloud/neoforge-cloud jij's all cloud depends already
 provided("org.ow2.asm", "asm")
 
 architectury {
