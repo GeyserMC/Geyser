@@ -71,7 +71,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             // Remove all bossbars
             session.getEntityCache().removeAllBossBars();
             // Remove extra hearts, hunger, etc.
-            entity.getAttributes().clear();
+            entity.resetAttributes();
             entity.resetMetadata();
 
             // Reset weather

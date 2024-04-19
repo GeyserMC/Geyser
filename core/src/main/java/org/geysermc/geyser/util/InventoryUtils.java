@@ -125,7 +125,7 @@ public class InventoryUtils {
             InventoryTranslator translator = session.getInventoryTranslator();
             translator.closeInventory(session, inventory);
             if (confirm && inventory.isDisplayed() && !inventory.isPending()
-                    && !(translator instanceof LecternInventoryTranslator) // TODO: double-check
+                    && !(translator instanceof LecternInventoryTranslator) // Closing lecterns is not followed with a close confirmation
             ) {
                 session.setClosingInventory(true);
             }

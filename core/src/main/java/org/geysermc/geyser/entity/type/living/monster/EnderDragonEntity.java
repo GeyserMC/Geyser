@@ -148,11 +148,11 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
     }
 
     @Override
-    public boolean despawnEntity() {
+    public void despawnEntity() {
         for (EnderDragonPartEntity part : allParts) {
             part.despawnEntity();
         }
-        return super.despawnEntity();
+        super.despawnEntity();
     }
 
     @Override

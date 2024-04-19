@@ -14,7 +14,8 @@ platformRelocate("org.incendo")
 
 exclude("com.google.*:*")
 
-// Needed because Velocity provides every dependency except netty-resolver-dns 
+// Needed because Velocity provides every dependency except netty-resolver-dns
+exclude("io.netty.incubator:.*")
 exclude("io.netty:netty-transport-native-epoll:*")
 exclude("io.netty:netty-transport-native-unix-common:*")
 exclude("io.netty:netty-transport-native-kqueue:*")
@@ -59,6 +60,7 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
         exclude(dependency("io.netty:netty-transport:.*"))
         exclude(dependency("io.netty:netty-codec:.*"))
         exclude(dependency("io.netty:netty-codec-haproxy:.*"))
+        exclude(dependency("io.netty.incubator:.*"))
         exclude(dependency("org.slf4j:.*"))
         exclude(dependency("org.ow2.asm:.*"))
         // Exclude all Kyori dependencies except the legacy NBT serializer

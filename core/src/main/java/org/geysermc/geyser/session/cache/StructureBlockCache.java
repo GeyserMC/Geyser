@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,28 +23,37 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.bedrock;
+package org.geysermc.geyser.session.cache;
 
-import org.cloudburstmc.protocol.bedrock.packet.ClientboundMapItemDataPacket;
-import org.cloudburstmc.protocol.bedrock.packet.MapInfoRequestPacket;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
+import lombok.Getter;
+import lombok.Setter;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.vector.Vector3i;
 
-import java.util.concurrent.TimeUnit;
+@Setter
+@Getter
+public final class StructureBlockCache {
 
-@Translator(packet = MapInfoRequestPacket.class)
-public class BedrockMapInfoRequestTranslator extends PacketTranslator<MapInfoRequestPacket> {
+    /**
+     * Stores the current structure's name to be able to detect changes in the loaded structure
+     */
+    private @Nullable String currentStructureName;
 
-    @Override
-    public void translate(GeyserSession session, MapInfoRequestPacket packet) {
-        long mapId = packet.getUniqueMapId();
+    /**
+     * Stores the offset changes added by Geyser that ensure that structure bounds
+     * are the same for Java and Bedrock
+     */
+    private @Nullable Vector3i bedrockOffset;
 
-        ClientboundMapItemDataPacket mapPacket = session.getStoredMaps().remove(mapId);
-        if (mapPacket != null) {
-            // Delay the packet 100ms to prevent the client from ignoring the packet
-            session.scheduleInEventLoop(() -> session.sendUpstreamPacket(mapPacket),
-                    100, TimeUnit.MILLISECONDS);
-        }
+    /**
+     * Stores the current structure block position while we're waiting on the Java
+     * server to send the data we need.
+     */
+    private @Nullable Vector3i currentStructureBlock;
+
+    public void clear() {
+        this.currentStructureName = null;
+        this.currentStructureBlock = null;
+        this.bedrockOffset = null;
     }
 }
