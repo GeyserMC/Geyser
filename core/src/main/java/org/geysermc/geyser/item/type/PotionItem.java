@@ -25,7 +25,9 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
+import com.github.steveice10.mc.protocol.data.game.item.component.PotionContents;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -35,8 +37,8 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
-import org.geysermc.geyser.translator.inventory.item.CustomItemTranslator;
-import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
+import org.geysermc.geyser.translator.item.CustomItemTranslator;
+import org.geysermc.geyser.translator.item.ItemTranslator;
 
 public class PotionItem extends Item {
     public PotionItem(String javaIdentifier, Builder builder) {
@@ -45,10 +47,10 @@ public class PotionItem extends Item {
 
     @Override
     public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
-        if (itemStack.getNbt() == null) return super.translateToBedrock(itemStack, mapping, mappings);
-        Tag potionTag = itemStack.getNbt().get("Potion");
-        if (potionTag instanceof StringTag) {
-            ItemDefinition customItemDefinition = CustomItemTranslator.getCustomItem(itemStack.getNbt(), mapping);
+        if (itemStack.getDataComponentPatch() == null) return super.translateToBedrock(itemStack, mapping, mappings);
+        PotionContents potionContents = itemStack.getDataComponentPatch().get(DataComponentType.POTION_CONTENTS);
+        if (potionContents != null) {
+            ItemDefinition customItemDefinition = CustomItemTranslator.getCustomItem(itemStack.getDataComponentPatch(), mapping);
             if (customItemDefinition == null) {
                 Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
                 if (potion != null) {

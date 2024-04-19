@@ -52,7 +52,7 @@ import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
-import org.geysermc.geyser.translator.inventory.item.CustomItemTranslator;
+import org.geysermc.geyser.translator.item.CustomItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.BlockUtils;

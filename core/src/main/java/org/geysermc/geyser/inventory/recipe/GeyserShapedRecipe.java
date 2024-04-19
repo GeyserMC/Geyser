@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.inventory.recipe;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
 import org.checkerframework.checker.nullness.qual.Nullable;

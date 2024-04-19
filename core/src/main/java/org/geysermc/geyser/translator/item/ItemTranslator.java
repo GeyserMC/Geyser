@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,11 +23,15 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.inventory.item;
+package org.geysermc.geyser.translator.item;
 
 import com.github.steveice10.mc.protocol.data.game.Identifier;
 import com.github.steveice10.mc.protocol.data.game.entity.attribute.ModifierOperation;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.item.component.AdventureModePredicate;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentPatch;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
+import com.github.steveice10.mc.protocol.data.game.item.component.ItemAttributeModifiers;
 import com.github.steveice10.opennbt.tag.builtin.ByteArrayTag;
 import com.github.steveice10.opennbt.tag.builtin.ByteTag;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
@@ -133,20 +137,20 @@ public final class ItemTranslator {
                 .build();
     }
 
-    private static ItemData.@NonNull Builder translateToBedrock(GeyserSession session, Item javaItem, ItemMapping bedrockItem, int count, CompoundTag tag) {
-        CompoundTag nbt = tag != null ? tag.clone() : null;
+    private static ItemData.@NonNull Builder translateToBedrock(GeyserSession session, Item javaItem, ItemMapping bedrockItem, int count, DataComponentPatch components) {
+        NbtMapBuilder builder = NbtMap.builder();
 
-        if (nbt != null) {
-            javaItem.translateNbtToBedrock(session, nbt);
+        if (components != null) {
+            javaItem.translateComponentsToBedrock(session, components, builder);
         }
 
-        nbt = translateDisplayProperties(session, nbt, bedrockItem);
+        translateDisplayProperties(session, components, bedrockItem);
 
-        if (nbt != null) {
-            Tag hideFlags = nbt.get("HideFlags");
-            if (hideFlags == null || !hasFlagPresent(hideFlags, HIDE_ATTRIBUTES_FLAG)) {
-                // only add if the hide attribute modifiers flag is not present
-                addAttributeLore(nbt, session.locale());
+        if (components != null) {
+            ItemAttributeModifiers attributeModifiers = components.get(DataComponentType.ATTRIBUTE_MODIFIERS);
+            if (attributeModifiers != null && attributeModifiers.isShowInTooltip()) {
+                // only add if attribute modifiers do not indicate to hide them
+                addAttributeLore(attributeModifiers, builder, session.locale());
             }
         }
 
@@ -173,10 +177,10 @@ public final class ItemTranslator {
 
         translateCustomItem(nbt, builder, bedrockItem);
 
-        if (nbt != null) {
+        if (components != null) {
             // Translate the canDestroy and canPlaceOn Java NBT
-            ListTag canDestroy = nbt.get("CanDestroy");
-            ListTag canPlaceOn = nbt.get("CanPlaceOn");
+            AdventureModePredicate canDestroy = components.get(DataComponentType.CAN_BREAK);
+            AdventureModePredicate canPlaceOn = components.get(DataComponentType.CAN_PLACE_ON);
             String[] canBreak = getCanModify(canDestroy);
             String[] canPlace = getCanModify(canPlaceOn);
             if (canBreak != null) {
@@ -197,13 +201,8 @@ public final class ItemTranslator {
      * @param nbt the NBT of the ItemStack
      * @param language the locale of the player
      */
-    private static void addAttributeLore(CompoundTag nbt, String language) {
-        ListTag attributeModifiers = nbt.get("AttributeModifiers");
-        if (attributeModifiers == null) {
-            return; // nothing to convert to lore
-        }
-
-        CompoundTag displayTag = nbt.get("display");
+    private static void addAttributeLore(ItemAttributeModifiers modifiers, NbtMapBuilder builder, String language) {
+        CompoundTag displayTag = builder.get("display");
         if (displayTag == null) {
             displayTag = new CompoundTag("display");
         }
@@ -214,25 +213,23 @@ public final class ItemTranslator {
 
         // maps each slot to the modifiers applied when in such slot
         Map<String, List<StringTag>> slotsToModifiers = new HashMap<>();
-        for (Tag modifier : attributeModifiers) {
-            CompoundTag modifierTag = (CompoundTag) modifier;
-
+        for (ItemAttributeModifiers.Entry entry : modifiers.getModifiers()) {
             // convert the modifier tag to a lore entry
-            String loreEntry = attributeToLore(modifierTag, language);
+            String loreEntry = attributeToLore(entry.getModifier(), language);
             if (loreEntry == null) {
                 continue; // invalid or failed
             }
 
             StringTag loreTag = new StringTag("", loreEntry);
-            StringTag slotTag = modifierTag.get("Slot");
-            if (slotTag == null) {
+            ItemAttributeModifiers.EquipmentSlotGroup slotGroup = entry.getSlot();
+            if (slotGroup == ItemAttributeModifiers.EquipmentSlotGroup.ANY) {
                 // modifier applies to all slots implicitly
                 for (String slot : ALL_SLOTS) {
                     slotsToModifiers.computeIfAbsent(slot, s -> new ArrayList<>()).add(loreTag);
                 }
             } else {
                 // modifier applies to only the specified slot
-                slotsToModifiers.computeIfAbsent(slotTag.getValue(), s -> new ArrayList<>()).add(loreTag);
+                slotsToModifiers.computeIfAbsent(slotGroup, s -> new ArrayList<>()).add(loreTag);
             }
         }
 
@@ -262,31 +259,23 @@ public final class ItemTranslator {
     }
 
     @Nullable
-    private static String attributeToLore(CompoundTag modifier, String language) {
-        Tag amountTag = modifier.get("Amount");
-        if (amountTag == null || !(amountTag.getValue() instanceof Number number)) {
-            return null;
-        }
-        double amount = number.doubleValue();
+    private static String attributeToLore(ItemAttributeModifiers.AttributeModifier modifier, String language) {
+        double amount = modifier.getAmount();
         if (amount == 0) {
             return null;
         }
 
-        if (!(modifier.get("AttributeName") instanceof StringTag nameTag)) {
-            return null;
-        }
-        String name = nameTag.getValue().replace("minecraft:", "");
-        // the namespace does not need to be present, but if it is, the java client ignores it
+        String name = modifier.getName().replace("minecraft:", "");
+        // the namespace does not need to be present, but if it is, the java client ignores it as of pre-1.20.5
 
         String operationTotal;
-        Tag operationTag = modifier.get("Operation");
-        ModifierOperation operation;
-        if (operationTag == null || (operation = ModifierOperation.from((int) operationTag.getValue())) == ModifierOperation.ADD) {
+        ModifierOperation operation = modifier.getOperation();
+        if (operation == ModifierOperation.ADD) {
             if (name.equals("generic.knockback_resistance")) {
                 amount *= 10;
             }
             operationTotal = ATTRIBUTE_FORMAT.format(amount);
-        } else if (operation == ModifierOperation.ADD_MULTIPLIED || operation == ModifierOperation.MULTIPLY) {
+        } else if (operation == ModifierOperation.ADD_MULTIPLIED_BASE || operation == ModifierOperation.ADD_MULTIPLIED_TOTAL) {
             operationTotal = ATTRIBUTE_FORMAT.format(amount * 100) + "%";
         } else {
             GeyserImpl.getInstance().getLogger().warning("Unhandled ModifierOperation while adding item attributes: " + operation);
@@ -363,12 +352,22 @@ public final class ItemTranslator {
      * @param canModifyJava the list of items in Java
      * @return the new list of items in Bedrock
      */
-    private static String @Nullable [] getCanModify(ListTag canModifyJava) {
-        if (canModifyJava != null && canModifyJava.size() > 0) {
-            String[] canModifyBedrock = new String[canModifyJava.size()];
+    // TODO this is now more complicated in 1.20.5. Yippee!
+    private static String @Nullable [] getCanModify(@Nullable AdventureModePredicate canModifyJava) {
+        if (canModifyJava == null) {
+            return null;
+        }
+        List<AdventureModePredicate.BlockPredicate> predicates = canModifyJava.getPredicates();
+        if (predicates.size() > 0) {
+            String[] canModifyBedrock = new String[predicates.size()];
             for (int i = 0; i < canModifyBedrock.length; i++) {
                 // Get the Java identifier of the block that can be placed
-                String block = Identifier.formalize(((StringTag) canModifyJava.get(i)).getValue());
+                String location = predicates.get(i).getLocation();
+                if (location == null) {
+                    canModifyBedrock[i] = ""; // So it'll serialize
+                    continue; // ???
+                }
+                String block = Identifier.formalize(location);
                 // Get the Bedrock identifier of the item and replace it.
                 // This will unfortunately be limited - for example, beds and banners will be translated weirdly
                 canModifyBedrock[i] = BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.getOrDefault(block, block).replace("minecraft:", "");
@@ -403,7 +402,7 @@ public final class ItemTranslator {
             }
         }
 
-        ItemDefinition definition = CustomItemTranslator.getCustomItem(itemStack.getNbt(), mapping);
+        ItemDefinition definition = CustomItemTranslator.getCustomItem(itemStack, mapping);
         if (definition == null) {
             // No custom item
             return itemDefinition;

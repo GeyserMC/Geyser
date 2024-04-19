@@ -26,7 +26,7 @@
 package org.geysermc.geyser.registry.populator;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -48,7 +48,7 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
+import org.geysermc.geyser.translator.item.ItemTranslator;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

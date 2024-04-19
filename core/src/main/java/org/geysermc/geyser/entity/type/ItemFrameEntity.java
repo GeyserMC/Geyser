@@ -26,7 +26,7 @@
 package org.geysermc.geyser.entity.type;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
@@ -42,7 +42,7 @@ import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import lombok.Getter;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
+import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InventoryUtils;
 

@@ -26,10 +26,18 @@
 package org.geysermc.geyser.item.type;
 
 import com.github.steveice10.mc.protocol.data.game.Identifier;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentPatch;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
+import com.github.steveice10.mc.protocol.data.game.item.component.ItemEnchantments;
 import com.github.steveice10.opennbt.tag.builtin.*;
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.nbt.NbtList;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.Enchantment;
@@ -38,7 +46,7 @@ import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
-import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
+import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
 
@@ -107,7 +115,7 @@ public class Item {
 
     public @NonNull ItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
         if (itemData.getTag() == null) {
-            return new ItemStack(javaId, itemData.getCount(), new CompoundTag(""));
+            return new ItemStack(javaId, itemData.getCount(), null);
         }
         return new ItemStack(javaId, itemData.getCount(), ItemTranslator.translateToJavaNBT("", itemData.getTag()));
     }
@@ -117,22 +125,31 @@ public class Item {
     }
 
     /**
-     * Takes NBT from Java Edition and converts any value that Bedrock parses differently.
+     * Takes components from Java Edition and map them into Bedrock.
      */
-    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag) {
-        if (tag.get("display") instanceof CompoundTag displayTag) {
-            if (displayTag.get("Lore") instanceof ListTag listTag) {
-                List<Tag> lore = new ArrayList<>();
-                for (Tag subTag : listTag.getValue()) {
-                    if (!(subTag instanceof StringTag)) continue;
-                    lore.add(new StringTag("", MessageTranslator.convertMessageLenient(((StringTag) subTag).getValue(), session.locale())));
-                }
-                displayTag.put(new ListTag("Lore", lore));
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponentPatch components, @NonNull NbtMapBuilder builder) {
+//        // Basing off of ItemStack#getHoverName as of 1.20.5. VERIFY??
+//        Component customName = components.get(DataComponentType.CUSTOM_NAME);
+//        if (customName == null) {
+//            customName = components.get(DataComponentType.ITEM_NAME);
+//        }
+//        if (customName != null) {
+//
+//        }
+        List<Component> loreComponents = components.get(DataComponentType.LORE);
+        if (loreComponents != null) {
+            List<String> lore = new ArrayList<>();
+            for (Component loreComponent : loreComponents) {
+                lore.add(MessageTranslator.convertMessage(loreComponent, session.locale()));
             }
+            builder.putList("Lore", NbtType.STRING, lore);
         }
 
         List<Tag> newTags = new ArrayList<>();
-        Tag enchantmentTag = tag.remove("Enchantments");
+        ItemEnchantments enchantments = components.get(DataComponentType.ENCHANTMENTS);
+        if (enchantments != null) {
+
+        }
         if (enchantmentTag instanceof ListTag listTag) {
             for (Tag subTag : listTag.getValue()) {
                 if (!(subTag instanceof CompoundTag)) continue;
@@ -211,10 +228,7 @@ public class Item {
         }
     }
 
-    protected final @Nullable CompoundTag remapEnchantment(GeyserSession session, CompoundTag tag, CompoundTag rootTag) {
-        Tag javaEnchId = tag.get("id");
-        if (!(javaEnchId instanceof StringTag))
-            return null;
+    protected final @Nullable NbtMap remapEnchantment(GeyserSession session, ItemEnchantments, NbtMapBuilder rootBuilder) {
 
         Enchantment enchantment = Enchantment.getByJavaIdentifier(((StringTag) javaEnchId).getValue());
         if (enchantment == null) {
@@ -231,11 +245,10 @@ public class Item {
 
         Tag javaEnchLvl = tag.get("lvl");
 
-        CompoundTag bedrockTag = new CompoundTag("");
-        bedrockTag.put(new ShortTag("id", (short) enchantment.ordinal()));
-        // If the tag cannot parse, Java Edition 1.18.2 sets to 0
-        bedrockTag.put(new ShortTag("lvl", javaEnchLvl != null && javaEnchLvl.getValue() instanceof Number lvl ? lvl.shortValue() : (short) 0));
-        return bedrockTag;
+        NbtMapBuilder builder = NbtMap.builder();
+        builder.putShort("id", (short) enchantment.ordinal());
+        builder.putShort("lvl", );
+        return builder.build();
     }
 
     private void addSweeping(GeyserSession session, CompoundTag itemTag, int level) {
@@ -258,8 +271,8 @@ public class Item {
 
     /* Translation methods end */
 
-    public ItemStack newItemStack(int count, CompoundTag tag) {
-        return new ItemStack(this.javaId, count, tag);
+    public ItemStack newItemStack(int count, DataComponentPatch components) {
+        return new ItemStack(this.javaId, count, components);
     }
 
     public void setJavaId(int javaId) { // TODO like this?

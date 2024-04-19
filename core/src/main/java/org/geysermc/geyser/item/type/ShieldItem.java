@@ -25,11 +25,13 @@
 
 package org.geysermc.geyser.item.type;
 
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentPatch;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.item.components.ToolTier;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -39,8 +41,8 @@ public class ShieldItem extends Item {
     }
 
     @Override
-    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag) {
-        super.translateNbtToBedrock(session, tag);
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponentPatch components, @NonNull NbtMapBuilder builder) {
+        super.translateComponentsToBedrock(session, components, builder);
 
         if (tag.remove("BlockEntityTag") instanceof CompoundTag blockEntityTag) {
             if (blockEntityTag.get("Patterns") instanceof ListTag patterns) {

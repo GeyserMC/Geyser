@@ -25,14 +25,16 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentPatch;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
+import org.geysermc.geyser.translator.item.ItemTranslator;
 
 public class CrossbowItem extends Item {
     public CrossbowItem(String javaIdentifier, Builder builder) {
@@ -40,8 +42,8 @@ public class CrossbowItem extends Item {
     }
 
     @Override
-    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag) {
-        super.translateNbtToBedrock(session, tag);
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponentPatch components, @NonNull NbtMapBuilder builder) {
+        super.translateComponentsToBedrock(session, components, builder);
 
         ListTag chargedProjectiles = tag.get("ChargedProjectiles");
         if (chargedProjectiles != null) {
