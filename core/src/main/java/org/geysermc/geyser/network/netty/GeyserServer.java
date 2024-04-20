@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.network.netty;
 
-import com.github.steveice10.packetlib.helper.TransportHelper;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -39,6 +38,9 @@ import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import io.netty.incubator.channel.uring.IOUring;
+import io.netty.incubator.channel.uring.IOUringDatagramChannel;
+import io.netty.incubator.channel.uring.IOUringEventLoopGroup;
 import io.netty.util.concurrent.Future;
 import lombok.Getter;
 import net.jodah.expiringmap.ExpirationPolicy;
@@ -106,7 +108,7 @@ public final class GeyserServer {
 
     @Getter
     private final ExpiringMap<InetSocketAddress, InetSocketAddress> proxiedAddresses;
-    private final int listenCount;
+    private int listenCount;
 
     private ChannelFuture[] bootstrapFutures;
 
@@ -127,8 +129,11 @@ public final class GeyserServer {
         this.childGroup = TRANSPORT.eventLoopGroupFactory().apply(threadCount);
 
         this.bootstrap = this.createBootstrap();
-        // setup SO_REUSEPORT if exists
-        Bootstraps.setupBootstrap(this.bootstrap);
+        // setup SO_REUSEPORT if exists - or, if the option does not actually exist, reset listen count
+        // otherwise, we try to bind multiple times which wont work if so_reuseport is not valid
+        if (!Bootstraps.setupBootstrap(this.bootstrap)) {
+            this.listenCount = 1;
+        }
 
         if (this.geyser.getConfig().getBedrock().isEnableProxyProtocol()) {
             this.proxiedAddresses = ExpiringMap.builder()
@@ -415,22 +420,35 @@ public final class GeyserServer {
     }
 
     private static Transport compatibleTransport() {
-        TransportHelper.TransportMethod transportMethod = TransportHelper.determineTransportMethod();
-        if (transportMethod == TransportHelper.TransportMethod.EPOLL) {
+        if (isClassAvailable("io.netty.incubator.channel.uring.IOUring")
+                && IOUring.isAvailable()
+                && Boolean.parseBoolean(System.getProperty("Geyser.io_uring"))) {
+            return new Transport(IOUringDatagramChannel.class, IOUringEventLoopGroup::new);
+        }
+
+        if (isClassAvailable("io.netty.channel.epoll.Epoll") && Epoll.isAvailable()) {
             return new Transport(EpollDatagramChannel.class, EpollEventLoopGroup::new);
         }
 
-        if (transportMethod == TransportHelper.TransportMethod.KQUEUE) {
+        if (isClassAvailable("io.netty.channel.kqueue.KQueue") && KQueue.isAvailable()) {
             return new Transport(KQueueDatagramChannel.class, KQueueEventLoopGroup::new);
         }
-
-        // if (transportMethod == TransportHelper.TransportMethod.IO_URING) {
-        //     return new Transport(IOUringDatagramChannel.class, IOUringEventLoopGroup::new);
-        // }
 
         return new Transport(NioDatagramChannel.class, NioEventLoopGroup::new);
     }
 
     private record Transport(Class<? extends DatagramChannel> datagramChannel, IntFunction<EventLoopGroup> eventLoopGroupFactory) {
+    }
+
+    /**
+     * Used so implementations can opt to remove these dependencies if so desired
+     */
+    private static boolean isClassAvailable(String className) {
+        try {
+            Class.forName(className);
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 }

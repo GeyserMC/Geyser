@@ -32,6 +32,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
@@ -41,6 +42,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 
@@ -54,7 +56,7 @@ public class WolfEntity extends TameableEntity {
             Items.PORKCHOP, Items.BEEF, Items.RABBIT, Items.COOKED_PORKCHOP, Items.COOKED_BEEF, Items.ROTTEN_FLESH, Items.MUTTON, Items.COOKED_MUTTON,
             Items.COOKED_RABBIT);
 
-    private byte collarColor;
+    private byte collarColor = 14; // Red - default
 
     public WolfEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
@@ -64,19 +66,27 @@ public class WolfEntity extends TameableEntity {
     public void setTameableFlags(ByteEntityMetadata entityMetadata) {
         super.setTameableFlags(entityMetadata);
         // Reset wolf color
-        byte xd = entityMetadata.getPrimitiveValue();
-        boolean angry = (xd & 0x02) == 0x02;
-        if (angry) {
+        if (getFlag(EntityFlag.ANGRY)) {
             dirtyMetadata.put(EntityDataTypes.COLOR, (byte) 0);
+        } else if (getFlag(EntityFlag.TAMED)) {
+            updateCollarColor();
+
+            // This fixes tail angle when taming
+            UpdateAttributesPacket packet = new UpdateAttributesPacket();
+            packet.setRuntimeEntityId(geyserId);
+            packet.setAttributes(Collections.singletonList(createHealthAttribute()));
+            session.sendUpstreamPacket(packet);
         }
     }
 
     public void setCollarColor(IntEntityMetadata entityMetadata) {
         collarColor = (byte) entityMetadata.getPrimitiveValue();
-        if (getFlag(EntityFlag.ANGRY)) {
-            return;
+        if (!getFlag(EntityFlag.ANGRY) && getFlag(EntityFlag.TAMED)) {
+            updateCollarColor();
         }
+    }
 
+    private void updateCollarColor() {
         dirtyMetadata.put(EntityDataTypes.COLOR, collarColor);
         if (ownerBedrockId == 0) {
             // If a color is set and there is no owner entity ID, set one.
