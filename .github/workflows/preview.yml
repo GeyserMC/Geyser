@@ -27,7 +27,7 @@ jobs:
   upload:
     runs-on: ubuntu-latest
     env:
-      PROJECT: 'geyser-preview'
+      PROJECT: 'geyserpreview'
     steps:
       - name: Set Variables
         id: setvars
