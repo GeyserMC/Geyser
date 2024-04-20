@@ -28,7 +28,6 @@ package org.geysermc.geyser.translator.protocol.java;
 import com.github.steveice10.mc.protocol.data.game.RegistryEntry;
 import com.github.steveice10.mc.protocol.packet.configuration.clientbound.ClientboundRegistryDataPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
@@ -37,7 +36,7 @@ import org.geysermc.geyser.translator.level.BiomeTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
-import java.util.Map;
+import java.util.List;
 
 @Translator(packet = ClientboundRegistryDataPacket.class)
 public class JavaRegistryDataTranslator extends PacketTranslator<ClientboundRegistryDataPacket> {
@@ -45,7 +44,7 @@ public class JavaRegistryDataTranslator extends PacketTranslator<ClientboundRegi
     @Override
     public void translate(GeyserSession session, ClientboundRegistryDataPacket packet) {
         if (packet.getRegistry().equals("minecraft:dimension_type")) {
-            Map<String, JavaDimension> dimensions = session.getDimensions();
+            Int2ObjectMap<JavaDimension> dimensions = session.getDimensions();
             dimensions.clear();
             JavaDimension.load(packet.getEntries(), dimensions);
         }
@@ -53,17 +52,17 @@ public class JavaRegistryDataTranslator extends PacketTranslator<ClientboundRegi
         if (packet.getRegistry().equals("minecraft:chat_type")) {
             Int2ObjectMap<TextDecoration> chatTypes = session.getChatTypes();
             chatTypes.clear();
-            for (RegistryEntry entry : packet.getEntries()) {
+            List<RegistryEntry> entries = packet.getEntries();
+            for (int i = 0; i < entries.size(); i++) {
                 // The ID is NOT ALWAYS THE SAME! ViaVersion as of 1.19 adds two registry entries that do NOT match vanilla.
+                RegistryEntry entry = entries.get(i);
                 CompoundTag tag = entry.getData();
-                int id = ((IntTag) tag.get("id")).getValue();
-                CompoundTag element = tag.get("element");
-                CompoundTag chat = element.get("chat");
+                CompoundTag chat = tag.get("chat");
                 TextDecoration textDecoration = null;
                 if (chat != null) {
                     textDecoration = new TextDecoration(chat);
                 }
-                chatTypes.put(id, textDecoration);
+                chatTypes.put(i, textDecoration);
             }
         }
 

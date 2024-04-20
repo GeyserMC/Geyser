@@ -32,8 +32,6 @@ import com.github.steveice10.mc.protocol.data.game.chunk.palette.GlobalPalette;
 import com.github.steveice10.mc.protocol.data.game.chunk.palette.Palette;
 import com.github.steveice10.mc.protocol.data.game.chunk.palette.SingletonPalette;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import it.unimi.dsi.fastutil.ints.*;
 import org.geysermc.geyser.level.chunk.BlockStorage;
 import org.geysermc.geyser.level.chunk.bitarray.BitArray;
@@ -54,11 +52,11 @@ public class BiomeTranslator {
         session.setBiomeGlobalPalette(MathUtils.getGlobalPaletteForSize(entries.size()));
 
         int greatestBiomeId = 0;
-        for (RegistryEntry entry : entries) {
-            CompoundTag biomeTag = entry.getData();
-            String javaIdentifier = ((StringTag) biomeTag.get("name")).getValue();
+        for (int i = 0; i < entries.size(); i++) {
+            RegistryEntry entry = entries.get(i);
+            String javaIdentifier = entry.getId();
             int bedrockId = Registries.BIOME_IDENTIFIERS.get().getOrDefault(javaIdentifier, 0);
-            int javaId = ((IntTag) biomeTag.get("id")).getValue();
+            int javaId = i;
             if (javaId > greatestBiomeId) {
                 greatestBiomeId = javaId;
             }
