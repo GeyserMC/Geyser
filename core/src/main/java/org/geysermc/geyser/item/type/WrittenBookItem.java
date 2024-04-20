@@ -25,21 +25,27 @@
 
 package org.geysermc.geyser.item.type;
 
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
+import com.github.steveice10.mc.protocol.data.game.item.component.Filterable;
+import com.github.steveice10.mc.protocol.data.game.item.component.WrittenBookContent;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class WrittenBookItem extends WritableBookItem {
+public class WrittenBookItem extends Item {
     public static final int MAXIMUM_PAGE_EDIT_LENGTH = 1024;
     public static final int MAXIMUM_PAGE_LENGTH = 32768;
     public static final int MAXIMUM_PAGE_COUNT = 100; // Java edition limit. Bedrock edition has a limit of 50 pages.
@@ -51,25 +57,24 @@ public class WrittenBookItem extends WritableBookItem {
 
     @Override
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
-        boolean isValid = isValidWrittenBook(tag);
-        if (!isValid) {
-            tag.remove("pages");
-        }
-
         super.translateComponentsToBedrock(session, components, builder);
 
-        if (!isValid) {
-            CompoundTag invalidTagPage = new CompoundTag("");
-            invalidTagPage.put(new StringTag("photoname", ""));
-            invalidTagPage.put(new StringTag(
-                    "text",
-                    MessageTranslator.convertMessage(
-                            Component.translatable("book.invalid.tag", NamedTextColor.DARK_RED),
-                            session.locale()
-                    )
-            ));
-            tag.put(new ListTag("pages", List.of(invalidTagPage)));
+        WrittenBookContent bookContent = components.get(DataComponentType.WRITTEN_BOOK_CONTENT);
+        if (bookContent == null) {
+            return;
         }
+        List<NbtMap> bedrockPages = new ArrayList<>();
+        for (Filterable<Component> page : bookContent.getPages()) {
+            NbtMapBuilder pageBuilder = NbtMap.builder();
+            pageBuilder.putString("photoname", "");
+            pageBuilder.putString("text", MessageTranslator.convertMessage(page.getRaw()));
+            bedrockPages.add(pageBuilder.build());
+        }
+        builder.putList("pages", NbtType.COMPOUND, bedrockPages);
+
+        builder.putString("title", bookContent.getTitle().getRaw())
+                .putString("author", bookContent.getAuthor());
+        // TODO isResolved
     }
 
     private boolean isValidWrittenBook(CompoundTag tag) {

@@ -43,11 +43,11 @@ public class CompassItem extends Item {
     }
 
     @Override
-    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
-        if (isLodestoneCompass(itemStack.getDataComponents())) {
-            return super.translateToBedrock(itemStack, mappings.getLodestoneCompass(), mappings);
+    public ItemData.Builder translateToBedrock(int count, DataComponents components, ItemMapping mapping, ItemMappings mappings) {
+        if (isLodestoneCompass(components)) {
+            return super.translateToBedrock(count, components, mappings.getLodestoneCompass(), mappings);
         }
-        return super.translateToBedrock(itemStack, mapping, mappings);
+        return super.translateToBedrock(count, components, mapping, mappings);
     }
 
     @Override

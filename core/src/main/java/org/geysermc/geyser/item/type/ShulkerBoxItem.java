@@ -83,7 +83,7 @@ public class ShulkerBoxItem extends BlockItem {
 
             itemsList.add(boxItemNbt.build());
         }
-        builder.getOrCreateNbt().putList("Items", NbtType.COMPOUND, itemsList);
+        builder.putList("Items", NbtType.COMPOUND, itemsList);
     }
 
     @Override
