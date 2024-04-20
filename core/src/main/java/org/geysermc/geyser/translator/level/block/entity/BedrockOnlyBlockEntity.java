@@ -63,7 +63,7 @@ public interface BedrockOnlyBlockEntity extends RequiresBlockState {
             return FlowerPotBlockEntityTranslator.getTag(session, blockState, position);
         } else if (PistonBlockEntityTranslator.isBlock(blockState)) {
             return PistonBlockEntityTranslator.getTag(blockState, position);
-        } else if (BlockStateValues.isNonWaterCauldron(blockState)) {
+        } else if (BlockStateValues.isCauldron(blockState)) {
             // As of 1.18.30: this is required to make rendering not look weird on chunk load (lava and snow cauldrons look dim)
             return NbtMap.builder()
                     .putString("id", "Cauldron")
