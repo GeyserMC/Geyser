@@ -78,6 +78,7 @@ public class DumpInfo {
     private final GeyserConfiguration config;
     private final Floodgate floodgate;
     private final Object2IntMap<DeviceOs> userPlatforms;
+    private final int connectionAttempts;
     private final HashInfo hashInfo;
     private final RamInfo ramInfo;
     private LogsInfo logsInfo;
@@ -128,6 +129,8 @@ public class DumpInfo {
             DeviceOs device = session.getClientData().getDeviceOs();
             userPlatforms.put(device, userPlatforms.getOrDefault(device, 0) + 1);
         }
+
+        this.connectionAttempts = GeyserImpl.getInstance().getGeyserServer().getConnectionAttempts();
 
         this.bootstrapInfo = GeyserImpl.getInstance().getBootstrap().getDumpInfo();
 

@@ -200,11 +200,9 @@ public class Entity implements GeyserEntity {
 
     /**
      * Despawns the entity
-     *
-     * @return can be deleted
      */
-    public boolean despawnEntity() {
-        if (!valid) return true;
+    public void despawnEntity() {
+        if (!valid) return;
 
         for (Entity passenger : passengers) { // Make sure all passengers on the despawned entity are updated
             if (passenger == null) continue;
@@ -218,7 +216,6 @@ public class Entity implements GeyserEntity {
         session.sendUpstreamPacket(removeEntityPacket);
 
         valid = false;
-        return true;
     }
 
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, boolean isOnGround) {

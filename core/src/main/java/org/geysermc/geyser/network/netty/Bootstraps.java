@@ -49,6 +49,7 @@ public final class Bootstraps {
         String kernelVersion;
         try {
             kernelVersion = Native.KERNEL_VERSION;
+            GeyserImpl.getInstance().getLogger().debug("Kernel version: " + kernelVersion);
         } catch (Throwable e) {
             GeyserImpl.getInstance().getLogger().debug("Could not determine kernel version! " + e.getMessage());
             kernelVersion = null;
@@ -67,10 +68,22 @@ public final class Bootstraps {
     }
 
     @SuppressWarnings({"rawtypes, unchecked"})
-    public static void setupBootstrap(AbstractBootstrap bootstrap) {
+    public static boolean setupBootstrap(AbstractBootstrap bootstrap) {
+        boolean success = true;
         if (REUSEPORT_AVAILABLE) {
-            bootstrap.option(UnixChannelOption.SO_REUSEPORT, true);
+            // Guessing whether so_reuseport is available based on kernel version is cool, but unreliable.
+            Channel channel = bootstrap.register().channel();
+            if (channel.config().setOption(UnixChannelOption.SO_REUSEPORT, true)) {
+                bootstrap.option(UnixChannelOption.SO_REUSEPORT, true);
+            } else {
+                // If this occurs, we guessed wrong and reuseport is not available
+                GeyserImpl.getInstance().getLogger().debug("so_reuseport is not available despite version being " + Native.KERNEL_VERSION);
+                success = false;
+            }
+            // Now yeet that channel
+            channel.close();
         }
+        return success;
     }
 
     private static int[] fromString(String input) {

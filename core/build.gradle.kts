@@ -6,6 +6,10 @@ plugins {
 }
 
 dependencies {
+    constraints {
+        implementation(libs.raknet) // Ensure protocol does not override the RakNet version
+    }
+
     api(projects.common)
     api(projects.api)
 
@@ -43,6 +47,8 @@ dependencies {
     implementation(libs.netty.transport.native.epoll) { artifact { classifier = "linux-x86_64" } }
     implementation(libs.netty.transport.native.epoll) { artifact { classifier = "linux-aarch_64" } }
     implementation(libs.netty.transport.native.kqueue) { artifact { classifier = "osx-x86_64" } }
+    implementation(libs.netty.transport.native.io.uring) { artifact { classifier = "linux-x86_64" } }
+    implementation(libs.netty.transport.native.io.uring) { artifact { classifier = "linux-aarch_64" } }
 
     // Adventure text serialization
     api(libs.bundles.adventure)
@@ -60,11 +66,6 @@ dependencies {
     annotationProcessor(projects.ap)
 
     api(libs.events)
-}
-
-configurations.api {
-    // This is still experimental - additionally, it could only really benefit standalone
-    exclude(group = "io.netty.incubator", module = "netty-incubator-transport-native-io_uring")
 }
 
 tasks.processResources {
@@ -97,7 +98,7 @@ configure<BlossomExtension> {
 }
 
 fun Project.buildNumber(): Int =
-    (System.getenv("GITHUB_RUN_NUMBER") ?: jenkinsBuildNumber())?.let { Integer.parseInt(it) } ?: -1
+    (System.getenv("BUILD_NUMBER"))?.let { Integer.parseInt(it) } ?: -1
 
 inner class GitInfo {
     val branch: String
@@ -129,9 +130,6 @@ inner class GitInfo {
         repository = git?.repository?.config?.getString("remote", "origin", "url") ?: ""
     }
 }
-
-// todo remove this when we're not using Jenkins anymore
-fun jenkinsBuildNumber(): String? = System.getenv("BUILD_NUMBER")
 
 // Manual task to download the bedrock data files from the CloudburstMC/Data repository
 // Invoke with ./gradlew :core:downloadBedrockData --suffix=1_20_70

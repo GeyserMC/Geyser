@@ -22,6 +22,7 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
 
     dependencies {
         exclude(dependency("com.google.*:.*"))
+        exclude(dependency("io.netty.incubator:.*"))
         exclude(dependency("io.netty:netty-transport-native-epoll:.*"))
         exclude(dependency("io.netty:netty-transport-native-unix-common:.*"))
         exclude(dependency("io.netty:netty-handler:.*"))
