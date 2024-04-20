@@ -25,10 +25,8 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
-import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
@@ -39,12 +37,12 @@ public class FilledMapItem extends MapItem {
     }
 
     @Override
-    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
-        ItemData.Builder builder = super.translateToBedrock(itemStack, mapping, mappings);
-        DataComponents components = itemStack.getDataComponents();
+    public ItemData.Builder translateToBedrock(int count, DataComponents components, ItemMapping mapping, ItemMappings mappings) {
+        ItemData.Builder builder = super.translateToBedrock(count, components, mapping, mappings);
         if (components == null) {
             // This is a fallback for maps with no nbt (Change added back in June 2020; is it needed in 2023?)
-            return builder.tag(NbtMap.builder().putInt("map", 0).build());
+            //return builder.tag(NbtMap.builder().putInt("map", 0).build()); TODO if this is *still* broken, let's move it to translateComponentsToBedrock
+            return builder;
         } else {
             Integer mapColor = components.get(DataComponentType.MAP_COLOR);
             if (mapColor != null) {

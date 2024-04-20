@@ -161,9 +161,9 @@ public final class ItemTranslator {
             addAdvancedTooltips(components, nbtBuilder, javaItem, session.locale());
         }
 
-        ItemStack itemStack = new ItemStack(javaItem.javaId(), count, components);
-
-        ItemData.Builder builder = javaItem.translateToBedrock(itemStack, bedrockItem, session.getItemMappings());
+        ItemData.Builder builder = javaItem.translateToBedrock(count, components, bedrockItem, session.getItemMappings());
+        // Finalize the Bedrock NBT
+        builder.tag(nbtBuilder.build());
         if (bedrockItem.isBlock()) {
             CustomBlockData customBlockData = BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.getOrDefault(
                     bedrockItem.getJavaItem().javaIdentifier(), null);

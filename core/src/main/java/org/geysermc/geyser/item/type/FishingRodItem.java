@@ -26,8 +26,6 @@
 package org.geysermc.geyser.item.type;
 
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
@@ -42,11 +40,7 @@ public class FishingRodItem extends Item {
         super.translateComponentsToBedrock(session, components, builder);
 
         // Fix damage inconsistency
-        Tag damage = tag.get("Damage");
-        if (damage instanceof IntTag) {
-            int originalDurability = ((IntTag) damage).getValue();
-            tag.put(new IntTag("Damage", getBedrockDamage(originalDurability)));
-        }
+        builder.getDamage().ifPresent(damage -> builder.setDamage(getBedrockDamage(damage)));
     }
 
     public static int getBedrockDamage(int javaDamage) {

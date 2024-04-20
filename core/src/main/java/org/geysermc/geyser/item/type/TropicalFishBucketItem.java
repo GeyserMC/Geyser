@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.item.type;
 
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import net.kyori.adventure.text.Component;
@@ -53,10 +54,10 @@ public class TropicalFishBucketItem extends Item {
         super.translateComponentsToBedrock(session, components, builder);
 
         // Prevent name from appearing as "Bucket of"
-        tag.put(new ByteTag("AppendCustomName", (byte) 1));
-        tag.put(new StringTag("CustomName", MinecraftLocale.getLocaleString("entity.minecraft.tropical_fish", session.locale())));
+        builder.putByte("AppendCustomName", (byte) 1);
+        builder.putString("CustomName", MinecraftLocale.getLocaleString("entity.minecraft.tropical_fish", session.locale()));
         // Add Java's client side lore tag
-        Tag bucketVariantTag = tag.get("BucketVariantTag");
+        components.get(DataComponentType)
         if (bucketVariantTag instanceof IntTag) {
             CompoundTag displayTag = tag.get("display");
             if (displayTag == null) {

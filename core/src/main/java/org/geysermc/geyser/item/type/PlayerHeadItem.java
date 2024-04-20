@@ -25,16 +25,14 @@
 
 package org.geysermc.geyser.item.type;
 
+import com.github.steveice10.mc.auth.data.GameProfile;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 
 public class PlayerHeadItem extends Item {
     public PlayerHeadItem(String javaIdentifier, Builder builder) {
@@ -45,35 +43,24 @@ public class PlayerHeadItem extends Item {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
-        CompoundTag displayTag;
-        if (tag.get("display") instanceof CompoundTag existingDisplayTag) {
-            displayTag = existingDisplayTag;
-        } else {
-            displayTag = new CompoundTag("display");
-            tag.put(displayTag);
-        }
-
-        if (displayTag.get("Name") instanceof StringTag nameTag) {
-            // Custom names are always yellow and italic
-            displayTag.put(new StringTag("Name", ChatColor.YELLOW + ChatColor.ITALIC + MessageTranslator.convertMessageLenient(nameTag.getValue(), session.locale())));
-        } else {
-            if (tag.contains("SkullOwner")) {
-                StringTag name;
-                Tag skullOwner = tag.get("SkullOwner");
-                if (skullOwner instanceof StringTag skullName) {
-                    name = skullName;
+        // TODO verify
+        // Also - ChatColor.YELLOW + ChatColor.ITALIC + MessageTranslator.convertMessageLenient(nameTag.getValue(), session.locale())) this code existed if a custom name was already present.
+        // But I think we would always overwrite that because translateDisplayProperties runs after this method.
+        String customName = builder.getCustomName();
+        if (customName == null) {
+            GameProfile profile = components.get(DataComponentType.PROFILE);
+            if (profile != null) {
+                String name = profile.getName();
+                if (name != null) {
+                    // Add correct name of player skull
+                    String displayName = ChatColor.RESET + ChatColor.YELLOW +
+                            MinecraftLocale.getLocaleString("block.minecraft.player_head.named", session.locale()).replace("%s", name);
+                    builder.setCustomName(displayName);
                 } else {
-                    if (skullOwner instanceof CompoundTag && ((CompoundTag) skullOwner).get("Name") instanceof StringTag skullName) {
-                        name = skullName;
-                    } else {
-                        // No name found so default to "Player Head"
-                        displayTag.put(new StringTag("Name", ChatColor.RESET + ChatColor.YELLOW + MinecraftLocale.getLocaleString("block.minecraft.player_head", session.locale())));
-                        return;
-                    }
+                    // No name found so default to "Player Head"
+                    builder.setCustomName(ChatColor.RESET + ChatColor.YELLOW +
+                            MinecraftLocale.getLocaleString("block.minecraft.player_head", session.locale()));
                 }
-                // Add correct name of player skull
-                String displayName = ChatColor.RESET + ChatColor.YELLOW + MinecraftLocale.getLocaleString("block.minecraft.player_head.named", session.locale()).replace("%s", name.getValue());
-                displayTag.put(new StringTag("Name", displayName));
             }
         }
     }

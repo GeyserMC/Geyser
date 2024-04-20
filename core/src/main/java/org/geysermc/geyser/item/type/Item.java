@@ -39,6 +39,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.Enchantment;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
@@ -93,20 +94,16 @@ public class Item {
 
     /* Translation methods to Bedrock and back */
 
-    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
-        if (InventoryUtils.isEmpty(itemStack)) {
+    public ItemData.Builder translateToBedrock(int count, DataComponents components, ItemMapping mapping, ItemMappings mappings) {
+        if (this == Items.AIR || count <= 0) {
             // Return, essentially, air
             return ItemData.builder();
         }
         ItemData.Builder builder = ItemData.builder()
                 .definition(mapping.getBedrockDefinition())
                 .damage(mapping.getBedrockData())
-                .count(itemStack.getAmount());
-        if (itemStack.getDataComponents() != null) {
-            builder.tag(ItemTranslator.translateNbtToBedrock(itemStack.getDataComponents()));
-        }
+                .count(count);
 
-        DataComponents components = itemStack.getDataComponents();
         ItemTranslator.translateCustomItem(components, builder, mapping);
 
         return builder;
@@ -133,6 +130,11 @@ public class Item {
             for (Component loreComponent : loreComponents) {
                 lore.add(MessageTranslator.convertMessage(loreComponent, session.locale()));
             }
+        }
+
+        Integer damage = components.get(DataComponentType.DAMAGE);
+        if (damage != null) {
+            builder.setDamage(damage);
         }
 
         List<Tag> newTags = new ArrayList<>();

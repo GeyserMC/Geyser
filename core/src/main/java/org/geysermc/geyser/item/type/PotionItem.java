@@ -27,9 +27,9 @@ package org.geysermc.geyser.item.type;
 
 import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
 import com.github.steveice10.mc.protocol.data.game.item.component.PotionContents;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -46,29 +46,27 @@ public class PotionItem extends Item {
     }
 
     @Override
-    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
-        if (itemStack.getDataComponents() == null) return super.translateToBedrock(itemStack, mapping, mappings);
-        PotionContents potionContents = itemStack.getDataComponents().get(DataComponentType.POTION_CONTENTS);
+    public ItemData.Builder translateToBedrock(int count, DataComponents components, ItemMapping mapping, ItemMappings mappings) {
+        if (components == null) return super.translateToBedrock(count, components, mapping, mappings);
+        PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
         if (potionContents != null) {
-            ItemDefinition customItemDefinition = CustomItemTranslator.getCustomItem(itemStack.getDataComponents(), mapping);
+            ItemDefinition customItemDefinition = CustomItemTranslator.getCustomItem(components, mapping);
             if (customItemDefinition == null) {
                 Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
                 if (potion != null) {
                     return ItemData.builder()
                             .definition(mapping.getBedrockDefinition())
                             .damage(potion.getBedrockId())
-                            .count(itemStack.getAmount())
-                            .tag(ItemTranslator.translateNbtToBedrock(itemStack.getNbt()));
+                            .count(count);
                 }
                 GeyserImpl.getInstance().getLogger().debug("Unknown Java potion: " + potionTag.getValue());
             } else {
                 return ItemData.builder()
                         .definition(customItemDefinition)
-                        .count(itemStack.getAmount())
-                        .tag(ItemTranslator.translateNbtToBedrock(itemStack.getNbt()));
+                        .count(count);
             }
         }
-        return super.translateToBedrock(itemStack, mapping, mappings);
+        return super.translateToBedrock(count, components, mapping, mappings);
     }
 
     @Override

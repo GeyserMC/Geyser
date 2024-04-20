@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.item.type;
 
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -41,14 +42,14 @@ public class MapItem extends Item {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
-        Tag mapId = tag.remove("map");
-        if (mapId == null || !(mapId.getValue() instanceof Number number)) return;
+        Integer mapValue = components.get(DataComponentType.MAP_ID);
+        if (mapValue == null) {
+            return;
+        }
 
-        int mapValue = number.intValue();
-
-        tag.put(new LongTag("map_uuid", mapValue));
-        tag.put(new IntTag("map_name_index", mapValue));
-        tag.put(new ByteTag("map_display_players", (byte) 1));
+        builder.putLong("map_uuid", mapValue);
+        builder.putInt("map_name_index", mapValue);
+        builder.putByte("map_display_players", (byte) 1);
     }
 
     @Override
