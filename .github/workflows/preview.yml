@@ -47,7 +47,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           merge-multiple: true
       - name: Get Preview Metadata
-        #if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
+        if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
         # See https://github.com/Kas-tle/base-release-action/releases/tag/main-11
         uses: Kas-tle/base-release-action@664c39985eb9d0d393ce98e7eb8414d3d98e762a # main-11
         with:
@@ -65,7 +65,7 @@ jobs:
           saveMetadata: true
           updateReleaseData: false
       - name: Update Generated Metadata
-        #if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
+        if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
         run: |
           cat metadata.json
           echo
