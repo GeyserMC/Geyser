@@ -98,7 +98,7 @@ configure<BlossomExtension> {
 }
 
 fun Project.buildNumber(): Int =
-    (System.getenv("GITHUB_RUN_NUMBER") ?: jenkinsBuildNumber())?.let { Integer.parseInt(it) } ?: -1
+    (System.getenv("BUILD_NUMBER"))?.let { Integer.parseInt(it) } ?: -1
 
 inner class GitInfo {
     val branch: String
@@ -130,9 +130,6 @@ inner class GitInfo {
         repository = git?.repository?.config?.getString("remote", "origin", "url") ?: ""
     }
 }
-
-// todo remove this when we're not using Jenkins anymore
-fun jenkinsBuildNumber(): String? = System.getenv("BUILD_NUMBER")
 
 // Manual task to download the bedrock data files from the CloudburstMC/Data repository
 // Invoke with ./gradlew :core:downloadBedrockData --suffix=1_20_70
