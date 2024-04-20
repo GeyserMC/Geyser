@@ -46,9 +46,9 @@ public class ArrowItem extends Item {
         TippedArrowPotion tippedArrowPotion = TippedArrowPotion.getByBedrockId(itemData.getDamage());
         ItemStack itemStack = super.translateToJava(itemData, mapping, mappings);
         if (tippedArrowPotion != null) {
-            itemStack = Items.TIPPED_ARROW.newItemStack(itemStack.getAmount(), itemStack.getDataComponentPatch());
+            itemStack = Items.TIPPED_ARROW.newItemStack(itemStack.getAmount(), itemStack.getDataComponents());
             StringTag potionTag = new StringTag("Potion", tippedArrowPotion.getJavaIdentifier());
-            itemStack.getDataComponentPatch().put(DataComponentType.POTION_CONTENTS, new PotionContents());
+            itemStack.getDataComponents().put(DataComponentType.POTION_CONTENTS, new PotionContents());
         }
         return itemStack;
     }

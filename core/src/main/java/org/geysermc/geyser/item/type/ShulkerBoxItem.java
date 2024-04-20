@@ -25,11 +25,10 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.mc.protocol.data.game.Identifier;
 import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentPatch;
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
-import com.github.steveice10.opennbt.tag.builtin.*;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -38,7 +37,6 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.ItemTranslator;
-import org.geysermc.geyser.util.MathUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +47,7 @@ public class ShulkerBoxItem extends BlockItem {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponentPatch components, @NonNull NbtMapBuilder builder) {
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull NbtMapBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
         List<ItemStack> contents = components.get(DataComponentType.CONTAINER);
@@ -73,9 +71,16 @@ public class ShulkerBoxItem extends BlockItem {
             boxItemNbt.putShort("Damage", (short) boxMapping.getBedrockData());
             boxItemNbt.putByte("Count", (byte) item.getAmount());
             // Only the display name is what we have interest in, so just translate that if relevant
-            DataComponentPatch boxComponents = item.getDataComponentPatch();
+            DataComponents boxComponents = item.getDataComponents();
             if (boxComponents != null) {
-                boxItemNbt.put(ItemTranslator.translateDisplayProperties(session, displayTag, boxMapping, '7'));
+                String customName = ItemTranslator.getCustomName(session, boxComponents, boxMapping, '7');
+                if (customName != null) {
+                    boxItemNbt.putCompound("tag", NbtMap.builder()
+                            .putCompound("display", NbtMap.builder()
+                                    .putString("Name", customName)
+                                    .build())
+                            .build());
+                }
             }
 
             itemsList.add(boxItemNbt.build());
