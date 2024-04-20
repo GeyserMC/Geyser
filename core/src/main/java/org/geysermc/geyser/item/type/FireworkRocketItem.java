@@ -25,14 +25,21 @@
 
 package org.geysermc.geyser.item.type;
 
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
+import com.github.steveice10.mc.protocol.data.game.item.component.Fireworks;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.level.FireworkColor;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.util.MathUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class FireworkRocketItem extends Item {
     public FireworkRocketItem(String javaIdentifier, Builder builder) {
@@ -40,29 +47,25 @@ public class FireworkRocketItem extends Item {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull NbtMapBuilder builder) {
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
-        CompoundTag fireworks = tag.get("Fireworks");
+        Fireworks fireworks = components.get(DataComponentType.FIREWORKS);
         if (fireworks == null) {
             return;
         }
+        NbtMapBuilder fireworksNbt = NbtMap.builder();
+        fireworksNbt.putByte("Flight", (byte) fireworks.getFlightDuration());
 
-        if (fireworks.get("Flight") != null) {
-            fireworks.put(new ByteTag("Flight", MathUtils.getNbtByte(fireworks.get("Flight").getValue())));
-        }
-
-        ListTag explosions = fireworks.get("Explosions");
-        if (explosions == null) {
+        List<Fireworks.FireworkExplosion> explosions = fireworks.getExplosions();
+        if (explosions.isEmpty()) {
             return;
         }
-        for (Tag effect : explosions.getValue()) {
-            CompoundTag effectData = (CompoundTag) effect;
-            CompoundTag newEffectData = translateExplosionToBedrock(effectData, "");
-
-            explosions.remove(effectData);
-            explosions.add(newEffectData);
+        List<NbtMap> explosionNbt = new ArrayList<>();
+        for (Fireworks.FireworkExplosion explosion : explosions) {
+            explosionNbt.add(translateExplosionToBedrock(explosion, ""));
         }
+
     }
 
     @Override
@@ -70,13 +73,15 @@ public class FireworkRocketItem extends Item {
         super.translateNbtToJava(tag, mapping);
     }
 
-    static CompoundTag translateExplosionToBedrock(CompoundTag explosion, String newName) {
-        CompoundTag newExplosionData = new CompoundTag(newName);
+    static NbtMap translateExplosionToBedrock(Fireworks.FireworkExplosion explosion, String newName) {
+        NbtMapBuilder newExplosionData = NbtMap.builder();
 
         if (explosion.get("Type") != null) {
             newExplosionData.put(new ByteTag("FireworkType", MathUtils.getNbtByte(explosion.get("Type").getValue())));
         }
+        //newExplosionData.putByte("FireworkType", explosion.get) //TODO???
 
+        // TODO do we need length checks
         if (explosion.get("Colors") != null) {
             int[] oldColors = (int[]) explosion.get("Colors").getValue();
             byte[] colors = new byte[oldColors.length];
@@ -101,15 +106,10 @@ public class FireworkRocketItem extends Item {
             newExplosionData.put(new ByteArrayTag("FireworkFade", colors));
         }
 
-        if (explosion.get("Trail") != null) {
-            newExplosionData.put(new ByteTag("FireworkTrail", MathUtils.getNbtByte(explosion.get("Trail").getValue())));
-        }
+        newExplosionData.putBoolean("FireworkTrail", explosion.isHasTrail());
+        newExplosionData.putBoolean("FireworkFlicker", explosion.isHasTwinkle()); // TODO verify
 
-        if (explosion.get("Flicker") != null) {
-            newExplosionData.put(new ByteTag("FireworkFlicker", MathUtils.getNbtByte(explosion.get("Flicker").getValue())));
-        }
-
-        return newExplosionData;
+        return newExplosionData.build();
     }
 
     static CompoundTag translateExplosionToJava(CompoundTag explosion, String newName) {

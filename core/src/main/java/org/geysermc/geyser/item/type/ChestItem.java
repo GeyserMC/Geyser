@@ -27,9 +27,10 @@ package org.geysermc.geyser.item.type;
 
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 
+@Deprecated
 public class ChestItem extends BlockItem {
 
     public ChestItem(String javaIdentifier, Builder builder) {
@@ -37,18 +38,7 @@ public class ChestItem extends BlockItem {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull NbtMapBuilder builder) {
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
-
-        // Strip the BlockEntityTag from the chests contents
-        // sent to the client. The client does not parse this
-        // or use it for anything, as this tag is fully
-        // server-side, so we remove it to reduce bandwidth and
-        // solve potential issues with very large tags.
-
-        // There was a problem in the past where this would strip
-        // NBT data in creative mode, however with the new server
-        // authoritative inventories, this is no longer a concern.
-        tag.remove("BlockEntityTag");
     }
 }

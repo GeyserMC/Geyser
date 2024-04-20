@@ -141,7 +141,7 @@ public final class ItemTranslator {
         BedrockItemBuilder nbtBuilder = new BedrockItemBuilder();
 
         if (components != null) {
-            javaItem.translateComponentsToBedrock(session, components, nbtBuilder.getOrCreateNbt());
+            javaItem.translateComponentsToBedrock(session, components, nbtBuilder);
         }
 
         String customName = getCustomName(session, components, bedrockItem);

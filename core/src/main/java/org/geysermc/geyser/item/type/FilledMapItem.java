@@ -26,8 +26,8 @@
 package org.geysermc.geyser.item.type;
 
 import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -41,16 +41,16 @@ public class FilledMapItem extends MapItem {
     @Override
     public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
         ItemData.Builder builder = super.translateToBedrock(itemStack, mapping, mappings);
-        CompoundTag nbt = itemStack.getNbt();
-        if (nbt == null) {
+        DataComponents components = itemStack.getDataComponents();
+        if (components == null) {
             // This is a fallback for maps with no nbt (Change added back in June 2020; is it needed in 2023?)
             return builder.tag(NbtMap.builder().putInt("map", 0).build());
-        } else if (nbt.get("display") instanceof CompoundTag display) {
-            // Note: damage 5 treasure map, 6 ???
-            Tag mapColor = display.get("MapColor");
-            if (mapColor != null && mapColor.getValue() instanceof Number color) {
+        } else {
+            Integer mapColor = components.get(DataComponentType.MAP_COLOR);
+            if (mapColor != null) {
+                // Note: damage 5 treasure map, 6 ???
                 // Java Edition allows any color; Bedrock only allows some. So let's take what colors we can get
-                switch (color.intValue()) {
+                switch (mapColor) {
                     case 3830373 -> builder.damage(3); // Ocean Monument
                     case 5393476 -> builder.damage(4); // Woodland explorer
                 }

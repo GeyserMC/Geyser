@@ -25,14 +25,18 @@
 
 package org.geysermc.geyser.item.type;
 
+import com.github.steveice10.mc.protocol.data.game.item.component.ArmorTrim;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.item.ArmorMaterial;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 
 public class ArmorItem extends Item {
     private final ArmorMaterial material;
@@ -43,23 +47,26 @@ public class ArmorItem extends Item {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull NbtMapBuilder builder) {
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
-        if (tag.get("Trim") instanceof CompoundTag trim) {
-            StringTag material = trim.remove("material");
-            StringTag pattern = trim.remove("pattern");
+        ArmorTrim trim = components.get(DataComponentType.TRIM);
+        if (trim != null) {
+            // TODO material IDs
+            String material = trim.getMaterial().getAssetName();
+            String pattern = trim.getPattern().getAssetId();
 
             // discard custom trim patterns/materials to prevent visual glitches on bedrock
-            if (!material.getValue().startsWith("minecraft:")
-                    || !pattern.getValue().startsWith("minecraft:")) {
-                tag.remove("Trim");
+            if (!material.startsWith("minecraft:")
+                    || !pattern.startsWith("minecraft:")) {
                 return;
             }
 
+            NbtMapBuilder trimBuilder = NbtMap.builder();
             // bedrock has an uppercase first letter key, and the value is not namespaced
-            trim.put(new StringTag("Material", stripNamespace(material.getValue())));
-            trim.put(new StringTag("Pattern", stripNamespace(pattern.getValue())));
+            trimBuilder.put("Material", stripNamespace(material));
+            trimBuilder.put("Pattern", stripNamespace(pattern));
+            builder.putCompound("Trim", trimBuilder.build());
         }
     }
 
