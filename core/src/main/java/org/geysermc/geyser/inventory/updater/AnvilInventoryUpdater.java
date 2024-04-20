@@ -350,7 +350,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
                     if (enchantment == JavaEnchantment.IMPALING) {
                         // Multiplier is halved on Bedrock for some reason
                         rarityMultiplier /= 2;
-                    } else if (enchantment == JavaEnchantment.SWEEPING) {
+                    } else if (enchantment == JavaEnchantment.SWEEPING_EDGE) {
                         // Doesn't exist on Bedrock
                         rarityMultiplier = 0;
                     }

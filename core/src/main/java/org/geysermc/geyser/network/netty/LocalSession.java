@@ -79,7 +79,7 @@ public final class LocalSession extends TcpSession {
                 public void initChannel(@NonNull LocalChannelWithRemoteAddress channel) {
                     channel.spoofedRemoteAddress(new InetSocketAddress(clientIp, 0));
                     PacketProtocol protocol = getPacketProtocol();
-                    protocol.newClientSession(LocalSession.this);
+                    protocol.newClientSession(LocalSession.this, false);
 
                     refreshReadTimeoutHandler(channel);
                     refreshWriteTimeoutHandler(channel);
