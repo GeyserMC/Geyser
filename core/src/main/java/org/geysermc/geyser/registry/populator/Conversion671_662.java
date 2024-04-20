@@ -26,6 +26,7 @@
 package org.geysermc.geyser.registry.populator;
 
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 
@@ -33,17 +34,30 @@ import java.util.List;
 import java.util.stream.Stream;
 
 public class Conversion671_662 {
+    private static final List<String> NEW_MISC = List.of("minecraft:heavy_core", "minecraft:mace", "minecraft:flow_banner_pattern", "minecraft:guster_banner_pattern", "minecraft:flow_armor_trim_smithing_template", "minecraft:bolt_armor_trim_smithing_template", "minecraft:flow_pottery_sherd", "minecraft:guster_pottery_sherd", "minecraft:scrape_pottery_sherd", "minecraft:breeze_rod");
     private static final List<String> NEW_CORAL_FANS = List.of("minecraft:tube_coral_fan", "minecraft:brain_coral_fan", "minecraft:bubble_coral_fan", "minecraft:fire_coral_fan", "minecraft:horn_coral_fan");
     private static final List<String> NEW_DEAD_CORAL_FANS = List.of("minecraft:dead_tube_coral_fan", "minecraft:dead_brain_coral_fan", "minecraft:dead_bubble_coral_fan", "minecraft:dead_fire_coral_fan", "minecraft:dead_horn_coral_fan");
     private static final List<String> NEW_FLOWERS = List.of("minecraft:poppy", "minecraft:blue_orchid", "minecraft:allium", "minecraft:azure_bluet", "minecraft:red_tulip", "minecraft:orange_tulip", "minecraft:white_tulip", "minecraft:pink_tulip", "minecraft:oxeye_daisy", "minecraft:cornflower", "minecraft:lily_of_the_valley");
     private static final List<String> NEW_SAPLINGS = List.of("minecraft:oak_sapling", "minecraft:spruce_sapling", "minecraft:birch_sapling", "minecraft:jungle_sapling", "minecraft:acacia_sapling", "minecraft:dark_oak_sapling", "minecraft:bamboo_sapling");
-    private static final List<String> NEW_BLOCKS = Stream.of(NEW_CORAL_FANS, NEW_DEAD_CORAL_FANS, NEW_FLOWERS, NEW_SAPLINGS).flatMap(List::stream).toList();
+    private static final List<String> NEW_BLOCKS = Stream.of(NEW_MISC, NEW_CORAL_FANS, NEW_DEAD_CORAL_FANS, NEW_FLOWERS, NEW_SAPLINGS).flatMap(List::stream).toList();
 
     static GeyserMappingItem remapItem(@SuppressWarnings("unused") Item item, GeyserMappingItem mapping) {
         String identifer = mapping.getBedrockIdentifier();
 
         if (!NEW_BLOCKS.contains(identifer)) {
             return mapping;
+        }
+
+        switch (identifer) {
+            case "minecraft:bolt_armor_trim_smithing_template" -> { return mapping.withBedrockIdentifier("minecraft:wayfinder_armor_trim_smithing_template"); }
+            case "minecraft:breeze_rod" -> { return mapping.withBedrockIdentifier("minecraft:blaze_rod"); }
+            case "minecraft:flow_armor_trim_smithing_template" -> { return mapping.withBedrockIdentifier("minecraft:spire_armor_trim_smithing_template"); }
+            case "minecraft:flow_banner_pattern", "minecraft:guster_banner_pattern" -> { return mapping.withBedrockIdentifier("minecraft:globe_banner_pattern"); }
+            case "minecraft:flow_pottery_sherd" -> { return mapping.withBedrockIdentifier("minecraft:skull_pottery_sherd"); }
+            case "minecraft:guster_pottery_sherd" -> { return mapping.withBedrockIdentifier("minecraft:shelter_pottery_sherd"); }
+            case "minecraft:scrape_pottery_sherd" -> { return mapping.withBedrockIdentifier("minecraft:heartbreak_pottery_sherd"); }
+            case "minecraft:heavy_core" -> { return mapping.withBedrockIdentifier("minecraft:conduit"); }
+            case "minecraft:mace" -> { return mapping.withBedrockIdentifier("minecraft:netherite_axe"); }
         }
 
         if (NEW_FLOWERS.contains(identifer)) {
@@ -113,6 +127,15 @@ public class Conversion671_662 {
         }
 
         String replacement;
+
+        if (name.equals("minecraft:heavy_core")) {
+            replacement = "minecraft:conduit";
+
+            NbtMapBuilder builder = tag.toBuilder();
+            builder.putString("name", replacement);
+
+            return builder.build();
+        }
 
         if (NEW_SAPLINGS.contains(name)) {
             replacement = "minecraft:sapling";

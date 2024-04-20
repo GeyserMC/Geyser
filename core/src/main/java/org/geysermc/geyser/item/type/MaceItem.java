@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,29 +23,17 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item;
+package org.geysermc.geyser.item.type;
 
-import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.item.Items;
 
-import java.util.function.Supplier;
-
-public enum ArmorMaterial {
-    LEATHER(() -> Items.LEATHER),
-    CHAINMAIL(() -> Items.IRON_INGOT),
-    IRON(() -> Items.IRON_INGOT),
-    GOLD(() -> Items.GOLD_INGOT),
-    DIAMOND(() -> Items.DIAMOND),
-    TURTLE(() -> Items.TURTLE_SCUTE),
-    NETHERITE(() -> Items.NETHERITE_INGOT),
-    ARMADILLO(() -> Items.ARMADILLO_SCUTE);
-
-    private final Supplier<Item> repairIngredient;
-
-    ArmorMaterial(Supplier<Item> repairIngredient) {
-        this.repairIngredient = repairIngredient;
+public class MaceItem extends Item {
+    public MaceItem(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
     }
 
-    public Item getRepairIngredient() {
-        return repairIngredient.get();
+    @Override
+    public boolean isValidRepairItem(Item other) {
+        return other == Items.BREEZE_ROD;
     }
 }
