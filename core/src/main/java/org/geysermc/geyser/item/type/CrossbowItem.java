@@ -26,7 +26,7 @@
 package org.geysermc.geyser.item.type;
 
 import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentPatch;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -42,7 +42,7 @@ public class CrossbowItem extends Item {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponentPatch components, @NonNull NbtMapBuilder builder) {
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull NbtMapBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
         ListTag chargedProjectiles = tag.get("ChargedProjectiles");

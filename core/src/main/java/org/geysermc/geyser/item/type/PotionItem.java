@@ -47,10 +47,10 @@ public class PotionItem extends Item {
 
     @Override
     public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
-        if (itemStack.getDataComponentPatch() == null) return super.translateToBedrock(itemStack, mapping, mappings);
-        PotionContents potionContents = itemStack.getDataComponentPatch().get(DataComponentType.POTION_CONTENTS);
+        if (itemStack.getDataComponents() == null) return super.translateToBedrock(itemStack, mapping, mappings);
+        PotionContents potionContents = itemStack.getDataComponents().get(DataComponentType.POTION_CONTENTS);
         if (potionContents != null) {
-            ItemDefinition customItemDefinition = CustomItemTranslator.getCustomItem(itemStack.getDataComponentPatch(), mapping);
+            ItemDefinition customItemDefinition = CustomItemTranslator.getCustomItem(itemStack.getDataComponents(), mapping);
             if (customItemDefinition == null) {
                 Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
                 if (potion != null) {

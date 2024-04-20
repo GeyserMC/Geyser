@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentPatch;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -40,7 +40,7 @@ public class DyeableArmorItem extends ArmorItem implements DyeableLeatherItem {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponentPatch components, @NonNull NbtMapBuilder builder) {
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull NbtMapBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
         DyeableLeatherItem.translateNbtToBedrock(tag);

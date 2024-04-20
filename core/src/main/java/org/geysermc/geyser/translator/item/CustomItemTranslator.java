@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.translator.item;
 
-import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentPatch;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
 import it.unimi.dsi.fastutil.Pair;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -43,7 +43,7 @@ import java.util.OptionalInt;
 public final class CustomItemTranslator {
 
     @Nullable
-    public static ItemDefinition getCustomItem(DataComponentPatch components, ItemMapping mapping) {
+    public static ItemDefinition getCustomItem(DataComponents components, ItemMapping mapping) {
         if (components == null) {
             return null;
         }
@@ -52,10 +52,9 @@ public final class CustomItemTranslator {
             return null;
         }
 
-        // TODO getOrDefault
-        int customModelData = components.get(DataComponentType.CUSTOM_MODEL_DATA);
+        int customModelData = components.getOrDefault(DataComponentType.CUSTOM_MODEL_DATA, 0);
         boolean checkDamage = mapping.getJavaItem().maxDamage() > 0;
-        int damage = !checkDamage ? 0 : components.get(DataComponentType.DAMAGE);
+        int damage = !checkDamage ? 0 : components.getOrDefault(DataComponentType.DAMAGE, 0);
         boolean unbreakable = checkDamage && !isDamaged(components, damage);
 
         for (Pair<CustomItemOptions, ItemDefinition> mappingTypes : customMappings) {
@@ -105,11 +104,11 @@ public final class CustomItemTranslator {
 
     /* These two functions are based off their Mojmap equivalents from 1.19.2 */
 
-    private static boolean isDamaged(DataComponentPatch components, int damage) {
+    private static boolean isDamaged(DataComponents components, int damage) {
         return isDamagableItem(components) && damage > 0;
     }
 
-    private static boolean isDamagableItem(DataComponentPatch components) {
+    private static boolean isDamagableItem(DataComponents components) {
         // mapping.getMaxDamage > 0 should also be checked (return false if not true) but we already check prior to this function
         Boolean unbreakable = components.get(DataComponentType.UNBREAKABLE);
         // Tag must either not be present or be set to false
