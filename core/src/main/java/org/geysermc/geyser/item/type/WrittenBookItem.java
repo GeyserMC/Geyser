@@ -33,8 +33,8 @@ import com.github.steveice10.opennbt.tag.builtin.Tag;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import java.util.List;
@@ -50,7 +50,7 @@ public class WrittenBookItem extends WritableBookItem {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull NbtMapBuilder builder) {
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         boolean isValid = isValidWrittenBook(tag);
         if (!isValid) {
             tag.remove("pages");

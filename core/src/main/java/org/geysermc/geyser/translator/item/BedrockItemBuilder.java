@@ -30,6 +30,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.geysermc.geyser.registry.type.ItemMapping;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,6 +71,28 @@ public final class BedrockItemBuilder {
         return builder;
     }
 
+    // NBT convenience methods. Returns NbtMapBuilder since that's what's used the most
+
+    public NbtMapBuilder putByte(String name, byte value) {
+        return getOrCreateNbt().putByte(name, value);
+    }
+
+    public NbtMapBuilder putByte(String name, int value) {
+        return getOrCreateNbt().putByte(name, (byte) value);
+    }
+
+    public NbtMapBuilder putInt(String name, int value) {
+        return getOrCreateNbt().putInt(name, value);
+    }
+
+    public NbtMapBuilder putString(String name, String value) {
+        return getOrCreateNbt().putString(name, value);
+    }
+
+    public NbtMapBuilder putCompound(String name, NbtMap value) {
+        return getOrCreateNbt().putCompound(name, value);
+    }
+
     /**
      * @return null if no NBT is needed on this item.
      */
@@ -89,5 +112,17 @@ public final class BedrockItemBuilder {
             return null;
         }
         return builder.build();
+    }
+
+    /**
+     * Creates item NBT with count, name, and damage set.
+     */
+    public static NbtMapBuilder createItemNbt(ItemMapping mapping, int count, int damage) {
+        NbtMapBuilder builder = NbtMap.builder();
+        builder.putByte("Count", (byte) count);
+        builder.putString("Name", mapping.getBedrockIdentifier());
+
+        builder.putShort("Damage", (short) damage);
+        return builder;
     }
 }

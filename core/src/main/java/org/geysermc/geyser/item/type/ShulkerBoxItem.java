@@ -36,6 +36,7 @@ import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 
 import java.util.ArrayList;
@@ -47,7 +48,7 @@ public class ShulkerBoxItem extends BlockItem {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull NbtMapBuilder builder) {
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
         List<ItemStack> contents = components.get(DataComponentType.CONTAINER);
@@ -61,15 +62,12 @@ public class ShulkerBoxItem extends BlockItem {
             if (item.getId() == Items.AIR_ID) {
                 continue;
             }
-            NbtMapBuilder boxItemNbt = NbtMap.builder(); // Final item tag to add to the list
-            boxItemNbt.putByte("Slot", (byte) slot);
-            boxItemNbt.putByte("WasPickedUp", (byte) 0); // ???
-
             ItemMapping boxMapping = session.getItemMappings().getMapping(item.getId());
 
-            boxItemNbt.putString("Name", boxMapping.getBedrockIdentifier());
-            boxItemNbt.putShort("Damage", (short) boxMapping.getBedrockData());
-            boxItemNbt.putByte("Count", (byte) item.getAmount());
+            NbtMapBuilder boxItemNbt = BedrockItemBuilder.createItemNbt(boxMapping, item.getAmount(), boxMapping.getBedrockData()); // Final item tag to add to the list
+            boxItemNbt.putByte("Slot", (byte) slot);
+            boxItemNbt.putByte("WasPickedUp", (byte) 0); // ??? TODO might not be needed
+
             // Only the display name is what we have interest in, so just translate that if relevant
             DataComponents boxComponents = item.getDataComponents();
             if (boxComponents != null) {
@@ -85,7 +83,7 @@ public class ShulkerBoxItem extends BlockItem {
 
             itemsList.add(boxItemNbt.build());
         }
-        builder.putList("Items", NbtType.COMPOUND, itemsList);
+        builder.getOrCreateNbt().putList("Items", NbtType.COMPOUND, itemsList);
     }
 
     @Override

@@ -26,17 +26,16 @@
 package org.geysermc.geyser.item.type;
 
 import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
-import com.github.steveice10.opennbt.tag.builtin.ByteTag;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
+import com.github.steveice10.mc.protocol.data.game.item.component.LodestoneTracker;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 
 public class CompassItem extends Item {
     public CompassItem(String javaIdentifier, Builder builder) {
@@ -45,36 +44,35 @@ public class CompassItem extends Item {
 
     @Override
     public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
-        if (isLodestoneCompass(itemStack.getNbt())) {
+        if (isLodestoneCompass(itemStack.getDataComponents())) {
             return super.translateToBedrock(itemStack, mappings.getLodestoneCompass(), mappings);
         }
         return super.translateToBedrock(itemStack, mapping, mappings);
     }
 
     @Override
-    public ItemMapping toBedrockDefinition(CompoundTag nbt, ItemMappings mappings) {
-        if (isLodestoneCompass(nbt)) {
+    public ItemMapping toBedrockDefinition(DataComponents components, ItemMappings mappings) {
+        if (isLodestoneCompass(components)) {
             return mappings.getLodestoneCompass();
         }
-        return super.toBedrockDefinition(nbt, mappings);
+        return super.toBedrockDefinition(components, mappings);
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull NbtMapBuilder builder) {
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
-        Tag lodestoneTag = tag.get("LodestoneTracked");
-        if (lodestoneTag instanceof ByteTag) {
-            int trackId = session.getLodestoneCache().store(tag);
+        LodestoneTracker tracker = components.get(DataComponentType.LODESTONE_TRACKER);
+        if (tracker != null) {
+            int trackId = session.getLodestoneCache().store(tracker);
             // Set the bedrock tracking id - will return 0 if invalid
-            tag.put(new IntTag("trackingHandle", trackId));
+            builder.putInt("trackingHandle", trackId);
         }
     }
 
-    private boolean isLodestoneCompass(CompoundTag nbt) {
-        if (nbt != null) {
-            Tag lodestoneTag = nbt.get("LodestoneTracked");
-            return lodestoneTag instanceof ByteTag;
+    private boolean isLodestoneCompass(@Nullable DataComponents components) {
+        if (components != null) {
+            return components.getDataComponents().containsKey(DataComponentType.LODESTONE_TRACKER);
         }
         return false;
     }

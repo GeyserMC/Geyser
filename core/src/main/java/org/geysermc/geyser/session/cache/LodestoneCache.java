@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.session.cache;
 
+import com.github.steveice10.mc.protocol.data.game.item.component.LodestoneTracker;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
@@ -88,7 +89,7 @@ public final class LodestoneCache {
         this.activeLodestones.put(itemStack, new LodestonePos(id++, x, y, z, dim));
     }
 
-    public int store(CompoundTag tag) {
+    public int store(LodestoneTracker tracker) {
         CompoundTag lodestonePos = tag.get("LodestonePos");
         if (lodestonePos == null) {
             // invalid
