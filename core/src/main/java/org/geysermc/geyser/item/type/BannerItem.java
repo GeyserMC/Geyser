@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.item.type;
 
+import com.github.steveice10.mc.protocol.data.game.item.component.BannerPatternLayer;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
@@ -33,15 +35,13 @@ import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.geysermc.erosion.util.BannerUtils.getJavaPatternTag;
 
 public class BannerItem extends BlockItem {
     /**
@@ -51,19 +51,20 @@ public class BannerItem extends BlockItem {
      * ominous banners that we set instead. This variable is used to detect Java ominous banner patterns, and apply
      * the correct ominous banner pattern if Bedrock pulls the item from creative.
      */
-    public static final ListTag OMINOUS_BANNER_PATTERN;
+    public static final List<BannerPatternLayer> OMINOUS_BANNER_PATTERN;
 
     static {
-        OMINOUS_BANNER_PATTERN = new ListTag("Patterns");
         // Construct what an ominous banner is supposed to look like
-        OMINOUS_BANNER_PATTERN.add(getJavaPatternTag("mr", 9));
-        OMINOUS_BANNER_PATTERN.add(getJavaPatternTag("bs", 8));
-        OMINOUS_BANNER_PATTERN.add(getJavaPatternTag("cs", 7));
-        OMINOUS_BANNER_PATTERN.add(getJavaPatternTag("bo", 8));
-        OMINOUS_BANNER_PATTERN.add(getJavaPatternTag("ms", 15));
-        OMINOUS_BANNER_PATTERN.add(getJavaPatternTag("hh", 8));
-        OMINOUS_BANNER_PATTERN.add(getJavaPatternTag("mc", 8));
-        OMINOUS_BANNER_PATTERN.add(getJavaPatternTag("bo", 15));
+        OMINOUS_BANNER_PATTERN = List.of(
+                new BannerPatternLayer("mr", 9),
+                new BannerPatternLayer("bs", 8),
+                new BannerPatternLayer("cs", 7),
+                new BannerPatternLayer("bo", 8),
+                new BannerPatternLayer("ms", 15),
+                new BannerPatternLayer("hh", 8),
+                new BannerPatternLayer("mc", 8),
+                new BannerPatternLayer("bo", 15)
+        );
     }
 
     /**
@@ -102,7 +103,7 @@ public class BannerItem extends BlockItem {
      * @return The Java edition format pattern nbt
      */
     public static CompoundTag getJavaBannerPattern(NbtMap pattern) {
-        return getJavaPatternTag(pattern.getString("Pattern"), 15 - pattern.getInt("Color"));
+        return new BannerPatternLayer(pattern.getString("Pattern"), 15 - pattern.getInt("Color"));
     }
 
     /**
@@ -122,14 +123,14 @@ public class BannerItem extends BlockItem {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull NbtMapBuilder builder) {
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
-        CompoundTag blockEntityTag = tag.remove("BlockEntityTag");
-        if (blockEntityTag != null && blockEntityTag.get("Patterns") instanceof ListTag patterns) {
+        List<BannerPatternLayer> patterns = components.get(DataComponentType.BANNER_PATTERNS);
+        if (patterns != null) {
             if (patterns.equals(OMINOUS_BANNER_PATTERN)) {
                 // Remove the current patterns and set the ominous banner type
-                tag.put(new IntTag("Type", 1));
+                builder.putInt("Type", 1);
             } else {
                 invertBannerColors(patterns);
                 tag.put(patterns);

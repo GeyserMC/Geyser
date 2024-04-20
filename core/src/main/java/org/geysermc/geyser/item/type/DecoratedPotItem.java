@@ -25,12 +25,11 @@
 
 package org.geysermc.geyser.item.type;
 
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 
 public class DecoratedPotItem extends BlockItem {
 
@@ -39,14 +38,15 @@ public class DecoratedPotItem extends BlockItem {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull NbtMapBuilder builder) {
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
-        if (tag.remove("BlockEntityTag") instanceof CompoundTag blockEntityTag) {
-            if (blockEntityTag.remove("sherds") instanceof ListTag sherds) {
-                // bedrock wants it on the root level
-                tag.put(sherds);
-            }
-        }
+        components.get(DataComponentType.POT_DECORATIONS); // TODO
+//        if (tag.remove("BlockEntityTag") instanceof CompoundTag blockEntityTag) {
+//            if (blockEntityTag.remove("sherds") instanceof ListTag sherds) {
+//                // bedrock wants it on the root level
+//                tag.put(sherds);
+//            }
+//        }
     }
 }

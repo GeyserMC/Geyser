@@ -32,10 +32,10 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.entity.type.living.animal.TropicalFishEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.MinecraftLocale;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import java.util.ArrayList;
@@ -49,7 +49,7 @@ public class TropicalFishBucketItem extends Item {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull NbtMapBuilder builder) {
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
         // Prevent name from appearing as "Bucket of"

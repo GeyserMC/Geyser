@@ -25,20 +25,21 @@
 
 package org.geysermc.geyser.item;
 
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
+import com.github.steveice10.mc.protocol.data.game.item.component.DyedItemColor;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 
 public interface DyeableLeatherItem {
 
-    static void translateNbtToBedrock(CompoundTag tag) {
-        CompoundTag displayTag = tag.get("display");
-        if (displayTag == null) {
+    static void translateComponentsToBedrock(DataComponents components, BedrockItemBuilder builder) {
+        DyedItemColor dyedItemColor = components.get(DataComponentType.DYED_COLOR);
+        if (dyedItemColor == null) {
             return;
         }
-        IntTag color = displayTag.remove("color");
-        if (color != null) {
-            tag.put(new IntTag("customColor", color.getValue()));
-        }
+        builder.putInt("customColor", dyedItemColor.getRgb());
     }
 
     static void translateNbtToJava(CompoundTag tag) {

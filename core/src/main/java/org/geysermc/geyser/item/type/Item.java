@@ -34,10 +34,8 @@ import com.github.steveice10.opennbt.tag.builtin.*;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.Enchantment;
@@ -46,6 +44,7 @@ import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
@@ -120,29 +119,20 @@ public class Item {
         return new ItemStack(javaId, itemData.getCount(), ItemTranslator.translateToJavaNBT("", itemData.getTag()));
     }
 
-    public ItemMapping toBedrockDefinition(CompoundTag nbt, ItemMappings mappings) {
+    public ItemMapping toBedrockDefinition(DataComponents components, ItemMappings mappings) {
         return mappings.getMapping(javaId);
     }
 
     /**
      * Takes components from Java Edition and map them into Bedrock.
      */
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull NbtMapBuilder builder) {
-//        // Basing off of ItemStack#getHoverName as of 1.20.5. VERIFY??
-//        Component customName = components.get(DataComponentType.CUSTOM_NAME);
-//        if (customName == null) {
-//            customName = components.get(DataComponentType.ITEM_NAME);
-//        }
-//        if (customName != null) {
-//
-//        }
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         List<Component> loreComponents = components.get(DataComponentType.LORE);
         if (loreComponents != null) {
-            List<String> lore = new ArrayList<>();
+            List<String> lore = builder.getOrCreateLore();
             for (Component loreComponent : loreComponents) {
                 lore.add(MessageTranslator.convertMessage(loreComponent, session.locale()));
             }
-            builder.putList("Lore", NbtType.STRING, lore);
         }
 
         List<Tag> newTags = new ArrayList<>();

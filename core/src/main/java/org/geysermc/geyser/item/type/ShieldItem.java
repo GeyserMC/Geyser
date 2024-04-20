@@ -31,9 +31,9 @@ import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.item.components.ToolTier;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 
 public class ShieldItem extends Item {
     public ShieldItem(String javaIdentifier, Builder builder) {
@@ -41,7 +41,7 @@ public class ShieldItem extends Item {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull NbtMapBuilder builder) {
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
         if (tag.remove("BlockEntityTag") instanceof CompoundTag blockEntityTag) {
