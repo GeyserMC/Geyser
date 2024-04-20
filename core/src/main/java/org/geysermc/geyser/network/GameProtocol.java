@@ -36,6 +36,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MobArmorEquipment
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MobEquipmentSerializer_v291;
 import org.cloudburstmc.protocol.bedrock.codec.v407.serializer.InventoryContentSerializer_v407;
 import org.cloudburstmc.protocol.bedrock.codec.v407.serializer.InventorySlotSerializer_v407;
+import org.cloudburstmc.protocol.bedrock.codec.v486.serializer.BossEventSerializer_v486;
 import org.cloudburstmc.protocol.bedrock.codec.v622.Bedrock_v622;
 import org.cloudburstmc.protocol.bedrock.codec.v630.Bedrock_v630;
 import org.cloudburstmc.protocol.bedrock.codec.v649.Bedrock_v649;
@@ -43,6 +44,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v662.Bedrock_v662;
 import org.cloudburstmc.protocol.bedrock.codec.v671.Bedrock_v671;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
+import org.cloudburstmc.protocol.bedrock.packet.BossEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ClientCacheBlobStatusPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ClientCheatAbilityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingEventPacket;
@@ -225,6 +227,11 @@ public final class GameProtocol {
                 // Ignored serverbound packets
                 .updateSerializer(CraftingEventPacket.class, setIgnoredSerializer()) // Make illegal when 1.20.40 is removed
                 // Ignored only when serverbound
+                .updateSerializer(BossEventPacket.class, new BossEventSerializer_v486() {
+                    @Override
+                    public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, BossEventPacket packet) {
+                    }
+                })
                 .updateSerializer(MobArmorEquipmentPacket.class, new MobArmorEquipmentSerializer_v291() {
                     @Override
                     public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MobArmorEquipmentPacket packet) {
