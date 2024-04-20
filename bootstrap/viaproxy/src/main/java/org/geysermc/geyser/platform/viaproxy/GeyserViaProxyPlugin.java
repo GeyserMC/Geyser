@@ -30,6 +30,7 @@ import net.raphimc.viaproxy.ViaProxy;
 import net.raphimc.viaproxy.cli.options.Options;
 import net.raphimc.viaproxy.plugins.PluginManager;
 import net.raphimc.viaproxy.plugins.ViaProxyPlugin;
+import net.raphimc.viaproxy.plugins.events.ConsoleCommandEvent;
 import net.raphimc.viaproxy.plugins.events.ProxyStartEvent;
 import net.raphimc.viaproxy.plugins.events.ProxyStopEvent;
 import net.raphimc.viaproxy.plugins.events.ShouldVerifyOnlineModeEvent;
@@ -81,6 +82,16 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
     @Override
     public void onDisable() {
         this.onGeyserShutdown();
+    }
+
+    @EventHandler
+    private void onConsoleCommand(final ConsoleCommandEvent event) {
+        final String command = event.getCommand().startsWith("/") ? event.getCommand().substring(1) : event.getCommand();
+        CommandRegistry registry = this.getCommandRegistry();
+        if (registry.cloud().rootCommands().contains(command)) {
+            registry.runCommand(this.getGeyserLogger(), command + " " + String.join(" ", event.getArgs()));
+            event.setCancelled(true);
+        }
     }
 
     @EventHandler
