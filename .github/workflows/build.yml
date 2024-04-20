@@ -8,8 +8,8 @@ on:
     paths-ignore:
       - '.github/ISSUE_TEMPLATE/*.yml'
       - '.github/actions/workflows/build-remote.yml'
-      - '.github/actions/workflows//preview.yml'
-      - '.github/actions/workflows//pull-request.yml'
+      - '.github/actions/workflows/preview.yml'
+      - '.github/actions/workflows/pull-request.yml'
       - '.idea/copyright/*.xml'
       - '.gitignore'
       - 'CONTRIBUTING.md'
