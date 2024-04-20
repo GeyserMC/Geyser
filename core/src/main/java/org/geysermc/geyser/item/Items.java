@@ -1131,7 +1131,7 @@ public final class Items {
     public static final Item WIND_CHARGE = register(new Item("wind_charge", builder()));
     public static final Item WRITABLE_BOOK = register(new WritableBookItem("writable_book", builder().stackSize(1)));
     public static final Item WRITTEN_BOOK = register(new WrittenBookItem("written_book", builder().stackSize(16)));
-    public static final Item MACE = register(new Item("mace", builder().stackSize(1).maxDamage(250)));
+    public static final Item MACE = register(new MaceItem("mace", builder().stackSize(1).maxDamage(250)));
     public static final Item ITEM_FRAME = register(new Item("item_frame", builder()));
     public static final Item GLOW_ITEM_FRAME = register(new Item("glow_item_frame", builder()));
     public static final Item FLOWER_POT = register(new BlockItem("flower_pot", builder()));
