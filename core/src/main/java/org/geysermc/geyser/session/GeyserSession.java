@@ -45,6 +45,7 @@ import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
 import com.github.steveice10.mc.protocol.packet.common.serverbound.ServerboundClientInformationPacket;
 import com.github.steveice10.mc.protocol.packet.handshake.serverbound.ClientIntentionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundChatCommandPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundChatCommandSignedPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundChatPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
@@ -360,7 +361,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * As all entities are in the same world, this can be safely applied to all other entities.
      */
     @Setter
-    private String dimension = DimensionUtils.OVERWORLD;
+    private int dimension = DimensionUtils.OVERWORLD;
     @MonotonicNonNull
     @Setter
     private JavaDimension dimensionType = null;
@@ -1464,7 +1465,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Sends a command to the Java server.
      */
     public void sendCommand(String command) {
-        sendDownstreamGamePacket(new ServerboundChatCommandPacket(command, Instant.now().toEpochMilli(), 0L, Collections.emptyList(), 0, new BitSet()));
+        sendDownstreamGamePacket(new ServerboundChatCommandSignedPacket(command, Instant.now().toEpochMilli(), 0L, Collections.emptyList(), 0, new BitSet()));
     }
 
     public void setServerRenderDistance(int renderDistance) {

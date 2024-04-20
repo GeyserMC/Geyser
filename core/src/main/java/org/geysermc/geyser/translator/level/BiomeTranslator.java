@@ -25,15 +25,13 @@
 
 package org.geysermc.geyser.translator.level;
 
+import com.github.steveice10.mc.protocol.data.game.RegistryEntry;
 import com.github.steveice10.mc.protocol.data.game.chunk.BitStorage;
 import com.github.steveice10.mc.protocol.data.game.chunk.DataPalette;
 import com.github.steveice10.mc.protocol.data.game.chunk.palette.GlobalPalette;
 import com.github.steveice10.mc.protocol.data.game.chunk.palette.Palette;
 import com.github.steveice10.mc.protocol.data.game.chunk.palette.SingletonPalette;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import it.unimi.dsi.fastutil.ints.*;
 import org.geysermc.geyser.level.chunk.BlockStorage;
 import org.geysermc.geyser.level.chunk.bitarray.BitArray;
@@ -41,24 +39,24 @@ import org.geysermc.geyser.level.chunk.bitarray.BitArrayVersion;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.util.JavaCodecUtil;
 import org.geysermc.geyser.util.MathUtils;
+
+import java.util.List;
 
 // Array index formula by https://wiki.vg/Chunk_Format
 public class BiomeTranslator {
 
-    public static void loadServerBiomes(GeyserSession session, CompoundTag codec) {
+    public static void loadServerBiomes(GeyserSession session, List<RegistryEntry> entries) {
         Int2IntMap biomeTranslations = new Int2IntOpenHashMap();
 
-        CompoundTag worldGen = codec.get("minecraft:worldgen/biome");
-        ListTag serverBiomes = worldGen.get("value");
-        session.setBiomeGlobalPalette(MathUtils.getGlobalPaletteForSize(serverBiomes.size()));
+        session.setBiomeGlobalPalette(MathUtils.getGlobalPaletteForSize(entries.size()));
 
         int greatestBiomeId = 0;
-        for (CompoundTag biomeTag : JavaCodecUtil.iterateAsTag(worldGen)) {
-            String javaIdentifier = ((StringTag) biomeTag.get("name")).getValue();
+        for (int i = 0; i < entries.size(); i++) {
+            RegistryEntry entry = entries.get(i);
+            String javaIdentifier = entry.getId();
             int bedrockId = Registries.BIOME_IDENTIFIERS.get().getOrDefault(javaIdentifier, 0);
-            int javaId = ((IntTag) biomeTag.get("id")).getValue();
+            int javaId = i;
             if (javaId > greatestBiomeId) {
                 greatestBiomeId = javaId;
             }

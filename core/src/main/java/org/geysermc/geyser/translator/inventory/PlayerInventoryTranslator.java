@@ -360,7 +360,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         return rejectRequest(request);
                     }
 
-                    ServerboundSetCreativeModeSlotPacket creativeDropPacket = new ServerboundSetCreativeModeSlotPacket(-1, sourceItem.getItemStack(dropAction.getCount()));
+                    ServerboundSetCreativeModeSlotPacket creativeDropPacket = new ServerboundSetCreativeModeSlotPacket((short)-1, sourceItem.getItemStack(dropAction.getCount()));
                     session.sendDownstreamGamePacket(creativeDropPacket);
 
                     sourceItem.sub(dropAction.getCount());
@@ -493,9 +493,9 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         dropStack = javaCreativeItem;
                     } else {
                         // Specify custom count
-                        dropStack = new ItemStack(javaCreativeItem.getId(), dropAction.getCount(), javaCreativeItem.getNbt());
+                        dropStack = new ItemStack(javaCreativeItem.getId(), dropAction.getCount(), javaCreativeItem.getDataComponents());
                     }
-                    ServerboundSetCreativeModeSlotPacket creativeDropPacket = new ServerboundSetCreativeModeSlotPacket(-1, dropStack);
+                    ServerboundSetCreativeModeSlotPacket creativeDropPacket = new ServerboundSetCreativeModeSlotPacket((short)-1, dropStack);
                     session.sendDownstreamGamePacket(creativeDropPacket);
                     break;
                 }
@@ -516,7 +516,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         GeyserItemStack item = inventory.getItem(slot);
         ItemStack itemStack = item.isEmpty() ? new ItemStack(-1, 0, null) : item.getItemStack();
 
-        ServerboundSetCreativeModeSlotPacket creativePacket = new ServerboundSetCreativeModeSlotPacket(slot, itemStack);
+        ServerboundSetCreativeModeSlotPacket creativePacket = new ServerboundSetCreativeModeSlotPacket((short)slot, itemStack);
         session.sendDownstreamGamePacket(creativePacket);
     }
 

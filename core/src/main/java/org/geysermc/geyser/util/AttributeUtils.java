@@ -45,12 +45,12 @@ public class AttributeUtils {
         }
         double value = base;
         for (AttributeModifier modifier : attribute.getModifiers()) {
-            if (modifier.getOperation() == ModifierOperation.ADD_MULTIPLIED) {
+            if (modifier.getOperation() == ModifierOperation.ADD_MULTIPLIED_BASE) {
                 value += base * modifier.getAmount();
             }
         }
         for (AttributeModifier modifier : attribute.getModifiers()) {
-            if (modifier.getOperation() == ModifierOperation.MULTIPLY) {
+            if (modifier.getOperation() == ModifierOperation.ADD_MULTIPLIED_TOTAL) {
                 value *= 1.0D + modifier.getAmount();
             }
         }
