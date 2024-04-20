@@ -27,7 +27,7 @@ package org.geysermc.geyser.item.type;
 
 import com.github.steveice10.mc.protocol.data.game.Identifier;
 import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentPatch;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
 import com.github.steveice10.mc.protocol.data.game.item.component.ItemEnchantments;
 import com.github.steveice10.opennbt.tag.builtin.*;
@@ -103,12 +103,12 @@ public class Item {
                 .definition(mapping.getBedrockDefinition())
                 .damage(mapping.getBedrockData())
                 .count(itemStack.getAmount());
-        if (itemStack.getNbt() != null) {
-            builder.tag(ItemTranslator.translateNbtToBedrock(itemStack.getNbt()));
+        if (itemStack.getDataComponents() != null) {
+            builder.tag(ItemTranslator.translateNbtToBedrock(itemStack.getDataComponents()));
         }
 
-        CompoundTag nbt = itemStack.getNbt();
-        ItemTranslator.translateCustomItem(nbt, builder, mapping);
+        DataComponents components = itemStack.getDataComponents();
+        ItemTranslator.translateCustomItem(components, builder, mapping);
 
         return builder;
     }
@@ -127,7 +127,7 @@ public class Item {
     /**
      * Takes components from Java Edition and map them into Bedrock.
      */
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponentPatch components, @NonNull NbtMapBuilder builder) {
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull NbtMapBuilder builder) {
 //        // Basing off of ItemStack#getHoverName as of 1.20.5. VERIFY??
 //        Component customName = components.get(DataComponentType.CUSTOM_NAME);
 //        if (customName == null) {
@@ -271,7 +271,7 @@ public class Item {
 
     /* Translation methods end */
 
-    public ItemStack newItemStack(int count, DataComponentPatch components) {
+    public ItemStack newItemStack(int count, DataComponents components) {
         return new ItemStack(this.javaId, count, components);
     }
 

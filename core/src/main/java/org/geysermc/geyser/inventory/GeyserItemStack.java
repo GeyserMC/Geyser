@@ -26,7 +26,7 @@
 package org.geysermc.geyser.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentPatch;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -35,7 +35,6 @@ import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
@@ -49,18 +48,18 @@ public class GeyserItemStack {
 
     private final int javaId;
     private int amount;
-    private DataComponentPatch components;
+    private DataComponents components;
     private int netId;
 
     @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     private Item item;
 
-    private GeyserItemStack(int javaId, int amount, DataComponentPatch components) {
+    private GeyserItemStack(int javaId, int amount, DataComponents components) {
         this(javaId, amount, components, 1);
     }
 
-    private GeyserItemStack(int javaId, int amount, DataComponentPatch components, int netId) {
+    private GeyserItemStack(int javaId, int amount, DataComponents components, int netId) {
         this.javaId = javaId;
         this.amount = amount;
         this.components = components;
@@ -68,7 +67,7 @@ public class GeyserItemStack {
     }
 
     public static @NonNull GeyserItemStack from(@Nullable ItemStack itemStack) {
-        return itemStack == null ? EMPTY : new GeyserItemStack(itemStack.getId(), itemStack.getAmount(), itemStack.getDataComponentPatch());
+        return itemStack == null ? EMPTY : new GeyserItemStack(itemStack.getId(), itemStack.getAmount(), itemStack.getDataComponents());
     }
 
     public int getJavaId() {
@@ -84,7 +83,7 @@ public class GeyserItemStack {
         return null;
     }
 
-    public @Nullable DataComponentPatch getComponents() {
+    public @Nullable DataComponents getComponents() {
         return isEmpty() ? null : components;
     }
 
