@@ -34,32 +34,59 @@ import org.cloudburstmc.protocol.bedrock.codec.BedrockCodecHelper;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockPacketSerializer;
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MobArmorEquipmentSerializer_v291;
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MobEquipmentSerializer_v291;
+import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.PlayerHotbarSerializer_v291;
+import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.SetEntityLinkSerializer_v291;
+import org.cloudburstmc.protocol.bedrock.codec.v390.serializer.PlayerSkinSerializer_v390;
 import org.cloudburstmc.protocol.bedrock.codec.v407.serializer.InventoryContentSerializer_v407;
 import org.cloudburstmc.protocol.bedrock.codec.v407.serializer.InventorySlotSerializer_v407;
 import org.cloudburstmc.protocol.bedrock.codec.v486.serializer.BossEventSerializer_v486;
+import org.cloudburstmc.protocol.bedrock.codec.v557.serializer.SetEntityDataSerializer_v557;
 import org.cloudburstmc.protocol.bedrock.codec.v622.Bedrock_v622;
 import org.cloudburstmc.protocol.bedrock.codec.v630.Bedrock_v630;
 import org.cloudburstmc.protocol.bedrock.codec.v649.Bedrock_v649;
 import org.cloudburstmc.protocol.bedrock.codec.v662.Bedrock_v662;
+import org.cloudburstmc.protocol.bedrock.codec.v662.serializer.SetEntityMotionSerializer_v662;
 import org.cloudburstmc.protocol.bedrock.codec.v671.Bedrock_v671;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
+import org.cloudburstmc.protocol.bedrock.packet.AnvilDamagePacket;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BossEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ClientCacheBlobStatusPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ClientCacheStatusPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ClientCheatAbilityPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ClientToServerHandshakePacket;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CreatePhotoPacket;
+import org.cloudburstmc.protocol.bedrock.packet.DebugInfoPacket;
+import org.cloudburstmc.protocol.bedrock.packet.DisconnectPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EditorNetworkPacket;
+import org.cloudburstmc.protocol.bedrock.packet.EntityFallPacket;
+import org.cloudburstmc.protocol.bedrock.packet.GameTestRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LabTablePacket;
+import org.cloudburstmc.protocol.bedrock.packet.MapCreateLockedCopyPacket;
+import org.cloudburstmc.protocol.bedrock.packet.MapInfoRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MobArmorEquipmentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
+import org.cloudburstmc.protocol.bedrock.packet.MultiplayerSettingsPacket;
+import org.cloudburstmc.protocol.bedrock.packet.NpcRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PhotoInfoRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PhotoTransferPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerHotbarPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerSkinPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PurchaseReceiptPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ScriptCustomEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ScriptMessagePacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SettingsCommandPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SimpleEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SubChunkRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SubClientLoginPacket;
+import org.cloudburstmc.protocol.bedrock.packet.TickSyncPacket;
 import org.cloudburstmc.protocol.common.util.VarInts;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -196,59 +223,88 @@ public final class GameProtocol {
 
     private static BedrockCodec processCodec(BedrockCodec codec) {
         return codec.toBuilder()
-                // Illegal unused serverbound EDU packets
-                .updateSerializer(PhotoTransferPacket.class, setIllegalSerializer())
-                .updateSerializer(LabTablePacket.class, setIllegalSerializer())
-                .updateSerializer(CreatePhotoPacket.class, setIllegalSerializer())
-                .updateSerializer(PhotoInfoRequestPacket.class, setIllegalSerializer())
-                // Illegal unused serverbound packets for featured servers
-                .updateSerializer(PurchaseReceiptPacket.class, setIllegalSerializer())
-                // Illegal unused serverbound packets for editor
-                .updateSerializer(EditorNetworkPacket.class, setIllegalSerializer())
-                // Illegal unused serverbound packets that are deprecated
-                .updateSerializer(ClientCheatAbilityPacket.class, setIllegalSerializer())
-                // Illegal unusued serverbound packets that relate to unused features
-                .updateSerializer(PlayerAuthInputPacket.class, setIllegalSerializer())
-                .updateSerializer(ClientCacheBlobStatusPacket.class, setIllegalSerializer())
-                .updateSerializer(SubClientLoginPacket.class, setIllegalSerializer())
-                // Illegal serverbound packets due to Geyser specific setup
-                .updateSerializer(InventoryContentPacket.class, new InventoryContentSerializer_v407() {
-                    @Override
-                    public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventoryContentPacket packet) {
-                        throw new IllegalArgumentException("Client cannot send InventoryContentPacket in server-auth inventory environment!");
-                    }
-                })
-                .updateSerializer(InventorySlotPacket.class, new InventorySlotSerializer_v407() {
-                    @Override
-                    public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventorySlotPacket packet) {
-                        throw new IllegalArgumentException("Client cannot send InventorySlotPacket in server-auth inventory environment!");
-                    }
-                })
-                // Ignored serverbound packets
-                .updateSerializer(CraftingEventPacket.class, setIgnoredSerializer()) // Make illegal when 1.20.40 is removed
-                // Ignored only when serverbound
-                .updateSerializer(BossEventPacket.class, new BossEventSerializer_v486() {
-                    @Override
-                    public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, BossEventPacket packet) {
-                    }
-                })
-                .updateSerializer(MobArmorEquipmentPacket.class, new MobArmorEquipmentSerializer_v291() {
-                    @Override
-                    public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MobArmorEquipmentPacket packet) {
-                    }
-                })
-                // Valid serverbound packets where reading of some fields can be skipped
-                .updateSerializer(MobEquipmentPacket.class, new MobEquipmentSerializer_v291() {
-                    @Override
-                    public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MobEquipmentPacket packet) {
-                        packet.setRuntimeEntityId(VarInts.readUnsignedLong(buffer));
-                        fakeItemRead(buffer);
-                        packet.setInventorySlot(buffer.readUnsignedByte());
-                        packet.setHotbarSlot(buffer.readUnsignedByte());
-                        packet.setContainerId(buffer.readByte());
-                    }
-                })
-                .build();
+            // Illegal unused serverbound EDU packets
+            .updateSerializer(PhotoTransferPacket.class, setIllegalSerializer())
+            .updateSerializer(LabTablePacket.class, setIllegalSerializer())
+            .updateSerializer(CreatePhotoPacket.class, setIllegalSerializer())
+            .updateSerializer(NpcRequestPacket.class, setIllegalSerializer())
+            .updateSerializer(PhotoInfoRequestPacket.class, setIllegalSerializer())
+            // Illegal unused serverbound packets for featured servers
+            .updateSerializer(PurchaseReceiptPacket.class, setIllegalSerializer())
+            // Illegal unused serverbound packets that are deprecated
+            .updateSerializer(ClientCheatAbilityPacket.class, setIllegalSerializer())
+            // Illegal unusued serverbound packets that relate to unused features
+            .updateSerializer(PlayerAuthInputPacket.class, setIllegalSerializer())
+            .updateSerializer(ClientCacheBlobStatusPacket.class, setIllegalSerializer())
+            .updateSerializer(ClientCacheStatusPacket.class, setIllegalSerializer())
+            .updateSerializer(SubClientLoginPacket.class, setIllegalSerializer())
+            .updateSerializer(SubChunkRequestPacket.class, setIllegalSerializer())
+            .updateSerializer(GameTestRequestPacket.class, setIllegalSerializer())
+            // Ignored serverbound packets
+            .updateSerializer(CraftingEventPacket.class, setIgnoredSerializer()) // Make illegal when 1.20.40 is removed
+            .updateSerializer(ClientToServerHandshakePacket.class, setIgnoredSerializer())
+            .updateSerializer(EntityFallPacket.class, setIgnoredSerializer())
+            .updateSerializer(MapCreateLockedCopyPacket.class, setIgnoredSerializer())
+            .updateSerializer(MapInfoRequestPacket.class, setIgnoredSerializer())
+            .updateSerializer(SettingsCommandPacket.class, setIgnoredSerializer())
+            .updateSerializer(AnvilDamagePacket.class, setIgnoredSerializer())
+            // Illegal when serverbound due to Geyser specific setup
+            .updateSerializer(InventoryContentPacket.class, new InventoryContentSerializer_v407() {
+                @Override
+                public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventoryContentPacket packet) {
+                    throw new IllegalArgumentException("Client cannot send InventoryContentPacket in server-auth inventory environment!");
+                }
+            })
+            .updateSerializer(InventorySlotPacket.class, new InventorySlotSerializer_v407() {
+                @Override
+                public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventorySlotPacket packet) {
+                    throw new IllegalArgumentException("Client cannot send InventorySlotPacket in server-auth inventory environment!");
+                }
+            })
+            // Ignored only when serverbound
+            .updateSerializer(BossEventPacket.class, new BossEventSerializer_v486() {
+                @Override public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, BossEventPacket packet) {}
+            })
+            .updateSerializer(MobArmorEquipmentPacket.class, new MobArmorEquipmentSerializer_v291() {
+                @Override public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MobArmorEquipmentPacket packet) {}
+            })
+            .updateSerializer(PlayerHotbarPacket.class, new PlayerHotbarSerializer_v291() {
+                @Override public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, PlayerHotbarPacket packet) {}
+            })
+            .updateSerializer(PlayerSkinPacket.class, new PlayerSkinSerializer_v390() {
+                @Override public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, PlayerSkinPacket packet) {}
+            })
+            .updateSerializer(SetEntityDataPacket.class, new SetEntityDataSerializer_v557() {
+                @Override public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, SetEntityDataPacket packet) {}
+            })
+            .updateSerializer(SetEntityMotionPacket.class, new SetEntityMotionSerializer_v662() {
+                @Override public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, SetEntityMotionPacket packet) {}
+            })
+            .updateSerializer(SetEntityLinkPacket.class, new SetEntityLinkSerializer_v291() {
+                @Override public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, SetEntityLinkPacket packet) {}
+            })
+            // Valid serverbound packets where reading of some fields can be skipped
+            .updateSerializer(MobEquipmentPacket.class, new MobEquipmentSerializer_v291() {
+                @Override
+                public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MobEquipmentPacket packet) {
+                    packet.setRuntimeEntityId(VarInts.readUnsignedLong(buffer));
+                    fakeItemRead(buffer);
+                    packet.setInventorySlot(buffer.readUnsignedByte());
+                    packet.setHotbarSlot(buffer.readUnsignedByte());
+                    packet.setContainerId(buffer.readByte());
+                }
+            })
+            // Illegal bidirectional packets
+            .updateSerializer(DebugInfoPacket.class, setIllegalSerializer())
+            .updateSerializer(EditorNetworkPacket.class, setIllegalSerializer())
+            .updateSerializer(ScriptCustomEventPacket.class, setIllegalSerializer())
+            .updateSerializer(ScriptMessagePacket.class, setIllegalSerializer())
+            // Ignored bidirectional packets
+            .updateSerializer(DisconnectPacket.class, setIgnoredSerializer())
+            .updateSerializer(SimpleEventPacket.class, setIgnoredSerializer())
+            .updateSerializer(TickSyncPacket.class, setIgnoredSerializer())
+            .updateSerializer(MultiplayerSettingsPacket.class, setIgnoredSerializer())
+            .build();
     }
 
     /**
