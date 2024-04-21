@@ -77,7 +77,6 @@ import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerHotbarPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerSkinPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PurchaseReceiptPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ScriptCustomEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ScriptMessagePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
@@ -98,7 +97,7 @@ import java.util.StringJoiner;
  * Contains information about the supported protocols in Geyser.
  */
 public final class GameProtocol {
-    
+
     @SuppressWarnings("rawtypes")
     private static final BedrockPacketSerializer ILLEGAL_SERIALIZER = new BedrockPacketSerializer<>() {
         @Override
