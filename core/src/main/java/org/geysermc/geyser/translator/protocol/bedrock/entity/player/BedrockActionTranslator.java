@@ -168,7 +168,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 // If the block is custom or the breaking item is custom, we must keep track of break time ourselves
                 GeyserItemStack item = session.getPlayerInventory().getItemInHand();
                 ItemMapping mapping = item.getMapping(session);
-                ItemDefinition customItem = mapping.isTool() ? CustomItemTranslator.getCustomItem(item.getNbt(), mapping) : null;
+                ItemDefinition customItem = mapping.isTool() ? CustomItemTranslator.getCustomItem(item.getComponents(), mapping) : null;
                 CustomBlockState blockStateOverride = BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get(blockState);
                 SkullCache.Skull skull = session.getSkullCache().getSkulls().get(vector);
 
