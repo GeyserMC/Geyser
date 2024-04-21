@@ -26,6 +26,8 @@
 package org.geysermc.geyser.translator.protocol.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
+import com.github.steveice10.mc.protocol.data.game.item.component.WritableBookContent;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundEditBookPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
@@ -39,10 +41,7 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 @Translator(packet = BookEditPacket.class)
 public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> {
@@ -56,8 +55,9 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
 
         GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand();
         if (itemStack != null) {
-            CompoundTag tag = itemStack.getNbt() != null ? itemStack.getNbt() : new CompoundTag("");
-            ItemStack bookItem = new ItemStack(itemStack.getJavaId(), itemStack.getAmount(), tag);
+            DataComponents components = itemStack.getComponents() != null ? itemStack.getComponents() : new DataComponents(new HashMap<>());
+            ItemStack bookItem = new ItemStack(itemStack.getJavaId(), itemStack.getAmount(), components);
+            WritableBookContent
             List<Tag> pages = tag.contains("pages") ? new LinkedList<>(((ListTag) tag.get("pages")).getValue()) : new LinkedList<>();
 
             int page = packet.getPageNumber();

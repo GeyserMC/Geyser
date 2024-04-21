@@ -25,13 +25,14 @@
 
 package org.geysermc.geyser.session.cache;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.GlobalPos;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
 import com.github.steveice10.mc.protocol.data.game.item.component.LodestoneTracker;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 
 import java.util.Map;
@@ -54,22 +55,27 @@ public final class LodestoneCache {
     private int id = 1;
 
     public void cacheInventoryItem(GeyserItemStack itemStack) {
-        CompoundTag tag = itemStack.getNbt();
-        if (tag == null) {
+        DataComponents components = itemStack.getComponents();
+        if (components == null) {
             // invalid
             return;
         }
-        CompoundTag lodestonePos = tag.get("LodestonePos");
-        if (lodestonePos == null) {
-            // invalid
+        LodestoneTracker tracker = components.get(DataComponentType.LODESTONE_TRACKER);
+        if (tracker == null) {
             return;
         }
 
-        // Get all info needed for tracking
-        int x = ((IntTag) lodestonePos.get("X")).getValue();
-        int y = ((IntTag) lodestonePos.get("Y")).getValue();
-        int z = ((IntTag) lodestonePos.get("Z")).getValue();
-        String dim = ((StringTag) tag.get("LodestoneDimension")).getValue();
+        GlobalPos position = tracker.getPos();
+
+        if (position == null) {
+            GeyserImpl.getInstance().getLogger().error("Position is null. Find out why.");
+            Thread.dumpStack();
+            return;
+        }
+        int x = position.getX();
+        int y = position.getY();
+        int z = position.getZ();
+        String dim = position.getDimension();
 
         for (LodestonePos pos : this.activeLodestones.values()) {
             if (pos.equals(x, y, z, dim)) {
@@ -90,17 +96,17 @@ public final class LodestoneCache {
     }
 
     public int store(LodestoneTracker tracker) {
-        CompoundTag lodestonePos = tag.get("LodestonePos");
-        if (lodestonePos == null) {
-            // invalid
-            return 0;
-        }
+        GlobalPos position = tracker.getPos();
 
-        // Get all info needed for tracking
-        int x = ((IntTag) lodestonePos.get("X")).getValue();
-        int y = ((IntTag) lodestonePos.get("Y")).getValue();
-        int z = ((IntTag) lodestonePos.get("Z")).getValue();
-        String dim = ((StringTag) tag.get("LodestoneDimension")).getValue();
+        if (position == null) {
+            GeyserImpl.getInstance().getLogger().error("Position is null. Find out why.");
+            Thread.dumpStack();
+            return -1;
+        }
+        int x = position.getX();
+        int y = position.getY();
+        int z = position.getZ();
+        String dim = position.getDimension();
 
         for (LodestonePos pos : this.activeLodestones.values()) {
             if (pos.equals(x, y, z, dim)) {
