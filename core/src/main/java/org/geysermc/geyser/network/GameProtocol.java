@@ -236,7 +236,6 @@ public final class GameProtocol {
             // Illegal unusued serverbound packets that relate to unused features
             .updateSerializer(PlayerAuthInputPacket.class, setIllegalSerializer())
             .updateSerializer(ClientCacheBlobStatusPacket.class, setIllegalSerializer())
-            .updateSerializer(ClientCacheStatusPacket.class, setIllegalSerializer())
             .updateSerializer(SubClientLoginPacket.class, setIllegalSerializer())
             .updateSerializer(SubChunkRequestPacket.class, setIllegalSerializer())
             .updateSerializer(GameTestRequestPacket.class, setIllegalSerializer())
@@ -299,6 +298,7 @@ public final class GameProtocol {
             .updateSerializer(EditorNetworkPacket.class, setIllegalSerializer())
             .updateSerializer(ScriptMessagePacket.class, setIllegalSerializer())
             // // Ignored bidirectional packets
+            .updateSerializer(ClientCacheStatusPacket.class, setIgnoredSerializer())
             .updateSerializer(DisconnectPacket.class, setIgnoredSerializer())
             .updateSerializer(SimpleEventPacket.class, setIgnoredSerializer())
             .updateSerializer(TickSyncPacket.class, setIgnoredSerializer())
