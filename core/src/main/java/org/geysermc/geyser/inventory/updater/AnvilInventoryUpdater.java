@@ -26,6 +26,7 @@
 package org.geysermc.geyser.inventory.updater;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundRenameItemPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
@@ -34,6 +35,7 @@ import com.github.steveice10.opennbt.tag.builtin.Tag;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
@@ -118,7 +120,8 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
 
             // Changing the item in the input slot resets the name field on Bedrock, but
             // does not result in a FilterTextPacket
-            String originalName = MessageTranslator.convertToPlainTextLenient(ItemUtils.getCustomName(input.getNbt()), session.locale());
+            // TODO test
+            String originalName = MessageTranslator.convertToPlainText(ItemUtils.getCustomName(input.getComponents()));
             ServerboundRenameItemPacket renameItemPacket = new ServerboundRenameItemPacket(originalName);
             session.sendDownstreamGamePacket(renameItemPacket);
 
@@ -424,38 +427,27 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         }
         // This should really check the name field in all cases, but that requires the localized name
         // of the item which can change depending on NBT and Minecraft Edition
-        String originalName = ItemUtils.getCustomName(anvilContainer.getInput().getNbt());
+        Component originalName = ItemUtils.getCustomName(anvilContainer.getInput().getComponents());
         if (bedrock && originalName != null && anvilContainer.getNewName() != null) {
             // Check text and formatting
-            String legacyOriginalName = MessageTranslator.convertMessageLenient(originalName, session.locale());
+            String legacyOriginalName = MessageTranslator.convertMessage(originalName, session.locale());
             return !legacyOriginalName.equals(anvilContainer.getNewName());
         }
-        return !Objects.equals(originalName, ItemUtils.getCustomName(anvilContainer.getResult().getNbt()));
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private int getTagIntValueOr(GeyserItemStack itemStack, String tagName, int defaultValue) {
-        if (itemStack.getNbt() != null) {
-            Tag tag = itemStack.getNbt().get(tagName);
-            if (tag != null && tag.getValue() instanceof Number value) {
-                return value.intValue();
-            }
-        }
-        return defaultValue;
+        return !Objects.equals(originalName, ItemUtils.getCustomName(anvilContainer.getResult().getComponents()));
     }
 
     private int getRepairCost(GeyserItemStack itemStack) {
-        return getTagIntValueOr(itemStack, "RepairCost", 0);
+        return itemStack.getComponent(DataComponentType.REPAIR_COST, 0);
     }
 
     private boolean hasDurability(GeyserItemStack itemStack) {
         if (itemStack.asItem().maxDamage() > 0) {
-            return getTagIntValueOr(itemStack, "Unbreakable", 0) == 0;
+            return itemStack.getComponent(DataComponentType.UNBREAKABLE, false);
         }
         return false;
     }
 
     private int getDamage(GeyserItemStack itemStack) {
-        return getTagIntValueOr(itemStack, "Damage", 0);
+        return itemStack.getComponent(DataComponentType.DAMAGE, 0);
     }
 }

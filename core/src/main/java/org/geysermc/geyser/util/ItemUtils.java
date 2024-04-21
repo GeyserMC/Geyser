@@ -25,10 +25,13 @@
 
 package org.geysermc.geyser.util;
 
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.FishingRodItem;
@@ -70,17 +73,13 @@ public class ItemUtils {
     }
 
     /**
-     * @param itemTag the NBT tag of the item
+     * @param components the data components of the item
      * @return the custom name of the item
      */
-    public static @Nullable String getCustomName(CompoundTag itemTag) {
-        if (itemTag != null) {
-            if (itemTag.get("display") instanceof CompoundTag displayTag) {
-                if (displayTag.get("Name") instanceof StringTag nameTag) {
-                    return nameTag.getValue();
-                }
-            }
+    public static @Nullable Component getCustomName(DataComponents components) {
+        if (components == null) {
+            return null;
         }
-        return null;
+        return components.get(DataComponentType.CUSTOM_NAME);
     }
 }

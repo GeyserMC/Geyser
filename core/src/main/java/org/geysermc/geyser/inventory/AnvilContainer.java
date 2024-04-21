@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundRenameItemPacket;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -72,7 +73,7 @@ public class AnvilContainer extends Container {
         String correctRename;
         newName = rename;
 
-        String originalName = ItemUtils.getCustomName(getInput().getNbt());
+        Component originalName = ItemUtils.getCustomName(getInput().getComponents());
 
         String plainOriginalName = MessageTranslator.convertToPlainTextLenient(originalName, session.locale());
         String plainNewName = MessageTranslator.convertToPlainText(rename);
