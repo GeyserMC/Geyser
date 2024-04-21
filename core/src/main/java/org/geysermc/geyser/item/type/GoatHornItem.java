@@ -64,16 +64,16 @@ public class GoatHornItem extends Item {
         // TODO registry
         if (instrument != null) {
             // Drop the Minecraft namespace if applicable
-            if (instrument.startsWith("minecraft:")) {
-                instrument = instrument.substring("minecraft:".length());
-            }
-
-            int damage = INSTRUMENTS.indexOf(instrument);
-            if (damage == -1) {
-                damage = 0;
-                GeyserImpl.getInstance().getLogger().debug("Unknown goat horn instrument: " + instrumentTag.getValue());
-            }
-            builder.damage(damage);
+//            if (instrument.startsWith("minecraft:")) {
+//                instrument = instrument.substring("minecraft:".length());
+//            }
+//
+//            int damage = INSTRUMENTS.indexOf(instrument);
+//            if (damage == -1) {
+//                damage = 0;
+//                GeyserImpl.getInstance().getLogger().debug("Unknown goat horn instrument: " + instrumentTag.getValue());
+//            }
+//            builder.damage(damage);
         }
         return builder;
     }
@@ -90,7 +90,7 @@ public class GoatHornItem extends Item {
 
         String instrument = INSTRUMENTS.get(damage);
         StringTag instrumentTag = new StringTag("instrument", "minecraft:" + instrument);
-        itemStack.getNbt().put(instrumentTag);
+        //itemStack.getNbt().put(instrumentTag);
 
         return itemStack;
     }

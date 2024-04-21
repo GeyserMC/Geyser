@@ -25,15 +25,14 @@
 
 package org.geysermc.geyser.item.type;
 
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
+import com.github.steveice10.mc.protocol.data.game.item.component.PotionContents;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.TippedArrowPotion;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
-import org.geysermc.geyser.translator.item.ItemTranslator;
 
 public class TippedArrowItem extends ArrowItem {
     public TippedArrowItem(String javaIdentifier, Builder builder) {
@@ -42,16 +41,16 @@ public class TippedArrowItem extends ArrowItem {
 
     @Override
     public ItemData.Builder translateToBedrock(int count, DataComponents components, ItemMapping mapping, ItemMappings mappings) {
-        Tag potionTag = itemStack.getNbt().get("Potion");
-        if (potionTag instanceof StringTag) {
-            TippedArrowPotion tippedArrowPotion = TippedArrowPotion.getByJavaIdentifier(((StringTag) potionTag).getValue());
+        PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
+        if (potionContents != null) {
+            TippedArrowPotion tippedArrowPotion = TippedArrowPotion.of(potionContents.getPotionId());
             if (tippedArrowPotion != null) {
                 return ItemData.builder()
                         .definition(mapping.getBedrockDefinition())
                         .damage(tippedArrowPotion.getBedrockId())
                         .count(count);
             }
-            GeyserImpl.getInstance().getLogger().debug("Unknown Java potion (tipped arrow): " + potionTag.getValue());
+            GeyserImpl.getInstance().getLogger().debug("Unknown Java potion (tipped arrow): " + potionContents.getPotionId());
         }
         return super.translateToBedrock(count, components, mapping, mappings);
     }

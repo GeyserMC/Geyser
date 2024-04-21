@@ -56,14 +56,14 @@ public class BannerItem extends BlockItem {
     static {
         // Construct what an ominous banner is supposed to look like
         OMINOUS_BANNER_PATTERN = List.of(
-                new BannerPatternLayer("mr", 9),
-                new BannerPatternLayer("bs", 8),
-                new BannerPatternLayer("cs", 7),
-                new BannerPatternLayer("bo", 8),
-                new BannerPatternLayer("ms", 15),
-                new BannerPatternLayer("hh", 8),
-                new BannerPatternLayer("mc", 8),
-                new BannerPatternLayer("bo", 15)
+//                new BannerPatternLayer("mr", 9),
+//                new BannerPatternLayer("bs", 8),
+//                new BannerPatternLayer("cs", 7),
+//                new BannerPatternLayer("bo", 8),
+//                new BannerPatternLayer("ms", 15),
+//                new BannerPatternLayer("hh", 8),
+//                new BannerPatternLayer("mc", 8),
+//                new BannerPatternLayer("bo", 15)
         );
     }
 
@@ -103,7 +103,8 @@ public class BannerItem extends BlockItem {
      * @return The Java edition format pattern nbt
      */
     public static CompoundTag getJavaBannerPattern(NbtMap pattern) {
-        return new BannerPatternLayer(pattern.getString("Pattern"), 15 - pattern.getInt("Color"));
+        //return new BannerPatternLayer(0/*pattern.getString("Pattern")*/, 15 - pattern.getInt("Color"));
+        return null;
     }
 
     /**
@@ -128,13 +129,13 @@ public class BannerItem extends BlockItem {
 
         List<BannerPatternLayer> patterns = components.get(DataComponentType.BANNER_PATTERNS);
         if (patterns != null) {
-            if (patterns.equals(OMINOUS_BANNER_PATTERN)) {
-                // Remove the current patterns and set the ominous banner type
-                builder.putInt("Type", 1);
-            } else {
-                invertBannerColors(patterns);
-                tag.put(patterns);
-            }
+//            if (patterns.equals(OMINOUS_BANNER_PATTERN)) {
+//                // Remove the current patterns and set the ominous banner type
+//                builder.putInt("Type", 1);
+//            } else {
+//                invertBannerColors(patterns);
+//                tag.put(patterns);
+//            }
         }
     }
 
@@ -146,7 +147,7 @@ public class BannerItem extends BlockItem {
             // Ominous banner pattern
             tag.remove("Type");
             CompoundTag blockEntityTag = new CompoundTag("BlockEntityTag");
-            blockEntityTag.put(OMINOUS_BANNER_PATTERN);
+            //blockEntityTag.put(OMINOUS_BANNER_PATTERN);
 
             tag.put(blockEntityTag);
         } else if (tag.get("Patterns") instanceof ListTag patterns) {

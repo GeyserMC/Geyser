@@ -38,7 +38,6 @@ import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.translator.item.CustomItemTranslator;
-import org.geysermc.geyser.translator.item.ItemTranslator;
 
 public class PotionItem extends Item {
     public PotionItem(String javaIdentifier, Builder builder) {
@@ -52,14 +51,14 @@ public class PotionItem extends Item {
         if (potionContents != null) {
             ItemDefinition customItemDefinition = CustomItemTranslator.getCustomItem(components, mapping);
             if (customItemDefinition == null) {
-                Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
+                Potion potion = Potion.VALUES[potionContents.getPotionId()];
                 if (potion != null) {
                     return ItemData.builder()
                             .definition(mapping.getBedrockDefinition())
                             .damage(potion.getBedrockId())
                             .count(count);
                 }
-                GeyserImpl.getInstance().getLogger().debug("Unknown Java potion: " + potionTag.getValue());
+                GeyserImpl.getInstance().getLogger().debug("Unknown Java potion: " + potionContents.getPotionId());
             } else {
                 return ItemData.builder()
                         .definition(customItemDefinition)
@@ -75,7 +74,7 @@ public class PotionItem extends Item {
         ItemStack itemStack = super.translateToJava(itemData, mapping, mappings);
         if (potion != null) {
             StringTag potionTag = new StringTag("Potion", potion.getJavaIdentifier());
-            itemStack.getNbt().put(potionTag);
+            //itemStack.getNbt().put(potionTag);
         }
         return itemStack;
     }

@@ -27,15 +27,15 @@ package org.geysermc.geyser.item.type;
 
 import com.github.steveice10.mc.protocol.data.game.Identifier;
 import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
 import com.github.steveice10.mc.protocol.data.game.item.component.ItemEnchantments;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.Enchantment;
@@ -48,7 +48,6 @@ import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.util.InventoryUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -113,7 +112,7 @@ public class Item {
         if (itemData.getTag() == null) {
             return new ItemStack(javaId, itemData.getCount(), null);
         }
-        return new ItemStack(javaId, itemData.getCount(), ItemTranslator.translateToJavaNBT("", itemData.getTag()));
+        return new ItemStack(javaId, itemData.getCount(), null/*ItemTranslator.translateToJavaNBT("", itemData.getTag())*/);
     }
 
     public ItemMapping toBedrockDefinition(DataComponents components, ItemMappings mappings) {
@@ -137,23 +136,19 @@ public class Item {
             builder.setDamage(damage);
         }
 
-        List<Tag> newTags = new ArrayList<>();
+        List<NbtMap> enchantNbtList = new ArrayList<>();
         ItemEnchantments enchantments = components.get(DataComponentType.ENCHANTMENTS);
         if (enchantments != null) {
-
-        }
-        if (enchantmentTag instanceof ListTag listTag) {
-            for (Tag subTag : listTag.getValue()) {
-                if (!(subTag instanceof CompoundTag)) continue;
-                CompoundTag bedrockTag = remapEnchantment(session, (CompoundTag) subTag, tag);
-                if (bedrockTag != null) {
-                    newTags.add(bedrockTag);
+            for (Map.Entry<Integer, Integer> enchantment : enchantments.getEnchantments().entrySet()) {
+                NbtMap enchantNbt = remapEnchantment(session, enchantment.getKey(), enchantment.getValue(), builder);
+                if (enchantNbt != null) {
+                    enchantNbtList.add(enchantNbt);
                 }
             }
         }
 
-        if (!newTags.isEmpty()) {
-            tag.put(new ListTag("ench", newTags));
+        if (!enchantNbtList.isEmpty()) {
+            builder.putList("ench", NbtType.COMPOUND, enchantNbtList);
         }
     }
 
@@ -220,45 +215,30 @@ public class Item {
         }
     }
 
-    protected final @Nullable NbtMap remapEnchantment(GeyserSession session, ItemEnchantments, NbtMapBuilder rootBuilder) {
-
-        Enchantment enchantment = Enchantment.getByJavaIdentifier(((StringTag) javaEnchId).getValue());
+    protected final @Nullable NbtMap remapEnchantment(GeyserSession session, int enchantId, int level, BedrockItemBuilder builder) {
+        // TODO verify
+        // TODO streamline Enchantment process
+        Enchantment.JavaEnchantment enchantment = Enchantment.JavaEnchantment.of(enchantId);
+        if (enchantment == Enchantment.JavaEnchantment.SWEEPING_EDGE) {
+            addSweeping(session, builder, level);
+            return null;
+        }
         if (enchantment == null) {
-            if (Identifier.formalize((String) javaEnchId.getValue()).equals("minecraft:sweeping")) {
-                Tag javaEnchLvl = tag.get("lvl");
-                int sweepingLvl = javaEnchLvl != null && javaEnchLvl.getValue() instanceof Number lvl ? lvl.intValue() : 0;
-
-                addSweeping(session, rootTag, sweepingLvl);
-                return null;
-            }
-            GeyserImpl.getInstance().getLogger().debug("Unknown Java enchantment while NBT item translating: " + javaEnchId.getValue());
+            GeyserImpl.getInstance().getLogger().debug("Unknown Java enchantment while NBT item translating: " + enchantId);
             return null;
         }
 
-        Tag javaEnchLvl = tag.get("lvl");
-
-        NbtMapBuilder builder = NbtMap.builder();
-        builder.putShort("id", (short) enchantment.ordinal());
-        builder.putShort("lvl", );
-        return builder.build();
+        return NbtMap.builder()
+                .putShort("id", (short) Enchantment.valueOf(enchantment.name()).ordinal())
+                .putShort("lvl", (short) level)
+                .build();
     }
 
-    private void addSweeping(GeyserSession session, CompoundTag itemTag, int level) {
-        CompoundTag displayTag = itemTag.get("display");
-        if (displayTag == null) {
-            displayTag = new CompoundTag("display");
-            itemTag.put(displayTag);
-        }
-        ListTag loreTag = displayTag.get("Lore");
-        if (loreTag == null) {
-            loreTag = new ListTag("Lore");
-            displayTag.put(loreTag);
-        }
-
+    private void addSweeping(GeyserSession session, BedrockItemBuilder builder, int level) {
         String sweepingTranslation = MinecraftLocale.getLocaleString("enchantment.minecraft.sweeping", session.locale());
         String lvlTranslation = MinecraftLocale.getLocaleString("enchantment.level." + level, session.locale());
 
-        loreTag.add(new StringTag("", ChatColor.RESET + ChatColor.GRAY + sweepingTranslation + " " + lvlTranslation));
+        builder.getOrCreateLore().add(ChatColor.RESET + ChatColor.GRAY + sweepingTranslation + " " + lvlTranslation);
     }
 
     /* Translation methods end */
