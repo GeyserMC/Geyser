@@ -69,7 +69,7 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
 
         BlockMapping blockMapping = BlockRegistries.JAVA_BLOCKS.getOrDefault(blockToPick, BlockMapping.DEFAULT);
         boolean addNbtData = packet.isAddUserData() && blockMapping.isBlockEntity(); // Holding down CTRL
-        if (BlockStateValues.getBannerColor(blockToPick) != -1 || addNbtData) {
+        /*if (BlockStateValues.getBannerColor(blockToPick) != -1 || addNbtData) { //TODO
             session.getGeyser().getWorldManager().getPickItemNbt(session, vector.getX(), vector.getY(), vector.getZ(), addNbtData)
                     .whenComplete((tag, ex) -> session.ensureInEventLoop(() -> {
                         if (tag == null) {
@@ -94,7 +94,7 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
                         InventoryUtils.findOrCreateItem(session, itemStack);
                     }));
             return;
-        }
+        }*/
 
         pickItem(session, blockMapping);
     }
