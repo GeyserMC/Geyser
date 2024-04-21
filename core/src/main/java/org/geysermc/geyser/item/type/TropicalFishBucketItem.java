@@ -25,8 +25,10 @@
 
 package org.geysermc.geyser.item.type;
 
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
-import com.github.steveice10.opennbt.tag.builtin.*;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
@@ -38,7 +40,6 @@ import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class TropicalFishBucketItem extends Item {
@@ -53,27 +54,27 @@ public class TropicalFishBucketItem extends Item {
         super.translateComponentsToBedrock(session, components, builder);
 
         // Prevent name from appearing as "Bucket of"
-        tag.put(new ByteTag("AppendCustomName", (byte) 1));
-        tag.put(new StringTag("CustomName", MinecraftLocale.getLocaleString("entity.minecraft.tropical_fish", session.locale())));
+        builder.putByte("AppendCustomName", (byte) 1);
+        builder.putString("CustomName", MinecraftLocale.getLocaleString("entity.minecraft.tropical_fish", session.locale()));
         // Add Java's client side lore tag
-        Tag bucketVariantTag = tag.get("BucketVariantTag");
-        if (bucketVariantTag instanceof IntTag) {
-            CompoundTag displayTag = tag.get("display");
-            if (displayTag == null) {
-                displayTag = new CompoundTag("display");
-                tag.put(displayTag);
+        // Do you know how frequently Java NBT used to be before 1.20.5? It was a lot. And now it's just this lowly check.
+        CompoundTag entityTag = components.get(DataComponentType.BUCKET_ENTITY_DATA);
+        if (entityTag != null && !entityTag.isEmpty()) {
+            //TODO test
+            Tag bucketVariant = entityTag.get("BucketVariantTag");
+            if (bucketVariant == null || !(bucketVariant.getValue() instanceof Number)) {
+                return;
             }
+            List<String> lore = builder.getOrCreateLore();
 
-            List<Tag> lore = new ArrayList<>();
-
-            int varNumber = ((IntTag) bucketVariantTag).getValue();
+            int varNumber = ((Number) bucketVariant.getValue()).intValue();
             int predefinedVariantId = TropicalFishEntity.getPredefinedId(varNumber);
             if (predefinedVariantId != -1) {
                 Component tooltip = Component.translatable("entity.minecraft.tropical_fish.predefined." + predefinedVariantId, LORE_STYLE);
-                lore.add(0, new StringTag("", MessageTranslator.convertMessage(tooltip, session.locale())));
+                lore.add(0, MessageTranslator.convertMessage(tooltip, session.locale()));
             } else {
                 Component typeTooltip = Component.translatable("entity.minecraft.tropical_fish.type." + TropicalFishEntity.getVariantName(varNumber), LORE_STYLE);
-                lore.add(0, new StringTag("", MessageTranslator.convertMessage(typeTooltip, session.locale())));
+                lore.add(0, MessageTranslator.convertMessage(typeTooltip, session.locale()));
 
                 byte baseColor = TropicalFishEntity.getBaseColor(varNumber);
                 byte patternColor = TropicalFishEntity.getPatternColor(varNumber);
@@ -82,14 +83,8 @@ public class TropicalFishBucketItem extends Item {
                     colorTooltip = colorTooltip.append(Component.text(", ", LORE_STYLE))
                             .append(Component.translatable("color.minecraft." + TropicalFishEntity.getColorName(patternColor), LORE_STYLE));
                 }
-                lore.add(1, new StringTag("", MessageTranslator.convertMessage(colorTooltip, session.locale())));
+                lore.add(1, MessageTranslator.convertMessage(colorTooltip, session.locale()));
             }
-
-            ListTag loreTag = displayTag.get("Lore");
-            if (loreTag != null) {
-                lore.addAll(loreTag.getValue());
-            }
-            displayTag.put(new ListTag("Lore", lore));
         }
     }
 }

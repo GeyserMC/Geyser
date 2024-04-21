@@ -92,11 +92,11 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
             session.setThunder(false);
         }
 
-        String newDimension = spawnInfo.getDimension();
-        if (!session.getDimension().equals(newDimension) || !spawnInfo.getWorldName().equals(session.getWorldName())) {
+        int newDimension = spawnInfo.getDimension();
+        if (session.getDimension() != newDimension || !spawnInfo.getWorldName().equals(session.getWorldName())) {
             // Switching to a new world (based off the world name change or new dimension); send a fake dimension change
             if (DimensionUtils.javaToBedrock(session.getDimension()) == DimensionUtils.javaToBedrock(newDimension)) {
-                String fakeDim = DimensionUtils.getTemporaryDimension(session.getDimension(), newDimension);
+                int fakeDim = DimensionUtils.getTemporaryDimension(session.getDimension(), newDimension);
                 DimensionUtils.switchDimension(session, fakeDim);
             }
             session.setWorldName(spawnInfo.getWorldName());

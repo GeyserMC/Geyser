@@ -25,16 +25,18 @@
 
 package org.geysermc.geyser.item.type;
 
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
+import com.github.steveice10.mc.protocol.data.game.item.component.ItemEnchantments;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class EnchantedBookItem extends Item {
     public EnchantedBookItem(String javaIdentifier, Builder builder) {
@@ -45,20 +47,19 @@ public class EnchantedBookItem extends Item {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
-        List<Tag> newTags = new ArrayList<>();
-        Tag enchantmentTag = tag.remove("StoredEnchantments");
-        if (enchantmentTag instanceof ListTag listTag) {
-            for (Tag subTag : listTag.getValue()) {
-                if (!(subTag instanceof CompoundTag)) continue;
-                CompoundTag bedrockTag = remapEnchantment(session, (CompoundTag) subTag, tag);
+        List<NbtMap> bedrockEnchants = new ArrayList<>();
+        ItemEnchantments enchantments = components.get(DataComponentType.STORED_ENCHANTMENTS);
+        if (enchantments != null) { // TODO don't duplicate code?
+            for (Map.Entry<Integer, Integer> enchantment : enchantments.getEnchantments().entrySet()) {
+                NbtMap bedrockTag = remapEnchantment(session, enchantment.getKey(), enchantment.getValue(), builder);
                 if (bedrockTag != null) {
-                    newTags.add(bedrockTag);
+                    bedrockEnchants.add(bedrockTag);
                 }
             }
         }
 
-        if (!newTags.isEmpty()) {
-            tag.put(new ListTag("ench", newTags));
+        if (!bedrockEnchants.isEmpty()) {
+            builder.putList("ench", NbtType.COMPOUND, bedrockEnchants);
         }
     }
 }

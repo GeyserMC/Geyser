@@ -26,6 +26,9 @@
 package org.geysermc.geyser.item.type;
 
 import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
+import com.github.steveice10.mc.protocol.data.game.item.component.Instrument;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -52,21 +55,25 @@ public class GoatHornItem extends Item {
     }
 
     @Override
-    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
-        ItemData.Builder builder = super.translateToBedrock(itemStack, mapping, mappings);
-        if (itemStack.getNbt() != null && itemStack.getNbt().get("instrument") instanceof StringTag instrumentTag) {
-            String instrument = instrumentTag.getValue();
+    public ItemData.Builder translateToBedrock(int count, DataComponents components, ItemMapping mapping, ItemMappings mappings) {
+        ItemData.Builder builder = super.translateToBedrock(count, components, mapping, mappings);
+        if (components == null) {
+            return builder;
+        }
+        Instrument instrument = components.get(DataComponentType.INSTRUMENT);
+        // TODO registry
+        if (instrument != null) {
             // Drop the Minecraft namespace if applicable
-            if (instrument.startsWith("minecraft:")) {
-                instrument = instrument.substring("minecraft:".length());
-            }
-
-            int damage = INSTRUMENTS.indexOf(instrument);
-            if (damage == -1) {
-                damage = 0;
-                GeyserImpl.getInstance().getLogger().debug("Unknown goat horn instrument: " + instrumentTag.getValue());
-            }
-            builder.damage(damage);
+//            if (instrument.startsWith("minecraft:")) {
+//                instrument = instrument.substring("minecraft:".length());
+//            }
+//
+//            int damage = INSTRUMENTS.indexOf(instrument);
+//            if (damage == -1) {
+//                damage = 0;
+//                GeyserImpl.getInstance().getLogger().debug("Unknown goat horn instrument: " + instrumentTag.getValue());
+//            }
+//            builder.damage(damage);
         }
         return builder;
     }
@@ -83,7 +90,7 @@ public class GoatHornItem extends Item {
 
         String instrument = INSTRUMENTS.get(damage);
         StringTag instrumentTag = new StringTag("instrument", "minecraft:" + instrument);
-        itemStack.getNbt().put(instrumentTag);
+        //itemStack.getNbt().put(instrumentTag);
 
         return itemStack;
     }

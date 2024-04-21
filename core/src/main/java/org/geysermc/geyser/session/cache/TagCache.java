@@ -58,7 +58,7 @@ public class TagCache {
     private IntList requiresDiamondTool;
 
     /* Items */
-    private IntList axolotlTemptItems;
+    private IntList axolotlFood;
     private IntList creeperIgniters;
     private IntList fishes;
     private IntList flowers;
@@ -96,7 +96,7 @@ public class TagCache {
         }
 
         Map<String, int[]> itemTags = packet.getTags().get("minecraft:item");
-        this.axolotlTemptItems = IntList.of(itemTags.get("minecraft:axolotl_tempt_items"));
+        this.axolotlFood = IntList.of(itemTags.get("minecraft:axolotl_food"));
         this.creeperIgniters = load(itemTags.get("minecraft:creeper_igniters"));
         this.fishes = IntList.of(itemTags.get("minecraft:fishes"));
         this.flowers = IntList.of(itemTags.get("minecraft:flowers"));
@@ -133,7 +133,7 @@ public class TagCache {
         this.requiresIronTool = IntLists.emptyList();
         this.requiresDiamondTool = IntLists.emptyList();
 
-        this.axolotlTemptItems = IntLists.emptyList();
+        this.axolotlFood = IntLists.emptyList();
         this.creeperIgniters = IntLists.emptyList();
         this.fishes = IntLists.emptyList();
         this.flowers = IntLists.emptyList();
@@ -143,8 +143,8 @@ public class TagCache {
         this.snifferFood = IntLists.emptyList();
     }
 
-    public boolean isAxolotlTemptItem(Item item) {
-        return axolotlTemptItems.contains(item.javaId());
+    public boolean isAxolotlFood(Item item) {
+        return axolotlFood.contains(item.javaId());
     }
 
     public boolean isCreeperIgniter(Item item) {

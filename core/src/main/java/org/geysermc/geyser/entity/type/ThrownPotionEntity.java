@@ -27,8 +27,9 @@ package org.geysermc.geyser.entity.type;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
+import com.github.steveice10.mc.protocol.data.game.item.component.PotionContents;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
@@ -58,16 +59,17 @@ public class ThrownPotionEntity extends ThrowableItemEntity {
             setFlag(EntityFlag.LINGERING, false);
         } else {
             // As of Java 1.19.3, the server/client doesn't seem to care of the item is actually a potion?
-            if (itemStack.getNbt() != null) {
-                Tag potionTag = itemStack.getNbt().get("Potion");
-                if (potionTag instanceof StringTag) {
-                    Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
+            DataComponents components = itemStack.getDataComponents();
+            if (components != null) {
+                PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
+                if (potionContents != null) {
+                    Potion potion = Potion.VALUES[potionContents.getPotionId()];
                     if (potion != null) {
                         dirtyMetadata.put(EntityDataTypes.EFFECT_COLOR, (int) potion.getBedrockId());
                         setFlag(EntityFlag.ENCHANTED, !NON_ENCHANTED_POTIONS.contains(potion));
                     } else {
                         dirtyMetadata.put(EntityDataTypes.EFFECT_COLOR, 0);
-                        GeyserImpl.getInstance().getLogger().debug("Unknown java potion: " + potionTag.getValue());
+                        GeyserImpl.getInstance().getLogger().debug("Unknown java potion: " + potionContents.getPotionId());
                     }
                 }
 

@@ -25,12 +25,12 @@
 
 package org.geysermc.geyser.util;
 
-import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
 import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundPickItemPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetCreativeModeSlotPacket;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
@@ -42,11 +42,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerHotbarPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.inventory.Container;
-import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.inventory.LecternContainer;
-import org.geysermc.geyser.inventory.PlayerInventory;
+import org.geysermc.geyser.inventory.*;
 import org.geysermc.geyser.inventory.click.Click;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
@@ -66,6 +62,7 @@ import org.jetbrains.annotations.Contract;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.IntFunction;
@@ -77,7 +74,7 @@ public class InventoryUtils {
      */
     public static int LAST_RECIPE_NET_ID;
     
-    public static final ItemStack REFRESH_ITEM = new ItemStack(1, 127, new CompoundTag(""));
+    public static final ItemStack REFRESH_ITEM = new ItemStack(1, 127, new DataComponents(new HashMap<>()));
 
     public static void openInventory(GeyserSession session, Inventory inventory) {
         session.setOpenInventory(inventory);
@@ -254,7 +251,7 @@ public class InventoryUtils {
                 continue;
             }
             // If this is the item we're looking for
-            if (geyserItem.getJavaId() == itemStack.getId() && Objects.equals(geyserItem.getNbt(), itemStack.getNbt())) {
+            if (geyserItem.getJavaId() == itemStack.getId() && Objects.equals(geyserItem.getComponents(), itemStack.getDataComponents())) { //TODO verify
                 setHotbarItem(session, i);
                 // Don't check inventory if item was in hotbar
                 return;
@@ -268,7 +265,7 @@ public class InventoryUtils {
                 continue;
             }
             // If this is the item we're looking for
-            if (geyserItem.getJavaId() == itemStack.getId() && Objects.equals(geyserItem.getNbt(), itemStack.getNbt())) {
+            if (geyserItem.getJavaId() == itemStack.getId() && Objects.equals(geyserItem.getComponents(), itemStack.getDataComponents())) { //TODO verify
                 ServerboundPickItemPacket packetToSend = new ServerboundPickItemPacket(i); // https://wiki.vg/Protocol#Pick_Item
                 session.sendDownstreamGamePacket(packetToSend);
                 return;
@@ -279,7 +276,7 @@ public class InventoryUtils {
         if (session.getGameMode() == GameMode.CREATIVE) {
             int slot = findEmptyHotbarSlot(inventory);
 
-            ServerboundSetCreativeModeSlotPacket actionPacket = new ServerboundSetCreativeModeSlotPacket(slot,
+            ServerboundSetCreativeModeSlotPacket actionPacket = new ServerboundSetCreativeModeSlotPacket((short) slot,
                     itemStack);
             if ((slot - 36) != inventory.getHeldItemSlot()) {
                 setHotbarItem(session, slot);
@@ -345,7 +342,7 @@ public class InventoryUtils {
 
             ItemMapping mapping = session.getItemMappings().getMapping(itemName); // TODO
             if (mapping != null) {
-                ServerboundSetCreativeModeSlotPacket actionPacket = new ServerboundSetCreativeModeSlotPacket(slot,
+                ServerboundSetCreativeModeSlotPacket actionPacket = new ServerboundSetCreativeModeSlotPacket((short)slot,
                         new ItemStack(mapping.getJavaItem().javaId()));
                 if ((slot - 36) != inventory.getHeldItemSlot()) {
                     setHotbarItem(session, slot);

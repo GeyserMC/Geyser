@@ -32,6 +32,7 @@ import com.github.steveice10.opennbt.tag.builtin.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.level.FireworkColor;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -63,9 +64,10 @@ public class FireworkRocketItem extends Item {
         }
         List<NbtMap> explosionNbt = new ArrayList<>();
         for (Fireworks.FireworkExplosion explosion : explosions) {
-            explosionNbt.add(translateExplosionToBedrock(explosion, ""));
+            explosionNbt.add(translateExplosionToBedrock(explosion));
         }
-
+        fireworksNbt.putList("Explosions", NbtType.COMPOUND, explosionNbt);
+        builder.putCompound("Fireworks", fireworksNbt.build());
     }
 
     @Override
@@ -73,38 +75,33 @@ public class FireworkRocketItem extends Item {
         super.translateNbtToJava(tag, mapping);
     }
 
-    static NbtMap translateExplosionToBedrock(Fireworks.FireworkExplosion explosion, String newName) {
+    static NbtMap translateExplosionToBedrock(Fireworks.FireworkExplosion explosion) {
         NbtMapBuilder newExplosionData = NbtMap.builder();
 
-        if (explosion.get("Type") != null) {
-            newExplosionData.put(new ByteTag("FireworkType", MathUtils.getNbtByte(explosion.get("Type").getValue())));
-        }
+//        if (explosion.get("Type") != null) {
+//            newExplosionData.put(new ByteTag("FireworkType", MathUtils.getNbtByte(explosion.get("Type").getValue())));
+//        }
         //newExplosionData.putByte("FireworkType", explosion.get) //TODO???
 
-        // TODO do we need length checks
-        if (explosion.get("Colors") != null) {
-            int[] oldColors = (int[]) explosion.get("Colors").getValue();
-            byte[] colors = new byte[oldColors.length];
+        int[] oldColors = explosion.getColors();
+        byte[] colors = new byte[oldColors.length];
 
-            int i = 0;
-            for (int color : oldColors) {
-                colors[i++] = FireworkColor.fromJavaRGB(color);
-            }
-
-            newExplosionData.put(new ByteArrayTag("FireworkColor", colors));
+        int i = 0;
+        for (int color : oldColors) {
+            colors[i++] = FireworkColor.fromJavaRGB(color);
         }
 
-        if (explosion.get("FadeColors") != null) {
-            int[] oldColors = (int[]) explosion.get("FadeColors").getValue();
-            byte[] colors = new byte[oldColors.length];
+        newExplosionData.putByteArray("FireworkColor", colors);
 
-            int i = 0;
-            for (int color : oldColors) {
-                colors[i++] = FireworkColor.fromJavaRGB(color);
-            }
+        oldColors = explosion.getFadeColors();
+        colors = new byte[oldColors.length];
 
-            newExplosionData.put(new ByteArrayTag("FireworkFade", colors));
+        i = 0;
+        for (int color : oldColors) {
+            colors[i++] = FireworkColor.fromJavaRGB(color);
         }
+
+        newExplosionData.putByteArray("FireworkFade", colors);
 
         newExplosionData.putBoolean("FireworkTrail", explosion.isHasTrail());
         newExplosionData.putBoolean("FireworkFlicker", explosion.isHasTwinkle()); // TODO verify

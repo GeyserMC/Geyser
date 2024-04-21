@@ -41,7 +41,7 @@ public class DecoratedPotItem extends BlockItem {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
-        components.get(DataComponentType.POT_DECORATIONS); // TODO
+        components.get(DataComponentType.POT_DECORATIONS); // TODO what does this look like on Bedrock?
 //        if (tag.remove("BlockEntityTag") instanceof CompoundTag blockEntityTag) {
 //            if (blockEntityTag.remove("sherds") instanceof ListTag sherds) {
 //                // bedrock wants it on the root level

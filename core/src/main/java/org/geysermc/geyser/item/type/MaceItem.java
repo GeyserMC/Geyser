@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,29 +25,15 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.geysermc.geyser.inventory.item.TippedArrowPotion;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.registry.type.ItemMapping;
-import org.geysermc.geyser.registry.type.ItemMappings;
 
-public class ArrowItem extends Item {
-    public ArrowItem(String javaIdentifier, Builder builder) {
+public class MaceItem extends Item {
+    public MaceItem(String javaIdentifier, Builder builder) {
         super(javaIdentifier, builder);
     }
 
     @Override
-    public @NonNull ItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
-        TippedArrowPotion tippedArrowPotion = TippedArrowPotion.getByBedrockId(itemData.getDamage());
-        ItemStack itemStack = super.translateToJava(itemData, mapping, mappings);
-        if (tippedArrowPotion != null) {
-            itemStack = Items.TIPPED_ARROW.newItemStack(itemStack.getAmount(), itemStack.getDataComponents());
-            StringTag potionTag = new StringTag("Potion", tippedArrowPotion.getJavaIdentifier());
-            //itemStack.getDataComponents().put(DataComponentType.POTION_CONTENTS, new PotionContents());
-        }
-        return itemStack;
+    public boolean isValidRepairItem(Item other) {
+        return other == Items.BREEZE_ROD;
     }
 }

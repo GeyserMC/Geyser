@@ -25,11 +25,12 @@
 
 package org.geysermc.geyser.level;
 
+import com.github.steveice10.mc.protocol.data.game.RegistryEntry;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
-import org.geysermc.geyser.util.JavaCodecUtil;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * Represents the information we store from the current Java dimension
@@ -38,19 +39,20 @@ import java.util.Map;
  */
 public record JavaDimension(int minY, int maxY, boolean piglinSafe, double worldCoordinateScale) {
 
-    public static void load(CompoundTag tag, Map<String, JavaDimension> map) {
-        for (CompoundTag dimension : JavaCodecUtil.iterateAsTag(tag.get("minecraft:dimension_type"))) {
-            CompoundTag elements = dimension.get("element");
-            int minY = ((IntTag) elements.get("min_y")).getValue();
-            int maxY = ((IntTag) elements.get("height")).getValue();
+    public static void load(List<RegistryEntry> entries, Int2ObjectMap<JavaDimension> map) {
+        for (int i = 0; i < entries.size(); i++) {
+            RegistryEntry entry = entries.get(i);
+            CompoundTag dimension = entry.getData();
+            int minY = ((IntTag) dimension.get("min_y")).getValue();
+            int maxY = ((IntTag) dimension.get("height")).getValue();
             // Logical height can be ignored probably - seems to be for artificial limits like the Nether.
 
             // Set if piglins/hoglins should shake
-            boolean piglinSafe = ((Number) elements.get("piglin_safe").getValue()).byteValue() != (byte) 0;
+            boolean piglinSafe = ((Number) dimension.get("piglin_safe").getValue()).byteValue() != (byte) 0;
             // Load world coordinate scale for the world border
-            double coordinateScale = ((Number) elements.get("coordinate_scale").getValue()).doubleValue();
+            double coordinateScale = ((Number) dimension.get("coordinate_scale").getValue()).doubleValue();
 
-            map.put((String) dimension.get("name").getValue(), new JavaDimension(minY, maxY, piglinSafe, coordinateScale));
+            map.put(i, new JavaDimension(minY, maxY, piglinSafe, coordinateScale));
         }
     }
 }

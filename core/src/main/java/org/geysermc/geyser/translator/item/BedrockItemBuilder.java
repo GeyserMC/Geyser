@@ -34,6 +34,7 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.OptionalInt;
 
 /**
  * An intermediary class made to allow easy access to work-in-progress NBT, such as lore and display.
@@ -44,11 +45,17 @@ public final class BedrockItemBuilder {
     private String customName;
     @Nullable
     private List<String> lore;
+    private OptionalInt damage = OptionalInt.empty();
     /**
      * Miscellaneous NBT that will be put into the final item.
      */
     @Nullable
     private NbtMapBuilder builder;
+
+    @Nullable
+    public String getCustomName() {
+        return customName;
+    }
 
     public BedrockItemBuilder setCustomName(String customName) {
         this.customName = customName;
@@ -61,6 +68,15 @@ public final class BedrockItemBuilder {
             lore = new ArrayList<>();
         }
         return lore;
+    }
+
+    public OptionalInt getDamage() {
+        return damage;
+    }
+
+    public BedrockItemBuilder setDamage(int damage) {
+        this.damage = OptionalInt.of(damage);
+        return this;
     }
 
     @NonNull
@@ -83,6 +99,14 @@ public final class BedrockItemBuilder {
 
     public NbtMapBuilder putInt(String name, int value) {
         return getOrCreateNbt().putInt(name, value);
+    }
+
+    public <T> NbtMapBuilder putList(String name, NbtType<T> type, List<T> value) {
+        return getOrCreateNbt().putList(name, type, value);
+    }
+
+    public NbtMapBuilder putLong(String name, long value) {
+        return getOrCreateNbt().putLong(name, value);
     }
 
     public NbtMapBuilder putString(String name, String value) {
@@ -108,6 +132,9 @@ public final class BedrockItemBuilder {
             }
             getOrCreateNbt().put("display", display.build());
         }
+        if (damage.isPresent()) {
+            getOrCreateNbt().putInt("Damage", damage.getAsInt());
+        }
         if (builder == null) {
             return null;
         }
@@ -115,13 +142,12 @@ public final class BedrockItemBuilder {
     }
 
     /**
-     * Creates item NBT with count, name, and damage set.
+     * Creates item NBT to nest within NBT with name, count, and damage set.
      */
     public static NbtMapBuilder createItemNbt(ItemMapping mapping, int count, int damage) {
         NbtMapBuilder builder = NbtMap.builder();
-        builder.putByte("Count", (byte) count);
         builder.putString("Name", mapping.getBedrockIdentifier());
-
+        builder.putByte("Count", (byte) count);
         builder.putShort("Damage", (short) damage);
         return builder;
     }

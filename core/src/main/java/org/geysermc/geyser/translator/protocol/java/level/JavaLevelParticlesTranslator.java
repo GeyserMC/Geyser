@@ -28,7 +28,6 @@ package org.geysermc.geyser.translator.protocol.java.level;
 import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.level.particle.BlockParticleData;
 import com.github.steveice10.mc.protocol.data.game.level.particle.DustParticleData;
-import com.github.steveice10.mc.protocol.data.game.level.particle.FallingDustParticleData;
 import com.github.steveice10.mc.protocol.data.game.level.particle.ItemParticleData;
 import com.github.steveice10.mc.protocol.data.game.level.particle.Particle;
 import com.github.steveice10.mc.protocol.data.game.level.particle.VibrationParticleData;
@@ -106,7 +105,7 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
                 };
             }
             case FALLING_DUST -> {
-                int blockState = session.getBlockMappings().getBedrockBlockId(((FallingDustParticleData) particle.getData()).getBlockState());
+                int blockState = session.getBlockMappings().getBedrockBlockId(((BlockParticleData) particle.getData()).getBlockState());
                 return (position) -> {
                     LevelEventPacket packet = new LevelEventPacket();
                     // In fact, FallingDustParticle should have data like DustParticle,
