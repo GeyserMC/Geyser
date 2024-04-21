@@ -7,8 +7,9 @@ on:
       - 'gh-readonly-queue/**'
     paths-ignore:
       - '.github/ISSUE_TEMPLATE/*.yml'
-      - '.github/actions/pullrequest.yml'
-      - '.github/actions/preview.yml'
+      - '.github/actions/workflows/build-remote.yml'
+      - '.github/actions/workflows/preview.yml'
+      - '.github/actions/workflows/pull-request.yml'
       - '.idea/copyright/*.xml'
       - '.gitignore'
       - 'CONTRIBUTING.md'
@@ -23,6 +24,13 @@ jobs:
     env:
       PROJECT: 'geyser'
     steps:
+      - name: Set Build Number
+        env:
+          BUILD_JSON: ${{ vars.RELEASEACTION_PREVRELEASE }}
+        run: |
+          BUILD_NUMBER=$(echo $BUILD_JSON | jq --arg branch "${GITHUB_REF_NAME}" 'if .[$branch] == null then 1 else .[$branch] | .t | tonumber + 1 end // 1')
+          echo "BUILD_NUMBER=${BUILD_NUMBER}" >> $GITHUB_ENV
+
       - name: Checkout repository and submodules
         # See https://github.com/actions/checkout/commits
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -40,8 +48,8 @@ jobs:
           distribution: temurin
           
       - name: Build
-        # See https://github.com/gradle/gradle-build-action/commits
-        uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0 from https://github.com/gradle/actions/commits
+        # See https://github.com/gradle/actions/commits
+        uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
         with:
           arguments: build
           gradle-home-cache-cleanup: true
@@ -108,7 +116,8 @@ jobs:
 
       - name: Get Release Metadata
         if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
-        uses: Kas-tle/base-release-action@b863fa0f89bd15267a96a72efb84aec25f168d4c # https://github.com/Kas-tle/base-release-action/releases/tag/main-11
+        # See https://github.com/Kas-tle/base-release-action/releases/tag/main-11
+        uses: Kas-tle/base-release-action@b863fa0f89bd15267a96a72efb84aec25f168d4c # main-11
         with:
           appID: ${{ secrets.RELEASE_APP_ID }}
           appPrivateKey: ${{ secrets.RELEASE_APP_PK }}
@@ -134,6 +143,7 @@ jobs:
             | .downloads |= map_values({"name", "sha256"})
             | {$project, "repo", $version, "number": .build, "changes", "downloads"}
           ' | tee metadata.json
+          echo
       - name: Publish to Downloads API
         if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
         shell: bash

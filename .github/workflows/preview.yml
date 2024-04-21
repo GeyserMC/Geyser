@@ -12,23 +12,44 @@ on:
       version:
         required: true
         description: 'Version under which to upload to the Downloads API'
+  workflow_call:
+    inputs:
+      build:
+        required: true
+        description: 'Build number for the release'
+        type: string
+      version:
+        required: true
+        description: 'Version under which to upload to the Downloads API'
+        type: string
 
 jobs:
   upload:
     runs-on: ubuntu-latest
     env:
       PROJECT: 'geyserpreview'
-      BUILD: ${{ github.event.inputs.build }}
-      VERSION: ${{ github.event.inputs.version }}
     steps:
-      - uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # https://github.com/actions/download-artifact/releases/tag/v4.1.4
+      - name: Set Variables
+        id: setvars
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "BUILD=${{ github.event.inputs.build }}" >> $GITHUB_ENV
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+            echo "RUN=${{ github.event.inputs.runId }}" >> $GITHUB_OUTPUT
+          else
+            echo "BUILD=${{ inputs.build }}" >> $GITHUB_ENV
+            echo "VERSION=${{ inputs.version }}" >> $GITHUB_ENV
+            echo "RUN=${{ github.run_id }}" >> $GITHUB_OUTPUT
+          fi
+      - uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427
         with:
-          run-id: ${{ github.event.inputs.runId }}
+          run-id: ${{ steps.setvars.outputs.RUN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           merge-multiple: true
       - name: Get Preview Metadata
         if: success()
-        uses: Kas-tle/base-release-action@b863fa0f89bd15267a96a72efb84aec25f168d4c # https://github.com/Kas-tle/base-release-action/releases/tag/main-11
+        # See https://github.com/Kas-tle/base-release-action/releases/tag/main-11
+        uses: Kas-tle/base-release-action@664c39985eb9d0d393ce98e7eb8414d3d98e762a # main-11
         with:
           appID: ${{ secrets.RELEASE_APP_ID }}
           appPrivateKey: ${{ secrets.RELEASE_APP_PK }}
