@@ -368,7 +368,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     /**
      * All dimensions that the client could possibly connect to.
      */
-    private final Map<String, JavaDimension> dimensions = new Object2ObjectOpenHashMap<>(3);
+    private final Int2ObjectMap<JavaDimension> dimensions = new Int2ObjectOpenHashMap<>(4);
 
     private final Int2ObjectMap<TextDecoration> chatTypes = new Int2ObjectOpenHashMap<>(7);
 
