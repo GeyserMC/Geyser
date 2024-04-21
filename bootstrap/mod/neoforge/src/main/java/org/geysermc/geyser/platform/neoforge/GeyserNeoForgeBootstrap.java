@@ -28,6 +28,7 @@ package org.geysermc.geyser.platform.neoforge;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.common.NeoForge;
@@ -35,7 +36,6 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
@@ -60,7 +60,7 @@ public class GeyserNeoForgeBootstrap extends GeyserModBootstrap {
         NeoForge.EVENT_BUS.addListener(this::onPlayerJoin);
 
         GeyserNeoForgePermissionHandler permissionHandler = new GeyserNeoForgePermissionHandler();
-        NeoForge.EVENT_BUS.addListener(permissionHandler::onPermissionGather);
+        NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, permissionHandler::onPermissionGather);
 
         this.onGeyserInitialize();
 
@@ -75,7 +75,7 @@ public class GeyserNeoForgeBootstrap extends GeyserModBootstrap {
                 ExecutionCoordinator.simpleCoordinator(),
                 sourceConverter
         );
-        this.setCommandRegistry(new CommandRegistry(GeyserImpl.getInstance(), cloud));
+        this.setCommandRegistry(new GeyserNeoForgeCommandRegistry(GeyserImpl.getInstance(), cloud));
     }
 
     private void onServerStarted(ServerStartedEvent event) {

@@ -42,6 +42,9 @@ public class GeyserPermission implements PredicatePermission<GeyserCommandSource
     private final CommandManager<GeyserCommandSource> manager;
 
     public Result check(GeyserCommandSource source) {
+        if (permission.isBlank()) {
+            return Result.ALLOWED;
+        }
         if (bedrockOnly) {
             if (source.connection() == null) {
                 return Result.NOT_BEDROCK;

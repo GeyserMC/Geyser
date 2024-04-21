@@ -41,7 +41,6 @@ import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
@@ -277,14 +276,13 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             geyserLogger.debug("Using default world manager.");
         }
 
-
         // Register permissions so they appear in, for example, LuckPerms' UI
         // Re-registering permissions without removing it throws an error
-
         PluginManager pluginManager = Bukkit.getPluginManager();
-
-        // todo: this can probably always be run regardless if geyser has been initialized once or not, since we are removing the permission
         geyser.eventBus().fire((GeyserRegisterPermissionsEvent) (permission, def) -> {
+            if (permission.isBlank()) {
+                return;
+            }
             PermissionDefault permissionDefault = switch (def) {
                 case TRUE -> PermissionDefault.TRUE;
                 case FALSE -> PermissionDefault.FALSE;
@@ -301,9 +299,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
             pluginManager.addPermission(new Permission(permission, permissionDefault));
         });
-
-        pluginManager.addPermission(new Permission(Constants.UPDATE_PERMISSION,
-                "Whether update notifications can be seen", PermissionDefault.OP));
 
         // Events cannot be unregistered - re-registering results in duplicate firings
         GeyserSpigotBlockPlaceListener blockPlaceListener = new GeyserSpigotBlockPlaceListener(geyser, this.geyserWorldManager);

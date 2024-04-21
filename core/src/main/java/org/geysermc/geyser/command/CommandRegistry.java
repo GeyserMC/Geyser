@@ -28,6 +28,7 @@ package org.geysermc.geyser.command;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.AllArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.command.Command;
@@ -112,7 +113,7 @@ public class CommandRegistry {
                 new GeyserExceptionHandler<>(NoSuchCommandException.class, (src, e) -> src.sendLocaleString("geyser.command.not_found")),
                 new GeyserExceptionHandler<>(ArgumentParseException.class, (src, e) -> src.sendLocaleString("geyser.command.invalid_argument", e.getCause().getMessage())),
                 new GeyserExceptionHandler<>(CommandExecutionException.class, (src, e) -> handleUnexpectedThrowable(src, e.getCause())),
-                new GeyserExceptionHandler<>(RuntimeException.class, (src, e) -> handleUnexpectedThrowable(src, e.getCause()))
+                new GeyserExceptionHandler<>(Throwable.class, (src, e) -> handleUnexpectedThrowable(src, e.getCause()))
         );
         for (GeyserExceptionHandler<?> handler : exceptionHandlers) {
             handler.register(cloud);
@@ -195,6 +196,10 @@ public class CommandRegistry {
         register(command, this.extensionCommands.computeIfAbsent(extension, e -> new HashMap<>()));
     }
 
+    public boolean hasPermission(GeyserCommandSource source, String permission) {
+        return cloud.hasPermission(source, permission);
+    }
+
     private void register(GeyserCommand command, Map<String, Command> commands) {
         command.register(cloud);
 
@@ -218,6 +223,11 @@ public class CommandRegistry {
         for (Map.Entry<String, TriState> permission : permissionDefaults.entrySet()) {
             event.register(permission.getKey(), permission.getValue());
         }
+
+        // Register other various Geyser permissions
+        event.register(Constants.UPDATE_PERMISSION, TriState.NOT_SET);
+        event.register(Constants.SERVER_SETTINGS_PERMISSION, TriState.NOT_SET);
+        event.register(Constants.SETTINGS_GAMERULES_PERMISSION, TriState.NOT_SET);
     }
 
     /**
@@ -277,7 +287,7 @@ public class CommandRegistry {
     }
 
     @AllArgsConstructor
-    private static class GeyserExceptionHandler<E extends Exception> implements ExceptionHandler<GeyserCommandSource, E> {
+    private static class GeyserExceptionHandler<E extends Throwable> implements ExceptionHandler<GeyserCommandSource, E> {
 
         final Class<E> type;
         final BiConsumer<GeyserCommandSource, E> handler;

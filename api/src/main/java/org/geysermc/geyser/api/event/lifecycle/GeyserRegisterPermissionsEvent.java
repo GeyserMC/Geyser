@@ -32,8 +32,7 @@ import org.geysermc.geyser.api.util.TriState;
  * Fired by anything that wishes to gather permission nodes and defaults.
  * <p>
  * This event is not guaranteed to be fired, as certain Geyser platforms do not have a native permission system.
- * It can be expected to fire on Geyser-Spigot, Geyser-NeoForge and Geyser-Standalone. Note: NeoForge allows registering permissions,
- * but does so without registering default values.
+ * It can be expected to fire on Geyser-Spigot, Geyser-NeoForge and Geyser-Standalone.
  * It may still be fired on other platforms due to a 3rd party.
  */
 public interface GeyserRegisterPermissionsEvent extends Event {

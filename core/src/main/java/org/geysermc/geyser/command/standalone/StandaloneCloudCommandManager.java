@@ -86,6 +86,9 @@ public class StandaloneCloudCommandManager extends CommandManager<GeyserCommandS
      */
     public void gatherPermissions() {
         geyser.getEventBus().fire((GeyserRegisterPermissionsEvent) (permission, def) -> {
+            if (permission.isBlank()) {
+                return;
+            }
             if (def == TriState.TRUE) {
                 basePermissions.add(permission);
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,27 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
+package org.geysermc.geyser.platform.neoforge;
 
-import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
-import org.cloudburstmc.protocol.bedrock.packet.SetDifficultyPacket;
-import org.geysermc.geyser.Constants;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
+import com.google.common.util.concurrent.UncheckedExecutionException;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.command.CommandRegistry;
+import org.geysermc.geyser.command.GeyserCommandSource;
+import org.incendo.cloud.CommandManager;
 
-@Translator(packet = SetDifficultyPacket.class)
-public class BedrockSetDifficultyTranslator extends PacketTranslator<SetDifficultyPacket> {
+public class GeyserNeoForgeCommandRegistry extends CommandRegistry {
+    public GeyserNeoForgeCommandRegistry(GeyserImpl geyser, CommandManager<GeyserCommandSource> cloud) {
+        super(geyser, cloud);
+    }
 
-    /**
-     * Sets the Java server's difficulty via the Bedrock client's "world" menu (given sufficient permissions).
-     */
+    // todo yeet once cloud enforced method contract here:
+    // https://github.com/Incendo/cloud/blob/master/cloud-core/src/main/java/org/incendo/cloud/CommandManager.java#L441-L449
     @Override
-    public void translate(GeyserSession session, SetDifficultyPacket packet) {
-        if (session.getOpPermissionLevel() >= 2 && session.hasPermission(Constants.SERVER_SETTINGS_PERMISSION)) {
-            if (packet.getDifficulty() != session.getWorldCache().getDifficulty().ordinal()) {
-                session.getGeyser().getWorldManager().setDifficulty(session, Difficulty.from(packet.getDifficulty()));
-            }
+    public boolean hasPermission(GeyserCommandSource source, String permission) {
+        try {
+            return super.hasPermission(source, permission);
+        } catch (UncheckedExecutionException e) {
+            return false;
         }
     }
 }

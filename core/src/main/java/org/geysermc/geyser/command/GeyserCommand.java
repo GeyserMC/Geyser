@@ -89,6 +89,9 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
         if (name.isBlank()) {
             throw new IllegalArgumentException("Command cannot be null or blank!");
         }
+        if (permission.isBlank()) {
+            permissionDefault = null;
+        }
 
         this.name = name;
         this.description = description;

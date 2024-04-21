@@ -30,9 +30,9 @@ import net.neoforged.neoforge.server.permission.nodes.PermissionDynamicContextKe
 import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
 import net.neoforged.neoforge.server.permission.nodes.PermissionType;
 import net.neoforged.neoforge.server.permission.nodes.PermissionTypes;
-import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
+import org.geysermc.geyser.api.util.TriState;
 
 import java.lang.reflect.Constructor;
 
@@ -57,22 +57,27 @@ public class GeyserNeoForgePermissionHandler {
     }
 
     public void onPermissionGather(PermissionGatherEvent.Nodes event) {
-        this.registerNode(Constants.UPDATE_PERMISSION, event);
-
-        GeyserImpl.getInstance().eventBus().fire((GeyserRegisterPermissionsEvent) (permission, defaultValue) -> this.registerNode(permission, event));
+        GeyserImpl.getInstance().eventBus().fire(
+            (GeyserRegisterPermissionsEvent) (permission, defaultValue) -> {
+                if (permission.isBlank()) {
+                    return;
+                }
+                this.registerNode(permission, defaultValue, event);
+            }
+        );
     }
 
-    private void registerNode(String node, PermissionGatherEvent.Nodes event) {
-        PermissionNode<Boolean> permissionNode = this.createNode(node);
+    private void registerNode(String node, TriState permissionDefault, PermissionGatherEvent.Nodes event) {
+        PermissionNode<Boolean> permissionNode = this.createNode(node, permissionDefault);
 
         // NeoForge likes to crash if you try and register a duplicate node
-        if (!event.getNodes().contains(permissionNode)) {
+        if (event.getNodes().stream().noneMatch(eventNode -> eventNode.getNodeName().equals(node))) {
             event.addNodes(permissionNode);
         }
     }
 
     @SuppressWarnings("unchecked")
-    private PermissionNode<Boolean> createNode(String node) {
+    private PermissionNode<Boolean> createNode(String node, TriState permissionDefault) {
         // The typical constructors in PermissionNode require a
         // mod id, which means our permission nodes end up becoming
         // geyser_neoforge.<node> instead of just <node>. We work around
@@ -82,7 +87,16 @@ public class GeyserNeoForgePermissionHandler {
             return (PermissionNode<Boolean>) PERMISSION_NODE_CONSTRUCTOR.newInstance(
                     node,
                     PermissionTypes.BOOLEAN,
-                    (PermissionNode.PermissionResolver<Boolean>) (player, playerUUID, context) -> false,
+                    (PermissionNode.PermissionResolver<Boolean>) (player, playerUUID, context) -> switch (permissionDefault) {
+                        case TRUE -> true;
+                        case FALSE -> false;
+                        case NOT_SET -> {
+                            if (player != null) {
+                                yield player.createCommandSourceStack().hasPermission(player.server.getOperatorUserPermissionLevel());
+                            }
+                            yield false;
+                        }
+                    },
                     new PermissionDynamicContextKey[0]
             );
         } catch (Exception e) {

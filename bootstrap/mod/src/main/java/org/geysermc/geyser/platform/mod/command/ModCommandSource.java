@@ -88,7 +88,7 @@ public class ModCommandSource implements GeyserCommandSource {
         // Unlike other bootstraps; we delegate to cloud here too:
         // On NeoForge; we'd have to keep track of all PermissionNodes - cloud already does that
         // For Fabric, we won't need to include the Fabric Permissions API anymore - cloud already does that too :p
-        return GeyserImpl.getInstance().commandRegistry().cloud().hasPermission(this, permission);
+        return GeyserImpl.getInstance().commandRegistry().hasPermission(this, permission);
     }
 
     @Override

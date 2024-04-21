@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import org.cloudburstmc.protocol.bedrock.packet.SetDefaultGameTypePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetPlayerGameTypePacket;
+import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -41,7 +42,7 @@ public class BedrockSetDefaultGameTypeTranslator extends PacketTranslator<SetDef
      */
     @Override
     public void translate(GeyserSession session, SetDefaultGameTypePacket packet) {
-        if (session.getOpPermissionLevel() >= 2 && session.hasPermission("geyser.settings.server")) {
+        if (session.getOpPermissionLevel() >= 2 && session.hasPermission(Constants.SERVER_SETTINGS_PERMISSION)) {
             session.getGeyser().getWorldManager().setDefaultGameMode(session, GameMode.byId(packet.getGamemode()));
         }
         // Stop the client from updating their own Gamemode without telling the server
