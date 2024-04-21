@@ -294,12 +294,11 @@ public final class GameProtocol {
                     packet.setContainerId(buffer.readByte());
                 }
             })
-            // Illegal bidirectional packets
+            // // Illegal bidirectional packets
             .updateSerializer(DebugInfoPacket.class, setIllegalSerializer())
             .updateSerializer(EditorNetworkPacket.class, setIllegalSerializer())
-            .updateSerializer(ScriptCustomEventPacket.class, setIllegalSerializer())
             .updateSerializer(ScriptMessagePacket.class, setIllegalSerializer())
-            // Ignored bidirectional packets
+            // // Ignored bidirectional packets
             .updateSerializer(DisconnectPacket.class, setIgnoredSerializer())
             .updateSerializer(SimpleEventPacket.class, setIgnoredSerializer())
             .updateSerializer(TickSyncPacket.class, setIgnoredSerializer())
