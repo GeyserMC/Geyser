@@ -6,6 +6,3 @@ version: ${version}
 softdepend: ["ViaVersion", "floodgate"]
 api-version: 1.13
 folia-supported: true
-permissions:
-  geyser.command:
-    default: true

@@ -42,12 +42,14 @@ import java.util.Map;
 
 public class HelpCommand extends GeyserCommand {
     private final String rootCommand;
+    private final String rootCommandPermission;
     private final Collection<Command> commands;
 
     public HelpCommand(GeyserImpl geyser, String name, String description, String permission,
-                       String rootCommand, Map<String, Command> commands) {
+                       String rootCommand, String rootCommandPermission, Map<String, Command> commands) {
         super(name, description, permission, TriState.TRUE);
         this.rootCommand = rootCommand;
+        this.rootCommandPermission = rootCommandPermission;
         this.commands = commands.values();
         this.aliases = Collections.singletonList("?");
     }
@@ -66,14 +68,8 @@ public class HelpCommand extends GeyserCommand {
         // but it's fine because the help command can be executed by non-bedrock players and by the console.
         manager.command(manager.commandBuilder(rootCommand)
             .apply(meta()) // shouldn't be necessary - just for consistency
-            .handler((commandContext -> {
-                GeyserCommandSource source = commandContext.sender();
-                if (!source.hasPermission(this.permission())) {
-                    source.sendLocaleString("geyser.command.permission_fail");
-                    return;
-                }
-                this.execute(commandContext);
-            })));
+            .permission(rootCommandPermission)
+            .handler((this::execute)));
     }
 
     @Override

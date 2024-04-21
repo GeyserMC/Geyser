@@ -54,6 +54,7 @@ import org.geysermc.geyser.event.type.GeyserDefineCommandsEventImpl;
 import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.text.MinecraftLocale;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.exception.ArgumentParseException;
 import org.incendo.cloud.exception.CommandExecutionException;
@@ -110,14 +111,15 @@ public class CommandRegistry {
                 new GeyserExceptionHandler<>(NoPermissionException.class, this::handleNoPermission),
                 new GeyserExceptionHandler<>(NoSuchCommandException.class, (src, e) -> src.sendLocaleString("geyser.command.not_found")),
                 new GeyserExceptionHandler<>(ArgumentParseException.class, (src, e) -> src.sendLocaleString("geyser.command.invalid_argument", e.getCause().getMessage())),
-                new GeyserExceptionHandler<>(CommandExecutionException.class, (src, e) -> handleUnexpectedThrowable(src, e.getCause()))
+                new GeyserExceptionHandler<>(CommandExecutionException.class, (src, e) -> handleUnexpectedThrowable(src, e.getCause())),
+                new GeyserExceptionHandler<>(RuntimeException.class, (src, e) -> handleUnexpectedThrowable(src, e.getCause()))
         );
         for (GeyserExceptionHandler<?> handler : exceptionHandlers) {
             handler.register(cloud);
         }
 
         // begin command registration
-        registerBuiltInCommand(new HelpCommand(geyser, "help", "geyser.commands.help.desc", "geyser.command.help", "geyser", this.commands));
+        registerBuiltInCommand(new HelpCommand(geyser, "help", "geyser.commands.help.desc", "geyser.command.help", "geyser", "geyser.command", this.commands));
         registerBuiltInCommand(new ListCommand(geyser, "list", "geyser.commands.list.desc", "geyser.command.list"));
         registerBuiltInCommand(new ReloadCommand(geyser, "reload", "geyser.commands.reload.desc", "geyser.command.reload"));
         registerBuiltInCommand(new OffhandCommand(geyser, "offhand", "geyser.commands.offhand.desc", "geyser.command.offhand"));
@@ -164,6 +166,7 @@ public class CommandRegistry {
                 "geyser.commands.exthelp.desc",
                 "geyser.command.exthelp." + id,
                 extension.rootCommand(),
+                extension.description().id() + ".command",
                 entry.getValue()));
         }
 
@@ -204,6 +207,10 @@ public class CommandRegistry {
 
         if (!command.permission().isBlank() && command.permissionDefault() != null) {
             permissionDefaults.put(command.permission(), command.permissionDefault());
+        }
+
+        if (command instanceof HelpCommand helpCommand) {
+            permissionDefaults.put(helpCommand.rootCommand(), helpCommand.permissionDefault());
         }
     }
 
@@ -265,7 +272,7 @@ public class CommandRegistry {
     }
 
     private void handleUnexpectedThrowable(GeyserCommandSource source, Throwable throwable) {
-        source.sendLocaleString("command.failed"); // java edition translation key
+        source.sendMessage(MinecraftLocale.getLocaleString("command.failed", source.locale())); // java edition translation key
         GeyserImpl.getInstance().getLogger().error("Exception while executing command handler", throwable);
     }
 
