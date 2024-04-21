@@ -251,6 +251,16 @@ public class MessageTranslator {
      * @param message Message to convert
      * @return The plain text of the message
      */
+    public static String convertToPlainText(Component message) {
+        return PlainTextComponentSerializer.plainText().serialize(message);
+    }
+
+    /**
+     * Convert legacy format message to plain text
+     *
+     * @param message Message to convert
+     * @return The plain text of the message
+     */
     public static String convertToPlainText(String message) {
         char[] input = message.toCharArray();
         char[] output = new char[input.length];
