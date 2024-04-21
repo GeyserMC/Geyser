@@ -31,7 +31,6 @@ import com.github.steveice10.mc.protocol.data.game.chunk.DataPalette;
 import com.github.steveice10.mc.protocol.data.game.chunk.palette.GlobalPalette;
 import com.github.steveice10.mc.protocol.data.game.chunk.palette.Palette;
 import com.github.steveice10.mc.protocol.data.game.chunk.palette.SingletonPalette;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import it.unimi.dsi.fastutil.ints.*;
 import org.geysermc.geyser.level.chunk.BlockStorage;
 import org.geysermc.geyser.level.chunk.bitarray.BitArray;
@@ -39,7 +38,6 @@ import org.geysermc.geyser.level.chunk.bitarray.BitArrayVersion;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.util.MathUtils;
 
 import java.util.List;
 
@@ -48,8 +46,6 @@ public class BiomeTranslator {
 
     public static void loadServerBiomes(GeyserSession session, List<RegistryEntry> entries) {
         Int2IntMap biomeTranslations = new Int2IntOpenHashMap();
-
-        session.setBiomeGlobalPalette(MathUtils.getGlobalPaletteForSize(entries.size()));
 
         int greatestBiomeId = 0;
         for (int i = 0; i < entries.size(); i++) {
