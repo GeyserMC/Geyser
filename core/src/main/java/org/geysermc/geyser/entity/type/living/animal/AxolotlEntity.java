@@ -61,7 +61,7 @@ public class AxolotlEntity extends AnimalEntity {
 
     @Override
     public boolean canEat(Item item) {
-        return session.getTagCache().isAxolotlTemptItem(item);
+        return session.getTagCache().isAxolotlFood(item);
     }
 
     @Override
