@@ -25,11 +25,11 @@
 
 package org.geysermc.geyser.translator.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
+import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
 import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
 import it.unimi.dsi.fastutil.ints.*;
 import lombok.AllArgsConstructor;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -909,10 +909,11 @@ public abstract class InventoryTranslator {
             // As of 1.16.210: Bedrock needs confirmation on what the current item durability is.
             // If 0 is sent, then Bedrock thinks the item is not damaged
             int durability = 0;
-            if (itemStack.getNbt() != null) {
-                Tag damage = itemStack.getNbt().get("Damage");
-                if (damage instanceof IntTag) {
-                    durability = ItemUtils.getCorrectBedrockDurability(itemStack.asItem(), ((IntTag) damage).getValue());
+            DataComponents components = itemStack.getComponents();
+            if (components != null) {
+                Integer damage = components.get(DataComponentType.DAMAGE);
+                if (damage != null) {
+                    durability = ItemUtils.getCorrectBedrockDurability(itemStack.asItem(), damage);
                 }
             }
 
