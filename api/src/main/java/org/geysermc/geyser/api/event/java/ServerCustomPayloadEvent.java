@@ -35,12 +35,12 @@ import org.geysermc.geyser.api.event.connection.ConnectionEvent;
  * This event is not called when a built-in supported custom payload
  * such as floodgate is received.
  */
-public class GeyserCustomPayloadEvent extends ConnectionEvent {
+public class ServerCustomPayloadEvent extends ConnectionEvent {
 
     private final String channel;
     private final byte[] data;
 
-    public GeyserCustomPayloadEvent(@NonNull GeyserConnection connection, @NonNull String channel, byte[] data) {
+    public ServerCustomPayloadEvent(@NonNull GeyserConnection connection, @NonNull String channel, byte[] data) {
         super(connection);
         this.channel = channel;
         this.data = data;
