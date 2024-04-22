@@ -30,7 +30,7 @@ import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 
 /**
- * Called when the java server sends a custom payload to geyser.
+ * Called when the Java server sends a custom payload to Geyser.
  * An extension/addon can use this event to translate this.
  * This event is not called when a built-in supported custom payload
  * such as floodgate is received.
