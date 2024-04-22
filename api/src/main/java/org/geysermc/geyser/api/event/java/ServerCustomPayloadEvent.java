@@ -31,7 +31,7 @@ import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 
 /**
  * Called when the Java server sends a custom payload to Geyser.
- * This event is not called when a built-in supported custom payload
+ * This event is not called when a built-in custom payload
  * such as Floodgate is received.
  */
 public class ServerCustomPayloadEvent extends ConnectionEvent {
