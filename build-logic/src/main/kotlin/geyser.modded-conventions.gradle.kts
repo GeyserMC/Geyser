@@ -46,6 +46,12 @@ loom {
     silentMojangMappingsLicense()
 }
 
+indra {
+    javaVersions {
+        target(21)
+    }
+}
+
 configurations {
     create("includeTransitive").isTransitive = true
 }
@@ -104,7 +110,7 @@ afterEvaluate {
 }
 
 dependencies {
-    minecraft("com.mojang:minecraft:1.20.4")
+    minecraft("com.mojang:minecraft:1.20.5-rc3")
     mappings(loom.officialMojangMappings())
 }
 
@@ -128,6 +134,6 @@ modrinth {
     syncBodyFrom.set(rootProject.file("README.md").readText())
 
     uploadFile.set(tasks.getByPath("remapModrinthJar"))
-    gameVersions.addAll("1.20.4")
+    gameVersions.addAll("1.20.5")
     failSilently.set(true)
 }

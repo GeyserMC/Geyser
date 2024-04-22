@@ -66,7 +66,7 @@ include(":ap")
 include(":api")
 include(":bungeecord")
 include(":fabric")
-include(":neoforge")
+//include(":neoforge") // todo 1.20.5
 include(":mod")
 include(":spigot")
 include(":standalone")
@@ -78,7 +78,7 @@ include(":core")
 // Specify project dirs
 project(":bungeecord").projectDir = file("bootstrap/bungeecord")
 project(":fabric").projectDir = file("bootstrap/mod/fabric")
-project(":neoforge").projectDir = file("bootstrap/mod/neoforge")
+//project(":neoforge").projectDir = file("bootstrap/mod/neoforge") // todo 1.20.5
 project(":mod").projectDir = file("bootstrap/mod")
 project(":spigot").projectDir = file("bootstrap/spigot")
 project(":standalone").projectDir = file("bootstrap/standalone")

@@ -1,5 +1,6 @@
 architectury {
-    common("neoforge", "fabric")
+    common("fabric")
+    //common("neoforge", "fabric") // todo 1.20.5
 }
 
 loom {
