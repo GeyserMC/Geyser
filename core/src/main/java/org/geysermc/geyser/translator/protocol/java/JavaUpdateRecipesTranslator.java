@@ -269,8 +269,8 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         if (sendTrimRecipes) {
             // BDS sends armor trim templates and materials before the CraftingDataPacket
             TrimDataPacket trimDataPacket = new TrimDataPacket();
-            trimDataPacket.getPatterns().addAll(TrimRecipe.PATTERNS);
-            trimDataPacket.getMaterials().addAll(TrimRecipe.MATERIALS);
+            trimDataPacket.getPatterns().addAll(session.getRegistryCache().trimPatterns().values());
+            trimDataPacket.getMaterials().addAll(session.getRegistryCache().trimMaterials().values());
             session.sendUpstreamPacket(trimDataPacket);
 
             // Identical smithing_trim recipe sent by BDS that uses tag-descriptors, as the client seems to ignore the

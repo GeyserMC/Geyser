@@ -55,4 +55,18 @@ public record JavaDimension(int minY, int maxY, boolean piglinSafe, double world
             map.put(i, new JavaDimension(minY, maxY, piglinSafe, coordinateScale));
         }
     }
+
+    public static JavaDimension read(RegistryEntry entry) {
+        CompoundTag dimension = entry.getData();
+        int minY = ((IntTag) dimension.get("min_y")).getValue();
+        int maxY = ((IntTag) dimension.get("height")).getValue();
+        // Logical height can be ignored probably - seems to be for artificial limits like the Nether.
+
+        // Set if piglins/hoglins should shake
+        boolean piglinSafe = ((Number) dimension.get("piglin_safe").getValue()).byteValue() != (byte) 0;
+        // Load world coordinate scale for the world border
+        double coordinateScale = ((Number) dimension.get("coordinate_scale").getValue()).doubleValue();
+
+        return new JavaDimension(minY, maxY, piglinSafe, coordinateScale);
+    }
 }

@@ -44,7 +44,6 @@ import com.github.steveice10.mc.protocol.data.game.statistic.CustomStatistic;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
 import com.github.steveice10.mc.protocol.packet.common.serverbound.ServerboundClientInformationPacket;
 import com.github.steveice10.mc.protocol.packet.handshake.serverbound.ClientIntentionPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundChatCommandPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundChatCommandSignedPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundChatPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
@@ -54,11 +53,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.Server
 import com.github.steveice10.mc.protocol.packet.login.serverbound.ServerboundCustomQueryAnswerPacket;
 import com.github.steveice10.packetlib.BuiltinFlags;
 import com.github.steveice10.packetlib.Session;
-import com.github.steveice10.packetlib.event.session.ConnectedEvent;
-import com.github.steveice10.packetlib.event.session.DisconnectedEvent;
-import com.github.steveice10.packetlib.event.session.PacketErrorEvent;
-import com.github.steveice10.packetlib.event.session.PacketSendingEvent;
-import com.github.steveice10.packetlib.event.session.SessionAdapter;
+import com.github.steveice10.packetlib.event.session.*;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpClientSession;
 import com.github.steveice10.packetlib.tcp.TcpSession;
@@ -66,8 +61,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -146,7 +139,6 @@ import org.geysermc.geyser.session.cache.*;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
-import org.geysermc.geyser.text.TextDecoration;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
@@ -158,16 +150,7 @@ import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledFuture;
@@ -214,6 +197,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final LodestoneCache lodestoneCache;
     private final PistonCache pistonCache;
     private final PreferencesCache preferencesCache;
+    private final RegistryCache registryCache;
     private final SkullCache skullCache;
     private final StructureBlockCache structureBlockCache;
     private final TagCache tagCache;
@@ -262,12 +246,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private ItemMappings itemMappings;
-
-    /**
-     * Stores the map between Java and Bedrock biome network IDs.
-     */
-    @Setter
-    private int[] biomeTranslations = null;
 
     /**
      * A map of Vector3i positions to Java entities.
@@ -360,12 +338,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @MonotonicNonNull
     @Setter
     private JavaDimension dimensionType = null;
-    /**
-     * All dimensions that the client could possibly connect to.
-     */
-    private final Int2ObjectMap<JavaDimension> dimensions = new Int2ObjectOpenHashMap<>(4);
-
-    private final Int2ObjectMap<TextDecoration> chatTypes = new Int2ObjectOpenHashMap<>(7);
 
     @Setter
     private int breakingBlock;
@@ -619,6 +591,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.lodestoneCache = new LodestoneCache();
         this.pistonCache = new PistonCache(this);
         this.preferencesCache = new PreferencesCache(this);
+        this.registryCache = new RegistryCache(this);
         this.skullCache = new SkullCache(this);
         this.structureBlockCache = new StructureBlockCache();
         this.tagCache = new TagCache();

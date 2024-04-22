@@ -25,49 +25,16 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import com.github.steveice10.mc.protocol.data.game.RegistryEntry;
 import com.github.steveice10.mc.protocol.packet.configuration.clientbound.ClientboundRegistryDataPacket;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.TextDecoration;
-import org.geysermc.geyser.translator.level.BiomeTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-
-import java.util.List;
 
 @Translator(packet = ClientboundRegistryDataPacket.class)
 public class JavaRegistryDataTranslator extends PacketTranslator<ClientboundRegistryDataPacket> {
 
     @Override
     public void translate(GeyserSession session, ClientboundRegistryDataPacket packet) {
-        if (packet.getRegistry().equals("minecraft:dimension_type")) {
-            Int2ObjectMap<JavaDimension> dimensions = session.getDimensions();
-            dimensions.clear();
-            JavaDimension.load(packet.getEntries(), dimensions);
-        }
-
-        if (packet.getRegistry().equals("minecraft:chat_type")) {
-            Int2ObjectMap<TextDecoration> chatTypes = session.getChatTypes();
-            chatTypes.clear();
-            List<RegistryEntry> entries = packet.getEntries();
-            for (int i = 0; i < entries.size(); i++) {
-                // The ID is NOT ALWAYS THE SAME! ViaVersion as of 1.19 adds two registry entries that do NOT match vanilla.
-                RegistryEntry entry = entries.get(i);
-                CompoundTag tag = entry.getData();
-                CompoundTag chat = tag.get("chat");
-                TextDecoration textDecoration = null;
-                if (chat != null) {
-                    textDecoration = new TextDecoration(chat);
-                }
-                chatTypes.put(i, textDecoration);
-            }
-        }
-
-        if (packet.getRegistry().equals("minecraft:worldgen/biome")) {
-            BiomeTranslator.loadServerBiomes(session, packet.getEntries());
-        }
+        session.getRegistryCache().load(packet);
     }
 }
