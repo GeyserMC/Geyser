@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.item.type;
 
+import com.github.steveice10.mc.protocol.data.game.Holder;
 import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
@@ -60,7 +61,7 @@ public class GoatHornItem extends Item {
         if (components == null) {
             return builder;
         }
-        Instrument instrument = components.get(DataComponentType.INSTRUMENT);
+        Holder<Instrument> instrument = components.get(DataComponentType.INSTRUMENT);
         // TODO registry
         if (instrument != null) {
             // Drop the Minecraft namespace if applicable
