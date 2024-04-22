@@ -141,8 +141,10 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
                 session.sendUpstreamPacket(toSend);
             });
         } else {
-            EventBus eventBus = session.getGeyser().eventBus();
-            eventBus.fire(new ServerCustomPayloadEvent(session, channel, packet.getData()));
+            session.ensureInEventLoop(() -> {
+                EventBus eventBus = session.getGeyser().eventBus();
+                eventBus.fire(new ServerCustomPayloadEvent(session, channel, packet.getData()));
+            });
         }
     }
 
