@@ -52,15 +52,14 @@ public class ArmorItem extends Item {
 
         ArmorTrim trim = components.get(DataComponentType.TRIM);
         if (trim != null) {
-            // TODO material IDs
-            String material = trim.getMaterial().getAssetName();
-            String pattern = trim.getPattern().getAssetId();
-
             // discard custom trim patterns/materials to prevent visual glitches on bedrock
-            if (!material.startsWith("minecraft:")
-                    || !pattern.startsWith("minecraft:")) {
+            if (trim.getMaterial().isCustom() || trim.getPattern().isCustom()) {
                 return;
             }
+
+            // TODO material IDs
+            String material = trim.getMaterial().getCustomValue().getAssetName();
+            String pattern = trim.getPattern().getCustomValue().getAssetId();
 
             NbtMapBuilder trimBuilder = NbtMap.builder();
             // bedrock has an uppercase first letter key, and the value is not namespaced
