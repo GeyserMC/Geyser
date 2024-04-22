@@ -104,6 +104,9 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
                     }
                     break;
                 }
+                case SIGN_BOOK: {
+                    break;
+                }
                 default:
                     return;
             }

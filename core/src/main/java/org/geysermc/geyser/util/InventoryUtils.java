@@ -180,7 +180,7 @@ public class InventoryUtils {
     public static boolean canStack(GeyserItemStack item1, GeyserItemStack item2) {
         if (item1.isEmpty() || item2.isEmpty())
             return false;
-        return item1.getJavaId() == item2.getJavaId() && Objects.equals(item1.getNbt(), item2.getNbt());
+        return item1.getJavaId() == item2.getJavaId() && Objects.equals(item1.getComponents(), item2.getComponents());
     }
 
     /**

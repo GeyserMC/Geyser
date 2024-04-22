@@ -264,11 +264,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private ItemMappings itemMappings;
 
     /**
-     * Required to decode biomes correctly.
-     */
-    @Setter
-    private int biomeGlobalPalette;
-    /**
      * Stores the map between Java and Bedrock biome network IDs.
      */
     @Setter

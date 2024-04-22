@@ -72,7 +72,8 @@ public class AnvilContainer extends Container {
         String correctRename;
         newName = rename;
 
-        String originalName = ItemUtils.getCustomName(getInput().getNbt());
+        // TODO 1.20.5 fix properly - this name is apparently nullable??
+        String originalName = MessageTranslator.convertMessage(ItemUtils.getCustomName(getInput().getComponents()));
 
         String plainOriginalName = MessageTranslator.convertToPlainTextLenient(originalName, session.locale());
         String plainNewName = MessageTranslator.convertToPlainText(rename);

@@ -98,7 +98,6 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         // Ensure that, if the player is using lower world heights, the position is not offset
         int yOffset = session.getChunkCache().getChunkMinY();
         int chunkSize = session.getChunkCache().getChunkHeightY();
-        int biomeGlobalPalette = session.getBiomeGlobalPalette();
 
         DataPalette[] javaChunks = new DataPalette[chunkSize];
         DataPalette[] javaBiomes = new DataPalette[chunkSize];
@@ -122,7 +121,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             ByteBuf in = Unpooled.wrappedBuffer(packet.getChunkData());
             boolean extendedCollisionNextSection = false;
             for (int sectionY = 0; sectionY < chunkSize; sectionY++) {
-                ChunkSection javaSection = session.getDownstream().getCodecHelper().readChunkSection(in, biomeGlobalPalette);
+                ChunkSection javaSection = session.getDownstream().getCodecHelper().readChunkSection(in);
                 javaChunks[sectionY] = javaSection.getChunkData();
                 javaBiomes[sectionY] = javaSection.getBiomeData();
                 boolean extendedCollision = extendedCollisionNextSection;
@@ -200,7 +199,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                         }
 
                         // Check if block is piston or flower to see if we'll need to create additional block entities, as they're only block entities in Bedrock
-                        if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId) || BlockStateValues.isNonWaterCauldron(javaId)) {
+                        if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId) || BlockStateValues.isCauldron(javaId)) {
                             bedrockBlockEntities.add(BedrockOnlyBlockEntity.getTag(session,
                                     Vector3i.from((packet.getX() << 4) + (yzx & 0xF), ((sectionY + yOffset) << 4) + ((yzx >> 8) & 0xF), (packet.getZ() << 4) + ((yzx >> 4) & 0xF)),
                                     javaId
@@ -259,7 +258,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     }
 
                     // Check if block is piston, flower or cauldron to see if we'll need to create additional block entities, as they're only block entities in Bedrock
-                    if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId) || BlockStateValues.isNonWaterCauldron(javaId)) {
+                    if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId) || BlockStateValues.isCauldron(javaId)) {
                         bedrockOnlyBlockEntityIds.set(i);
                     }
                 }
@@ -393,12 +392,13 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             final int chunkBlockZ = packet.getZ() << 4;
             for (BlockEntityInfo blockEntity : blockEntities) {
                 BlockEntityType type = blockEntity.getType();
-                if (type == null) {
+                CompoundTag tag = blockEntity.getNbt();
+                if (type == null || tag == null) {
                     // As an example: ViaVersion will send -1 if it cannot find the block entity type
                     // Vanilla Minecraft gracefully handles this
+                    // Since 1.20.5: tags sent here can be null, at which point the block entity is not translated
                     continue;
                 }
-                CompoundTag tag = blockEntity.getNbt();
                 int x = blockEntity.getX(); // Relative to chunk
                 int y = blockEntity.getY();
                 int z = blockEntity.getZ(); // Relative to chunk

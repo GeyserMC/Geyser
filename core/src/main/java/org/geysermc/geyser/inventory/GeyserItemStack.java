@@ -26,6 +26,7 @@
 package org.geysermc.geyser.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import lombok.AccessLevel;
@@ -85,6 +86,30 @@ public class GeyserItemStack {
 
     public @Nullable DataComponents getComponents() {
         return isEmpty() ? null : components;
+    }
+
+    public <T extends Boolean> boolean getComponent(DataComponentType<T> type, boolean def) {
+        if (components == null) {
+            return def;
+        }
+
+        Boolean result = components.get(type);
+        if (result != null) {
+            return result;
+        }
+        return def;
+    }
+
+    public <T extends Integer> int getComponent(DataComponentType<T> type, int def) {
+        if (components == null) {
+            return def;
+        }
+
+        Integer result = components.get(type);
+        if (result != null) {
+            return result;
+        }
+        return def;
     }
 
     public int getNetId() {

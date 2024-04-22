@@ -29,10 +29,6 @@ import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentT
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
 import com.github.steveice10.mc.protocol.data.game.item.component.Filterable;
 import com.github.steveice10.mc.protocol.data.game.item.component.WrittenBookContent;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
@@ -47,7 +43,6 @@ import java.util.List;
 
 public class WrittenBookItem extends Item {
     public static final int MAXIMUM_PAGE_EDIT_LENGTH = 1024;
-    public static final int MAXIMUM_PAGE_LENGTH = 32768;
     public static final int MAXIMUM_PAGE_COUNT = 100; // Java edition limit. Bedrock edition has a limit of 50 pages.
     public static final int MAXIMUM_TITLE_LENGTH = 16;
 
@@ -73,33 +68,8 @@ public class WrittenBookItem extends Item {
         builder.putList("pages", NbtType.COMPOUND, bedrockPages);
 
         builder.putString("title", bookContent.getTitle().getRaw())
-                .putString("author", bookContent.getAuthor());
+                .putString("author", bookContent.getAuthor())
+                .putInt("generation", bookContent.getGeneration());
         // TODO isResolved
-    }
-
-    private boolean isValidWrittenBook(CompoundTag tag) {
-        if (!(tag.get("title") instanceof StringTag title)) {
-            return false;
-        }
-        if (title.getValue().length() > (MAXIMUM_TITLE_LENGTH * 2)) {
-            // Java rejects books with titles more than 2x the maximum length allowed in the input box
-            return false;
-        }
-
-        if (!(tag.get("author") instanceof StringTag)) {
-            return false;
-        }
-
-        if (!(tag.get("pages") instanceof ListTag pages)) {
-            return false;
-        }
-        for (Tag pageTag : pages) {
-            if (pageTag instanceof StringTag page) {
-                if (page.getValue().length() > MAXIMUM_PAGE_LENGTH) {
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 }
