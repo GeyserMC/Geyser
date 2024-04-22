@@ -32,7 +32,7 @@ import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 /**
  * Called when the Java server sends a custom payload to Geyser.
  * This event is not called when a built-in supported custom payload
- * such as floodgate is received.
+ * such as Floodgate is received.
  */
 public class ServerCustomPayloadEvent extends ConnectionEvent {
 
@@ -51,7 +51,7 @@ public class ServerCustomPayloadEvent extends ConnectionEvent {
      * <code>minecraft:register</code>.
      * @return the channel that sent this custom payload.
      */
-    public @NonNull String getChannel() {
+    public @NonNull String channel() {
         return channel;
     }
 
@@ -59,7 +59,7 @@ public class ServerCustomPayloadEvent extends ConnectionEvent {
      * The data field of the custom payload.
      * @return the data field of the custom payload.
      */
-    public byte[] getData() {
+    public byte[] data() {
         return data;
     }
 }
