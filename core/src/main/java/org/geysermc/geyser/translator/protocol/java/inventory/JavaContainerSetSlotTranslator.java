@@ -194,7 +194,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                     "crafting_table",
                     0,
                     newRecipeId,
-                    true
+                    false
             ));
             craftPacket.setCleanRecipes(false);
             session.sendUpstreamPacket(craftPacket);
