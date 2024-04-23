@@ -26,6 +26,9 @@
 package org.geysermc.geyser.translator.item;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
+import com.github.steveice10.mc.auth.data.GameProfile.Texture;
+import com.github.steveice10.mc.auth.data.GameProfile.TextureType;
+import com.github.steveice10.mc.auth.exception.property.PropertyException;
 import com.github.steveice10.mc.protocol.data.game.Identifier;
 import com.github.steveice10.mc.protocol.data.game.entity.attribute.ModifierOperation;
 import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
@@ -553,21 +556,28 @@ public final class ItemTranslator {
         if (components == null) {
             return null;
         }
-        //TODO
+        
         GameProfile profile = components.get(DataComponentType.PROFILE);
         if (profile != null) {
-//            if (!(nbt.get("SkullOwner") instanceof CompoundTag skullOwner)) {
-//                // It's a username give up d:
-//                return null;
-//            }
-//            SkinManager.GameProfileData data = SkinManager.GameProfileData.from(skullOwner);
-//            if (data == null) {
-//                session.getGeyser().getLogger().debug("Not sure how to handle skull head item display. " + nbt);
-//                return null;
-//            }
-//
-//            String skinHash = data.skinUrl().substring(data.skinUrl().lastIndexOf('/') + 1);
-//            return BlockRegistries.CUSTOM_SKULLS.get(skinHash);
+            Map<TextureType, Texture> textures = null;
+            try {
+                textures = profile.getTextures(false);
+            } catch (PropertyException e) {
+                session.getGeyser().getLogger().debug("Failed to get textures from GameProfile: " + e);
+            }
+
+            if (textures == null || textures.isEmpty()) {
+                return null;
+            }
+
+            Texture skinTexture = textures.get(TextureType.SKIN);
+
+            if (skinTexture == null) {
+                return null;
+            }
+
+            String skinHash = skinTexture.getURL().substring(skinTexture.getURL().lastIndexOf('/') + 1);
+            return BlockRegistries.CUSTOM_SKULLS.get(skinHash);
         }
         return null;
     }

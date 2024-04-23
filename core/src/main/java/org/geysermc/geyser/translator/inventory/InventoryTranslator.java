@@ -225,7 +225,7 @@ public abstract class InventoryTranslator {
                             GeyserItemStack javaItem = inventory.getItem(sourceSlot);
                             if (javaItem.asItem() == Items.PLAYER_HEAD
                                     && javaItem.getNbt() != null) {
-                                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getNbt().get("SkullOwner"));
+                                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponents());
                             }
                         } else if (sourceSlot == 5) {
                             //we are probably removing the head, so restore the original skin
