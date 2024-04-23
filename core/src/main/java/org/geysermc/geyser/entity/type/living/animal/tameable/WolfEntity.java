@@ -133,16 +133,29 @@ public class WolfEntity extends TameableEntity {
         if (itemInHand.asItem() == Items.BONE && !getFlag(EntityFlag.TAMED)) {
             // Bone and untamed - can tame
             return InteractiveTag.TAME;
-        } else {
-            if (itemInHand.asItem() instanceof DyeItem item) {
+        }
+        if (getFlag(EntityFlag.TAMED) && ownerBedrockId == session.getPlayerEntity().getGeyserId()) {
+            if (itemInHand.asItem() instanceof DyeItem dyeItem) {
                 // If this fails, as of Java Edition 1.18.1, you cannot toggle sit/stand
-                if (item.dyeColor() != this.collarColor) {
+                if (dyeItem.dyeColor() != this.collarColor) {
                     return InteractiveTag.DYE;
+                } else {
+                    return super.testMobInteraction(hand, itemInHand);
                 }
-            } else if (getFlag(EntityFlag.TAMED) && ownerBedrockId == session.getPlayerEntity().getGeyserId()) {
-                // Tamed and owned by player - can sit/stand
-                return getFlag(EntityFlag.SITTING) ? InteractiveTag.STAND : InteractiveTag.SIT;
             }
+            if (itemInHand.asItem() == Items.WOLF_ARMOR && !this.chestplate.isValid() && !getFlag(EntityFlag.BABY)) {
+                return InteractiveTag.EQUIP_WOLF_ARMOR;
+            }
+            if (itemInHand.asItem() == Items.SHEARS && this.chestplate.isValid()) { // TODO: check curse of binding
+                return InteractiveTag.REMOVE_WOLF_ARMOR;
+            }
+            if (Items.WOLF_ARMOR.isValidRepairItem(itemInHand.asItem()) && getFlag(EntityFlag.SITTING) &&
+                    this.chestplate.isValid() && this.chestplate.getTag() != null &&
+                    this.chestplate.getTag().getInt("Damage") > 0) {
+                return InteractiveTag.REPAIR_WOLF_ARMOR;
+            }
+            // Tamed and owned by player - can sit/stand
+            return getFlag(EntityFlag.SITTING) ? InteractiveTag.STAND : InteractiveTag.SIT;
         }
         return super.testMobInteraction(hand, itemInHand);
     }
