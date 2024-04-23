@@ -33,6 +33,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MobArmorEquipment
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MobEquipmentSerializer_v291;
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.PlayerHotbarSerializer_v291;
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.SetEntityLinkSerializer_v291;
+import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.SetEntityMotionSerializer_v291;
 import org.cloudburstmc.protocol.bedrock.codec.v390.serializer.PlayerSkinSerializer_v390;
 import org.cloudburstmc.protocol.bedrock.codec.v407.serializer.InventoryContentSerializer_v407;
 import org.cloudburstmc.protocol.bedrock.codec.v407.serializer.InventorySlotSerializer_v407;
@@ -50,7 +51,6 @@ import org.cloudburstmc.protocol.bedrock.packet.CodeBuilderSourcePacket;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CreatePhotoPacket;
 import org.cloudburstmc.protocol.bedrock.packet.DebugInfoPacket;
-import org.cloudburstmc.protocol.bedrock.packet.DisconnectPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EditorNetworkPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EntityFallPacket;
 import org.cloudburstmc.protocol.bedrock.packet.GameTestRequestPacket;
@@ -182,9 +182,18 @@ class CodecProcessor {
     };
 
     /**
-     * Serializer that does nothing when trying to deserialize SetEntityMotionPacket since it is not used from the client.
+     * Serializer that does nothing when trying to deserialize SetEntityMotionPacket since it is not used from the client for codec v291.
      */
-    private static final BedrockPacketSerializer<SetEntityMotionPacket> SET_ENTITY_MOTION_SERIALIZER = new SetEntityMotionSerializer_v662() {
+    private static final BedrockPacketSerializer<SetEntityMotionPacket> SET_ENTITY_MOTION_SERIALIZER_V291 = new SetEntityMotionSerializer_v291() {
+        @Override
+        public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, SetEntityMotionPacket packet) {
+        }
+    };
+
+    /**
+     * Serializer that does nothing when trying to deserialize SetEntityMotionPacket since it is not used from the client for codec v662.
+     */
+    private static final BedrockPacketSerializer<SetEntityMotionPacket> SET_ENTITY_MOTION_SERIALIZER_V662 = new SetEntityMotionSerializer_v662() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, SetEntityMotionPacket packet) {
         }
@@ -251,7 +260,9 @@ class CodecProcessor {
             .updateSerializer(PlayerHotbarPacket.class, PLAYER_HOTBAR_SERIALIZER)
             .updateSerializer(PlayerSkinPacket.class, PLAYER_SKIN_SERIALIZER)
             .updateSerializer(SetEntityDataPacket.class, SET_ENTITY_DATA_SERIALIZER)
-            .updateSerializer(SetEntityMotionPacket.class, SET_ENTITY_MOTION_SERIALIZER)
+            .updateSerializer(SetEntityMotionPacket.class, codec.getProtocolVersion() < 662 ?
+                SET_ENTITY_MOTION_SERIALIZER_V291 :
+                SET_ENTITY_MOTION_SERIALIZER_V662)
             .updateSerializer(SetEntityLinkPacket.class, SET_ENTITY_LINK_SERIALIZER)
             // Valid serverbound packets where reading of some fields can be skipped
             .updateSerializer(MobEquipmentPacket.class, MOB_EQUIPMENT_SERIALIZER)
@@ -261,7 +272,6 @@ class CodecProcessor {
             .updateSerializer(ScriptMessagePacket.class, ILLEGAL_SERIALIZER)
             // // Ignored bidirectional packets
             .updateSerializer(ClientCacheStatusPacket.class, IGNORED_SERIALIZER)
-            .updateSerializer(DisconnectPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(SimpleEventPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(TickSyncPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(MultiplayerSettingsPacket.class, IGNORED_SERIALIZER)
