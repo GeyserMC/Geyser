@@ -44,7 +44,7 @@ jobs:
         # See https://github.com/actions/setup-java/commits
       - uses: actions/setup-java@387ac29b308b003ca37ba93a6cab5eb57c8f5f93 # v4.0.0
         with:
-          java-version: 17
+          java-version: 21
           distribution: temurin
           
       - name: Build
