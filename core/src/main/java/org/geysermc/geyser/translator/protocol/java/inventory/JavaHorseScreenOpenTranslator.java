@@ -112,19 +112,23 @@ public class JavaHorseScreenOpenTranslator extends PacketTranslator<ClientboundH
         NbtMapBuilder builder = NbtMap.builder();
         List<NbtMap> slots = new ArrayList<>();
 
+        // Since 1.20.5, the armor slot is not included in the container size,
+        // but everything is still indexed the same.
+        int slotCount = packet.getNumberOfSlots() + 1;
+
         InventoryTranslator inventoryTranslator;
         if (entity instanceof LlamaEntity) {
-            inventoryTranslator = new LlamaInventoryTranslator(packet.getNumberOfSlots());
+            inventoryTranslator = new LlamaInventoryTranslator(slotCount);
             slots.add(CARPET_SLOT);
         } else if (entity instanceof ChestedHorseEntity) {
-            inventoryTranslator = new DonkeyInventoryTranslator(packet.getNumberOfSlots());
+            inventoryTranslator = new DonkeyInventoryTranslator(slotCount);
             slots.add(SADDLE_SLOT);
         } else if (entity instanceof CamelEntity) {
             // The camel has an invisible armor slot and needs special handling, same as the donkey
-            inventoryTranslator = new DonkeyInventoryTranslator(packet.getNumberOfSlots());
+            inventoryTranslator = new DonkeyInventoryTranslator(slotCount);
             slots.add(SADDLE_SLOT);
         } else {
-            inventoryTranslator = new HorseInventoryTranslator(packet.getNumberOfSlots());
+            inventoryTranslator = new HorseInventoryTranslator(slotCount);
             slots.add(SADDLE_SLOT);
             slots.add(ARMOR_SLOT);
         }
@@ -136,6 +140,6 @@ public class JavaHorseScreenOpenTranslator extends PacketTranslator<ClientboundH
         session.sendUpstreamPacket(updateEquipPacket);
 
         session.setInventoryTranslator(inventoryTranslator);
-        InventoryUtils.openInventory(session, new Container(entity.getNametag(), packet.getContainerId(), packet.getNumberOfSlots(), null, session.getPlayerInventory()));
+        InventoryUtils.openInventory(session, new Container(entity.getNametag(), packet.getContainerId(), slotCount, null, session.getPlayerInventory()));
     }
 }
