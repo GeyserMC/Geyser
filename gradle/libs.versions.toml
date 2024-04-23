@@ -118,9 +118,9 @@ websocket = { group = "org.java-websocket", name = "Java-WebSocket", version.ref
 #protocol-common = { group = "org.cloudburstmc.protocol", name = "common", version.ref = "protocol-connection" }
 #protocol-codec = { group = "org.cloudburstmc.protocol", name = "bedrock-codec", version.ref = "protocol" }
 #protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol-connection" }
-protocol-common = { group = "com.github.Kas-tle.Protocol", name = "common", version = "54b75bd" } # Remove before merge
-protocol-codec = { group = "com.github.Kas-tle.Protocol", name = "bedrock-codec", version = "54b75bd" } # Remove before merge
-protocol-connection = { group = "com.github.Kas-tle.Protocol", name = "bedrock-connection", version = "54b75bd" } # Remove before merge
+protocol-common = { group = "com.github.GeyserMC.Protocol", name = "common", version = "ade21be" }
+protocol-codec = { group = "com.github.GeyserMC.Protocol", name = "bedrock-codec", version = "ade21be" }
+protocol-connection = { group = "com.github.GeyserMC.Protocol", name = "bedrock-connection", version = "ade21be" }
 
 math = { group = "org.cloudburstmc.math", name = "immutable", version = "2.0" }
 
