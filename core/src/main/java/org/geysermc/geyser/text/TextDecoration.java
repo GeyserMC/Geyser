@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.text;
 
+import com.github.steveice10.mc.protocol.data.game.RegistryEntry;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
@@ -85,6 +86,17 @@ public final class TextDecoration {
                 ", style=" + style +
                 ", parameters=" + parameters +
                 '}';
+    }
+
+    public static TextDecoration readChatType(RegistryEntry entry) {
+        // Note: The ID is NOT ALWAYS THE SAME! ViaVersion as of 1.19 adds two registry entries that do NOT match vanilla.
+        CompoundTag tag = entry.getData();
+        CompoundTag chat = tag.get("chat");
+        TextDecoration textDecoration = null;
+        if (chat != null) {
+            textDecoration = new TextDecoration(chat);
+        }
+        return textDecoration;
     }
 
     public enum Parameter {

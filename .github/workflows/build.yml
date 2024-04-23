@@ -7,9 +7,9 @@ on:
       - 'gh-readonly-queue/**'
     paths-ignore:
       - '.github/ISSUE_TEMPLATE/*.yml'
-      - '.github/actions/workflows/build-remote.yml'
-      - '.github/actions/workflows/preview.yml'
-      - '.github/actions/workflows/pull-request.yml'
+      - '.github/workflows/build-remote.yml'
+      - '.github/workflows/preview.yml'
+      - '.github/workflows/pull-request.yml'
       - '.idea/copyright/*.xml'
       - '.gitignore'
       - 'CONTRIBUTING.md'
@@ -29,7 +29,7 @@ jobs:
           BUILD_JSON: ${{ vars.RELEASEACTION_PREVRELEASE }}
         run: |
           BUILD_NUMBER=$(echo $BUILD_JSON | jq --arg branch "${GITHUB_REF_NAME}" 'if .[$branch] == null then 1 else .[$branch] | .t | tonumber + 1 end // 1')
-          echo "BUILD_NUMBER=${BUILD_NUMBER}" >> $GITHUB_ENV
+          echo "BUILD_NUMBER=${BUILD_NUMBER:=$GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
 
       - name: Checkout repository and submodules
         # See https://github.com/actions/checkout/commits
@@ -44,7 +44,7 @@ jobs:
         # See https://github.com/actions/setup-java/commits
       - uses: actions/setup-java@387ac29b308b003ca37ba93a6cab5eb57c8f5f93 # v4.0.0
         with:
-          java-version: 17
+          java-version: 21
           distribution: temurin
           
       - name: Build
@@ -68,7 +68,7 @@ jobs:
         with:
           name: Geyser NeoForge
           path: bootstrap/mod/neoforge/build/libs/Geyser-NeoForge.jar
-          if-no-files-found: error
+          #if-no-files-found: error // TODO 1.20.5 - currently no neoforge artifacts
       - name: Archive artifacts (Geyser Standalone)
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3
         if: success()

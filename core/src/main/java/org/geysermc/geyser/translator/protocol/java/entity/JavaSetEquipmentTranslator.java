@@ -31,7 +31,10 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.Client
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.skin.FakeHeadProvider;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -59,15 +62,14 @@ public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetE
             switch (equipment.getSlot()) {
                 case HELMET -> {
                     ItemStack javaItem = equipment.getItem();
-                    // TODO
-//                    if (livingEntity instanceof PlayerEntity
-//                            && javaItem != null
-//                            && javaItem.getId() == Items.PLAYER_HEAD.javaId()
-//                            && javaItem.getNbt() != null) {
-//                        FakeHeadProvider.setHead(session, (PlayerEntity) livingEntity, javaItem.getNbt().get("SkullOwner"));
-//                    } else {
-//                        FakeHeadProvider.restoreOriginalSkin(session, livingEntity);
-//                    }
+                    if (livingEntity instanceof PlayerEntity
+                            && javaItem != null
+                            && javaItem.getId() == Items.PLAYER_HEAD.javaId()
+                            && javaItem.getDataComponents() != null) {
+                        FakeHeadProvider.setHead(session, (PlayerEntity) livingEntity, javaItem.getDataComponents());
+                    } else {
+                        FakeHeadProvider.restoreOriginalSkin(session, livingEntity);
+                    }
 
                     livingEntity.setHelmet(item);
                     armorUpdated = true;

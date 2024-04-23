@@ -53,10 +53,10 @@ jobs:
         with:
           appID: ${{ secrets.RELEASE_APP_ID }}
           appPrivateKey: ${{ secrets.RELEASE_APP_PK }}
+          # neoforge:Geyser-NeoForge.jar // TODO 1.20.5
           files: |
             bungeecord:Geyser-BungeeCord.jar
             fabric:Geyser-Fabric.jar
-            neoforge:Geyser-NeoForge.jar
             spigot:Geyser-Spigot.jar
             standalone:Geyser-Standalone.jar
             velocity:Geyser-Velocity.jar

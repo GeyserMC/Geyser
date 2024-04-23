@@ -25,10 +25,10 @@
 
 package org.geysermc.geyser.translator.inventory;
 
+import com.github.steveice10.mc.protocol.data.game.item.component.BannerPatternLayer;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.cloudburstmc.nbt.NbtMap;
@@ -51,7 +51,7 @@ import org.geysermc.geyser.item.type.BannerItem;
 import org.geysermc.geyser.item.type.DyeItem;
 import org.geysermc.geyser.session.GeyserSession;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -159,23 +159,12 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
         if (inputCopy.getComponents() == null) {
             inputCopy.setComponents(new DataComponents(new HashMap<>()));
         }
-        //TODO
-        CompoundTag blockEntityTag = inputCopy.getNbt().get("BlockEntityTag");
-        CompoundTag javaBannerPattern = BannerItem.getJavaBannerPattern(pattern);
 
-        if (blockEntityTag != null) {
-            ListTag patternsList = blockEntityTag.get("Patterns");
-            if (patternsList != null) {
-                patternsList.add(javaBannerPattern);
-            } else {
-                patternsList = new ListTag("Patterns", Collections.singletonList(javaBannerPattern));
-                blockEntityTag.put(patternsList);
-            }
-        } else {
-            blockEntityTag = new CompoundTag("BlockEntityTag");
-            ListTag patternsList = new ListTag("Patterns", Collections.singletonList(javaBannerPattern));
-            blockEntityTag.put(patternsList);
-            inputCopy.getNbt().put(blockEntityTag);
+        BannerPatternLayer bannerPatternLayer = BannerItem.getJavaBannerPattern(session, pattern); // TODO
+        if (bannerPatternLayer != null) {
+            List<BannerPatternLayer> patternsList = inputCopy.getComponents().getOrDefault(DataComponentType.BANNER_PATTERNS, new ArrayList<>());
+            patternsList.add(bannerPatternLayer);
+            inputCopy.getComponents().put(DataComponentType.BANNER_PATTERNS, patternsList);
         }
 
         // Set the new item as the output

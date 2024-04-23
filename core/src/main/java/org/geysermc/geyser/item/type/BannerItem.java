@@ -28,14 +28,14 @@ package org.geysermc.geyser.item.type;
 import com.github.steveice10.mc.protocol.data.game.item.component.BannerPatternLayer;
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
 import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
+import com.github.steveice10.opennbt.tag.builtin.*;
+import it.unimi.dsi.fastutil.Pair;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
+import org.geysermc.geyser.inventory.item.BannerPattern;
+import org.geysermc.geyser.inventory.item.DyeColor;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
@@ -51,20 +51,49 @@ public class BannerItem extends BlockItem {
      * ominous banners that we set instead. This variable is used to detect Java ominous banner patterns, and apply
      * the correct ominous banner pattern if Bedrock pulls the item from creative.
      */
-    public static final List<BannerPatternLayer> OMINOUS_BANNER_PATTERN;
+    private static final List<Pair<BannerPattern, DyeColor>> OMINOUS_BANNER_PATTERN;
+    private static final ListTag OMINOUS_BANNER_PATTERN_BLOCK;
 
     static {
         // Construct what an ominous banner is supposed to look like
         OMINOUS_BANNER_PATTERN = List.of(
-//                new BannerPatternLayer("mr", 9),
-//                new BannerPatternLayer("bs", 8),
-//                new BannerPatternLayer("cs", 7),
-//                new BannerPatternLayer("bo", 8),
-//                new BannerPatternLayer("ms", 15),
-//                new BannerPatternLayer("hh", 8),
-//                new BannerPatternLayer("mc", 8),
-//                new BannerPatternLayer("bo", 15)
+                Pair.of(BannerPattern.RHOMBUS, DyeColor.CYAN),
+                Pair.of(BannerPattern.STRIPE_BOTTOM, DyeColor.LIGHT_GRAY),
+                Pair.of(BannerPattern.STRIPE_CENTER, DyeColor.GRAY),
+                Pair.of(BannerPattern.BORDER, DyeColor.LIGHT_GRAY),
+                Pair.of(BannerPattern.STRIPE_MIDDLE, DyeColor.BLACK),
+                Pair.of(BannerPattern.HALF_HORIZONTAL, DyeColor.LIGHT_GRAY),
+                Pair.of(BannerPattern.CIRCLE, DyeColor.LIGHT_GRAY),
+                Pair.of(BannerPattern.BORDER, DyeColor.BLACK)
         );
+
+        OMINOUS_BANNER_PATTERN_BLOCK = new ListTag("patterns");
+        for (Pair<BannerPattern, DyeColor> pair : OMINOUS_BANNER_PATTERN) {
+            OMINOUS_BANNER_PATTERN_BLOCK.add(getJavaBannerPatternTag(pair.left(), pair.right()));
+        }
+    }
+
+    public static boolean isOminous(GeyserSession session, List<BannerPatternLayer> patternLayers) {
+        if (OMINOUS_BANNER_PATTERN.size() != patternLayers.size()) {
+            return false;
+        }
+        for (int i = 0; i < OMINOUS_BANNER_PATTERN.size(); i++) {
+            BannerPatternLayer patternLayer = patternLayers.get(i);
+            Pair<BannerPattern, DyeColor> pair = OMINOUS_BANNER_PATTERN.get(i);
+            if (patternLayer.getColorId() != pair.right().ordinal() ||
+                    !patternLayer.getPattern().isId()) {
+                return false;
+            }
+            BannerPattern bannerPattern = session.getRegistryCache().bannerPatterns().get(patternLayer.getPattern().id());
+            if (bannerPattern != pair.left()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static boolean isOminous(ListTag blockEntityPatterns) {
+        return OMINOUS_BANNER_PATTERN_BLOCK.equals(blockEntityPatterns);
     }
 
     /**
@@ -76,7 +105,10 @@ public class BannerItem extends BlockItem {
     public static NbtList<NbtMap> convertBannerPattern(ListTag patterns) {
         List<NbtMap> tagsList = new ArrayList<>();
         for (Tag patternTag : patterns.getValue()) {
-            tagsList.add(getBedrockBannerPattern((CompoundTag) patternTag));
+            NbtMap bedrockBannerPattern = getBedrockBannerPattern((CompoundTag) patternTag);
+            if (bedrockBannerPattern != null) {
+                tagsList.add(bedrockBannerPattern);
+            }
         }
 
         return new NbtList<>(NbtType.COMPOUND, tagsList);
@@ -88,35 +120,41 @@ public class BannerItem extends BlockItem {
      * @param pattern Java edition pattern nbt
      * @return The Bedrock edition format pattern nbt
      */
-    @NonNull
     private static NbtMap getBedrockBannerPattern(CompoundTag pattern) {
+        BannerPattern bannerPattern = BannerPattern.getByJavaIdentifier((String) pattern.get("pattern").getValue());
+        DyeColor dyeColor = DyeColor.getByJavaIdentifier((String) pattern.get("color").getValue());
+        if (bannerPattern == null || dyeColor == null) {
+            return null;
+        }
+
         return NbtMap.builder()
-                .putInt("Color", 15 - (int) pattern.get("Color").getValue())
-                .putString("Pattern", (String) pattern.get("Pattern").getValue())
+                .putString("Pattern", bannerPattern.getBedrockIdentifier())
+                .putInt("Color", 15 - dyeColor.ordinal())
                 .build();
+    }
+
+    public static CompoundTag getJavaBannerPatternTag(BannerPattern bannerPattern, DyeColor dyeColor) {
+        CompoundTag tag = new CompoundTag("");
+        tag.put(new StringTag("pattern", bannerPattern.getJavaIdentifier()));
+        tag.put(new StringTag("color", dyeColor.getJavaIdentifier()));
+        return tag;
     }
 
     /**
      * Convert the Bedrock edition banner pattern nbt to Java edition
      *
      * @param pattern Bedrock edition pattern nbt
-     * @return The Java edition format pattern nbt
+     * @return The Java edition format pattern layer
      */
-    public static CompoundTag getJavaBannerPattern(NbtMap pattern) {
-        //return new BannerPatternLayer(0/*pattern.getString("Pattern")*/, 15 - pattern.getInt("Color"));
-        return null;
-    }
-
-    /**
-     * Convert a list of patterns from Java nbt to Bedrock nbt, or vice versa (we just need to invert the color)
-     *
-     * @param patterns The patterns to convert
-     */
-    private void invertBannerColors(ListTag patterns) {
-        for (Tag patternTag : patterns.getValue()) {
-            IntTag color = ((CompoundTag) patternTag).get("Color");
-            color.setValue(15 - color.getValue());
+    public static BannerPatternLayer getJavaBannerPattern(GeyserSession session, NbtMap pattern) {
+        return null; // TODO
+        /*Int2ObjectBiMap<BannerPattern> registry = session.getRegistryCache().bannerPatterns();
+        BannerPattern bannerPattern = BannerPattern.getByBedrockIdentifier(pattern.getString("Pattern"));
+        DyeColor dyeColor = DyeColor.getById(15 - pattern.getInt("Color"));
+        if (bannerPattern != null && dyeColor != null && registry.containsValue(bannerPattern)) {
+            return new BannerPatternLayer(Holder.ofId(registry.get(bannerPattern)), dyeColor.ordinal());
         }
+        return null;*/
     }
 
     public BannerItem(String javaIdentifier, Builder builder) {
@@ -129,31 +167,51 @@ public class BannerItem extends BlockItem {
 
         List<BannerPatternLayer> patterns = components.get(DataComponentType.BANNER_PATTERNS);
         if (patterns != null) {
-//            if (patterns.equals(OMINOUS_BANNER_PATTERN)) {
-//                // Remove the current patterns and set the ominous banner type
-//                builder.putInt("Type", 1);
-//            } else {
-//                invertBannerColors(patterns);
-//                tag.put(patterns);
-//            }
+            if (isOminous(session, patterns)) {
+                // Remove the current patterns and set the ominous banner type
+                builder.putInt("Type", 1);
+            } else {
+                List<NbtMap> patternList = new ArrayList<>(patterns.size());
+                for (BannerPatternLayer patternLayer : patterns) {
+                    patternLayer.getPattern().ifId(holder -> {
+                        BannerPattern bannerPattern = session.getRegistryCache().bannerPatterns().get(holder.id());
+                        if (bannerPattern != null) {
+                            NbtMap tag = NbtMap.builder()
+                                    .putString("Pattern", bannerPattern.getBedrockIdentifier())
+                                    .putInt("Color", 15 - patternLayer.getColorId())
+                                    .build();
+                            patternList.add(tag);
+                        }
+                    });
+                }
+                builder.putList("Patterns", NbtType.COMPOUND, patternList);
+            }
         }
     }
 
     @Override
-    public void translateNbtToJava(@NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
+    public void translateNbtToJava(@NonNull CompoundTag tag, @NonNull ItemMapping mapping) { // TODO
         super.translateNbtToJava(tag, mapping);
 
         if (tag.get("Type") instanceof IntTag type && type.getValue() == 1) {
             // Ominous banner pattern
             tag.remove("Type");
             CompoundTag blockEntityTag = new CompoundTag("BlockEntityTag");
-            //blockEntityTag.put(OMINOUS_BANNER_PATTERN);
+            blockEntityTag.put(OMINOUS_BANNER_PATTERN_BLOCK);
 
             tag.put(blockEntityTag);
-        } else if (tag.get("Patterns") instanceof ListTag patterns) {
+        } else if (tag.get("Patterns") instanceof ListTag patterns && patterns.getElementType() == CompoundTag.class) {
             CompoundTag blockEntityTag = new CompoundTag("BlockEntityTag");
-            invertBannerColors(patterns);
-            blockEntityTag.put(patterns);
+
+            ListTag javaPatterns = new ListTag("patterns");
+            for (Tag pattern : patterns.getValue()) {
+                BannerPattern bannerPattern = BannerPattern.getByBedrockIdentifier((String) ((CompoundTag) pattern).get("Pattern").getValue());
+                DyeColor dyeColor = DyeColor.getById((int) ((CompoundTag) pattern).get("Color").getValue());
+                if (bannerPattern != null && dyeColor != null) {
+                    javaPatterns.add(getJavaBannerPatternTag(bannerPattern, dyeColor));
+                }
+            }
+            blockEntityTag.put(javaPatterns);
 
             tag.put(blockEntityTag);
             tag.remove("Patterns"); // Remove the old Bedrock patterns list

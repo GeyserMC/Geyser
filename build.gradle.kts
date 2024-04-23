@@ -22,7 +22,7 @@ val basePlatforms = setOf(
 
 val moddedPlatforms = setOf(
     projects.fabric,
-    projects.neoforge,
+    //projects.neoforge, // todo 1.20.5
     projects.mod
 ).map { it.dependencyProject }
 

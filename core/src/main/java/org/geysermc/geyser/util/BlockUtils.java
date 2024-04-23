@@ -25,11 +25,12 @@
 
 package org.geysermc.geyser.util;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.PlayerInventory;
+import org.geysermc.geyser.inventory.item.Enchantment;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
@@ -40,28 +41,23 @@ import org.geysermc.geyser.translator.collision.BlockCollision;
 public final class BlockUtils {
 
     private static boolean correctTool(GeyserSession session, BlockMapping blockMapping, String itemToolType) {
-        switch (itemToolType) {
-            case "axe":
-                return session.getTagCache().isAxeEffective(blockMapping);
-            case "hoe":
-                return session.getTagCache().isHoeEffective(blockMapping);
-            case "pickaxe":
-                return session.getTagCache().isPickaxeEffective(blockMapping);
-            case "shears":
-                return session.getTagCache().isShearsEffective(blockMapping);
-            case "shovel":
-                return session.getTagCache().isShovelEffective(blockMapping);
-            case "sword":
-                return blockMapping.getJavaBlockId() == BlockStateValues.JAVA_COBWEB_ID;
-            default:
+        return switch (itemToolType) {
+            case "axe" -> session.getTagCache().isAxeEffective(blockMapping);
+            case "hoe" -> session.getTagCache().isHoeEffective(blockMapping);
+            case "pickaxe" -> session.getTagCache().isPickaxeEffective(blockMapping);
+            case "shears" -> session.getTagCache().isShearsEffective(blockMapping);
+            case "shovel" -> session.getTagCache().isShovelEffective(blockMapping);
+            case "sword" -> blockMapping.getJavaBlockId() == BlockStateValues.JAVA_COBWEB_ID;
+            default -> {
                 session.getGeyser().getLogger().warning("Unknown tool type: " + itemToolType);
-                return false;
-        }
+                yield false;
+            }
+        };
     }
 
     private static double toolBreakTimeBonus(String toolType, String toolTier, boolean isShearsEffective) {
         if (toolType.equals("shears")) return isShearsEffective ? 5.0 : 15.0;
-        if (toolType.equals("")) return 1.0;
+        if (toolType.isEmpty()) return 1.0;
         return switch (toolTier) {
             // https://minecraft.wiki/w/Breaking#Speed
             case "wooden" -> 2.0;
@@ -134,7 +130,7 @@ public final class BlockUtils {
         return 1.0 / speed;
     }
 
-    public static double getBreakTime(GeyserSession session, BlockMapping blockMapping, ItemMapping item, @Nullable CompoundTag nbtData, boolean isSessionPlayer) {
+    public static double getBreakTime(GeyserSession session, BlockMapping blockMapping, ItemMapping item, @Nullable DataComponents components, boolean isSessionPlayer) {
         boolean isShearsEffective = session.getTagCache().isShearsEffective(blockMapping); //TODO called twice
         boolean canHarvestWithHand = blockMapping.isCanBreakWithHand();
         String toolType = "";
@@ -147,7 +143,8 @@ public final class BlockUtils {
             correctTool = correctTool(session, blockMapping, toolType);
             toolCanBreak = canToolTierBreakBlock(session, blockMapping, toolTier);
         }
-        int toolEfficiencyLevel = ItemUtils.getEnchantmentLevel(nbtData, "minecraft:efficiency");
+
+        int toolEfficiencyLevel = ItemUtils.getEnchantmentLevel(components, Enchantment.JavaEnchantment.EFFICIENCY.ordinal());
         int hasteLevel = 0;
         int miningFatigueLevel = 0;
 
@@ -162,7 +159,7 @@ public final class BlockUtils {
 
         boolean waterInEyes = session.getCollisionManager().isWaterInEyes();
         boolean insideOfWaterWithoutAquaAffinity = waterInEyes &&
-                ItemUtils.getEnchantmentLevel(session.getPlayerInventory().getItem(5).getNbt(), "minecraft:aqua_affinity") < 1;
+                ItemUtils.getEnchantmentLevel(session.getPlayerInventory().getItem(5).getComponents(), Enchantment.JavaEnchantment.AQUA_AFFINITY.ordinal()) < 1;
 
         return calculateBreakTime(blockMapping.getHardness(), toolTier, canHarvestWithHand, correctTool, toolCanBreak, toolType, isShearsEffective,
                 toolEfficiencyLevel, hasteLevel, miningFatigueLevel, insideOfWaterWithoutAquaAffinity, session.getPlayerEntity().isOnGround());
@@ -172,12 +169,12 @@ public final class BlockUtils {
         PlayerInventory inventory = session.getPlayerInventory();
         GeyserItemStack item = inventory.getItemInHand();
         ItemMapping mapping = ItemMapping.AIR;
-        CompoundTag nbtData = null;
+        DataComponents components = null;
         if (item != null) {
             mapping = item.getMapping(session);
-            nbtData = item.getNbt();
+            components = item.getComponents();
         }
-        return getBreakTime(session, blockMapping, mapping, nbtData, true);
+        return getBreakTime(session, blockMapping, mapping, components, true);
     }
 
     /**

@@ -162,7 +162,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                         bedrockRecipeIDs.add(uuid.toString());
                         craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData.shaped(uuid.toString(),
                                 shapedRecipeData.getWidth(), shapedRecipeData.getHeight(), Arrays.asList(inputs),
-                                Collections.singletonList(output), uuid, "crafting_table", 0, netId, true));
+                                Collections.singletonList(output), uuid, "crafting_table", 0, netId, false));
                         recipeMap.put(netId++, new GeyserShapedRecipe(shapedRecipeData));
                     }
                     addRecipeIdentifier(session, recipe.getIdentifier(), bedrockRecipeIDs);
@@ -269,8 +269,8 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         if (sendTrimRecipes) {
             // BDS sends armor trim templates and materials before the CraftingDataPacket
             TrimDataPacket trimDataPacket = new TrimDataPacket();
-            trimDataPacket.getPatterns().addAll(TrimRecipe.PATTERNS);
-            trimDataPacket.getMaterials().addAll(TrimRecipe.MATERIALS);
+            trimDataPacket.getPatterns().addAll(session.getRegistryCache().trimPatterns().values());
+            trimDataPacket.getMaterials().addAll(session.getRegistryCache().trimMaterials().values());
             session.sendUpstreamPacket(trimDataPacket);
 
             // Identical smithing_trim recipe sent by BDS that uses tag-descriptors, as the client seems to ignore the

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,18 +23,53 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java;
+package org.geysermc.geyser.inventory.item;
 
-import com.github.steveice10.mc.protocol.packet.configuration.clientbound.ClientboundRegistryDataPacket;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
+import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
-@Translator(packet = ClientboundRegistryDataPacket.class)
-public class JavaRegistryDataTranslator extends PacketTranslator<ClientboundRegistryDataPacket> {
+import java.util.Locale;
 
-    @Override
-    public void translate(GeyserSession session, ClientboundRegistryDataPacket packet) {
-        session.getRegistryCache().load(packet);
+@Getter
+public enum DyeColor {
+    WHITE,
+    ORANGE,
+    MAGENTA,
+    LIGHT_BLUE,
+    YELLOW,
+    LIME,
+    PINK,
+    GRAY,
+    LIGHT_GRAY,
+    CYAN,
+    PURPLE,
+    BLUE,
+    BROWN,
+    GREEN,
+    RED,
+    BLACK;
+
+    private static final DyeColor[] VALUES = values();
+
+    private final String javaIdentifier;
+
+    DyeColor() {
+        this.javaIdentifier = this.name().toLowerCase(Locale.ROOT);
+    }
+
+    public static @Nullable DyeColor getById(int id) {
+        if (id >= 0 && id < VALUES.length) {
+            return VALUES[id];
+        }
+        return null;
+    }
+
+    public static @Nullable DyeColor getByJavaIdentifier(String javaIdentifier) {
+        for (DyeColor dyeColor : VALUES) {
+            if (dyeColor.javaIdentifier.equals(javaIdentifier)) {
+                return dyeColor;
+            }
+        }
+        return null;
     }
 }

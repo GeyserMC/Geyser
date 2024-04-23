@@ -33,6 +33,8 @@ import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
+import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
 import org.geysermc.geyser.item.ArmorMaterial;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -52,20 +54,18 @@ public class ArmorItem extends Item {
 
         ArmorTrim trim = components.get(DataComponentType.TRIM);
         if (trim != null) {
-            // TODO material IDs
-            String material = trim.getMaterial().getAssetName();
-            String pattern = trim.getPattern().getAssetId();
-
             // discard custom trim patterns/materials to prevent visual glitches on bedrock
-            if (!material.startsWith("minecraft:")
-                    || !pattern.startsWith("minecraft:")) {
+            if (trim.material().isCustom() || trim.pattern().isCustom()) {
                 return;
             }
 
+            TrimMaterial material = session.getRegistryCache().trimMaterials().get(trim.material().id());
+            TrimPattern pattern = session.getRegistryCache().trimPatterns().get(trim.pattern().id());
+
             NbtMapBuilder trimBuilder = NbtMap.builder();
             // bedrock has an uppercase first letter key, and the value is not namespaced
-            trimBuilder.put("Material", stripNamespace(material));
-            trimBuilder.put("Pattern", stripNamespace(pattern));
+            trimBuilder.put("Material", material.getMaterialId());
+            trimBuilder.put("Pattern", pattern.getPatternId());
             builder.putCompound("Trim", trimBuilder.build());
         }
     }
@@ -86,13 +86,5 @@ public class ArmorItem extends Item {
     @Override
     public boolean isValidRepairItem(Item other) {
         return material.getRepairIngredient() == other;
-    }
-
-    private static String stripNamespace(String identifier) {
-        int i = identifier.indexOf(':');
-        if (i >= 0) {
-            return identifier.substring(i + 1);
-        }
-        return identifier;
     }
 }
