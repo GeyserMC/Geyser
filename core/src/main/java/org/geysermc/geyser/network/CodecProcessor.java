@@ -261,7 +261,6 @@ class CodecProcessor {
             .updateSerializer(ScriptMessagePacket.class, ILLEGAL_SERIALIZER)
             // // Ignored bidirectional packets
             .updateSerializer(ClientCacheStatusPacket.class, IGNORED_SERIALIZER)
-            .updateSerializer(DisconnectPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(SimpleEventPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(TickSyncPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(MultiplayerSettingsPacket.class, IGNORED_SERIALIZER)
