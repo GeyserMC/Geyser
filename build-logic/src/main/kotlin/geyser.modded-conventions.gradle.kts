@@ -39,7 +39,7 @@ provided("io.netty", "netty-resolver-dns-native-macos")
 provided("org.ow2.asm", "asm")
 
 architectury {
-    minecraft = "1.20.4"
+    minecraft = "1.20.5"
 }
 
 loom {
@@ -110,7 +110,7 @@ afterEvaluate {
 }
 
 dependencies {
-    minecraft("com.mojang:minecraft:1.20.5-rc3")
+    minecraft("com.mojang:minecraft:1.20.5")
     mappings(loom.officialMojangMappings())
 }
 
