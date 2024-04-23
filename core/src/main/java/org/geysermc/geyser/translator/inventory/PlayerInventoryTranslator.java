@@ -100,7 +100,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             if (i == 5 &&
                     item.asItem() == Items.PLAYER_HEAD &&
                     item.getNbt() != null) {
-                FakeHeadProvider.setHead(session, session.getPlayerEntity(), item.getNbt().get("SkullOwner"));
+                FakeHeadProvider.setHead(session, session.getPlayerEntity(), item.getComponents());
             }
         }
         armorContentPacket.setContents(Arrays.asList(contents));
@@ -144,7 +144,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             // Check for custom skull
             if (javaItem.asItem() == Items.PLAYER_HEAD
                     && javaItem.getNbt() != null) {
-                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getNbt().get("SkullOwner"));
+                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponents());
             } else {
                 FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
             }

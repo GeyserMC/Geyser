@@ -101,6 +101,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
     }
 
     public static @Nullable BlockDefinition translateSkull(GeyserSession session, CompoundTag tag, Vector3i blockPosition, int blockState) {
+        // TODO: The tag layout follows new format (profille, etc...)
         CompoundTag owner = tag.get("SkullOwner");
         if (owner == null) {
             session.getSkullCache().removeSkull(blockPosition);
