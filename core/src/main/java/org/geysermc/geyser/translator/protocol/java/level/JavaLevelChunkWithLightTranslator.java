@@ -393,10 +393,9 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             for (BlockEntityInfo blockEntity : blockEntities) {
                 BlockEntityType type = blockEntity.getType();
                 CompoundTag tag = blockEntity.getNbt();
-                if (type == null || tag == null) {
+                if (type == null) {
                     // As an example: ViaVersion will send -1 if it cannot find the block entity type
                     // Vanilla Minecraft gracefully handles this
-                    // Since 1.20.5: tags sent here can be null, at which point the block entity is not translated
                     continue;
                 }
                 int x = blockEntity.getX(); // Relative to chunk
@@ -421,8 +420,13 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     continue;
                 }
 
-                BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(type);
-                bedrockBlockEntities.add(blockEntityTranslator.getBlockEntityTag(session, type, x + chunkBlockX, y, z + chunkBlockZ, tag, blockState));
+                if (tag != null) {
+                    BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(type);
+                    bedrockBlockEntities.add(blockEntityTranslator.getBlockEntityTag(session, type, x + chunkBlockX, y, z + chunkBlockZ, tag, blockState));
+                } else {
+                    // Since 1.20.5, tags can be null, but Bedrock still needs a default tag to render the item
+                    bedrockBlockEntities.add(BlockEntityTranslator.getConstantBedrockTag(type, x + chunkBlockX, y, z + chunkBlockZ).build());
+                }
 
                 // Check for custom skulls
                 // TODO: The tag layout follows new format (profille, etc...)

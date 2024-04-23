@@ -43,12 +43,16 @@ public abstract class BlockEntityTranslator {
     public abstract void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState);
 
     public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, CompoundTag tag, int blockState) {
-        NbtMapBuilder tagBuilder = getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(type), x, y, z);
+        NbtMapBuilder tagBuilder = getConstantBedrockTag(type, x, y, z);
         translateTag(tagBuilder, tag, blockState);
         return tagBuilder.build();
     }
 
-    protected NbtMapBuilder getConstantBedrockTag(String bedrockId, int x, int y, int z) {
+    public static NbtMapBuilder getConstantBedrockTag(BlockEntityType type, int x, int y, int z) {
+        return getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(type), x, y, z);
+    }
+
+    public static NbtMapBuilder getConstantBedrockTag(String bedrockId, int x, int y, int z) {
         return NbtMap.builder()
                 .putInt("x", x)
                 .putInt("y", y)
