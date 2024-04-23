@@ -37,6 +37,7 @@ import lombok.experimental.Accessors;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
 import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.inventory.recipe.TrimRecipe;
 import org.geysermc.geyser.level.JavaDimension;
@@ -70,6 +71,7 @@ public final class RegistryCache {
         register("trim_pattern", cache -> cache.trimPatterns, TrimRecipe::readTrimPattern);
         register("worldgen/biome", (cache, array) -> cache.biomeTranslations = array, BiomeTranslator::loadServerBiome);
         register("banner_pattern", cache -> cache.bannerPatterns, ($, entry) -> BannerPattern.getByJavaIdentifier(entry.getId()));
+        register("wolf_variant", cache -> cache.wolfVariants, ($, entry) -> WolfEntity.WolfVariant.getByJavaIdentifier(entry.getId()));
     }
 
     @Getter(AccessLevel.NONE)
@@ -88,6 +90,7 @@ public final class RegistryCache {
     private final Int2ObjectMap<TrimPattern> trimPatterns = new Int2ObjectOpenHashMap<>();
 
     private final Int2ObjectMap<BannerPattern> bannerPatterns = new Int2ObjectOpenHashMap<>();
+    private final Int2ObjectMap<WolfEntity.WolfVariant> wolfVariants = new Int2ObjectOpenHashMap<>();
 
     public RegistryCache(GeyserSession session) {
         this.session = session;

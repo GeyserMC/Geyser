@@ -80,7 +80,8 @@ public class BannerItem extends BlockItem {
         for (int i = 0; i < OMINOUS_BANNER_PATTERN.size(); i++) {
             BannerPatternLayer patternLayer = patternLayers.get(i);
             Pair<BannerPattern, DyeColor> pair = OMINOUS_BANNER_PATTERN.get(i);
-            if (!patternLayer.getPattern().isId() || patternLayer.getColorId() != pair.right().ordinal()) {
+            if (patternLayer.getColorId() != pair.right().ordinal() ||
+                    !patternLayer.getPattern().isId()) {
                 return false;
             }
             BannerPattern bannerPattern = session.getRegistryCache().bannerPatterns().get(patternLayer.getPattern().id());

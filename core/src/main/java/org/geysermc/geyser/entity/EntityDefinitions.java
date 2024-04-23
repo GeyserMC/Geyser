@@ -971,6 +971,7 @@ public final class EntityDefinitions {
                 .addTranslator(MetadataType.BOOLEAN, (wolfEntity, entityMetadata) -> wolfEntity.setFlag(EntityFlag.INTERESTED, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
                 .addTranslator(MetadataType.INT, WolfEntity::setCollarColor)
                 .addTranslator(MetadataType.INT, WolfEntity::setWolfAngerTime)
+                .addTranslator(MetadataType.WOLF_VARIANT, WolfEntity::setWolfVariant)
                 .build();
 
         // As of 1.18 these don't track entity data at all
