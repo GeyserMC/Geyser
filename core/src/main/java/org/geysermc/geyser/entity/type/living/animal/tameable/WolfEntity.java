@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEnti
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
@@ -43,6 +44,7 @@ import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
@@ -102,6 +104,15 @@ public class WolfEntity extends TameableEntity {
         dirtyMetadata.put(EntityDataTypes.COLOR, time != 0 ? (byte) 0 : collarColor);
     }
 
+    // 1.20.5+
+    public void setWolfVariant(IntEntityMetadata entityMetadata) {
+        WolfVariant wolfVariant = session.getRegistryCache().wolfVariants().get(entityMetadata.getPrimitiveValue());
+        if (wolfVariant == null) {
+            wolfVariant = WolfVariant.PALE;
+        }
+        dirtyMetadata.put(EntityDataTypes.VARIANT, wolfVariant.ordinal());
+    }
+
     @Override
     public boolean canEat(Item item) {
         // Cannot be a baby to eat these foods
@@ -145,6 +156,36 @@ public class WolfEntity extends TameableEntity {
             return InteractionResult.CONSUME;
         } else {
             return InteractionResult.PASS;
+        }
+    }
+
+    // Ordered by bedrock id
+    public enum WolfVariant {
+        PALE,
+        ASHEN,
+        BLACK,
+        CHESTNUT,
+        RUSTY,
+        SNOWY,
+        SPOTTED,
+        STRIPED,
+        WOODS;
+
+        private static final WolfVariant[] VALUES = values();
+
+        private final String javaIdentifier;
+
+        WolfVariant() {
+            this.javaIdentifier = "minecraft:" + this.name().toLowerCase(Locale.ROOT);
+        }
+
+        public static @Nullable WolfVariant getByJavaIdentifier(String javaIdentifier) {
+            for (WolfVariant wolfVariant : VALUES) {
+                if (wolfVariant.javaIdentifier.equals(javaIdentifier)) {
+                    return wolfVariant;
+                }
+            }
+            return null;
         }
     }
 }
