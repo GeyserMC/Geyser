@@ -938,7 +938,6 @@ public final class EntityDefinitions {
                     .type(EntityType.LLAMA)
                     .height(1.87f).width(0.9f)
                     .addTranslator(MetadataType.INT, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityDataTypes.STRENGTH, entityMetadata.getValue()))
-                    .addTranslator(MetadataType.INT, LlamaEntity::setCarpetedColor)
                     .addTranslator(MetadataType.INT, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityDataTypes.VARIANT, entityMetadata.getValue()))
                     .build();
             TRADER_LLAMA = EntityDefinition.inherited(TraderLlamaEntity::new, LLAMA)
