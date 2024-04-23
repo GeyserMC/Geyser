@@ -105,6 +105,7 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
                     break;
                 }
                 case SIGN_BOOK: {
+                    // As of JE 1.20.5, client no longer adds title and author on its own
                     break;
                 }
                 default:

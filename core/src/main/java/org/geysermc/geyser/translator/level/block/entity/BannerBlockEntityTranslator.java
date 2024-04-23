@@ -46,8 +46,8 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator implement
             return;
         }
 
-        if (tag.get("Patterns") instanceof ListTag patterns) {
-            if (patterns.equals(BannerItem.OMINOUS_BANNER_PATTERN)) {
+        if (tag.get("patterns") instanceof ListTag patterns) {
+            if (BannerItem.isOminous(patterns)) {
                 // This is an ominous banner; don't try to translate the raw patterns (it doesn't translate correctly)
                 // and tell the Bedrock client that this is an ominous banner
                 builder.putInt("Type", 1);
