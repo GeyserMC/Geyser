@@ -33,6 +33,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.tags.ItemTag;
 
 import java.util.UUID;
 
@@ -56,6 +57,6 @@ public class FoxEntity extends AnimalEntity {
 
     @Override
     public boolean canEat(Item item) {
-        return session.getTagCache().isFoxFood(item);
+        return session.getTagCache().is(ItemTag.FOX_FOOD, item);
     }
 }

@@ -36,6 +36,7 @@ import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
 
@@ -61,7 +62,7 @@ public class AxolotlEntity extends AnimalEntity {
 
     @Override
     public boolean canEat(Item item) {
-        return session.getTagCache().isAxolotlFood(item);
+        return session.getTagCache().is(ItemTag.AXOLOTL_FOOD, item);
     }
 
     @Override

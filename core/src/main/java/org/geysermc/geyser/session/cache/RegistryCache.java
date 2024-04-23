@@ -57,7 +57,7 @@ import java.util.function.ToIntFunction;
  * Stores any information sent via Java registries. May not contain all data in a given registry - we'll strip what's
  * unneeded.
  *
- * Crafted as of 1.20.5 for easy "add new registry" in the future.
+ * Crafted as of 1.20.5 for easy "add new registry" functionality in the future.
  */
 @Accessors(fluent = true)
 @Getter
@@ -118,6 +118,7 @@ public final class RegistryCache {
         REGISTRIES.put("minecraft:" + registry, (registryCache, entries) -> {
             Int2ObjectMap<T> localCache = localCacheFunction.apply(registryCache);
             // Clear each local cache every time a new registry entry is given to us
+            // (e.g. proxy server switches)
             localCache.clear();
             for (int i = 0; i < entries.size(); i++) {
                 RegistryEntry entry = entries.get(i);
