@@ -35,6 +35,7 @@ import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.tags.ItemTag;
 
 import java.util.UUID;
 
@@ -67,6 +68,6 @@ public class BeeEntity extends AnimalEntity {
 
     @Override
     public boolean canEat(Item item) {
-        return session.getTagCache().isFlower(item);
+        return session.getTagCache().is(ItemTag.FLOWERS, item);
     }
 }

@@ -36,17 +36,18 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.tags.BlockTag;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 
 public final class BlockUtils {
 
     private static boolean correctTool(GeyserSession session, BlockMapping blockMapping, String itemToolType) {
         return switch (itemToolType) {
-            case "axe" -> session.getTagCache().isAxeEffective(blockMapping);
-            case "hoe" -> session.getTagCache().isHoeEffective(blockMapping);
-            case "pickaxe" -> session.getTagCache().isPickaxeEffective(blockMapping);
-            case "shears" -> session.getTagCache().isShearsEffective(blockMapping);
-            case "shovel" -> session.getTagCache().isShovelEffective(blockMapping);
+            case "axe" -> session.getTagCache().is(BlockTag.AXE_EFFECTIVE, blockMapping);
+            case "hoe" -> session.getTagCache().is(BlockTag.HOE_EFFECTIVE, blockMapping);
+            case "pickaxe" -> session.getTagCache().is(BlockTag.PICKAXE_EFFECTIVE, blockMapping);
+            case "shears" -> session.getTagCache().is(BlockTag.LEAVES, blockMapping) || session.getTagCache().is(BlockTag.WOOL, blockMapping);
+            case "shovel" -> session.getTagCache().is(BlockTag.SHOVEL_EFFECTIVE, blockMapping);
             case "sword" -> blockMapping.getJavaBlockId() == BlockStateValues.JAVA_COBWEB_ID;
             default -> {
                 session.getGeyser().getLogger().warning("Unknown tool type: " + itemToolType);
@@ -79,15 +80,15 @@ public final class BlockUtils {
         switch (toolTier) {
             // Use intentional fall-throughs to check each tier with this block
             default:
-                if (session.getTagCache().requiresStoneTool(blockMapping)) {
+                if (session.getTagCache().is(BlockTag.NEEDS_STONE_TOOL, blockMapping)) {
                     return false;
                 }
             case "stone":
-                if (session.getTagCache().requiresIronTool(blockMapping)) {
+                if (session.getTagCache().is(BlockTag.NEEDS_IRON_TOOL, blockMapping)) {
                     return false;
                 }
             case "iron":
-                if (session.getTagCache().requiresDiamondTool(blockMapping)) {
+                if (session.getTagCache().is(BlockTag.NEEDS_DIAMOND_TOOL, blockMapping)) {
                     return false;
                 }
         }
@@ -131,7 +132,7 @@ public final class BlockUtils {
     }
 
     public static double getBreakTime(GeyserSession session, BlockMapping blockMapping, ItemMapping item, @Nullable DataComponents components, boolean isSessionPlayer) {
-        boolean isShearsEffective = session.getTagCache().isShearsEffective(blockMapping); //TODO called twice
+        boolean isShearsEffective = session.getTagCache().is(BlockTag.LEAVES, blockMapping) || session.getTagCache().is(BlockTag.WOOL, blockMapping); //TODO called twice
         boolean canHarvestWithHand = blockMapping.isCanBreakWithHand();
         String toolType = "";
         String toolTier = "";

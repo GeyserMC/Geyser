@@ -39,6 +39,7 @@ import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.tags.ItemTag;
 
 import java.util.UUID;
 
@@ -72,7 +73,7 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
 
     @Override
     public boolean canEat(Item item) {
-        return session.getTagCache().isSnifferFood(item);
+        return session.getTagCache().is(ItemTag.SNIFFER_FOOD, item);
     }
 
     public void setSnifferState(ObjectEntityMetadata<SnifferState> entityMetadata) {
