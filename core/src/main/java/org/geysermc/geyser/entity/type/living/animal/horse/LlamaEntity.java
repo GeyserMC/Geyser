@@ -25,21 +25,34 @@
 
 package org.geysermc.geyser.entity.type.living.animal.horse;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
+import lombok.Getter;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.MathUtils;
 
 import java.util.UUID;
 
 public class LlamaEntity extends ChestedHorseEntity {
+    /**
+     * Used to calculate inventory size
+     */
+    @Getter
+    private int strength = 1;
 
     public LlamaEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
 
         dirtyMetadata.put(EntityDataTypes.CONTAINER_STRENGTH_MODIFIER, 3); // Presumably 3 slots for every 1 strength
+    }
+
+    public void setStrength(IntEntityMetadata entityMetadata) {
+        strength = MathUtils.constrain(entityMetadata.getPrimitiveValue(), 1, 5);
+        this.dirtyMetadata.put(EntityDataTypes.STRENGTH, strength);
     }
 
     @Override
