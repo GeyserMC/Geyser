@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -33,6 +32,7 @@ import org.geysermc.geyser.inventory.item.TippedArrowPotion;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 public class ArrowItem extends Item {
     public ArrowItem(String javaIdentifier, Builder builder) {

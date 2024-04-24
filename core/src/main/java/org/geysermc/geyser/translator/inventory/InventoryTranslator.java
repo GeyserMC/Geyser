@@ -25,11 +25,6 @@
 
 package org.geysermc.geyser.translator.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
-import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
-import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
-import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
 import it.unimi.dsi.fastutil.ints.*;
 import lombok.AllArgsConstructor;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -59,6 +54,11 @@ import org.geysermc.geyser.translator.inventory.furnace.FurnaceInventoryTranslat
 import org.geysermc.geyser.translator.inventory.furnace.SmokerInventoryTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.ItemUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.Ingredient;
 
 import java.util.*;
 

@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.platform.spigot;
 
-import com.github.steveice10.mc.protocol.MinecraftProtocol;
+import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 import com.viaversion.viaversion.bukkit.handlers.BukkitChannelInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;

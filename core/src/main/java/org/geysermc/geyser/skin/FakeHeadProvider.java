@@ -30,8 +30,6 @@ import com.github.steveice10.mc.auth.data.GameProfile.Texture;
 import com.github.steveice10.mc.auth.data.GameProfile.TextureModel;
 import com.github.steveice10.mc.auth.data.GameProfile.TextureType;
 import com.github.steveice10.mc.auth.exception.property.PropertyException;
-import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
-import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -45,6 +43,8 @@ import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinManager.GameProfileData;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;

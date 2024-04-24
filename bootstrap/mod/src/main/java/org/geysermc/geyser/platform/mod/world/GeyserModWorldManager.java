@@ -25,11 +25,11 @@
 
 package org.geysermc.geyser.platform.mod.world;
 
-import com.github.steveice10.mc.protocol.data.game.Holder;
-import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.data.game.item.component.BannerPatternLayer;
-import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityInfo;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.minecraft.SharedConstants;
@@ -222,8 +222,8 @@ public class GeyserModWorldManager extends GeyserWorldManager {
 
     @NonNull
     @Override
-    public CompletableFuture<com.github.steveice10.mc.protocol.data.game.item.component.DataComponents> getPickItemComponents(GeyserSession session, int x, int y, int z, boolean addNbtData) {
-        CompletableFuture<com.github.steveice10.mc.protocol.data.game.item.component.DataComponents> future = new CompletableFuture<>();
+    public CompletableFuture<org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents> getPickItemComponents(GeyserSession session, int x, int y, int z, boolean addNbtData) {
+        CompletableFuture<org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents> future = new CompletableFuture<>();
         server.execute(() -> {
             ServerPlayer player = getPlayer(session);
             if (player == null) {
@@ -240,8 +240,8 @@ public class GeyserModWorldManager extends GeyserWorldManager {
                 // the banner might have a custom name, both of which a Java client knows and caches
                 ItemStack itemStack = banner.getItem();
 
-                com.github.steveice10.mc.protocol.data.game.item.component.DataComponents components =
-                        new com.github.steveice10.mc.protocol.data.game.item.component.DataComponents(new HashMap<>());
+                org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents components =
+                        new org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents(new HashMap<>());
 
                 components.put(DataComponentType.DAMAGE, itemStack.getDamageValue());
 

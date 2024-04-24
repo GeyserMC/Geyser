@@ -25,11 +25,11 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 public class AxolotlBucketItem extends Item {
     public AxolotlBucketItem(String javaIdentifier, Builder builder) {

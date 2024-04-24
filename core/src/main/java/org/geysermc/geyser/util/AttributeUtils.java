@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.util;
 
-import com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute;
-import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeModifier;
-import com.github.steveice10.mc.protocol.data.game.entity.attribute.ModifierOperation;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.Attribute;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeModifier;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.ModifierOperation;
 
 public class AttributeUtils {
     /**

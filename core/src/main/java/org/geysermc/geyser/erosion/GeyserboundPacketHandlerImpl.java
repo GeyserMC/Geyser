@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.erosion;
 
-import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
-import com.github.steveice10.mc.protocol.data.game.level.block.value.PistonValueType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.PistonValueType;
 import io.netty.channel.Channel;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;

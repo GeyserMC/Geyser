@@ -25,12 +25,12 @@
 
 package org.geysermc.geyser.translator.level;
 
-import com.github.steveice10.mc.protocol.data.game.RegistryEntry;
-import com.github.steveice10.mc.protocol.data.game.chunk.BitStorage;
-import com.github.steveice10.mc.protocol.data.game.chunk.DataPalette;
-import com.github.steveice10.mc.protocol.data.game.chunk.palette.GlobalPalette;
-import com.github.steveice10.mc.protocol.data.game.chunk.palette.Palette;
-import com.github.steveice10.mc.protocol.data.game.chunk.palette.SingletonPalette;
+import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
+import org.geysermc.mcprotocollib.protocol.data.game.chunk.BitStorage;
+import org.geysermc.mcprotocollib.protocol.data.game.chunk.DataPalette;
+import org.geysermc.mcprotocollib.protocol.data.game.chunk.palette.GlobalPalette;
+import org.geysermc.mcprotocollib.protocol.data.game.chunk.palette.Palette;
+import org.geysermc.mcprotocollib.protocol.data.game.chunk.palette.SingletonPalette;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;

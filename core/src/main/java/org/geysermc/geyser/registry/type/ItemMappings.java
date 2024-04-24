@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.registry.type;
 
-import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import lombok.Builder;

@@ -25,12 +25,12 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
-import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
-import com.github.steveice10.mc.protocol.data.game.item.component.Filterable;
-import com.github.steveice10.mc.protocol.data.game.item.component.WritableBookContent;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundEditBookPacket;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Filterable;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.WritableBookContent;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundEditBookPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BookEditPacket;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.WrittenBookItem;

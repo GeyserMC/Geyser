@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.platform.spigot.world;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.value.PistonValueType;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.PistonValueType;
 import org.cloudburstmc.math.vector.Vector3i;
 import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;

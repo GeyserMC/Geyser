@@ -25,13 +25,13 @@
 
 package org.geysermc.geyser.text;
 
-import com.github.steveice10.mc.protocol.data.game.RegistryEntry;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
+import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
 
 import java.util.EnumSet;
 import java.util.Locale;

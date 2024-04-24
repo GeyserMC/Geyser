@@ -25,19 +25,19 @@
 
 package org.geysermc.geyser.network.netty;
 
-import com.github.steveice10.mc.protocol.codec.MinecraftCodecHelper;
-import com.github.steveice10.packetlib.BuiltinFlags;
-import com.github.steveice10.packetlib.codec.PacketCodecHelper;
-import com.github.steveice10.packetlib.packet.PacketProtocol;
-import com.github.steveice10.packetlib.tcp.TcpPacketCodec;
-import com.github.steveice10.packetlib.tcp.TcpPacketSizer;
-import com.github.steveice10.packetlib.tcp.TcpSession;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.*;
 import io.netty.channel.unix.PreferredDirectByteBufAllocator;
 import io.netty.handler.codec.haproxy.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.mcprotocollib.network.BuiltinFlags;
+import org.geysermc.mcprotocollib.network.codec.PacketCodecHelper;
+import org.geysermc.mcprotocollib.network.packet.PacketProtocol;
+import org.geysermc.mcprotocollib.network.tcp.TcpPacketCodec;
+import org.geysermc.mcprotocollib.network.tcp.TcpPacketSizer;
+import org.geysermc.mcprotocollib.network.tcp.TcpSession;
+import org.geysermc.mcprotocollib.protocol.codec.MinecraftCodecHelper;
 
 import java.net.Inet4Address;
 import java.net.InetSocketAddress;

@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.translator.text;
 
-import com.github.steveice10.mc.protocol.data.DefaultComponentSerializer;
-import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
+import org.geysermc.mcprotocollib.protocol.data.DefaultComponentSerializer;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ScoreComponent;
 import net.kyori.adventure.text.TranslatableComponent;

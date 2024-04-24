@@ -25,10 +25,10 @@
 
 package org.geysermc.geyser.level;
 
-import com.github.steveice10.mc.protocol.data.game.RegistryEntry;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
 
 import java.util.List;
 

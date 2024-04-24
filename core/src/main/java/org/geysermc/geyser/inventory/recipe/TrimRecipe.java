@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.inventory.recipe;
 
-import com.github.steveice10.mc.protocol.data.game.RegistryEntry;
+import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import net.kyori.adventure.text.Component;

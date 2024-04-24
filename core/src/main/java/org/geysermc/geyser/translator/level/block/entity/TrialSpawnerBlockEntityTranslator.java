@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
 @BlockEntity(type = BlockEntityType.TRIAL_SPAWNER)
 public class TrialSpawnerBlockEntityTranslator extends BlockEntityTranslator {

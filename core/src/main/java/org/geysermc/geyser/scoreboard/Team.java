@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.scoreboard;
 
-import com.github.steveice10.mc.protocol.data.game.scoreboard.NameTagVisibility;
-import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.NameTagVisibility;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.AccessLevel;
 import lombok.Getter;

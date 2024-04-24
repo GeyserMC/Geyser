@@ -25,15 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
-import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
-import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
-import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
-import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
-import com.github.steveice10.mc.protocol.data.game.recipe.data.SmithingTransformRecipeData;
-import com.github.steveice10.mc.protocol.data.game.recipe.data.StoneCuttingRecipeData;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateRecipesPacket;
 import it.unimi.dsi.fastutil.ints.*;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -48,11 +39,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescri
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.TrimDataPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
-import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
-import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
-import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
-import org.geysermc.geyser.inventory.recipe.TrimRecipe;
+import org.geysermc.geyser.inventory.recipe.*;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -60,6 +47,15 @@ import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.Ingredient;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.Recipe;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.RecipeType;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.data.ShapedRecipeData;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.data.ShapelessRecipeData;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.data.SmithingTransformRecipeData;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.data.StoneCuttingRecipeData;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundUpdateRecipesPacket;
 
 import java.util.*;
 import java.util.stream.Collectors;

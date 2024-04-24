@@ -25,12 +25,12 @@
 
 package org.geysermc.geyser.registry;
 
-import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
-import com.github.steveice10.mc.protocol.data.game.level.event.LevelEvent;
-import com.github.steveice10.mc.protocol.data.game.level.particle.ParticleType;
-import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
-import com.github.steveice10.packetlib.packet.Packet;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.level.event.LevelEvent;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.RecipeType;
+import org.geysermc.mcprotocollib.network.packet.Packet;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;

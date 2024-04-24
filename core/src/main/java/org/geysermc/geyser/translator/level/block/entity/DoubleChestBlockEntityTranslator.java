@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -33,6 +32,7 @@ import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.DoubleChestValue;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
 /**
  * Chests have more block entity properties in Bedrock, which is solved by implementing the BedrockOnlyBlockEntity

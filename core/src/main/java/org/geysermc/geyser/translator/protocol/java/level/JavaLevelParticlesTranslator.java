@@ -25,15 +25,15 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
-import com.github.steveice10.mc.protocol.data.game.item.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.level.particle.BlockParticleData;
-import com.github.steveice10.mc.protocol.data.game.level.particle.DustParticleData;
-import com.github.steveice10.mc.protocol.data.game.level.particle.ItemParticleData;
-import com.github.steveice10.mc.protocol.data.game.level.particle.Particle;
-import com.github.steveice10.mc.protocol.data.game.level.particle.VibrationParticleData;
-import com.github.steveice10.mc.protocol.data.game.level.particle.positionsource.BlockPositionSource;
-import com.github.steveice10.mc.protocol.data.game.level.particle.positionsource.EntityPositionSource;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelParticlesPacket;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.BlockParticleData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.DustParticleData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ItemParticleData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.Particle;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.VibrationParticleData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.positionsource.BlockPositionSource;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.positionsource.EntityPositionSource;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundLevelParticlesPacket;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.math.vector.Vector3f;

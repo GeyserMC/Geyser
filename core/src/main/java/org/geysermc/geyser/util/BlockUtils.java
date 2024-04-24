@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.util;
 
-import com.github.steveice10.mc.protocol.data.game.item.component.DataComponents;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -38,6 +37,7 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.BlockTag;
 import org.geysermc.geyser.translator.collision.BlockCollision;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 public final class BlockUtils {
 
@@ -181,7 +181,7 @@ public final class BlockUtils {
     /**
      * Given a position, return the position if a block were located on the specified block face.
      * @param blockPos the block position
-     * @param face the face of the block - see {@link com.github.steveice10.mc.protocol.data.game.entity.object.Direction}
+     * @param face the face of the block - see {@link org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction}
      * @return the block position with the block face accounted for
      */
     public static Vector3i getBlockPosition(Vector3i blockPos, int face) {
