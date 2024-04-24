@@ -1167,6 +1167,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     /**
      * Schedules a task and prints a stack trace if an error occurs.
+     * <p>
+     * The task will not run if the session is closed.
      */
     public ScheduledFuture<?> scheduleInEventLoop(Runnable runnable, long duration, TimeUnit timeUnit) {
         return eventLoop.schedule(() -> {
