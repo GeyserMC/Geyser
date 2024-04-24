@@ -42,7 +42,7 @@ import org.geysermc.geyser.util.InteractiveTag;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-public class BoatEntity extends Entity {
+public class BoatEntity extends Entity implements Tickable {
 
     /**
      * Required when IS_BUOYANT is sent in order for boats to work in the water. <br>
@@ -58,6 +58,7 @@ public class BoatEntity extends Entity {
     private float paddleTimeLeft;
     private boolean isPaddlingRight;
     private float paddleTimeRight;
+    private boolean doTick;
 
     /**
      * Saved for using the "pick" functionality on a boat.
@@ -133,34 +134,16 @@ public class BoatEntity extends Entity {
 
     public void setPaddlingLeft(BooleanEntityMetadata entityMetadata) {
         isPaddlingLeft = entityMetadata.getPrimitiveValue();
-        if (isPaddlingLeft) {
-            // Java sends simply "true" and "false" (is_paddling_left), Bedrock keeps sending packets as you're rowing
-            // This is an asynchronous method that emulates Bedrock rowing until "false" is sent.
-            paddleTimeLeft = 0f;
-            if (!this.passengers.isEmpty()) {
-                // Get the entity by the first stored passenger and convey motion in this manner
-                Entity entity = this.passengers.get(0);
-                if (entity != null) {
-                    updateLeftPaddle(session, entity);
-                }
-            }
-        } else {
-            // Indicate that the row position should be reset
+        if (!isPaddlingLeft) {
+            paddleTimeLeft = 0.0f;
             dirtyMetadata.put(EntityDataTypes.ROW_TIME_LEFT, 0.0f);
         }
     }
 
     public void setPaddlingRight(BooleanEntityMetadata entityMetadata) {
         isPaddlingRight = entityMetadata.getPrimitiveValue();
-        if (isPaddlingRight) {
-            paddleTimeRight = 0f;
-            if (!this.passengers.isEmpty()) {
-                Entity entity = this.passengers.get(0);
-                if (entity != null) {
-                    updateRightPaddle(session, entity);
-                }
-            }
-        } else {
+        if (!isPaddlingRight) {
+            paddleTimeRight = 0.0f;
             dirtyMetadata.put(EntityDataTypes.ROW_TIME_RIGHT, 0.0f);
         }
     }
@@ -186,29 +169,26 @@ public class BoatEntity extends Entity {
         }
     }
 
-    private void updateLeftPaddle(GeyserSession session, Entity rower) {
+    @Override
+    public void tick() {
+        // Java sends simply "true" and "false" (is_paddling_left), Bedrock keeps sending packets as you're rowing
+        doTick = !doTick; // Run every 100 ms
+        if (!doTick || passengers.isEmpty()) {
+            return;
+        }
+
+        Entity rower = passengers.get(0);
+        if (rower == null) {
+            return;
+        }
+
         if (isPaddlingLeft) {
             paddleTimeLeft += ROWING_SPEED;
             sendAnimationPacket(session, rower, AnimatePacket.Action.ROW_LEFT, paddleTimeLeft);
-
-            session.scheduleInEventLoop(() ->
-                    updateLeftPaddle(session, rower),
-                    100,
-                    TimeUnit.MILLISECONDS
-            );
         }
-    }
-
-    private void updateRightPaddle(GeyserSession session, Entity rower) {
         if (isPaddlingRight) {
             paddleTimeRight += ROWING_SPEED;
             sendAnimationPacket(session, rower, AnimatePacket.Action.ROW_RIGHT, paddleTimeRight);
-
-            session.scheduleInEventLoop(() ->
-                            updateRightPaddle(session, rower),
-                    100,
-                    TimeUnit.MILLISECONDS
-            );
         }
     }
 
