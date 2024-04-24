@@ -47,10 +47,6 @@ public class BiomeTranslator {
     public static int loadServerBiome(RegistryEntry entry) {
         String javaIdentifier = entry.getId();
         return Registries.BIOME_IDENTIFIERS.get().getOrDefault(javaIdentifier, 0);
-//        if (javaId == 0) {
-//            // Matches Java behavior when it sees an invalid biome - it just replaces it with ID 0
-//            biomeTranslations.defaultReturnValue(bedrockId);
-//        }
     }
 
     public static BlockStorage toNewBedrockBiome(GeyserSession session, DataPalette biomeData) {

@@ -15,7 +15,7 @@ protocol-connection = "3.0.0.Beta1-20240411.165033-128"
 raknet = "1.0.0.CR3-20240416.144209-1"
 blockstateupdater="1.20.80-20240411.142413-1"
 mcauthlib = "d9d773e"
-mcprotocollib = "4ee05b62" # Revert from jitpack after release
+mcprotocollib = "3c81cc80" # Revert from jitpack after release
 adventure = "4.14.0"
 adventure-platform = "4.3.0"
 junit = "5.9.2"
@@ -30,11 +30,11 @@ commodore = "2.2"
 bungeecord = "a7c6ede"
 velocity = "3.1.1"
 viaproxy = "3.2.0-SNAPSHOT"
-fabric-minecraft = "1.20.4"
-fabric-loader = "0.15.2"
-fabric-api = "0.91.2+1.20.4"
+fabric-minecraft = "1.20.5"
+fabric-loader = "0.15.10"
+fabric-api = "0.97.6+1.20.5"
 fabric-permissions = "0.2-SNAPSHOT"
-neoforge-minecraft = "20.4.48-beta"
+neoforge-minecraft = "20.5.0-beta"
 mixin = "0.8.5"
 
 # plugin versions
@@ -118,9 +118,9 @@ websocket = { group = "org.java-websocket", name = "Java-WebSocket", version.ref
 #protocol-common = { group = "org.cloudburstmc.protocol", name = "common", version.ref = "protocol-connection" }
 #protocol-codec = { group = "org.cloudburstmc.protocol", name = "bedrock-codec", version.ref = "protocol" }
 #protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol-connection" }
-protocol-common = { group = "com.github.Kas-tle.Protocol", name = "common", version = "24146ed" } # Remove before merge
-protocol-codec = { group = "com.github.Kas-tle.Protocol", name = "bedrock-codec", version = "24146ed" } # Remove before merge
-protocol-connection = { group = "com.github.Kas-tle.Protocol", name = "bedrock-connection", version = "24146ed" } # Remove before merge
+protocol-common = { group = "com.github.GeyserMC.Protocol", name = "common", version = "ade21be" }
+protocol-codec = { group = "com.github.GeyserMC.Protocol", name = "bedrock-codec", version = "ade21be" }
+protocol-connection = { group = "com.github.GeyserMC.Protocol", name = "bedrock-connection", version = "ade21be" }
 
 math = { group = "org.cloudburstmc.math", name = "immutable", version = "2.0" }
 

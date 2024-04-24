@@ -53,6 +53,7 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 public final class EntityDefinitions {
     public static final EntityDefinition<AllayEntity> ALLAY;
     public static final EntityDefinition<AreaEffectCloudEntity> AREA_EFFECT_CLOUD;
+    public static final EntityDefinition<ArmadilloEntity> ARMADILLO;
     public static final EntityDefinition<ArmorStandEntity> ARMOR_STAND;
     public static final EntityDefinition<TippedArrowEntity> ARROW;
     public static final EntityDefinition<AxolotlEntity> AXOLOTL;
@@ -770,6 +771,11 @@ public final class EntityDefinitions {
 
         // Extends ageable
         {
+            ARMADILLO = EntityDefinition.inherited(ArmadilloEntity::new, ageableEntityBase)
+                    .type(EntityType.ARMADILLO)
+                    .height(0.65f).width(0.7f)
+                    .addTranslator(null)
+                    .build();
             AXOLOTL = EntityDefinition.inherited(AxolotlEntity::new, ageableEntityBase)
                     .type(EntityType.AXOLOTL)
                     .height(0.42f).width(0.7f)
@@ -937,8 +943,7 @@ public final class EntityDefinitions {
             LLAMA = EntityDefinition.inherited(LlamaEntity::new, chestedHorseEntityBase)
                     .type(EntityType.LLAMA)
                     .height(1.87f).width(0.9f)
-                    .addTranslator(MetadataType.INT, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityDataTypes.STRENGTH, entityMetadata.getValue()))
-                    .addTranslator(MetadataType.INT, LlamaEntity::setCarpetedColor)
+                    .addTranslator(MetadataType.INT, LlamaEntity::setStrength)
                     .addTranslator(MetadataType.INT, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityDataTypes.VARIANT, entityMetadata.getValue()))
                     .build();
             TRADER_LLAMA = EntityDefinition.inherited(TraderLlamaEntity::new, LLAMA)

@@ -74,7 +74,8 @@ public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetE
                     livingEntity.setHelmet(item);
                     armorUpdated = true;
                 }
-                case CHESTPLATE -> {
+                case CHESTPLATE, BODY -> {
+                    // BODY is sent for llamas with a carpet equipped, as of 1.20.5
                     livingEntity.setChestplate(item);
                     armorUpdated = true;
                 }

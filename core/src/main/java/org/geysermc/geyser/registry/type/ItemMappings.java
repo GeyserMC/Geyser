@@ -69,7 +69,6 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
 
     List<ItemDefinition> buckets;
     List<ItemDefinition> boats;
-    List<ItemData> carpets;
 
     List<ComponentItemData> componentItemData;
     Int2ObjectMap<String> customIdMappings;
@@ -99,9 +98,9 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
         return javaId >= 0 && javaId < this.items.length ? this.items[javaId] : ItemMapping.AIR;
     }
 
-    @Nullable
+    @NonNull
     public ItemMapping getMapping(Item javaItem) {
-        return getMapping(javaItem.javaIdentifier());
+        return getMapping(javaItem.javaId());
     }
 
     /**

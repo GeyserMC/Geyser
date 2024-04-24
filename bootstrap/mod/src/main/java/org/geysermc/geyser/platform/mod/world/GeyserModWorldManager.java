@@ -25,7 +25,10 @@
 
 package org.geysermc.geyser.platform.mod.world;
 
+import com.github.steveice10.mc.protocol.data.game.Holder;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.data.game.item.component.BannerPatternLayer;
+import com.github.steveice10.mc.protocol.data.game.item.component.DataComponentType;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -43,6 +46,7 @@ import net.minecraft.world.item.component.WrittenBookContent;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BannerBlockEntity;
+import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -62,6 +66,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -217,8 +222,8 @@ public class GeyserModWorldManager extends GeyserWorldManager {
 
     @NonNull
     @Override
-    public CompletableFuture<com.github.steveice10.opennbt.tag.builtin.CompoundTag> getPickItemNbt(GeyserSession session, int x, int y, int z, boolean addNbtData) {
-        CompletableFuture<com.github.steveice10.opennbt.tag.builtin.CompoundTag> future = new CompletableFuture<>();
+    public CompletableFuture<com.github.steveice10.mc.protocol.data.game.item.component.DataComponents> getPickItemComponents(GeyserSession session, int x, int y, int z, boolean addNbtData) {
+        CompletableFuture<com.github.steveice10.mc.protocol.data.game.item.component.DataComponents> future = new CompletableFuture<>();
         server.execute(() -> {
             ServerPlayer player = getPlayer(session);
             if (player == null) {
@@ -235,7 +240,22 @@ public class GeyserModWorldManager extends GeyserWorldManager {
                 // the banner might have a custom name, both of which a Java client knows and caches
                 ItemStack itemStack = banner.getItem();
 
-                future.complete(null); // todo 1.20.5
+                com.github.steveice10.mc.protocol.data.game.item.component.DataComponents components =
+                        new com.github.steveice10.mc.protocol.data.game.item.component.DataComponents(new HashMap<>());
+
+                components.put(DataComponentType.DAMAGE, itemStack.getDamageValue());
+
+                Component customName = itemStack.getComponents().get(DataComponents.CUSTOM_NAME);
+                if (customName != null) {
+                    components.put(DataComponentType.CUSTOM_NAME, toKyoriComponent(customName));
+                }
+
+                BannerPatternLayers pattern = itemStack.get(DataComponents.BANNER_PATTERNS);
+                if (pattern != null) {
+                    components.put(DataComponentType.BANNER_PATTERNS, toPatternList(pattern));
+                }
+
+                future.complete(components);
                 return;
             }
             future.complete(null);
@@ -262,8 +282,7 @@ public class GeyserModWorldManager extends GeyserWorldManager {
         if (writtenBookContent != null) {
             return writtenBookContent.pages().stream()
                     .map(Filterable::raw)
-                    .map((component) -> Component.Serializer.toJson(component, RegistryAccess.EMPTY))
-                    .map((json -> LEGACY_SERIALIZER.serialize(GSON_SERIALIZER.deserializeOr(json, net.kyori.adventure.text.Component.empty()))))
+                    .map(GeyserModWorldManager::fromComponent)
                     .toList();
         } else {
             WritableBookContent writableBookContent = itemStack.get(DataComponents.WRITABLE_BOOK_CONTENT);
@@ -274,5 +293,26 @@ public class GeyserModWorldManager extends GeyserWorldManager {
                     .map(Filterable::raw)
                     .toList();
         }
+    }
+
+    private static String fromComponent(Component component) {
+        String json = Component.Serializer.toJson(component, RegistryAccess.EMPTY);
+        return LEGACY_SERIALIZER.serialize(GSON_SERIALIZER.deserializeOr(json, net.kyori.adventure.text.Component.empty()));
+    }
+
+    private static net.kyori.adventure.text.Component toKyoriComponent(Component component) {
+        String json = Component.Serializer.toJson(component, RegistryAccess.EMPTY);
+        return GSON_SERIALIZER.deserializeOr(json, net.kyori.adventure.text.Component.empty());
+    }
+
+    private static List<BannerPatternLayer> toPatternList(BannerPatternLayers patternLayers) {
+        return patternLayers.layers().stream()
+                .map(layer -> {
+                    BannerPatternLayer.BannerPattern pattern = new BannerPatternLayer.BannerPattern(
+                            layer.pattern().value().assetId().toString(), layer.pattern().value().translationKey()
+                    );
+                    return new BannerPatternLayer(Holder.ofCustom(pattern), layer.color().getId());
+                })
+                .toList();
     }
 }
