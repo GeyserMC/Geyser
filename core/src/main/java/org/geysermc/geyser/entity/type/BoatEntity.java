@@ -187,7 +187,7 @@ public class BoatEntity extends Entity {
     }
 
     private void updateLeftPaddle(GeyserSession session, Entity rower) {
-        if (isPaddlingLeft) {
+        if (isPaddlingLeft && valid) {
             paddleTimeLeft += ROWING_SPEED;
             sendAnimationPacket(session, rower, AnimatePacket.Action.ROW_LEFT, paddleTimeLeft);
 
@@ -200,7 +200,7 @@ public class BoatEntity extends Entity {
     }
 
     private void updateRightPaddle(GeyserSession session, Entity rower) {
-        if (isPaddlingRight) {
+        if (isPaddlingRight && valid) {
             paddleTimeRight += ROWING_SPEED;
             sendAnimationPacket(session, rower, AnimatePacket.Action.ROW_RIGHT, paddleTimeRight);
 
