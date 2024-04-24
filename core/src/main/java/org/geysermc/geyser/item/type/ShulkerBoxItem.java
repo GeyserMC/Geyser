@@ -59,7 +59,7 @@ public class ShulkerBoxItem extends BlockItem {
         List<NbtMap> itemsList = new ArrayList<>();
         for (int slot = 0; slot < contents.size(); slot++) {
             ItemStack item = contents.get(slot);
-            if (item.getId() == Items.AIR_ID) {
+            if (item == null || item.getId() == Items.AIR_ID) {
                 continue;
             }
             ItemMapping boxMapping = session.getItemMappings().getMapping(item.getId());
