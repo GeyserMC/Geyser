@@ -178,6 +178,10 @@ public class BoatEntity extends Entity implements Tickable {
         }
 
         Entity rower = passengers.get(0);
+        if (rower == null) {
+            return;
+        }
+
         if (isPaddlingLeft) {
             paddleTimeLeft += ROWING_SPEED;
             sendAnimationPacket(session, rower, AnimatePacket.Action.ROW_LEFT, paddleTimeLeft);
