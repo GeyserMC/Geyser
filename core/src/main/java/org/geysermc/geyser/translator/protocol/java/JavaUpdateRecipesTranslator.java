@@ -162,7 +162,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                         bedrockRecipeIDs.add(uuid.toString());
                         craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData.shaped(uuid.toString(),
                                 shapedRecipeData.getWidth(), shapedRecipeData.getHeight(), Arrays.asList(inputs),
-                                Collections.singletonList(output), uuid, "crafting_table", 0, netId));
+                                Collections.singletonList(output), uuid, "crafting_table", 0, netId, false));
                         recipeMap.put(netId++, new GeyserShapedRecipe(shapedRecipeData));
                     }
                     addRecipeIdentifier(session, recipe.getIdentifier(), bedrockRecipeIDs);

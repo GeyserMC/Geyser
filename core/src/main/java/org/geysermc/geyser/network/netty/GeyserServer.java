@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.network.netty;
 
-import com.github.steveice10.packetlib.helper.TransportHelper;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -39,6 +38,9 @@ import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import io.netty.incubator.channel.uring.IOUring;
+import io.netty.incubator.channel.uring.IOUringDatagramChannel;
+import io.netty.incubator.channel.uring.IOUringEventLoopGroup;
 import io.netty.util.concurrent.Future;
 import lombok.Getter;
 import net.jodah.expiringmap.ExpirationPolicy;
@@ -46,8 +48,10 @@ import net.jodah.expiringmap.ExpiringMap;
 import org.cloudburstmc.netty.channel.raknet.RakChannelFactory;
 import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
 import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerOfflineHandler;
+import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerRateLimiter;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.event.connection.ConnectionRequestEvent;
 import org.geysermc.geyser.command.defaults.ConnectionTestCommand;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.event.type.GeyserBedrockPingEventImpl;
@@ -70,6 +74,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
+
+import static org.cloudburstmc.netty.channel.raknet.RakConstants.DEFAULT_GLOBAL_PACKET_LIMIT;
+import static org.cloudburstmc.netty.channel.raknet.RakConstants.DEFAULT_PACKET_LIMIT;
 
 public final class GeyserServer {
     private static final boolean PRINT_DEBUG_PINGS = Boolean.parseBoolean(System.getProperty("Geyser.PrintPingsInDebugMode", "true"));
@@ -101,9 +108,13 @@ public final class GeyserServer {
 
     @Getter
     private final ExpiringMap<InetSocketAddress, InetSocketAddress> proxiedAddresses;
-    private final int listenCount;
+    private int listenCount;
 
     private ChannelFuture[] bootstrapFutures;
+
+    // Keep track of connection attempts for dump info
+    @Getter
+    private int connectionAttempts = 0;
 
     /**
      * The port to broadcast in the pong. This can be different from the port the server is bound to, e.g. due to port forwarding.
@@ -118,8 +129,11 @@ public final class GeyserServer {
         this.childGroup = TRANSPORT.eventLoopGroupFactory().apply(threadCount);
 
         this.bootstrap = this.createBootstrap();
-        // setup SO_REUSEPORT if exists
-        Bootstraps.setupBootstrap(this.bootstrap);
+        // setup SO_REUSEPORT if exists - or, if the option does not actually exist, reset listen count
+        // otherwise, we try to bind multiple times which wont work if so_reuseport is not valid
+        if (!Bootstraps.setupBootstrap(this.bootstrap)) {
+            this.listenCount = 1;
+        }
 
         if (this.geyser.getConfig().getBedrock().isEnableProxyProtocol()) {
             this.proxiedAddresses = ExpiringMap.builder()
@@ -141,22 +155,30 @@ public final class GeyserServer {
         bootstrapFutures = new ChannelFuture[listenCount];
         for (int i = 0; i < listenCount; i++) {
             ChannelFuture future = bootstrap.bind(address);
-            addHandlers(future);
+            modifyHandlers(future);
             bootstrapFutures[i] = future;
         }
 
         return Bootstraps.allOf(bootstrapFutures);
     }
 
-    private void addHandlers(ChannelFuture future) {
+    private void modifyHandlers(ChannelFuture future) {
         Channel channel = future.channel();
         // Add our ping handler
         channel.pipeline()
                 .addFirst(RakConnectionRequestHandler.NAME, new RakConnectionRequestHandler(this))
                 .addAfter(RakServerOfflineHandler.NAME, RakPingHandler.NAME, new RakPingHandler(this));
+
         // Add proxy handler
-        if (this.geyser.getConfig().getBedrock().isEnableProxyProtocol()) {
+        boolean isProxyProtocol = this.geyser.getConfig().getBedrock().isEnableProxyProtocol();
+        if (isProxyProtocol) {
             channel.pipeline().addFirst("proxy-protocol-decoder", new ProxyServerHandler());
+        }
+
+        boolean isWhitelistedProxyProtocol = isProxyProtocol && !this.geyser.getConfig().getBedrock().getProxyProtocolWhitelistedIPs().isEmpty();
+        if (Boolean.parseBoolean(System.getProperty("Geyser.RakRateLimitingDisabled", "false")) || isWhitelistedProxyProtocol) {
+            // We would already block any non-whitelisted IP addresses in onConnectionRequest so we can remove the rate limiter
+            channel.pipeline().remove(RakServerRateLimiter.NAME);
         }
     }
 
@@ -199,11 +221,24 @@ public final class GeyserServer {
         GeyserServerInitializer serverInitializer = new GeyserServerInitializer(this.geyser);
         playerGroup = serverInitializer.getEventLoopGroup();
         this.geyser.getLogger().debug("Setting MTU to " + this.geyser.getConfig().getMtu());
+
+        int rakPacketLimit = positivePropOrDefault("Geyser.RakPacketLimit", DEFAULT_PACKET_LIMIT);
+        this.geyser.getLogger().debug("Setting RakNet packet limit to " + rakPacketLimit);
+
+        int rakGlobalPacketLimit = positivePropOrDefault("Geyser.RakGlobalPacketLimit", DEFAULT_GLOBAL_PACKET_LIMIT);
+        this.geyser.getLogger().debug("Setting RakNet global packet limit to " + rakGlobalPacketLimit);
+
+        boolean rakSendCookie = Boolean.parseBoolean(System.getProperty("Geyser.RakSendCookie", "true"));
+        this.geyser.getLogger().debug("Setting RakNet send cookie to " + rakSendCookie);
+
         return new ServerBootstrap()
                 .channelFactory(RakChannelFactory.server(TRANSPORT.datagramChannel()))
                 .group(group, childGroup)
                 .option(RakChannelOption.RAK_HANDLE_PING, true)
                 .option(RakChannelOption.RAK_MAX_MTU, this.geyser.getConfig().getMtu())
+                .option(RakChannelOption.RAK_PACKET_LIMIT, rakPacketLimit)
+                .option(RakChannelOption.RAK_GLOBAL_PACKET_LIMIT, rakGlobalPacketLimit)
+                .option(RakChannelOption.RAK_SEND_COOKIE, rakSendCookie)
                 .childHandler(serverInitializer);
     }
 
@@ -219,6 +254,7 @@ public final class GeyserServer {
             }
 
             if (!isWhitelistedIP) {
+                connectionAttempts++;
                 return false;
             }
         }
@@ -233,7 +269,20 @@ public final class GeyserServer {
         } else {
             ip = "<IP address withheld>";
         }
-        geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.attempt_connect", ip));
+
+        ConnectionRequestEvent requestEvent = new ConnectionRequestEvent(
+            inetSocketAddress, 
+            this.proxiedAddresses != null ? this.proxiedAddresses.get(inetSocketAddress) : null
+        );
+        geyser.eventBus().fire(requestEvent);
+        if (requestEvent.isCancelled()) {
+            geyser.getLogger().debug("Connection request from " + ip + " was cancelled using the API!");
+            connectionAttempts++;
+            return false;
+        }
+
+        geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.network.attempt_connect", ip));
+        connectionAttempts++;
         return true;
     }
 
@@ -352,23 +401,57 @@ public final class GeyserServer {
         }
     }
 
+    private static int positivePropOrDefault(String property, int defaultValue) {
+        String value = System.getProperty(property);
+        try {
+            int parsed = value != null ? Integer.parseInt(value) : defaultValue;
+
+            if (parsed < 1) {
+                GeyserImpl.getInstance().getLogger().warning(
+                    "Non-postive integer value for " + property + ": " + value + ". Using default value: " + defaultValue
+                );
+                return defaultValue;
+            }
+
+            return parsed;
+        } catch (NumberFormatException e) {
+            GeyserImpl.getInstance().getLogger().warning(
+                "Invalid integer value for " + property + ": " + value + ". Using default value: " + defaultValue
+            );
+            return defaultValue;
+        }
+    }
+
     private static Transport compatibleTransport() {
-        TransportHelper.TransportMethod transportMethod = TransportHelper.determineTransportMethod();
-        if (transportMethod == TransportHelper.TransportMethod.EPOLL) {
+        if (isClassAvailable("io.netty.incubator.channel.uring.IOUring")
+                && IOUring.isAvailable()
+                && Boolean.parseBoolean(System.getProperty("Geyser.io_uring"))) {
+            return new Transport(IOUringDatagramChannel.class, IOUringEventLoopGroup::new);
+        }
+
+        if (isClassAvailable("io.netty.channel.epoll.Epoll") && Epoll.isAvailable()) {
             return new Transport(EpollDatagramChannel.class, EpollEventLoopGroup::new);
         }
 
-        if (transportMethod == TransportHelper.TransportMethod.KQUEUE) {
+        if (isClassAvailable("io.netty.channel.kqueue.KQueue") && KQueue.isAvailable()) {
             return new Transport(KQueueDatagramChannel.class, KQueueEventLoopGroup::new);
         }
-
-        // if (transportMethod == TransportHelper.TransportMethod.IO_URING) {
-        //     return new Transport(IOUringDatagramChannel.class, IOUringEventLoopGroup::new);
-        // }
 
         return new Transport(NioDatagramChannel.class, NioEventLoopGroup::new);
     }
 
     private record Transport(Class<? extends DatagramChannel> datagramChannel, IntFunction<EventLoopGroup> eventLoopGroupFactory) {
+    }
+
+    /**
+     * Used so implementations can opt to remove these dependencies if so desired
+     */
+    private static boolean isClassAvailable(String className) {
+        try {
+            Class.forName(className);
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 }

@@ -4,6 +4,8 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 dependencyResolutionManagement {
     repositories {
+        // mavenLocal()
+        
         // Floodgate, Cumulus etc.
         maven("https://repo.opencollab.dev/main")
 
@@ -30,7 +32,6 @@ dependencyResolutionManagement {
             mavenContent { releasesOnly() }
         }
 
-        mavenLocal()
         mavenCentral()
 
         // ViaVersion

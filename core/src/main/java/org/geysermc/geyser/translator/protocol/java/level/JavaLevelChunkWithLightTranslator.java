@@ -200,7 +200,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                         }
 
                         // Check if block is piston or flower to see if we'll need to create additional block entities, as they're only block entities in Bedrock
-                        if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId) || BlockStateValues.isNonWaterCauldron(javaId)) {
+                        if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId) || BlockStateValues.isCauldron(javaId)) {
                             bedrockBlockEntities.add(BedrockOnlyBlockEntity.getTag(session,
                                     Vector3i.from((packet.getX() << 4) + (yzx & 0xF), ((sectionY + yOffset) << 4) + ((yzx >> 8) & 0xF), (packet.getZ() << 4) + ((yzx >> 4) & 0xF)),
                                     javaId
@@ -259,7 +259,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     }
 
                     // Check if block is piston, flower or cauldron to see if we'll need to create additional block entities, as they're only block entities in Bedrock
-                    if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId) || BlockStateValues.isNonWaterCauldron(javaId)) {
+                    if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId) || BlockStateValues.isCauldron(javaId)) {
                         bedrockOnlyBlockEntityIds.set(i);
                     }
                 }

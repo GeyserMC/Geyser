@@ -260,8 +260,6 @@ public final class BlockStateValues {
     }
 
     /**
-     * Non-water cauldrons (since Bedrock 1.18.30) must have a block entity packet sent on chunk load to fix rendering issues.
-     *
      * @return if this Java block state is a non-empty non-water cauldron
      */
     public static boolean isNonWaterCauldron(int state) {
@@ -269,6 +267,8 @@ public final class BlockStateValues {
     }
 
     /**
+     * Cauldrons (since Bedrock 1.18.30) must have a block entity packet sent on chunk load to fix rendering issues.
+     * <p>
      * When using a bucket on a cauldron sending a ServerboundUseItemPacket can result in the liquid being placed.
      *
      * @return if this Java block state is a cauldron

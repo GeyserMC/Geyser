@@ -50,14 +50,14 @@ public class Item {
     private final String javaIdentifier;
     private int javaId = -1;
     private final int stackSize;
-    private final String toolType;
+    private final int attackDamage;
     private final int maxDamage;
 
     public Item(String javaIdentifier, Builder builder) {
         this.javaIdentifier = Identifier.formalize(javaIdentifier).intern();
         this.stackSize = builder.stackSize;
-        this.toolType = builder.toolType;
         this.maxDamage = builder.maxDamage;
+        this.attackDamage = builder.attackDamage;
     }
 
     public String javaIdentifier() {
@@ -70,6 +70,10 @@ public class Item {
 
     public int maxDamage() {
         return maxDamage;
+    }
+
+    public int attackDamage() {
+        return attackDamage;
     }
 
     public int maxStackSize() {
@@ -279,16 +283,17 @@ public class Item {
 
     public static final class Builder {
         private int stackSize = 64;
-        private String toolType;
         private int maxDamage;
+        private int attackDamage;
 
         public Builder stackSize(int stackSize) {
             this.stackSize = stackSize;
             return this;
         }
 
-        public Builder setToolType(String toolType) {
-            this.toolType = toolType;
+        public Builder attackDamage(double attackDamage) {
+            // TODO properly store/send a double value once Bedrock supports it.. pls
+            this.attackDamage = (int) attackDamage;
             return this;
         }
 

@@ -535,7 +535,7 @@ public class SkinProvider {
 
     private static BufferedImage downloadImage(String imageUrl, CapeProvider provider) throws IOException {
         HttpURLConnection con = (HttpURLConnection) new URL(imageUrl).openConnection();
-        con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION);
+        con.setRequestProperty("User-Agent", WebUtils.getUserAgent());
         con.setConnectTimeout(10000);
         con.setReadTimeout(10000);
 

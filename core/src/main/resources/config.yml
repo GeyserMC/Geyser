@@ -39,8 +39,8 @@ bedrock:
   # A list of allowed PROXY protocol speaking proxy IP addresses/subnets. Only effective when "enable-proxy-protocol" is enabled, and
   # should really only be used when you are not able to use a proper firewall (usually true with shared hosting providers etc.).
   # Keeping this list empty means there is no IP address whitelist.
-  # Both IP addresses and subnets are supported.
-  #proxy-protocol-whitelisted-ips: [ "127.0.0.1", "172.18.0.0/16" ]
+  # IP addresses, subnets, and links to plain text files are supported.
+  #proxy-protocol-whitelisted-ips: [ "127.0.0.1", "172.18.0.0/16", "https://example.com/whitelist.txt" ]
 remote:
   # The IP address of the remote (Java Edition) server
   # If it is "auto", for standalone version the remote address will be set to 127.0.0.1,

@@ -45,7 +45,7 @@ import java.util.UUID;
 
 public class CatEntity extends TameableEntity {
 
-    private byte collarColor;
+    private byte collarColor = 14; // Red - default
 
     public CatEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
@@ -76,10 +76,7 @@ public class CatEntity extends TameableEntity {
     @Override
     public void setTameableFlags(ByteEntityMetadata entityMetadata) {
         super.setTameableFlags(entityMetadata);
-        // Update collar color if tamed
-        if (getFlag(EntityFlag.TAMED)) {
-            dirtyMetadata.put(EntityDataTypes.COLOR, collarColor);
-        }
+        updateCollarColor();
     }
 
     public void setCatVariant(IntEntityMetadata entityMetadata) {
@@ -101,6 +98,10 @@ public class CatEntity extends TameableEntity {
 
     public void setCollarColor(IntEntityMetadata entityMetadata) {
         collarColor = (byte) entityMetadata.getPrimitiveValue();
+        updateCollarColor();
+    }
+
+    private void updateCollarColor() {
         // Needed or else wild cats are a red color
         if (getFlag(EntityFlag.TAMED)) {
             dirtyMetadata.put(EntityDataTypes.COLOR, collarColor);

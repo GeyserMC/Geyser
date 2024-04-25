@@ -214,6 +214,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final PistonCache pistonCache;
     private final PreferencesCache preferencesCache;
     private final SkullCache skullCache;
+    private final StructureBlockCache structureBlockCache;
     private final TagCache tagCache;
     private final WorldCache worldCache;
 
@@ -260,8 +261,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private ItemMappings itemMappings;
-
-    private final Long2ObjectMap<ClientboundMapItemDataPacket> storedMaps = new Long2ObjectOpenHashMap<>();
 
     /**
      * Required to decode biomes correctly.
@@ -625,6 +624,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.pistonCache = new PistonCache(this);
         this.preferencesCache = new PreferencesCache(this);
         this.skullCache = new SkullCache(this);
+        this.structureBlockCache = new StructureBlockCache();
         this.tagCache = new TagCache();
         this.worldCache = new WorldCache(this);
         this.cameraData = new GeyserCameraData(this);
@@ -712,7 +712,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Default move speed
         // Bedrock clients move very fast by default until they get an attribute packet correcting the speed
         attributesPacket.setAttributes(Collections.singletonList(
-                new AttributeData("minecraft:movement", 0.0f, 1024f, 0.1f, 0.1f)));
+                GeyserAttributeType.MOVEMENT_SPEED.getAttribute()));
         upstream.sendPacket(attributesPacket);
 
         GameRulesChangedPacket gamerulePacket = new GameRulesChangedPacket();
@@ -1167,11 +1167,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     /**
      * Schedules a task and prints a stack trace if an error occurs.
+     * <p>
+     * The task will not run if the session is closed.
      */
     public ScheduledFuture<?> scheduleInEventLoop(Runnable runnable, long duration, TimeUnit timeUnit) {
         return eventLoop.schedule(() -> {
             try {
-                runnable.run();
+                if (!closed) {
+                    runnable.run();
+                }
             } catch (Throwable e) {
                 geyser.getLogger().error("Error thrown in " + this.bedrockUsername() + "'s event loop!", e);
             }

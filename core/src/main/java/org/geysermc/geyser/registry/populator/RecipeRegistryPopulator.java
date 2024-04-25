@@ -173,7 +173,7 @@ public class RecipeRegistryPopulator {
             /* Convert end */
 
             return ShapedRecipeData.shaped(uuid.toString(), shape.get(0).length(), shape.size(),
-                    inputs.stream().map(ItemDescriptorWithCount::fromItem).toList(), Collections.singletonList(output), uuid, "crafting_table", 0, netId);
+                    inputs.stream().map(ItemDescriptorWithCount::fromItem).toList(), Collections.singletonList(output), uuid, "crafting_table", 0, netId, false);
         }
         List<ItemData> inputs = new ObjectArrayList<>();
         for (JsonNode entry : node.get("inputs")) {
