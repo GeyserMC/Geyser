@@ -31,6 +31,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatE
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 import org.geysermc.geyser.entity.type.*;
 import org.geysermc.geyser.entity.type.living.*;
 import org.geysermc.geyser.entity.type.living.animal.*;
@@ -774,7 +775,16 @@ public final class EntityDefinitions {
             ARMADILLO = EntityDefinition.inherited(ArmadilloEntity::new, ageableEntityBase)
                     .type(EntityType.ARMADILLO)
                     .height(0.65f).width(0.7f)
-                    .addTranslator(null)
+                    .properties(new GeyserEntityProperties.Builder()
+                        .addEnum(
+                            "minecraft:armadillo_state",
+                            "unrolled",
+                            "rolled_up",
+                            "rolled_up_peeking",
+                            "rolled_up_relaxing",
+                            "rolled_up_unrolling")
+                        .build())
+                    .addTranslator(MetadataType.ARMADILLO_STATE, ArmadilloEntity::setArmadilloState)
                     .build();
             AXOLOTL = EntityDefinition.inherited(AxolotlEntity::new, ageableEntityBase)
                     .type(EntityType.AXOLOTL)
@@ -786,6 +796,9 @@ public final class EntityDefinitions {
             BEE = EntityDefinition.inherited(BeeEntity::new, ageableEntityBase)
                     .type(EntityType.BEE)
                     .heightAndWidth(0.6f)
+                    .properties(new GeyserEntityProperties.Builder()
+                        .addBoolean("minecraft:has_nectar")
+                        .build())
                     .addTranslator(MetadataType.BYTE, BeeEntity::setBeeFlags)
                     .addTranslator(MetadataType.INT, BeeEntity::setAngerTime)
                     .build();

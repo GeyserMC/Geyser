@@ -638,6 +638,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public void connect() {
         startGame();
         sentSpawnPacket = true;
+        syncEntityProperties();
 
         // Set the hardcoded shield ID to the ID we just defined in StartGamePacket
         // upstream.getSession().getHardcodedBlockingId().set(this.itemMappings.getStoredItems().shield().getBedrockId());
@@ -1562,7 +1563,18 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setRewindHistorySize(0);
         startGamePacket.setServerAuthoritativeBlockBreaking(false);
 
+        // Entity properties for older versions
+        startGamePacket.getExperiments().add(new ExperimentData("upcoming_creator_features", true));
+
         upstream.sendPacket(startGamePacket);
+    }
+
+    private void syncEntityProperties() {
+        for (NbtMap nbtMap : Registries.BEDROCK_ENTITY_PROPERTIES.get()) {
+            SyncEntityPropertyPacket syncEntityPropertyPacket = new SyncEntityPropertyPacket();
+            syncEntityPropertyPacket.setData(nbtMap);
+            upstream.sendPacket(syncEntityPropertyPacket);
+        }
     }
 
     /**

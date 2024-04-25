@@ -28,11 +28,27 @@ package org.geysermc.geyser.entity.type.living.animal;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.ArmadilloState;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
 
 import java.util.UUID;
 
 public class ArmadilloEntity extends AnimalEntity {
-    public ArmadilloEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public ArmadilloEntity(GeyserSession session, int entityId, long geyserId, UUID uuid,
+            EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    }
+
+    // TODO: This is completely wrong; probably need to store the previous IDLE/ROLLING/SCARED state and check for transitions (pain)
+    public void setArmadilloState(ObjectEntityMetadata<ArmadilloState> entityMetadata) {
+        ArmadilloState armadilloState = entityMetadata.getValue();
+
+        switch (armadilloState) {
+            case IDLE -> propertyManager.add("minecraft:armadillo_state", "unrolled");
+            case ROLLING -> propertyManager.add("minecraft:armadillo_state", "rolled_up");
+            case SCARED -> propertyManager.add("minecraft:armadillo_state", "rolled_up_peeking");
+        }
+
+        updateBedrockEntityProperties();
     }
 }

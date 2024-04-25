@@ -39,6 +39,7 @@ import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
+import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.EntityUtils;
@@ -117,6 +118,8 @@ public class Entity implements GeyserEntity {
     @Setter(AccessLevel.PROTECTED) // For players
     private boolean flagsDirty = false;
 
+    protected final GeyserEntityPropertyManager propertyManager;
+
     public Entity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         this.session = session;
 
@@ -130,6 +133,8 @@ public class Entity implements GeyserEntity {
         this.headYaw = headYaw;
 
         this.valid = false;
+
+        this.propertyManager = new GeyserEntityPropertyManager(definition.registeredProperties());
 
         setPosition(position);
         setAirSupply(getMaxAir());
@@ -344,6 +349,23 @@ public class Entity implements GeyserEntity {
                 flagsDirty = false;
             }
             dirtyMetadata.apply(entityDataPacket.getMetadata());
+            session.sendUpstreamPacket(entityDataPacket);
+        }
+    }
+
+    /**
+     * Sends the Bedrock entity properties to the client
+     */
+    public void updateBedrockEntityProperties() {
+        if (!valid) {
+            return;
+        }
+
+        if (propertyManager.hasProperties()) {
+            SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
+            entityDataPacket.setRuntimeEntityId(geyserId);
+            propertyManager.applyIntProperties(entityDataPacket.getProperties().getIntProperties());
+            propertyManager.applyFloatProperties(entityDataPacket.getProperties().getFloatProperties());
             session.sendUpstreamPacket(entityDataPacket);
         }
     }

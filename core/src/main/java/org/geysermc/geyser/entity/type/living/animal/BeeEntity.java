@@ -58,7 +58,8 @@ public class BeeEntity extends AnimalEntity {
         // If the bee has stung
         dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, (xd & 0x04) == 0x04 ? 1 : 0);
         // If the bee has nectar or not
-        setFlag(EntityFlag.POWERED, (xd & 0x08) == 0x08);
+        propertyManager.add("minecraft:has_nectar", (xd & 0x08) == 0x08);
+        updateBedrockEntityProperties();
     }
 
     public void setAngerTime(IntEntityMetadata entityMetadata) {
