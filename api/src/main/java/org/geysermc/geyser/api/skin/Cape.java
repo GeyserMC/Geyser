@@ -30,7 +30,7 @@ package org.geysermc.geyser.api.skin;
  *
  * @param textureUrl The URL of the cape texture
  * @param capeId The ID of the cape
- * @param capeData The raw cape image data
+ * @param capeData The raw cape image data in ARGB format
  * @param failed If the cape failed to load, this is for things like fallback capes
  */
 public record Cape(String textureUrl, String capeId, byte[] capeData, boolean failed) {

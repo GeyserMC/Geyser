@@ -29,7 +29,7 @@ package org.geysermc.geyser.api.skin;
  * Represents a skin.
  *
  * @param textureUrl The URL/ID of the skin texture
- * @param skinData The raw skin image data
+ * @param skinData The raw skin image data in ARGB
  * @param failed If the skin failed to load, this is for things like fallback skins
  */
 public record Skin(String textureUrl, byte[] skinData, boolean failed) {

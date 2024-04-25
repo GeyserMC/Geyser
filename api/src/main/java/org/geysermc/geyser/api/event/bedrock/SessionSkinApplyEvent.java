@@ -45,42 +45,92 @@ public abstract class SessionSkinApplyEvent extends ConnectionEvent {
     private final String username;
     private final UUID uuid;
     private final boolean slim;
-    private final boolean isBedrock;
+    private final boolean bedrock;
     private final SkinData skinData;
 
-    public SessionSkinApplyEvent(@NonNull GeyserConnection connection, String username, UUID uuid, boolean slim, boolean isBedrock, SkinData skinData) {
+    public SessionSkinApplyEvent(@NonNull GeyserConnection connection, String username, UUID uuid, boolean slim, boolean bedrock, SkinData skinData) {
         super(connection);
         this.username = username;
         this.uuid = uuid;
         this.slim = slim;
-        this.isBedrock = isBedrock;
+        this.bedrock = bedrock;
         this.skinData = skinData;
     }
 
+    /**
+     * The username of the player.
+     *
+     * @return the username of the player
+     */
     public String username() {
         return username;
     }
 
+    /**
+     * The UUID of the player.
+     *
+     * @return the UUID of the player
+     */
     public UUID uuid() {
         return uuid;
     }
 
+    /**
+     * If the player is using a slim model.
+     *
+     * @return if the player is using a slim model
+     */
     public boolean slim() {
         return slim;
     }
 
-    public boolean isBedrock() {
-        return isBedrock;
+    /**
+     * If the player is using a Bedrock skin.
+     *
+     * @return if the player is using a Bedrock skin
+     */
+    public boolean bedrock() {
+        return bedrock;
     }
 
+    /**
+     * The skin data of the player.
+     *
+     * @return the skin data of the player
+     */
     public SkinData skinData() {
         return skinData;
     }
 
+    /**
+     * Change the skin of the player.
+     *
+     * @param newSkin the new skin
+     */
     public abstract void skin(@NonNull Skin newSkin);
+
+    /**
+     * Change the cape of the player.
+     *
+     * @param newCape the new cape
+     */
     public abstract void cape(@NonNull Cape newCape);
+
+    /**
+     * Change the geometry of the player.
+     *
+     * @param newGeometry the new geometry
+     */
     public abstract void geometry(@NonNull SkinGeometry newGeometry);
 
+    /**
+     * Change the geometry of the player.
+     * <p>
+     * Constructs a generic {@link SkinGeometry} object with the given data.
+     *
+     * @param geometryName the name of the geometry
+     * @param geometryData the data of the geometry
+     */
     public void geometry(@NonNull String geometryName, @NonNull String geometryData) {
         geometry(new SkinGeometry("{\"geometry\" :{\"default\" :\"" + geometryName + "\"}}", geometryData));
     }
