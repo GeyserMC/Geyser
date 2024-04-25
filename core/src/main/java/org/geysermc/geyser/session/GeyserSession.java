@@ -65,8 +65,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -1100,9 +1098,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         if (!closed) {
             loggedIn = false;
 
-            // Fire SessionDisconnectEvent
             SessionDisconnectEvent disconnectEvent = new SessionDisconnectEvent(this, reason);
-            geyser.getEventBus().fire(disconnectEvent);
+            if (authData != null && clientData != null) {
+                // Fire SessionDisconnectEvent
+                geyser.getEventBus().fire(disconnectEvent);
+            }
 
             // Disconnect downstream if necessary
             if (downstream != null) {
@@ -1427,7 +1427,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public String name() {
-        return null;
+        return this.isLoggedIn() ? this.javaUsername() : this.bedrockUsername();
     }
 
     @Override
@@ -1953,12 +1953,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public @MonotonicNonNull String javaUsername() {
-        return playerEntity.getUsername();
+        return playerEntity != null ? playerEntity.getUsername() : null;
     }
 
     @Override
     public UUID javaUuid() {
-        return playerEntity.getUuid();
+        return playerEntity != null ? playerEntity.getUuid() : null ;
     }
 
     @Override
