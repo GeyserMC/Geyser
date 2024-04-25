@@ -25,12 +25,10 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundEntityEventPacket;
 import org.cloudburstmc.protocol.bedrock.data.ParticleType;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEvent2Packet;
@@ -46,6 +44,7 @@ import org.geysermc.geyser.entity.type.living.monster.WardenEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundEntityEventPacket;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -223,9 +222,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 return;
             case PLAYER_SWAP_SAME_ITEM: // Not just used for players
                 if (entity instanceof LivingEntity livingEntity) {
-                    ItemData newMainHand = livingEntity.getOffHand();
-                    livingEntity.setOffHand(livingEntity.getHand());
-                    livingEntity.setHand(newMainHand);
+                    livingEntity.switchHands();
 
                     livingEntity.updateMainHand(session);
                     livingEntity.updateOffHand(session);

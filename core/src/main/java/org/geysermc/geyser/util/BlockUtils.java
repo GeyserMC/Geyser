@@ -145,7 +145,7 @@ public final class BlockUtils {
             toolCanBreak = canToolTierBreakBlock(session, blockMapping, toolTier);
         }
 
-        int toolEfficiencyLevel = ItemUtils.getEnchantmentLevel(components, Enchantment.JavaEnchantment.EFFICIENCY.ordinal());
+        int toolEfficiencyLevel = ItemUtils.getEnchantmentLevel(components, Enchantment.JavaEnchantment.EFFICIENCY);
         int hasteLevel = 0;
         int miningFatigueLevel = 0;
 
@@ -160,7 +160,7 @@ public final class BlockUtils {
 
         boolean waterInEyes = session.getCollisionManager().isWaterInEyes();
         boolean insideOfWaterWithoutAquaAffinity = waterInEyes &&
-                ItemUtils.getEnchantmentLevel(session.getPlayerInventory().getItem(5).getComponents(), Enchantment.JavaEnchantment.AQUA_AFFINITY.ordinal()) < 1;
+                ItemUtils.getEnchantmentLevel(session.getPlayerInventory().getItem(5).getComponents(), Enchantment.JavaEnchantment.AQUA_AFFINITY) < 1;
 
         return calculateBreakTime(blockMapping.getHardness(), toolTier, canHarvestWithHand, correctTool, toolCanBreak, toolType, isShearsEffective,
                 toolEfficiencyLevel, hasteLevel, miningFatigueLevel, insideOfWaterWithoutAquaAffinity, session.getPlayerEntity().isOnGround());

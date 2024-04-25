@@ -66,7 +66,7 @@ public class PiglinEntity extends BasePiglinEntity {
     @Override
     public void updateOffHand(GeyserSession session) {
         // Check if the Piglin is holding Gold and set the ADMIRING flag accordingly so its pose updates
-        setFlag(EntityFlag.ADMIRING, session.getTagCache().is(ItemTag.PIGLIN_LOVED, session.getItemMappings().getMapping(this.offHand).getJavaItem()));
+        setFlag(EntityFlag.ADMIRING, session.getTagCache().is(ItemTag.PIGLIN_LOVED, session.getItemMappings().getMapping(this.offhand).getJavaItem()));
         super.updateBedrockMetadata();
 
         super.updateOffHand(session);

@@ -360,7 +360,7 @@ public final class ItemTranslator {
         }
 
         if (mapping.getJavaItem().equals(Items.PLAYER_HEAD)) {
-            CustomSkull customSkull = getCustomSkull(session, itemStack.getComponents());
+            CustomSkull customSkull = getCustomSkull(itemStack.getComponents());
             if (customSkull != null) {
                 itemDefinition = session.getItemMappings().getCustomBlockItemDefinitions().get(customSkull.getCustomBlockData());
             }
@@ -552,7 +552,7 @@ public final class ItemTranslator {
         builder.blockDefinition(blockDefinition);
     }
 
-    private static @Nullable CustomSkull getCustomSkull(GeyserSession session, DataComponents components) {
+    private static @Nullable CustomSkull getCustomSkull(DataComponents components) {
         if (components == null) {
             return null;
         }
@@ -563,7 +563,7 @@ public final class ItemTranslator {
             try {
                 textures = profile.getTextures(false);
             } catch (PropertyException e) {
-                session.getGeyser().getLogger().debug("Failed to get textures from GameProfile: " + e);
+                GeyserImpl.getInstance().getLogger().debug("Failed to get textures from GameProfile: " + e);
             }
 
             if (textures == null || textures.isEmpty()) {
@@ -583,7 +583,7 @@ public final class ItemTranslator {
     }
 
     private static void translatePlayerHead(GeyserSession session, DataComponents components, ItemData.Builder builder) {
-        CustomSkull customSkull = getCustomSkull(session, components);
+        CustomSkull customSkull = getCustomSkull(components);
         if (customSkull != null) {
             CustomBlockData customBlockData = customSkull.getCustomBlockData();
             ItemDefinition itemDefinition = session.getItemMappings().getCustomBlockItemDefinitions().get(customBlockData);

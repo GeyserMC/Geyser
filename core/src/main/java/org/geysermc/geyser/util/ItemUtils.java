@@ -27,6 +27,7 @@ package org.geysermc.geyser.util;
 
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.inventory.item.Enchantment;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.FishingRodItem;
 import org.geysermc.geyser.item.type.Item;
@@ -36,7 +37,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantm
 
 public class ItemUtils {
 
-    public static int getEnchantmentLevel(@Nullable DataComponents components, int enchantmentId) {
+    public static int getEnchantmentLevel(@Nullable DataComponents components, Enchantment.JavaEnchantment enchantment) {
         if (components == null) {
             return 0;
         }
@@ -46,7 +47,7 @@ public class ItemUtils {
             return 0;
         }
 
-        return enchantmentData.getEnchantments().getOrDefault(enchantmentId, 0);
+        return enchantmentData.getEnchantments().getOrDefault(enchantment.ordinal(), 0);
     }
 
     /**
