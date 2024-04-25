@@ -85,9 +85,9 @@ public abstract class SessionSkinApplyEvent extends ConnectionEvent {
     }
 
     /**
-     * If the player is using a Bedrock skin.
+     * If the player is a Bedrock player.
      *
-     * @return if the player is using a Bedrock skin
+     * @return if the player is a Bedrock player
      */
     public boolean bedrock() {
         return bedrock;
