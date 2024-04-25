@@ -66,8 +66,8 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         }
     }
 
-    private static UUID getUUID(CompoundTag owner) {
-        if (owner.get("Id") instanceof IntArrayTag uuidTag && uuidTag.length() == 4) {
+    private static UUID getUUID(CompoundTag profile) {
+        if (profile.get("id") instanceof IntArrayTag uuidTag && uuidTag.length() == 4) {
             int[] uuidAsArray = uuidTag.getValue();
             // thank u viaversion
             return new UUID((long) uuidAsArray[0] << 32 | ((long) uuidAsArray[1] & 0xFFFFFFFFL),
@@ -75,46 +75,44 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         }
         // Convert username to an offline UUID
         String username = null;
-        if (owner.get("Name") instanceof StringTag nameTag) {
+        if (profile.get("name") instanceof StringTag nameTag) {
             username = nameTag.getValue().toLowerCase(Locale.ROOT);
         }
         return UUID.nameUUIDFromBytes(("OfflinePlayer:" + username).getBytes(StandardCharsets.UTF_8));
     }
 
-    private static CompletableFuture<String> getTextures(CompoundTag owner, UUID uuid) {
-        CompoundTag properties = owner.get("Properties");
+    private static CompletableFuture<String> getTextures(CompoundTag profile, UUID uuid) {
+        ListTag properties = profile.get("properties");
         if (properties == null) {
             if (uuid != null && uuid.version() == 4) {
                 String uuidString = uuid.toString().replace("-", "");
                 return SkinProvider.requestTexturesFromUUID(uuidString);
-            } else if (owner.get("Name") instanceof StringTag nameTag) {
+            } else if (profile.get("name") instanceof StringTag nameTag) {
                 // Fall back to username if UUID was missing or was an offline mode UUID
                 return SkinProvider.requestTexturesFromUsername(nameTag.getValue());
             }
             return CompletableFuture.completedFuture(null);
         }
 
-        ListTag textures = properties.get("textures");
-        LinkedHashMap<?,?> tag1 = (LinkedHashMap<?,?>) textures.get(0).getValue();
-        StringTag texture = (StringTag) tag1.get("Value");
+        LinkedHashMap<?,?> tag1 = (LinkedHashMap<?,?>) properties.get(0).getValue();
+        StringTag texture = (StringTag) tag1.get("value");
         return CompletableFuture.completedFuture(texture.getValue());
     }
 
     public static @Nullable BlockDefinition translateSkull(GeyserSession session, CompoundTag tag, Vector3i blockPosition, int blockState) {
-        // TODO: The tag layout follows new format (profille, etc...)
-        CompoundTag owner = tag.get("SkullOwner");
-        if (owner == null) {
+        CompoundTag profile = tag.get("profile");
+        if (profile == null) {
             session.getSkullCache().removeSkull(blockPosition);
             return null;
         }
-        UUID uuid = getUUID(owner);
+        UUID uuid = getUUID(profile);
 
-        CompletableFuture<String> texturesFuture = getTextures(owner, uuid);
+        CompletableFuture<String> texturesFuture = getTextures(profile, uuid);
         if (texturesFuture.isDone()) {
             try {
                 String texture = texturesFuture.get();
                 if (texture == null) {
-                    session.getGeyser().getLogger().debug("Custom skull with invalid SkullOwner tag: " + blockPosition + " " + tag);
+                    session.getGeyser().getLogger().debug("Custom skull with invalid profile tag: " + blockPosition + " " + tag);
                     return null;
                 }
                 SkullCache.Skull skull = session.getSkullCache().putSkull(blockPosition, uuid, texture, blockState);
@@ -128,10 +126,10 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
             return null;
         }
 
-        // SkullOwner contained a username, so we have to wait for it to be retrieved
+        // profile contained a username, so we have to wait for it to be retrieved
         texturesFuture.whenComplete((texturesProperty, throwable) -> {
             if (texturesProperty == null) {
-                session.getGeyser().getLogger().debug("Custom skull with invalid SkullOwner tag: " + blockPosition + " " + tag);
+                session.getGeyser().getLogger().debug("Custom skull with invalid profile tag: " + blockPosition + " " + tag);
                 return;
             }
             if (session.getEventLoop().inEventLoop()) {
