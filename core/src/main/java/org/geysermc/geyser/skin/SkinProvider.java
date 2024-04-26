@@ -261,25 +261,26 @@ public class SkinProvider {
 
                         // Call event to allow extensions to modify the skin, cape and geo
                         boolean isBedrock = GeyserImpl.getInstance().connectionByUuid(entity.getUuid()) != null;
-                        final SkinData[] skinData = {new SkinData(skin, cape, geometry)};
-                        GeyserImpl.getInstance().eventBus().fire(new SessionSkinApplyEvent(session, entity.getUsername(), entity.getUuid(), data.isAlex(), isBedrock, skinData[0]) {
+                        SkinData skinData = new SkinData(skin, cape, geometry);
+                        final EventSkinData eventSkinData = new EventSkinData(skinData);
+                        GeyserImpl.getInstance().eventBus().fire(new SessionSkinApplyEvent(session, entity.getUsername(), entity.getUuid(), data.isAlex(), isBedrock, skinData) {
                             @Override
                             public void skin(@NonNull Skin newSkin) {
-                                skinData[0] = new SkinData(newSkin, skinData[0].cape(), skinData[0].geometry());
+                                eventSkinData.skinData(new SkinData(newSkin, skinData.cape(), skinData.geometry()));
                             }
 
                             @Override
                             public void cape(@NonNull Cape newCape) {
-                                skinData[0] = new SkinData(skinData[0].skin(), newCape, skinData[0].geometry());
+                                eventSkinData.skinData(new SkinData(skinData.skin(), newCape, skinData.geometry()));
                             }
 
                             @Override
                             public void geometry(@NonNull SkinGeometry newGeometry) {
-                                skinData[0] = new SkinData(skinData[0].skin(), skinData[0].cape(), newGeometry);
+                                eventSkinData.skinData(new SkinData(skinData.skin(),  skinData.cape(), newGeometry));
                             }
                         });
 
-                        return skinData[0];
+                        return eventSkinData.skinData();
                     } catch (Exception e) {
                         GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), e);
                     }
@@ -613,5 +614,21 @@ public class SkinProvider {
     }
 
     public record SkinAndCape(Skin skin, Cape cape) {
+    }
+
+    public static class EventSkinData {
+        private SkinData skinData;
+
+        public EventSkinData(SkinData skinData) {
+            this.skinData = skinData;
+        }
+
+        public SkinData skinData() {
+            return skinData;
+        }
+
+        public void skinData(SkinData skinData) {
+            this.skinData = skinData;
+        }
     }
 }
