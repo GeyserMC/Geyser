@@ -46,7 +46,7 @@ public abstract class SessionSkinApplyEvent extends ConnectionEvent {
     private final UUID uuid;
     private final boolean slim;
     private final boolean bedrock;
-    private final SkinData skinData;
+    private final SkinData originalSkinData;
 
     public SessionSkinApplyEvent(@NonNull GeyserConnection connection, String username, UUID uuid, boolean slim, boolean bedrock, SkinData skinData) {
         super(connection);
@@ -54,7 +54,7 @@ public abstract class SessionSkinApplyEvent extends ConnectionEvent {
         this.uuid = uuid;
         this.slim = slim;
         this.bedrock = bedrock;
-        this.skinData = skinData;
+        this.originalSkinData = skinData;
     }
 
     /**
@@ -94,13 +94,20 @@ public abstract class SessionSkinApplyEvent extends ConnectionEvent {
     }
 
     /**
+     * The original skin data of the player.
+     *
+     * @return the original skin data of the player
+     */
+    public SkinData originalSkin() {
+        return originalSkinData;
+    }
+
+    /**
      * The skin data of the player.
      *
      * @return the skin data of the player
      */
-    public SkinData skinData() {
-        return skinData;
-    }
+    public abstract SkinData skinData();
 
     /**
      * Change the skin of the player.

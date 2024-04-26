@@ -265,6 +265,11 @@ public class SkinProvider {
                         final EventSkinData eventSkinData = new EventSkinData(skinData);
                         GeyserImpl.getInstance().eventBus().fire(new SessionSkinApplyEvent(session, entity.getUsername(), entity.getUuid(), data.isAlex(), isBedrock, skinData) {
                             @Override
+                            public SkinData skinData() {
+                                return eventSkinData.skinData();
+                            }
+
+                            @Override
                             public void skin(@NonNull Skin newSkin) {
                                 eventSkinData.skinData(new SkinData(newSkin, skinData.cape(), skinData.geometry()));
                             }
