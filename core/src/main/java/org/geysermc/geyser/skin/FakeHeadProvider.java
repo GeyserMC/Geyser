@@ -94,6 +94,7 @@ public class FakeHeadProvider {
 
                     // Avoiding memory leak
                     fakeHeadEntry.setEntity(null);
+                    fakeHeadEntry.setSession(null);
 
                     return new SkinData(mergedSkin, cape, geometry);
                 }

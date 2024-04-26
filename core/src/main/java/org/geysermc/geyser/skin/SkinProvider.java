@@ -292,10 +292,9 @@ public class SkinProvider {
         return CompletableFuture.supplyAsync(() -> {
             long time = System.currentTimeMillis();
 
-            CapeProvider provider = capeUrl != null ? CapeProvider.MINECRAFT : null;
             SkinAndCape skinAndCape = new SkinAndCape(
                     getOrDefault(requestSkin(playerId, skinUrl, false), EMPTY_SKIN, 5),
-                    getOrDefault(requestCape(capeUrl, provider, false), EMPTY_CAPE, 5)
+                    getOrDefault(requestCape(capeUrl, false), EMPTY_CAPE, 5)
             );
 
             GeyserImpl.getInstance().getLogger().debug("Took " + (System.currentTimeMillis() - time) + "ms for " + playerId);
@@ -332,7 +331,7 @@ public class SkinProvider {
         return future;
     }
 
-    private static CompletableFuture<Cape> requestCape(String capeUrl, CapeProvider provider, boolean newThread) {
+    private static CompletableFuture<Cape> requestCape(String capeUrl, boolean newThread) {
         if (capeUrl == null || capeUrl.isEmpty()) return CompletableFuture.completedFuture(EMPTY_CAPE);
         CompletableFuture<Cape> requestedCape = requestedCapes.get(capeUrl);
         if (requestedCape != null) {
@@ -346,14 +345,14 @@ public class SkinProvider {
 
         CompletableFuture<Cape> future;
         if (newThread) {
-            future = CompletableFuture.supplyAsync(() -> supplyCape(capeUrl, provider), getExecutorService())
+            future = CompletableFuture.supplyAsync(() -> supplyCape(capeUrl), getExecutorService())
                     .whenCompleteAsync((cape, throwable) -> {
                         CACHED_JAVA_CAPES.put(capeUrl, cape);
                         requestedCapes.remove(capeUrl);
                     });
             requestedCapes.put(capeUrl, future);
         } else {
-            Cape cape = supplyCape(capeUrl, provider); // blocking
+            Cape cape = supplyCape(capeUrl); // blocking
             future = CompletableFuture.completedFuture(cape);
             CACHED_JAVA_CAPES.put(capeUrl, cape);
         }
@@ -377,17 +376,17 @@ public class SkinProvider {
 
     private static Skin supplySkin(UUID uuid, String textureUrl) {
         try {
-            byte[] skin = requestImageData(textureUrl, null);
+            byte[] skin = requestImageData(textureUrl, false);
             return new Skin(textureUrl, skin);
         } catch (Exception ignored) {} // just ignore I guess
 
         return new Skin("empty", EMPTY_SKIN.skinData(), true);
     }
 
-    private static Cape supplyCape(String capeUrl, CapeProvider provider) {
+    private static Cape supplyCape(String capeUrl) {
         byte[] cape = EMPTY_CAPE.capeData();
         try {
-            cape = requestImageData(capeUrl, provider);
+            cape = requestImageData(capeUrl, true);
         } catch (Exception ignored) {
         } // just ignore I guess
 
@@ -402,7 +401,7 @@ public class SkinProvider {
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static BufferedImage requestImage(String imageUrl, CapeProvider provider) throws IOException {
+    public static BufferedImage requestImage(String imageUrl, boolean isCape) throws IOException {
         BufferedImage image = null;
 
         // First see if we have a cached file. We also update the modification stamp so we know when the file was last used
@@ -417,7 +416,7 @@ public class SkinProvider {
 
         // If no image we download it
         if (image == null) {
-            image = downloadImage(imageUrl, provider);
+            image = downloadImage(imageUrl);
             GeyserImpl.getInstance().getLogger().debug("Downloaded " + imageUrl);
 
             // Write to cache if we are allowed
@@ -433,7 +432,7 @@ public class SkinProvider {
         }
 
         // if the requested image is a cape
-        if (provider != null) {
+        if (isCape) {
             if (image.getWidth() > 64 || image.getHeight() > 32) {
                 // Prevent weirdly-scaled capes from being cut off
                 BufferedImage newImage = new BufferedImage(128, 64, BufferedImage.TYPE_INT_ARGB);
@@ -465,8 +464,8 @@ public class SkinProvider {
         return image;
     }
 
-    private static byte[] requestImageData(String imageUrl, CapeProvider provider) throws Exception {
-        BufferedImage image = requestImage(imageUrl, provider);
+    private static byte[] requestImageData(String imageUrl, boolean isCape) throws Exception {
+        BufferedImage image = requestImage(imageUrl, isCape);
         byte[] data = bufferedImageToImageData(image);
         image.flush();
         return data;
@@ -529,7 +528,7 @@ public class SkinProvider {
         });
     }
 
-    private static BufferedImage downloadImage(String imageUrl, CapeProvider provider) throws IOException {
+    private static BufferedImage downloadImage(String imageUrl) throws IOException {
         HttpURLConnection con = (HttpURLConnection) new URL(imageUrl).openConnection();
         con.setRequestProperty("User-Agent", WebUtils.getUserAgent());
         con.setConnectTimeout(10000);
@@ -538,7 +537,7 @@ public class SkinProvider {
         BufferedImage image = ImageIO.read(con.getInputStream());
 
         if (image == null) {
-            throw new IllegalArgumentException("Failed to read image from: %s (cape provider=%s)".formatted(imageUrl, provider));
+            throw new IllegalArgumentException("Failed to read image from: %s".formatted(imageUrl));
         }
         return image;
     }
@@ -614,41 +613,5 @@ public class SkinProvider {
     }
 
     public record SkinAndCape(Skin skin, Cape cape) {
-    }
-
-    /*
-     * Sorted by 'priority'
-     */
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Getter
-    public enum CapeProvider {
-        MINECRAFT;
-
-        public static final CapeProvider[] VALUES = Arrays.copyOfRange(values(), 1, 5);
-        private String url;
-        private CapeUrlType type;
-
-        public String getUrlFor(String type) {
-            return String.format(url, type);
-        }
-
-        public String getUrlFor(UUID uuid, String username) {
-            return getUrlFor(toRequestedType(type, uuid, username));
-        }
-
-        public static String toRequestedType(CapeUrlType type, UUID uuid, String username) {
-            return switch (type) {
-                case UUID -> uuid.toString().replace("-", "");
-                case UUID_DASHED -> uuid.toString();
-                default -> username;
-            };
-        }
-    }
-
-    public enum CapeUrlType {
-        USERNAME,
-        UUID,
-        UUID_DASHED
     }
 }
