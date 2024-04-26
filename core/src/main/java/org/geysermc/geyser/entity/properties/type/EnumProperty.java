@@ -50,7 +50,7 @@ public class EnumProperty implements PropertyType {
     public NbtMap nbtMap() {
         return NbtMap.builder()
                 .putString("name", name)
-                .putList("values", NbtType.STRING, values)
+                .putList("enum", NbtType.STRING, values)
                 .putInt("type", 3)
                 .build();
     }
