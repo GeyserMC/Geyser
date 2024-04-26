@@ -70,6 +70,5 @@ public class WrittenBookItem extends Item {
         builder.putString("title", bookContent.getTitle().getRaw())
                 .putString("author", bookContent.getAuthor())
                 .putInt("generation", bookContent.getGeneration());
-        // TODO isResolved
     }
 }

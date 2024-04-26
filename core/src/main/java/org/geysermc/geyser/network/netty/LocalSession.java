@@ -54,11 +54,14 @@ public final class LocalSession extends TcpSession {
     private final String clientIp;
     private final PacketCodecHelper codecHelper;
 
-    public LocalSession(String host, int port, SocketAddress targetAddress, String clientIp, PacketProtocol protocol, MinecraftCodecHelper codecHelper) {
+    private final boolean transferring;
+
+    public LocalSession(String host, int port, SocketAddress targetAddress, String clientIp, PacketProtocol protocol, MinecraftCodecHelper codecHelper, boolean transferring) {
         super(host, port, protocol);
         this.targetAddress = targetAddress;
         this.clientIp = clientIp;
         this.codecHelper = codecHelper;
+        this.transferring = transferring;
     }
 
     @Override
@@ -79,7 +82,7 @@ public final class LocalSession extends TcpSession {
                 public void initChannel(@NonNull LocalChannelWithRemoteAddress channel) {
                     channel.spoofedRemoteAddress(new InetSocketAddress(clientIp, 0));
                     PacketProtocol protocol = getPacketProtocol();
-                    protocol.newClientSession(LocalSession.this, false);
+                    protocol.newClientSession(LocalSession.this, transferring);
 
                     refreshReadTimeoutHandler(channel);
                     refreshWriteTimeoutHandler(channel);

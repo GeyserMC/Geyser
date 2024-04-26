@@ -175,8 +175,9 @@ public class GeyserSpigotInjector extends GeyserInjector {
         MinecraftProtocol protocol = new MinecraftProtocol();
         LocalSession session = new LocalSession(bootstrap.getGeyserConfig().getRemote().address(),
                 bootstrap.getGeyserConfig().getRemote().port(), this.serverSocketAddress,
-                InetAddress.getLoopbackAddress().getHostAddress(), protocol, protocol.createHelper());
+                InetAddress.getLoopbackAddress().getHostAddress(), protocol, protocol.createHelper(), false);
         session.connect();
+        session.disconnect("");
     }
 
     @Override
