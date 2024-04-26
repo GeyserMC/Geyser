@@ -40,6 +40,7 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.EvokerFangsEntity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
 import org.geysermc.geyser.entity.type.LivingEntity;
+import org.geysermc.geyser.entity.type.living.animal.ArmadilloEntity;
 import org.geysermc.geyser.entity.type.living.monster.WardenEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -255,6 +256,11 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
             case WARDEN_SONIC_BOOM:
                 if (entity instanceof WardenEntity wardenEntity) {
                     wardenEntity.onSonicBoom();
+                }
+                break;
+            case ARMADILLO_PEEKING:
+                if (entity instanceof ArmadilloEntity armadilloEntity) {
+                    armadilloEntity.onPeeking();
                 }
                 break;
         }
