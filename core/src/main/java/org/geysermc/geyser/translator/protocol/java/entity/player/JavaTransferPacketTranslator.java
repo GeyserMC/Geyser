@@ -28,16 +28,27 @@ package org.geysermc.geyser.translator.protocol.java.entity.player;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.java.ServerTransferEvent;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundTransferPacket;
 
+@Translator(packet = ClientboundTransferPacket.class)
 public class JavaTransferPacketTranslator extends PacketTranslator<ClientboundTransferPacket> {
     @Override
     public void translate(GeyserSession session, ClientboundTransferPacket packet) {
-        GeyserImpl.getInstance().eventBus().fire(new ServerTransferEvent(
+        ServerTransferEvent event = new ServerTransferEvent(
                 session,
                 packet.getHost(),
                 packet.getPort(),
-                session.getCookies()));
+                session.getCookies());
+
+        GeyserImpl.getInstance().eventBus().fire(event);
+
+        if (event.bedrockHost() != null && !event.bedrockHost().isBlank() && event.bedrockPort() != -1) {
+            session.transfer(event.bedrockHost(), event.bedrockPort());
+        } else {
+            session.disconnect(MinecraftLocale.getLocaleString("disconnect.transfer", session.locale()));
+        }
     }
 }
