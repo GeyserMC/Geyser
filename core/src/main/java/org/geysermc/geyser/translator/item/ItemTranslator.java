@@ -93,7 +93,8 @@ public final class ItemTranslator {
 
         NbtMap nbt = data.getTag();
         if (nbt != null && !nbt.isEmpty()) {
-            DataComponents components = new DataComponents(new HashMap<>());
+            // translateToJava may have added components
+            DataComponents components = itemStack.getComponents() == null ? new DataComponents(new HashMap<>()) : itemStack.getComponents();
             javaItem.translateNbtToJava(nbt, components, bedrockItem);
             if (!components.getDataComponents().isEmpty()) {
                 itemStack.setComponents(components);
@@ -394,7 +395,7 @@ public final class ItemTranslator {
                 customName = components.get(DataComponentType.ITEM_NAME);
             }
             if (customName != null) {
-                // Get the translated name and prefix it with a reset char TODO test
+                // Get the translated name and prefix it with a reset char
                 return MessageTranslator.convertMessage(customName, session.locale());
             }
         }

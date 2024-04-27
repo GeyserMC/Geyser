@@ -35,20 +35,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Instrument;
 
-import java.util.List;
-
 public class GoatHornItem extends Item {
-    private static final List<String> INSTRUMENTS = List.of(
-            "ponder_goat_horn",
-            "sing_goat_horn",
-            "seek_goat_horn",
-            "feel_goat_horn",
-            "admire_goat_horn",
-            "call_goat_horn",
-            "yearn_goat_horn",
-            "dream_goat_horn" // Called "Resist" on Bedrock 1.19.0 due to https://bugs.mojang.com/browse/MCPE-155059
-    );
-
     public GoatHornItem(String javaIdentifier, Builder builder) {
         super(javaIdentifier, builder);
     }
@@ -60,19 +47,8 @@ public class GoatHornItem extends Item {
             return builder;
         }
         Holder<Instrument> instrument = components.get(DataComponentType.INSTRUMENT);
-        // TODO registry
-        if (instrument != null) {
-            // Drop the Minecraft namespace if applicable
-//            if (instrument.startsWith("minecraft:")) {
-//                instrument = instrument.substring("minecraft:".length());
-//            }
-//
-//            int damage = INSTRUMENTS.indexOf(instrument);
-//            if (damage == -1) {
-//                damage = 0;
-//                GeyserImpl.getInstance().getLogger().debug("Unknown goat horn instrument: " + instrumentTag.getValue());
-//            }
-//            builder.damage(damage);
+        if (instrument != null && instrument.isId()) {
+            builder.damage(instrument.id());
         }
         return builder;
     }
