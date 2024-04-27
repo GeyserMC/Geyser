@@ -45,6 +45,7 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.Attribute;
@@ -55,6 +56,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEn
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 
 import java.util.*;
@@ -68,7 +70,7 @@ public class LivingEntity extends Entity {
     protected ItemData leggings = ItemData.AIR;
     protected ItemData boots = ItemData.AIR;
     protected ItemData hand = ItemData.AIR;
-    protected ItemData offHand = ItemData.AIR;
+    protected ItemData offhand = ItemData.AIR;
 
     @Getter(value = AccessLevel.NONE)
     protected float health = 1f; // The default value in Java Edition before any entity metadata is sent
@@ -82,6 +84,36 @@ public class LivingEntity extends Entity {
 
     public LivingEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    }
+
+    public void setHelmet(ItemStack stack) {
+        this.helmet = ItemTranslator.translateToBedrock(session, stack);
+    }
+
+    public void setChestplate(ItemStack stack) {
+        this.chestplate = ItemTranslator.translateToBedrock(session, stack);
+    }
+
+    public void setLeggings(ItemStack stack) {
+        this.leggings = ItemTranslator.translateToBedrock(session, stack);
+    }
+
+    public void setBoots(ItemStack stack) {
+        this.boots = ItemTranslator.translateToBedrock(session, stack);
+    }
+
+    public void setHand(ItemStack stack) {
+        this.hand = ItemTranslator.translateToBedrock(session, stack);
+    }
+
+    public void setOffhand(ItemStack stack) {
+        this.offhand = ItemTranslator.translateToBedrock(session, stack);
+    }
+
+    public void switchHands() {
+        ItemData offhand = this.offhand;
+        this.offhand = this.hand;
+        this.hand = offhand;
     }
 
     @Override
@@ -134,7 +166,7 @@ public class LivingEntity extends Entity {
     protected boolean hasShield(boolean offhand) {
         ItemMapping shieldMapping = session.getItemMappings().getStoredItems().shield();
         if (offhand) {
-            return offHand.getDefinition().equals(shieldMapping.getBedrockDefinition());
+            return this.offhand.getDefinition().equals(shieldMapping.getBedrockDefinition());
         } else {
             return hand.getDefinition().equals(shieldMapping.getBedrockDefinition());
         }
@@ -246,7 +278,7 @@ public class LivingEntity extends Entity {
 
         MobEquipmentPacket offHandPacket = new MobEquipmentPacket();
         offHandPacket.setRuntimeEntityId(geyserId);
-        offHandPacket.setItem(offHand);
+        offHandPacket.setItem(offhand);
         offHandPacket.setHotbarSlot(-1);
         offHandPacket.setInventorySlot(0);
         offHandPacket.setContainerId(ContainerId.OFFHAND);

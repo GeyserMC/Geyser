@@ -43,6 +43,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetad
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -257,38 +258,38 @@ public class ArmorStandEntity extends LivingEntity {
     }
 
     @Override
-    public void setHelmet(ItemData helmet) {
+    public void setHelmet(ItemStack helmet) {
         super.setHelmet(helmet);
         updateSecondEntityStatus(true);
     }
 
     @Override
-    public void setChestplate(ItemData chestplate) {
+    public void setChestplate(ItemStack chestplate) {
         super.setChestplate(chestplate);
         updateSecondEntityStatus(true);
     }
 
     @Override
-    public void setLeggings(ItemData leggings) {
+    public void setLeggings(ItemStack leggings) {
         super.setLeggings(leggings);
         updateSecondEntityStatus(true);
     }
 
     @Override
-    public void setBoots(ItemData boots) {
+    public void setBoots(ItemStack boots) {
         super.setBoots(boots);
         updateSecondEntityStatus(true);
     }
 
     @Override
-    public void setHand(ItemData hand) {
+    public void setHand(ItemStack hand) {
         super.setHand(hand);
         updateSecondEntityStatus(true);
     }
 
     @Override
-    public void setOffHand(ItemData offHand) {
-        super.setOffHand(offHand);
+    public void setOffhand(ItemStack offHand) {
+        super.setOffhand(offHand);
         updateSecondEntityStatus(true);
     }
 
@@ -324,7 +325,7 @@ public class ArmorStandEntity extends LivingEntity {
         }
         boolean isNametagEmpty = nametag.isEmpty();
         if (!isNametagEmpty && (!helmet.equals(ItemData.AIR) || !chestplate.equals(ItemData.AIR) || !leggings.equals(ItemData.AIR)
-                || !boots.equals(ItemData.AIR) || !hand.equals(ItemData.AIR) || !offHand.equals(ItemData.AIR))) {
+                || !boots.equals(ItemData.AIR) || !hand.equals(ItemData.AIR) || !offhand.equals(ItemData.AIR))) {
             // Reset scale of the proper armor stand
             this.dirtyMetadata.put(EntityDataTypes.SCALE, getScale());
             // Set the proper armor stand to invisible to show armor

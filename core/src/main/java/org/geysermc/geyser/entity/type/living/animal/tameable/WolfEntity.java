@@ -33,15 +33,19 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.inventory.item.Enchantment;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.DyeItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
+import org.geysermc.geyser.util.ItemUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 import java.util.Collections;
 import java.util.Locale;
@@ -59,6 +63,8 @@ public class WolfEntity extends TameableEntity {
             Items.COOKED_RABBIT);
 
     private byte collarColor = 14; // Red - default
+
+    private boolean isCurseOfBinding = false;
 
     public WolfEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
@@ -120,6 +126,12 @@ public class WolfEntity extends TameableEntity {
     }
 
     @Override
+    public void setChestplate(ItemStack stack) {
+        super.setChestplate(stack);
+        isCurseOfBinding = ItemUtils.getEnchantmentLevel(stack.getDataComponents(), Enchantment.JavaEnchantment.BINDING_CURSE) > 0;
+    }
+
+    @Override
     protected boolean canBeLeashed() {
         return !getFlag(EntityFlag.ANGRY) && super.canBeLeashed();
     }
@@ -146,7 +158,8 @@ public class WolfEntity extends TameableEntity {
             if (itemInHand.asItem() == Items.WOLF_ARMOR && !this.chestplate.isValid() && !getFlag(EntityFlag.BABY)) {
                 return InteractiveTag.EQUIP_WOLF_ARMOR;
             }
-            if (itemInHand.asItem() == Items.SHEARS && this.chestplate.isValid()) { // TODO: check curse of binding
+            if (itemInHand.asItem() == Items.SHEARS && this.chestplate.isValid()
+                    && (!isCurseOfBinding || session.getGameMode().equals(GameMode.CREATIVE))) {
                 return InteractiveTag.REMOVE_WOLF_ARMOR;
             }
             if (Items.WOLF_ARMOR.isValidRepairItem(itemInHand.asItem()) && getFlag(EntityFlag.SITTING) &&

@@ -32,23 +32,42 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.ArmadilloSt
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class ArmadilloEntity extends AnimalEntity {
+    private ArmadilloState armadilloState = ArmadilloState.IDLE;
+
     public ArmadilloEntity(GeyserSession session, int entityId, long geyserId, UUID uuid,
             EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    // TODO: This is completely wrong; probably need to store the previous IDLE/ROLLING/SCARED state and check for transitions (pain)
     public void setArmadilloState(ObjectEntityMetadata<ArmadilloState> entityMetadata) {
-        ArmadilloState armadilloState = entityMetadata.getValue();
+        armadilloState = entityMetadata.getValue();
 
         switch (armadilloState) {
             case IDLE -> propertyManager.add("minecraft:armadillo_state", "unrolled");
             case ROLLING -> propertyManager.add("minecraft:armadillo_state", "rolled_up");
-            case SCARED -> propertyManager.add("minecraft:armadillo_state", "rolled_up_peeking");
+            case SCARED -> propertyManager.add("minecraft:armadillo_state", "rolled_up_relaxing");
+            case UNROLLING -> propertyManager.add("minecraft:armadillo_state", "rolled_up_unrolling");
         }
 
         updateBedrockEntityProperties();
+    }
+
+    public void onPeeking() {
+        // Technically we should wait if not currently scared
+        if (armadilloState == ArmadilloState.SCARED) {
+            propertyManager.add("minecraft:armadillo_state", "rolled_up_peeking");
+            updateBedrockEntityProperties();
+
+            // Needed for consecutive peeks
+            session.scheduleInEventLoop(() -> {
+                if (armadilloState == ArmadilloState.SCARED) {
+                    propertyManager.add("minecraft:armadillo_state", "rolled_up_relaxing");
+                    updateBedrockEntityProperties();
+                }
+            }, 250, TimeUnit.MILLISECONDS);
+        }
     }
 }

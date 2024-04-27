@@ -23,39 +23,17 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.properties.type;
+package org.geysermc.geyser.translator.protocol.java.entity.player;
 
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtType;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundStoreCookiePacket;
 
-import java.util.List;
-
-public class EnumProperty implements PropertyType {
-    private final String name;
-    private final List<String> values;
-    private final Object2IntMap<String> valueIndexMap;
-
-    public EnumProperty(String name, List<String> values) {
-        this.name = name;
-        this.values = values;
-                this.valueIndexMap = new Object2IntOpenHashMap<>(values.size());
-        for (int i = 0; i < values.size(); i++) {
-            valueIndexMap.put(values.get(i), i);
-        }
-    }
-
+@Translator(packet = ClientboundStoreCookiePacket.class)
+public class JavaStoreCookieTranslator extends PacketTranslator<ClientboundStoreCookiePacket> {
     @Override
-    public NbtMap nbtMap() {
-        return NbtMap.builder()
-                .putString("name", name)
-                .putList("enum", NbtType.STRING, values)
-                .putInt("type", 3)
-                .build();
-    }
-
-    public int getIndex(String value) {
-        return valueIndexMap.getOrDefault(value, -1);
+    public void translate(GeyserSession session, ClientboundStoreCookiePacket packet) {
+        session.getCookies().put(packet.getKey(), packet.getPayload());
     }
 }

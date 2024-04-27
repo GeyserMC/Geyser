@@ -569,6 +569,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private @Nullable ItemData currentBook = null;
 
+    /**
+     * Stores cookies sent by the Java server.
+     */
+    @Setter @Getter
+    private Map<String, byte[]> cookies = new Object2ObjectOpenHashMap<>();
+
     private final GeyserCameraData cameraData;
 
     private final GeyserEntityData entityData;
@@ -853,7 +859,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * After getting whatever credentials needed, we attempt to join the Java server.
      */
     private void connectDownstream() {
-        SessionLoginEvent loginEvent = new SessionLoginEvent(this, remoteServer);
+        SessionLoginEvent loginEvent = new SessionLoginEvent(this, remoteServer, new Object2ObjectOpenHashMap<>());
         GeyserImpl.getInstance().eventBus().fire(loginEvent);
         if (loginEvent.isCancelled()) {
             String disconnectReason = loginEvent.disconnectReason() == null ?
@@ -862,6 +868,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             return;
         }
 
+        this.cookies = loginEvent.cookies();
         this.remoteServer = loginEvent.remoteServer();
         boolean floodgate = this.remoteServer.authType() == AuthType.FLOODGATE;
 
@@ -873,7 +880,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             // We're going to connect through the JVM and not through TCP
             downstream = new LocalSession(this.remoteServer.address(), this.remoteServer.port(),
                     geyser.getBootstrap().getSocketAddress(), upstream.getAddress().getAddress().getHostAddress(),
-                    this.protocol, this.protocol.createHelper());
+                    this.protocol, this.protocol.createHelper(), loginEvent.transferring());
             this.downstream = new DownstreamSession(downstream);
         } else {
             downstream = new TcpClientSession(this.remoteServer.address(), this.remoteServer.port(), this.protocol);
