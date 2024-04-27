@@ -224,7 +224,7 @@ public abstract class InventoryTranslator {
                             //only set the head if the destination is the head slot
                             GeyserItemStack javaItem = inventory.getItem(sourceSlot);
                             if (javaItem.asItem() == Items.PLAYER_HEAD
-                                    && javaItem.getNbt() != null) {
+                                    && javaItem.getComponents() != null) {
                                 FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponents());
                             }
                         } else if (sourceSlot == 5) {

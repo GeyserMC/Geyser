@@ -25,14 +25,14 @@
 
 package org.geysermc.geyser.entity.type.player;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.Ability;
 import org.cloudburstmc.protocol.bedrock.data.AbilityLayer;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
@@ -298,11 +298,11 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, ~entityMetadata.getPrimitiveValue() & 0xff);
     }
 
-    public void setLeftParrot(EntityMetadata<CompoundTag, ?> entityMetadata) {
+    public void setLeftParrot(EntityMetadata<NbtMap, ?> entityMetadata) {
         setParrot(entityMetadata.getValue(), true);
     }
 
-    public void setRightParrot(EntityMetadata<CompoundTag, ?> entityMetadata) {
+    public void setRightParrot(EntityMetadata<NbtMap, ?> entityMetadata) {
         setParrot(entityMetadata.getValue(), false);
     }
 
@@ -310,7 +310,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
      * Sets the parrot occupying the shoulder. Bedrock Edition requires a full entity whereas Java Edition just
      * spawns it from the NBT data provided
      */
-    protected void setParrot(CompoundTag tag, boolean isLeft) {
+    protected void setParrot(NbtMap tag, boolean isLeft) {
         if (tag != null && !tag.isEmpty()) {
             if ((isLeft && leftParrot != null) || (!isLeft && rightParrot != null)) {
                 // No need to update a parrot's data when it already exists
@@ -320,7 +320,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
             ParrotEntity parrot = new ParrotEntity(session, 0, session.getEntityCache().getNextEntityId().incrementAndGet(),
                     null, EntityDefinitions.PARROT, position, motion, getYaw(), getPitch(), getHeadYaw());
             parrot.spawnEntity();
-            parrot.getDirtyMetadata().put(EntityDataTypes.VARIANT, (Integer) tag.get("Variant").getValue());
+            parrot.getDirtyMetadata().put(EntityDataTypes.VARIANT, (Integer) tag.get("Variant"));
             // Different position whether the parrot is left or right
             float offset = isLeft ? 0.4f : -0.4f;
             parrot.getDirtyMetadata().put(EntityDataTypes.SEAT_OFFSET, Vector3f.from(offset, -0.22, -0.1));
@@ -437,11 +437,11 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
             } else if (numberFormat instanceof FixedFormat fixedFormat) {
                 numberString = MessageTranslator.convertMessage(fixedFormat.getValue());
             } else if (numberFormat instanceof StyledFormat styledFormat) {
-                CompoundTag styledAmount = styledFormat.getStyle().clone();
-                styledAmount.put(new StringTag("text", String.valueOf(amount)));
+                NbtMapBuilder styledAmount = styledFormat.getStyle().toBuilder();
+                styledAmount.putString("text", String.valueOf(amount));
 
                 numberString = MessageTranslator.convertJsonMessage(
-                        NbtComponentSerializer.tagComponentToJson(styledAmount).toString());
+                        NbtComponentSerializer.tagComponentToJson(styledAmount.build()).toString(), session.locale());
             } else {
                 numberString = String.valueOf(amount);
             }

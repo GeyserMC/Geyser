@@ -25,8 +25,10 @@
 
 package org.geysermc.geyser.inventory.item;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents;
 
 import java.util.Locale;
 
@@ -83,6 +85,10 @@ public enum Potion {
     Potion(int bedrockId) {
         this.javaIdentifier = "minecraft:" + this.name().toLowerCase(Locale.ENGLISH);
         this.bedrockId = (short) bedrockId;
+    }
+
+    public PotionContents toComponent() {
+        return new PotionContents(this.ordinal(), -1, Int2ObjectMaps.emptyMap());
     }
 
     public static @Nullable Potion getByJavaIdentifier(String javaIdentifier) {

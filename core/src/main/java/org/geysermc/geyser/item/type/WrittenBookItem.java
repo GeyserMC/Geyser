@@ -62,7 +62,7 @@ public class WrittenBookItem extends Item {
         for (Filterable<Component> page : bookContent.getPages()) {
             NbtMapBuilder pageBuilder = NbtMap.builder();
             pageBuilder.putString("photoname", "");
-            pageBuilder.putString("text", MessageTranslator.convertMessage(page.getRaw()));
+            pageBuilder.putString("text", MessageTranslator.convertMessage(session, page.getRaw()));
             bedrockPages.add(pageBuilder.build());
         }
         builder.putList("pages", NbtType.COMPOUND, bedrockPages);
@@ -70,6 +70,5 @@ public class WrittenBookItem extends Item {
         builder.putString("title", bookContent.getTitle().getRaw())
                 .putString("author", bookContent.getAuthor())
                 .putInt("generation", bookContent.getGeneration());
-        // TODO isResolved
     }
 }

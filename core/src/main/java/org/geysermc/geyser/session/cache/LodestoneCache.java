@@ -25,15 +25,13 @@
 
 package org.geysermc.geyser.session.cache;
 
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.GlobalPos;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.LodestoneTracker;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.GlobalPos;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.LodestoneTracker;
 
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -54,17 +52,7 @@ public final class LodestoneCache {
      */
     private int id = 1;
 
-    public void cacheInventoryItem(GeyserItemStack itemStack) {
-        DataComponents components = itemStack.getComponents();
-        if (components == null) {
-            // invalid
-            return;
-        }
-        LodestoneTracker tracker = components.get(DataComponentType.LODESTONE_TRACKER);
-        if (tracker == null) {
-            return;
-        }
-
+    public void cacheInventoryItem(GeyserItemStack itemStack, LodestoneTracker tracker) {
         GlobalPos position = tracker.getPos();
 
         if (position == null) {

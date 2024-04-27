@@ -187,14 +187,28 @@ public class MessageTranslator {
         }
     }
 
+    /**
+     * Convenience method for locale getting.
+     */
+    public static String convertJsonMessage(GeyserSession session, String message) {
+        return convertJsonMessage(message, session.locale());
+    }
+
     public static String convertJsonMessage(String message, String locale) {
         return convertMessage(GSON_SERIALIZER.deserialize(message), locale);
     }
 
-    public static String convertJsonMessage(String message) {
-        return convertJsonMessage(message, GeyserLocale.getDefaultLocale());
+    /**
+     * Convenience method for locale getting.
+     */
+    public static String convertMessage(GeyserSession session, Component message) {
+        return convertMessage(message, session.locale());
     }
 
+    /**
+     * DO NOT USE THIS METHOD unless where you're calling from does not have a (reliable) way of getting the
+     * context's locale.
+     */
     public static String convertMessage(Component message) {
         return convertMessage(message, GeyserLocale.getDefaultLocale());
     }

@@ -25,10 +25,6 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.opennbt.tag.builtin.ByteTag;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -61,24 +57,6 @@ public class CrossbowItem extends Item {
             NbtMapBuilder newProjectile = BedrockItemBuilder.createItemNbt(projectileMapping, itemData.getCount(), itemData.getDamage());
 
             builder.putCompound("chargedItem", newProjectile.build());
-        }
-    }
-
-    @Override
-    public void translateNbtToJava(@NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
-        super.translateNbtToJava(tag, mapping);
-
-        if (tag.get("chargedItem") != null) {
-            CompoundTag chargedItem = tag.get("chargedItem");
-
-            CompoundTag newProjectile = new CompoundTag("");
-            newProjectile.put(new ByteTag("Count", (byte) chargedItem.get("Count").getValue()));
-            newProjectile.put(new StringTag("id", (String) chargedItem.get("Name").getValue()));
-
-            ListTag chargedProjectiles = new ListTag("ChargedProjectiles");
-            chargedProjectiles.add(newProjectile);
-
-            tag.put(chargedProjectiles);
         }
     }
 }

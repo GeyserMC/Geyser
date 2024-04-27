@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -80,15 +78,16 @@ public class FireworkStarItem extends Item {
     }
 
     @Override
-    public void translateNbtToJava(@NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
-        super.translateNbtToJava(tag, mapping);
+    public void translateNbtToJava(@NonNull NbtMap bedrockTag, @NonNull DataComponents components, @NonNull ItemMapping mapping) {
+        super.translateNbtToJava(bedrockTag, components, mapping);
 
-        Tag explosion = tag.remove("FireworksItem");
-        if (explosion instanceof CompoundTag) {
-            CompoundTag newExplosion = FireworkRocketItem.translateExplosionToJava((CompoundTag) explosion, "Explosion");
-            tag.put(newExplosion);
+        NbtMap explosion = bedrockTag.getCompound("FireworksItem");
+        if (!explosion.isEmpty()) {
+            Fireworks.FireworkExplosion newExplosion = FireworkRocketItem.translateExplosionToJava(explosion);
+            if (newExplosion == null) {
+                return;
+            }
+            components.put(DataComponentType.FIREWORK_EXPLOSION, newExplosion);
         }
-        // Remove custom color, if any, since this only exists on Bedrock
-        tag.remove("customColor");
     }
 }

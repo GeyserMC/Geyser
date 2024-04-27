@@ -25,9 +25,14 @@
 
 package org.geysermc.geyser.item.type;
 
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.inventory.item.Enchantment;
+import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
@@ -60,6 +65,31 @@ public class EnchantedBookItem extends Item {
 
         if (!bedrockEnchants.isEmpty()) {
             builder.putList("ench", NbtType.COMPOUND, bedrockEnchants);
+        }
+    }
+
+    @Override
+    public void translateNbtToJava(@NonNull NbtMap bedrockTag, @NonNull DataComponents components, @NonNull ItemMapping mapping) {
+        super.translateNbtToJava(bedrockTag, components, mapping);
+
+        List<NbtMap> enchantmentTag = bedrockTag.getList("ench", NbtType.COMPOUND);
+        if (enchantmentTag != null) {
+            Int2IntMap javaEnchantments = new Int2IntOpenHashMap(enchantmentTag.size());
+            for (NbtMap bedrockEnchantment : enchantmentTag) {
+                short bedrockId = bedrockEnchantment.getShort("id");
+
+                Enchantment enchantment = Enchantment.getByBedrockId(bedrockId);
+                if (enchantment != null) {
+                    int level = bedrockEnchantment.getShort("lvl", (short) 1);
+                    // TODO
+                    javaEnchantments.put(Enchantment.JavaEnchantment.valueOf(enchantment.name()).ordinal(), level);
+                } else {
+                    GeyserImpl.getInstance().getLogger().debug("Unknown bedrock enchantment: " + bedrockId);
+                }
+            }
+            if (!javaEnchantments.isEmpty()) {
+                components.put(DataComponentType.STORED_ENCHANTMENTS, new ItemEnchantments(javaEnchantments, true));
+            }
         }
     }
 }

@@ -58,7 +58,7 @@ public class ShulkerInventoryTranslator extends AbstractBlockInventoryTranslator
                         .putInt("z", position.getZ())
                         .putString("CustomName", inventory.getTitle());
                 // Don't reset facing property
-                shulkerBoxTranslator.translateTag(tag, null, javaBlockState);
+                shulkerBoxTranslator.translateTag(session, tag, null, javaBlockState);
 
                 BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
                 dataPacket.setData(tag.build());

@@ -25,13 +25,6 @@
 
 package org.geysermc.geyser.inventory.updater;
 
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundRenameItemPacket;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -53,7 +46,12 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ItemUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundRenameItemPacket;
 
+import java.util.Map;
 import java.util.Objects;
 
 public class AnvilInventoryUpdater extends InventoryUpdater {
@@ -310,9 +308,9 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
      */
     private int calcMergeEnchantmentCost(GeyserSession session, GeyserItemStack input, GeyserItemStack material, boolean bedrock) {
         boolean hasCompatible = false;
-        Object2IntMap<JavaEnchantment> combinedEnchantments = getEnchantments(input, bedrock);
+        Object2IntMap<JavaEnchantment> combinedEnchantments = getEnchantments(input);
         int cost = 0;
-        for (Object2IntMap.Entry<JavaEnchantment> entry : getEnchantments(material, bedrock).object2IntEntrySet()) {
+        for (Object2IntMap.Entry<JavaEnchantment> entry : getEnchantments(material).object2IntEntrySet()) {
             JavaEnchantment enchantment = entry.getKey();
             EnchantmentData data = Registries.ENCHANTMENTS.get(enchantment);
             if (data == null) {
@@ -371,42 +369,26 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         return cost;
     }
 
-    private Object2IntMap<JavaEnchantment> getEnchantments(GeyserItemStack itemStack, boolean bedrock) {
-        if (itemStack.getNbt() == null) {
-            return Object2IntMaps.emptyMap();
-        }
-        Object2IntMap<JavaEnchantment> enchantments = new Object2IntOpenHashMap<>();
-        Tag enchantmentTag;
+    private Object2IntMap<JavaEnchantment> getEnchantments(GeyserItemStack itemStack) {
+        ItemEnchantments enchantmentComponent;
         if (isEnchantedBook(itemStack)) {
-            enchantmentTag = itemStack.getNbt().get("StoredEnchantments");
+            enchantmentComponent = itemStack.getComponent(DataComponentType.STORED_ENCHANTMENTS);
         } else {
-            enchantmentTag = itemStack.getNbt().get("Enchantments");
+            enchantmentComponent = itemStack.getComponent(DataComponentType.ENCHANTMENTS);
         }
-        if (enchantmentTag instanceof ListTag listTag) {
-            for (Tag tag : listTag.getValue()) {
-                if (tag instanceof CompoundTag enchantTag) {
-                    if (enchantTag.get("id") instanceof StringTag javaEnchId) {
-                        JavaEnchantment enchantment = JavaEnchantment.getByJavaIdentifier(javaEnchId.getValue());
-                        if (enchantment == null) {
-                            GeyserImpl.getInstance().getLogger().debug("Unknown Java enchantment in anvil: " + javaEnchId.getValue());
-                            continue;
-                        }
-
-                        Tag javaEnchLvl = enchantTag.get("lvl");
-                        if (javaEnchLvl == null || !(javaEnchLvl.getValue() instanceof Number number))
-                            continue;
-
-                        // Handle duplicate enchantments
-                        if (bedrock) {
-                            enchantments.putIfAbsent(enchantment, number.intValue());
-                        } else {
-                            enchantments.mergeInt(enchantment, number.intValue(), Math::max);
-                        }
-                    }
+        if (enchantmentComponent != null) {
+            Object2IntMap<JavaEnchantment> enchantments = new Object2IntOpenHashMap<>();
+            for (Map.Entry<Integer, Integer> entry : enchantmentComponent.getEnchantments().entrySet()) {
+                JavaEnchantment enchantment = JavaEnchantment.of(entry.getKey());
+                if (enchantment == null) {
+                    GeyserImpl.getInstance().getLogger().debug("Unknown Java enchantment in anvil: " + entry.getKey());
+                    continue;
                 }
+                enchantments.put(enchantment, entry.getValue().intValue());
             }
+            return enchantments;
         }
-        return enchantments;
+        return Object2IntMaps.emptyMap();
     }
 
     private boolean isEnchantedBook(GeyserItemStack itemStack) {

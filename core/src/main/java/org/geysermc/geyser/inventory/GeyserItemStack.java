@@ -25,11 +25,7 @@
 
 package org.geysermc.geyser.inventory;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -43,6 +39,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
+import java.util.HashMap;
+
 @Data
 public class GeyserItemStack {
     public static final GeyserItemStack EMPTY = new GeyserItemStack(Items.AIR_ID, 0, null);
@@ -52,7 +50,7 @@ public class GeyserItemStack {
     private DataComponents components;
     private int netId;
 
-    @Getter(AccessLevel.NONE)
+    @Getter(AccessLevel.NONE) @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     private Item item;
 
@@ -67,6 +65,14 @@ public class GeyserItemStack {
         this.netId = netId;
     }
 
+    public static @NonNull GeyserItemStack of(int javaId, int amount) {
+        return of(javaId, amount, null);
+    }
+
+    public static @NonNull GeyserItemStack of(int javaId, int amount, DataComponents components) {
+        return new GeyserItemStack(javaId, amount, components);
+    }
+
     public static @NonNull GeyserItemStack from(@Nullable ItemStack itemStack) {
         return itemStack == null ? EMPTY : new GeyserItemStack(itemStack.getId(), itemStack.getAmount(), itemStack.getDataComponents());
     }
@@ -79,16 +85,27 @@ public class GeyserItemStack {
         return isEmpty() ? 0 : amount;
     }
 
-    public @Nullable CompoundTag getNbt() {
-        Thread.dumpStack();
-        return null;
-    }
-
     public @Nullable DataComponents getComponents() {
         return isEmpty() ? null : components;
     }
 
-    public <T extends Boolean> boolean getComponent(DataComponentType<T> type, boolean def) {
+    @NonNull
+    public DataComponents getOrCreateComponents() {
+        if (components == null) {
+            return components = new DataComponents(new HashMap<>());
+        }
+        return components;
+    }
+
+    @Nullable
+    public <T> T getComponent(@NonNull DataComponentType<T> type) {
+        if (components == null) {
+            return null;
+        }
+        return components.get(type);
+    }
+
+    public <T extends Boolean> boolean getComponent(@NonNull DataComponentType<T> type, boolean def) {
         if (components == null) {
             return def;
         }
@@ -100,7 +117,7 @@ public class GeyserItemStack {
         return def;
     }
 
-    public <T extends Integer> int getComponent(DataComponentType<T> type, int def) {
+    public <T extends Integer> int getComponent(@NonNull DataComponentType<T> type, int def) {
         if (components == null) {
             return def;
         }

@@ -29,22 +29,11 @@ import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.auth.data.GameProfile.Texture;
 import com.github.steveice10.mc.auth.data.GameProfile.TextureType;
 import com.github.steveice10.mc.auth.exception.property.PropertyException;
-import org.geysermc.mcprotocollib.protocol.data.game.Identifier;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.ModifierOperation;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.AdventureModePredicate;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemAttributeModifiers;
-import com.github.steveice10.opennbt.tag.builtin.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -63,6 +52,13 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.Identifier;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.ModifierOperation;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.AdventureModePredicate;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemAttributeModifiers;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -93,16 +89,17 @@ public final class ItemTranslator {
         ItemMapping bedrockItem = mappings.getMapping(data);
         Item javaItem = bedrockItem.getJavaItem();
 
-        ItemStack itemStack = javaItem.translateToJava(data, bedrockItem, mappings);
+        GeyserItemStack itemStack = javaItem.translateToJava(data, bedrockItem, mappings);
 
-//        if (itemStack.getNbt() != null) {
-//            javaItem.translateNbtToJava(itemStack.getNbt(), bedrockItem);
-//            if (itemStack.getNbt().isEmpty()) {
-//                // Otherwise, seems to cause issues with villagers accepting books, and I don't see how this will break anything else. - Camotoy
-//                itemStack = new ItemStack(itemStack.getId(), itemStack.getAmount(), null);
-//            }
-//        }
-        return itemStack;
+        NbtMap nbt = data.getTag();
+        if (nbt != null && !nbt.isEmpty()) {
+            DataComponents components = new DataComponents(new HashMap<>());
+            javaItem.translateNbtToJava(nbt, components, bedrockItem);
+            if (!components.getDataComponents().isEmpty()) {
+                itemStack.setComponents(components);
+            }
+        }
+        return itemStack.getItemStack();
     }
 
     public static ItemData.@NonNull Builder translateToBedrock(GeyserSession session, int javaId, int count, DataComponents components) {
@@ -373,125 +370,6 @@ public final class ItemTranslator {
         } else {
             return definition;
         }
-    }
-
-    public static NbtMap translateNbtToBedrock(CompoundTag tag) {
-        if (!tag.getValue().isEmpty()) {
-            NbtMapBuilder builder = NbtMap.builder();
-            for (Tag javaTag : tag.values()) {
-                Object translatedTag = translateToBedrockNBT(javaTag);
-                if (translatedTag == null)
-                    continue;
-
-                builder.put(javaTag.getName(), translatedTag);
-            }
-            return builder.build();
-        }
-        return NbtMap.EMPTY;
-    }
-
-    private static @Nullable Object translateToBedrockNBT(Tag tag) {
-        if (tag instanceof CompoundTag compoundTag) {
-            return translateNbtToBedrock(compoundTag);
-        }
-
-        if (tag instanceof ListTag listTag) {
-            List<Object> tagList = new ArrayList<>();
-            for (Tag value : listTag) {
-                tagList.add(translateToBedrockNBT(value));
-            }
-            NbtType<?> type = NbtType.COMPOUND;
-            if (!tagList.isEmpty()) {
-                type = NbtType.byClass(tagList.get(0).getClass());
-            }
-            //noinspection unchecked,rawtypes
-            return new NbtList(type, tagList);
-        }
-
-        if (tag instanceof LongArrayTag) {
-            //Long array tag does not exist in BE
-            //LongArrayTag longArrayTag = (LongArrayTag) tag;
-            //return new org.cloudburstmc.nbt.tag.LongArrayTag(longArrayTag.getName(), longArrayTag.getValue());
-            return null;
-        }
-
-        return tag.getValue();
-    }
-
-    public static CompoundTag translateToJavaNBT(String name, NbtMap tag) {
-        CompoundTag javaTag = new CompoundTag(name);
-        Map<String, Tag> javaValue = javaTag.getValue();
-        if (tag != null && !tag.isEmpty()) {
-            for (Map.Entry<String, Object> entry : tag.entrySet()) {
-                Tag translatedTag = translateToJavaNBT(entry.getKey(), entry.getValue());
-                if (translatedTag == null)
-                    continue;
-
-                javaValue.put(translatedTag.getName(), translatedTag);
-            }
-        }
-
-        javaTag.setValue(javaValue);
-        return javaTag;
-    }
-
-    private static @Nullable Tag translateToJavaNBT(String name, Object object) {
-        if (object instanceof int[]) {
-            return new IntArrayTag(name, (int[]) object);
-        }
-
-        if (object instanceof byte[]) {
-            return new ByteArrayTag(name, (byte[]) object);
-        }
-
-        if (object instanceof Byte) {
-            return new ByteTag(name, (byte) object);
-        }
-
-        if (object instanceof Float) {
-            return new FloatTag(name, (float) object);
-        }
-
-        if (object instanceof Double) {
-            return new DoubleTag(name, (double) object);
-        }
-
-        if (object instanceof Integer) {
-            return new IntTag(name, (int) object);
-        }
-
-        if (object instanceof long[]) {
-            return new LongArrayTag(name, (long[]) object);
-        }
-
-        if (object instanceof Long) {
-            return new LongTag(name, (long) object);
-        }
-
-        if (object instanceof Short) {
-            return new ShortTag(name, (short) object);
-        }
-
-        if (object instanceof String) {
-            return new StringTag(name, (String) object);
-        }
-
-        if (object instanceof List) {
-            List<Tag> tags = new ArrayList<>();
-
-            for (Object value : (List<?>) object) {
-                Tag javaTag = translateToJavaNBT("", value);
-                if (javaTag != null)
-                    tags.add(javaTag);
-            }
-            return new ListTag(name, tags);
-        }
-
-        if (object instanceof NbtMap map) {
-            return translateToJavaNBT(name, map);
-        }
-
-        return null;
     }
 
     /**

@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.item;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
@@ -40,18 +38,5 @@ public interface DyeableLeatherItem {
             return;
         }
         builder.putInt("customColor", dyedItemColor.getRgb());
-    }
-
-    static void translateNbtToJava(CompoundTag tag) {
-        IntTag color = tag.get("customColor");
-        if (color == null) {
-            return;
-        }
-        CompoundTag displayTag = tag.get("display");
-        if (displayTag == null) {
-            displayTag = new CompoundTag("display");
-        }
-        displayTag.put(color);
-        tag.remove("customColor");
     }
 }

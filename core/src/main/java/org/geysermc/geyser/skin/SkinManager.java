@@ -26,10 +26,9 @@
 package org.geysermc.geyser.skin;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.skin.ImageData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
@@ -45,6 +44,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -224,22 +224,22 @@ public class SkinManager {
          * @param tag tag to build the GameProfileData from
          * @return The built GameProfileData, or null if this wasn't a valid tag
          */
-        public static @Nullable GameProfileData from(CompoundTag tag) {
-            if (!(tag.get("Properties") instanceof CompoundTag propertiesTag)) {
+        public static @Nullable GameProfileData from(NbtMap tag) {
+            NbtMap properties = tag.getCompound("Properties", null);
+            if (properties == null) {
                 return null;
             }
-            if (!(propertiesTag.get("textures") instanceof ListTag texturesTag) || texturesTag.size() == 0) {
+            List<NbtMap> textures = properties.getList("textures", NbtType.COMPOUND);
+            if (textures.isEmpty()) {
                 return null;
             }
-            if (!(texturesTag.get(0) instanceof CompoundTag texturesData)) {
-                return null;
-            }
-            if (!(texturesData.get("Value") instanceof StringTag skinDataValue)) {
+            String skinDataValue = textures.get(0).getString("Value", null);
+            if (skinDataValue == null) {
                 return null;
             }
 
             try {
-                return loadFromJson(skinDataValue.getValue());
+                return loadFromJson(skinDataValue);
             } catch (IOException e) {
                 GeyserImpl.getInstance().getLogger().debug("Something went wrong while processing skin for tag " + tag);
                 if (GeyserImpl.getInstance().getConfig().isDebugMode()) {

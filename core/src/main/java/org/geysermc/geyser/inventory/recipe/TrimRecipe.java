@@ -25,9 +25,6 @@
 
 package org.geysermc.geyser.inventory.recipe;
 
-import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
@@ -37,6 +34,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescri
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
 
 /**
  * Stores information on trim materials and patterns, including smithing armor hacks for pre-1.20.
@@ -54,11 +52,11 @@ public final class TrimRecipe {
         // Color is used when hovering over the item
         // Find the nearest legacy color from the RGB Java gives us to work with
         // Also yes this is a COMPLETE hack but it works ok!!!!!
-        StringTag colorTag = ((CompoundTag) entry.getData().get("description")).get("color");
-        TextColor color = TextColor.fromHexString(colorTag.getValue());
+        String colorTag = entry.getData().getCompound("description").getString("color");
+        TextColor color = TextColor.fromHexString(colorTag);
         String legacy = MessageTranslator.convertMessage(Component.space().color(color));
 
-        String itemIdentifier = ((StringTag) entry.getData().get("ingredient")).getValue();
+        String itemIdentifier = entry.getData().getString("ingredient");
         ItemMapping itemMapping = session.getItemMappings().getMapping(itemIdentifier);
         if (itemMapping == null) {
             // This should never happen so not sure what to do here.
@@ -71,7 +69,7 @@ public final class TrimRecipe {
     public static TrimPattern readTrimPattern(GeyserSession session, RegistryEntry entry) {
         String key = stripNamespace(entry.getId());
 
-        String itemIdentifier = ((StringTag) entry.getData().get("template_item")).getValue();
+        String itemIdentifier = entry.getData().getString("template_item");
         ItemMapping itemMapping = session.getItemMappings().getMapping(itemIdentifier);
         if (itemMapping == null) {
             // This should never happen so not sure what to do here.

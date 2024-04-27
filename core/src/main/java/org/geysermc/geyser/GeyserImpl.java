@@ -45,7 +45,6 @@ import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.geysermc.api.Geyser;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
-import org.geysermc.erosion.packet.Packets;
 import org.geysermc.floodgate.crypto.AesCipher;
 import org.geysermc.floodgate.crypto.AesKeyProducer;
 import org.geysermc.floodgate.crypto.Base64Topping;
@@ -384,7 +383,7 @@ public class GeyserImpl implements GeyserApi {
 
         this.newsHandler = new NewsHandler(BRANCH, this.buildNumber());
 
-        Packets.initGeyser();
+        //Packets.initGeyser();
 
         if (Epoll.isAvailable()) {
             this.erosionUnixListener = new UnixSocketClientListener();

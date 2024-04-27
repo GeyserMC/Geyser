@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.entity.type;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -57,6 +55,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEn
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 
 import java.util.*;
 
@@ -194,9 +193,9 @@ public class LivingEntity extends Entity {
     /**
      * Checks to see if a nametag interaction would go through.
      */
+    // Implementation note for 1.20.5: this code was moved to the NameTag item.
     protected final InteractionResult checkInteractWithNameTag(GeyserItemStack itemStack) {
-        CompoundTag nbt = itemStack.getNbt();
-        if (nbt != null && nbt.get("display") instanceof CompoundTag displayTag && displayTag.get("Name") instanceof StringTag) {
+        if (itemStack.getComponent(DataComponentType.CUSTOM_NAME) != null) {
             // The mob shall be named
             return InteractionResult.SUCCESS;
         }

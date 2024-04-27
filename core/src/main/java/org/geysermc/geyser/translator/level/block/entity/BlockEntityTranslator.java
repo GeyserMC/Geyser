@@ -25,13 +25,11 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
 /**
  * The class that all block entities (on both Java and Bedrock) should translate with
@@ -40,11 +38,11 @@ public abstract class BlockEntityTranslator {
     protected BlockEntityTranslator() {
     }
 
-    public abstract void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState);
+    public abstract void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, int blockState);
 
-    public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, CompoundTag tag, int blockState) {
+    public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, NbtMap javaNbt, int blockState) {
         NbtMapBuilder tagBuilder = getConstantBedrockTag(type, x, y, z);
-        translateTag(tagBuilder, tag, blockState);
+        translateTag(session, tagBuilder, javaNbt, blockState);
         return tagBuilder.build();
     }
 
@@ -58,10 +56,5 @@ public abstract class BlockEntityTranslator {
                 .putInt("y", y)
                 .putInt("z", z)
                 .putString("id", bedrockId);
-    }
-
-    @SuppressWarnings("unchecked")
-    protected <T> T getOrDefault(Tag tag, T defaultValue) {
-        return (tag != null && tag.getValue() != null) ? (T) tag.getValue() : defaultValue;
     }
 }

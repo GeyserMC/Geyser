@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -84,13 +83,5 @@ public class ShulkerBoxItem extends BlockItem {
             itemsList.add(boxItemNbt.build());
         }
         builder.putList("Items", NbtType.COMPOUND, itemsList);
-    }
-
-    @Override
-    public void translateNbtToJava(@NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
-        super.translateNbtToJava(tag, mapping);
-
-        // Remove any extraneous Bedrock tag and don't touch the Java one
-        tag.remove("Items");
     }
 }

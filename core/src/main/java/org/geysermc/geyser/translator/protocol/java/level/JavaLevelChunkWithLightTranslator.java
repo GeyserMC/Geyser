@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
@@ -385,7 +384,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             final int chunkBlockZ = packet.getZ() << 4;
             for (BlockEntityInfo blockEntity : blockEntities) {
                 BlockEntityType type = blockEntity.getType();
-                CompoundTag tag = blockEntity.getNbt();
+                NbtMap tag = blockEntity.getNbt();
                 if (type == null) {
                     // As an example: ViaVersion will send -1 if it cannot find the block entity type
                     // Vanilla Minecraft gracefully handles this
@@ -422,7 +421,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                 }
 
                 // Check for custom skulls
-                if (session.getPreferencesCache().showCustomSkulls() && type == BlockEntityType.SKULL && tag != null && tag.contains("profile")) {
+                if (session.getPreferencesCache().showCustomSkulls() && type == BlockEntityType.SKULL && tag != null && tag.containsKey("profile")) {
                     BlockDefinition blockDefinition = SkullBlockEntityTranslator.translateSkull(session, tag, Vector3i.from(x + chunkBlockX, y, z + chunkBlockZ), blockState);
                     if (blockDefinition != null) {
                         int bedrockSectionY = (y >> 4) - (bedrockDimension.minY() >> 4);

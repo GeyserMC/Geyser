@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.opennbt.tag.builtin.*;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -33,6 +32,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.item.Enchantment;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -44,7 +44,6 @@ import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.Identifier;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
@@ -108,11 +107,8 @@ public class Item {
         return builder;
     }
 
-    public @NonNull ItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
-        if (itemData.getTag() == null) {
-            return new ItemStack(javaId, itemData.getCount(), null);
-        }
-        return new ItemStack(javaId, itemData.getCount(), null/*ItemTranslator.translateToJavaNBT("", itemData.getTag())*/);
+    public @NonNull GeyserItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
+        return GeyserItemStack.of(javaId, itemData.getCount());
     }
 
     public ItemMapping toBedrockDefinition(DataComponents components, ItemMappings mappings) {
@@ -162,57 +158,60 @@ public class Item {
      * </ul>
      * Therefore, if translation cannot be achieved for a certain item, it is not necessarily bad.
      */
-    public void translateNbtToJava(@NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
-        CompoundTag displayTag = tag.get("display");
-        if (displayTag != null) {
-            if (displayTag.contains("Name")) {
-                StringTag nameTag = displayTag.get("Name");
-                displayTag.put(new StringTag("Name", MessageTranslator.convertToJavaMessage(nameTag.getValue())));
-            }
+    public void translateNbtToJava(@NonNull NbtMap bedrockTag, @NonNull DataComponents components, @NonNull ItemMapping mapping) {
+        // TODO see if any items from the creative menu need this
+//        CompoundTag displayTag = tag.get("display");
+//        if (displayTag != null) {
+//            if (displayTag.contains("Name")) {
+//                StringTag nameTag = displayTag.get("Name");
+//                displayTag.put(new StringTag("Name", MessageTranslator.convertToJavaMessage(nameTag.getValue())));
+//            }
+//
+//            if (displayTag.contains("Lore")) {
+//                ListTag loreTag = displayTag.get("Lore");
+//                List<Tag> lore = new ArrayList<>();
+//                for (Tag subTag : loreTag.getValue()) {
+//                    if (!(subTag instanceof StringTag)) continue;
+//                    lore.add(new StringTag("", MessageTranslator.convertToJavaMessage(((StringTag) subTag).getValue())));
+//                }
+//                displayTag.put(new ListTag("Lore", lore));
+//            }
+//        }
 
-            if (displayTag.contains("Lore")) {
-                ListTag loreTag = displayTag.get("Lore");
-                List<Tag> lore = new ArrayList<>();
-                for (Tag subTag : loreTag.getValue()) {
-                    if (!(subTag instanceof StringTag)) continue;
-                    lore.add(new StringTag("", MessageTranslator.convertToJavaMessage(((StringTag) subTag).getValue())));
-                }
-                displayTag.put(new ListTag("Lore", lore));
-            }
-        }
-
-        ListTag enchantmentTag = tag.remove("ench");
-        if (enchantmentTag != null) {
-            List<Tag> enchantments = new ArrayList<>();
-            for (Tag value : enchantmentTag.getValue()) {
-                if (!(value instanceof CompoundTag tagValue))
-                    continue;
-
-                ShortTag bedrockId = tagValue.get("id");
-                if (bedrockId == null) continue;
-
-                Enchantment enchantment = Enchantment.getByBedrockId(bedrockId.getValue());
-                if (enchantment != null) {
-                    CompoundTag javaTag = new CompoundTag("");
-                    Map<String, Tag> javaValue = javaTag.getValue();
-                    javaValue.put("id", new StringTag("id", enchantment.getJavaIdentifier()));
-                    ShortTag levelTag = tagValue.get("lvl");
-                    javaValue.put("lvl", new IntTag("lvl", levelTag != null ? levelTag.getValue() : 1));
-                    javaTag.setValue(javaValue);
-
-                    enchantments.add(javaTag);
-                } else {
-                    GeyserImpl.getInstance().getLogger().debug("Unknown bedrock enchantment: " + bedrockId);
-                }
-            }
-            if (!enchantments.isEmpty()) {
-                if ((this instanceof EnchantedBookItem)) {
-                    tag.put(new ListTag("StoredEnchantments", enchantments));
-                } else {
-                    tag.put(new ListTag("Enchantments", enchantments));
-                }
-            }
-        }
+        // TODO no creative item should have enchantments *except* enchanted books
+//        List<NbtMap> enchantmentTag = bedrockTag.getList("ench", NbtType.COMPOUND);
+//        if (enchantmentTag != null) {
+//            List<Tag> enchantments = new ArrayList<>();
+//            for (Tag value : enchantmentTag.getValue()) {
+//                if (!(value instanceof CompoundTag tagValue))
+//                    continue;
+//
+//                ShortTag bedrockId = tagValue.get("id");
+//                if (bedrockId == null) continue;
+//
+//                Enchantment enchantment = Enchantment.getByBedrockId(bedrockId.getValue());
+//                if (enchantment != null) {
+//                    CompoundTag javaTag = new CompoundTag("");
+//                    Map<String, Tag> javaValue = javaTag.getValue();
+//                    javaValue.put("id", new StringTag("id", enchantment.getJavaIdentifier()));
+//                    ShortTag levelTag = tagValue.get("lvl");
+//                    javaValue.put("lvl", new IntTag("lvl", levelTag != null ? levelTag.getValue() : 1));
+//                    javaTag.setValue(javaValue);
+//
+//                    enchantments.add(javaTag);
+//                } else {
+//                    GeyserImpl.getInstance().getLogger().debug("Unknown bedrock enchantment: " + bedrockId);
+//                }
+//            }
+//            if (!enchantments.isEmpty()) {
+//                if ((this instanceof EnchantedBookItem)) {
+//                    bedrockTag.put(new ListTag("StoredEnchantments", enchantments));
+//                    components.put(DataComponentType.STORED_ENCHANTMENTS, enchantments);
+//                } else {
+//                    components.put(DataComponentType.ENCHANTMENTS, enchantments);
+//                }
+//            }
+//        }
     }
 
     protected final @Nullable NbtMap remapEnchantment(GeyserSession session, int enchantId, int level, BedrockItemBuilder builder) {
@@ -243,8 +242,8 @@ public class Item {
 
     /* Translation methods end */
 
-    public ItemStack newItemStack(int count, DataComponents components) {
-        return new ItemStack(this.javaId, count, components);
+    public GeyserItemStack newItemStack(int count, DataComponents components) {
+        return GeyserItemStack.of(this.javaId, count, components);
     }
 
     public void setJavaId(int javaId) { // TODO like this?

@@ -25,14 +25,12 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Instrument;
@@ -80,18 +78,11 @@ public class GoatHornItem extends Item {
     }
 
     @Override
-    public @NonNull ItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
-        ItemStack itemStack = super.translateToJava(itemData, mapping, mappings);
+    public @NonNull GeyserItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
+        GeyserItemStack itemStack = super.translateToJava(itemData, mapping, mappings);
 
         int damage = itemData.getDamage();
-        if (damage < 0 || damage >= INSTRUMENTS.size()) {
-            GeyserImpl.getInstance().getLogger().debug("Unknown goat horn instrument for damage: " + damage);
-            damage = 0;
-        }
-
-        String instrument = INSTRUMENTS.get(damage);
-        StringTag instrumentTag = new StringTag("instrument", "minecraft:" + instrument);
-        //itemStack.getNbt().put(instrumentTag);
+        itemStack.getOrCreateComponents().put(DataComponentType.INSTRUMENT, Holder.ofId(damage));
 
         return itemStack;
     }

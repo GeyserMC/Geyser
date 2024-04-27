@@ -25,15 +25,10 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -68,25 +63,5 @@ public class WritableBookItem extends Item {
         }
 
         builder.putList("pages", NbtType.COMPOUND, bedrockPages);
-    }
-
-    @Override
-    public void translateNbtToJava(@NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
-        super.translateNbtToJava(tag, mapping);
-
-        if (!tag.contains("pages")) {
-            return;
-        }
-        List<Tag> pages = new ArrayList<>();
-        ListTag pagesTag = tag.get("pages");
-        for (Tag subTag : pagesTag.getValue()) {
-            if (!(subTag instanceof CompoundTag pageTag))
-                continue;
-
-            StringTag textTag = pageTag.get("text");
-            pages.add(new StringTag("", textTag.getValue()));
-        }
-        tag.remove("pages");
-        tag.put(new ListTag("pages", pages));
     }
 }
