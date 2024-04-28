@@ -55,9 +55,13 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.EntityEffectParticleData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.Particle;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
 
 import java.util.*;
 
@@ -150,6 +154,37 @@ public class LivingEntity extends Entity {
         attributesPacket.setRuntimeEntityId(geyserId);
         attributesPacket.setAttributes(Collections.singletonList(healthData));
         session.sendUpstreamPacket(attributesPacket);
+    }
+
+    // TODO: support all particle types
+    public void setParticles(ObjectEntityMetadata<List<Particle>> entityMetadata) {
+        List<Particle> particles = entityMetadata.getValue();
+        float r = 0f;
+        float g = 0f;
+        float b = 0f;
+
+        int count = 0;
+        for (Particle particle : particles) {
+            if (particle.getType() != ParticleType.ENTITY_EFFECT) {
+                continue;
+            }
+
+            int color = ((EntityEffectParticleData) particle.getData()).getColor();
+            r += ((color >> 16) & 0xFF) / 255f;
+            g += ((color >> 8) & 0xFF) / 255f;
+            b += ((color) & 0xFF) / 255f;
+            count++;
+        }
+
+        int result = 0;
+        if (count > 0) {
+            r = r / count * 255f;
+            g = g / count * 255f;
+            b = b / count * 255f;
+            result = (int) r << 16 | (int) g << 8 | (int) b;
+        }
+
+        dirtyMetadata.put(EntityDataTypes.EFFECT_COLOR, result);
     }
 
     public @Nullable Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {

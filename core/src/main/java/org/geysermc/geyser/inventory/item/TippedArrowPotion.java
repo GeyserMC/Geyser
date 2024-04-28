@@ -99,15 +99,6 @@ public enum TippedArrowPotion {
         return VALUES[id];
     }
 
-    public static @Nullable TippedArrowPotion getByJavaIdentifier(String javaIdentifier) {
-        for (TippedArrowPotion potion : VALUES) {
-            if (potion.javaIdentifier.equals(javaIdentifier)) {
-                return potion;
-            }
-        }
-        return null;
-    }
-
     public static @Nullable TippedArrowPotion getByBedrockId(int bedrockId) {
         for (TippedArrowPotion potion : VALUES) {
             if (potion.bedrockId == bedrockId) {

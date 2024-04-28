@@ -56,7 +56,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<AreaEffectCloudEntity> AREA_EFFECT_CLOUD;
     public static final EntityDefinition<ArmadilloEntity> ARMADILLO;
     public static final EntityDefinition<ArmorStandEntity> ARMOR_STAND;
-    public static final EntityDefinition<TippedArrowEntity> ARROW;
+    public static final EntityDefinition<ArrowEntity> ARROW;
     public static final EntityDefinition<AxolotlEntity> AXOLOTL;
     public static final EntityDefinition<BatEntity> BAT;
     public static final EntityDefinition<BeeEntity> BEE;
@@ -378,10 +378,10 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataType.BYTE, AbstractArrowEntity::setArrowFlags)
                     .addTranslator(null) // "Piercing level"
                     .build();
-            ARROW = EntityDefinition.inherited(TippedArrowEntity::new, abstractArrowBase)
+            ARROW = EntityDefinition.inherited(ArrowEntity::new, abstractArrowBase)
                     .type(EntityType.ARROW)
                     .heightAndWidth(0.25f)
-                    .addTranslator(MetadataType.INT, TippedArrowEntity::setPotionEffectColor)
+                    .addTranslator(MetadataType.INT, ArrowEntity::setPotionEffectColor)
                     .build();
             SPECTRAL_ARROW = EntityDefinition.inherited(abstractArrowBase.factory(), abstractArrowBase)
                     .type(EntityType.SPECTRAL_ARROW)
@@ -454,8 +454,7 @@ public final class EntityDefinitions {
         EntityDefinition<LivingEntity> livingEntityBase = EntityDefinition.inherited(LivingEntity::new, entityBase)
                 .addTranslator(MetadataType.BYTE, LivingEntity::setLivingEntityFlags)
                 .addTranslator(MetadataType.FLOAT, LivingEntity::setHealth)
-                .addTranslator(MetadataType.INT,
-                        (livingEntity, entityMetadata) -> livingEntity.getDirtyMetadata().put(EntityDataTypes.EFFECT_COLOR, entityMetadata.getValue()))
+                .addTranslator(MetadataType.PARTICLES, LivingEntity::setParticles)
                 .addTranslator(MetadataType.BOOLEAN,
                         (livingEntity, entityMetadata) -> livingEntity.getDirtyMetadata().put(EntityDataTypes.EFFECT_AMBIENCE, (byte) (((BooleanEntityMetadata) entityMetadata).getPrimitiveValue() ? 1 : 0)))
                 .addTranslator(null) // Arrow count

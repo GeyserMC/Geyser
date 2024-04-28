@@ -34,12 +34,9 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEnt
 
 import java.util.UUID;
 
-/**
- * Internally this is known as TippedArrowEntity but is used with tipped arrows and normal arrows
- */
-public class TippedArrowEntity extends AbstractArrowEntity {
+public class ArrowEntity extends AbstractArrowEntity {
 
-    public TippedArrowEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public ArrowEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 

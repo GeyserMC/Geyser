@@ -27,12 +27,13 @@ package org.geysermc.geyser.item.type;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.item.ArmorMaterial;
-import org.geysermc.geyser.item.DyeableLeatherItem;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DyedItemColor;
 
-public class DyeableArmorItem extends ArmorItem implements DyeableLeatherItem {
+public class DyeableArmorItem extends ArmorItem {
     public DyeableArmorItem(String javaIdentifier, ArmorMaterial material, Builder builder) {
         super(javaIdentifier, material, builder);
     }
@@ -41,6 +42,11 @@ public class DyeableArmorItem extends ArmorItem implements DyeableLeatherItem {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
-        DyeableLeatherItem.translateComponentsToBedrock(components, builder);
+        // Note that this is handled as of 1.20.5 in the ItemColors class.
+        // But horse leather armor and body leather armor are now both armor items. So it works!
+        DyedItemColor dyedItemColor = components.get(DataComponentType.DYED_COLOR);
+        if (dyedItemColor != null) {
+            builder.putInt("customColor", dyedItemColor.getRgb());
+        }
     }
 }
