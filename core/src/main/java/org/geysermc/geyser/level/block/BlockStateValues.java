@@ -39,6 +39,7 @@ import org.geysermc.geyser.util.collection.FixedInt2IntMap;
 import org.geysermc.geyser.util.collection.LecternHasBookMap;
 
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * Used for block entities if the Java block state contains Bedrock block information.
@@ -78,6 +79,7 @@ public final class BlockStateValues {
     public static int JAVA_SLIME_BLOCK_ID;
     public static int JAVA_SPAWNER_ID;
     public static int JAVA_WATER_ID;
+    public static Set<Integer> JAVA_LEAVES_IDS;
 
     public static final int NUM_WATER_LEVELS = 9;
 

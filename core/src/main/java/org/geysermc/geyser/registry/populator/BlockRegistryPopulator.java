@@ -416,6 +416,7 @@ public final class BlockRegistryPopulator {
         int spawnerRuntimeId = -1;
         int uniqueJavaId = -1;
         int waterRuntimeId = -1;
+        Set<Integer> leavesRuntimeIds = new HashSet<>();
         Iterator<Map.Entry<String, JsonNode>> blocksIterator = blocksJson.fields();
         while (blocksIterator.hasNext()) {
             javaRuntimeId++;
@@ -503,6 +504,8 @@ public final class BlockRegistryPopulator {
                 honeyBlockRuntimeId = javaRuntimeId;
             } else if (javaId.equals("minecraft:slime_block")) {
                 slimeBlockRuntimeId = javaRuntimeId;
+            } else if (javaId.startsWith("minecraft:spruce_leaves")) {
+                leavesRuntimeIds.add(javaRuntimeId);
             }
         }
 
@@ -530,6 +533,11 @@ public final class BlockRegistryPopulator {
             throw new AssertionError("Unable to find slime block in palette");
         }
         BlockStateValues.JAVA_SLIME_BLOCK_ID = slimeBlockRuntimeId;
+
+        if (leavesRuntimeIds.isEmpty()) {
+            throw new AssertionError("Unable to find leaves in palette");
+        }
+        BlockStateValues.JAVA_LEAVES_IDS = leavesRuntimeIds;
 
         if (spawnerRuntimeId == -1) {
             throw new AssertionError("Unable to find spawner in palette");

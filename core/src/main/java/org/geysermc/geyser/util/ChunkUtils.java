@@ -308,4 +308,27 @@ public class ChunkUtils {
 
         session.getWorldBorder().setWorldCoordinateScale(dimension.worldCoordinateScale());
     }
+
+    public static Vector3i getRealWorldBlockPos(int chunkX, int chunkZ, int yzx, int javaId) {
+        return getRealWorldBlockPos(chunkX, chunkZ, getRelativeBlockPos(yzx), javaId);
+    }
+
+    public static Vector3i getRealWorldBlockPos(int chunkX, int chunkZ, Vector3i relPos, int javaId) {
+        if (BlockStateValues.JAVA_LEAVES_IDS.contains(javaId)) {
+            System.out.printf("ChunkX: %s, ChunkZ: %s, relX: %s, relY: %s, relZ: %s%n",
+                    chunkX, chunkZ, relPos.getX(), relPos.getY(), relPos.getZ()
+            );
+        }
+        int x = (chunkX << 4) + relPos.getX();
+        int z = (chunkZ << 4) + relPos.getZ();
+        return Vector3i.from(x, relPos.getY(), z);
+    }
+
+    public static Vector3i getRelativeBlockPos(int yzx) {
+        System.out.println("yzx: " + yzx);
+        int y = yzx / 256;
+        int z = (yzx / 16) % 16;
+        int x = yzx % 16;
+        return Vector3i.from(x, y, z);
+    }
 }

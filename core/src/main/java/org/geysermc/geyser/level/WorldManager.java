@@ -223,4 +223,8 @@ public abstract class WorldManager {
     public CompletableFuture<@Nullable CompoundTag> getPickItemNbt(GeyserSession session, int x, int y, int z, boolean addNbtData) {
         return CompletableFuture.completedFuture(null);
     }
+
+    public String getCustomLeafAt(GeyserSession session, int x, int y, int z) {
+        return null;
+    }
 }

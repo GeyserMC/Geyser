@@ -30,11 +30,14 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import lombok.Builder;
 import lombok.Value;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
+import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.List;
 import java.util.Map;
@@ -67,8 +70,28 @@ public class BlockMappings implements DefinitionRegistry<GeyserBedrockBlock> {
     Object2ObjectMap<CustomBlockState, GeyserBedrockBlock> customBlockStateDefinitions;
     Int2ObjectMap<GeyserBedrockBlock> extendedCollisionBoxes;
 
+    public GeyserBedrockBlock getACustomBlock() {
+        for (GeyserBedrockBlock bedrockBlock : customBlockStateDefinitions.values()) {
+            return bedrockBlock;
+        }
+        return null;
+    }
+
     public int getBedrockBlockId(int javaState) {
         return getBedrockBlock(javaState).getRuntimeId();
+    }
+
+    public int getBedrockBlockId(GeyserSession session, Vector3i pos, int javaState) {
+        // test by setting all leaves to water
+        if (BlockStateValues.JAVA_LEAVES_IDS.contains(javaState)) {
+            System.out.println("Found spruce");
+            String geyserCustomId = session.getGeyser().getWorldManager().getCustomLeafAt(session, pos.getX(), pos.getY(), pos.getZ());
+            if (geyserCustomId != null) {
+                // todo get the bedrock runtime id using geyser
+                return getBedrockWater().getRuntimeId();
+            }
+        }
+        return getBedrockBlockId(javaState);
     }
 
     public GeyserBedrockBlock getBedrockBlock(int javaState) {

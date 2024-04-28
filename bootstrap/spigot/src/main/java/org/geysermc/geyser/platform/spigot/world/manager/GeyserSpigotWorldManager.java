@@ -28,14 +28,14 @@ package org.geysermc.geyser.platform.spigot.world.manager;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.erosion.bukkit.BukkitLecterns;
 import org.geysermc.erosion.bukkit.BukkitUtils;
@@ -227,5 +227,22 @@ public class GeyserSpigotWorldManager extends WorldManager {
      */
     public boolean isLegacy() {
         return false;
+    }
+
+    public String getCustomLeafAt(GeyserSession session, int x, int y, int z) {
+        Player bukkitPlayer;
+        System.out.println("1");
+        if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
+            return null;
+        }
+        System.out.println("checking " + x + ", " + y + ", " + z);
+
+        World world = bukkitPlayer.getWorld();
+        Chunk chunk = world.getChunkAt(new Location(world, x, y, z));
+        String id = chunk.getPersistentDataContainer().get(new NamespacedKey("gardens", x + "." + y + "." + z), PersistentDataType.STRING);
+        if (id != null) {
+            System.out.println("Found custom leaf at: " + x + ", " + y + ", " + z);
+        }
+        return id;
     }
 }

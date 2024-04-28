@@ -54,15 +54,19 @@ import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
 import org.geysermc.erosion.util.LecternUtils;
+import org.geysermc.geyser.api.block.custom.CustomBlockData;
+import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.GeyserCustomBlockData;
 import org.geysermc.geyser.level.chunk.BlockStorage;
 import org.geysermc.geyser.level.chunk.GeyserChunkSection;
 import org.geysermc.geyser.level.chunk.bitarray.BitArray;
 import org.geysermc.geyser.level.chunk.bitarray.BitArrayVersion;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.BiomeTranslator;
 import org.geysermc.geyser.translator.level.block.entity.BedrockOnlyBlockEntity;
@@ -173,7 +177,8 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     GeyserChunkSection section = new GeyserChunkSection(session.getBlockMappings().getBedrockAir().getRuntimeId(), subChunkIndex);
                     for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
                         int javaId = javaData.get(yzx);
-                        int bedrockId = session.getBlockMappings().getBedrockBlockId(javaId);
+                        Vector3i realBlockPos = ChunkUtils.getRealWorldBlockPos(packet.getX(), packet.getZ(), yzx, javaId);
+                        int bedrockId = session.getBlockMappings().getBedrockBlockId(session, realBlockPos, javaId);
                         int xzy = indexYZXtoXZY(yzx);
                         section.getBlockStorageArray()[0].setFullBlock(xzy, bedrockId);
 
@@ -215,6 +220,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                 if (javaPalette instanceof SingletonPalette) {
                     // There's only one block here. Very easy!
                     int javaId = javaPalette.idToState(0);
+//                    Vector3i realBlockPos = ChunkUtils.getRealWorldBlockPos(packet.getX(), packet.getZ(), 0, javaId); // is this right?
                     int bedrockId = session.getBlockMappings().getBedrockBlockId(javaId);
                     BlockStorage blockStorage = new BlockStorage(SingletonBitArray.INSTANCE, IntLists.singleton(bedrockId));
 
@@ -263,6 +269,8 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                         bedrockOnlyBlockEntityIds.set(i);
                     }
                 }
+
+                // works here??
 
                 // Add Bedrock-exclusive block entities
                 // We only if the palette contained any blocks that are Bedrock-exclusive block entities to avoid iterating through the whole block data
@@ -314,7 +322,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                             layer1Data[xzy >> 5] |= 1 << (xzy & 0x1F);
                         }
                     }
-                    
+
                     // V1 palette
                     IntList layer1Palette = IntList.of(
                             session.getBlockMappings().getBedrockAir().getRuntimeId(), // Air - see BlockStorage's constructor for more information
@@ -361,6 +369,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                                 bedrockData.set(xzy, layer0.idFor(EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY)));
                             }
                             EXTENDED_COLLISIONS_STORAGE.get().set(yzx, 0, sectionY);
+                            modifyPallete(javaData, javaPalette, session, sectionY, yOffset, packet, bedrockData, layer0); // needed ?
                             continue;
                         }
                         BlockDefinition aboveBedrockExtendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes()
@@ -372,6 +381,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                             }
                         }
                     }
+//                    modifyPallete(javaData, javaPalette, session, sectionY, yOffset, packet, bedrockData, layer0);
 
                     // V1 palette
                     IntList layer1Palette = IntList.of(
@@ -380,6 +390,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
                     layers = new BlockStorage[]{ layer0, new BlockStorage(BitArrayVersion.V1.createArray(BlockStorage.SIZE, layer1Data), layer1Palette) };
                 }
+                modifyPallete(javaData, javaPalette, session, sectionY, yOffset, packet, bedrockData, layer0);
 
                 sections[bedrockSectionY] = new GeyserChunkSection(layers, subChunkIndex);
                 extendedCollisionNextSection = thisExtendedCollisionNextSection;
@@ -538,6 +549,52 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                 entry.getValue().updateBlock(true);
             }
         }
+    }
+
+    private void modifyPallete(
+            BitStorage javaData, Palette javaPalette, GeyserSession session, int sectionY, int yOffset,
+            ClientboundLevelChunkWithLightPacket packet, BitArray bedrockData, BlockStorage layer0
+    ) {
+        // Add custom-blocks
+        for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
+            int paletteId = javaData.get(yzx);
+            int javaId = javaPalette.idToState(paletteId);
+            if (BlockStateValues.JAVA_LEAVES_IDS.contains(javaId)) {
+                // could be a custom block
+                Vector3i realPos = Vector3i.from((packet.getX() << 4) + (yzx & 0xF), ((sectionY + yOffset) << 4) + ((yzx >> 8) & 0xF), (packet.getZ() << 4) + ((yzx >> 4) & 0xF));
+                String leaf = session.getGeyser().getWorldManager().getCustomLeafAt(session, realPos.getX(), realPos.getY(), realPos.getZ());
+                if (leaf != null) {
+                    // this is custom
+                    System.out.println("Found custom block at: " + realPos);
+                    int xzy = indexYZXtoXZY(yzx);
+                    // this should add the needed things to the pallete if missing i think
+                    bedrockData.set(xzy, layer0.idFor(getLeafRuntimeId(session))); // modify bedrock packet data
+                }
+            }
+        }
+    }
+
+//    private int getPalletIdForZYX(GeyserSession session, int chunkX, int chunkZ, int yzx, int javaId, BlockStorage bedrockStorage) {
+//        Vector3i pos = ChunkUtils.getRealWorldBlockPos(chunkX, chunkZ, yzx, javaId);
+//        String leaf = session.getGeyser().getWorldManager().getCustomLeafAt(session, pos.getX(), pos.getY(), pos.getZ());
+//        if (leaf != null) {
+//            int waterBedrockId = session.getBlockMappings().getBedrockWater().getRuntimeId();
+//            if (!bedrockStorage.getPalette().contains(waterBedrockId)) {
+//                bedrockStorage.getPalette().add(waterBedrockId); // ig add to pallete if not there
+//            }
+//            return bedrockStorage.getPalette().getInt()
+//        }
+//    }
+
+    private int getLeafRuntimeId(GeyserSession session) {
+        return session.getBlockMappings().getACustomBlock().getRuntimeId();
+//        BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get().int2ObjectEntrySet().stream().toList().get(0).getValue().block();
+//        session.getBlockMappings().getCustomBlockStateDefinitions().get()
+//        CustomBlockData.Builder customBlockDataBuilder = new GeyserCustomBlockData.Builder()
+//                .name("leaf")
+//                .includedInCreativeInventory(false)
+//                .creativeCategory(CreativeCategory.NONE)
+//                .creativeGroup("");
     }
 
     static final class ExtendedCollisionsStorage {
