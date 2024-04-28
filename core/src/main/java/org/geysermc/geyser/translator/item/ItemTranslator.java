@@ -71,7 +71,7 @@ public final class ItemTranslator {
     /**
      * The order of these slots is their display order on Java Edition clients
      */
-    private static final String[] ALL_SLOTS = new String[]{"mainhand", "offhand", "feet", "legs", "chest", "head"};
+    private static final ItemAttributeModifiers.EquipmentSlotGroup[] ALL_SLOTS = ItemAttributeModifiers.EquipmentSlotGroup.values();
     private static final DecimalFormat ATTRIBUTE_FORMAT = new DecimalFormat("0.#####");
 
     private ItemTranslator() {
@@ -128,7 +128,7 @@ public final class ItemTranslator {
                 .build();
     }
 
-    private static ItemData.@NonNull Builder translateToBedrock(GeyserSession session, Item javaItem, ItemMapping bedrockItem, int count, DataComponents components) {
+    private static ItemData.@NonNull Builder translateToBedrock(GeyserSession session, Item javaItem, ItemMapping bedrockItem, int count, @Nullable DataComponents components) {
         BedrockItemBuilder nbtBuilder = new BedrockItemBuilder();
 
         if (components != null) {
@@ -208,8 +208,8 @@ public final class ItemTranslator {
             ItemAttributeModifiers.EquipmentSlotGroup slotGroup = entry.getSlot();
             if (slotGroup == ItemAttributeModifiers.EquipmentSlotGroup.ANY) {
                 // modifier applies to all slots implicitly
-                for (String slot : ALL_SLOTS) { // TODO SOMEONE LOOK HERE PLZ
-                    //slotsToModifiers.computeIfAbsent(slot, s -> new ArrayList<>()).add(loreEntry);
+                for (var slot : ALL_SLOTS) {
+                    slotsToModifiers.computeIfAbsent(slot, s -> new ArrayList<>()).add(loreEntry);
                 }
             } else {
                 // modifier applies to only the specified slot
@@ -218,7 +218,7 @@ public final class ItemTranslator {
         }
 
         // iterate through the small array, not the map, so that ordering matches Java Edition
-        for (String slot : ALL_SLOTS) {
+        for (var slot : ALL_SLOTS) {
             List<String> modifierStrings = slotsToModifiers.get(slot);
             if (modifierStrings == null || modifierStrings.isEmpty()) {
                 continue;
@@ -275,10 +275,10 @@ public final class ItemTranslator {
         return MessageTranslator.convertMessage(attributeComponent, language);
     }
 
-    private static void addAdvancedTooltips(DataComponents components, BedrockItemBuilder builder, Item item, String language) {
+    private static void addAdvancedTooltips(@Nullable DataComponents components, BedrockItemBuilder builder, Item item, String language) {
         int maxDurability = item.maxDamage();
 
-        if (maxDurability != 0) {
+        if (maxDurability != 0 && components != null) {
             Integer durabilityComponent = components.get(DataComponentType.DAMAGE);
             if (durabilityComponent != null) {
                 int durability = maxDurability - durabilityComponent;
@@ -300,7 +300,7 @@ public final class ItemTranslator {
             Component component = Component.text()
                     .resetStyle()
                     .color(NamedTextColor.DARK_GRAY)
-                    .append(Component.translatable("item.nbt_tags", // TODO
+                    .append(Component.translatable("item.components",
                             Component.text(components.getDataComponents().size())))
                     .build();
             builder.getOrCreateLore().add(MessageTranslator.convertMessage(component, language));

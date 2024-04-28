@@ -91,15 +91,6 @@ public enum Potion {
         return new PotionContents(this.ordinal(), -1, Int2ObjectMaps.emptyMap());
     }
 
-    public static @Nullable Potion getByJavaIdentifier(String javaIdentifier) {
-        for (Potion potion : VALUES) {
-            if (potion.javaIdentifier.equals(javaIdentifier)) {
-                return potion;
-            }
-        }
-        return null;
-    }
-
     public static @Nullable Potion getByBedrockId(int bedrockId) {
         for (Potion potion : VALUES) {
             if (potion.bedrockId == bedrockId) {
