@@ -58,6 +58,7 @@ import org.geysermc.geyser.util.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.UUID;
@@ -238,6 +239,11 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     public String getServerBindAddress() {
         String ip = this.server.getLocalIp();
         return ip != null ? ip : ""; // See issue #3812
+    }
+
+    @Override
+    public SocketAddress getSocketAddress() {
+        return this.geyserInjector.getServerSocketAddress();
     }
 
     @Override
