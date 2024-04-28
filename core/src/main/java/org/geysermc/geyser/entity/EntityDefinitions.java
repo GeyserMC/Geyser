@@ -454,8 +454,7 @@ public final class EntityDefinitions {
         EntityDefinition<LivingEntity> livingEntityBase = EntityDefinition.inherited(LivingEntity::new, entityBase)
                 .addTranslator(MetadataType.BYTE, LivingEntity::setLivingEntityFlags)
                 .addTranslator(MetadataType.FLOAT, LivingEntity::setHealth)
-                .addTranslator(MetadataType.INT,
-                        (livingEntity, entityMetadata) -> livingEntity.getDirtyMetadata().put(EntityDataTypes.EFFECT_COLOR, entityMetadata.getValue()))
+                .addTranslator(MetadataType.PARTICLES, LivingEntity::setParticles)
                 .addTranslator(MetadataType.BOOLEAN,
                         (livingEntity, entityMetadata) -> livingEntity.getDirtyMetadata().put(EntityDataTypes.EFFECT_AMBIENCE, (byte) (((BooleanEntityMetadata) entityMetadata).getPrimitiveValue() ? 1 : 0)))
                 .addTranslator(null) // Arrow count
