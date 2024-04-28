@@ -119,8 +119,11 @@ public class GeyserSpigotInjector extends GeyserInjector {
                     protected void initChannel(@NonNull Channel ch) throws Exception {
                         initChannel.invoke(childHandler, ch);
 
+                        int index = ch.pipeline().names().indexOf("encoder");
+                        String baseName = index != -1 ? "encoder" : "outbound_config";
+
                         if (bootstrap.getGeyserConfig().isDisableCompression() && GeyserSpigotCompressionDisabler.ENABLED) {
-                            ch.pipeline().addAfter("encoder", "geyser-compression-disabler", new GeyserSpigotCompressionDisabler());
+                            ch.pipeline().addAfter(baseName, "geyser-compression-disabler", new GeyserSpigotCompressionDisabler());
                         }
                     }
                 })

@@ -32,6 +32,7 @@ import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.Clientbound
 
 @Translator(packet = ClientboundStoreCookiePacket.class)
 public class JavaStoreCookieTranslator extends PacketTranslator<ClientboundStoreCookiePacket> {
+
     @Override
     public void translate(GeyserSession session, ClientboundStoreCookiePacket packet) {
         session.getCookies().put(packet.getKey(), packet.getPayload());

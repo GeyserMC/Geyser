@@ -33,6 +33,7 @@ import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.Serverbound
 
 @Translator(packet = ClientboundCookieRequestPacket.class)
 public class JavaCookieRequestTranslator extends PacketTranslator<ClientboundCookieRequestPacket> {
+
     @Override
     public void translate(GeyserSession session, ClientboundCookieRequestPacket packet) {
         ServerboundCookieResponsePacket responsePacket = new ServerboundCookieResponsePacket(

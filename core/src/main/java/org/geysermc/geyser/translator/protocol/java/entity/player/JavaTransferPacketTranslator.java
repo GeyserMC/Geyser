@@ -35,6 +35,7 @@ import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.Clientbound
 
 @Translator(packet = ClientboundTransferPacket.class)
 public class JavaTransferPacketTranslator extends PacketTranslator<ClientboundTransferPacket> {
+
     @Override
     public void translate(GeyserSession session, ClientboundTransferPacket packet) {
         ServerTransferEvent event = new ServerTransferEvent(
