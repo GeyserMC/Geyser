@@ -34,6 +34,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
+import org.cloudburstmc.protocol.common.util.Int2ObjectBiMap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
 import org.geysermc.geyser.inventory.item.BannerPattern;
@@ -70,7 +71,7 @@ public final class RegistryCache {
         register("trim_material", cache -> cache.trimMaterials, TrimRecipe::readTrimMaterial);
         register("trim_pattern", cache -> cache.trimPatterns, TrimRecipe::readTrimPattern);
         register("worldgen/biome", (cache, array) -> cache.biomeTranslations = array, BiomeTranslator::loadServerBiome);
-        register("banner_pattern", cache -> cache.bannerPatterns, ($, entry) -> BannerPattern.getByJavaIdentifier(entry.getId()));
+        registerBannerRegistry(($, entry) -> BannerPattern.getByJavaIdentifier(entry.getId()));
         register("wolf_variant", cache -> cache.wolfVariants, ($, entry) -> WolfEntity.WolfVariant.getByJavaIdentifier(entry.getId()));
     }
 
@@ -89,7 +90,7 @@ public final class RegistryCache {
     private final Int2ObjectMap<TrimMaterial> trimMaterials = new Int2ObjectOpenHashMap<>();
     private final Int2ObjectMap<TrimPattern> trimPatterns = new Int2ObjectOpenHashMap<>();
 
-    private final Int2ObjectMap<BannerPattern> bannerPatterns = new Int2ObjectOpenHashMap<>();
+    private Int2ObjectBiMap<BannerPattern> bannerPatterns = new Int2ObjectBiMap<>();
     private final Int2ObjectMap<WolfEntity.WolfVariant> wolfVariants = new Int2ObjectOpenHashMap<>();
 
     public RegistryCache(GeyserSession session) {
@@ -106,6 +107,20 @@ public final class RegistryCache {
         } else {
             GeyserImpl.getInstance().getLogger().debug("Ignoring registry of type " + packet.getRegistry());
         }
+    }
+
+    private static <T> void registerBannerRegistry(BiFunction<GeyserSession, RegistryEntry, T> reader) {
+        REGISTRIES.put("minecraft:banner_pattern", ((registryCache, entries) -> {
+            // Clear each local cache every time a new registry entry is given to us
+            // (e.g. proxy server switches)
+            registryCache.bannerPatterns = new Int2ObjectBiMap<>();
+            for (int i = 0; i < entries.size(); i++) {
+                RegistryEntry entry = entries.get(i);
+                // This is what Geyser wants to keep as a value for this registry.
+                T cacheEntry = reader.apply(registryCache.session, entry);
+                registryCache.bannerPatterns.put(i, (BannerPattern) cacheEntry);
+            }
+        }));
     }
 
     /**

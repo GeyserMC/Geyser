@@ -244,8 +244,8 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
         if (Boolean.parseBoolean(System.getProperty("Geyser.UseDirectAdapters", "true"))) {
             try {
-                String name = Bukkit.getServer().getClass().getPackage().getName();
-                String nmsVersion = name.substring(name.lastIndexOf('.') + 1);
+                String version = Bukkit.getBukkitVersion().split("-")[0];
+                String nmsVersion = "v" + version.replace(".", "_");
                 SpigotAdapters.registerWorldAdapter(nmsVersion);
                 if (isViaVersion && isViaVersionNeeded()) {
                     this.geyserWorldManager = new GeyserSpigotLegacyNativeWorldManager(this);
