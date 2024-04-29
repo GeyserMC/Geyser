@@ -92,10 +92,7 @@ public class FireworkRocketItem extends Item {
     static NbtMap translateExplosionToBedrock(Fireworks.FireworkExplosion explosion) {
         NbtMapBuilder newExplosionData = NbtMap.builder();
 
-//        if (explosion.get("Type") != null) {
-//            newExplosionData.put(new ByteTag("FireworkType", MathUtils.getNbtByte(explosion.get("Type").getValue())));
-//        }
-        //newExplosionData.putByte("FireworkType", explosion.get) //TODO???
+        newExplosionData.putByte("FireworkType", (byte) explosion.getShapeId());
 
         int[] oldColors = explosion.getColors();
         byte[] colors = new byte[oldColors.length];
