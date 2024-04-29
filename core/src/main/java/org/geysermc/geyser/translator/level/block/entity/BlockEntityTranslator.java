@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.session.GeyserSession;
@@ -40,9 +41,13 @@ public abstract class BlockEntityTranslator {
 
     public abstract void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, int blockState);
 
-    public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, NbtMap javaNbt, int blockState) {
+    public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, @Nullable NbtMap javaNbt, int blockState) {
         NbtMapBuilder tagBuilder = getConstantBedrockTag(type, x, y, z);
-        translateTag(session, tagBuilder, javaNbt, blockState);
+        if (javaNbt != null || this instanceof RequiresBlockState) {
+            // Always process tags if the block state is part of the tag.
+            // See: banner base colors.
+            translateTag(session, tagBuilder, javaNbt, blockState);
+        }
         return tagBuilder.build();
     }
 

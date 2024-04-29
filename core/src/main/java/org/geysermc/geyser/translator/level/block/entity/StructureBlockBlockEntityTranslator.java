@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -39,7 +40,10 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType
 public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
-    public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, NbtMap javaNbt, int blockState) {
+    public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, @Nullable NbtMap javaNbt, int blockState) {
+        if (javaNbt == null) {
+            return super.getBlockEntityTag(session, type, x, y, z, javaNbt, blockState);
+        }
         // Sending a structure with size 0 doesn't clear the outline. Hence, we have to force it by replacing the block :/
         int xStructureSize = javaNbt.getInt("sizeX");
         int yStructureSize = javaNbt.getInt("sizeY");

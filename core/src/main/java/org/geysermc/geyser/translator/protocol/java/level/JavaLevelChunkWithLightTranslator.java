@@ -412,13 +412,10 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     continue;
                 }
 
-                if (tag != null) {
-                    BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(type);
-                    bedrockBlockEntities.add(blockEntityTranslator.getBlockEntityTag(session, type, x + chunkBlockX, y, z + chunkBlockZ, tag, blockState));
-                } else {
-                    // Since 1.20.5, tags can be null, but Bedrock still needs a default tag to render the item
-                    bedrockBlockEntities.add(BlockEntityTranslator.getConstantBedrockTag(type, x + chunkBlockX, y, z + chunkBlockZ).build());
-                }
+                // Note that, since 1.20.5, tags can be null, but Bedrock still needs a default tag to render the item
+                // Also, some properties - like banner base colors - are part of the tag and is processed here.
+                BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(type);
+                bedrockBlockEntities.add(blockEntityTranslator.getBlockEntityTag(session, type, x + chunkBlockX, y, z + chunkBlockZ, tag, blockState));
 
                 // Check for custom skulls
                 if (session.getPreferencesCache().showCustomSkulls() && type == BlockEntityType.SKULL && tag != null && tag.containsKey("profile")) {

@@ -40,7 +40,10 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType
 public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
-    public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, NbtMap javaNbt, int blockState) {
+    public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, @Nullable NbtMap javaNbt, int blockState) {
+        if (javaNbt == null) {
+            return super.getBlockEntityTag(session, type, x, y, z, javaNbt, blockState);
+        }
         // Sending an empty EntityIdentifier to empty the spawner is ignored by the client, so we send a whole new spawner!
         // Fixes https://github.com/GeyserMC/Geyser/issues/4214
         NbtMap spawnData = javaNbt.getCompound("SpawnData");
