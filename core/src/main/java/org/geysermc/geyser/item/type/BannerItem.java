@@ -64,13 +64,13 @@ public class BannerItem extends BlockItem {
     static {
         // Construct what an ominous banner is supposed to look like
         OMINOUS_BANNER_PATTERN = List.of(
-                Pair.of(BannerPattern.RHOMBUS_MIDDLE, DyeColor.CYAN),
+                Pair.of(BannerPattern.RHOMBUS, DyeColor.CYAN),
                 Pair.of(BannerPattern.STRIPE_BOTTOM, DyeColor.LIGHT_GRAY),
                 Pair.of(BannerPattern.STRIPE_CENTER, DyeColor.GRAY),
                 Pair.of(BannerPattern.BORDER, DyeColor.LIGHT_GRAY),
                 Pair.of(BannerPattern.STRIPE_MIDDLE, DyeColor.BLACK),
                 Pair.of(BannerPattern.HALF_HORIZONTAL, DyeColor.LIGHT_GRAY),
-                Pair.of(BannerPattern.CIRCLE_MIDDLE, DyeColor.LIGHT_GRAY),
+                Pair.of(BannerPattern.CIRCLE, DyeColor.LIGHT_GRAY),
                 Pair.of(BannerPattern.BORDER, DyeColor.BLACK)
         );
 
@@ -211,6 +211,7 @@ public class BannerItem extends BlockItem {
             List<BannerPatternLayer> patternLayers = new ArrayList<>();
             for (Pair<BannerPattern, DyeColor> pair : OMINOUS_BANNER_PATTERN) {
                 patternLayers.add(new BannerPatternLayer(Holder.ofId(pair.left().ordinal()), pair.right().ordinal()));
+                System.out.println("adding: " + pair.left().getJavaIdentifier() + " " + pair.right().name());
             }
 
             components.put(DataComponentType.BANNER_PATTERNS, patternLayers);
