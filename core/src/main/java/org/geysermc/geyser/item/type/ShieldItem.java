@@ -29,7 +29,11 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.item.components.ToolTier;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+
+import java.util.List;
 
 public class ShieldItem extends Item {
     public ShieldItem(String javaIdentifier, Builder builder) {
@@ -40,22 +44,15 @@ public class ShieldItem extends Item {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
-        // TODO figure out patterns first.
-//        if (tag.remove("BlockEntityTag") instanceof CompoundTag blockEntityTag) {
-//            if (blockEntityTag.get("Patterns") instanceof ListTag patterns) {
-//                for (Tag pattern : patterns) {
-//                    if (((CompoundTag) pattern).get("Color") instanceof IntTag color) {
-//                        color.setValue(15 - color.getValue());
-//                    }
-//                }
-//                // Bedrock looks for patterns at the root
-//                tag.put(patterns);
-//            }
-//            if (blockEntityTag.get("Base") instanceof IntTag base) {
-//                base.setValue(15 - base.getValue());
-//                tag.put(base);
-//            }
-//        }
+        List<BannerPatternLayer> patterns = components.get(DataComponentType.BANNER_PATTERNS);
+        if (patterns != null) {
+            BannerItem.convertBannerPattern(session, patterns, builder);
+        }
+        // Shield pattern backing color
+        Integer baseColor = components.get(DataComponentType.BASE_COLOR);
+        if (baseColor != null) {
+            builder.putInt("Base", 15 - baseColor);
+        }
     }
 
     @Override

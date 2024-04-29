@@ -114,6 +114,31 @@ public class BannerItem extends BlockItem {
     }
 
     /**
+     * Converts a Java item component for banners into Bedrock item NBT.
+     */
+    static void convertBannerPattern(GeyserSession session, List<BannerPatternLayer> patterns, BedrockItemBuilder builder) {
+        if (isOminous(session, patterns)) {
+            // Remove the current patterns and set the ominous banner type
+            builder.putInt("Type", 1);
+        } else {
+            List<NbtMap> patternList = new ArrayList<>(patterns.size());
+            for (BannerPatternLayer patternLayer : patterns) {
+                patternLayer.getPattern().ifId(holder -> {
+                    BannerPattern bannerPattern = session.getRegistryCache().bannerPatterns().get(holder.id());
+                    if (bannerPattern != null) {
+                        NbtMap tag = NbtMap.builder()
+                                .putString("Pattern", bannerPattern.getBedrockIdentifier())
+                                .putInt("Color", 15 - patternLayer.getColorId())
+                                .build();
+                        patternList.add(tag);
+                    }
+                });
+            }
+            builder.putList("Patterns", NbtType.COMPOUND, patternList);
+        }
+    }
+
+    /**
      * Convert the Java edition banner pattern nbt to Bedrock edition, null if the pattern doesn't exist
      *
      * @param pattern Java edition pattern nbt
@@ -166,25 +191,7 @@ public class BannerItem extends BlockItem {
 
         List<BannerPatternLayer> patterns = components.get(DataComponentType.BANNER_PATTERNS);
         if (patterns != null) {
-            if (isOminous(session, patterns)) {
-                // Remove the current patterns and set the ominous banner type
-                builder.putInt("Type", 1);
-            } else {
-                List<NbtMap> patternList = new ArrayList<>(patterns.size());
-                for (BannerPatternLayer patternLayer : patterns) {
-                    patternLayer.getPattern().ifId(holder -> {
-                        BannerPattern bannerPattern = session.getRegistryCache().bannerPatterns().get(holder.id());
-                        if (bannerPattern != null) {
-                            NbtMap tag = NbtMap.builder()
-                                    .putString("Pattern", bannerPattern.getBedrockIdentifier())
-                                    .putInt("Color", 15 - patternLayer.getColorId())
-                                    .build();
-                            patternList.add(tag);
-                        }
-                    });
-                }
-                builder.putList("Patterns", NbtType.COMPOUND, patternList);
-            }
+            convertBannerPattern(session, patterns, builder);
         }
     }
 
