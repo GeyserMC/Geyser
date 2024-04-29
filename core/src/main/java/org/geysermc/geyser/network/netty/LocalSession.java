@@ -30,6 +30,7 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.*;
 import io.netty.channel.unix.PreferredDirectByteBufAllocator;
 import io.netty.handler.codec.haproxy.*;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.mcprotocollib.network.BuiltinFlags;
 import org.geysermc.mcprotocollib.network.codec.PacketCodecHelper;
@@ -42,6 +43,7 @@ import org.geysermc.mcprotocollib.protocol.codec.MinecraftCodecHelper;
 import java.net.Inet4Address;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Manages a Minecraft Java session over our LocalChannel implementations.
@@ -54,24 +56,23 @@ public final class LocalSession extends TcpSession {
     private final String clientIp;
     private final PacketCodecHelper codecHelper;
 
-    private final boolean transferring;
-
-    public LocalSession(String host, int port, SocketAddress targetAddress, String clientIp, PacketProtocol protocol, MinecraftCodecHelper codecHelper, boolean transferring) {
+    public LocalSession(String host, int port, SocketAddress targetAddress, String clientIp, PacketProtocol protocol, MinecraftCodecHelper codecHelper) {
         super(host, port, protocol);
         this.targetAddress = targetAddress;
         this.clientIp = clientIp;
         this.codecHelper = codecHelper;
-        this.transferring = transferring;
     }
 
     @Override
-    public void connect(boolean wait) {
+    public void connect(boolean wait, boolean transferring) {
         if (this.disconnected) {
             throw new IllegalStateException("Connection has already been disconnected.");
         }
 
         if (DEFAULT_EVENT_LOOP_GROUP == null) {
-            DEFAULT_EVENT_LOOP_GROUP = new DefaultEventLoopGroup();
+            DEFAULT_EVENT_LOOP_GROUP = new DefaultEventLoopGroup(new DefaultThreadFactory(this.getClass(), true));
+            Runtime.getRuntime().addShutdownHook(new Thread(
+                    () -> DEFAULT_EVENT_LOOP_GROUP.shutdownGracefully(100, 500, TimeUnit.MILLISECONDS)));
         }
 
         try {
