@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
@@ -38,7 +39,7 @@ import java.util.List;
 @BlockEntity(type = BlockEntityType.BANNER)
 public class BannerBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
     @Override
-    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, int blockState) {
+    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, @Nullable NbtMap javaNbt, int blockState) {
         int bannerColor = BlockStateValues.getBannerColor(blockState);
         if (bannerColor != -1) {
             bedrockNbt.putInt("Base", 15 - bannerColor);

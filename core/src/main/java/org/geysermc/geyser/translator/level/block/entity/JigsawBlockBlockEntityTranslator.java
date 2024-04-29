@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.level.block.BlockStateValues;
@@ -34,7 +35,11 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType
 @BlockEntity(type = BlockEntityType.JIGSAW)
 public class JigsawBlockBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
     @Override
-    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, int blockState) {
+    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, @Nullable NbtMap javaNbt, int blockState) {
+        if (javaNbt == null) {
+            return;
+        }
+
         String joint = javaNbt.getString("joint", null);
         if (joint != null) {
             bedrockNbt.putString("joint", joint);

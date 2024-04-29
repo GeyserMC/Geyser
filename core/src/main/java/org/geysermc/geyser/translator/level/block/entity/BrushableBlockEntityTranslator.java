@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.item.Items;
@@ -37,7 +38,11 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType
 public class BrushableBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
 
     @Override
-    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, int blockState) {
+    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, @Nullable NbtMap javaNbt, int blockState) {
+        if (javaNbt == null) {
+            return;
+        }
+
         NbtMap itemTag = javaNbt.getCompound("item");
         if (itemTag.isEmpty()) {
             return;
