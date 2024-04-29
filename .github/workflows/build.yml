@@ -136,14 +136,15 @@ jobs:
         run: |
           cat metadata.json
           echo
+          mv metadata.json metadata.json.tmp
           version=$(cat gradle.properties | grep -o "version=[0-9\\.]*" | cut -d"=" -f2)
-          cat metadata.json | jq --arg project "${PROJECT}" --arg version "${version}" '
+          jq --arg project "${PROJECT}" --arg version "${version}" '
             .
             | .changes |= map({"commit", "summary", "message"}) 
             | .downloads |= map_values({"name", "sha256"})
             | {$project, "repo", $version, "number": .build, "changes", "downloads"}
-          ' | tee metadata.json
-          echo
+          ' metadata.json.tmp > metadata.json
+          cat metadata.json
       - name: Publish to Downloads API
         if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
         shell: bash
