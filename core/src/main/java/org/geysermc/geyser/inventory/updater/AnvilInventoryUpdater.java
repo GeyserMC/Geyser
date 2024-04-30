@@ -387,7 +387,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
             }
             return enchantments;
         }
-        return Object2IntMaps.emptyMap();
+        return new Object2IntOpenHashMap<>();
     }
 
     private boolean isEnchantedBook(GeyserItemStack itemStack) {
