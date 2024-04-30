@@ -260,13 +260,17 @@ public class MessageTranslator {
     }
 
     /**
-     * Convert legacy format message to plain text
+     * Convert a Java message to plain text
      *
      * @param message Message to convert
+     * @param locale Locale to use for translation strings
      * @return The plain text of the message
      */
-    public static String convertToPlainText(Component message) {
-        return PlainTextComponentSerializer.plainText().serialize(message);
+    public static String convertToPlainText(Component message, String locale) {
+        if (message == null) {
+            return "";
+        }
+        return PlainTextComponentSerializer.plainText().serialize(RENDERER.render(message, locale));
     }
 
     /**
