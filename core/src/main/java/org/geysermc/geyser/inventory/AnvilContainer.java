@@ -85,7 +85,7 @@ public class AnvilContainer extends Container {
             session.sendDownstreamGamePacket(renameItemPacket);
         } else {
             // Restore formatting for item since we're not renaming
-            correctRename = MessageTranslator.convertMessage(originalName, session.locale());
+            correctRename = originalName != null ? MessageTranslator.convertMessage(originalName, session.locale()) : "";
             // Java Edition sends the original custom name when not renaming,
             // if there isn't a custom name an empty string is sent
             ServerboundRenameItemPacket renameItemPacket = new ServerboundRenameItemPacket(plainOriginalName);
