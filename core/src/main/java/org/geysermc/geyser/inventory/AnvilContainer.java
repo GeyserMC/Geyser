@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.inventory;
 
+import net.kyori.adventure.text.Component;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundRenameItemPacket;
 import lombok.Getter;
@@ -72,10 +73,9 @@ public class AnvilContainer extends Container {
         String correctRename;
         newName = rename;
 
-        // TODO 1.20.5 fix properly - this name is apparently nullable??
-        String originalName = MessageTranslator.convertMessage(ItemUtils.getCustomName(getInput().getComponents()));
+        Component originalName = ItemUtils.getCustomName(getInput().getComponents());
 
-        String plainOriginalName = MessageTranslator.convertToPlainTextLenient(originalName, session.locale());
+        String plainOriginalName = MessageTranslator.convertToPlainText(originalName, session.locale());
         String plainNewName = MessageTranslator.convertToPlainText(rename);
         if (!plainOriginalName.equals(plainNewName)) {
             // Strip out formatting since Java Edition does not allow it
@@ -85,7 +85,7 @@ public class AnvilContainer extends Container {
             session.sendDownstreamGamePacket(renameItemPacket);
         } else {
             // Restore formatting for item since we're not renaming
-            correctRename = MessageTranslator.convertMessageLenient(originalName);
+            correctRename = MessageTranslator.convertMessage(originalName, session.locale());
             // Java Edition sends the original custom name when not renaming,
             // if there isn't a custom name an empty string is sent
             ServerboundRenameItemPacket renameItemPacket = new ServerboundRenameItemPacket(plainOriginalName);

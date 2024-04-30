@@ -311,7 +311,7 @@ public class ArmorStandEntity extends LivingEntity {
         if (!isInvisible) {
             // The armor stand isn't invisible. We good.
             setFlag(EntityFlag.INVISIBLE, false);
-            dirtyMetadata.put(EntityDataTypes.SCALE, getScale());
+            setScale(getScale());
             updateOffsetRequirement(false);
 
             if (secondEntity != null) {
@@ -327,7 +327,7 @@ public class ArmorStandEntity extends LivingEntity {
         if (!isNametagEmpty && (!helmet.equals(ItemData.AIR) || !chestplate.equals(ItemData.AIR) || !leggings.equals(ItemData.AIR)
                 || !boots.equals(ItemData.AIR) || !hand.equals(ItemData.AIR) || !offhand.equals(ItemData.AIR))) {
             // Reset scale of the proper armor stand
-            this.dirtyMetadata.put(EntityDataTypes.SCALE, getScale());
+            setScale(getScale());
             // Set the proper armor stand to invisible to show armor
             setFlag(EntityFlag.INVISIBLE, true);
             // Update the position of the armor stand
@@ -350,7 +350,7 @@ public class ArmorStandEntity extends LivingEntity {
             // Guarantee this copy is NOT invisible
             secondEntity.setFlag(EntityFlag.INVISIBLE, false);
             // Scale to 0 to show nametag
-            secondEntity.getDirtyMetadata().put(EntityDataTypes.SCALE, 0.0f);
+            secondEntity.setScale(0f);
             // No bounding box as we don't want to interact with this entity
             secondEntity.getDirtyMetadata().put(EntityDataTypes.WIDTH, 0.0f);
             secondEntity.getDirtyMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
@@ -360,7 +360,7 @@ public class ArmorStandEntity extends LivingEntity {
         } else if (isNametagEmpty) {
             // We can just make an invisible entity
             // Reset scale of the proper armor stand
-            dirtyMetadata.put(EntityDataTypes.SCALE, getScale());
+            setScale(getScale());
             // Set the proper armor stand to invisible to show armor
             setFlag(EntityFlag.INVISIBLE, true);
             // Update offset
@@ -374,7 +374,7 @@ public class ArmorStandEntity extends LivingEntity {
             // Nametag is not empty and there is no armor
             // We don't need to make a new entity
             setFlag(EntityFlag.INVISIBLE, false);
-            dirtyMetadata.put(EntityDataTypes.SCALE, 0.0f);
+            setScale(0f);
             // As the above is applied, we need an offset
             updateOffsetRequirement(!isMarker);
 

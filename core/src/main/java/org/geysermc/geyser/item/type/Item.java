@@ -146,6 +146,11 @@ public class Item {
         if (!enchantNbtList.isEmpty()) {
             builder.putList("ench", NbtType.COMPOUND, enchantNbtList);
         }
+
+        Integer repairCost = components.get(DataComponentType.REPAIR_COST);
+        if (repairCost != null) {
+            builder.putInt("RepairCost", repairCost);
+        }
     }
 
     /**

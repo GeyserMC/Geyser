@@ -673,7 +673,7 @@ public final class EntityDefinitions {
             SLIME = EntityDefinition.inherited(SlimeEntity::new, mobEntityBase)
                     .type(EntityType.SLIME)
                     .heightAndWidth(0.51f)
-                    .addTranslator(MetadataType.INT, SlimeEntity::setScale)
+                    .addTranslator(MetadataType.INT, SlimeEntity::setSlimeScale)
                     .build();
             MAGMA_CUBE = EntityDefinition.inherited(MagmaCubeEntity::new, SLIME)
                     .type(EntityType.MAGMA_CUBE)

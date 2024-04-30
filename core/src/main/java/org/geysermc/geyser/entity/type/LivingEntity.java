@@ -86,6 +86,19 @@ public class LivingEntity extends Entity {
      */
     private boolean isMaxFrozenState = false;
 
+    /**
+     * The base scale entity data, without attributes applied. Used for such cases as baby variants.
+     */
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    private float scale;
+    /**
+     * The scale sent through the Java attributes packet
+     */
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    private float attributeScale;
+
     public LivingEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
@@ -122,6 +135,9 @@ public class LivingEntity extends Entity {
 
     @Override
     protected void initializeMetadata() {
+        // Initialize here so overriding classes don't have 0 values
+        this.scale = 1f;
+        this.attributeScale = 1f;
         super.initializeMetadata();
         // Matches Bedrock behavior; is always set to this
         dirtyMetadata.put(EntityDataTypes.STRUCTURAL_INTEGRITY, 1);
@@ -228,6 +244,21 @@ public class LivingEntity extends Entity {
         this.isMaxFrozenState = freezingPercentage >= 1.0f;
         setFlag(EntityFlag.SHAKING, isShaking());
         return freezingPercentage;
+    }
+
+    protected void setScale(float scale) {
+        this.scale = scale;
+        applyScale();
+    }
+
+    private void setAttributeScale(float scale) {
+        this.attributeScale = scale;
+        applyScale();
+    }
+
+    private void applyScale() {
+        // Take any adjustments Bedrock requires, and compute it alongside the attribute's additional changes
+        this.dirtyMetadata.put(EntityDataTypes.SCALE, scale * attributeScale);
     }
 
     /**
@@ -366,6 +397,11 @@ public class LivingEntity extends Entity {
                 case GENERIC_FOLLOW_RANGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FOLLOW_RANGE));
                 case GENERIC_KNOCKBACK_RESISTANCE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.KNOCKBACK_RESISTANCE));
                 case GENERIC_JUMP_STRENGTH -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.HORSE_JUMP_STRENGTH));
+                case GENERIC_SCALE -> {
+                    // Attribute on Java, entity data on Bedrock
+                    setAttributeScale((float) AttributeUtils.calculateValue(javaAttribute));
+                    updateBedrockMetadata();
+                }
             }
         }
     }
