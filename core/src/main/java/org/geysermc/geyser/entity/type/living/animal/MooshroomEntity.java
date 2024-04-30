@@ -40,7 +40,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
 import java.util.UUID;
 
-public class MooshroomEntity extends AnimalEntity {
+public class MooshroomEntity extends CowEntity {
     private boolean isBrown = false;
 
     public MooshroomEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {

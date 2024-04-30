@@ -964,7 +964,7 @@ public final class EntityDefinitions {
                     .build();
         }
 
-        EntityDefinition<TameableEntity> tameableEntityBase = EntityDefinition.inherited(TameableEntity::new, ageableEntityBase)
+        EntityDefinition<TameableEntity> tameableEntityBase = EntityDefinition.<TameableEntity>inherited(null, ageableEntityBase) // No factory, is abstract
                 .addTranslator(MetadataType.BYTE, TameableEntity::setTameableFlags)
                 .addTranslator(MetadataType.OPTIONAL_UUID, TameableEntity::setOwner)
                 .build();

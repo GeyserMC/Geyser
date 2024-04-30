@@ -115,7 +115,7 @@ public class FireworkRocketItem extends Item {
         newExplosionData.putByteArray("FireworkFade", colors);
 
         newExplosionData.putBoolean("FireworkTrail", explosion.isHasTrail());
-        newExplosionData.putBoolean("FireworkFlicker", explosion.isHasTwinkle()); // TODO verify
+        newExplosionData.putBoolean("FireworkFlicker", explosion.isHasTwinkle());
 
         return newExplosionData.build();
     }

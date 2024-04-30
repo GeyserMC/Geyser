@@ -39,7 +39,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEn
 import java.util.Optional;
 import java.util.UUID;
 
-public class TameableEntity extends AnimalEntity {
+public abstract class TameableEntity extends AnimalEntity {
     /**
      * Used in the interactive tag manager to track if the session player owns this entity
      */

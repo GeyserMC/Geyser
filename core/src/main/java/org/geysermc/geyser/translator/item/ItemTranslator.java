@@ -249,19 +249,17 @@ public final class ItemTranslator {
         String name = modifier.getName().replace("minecraft:", "");
         // the namespace does not need to be present, but if it is, the java client ignores it as of pre-1.20.5
 
-        String operationTotal;
         ModifierOperation operation = modifier.getOperation();
-        if (operation == ModifierOperation.ADD) {
-            if (name.equals("generic.knockback_resistance")) {
-                amount *= 10;
+        String operationTotal = switch (operation) {
+            case ADD -> {
+                if (name.equals("generic.knockback_resistance")) {
+                    amount *= 10;
+                }
+                yield ATTRIBUTE_FORMAT.format(amount);
             }
-            operationTotal = ATTRIBUTE_FORMAT.format(amount);
-        } else if (operation == ModifierOperation.ADD_MULTIPLIED_BASE || operation == ModifierOperation.ADD_MULTIPLIED_TOTAL) {
-            operationTotal = ATTRIBUTE_FORMAT.format(amount * 100) + "%";
-        } else {
-            GeyserImpl.getInstance().getLogger().warning("Unhandled ModifierOperation while adding item attributes: " + operation);
-            return null;
-        }
+            case ADD_MULTIPLIED_BASE, ADD_MULTIPLIED_TOTAL ->
+                    ATTRIBUTE_FORMAT.format(amount * 100) + "%";
+        };
         if (amount > 0) {
             operationTotal = "+" + operationTotal;
         }

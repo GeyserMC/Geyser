@@ -38,6 +38,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.DyeItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.geyser.util.ItemUtils;
@@ -120,9 +121,9 @@ public class WolfEntity extends TameableEntity {
     }
 
     @Override
-    public boolean canEat(Item item) {
-        // Cannot be a baby to eat these foods
-        return WOLF_FOODS.contains(item) && !isBaby();
+    @Nullable
+    protected ItemTag getFoodTag() {
+        return ItemTag.WOLF_FOOD;
     }
 
     @Override

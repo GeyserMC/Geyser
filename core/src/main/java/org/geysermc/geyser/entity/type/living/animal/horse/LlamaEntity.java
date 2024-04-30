@@ -26,12 +26,12 @@
 package org.geysermc.geyser.entity.type.living.animal.horse;
 
 import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
@@ -56,7 +56,7 @@ public class LlamaEntity extends ChestedHorseEntity {
     }
 
     @Override
-    public boolean canEat(Item item) {
-        return item == Items.WHEAT || item == Items.HAY_BLOCK;
+    protected @Nullable ItemTag getFoodTag() {
+        return ItemTag.LLAMA_FOOD;
     }
 }
