@@ -46,8 +46,8 @@ public class GeyserSpigotLegacyNativeWorldManager extends GeyserSpigotNativeWorl
 
     private final Int2IntMap oldToNewBlockId;
 
-    public GeyserSpigotLegacyNativeWorldManager(GeyserSpigotPlugin plugin) {
-        super(plugin);
+    public GeyserSpigotLegacyNativeWorldManager(GeyserSpigotPlugin plugin, boolean isPaper) {
+        super(plugin, isPaper);
         IntList allBlockStates = adapter.getAllBlockStates();
         oldToNewBlockId = new Int2IntOpenHashMap(allBlockStates.size());
         ProtocolVersion serverVersion = plugin.getServerProtocolVersion();

@@ -25,7 +25,7 @@ jline = "3.21.0"
 terminalconsoleappender = "1.2.0"
 folia = "1.19.4-R0.1-SNAPSHOT"
 viaversion = "4.9.2"
-adapters = "1.11-SNAPSHOT"
+adapters = "1.12-SNAPSHOT"
 commodore = "2.2"
 bungeecord = "a7c6ede"
 velocity = "3.1.1"
@@ -100,6 +100,7 @@ fabric-permissions = { group = "me.lucko", name = "fabric-permissions-api", vers
 neoforge-minecraft = { group = "net.neoforged", name = "neoforge", version.ref = "neoforge-minecraft" }
 
 adapters-spigot = { group = "org.geysermc.geyser.adapters", name = "spigot-all", version.ref = "adapters" }
+adapters-paper = { group = "org.geysermc.geyser.adapters", name = "paper-all", version.ref = "adapters" }
 bungeecord-proxy = { group = "com.github.SpigotMC.BungeeCord", name = "bungeecord-proxy", version.ref = "bungeecord" }
 checker-qual = { group = "org.checkerframework", name = "checker-qual", version.ref = "checkerframework" }
 commodore = { group = "me.lucko", name = "commodore", version.ref = "commodore" }
