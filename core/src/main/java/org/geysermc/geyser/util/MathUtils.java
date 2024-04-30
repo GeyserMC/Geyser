@@ -169,17 +169,6 @@ public class MathUtils {
     }
 
     /**
-     * Ensures the resulting object is a byte. Java Edition does not care whether a byte is encoded as an integer or not;
-     * it converts it into a byte anyway.
-     *
-     * @param value The value to convert
-     * @return The converted byte
-     */
-    public static byte getNbtByte(Object value) {
-        return ((Number) value).byteValue();
-    }
-
-    /**
      * Packs a chunk's X and Z coordinates into a single {@code long}.
      *
      * @param x the X coordinate
