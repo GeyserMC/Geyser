@@ -38,8 +38,6 @@ import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.inventory.item.DyeColor;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
@@ -60,6 +58,9 @@ public class BannerItem extends BlockItem {
      */
     private static final List<Pair<BannerPattern, DyeColor>> OMINOUS_BANNER_PATTERN;
     private static final List<NbtMap> OMINOUS_BANNER_PATTERN_BLOCK;
+
+    // TODO fix - we somehow need to be able to get the sessions banner pattern registry, which we don't have where we need this :/
+    private static final int[] ominousBannerPattern = new int[] { 21, 29, 30, 1, 34, 15, 3, 1 };
 
     static {
         // Construct what an ominous banner is supposed to look like
@@ -209,16 +210,15 @@ public class BannerItem extends BlockItem {
         if (bedrockTag.getInt("Type") == 1) {
             // Ominous banner pattern
             List<BannerPatternLayer> patternLayers = new ArrayList<>();
-            for (Pair<BannerPattern, DyeColor> pair : OMINOUS_BANNER_PATTERN) {
-                patternLayers.add(new BannerPatternLayer(Holder.ofId(pair.left().ordinal()), pair.right().ordinal()));
-                System.out.println("adding: " + pair.left().getJavaIdentifier() + " " + pair.right().name());
+            for (int i = 0; i < ominousBannerPattern.length; i++) {
+                patternLayers.add(new BannerPatternLayer(Holder.ofId(ominousBannerPattern[i]), OMINOUS_BANNER_PATTERN.get(i).right().ordinal()));
             }
 
             components.put(DataComponentType.BANNER_PATTERNS, patternLayers);
             components.put(DataComponentType.HIDE_ADDITIONAL_TOOLTIP, Unit.INSTANCE);
-            components.put(DataComponentType.ITEM_NAME, Component.text(
-                        MinecraftLocale.getLocaleString("block.minecraft.ominous_banner", GeyserLocale.getDefaultLocale())
-                    ).style(Style.style(TextColor.color(16755200)))
+            components.put(DataComponentType.ITEM_NAME, Component
+                    .translatable("block.minecraft.ominous_banner") // thank god this works
+                    .style(Style.style(TextColor.color(16755200)))
             );
         }
         // Bedrock's creative inventory does not support other patterns as of 1.20.5

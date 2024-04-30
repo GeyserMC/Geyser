@@ -113,12 +113,17 @@ public final class RegistryCache {
         REGISTRIES.put("minecraft:banner_pattern", ((registryCache, entries) -> {
             // Clear each local cache every time a new registry entry is given to us
             // (e.g. proxy server switches)
-            registryCache.bannerPatterns = new Int2ObjectBiMap<>();
+            registryCache.bannerPatterns = new Int2ObjectBiMap<>(); // Cannot clear it, must re-create :(
             for (int i = 0; i < entries.size(); i++) {
                 RegistryEntry entry = entries.get(i);
                 // This is what Geyser wants to keep as a value for this registry.
                 T cacheEntry = reader.apply(registryCache.session, entry);
-                registryCache.bannerPatterns.put(i, (BannerPattern) cacheEntry);
+                if (cacheEntry != null) {
+                    registryCache.bannerPatterns.put(i, (BannerPattern) cacheEntry);
+                } else {
+                    // TODO - seems to be possible with viaversion :/
+                    GeyserImpl.getInstance().getLogger().warning("Was not able to translate entry: ");
+                }
             }
         }));
     }
