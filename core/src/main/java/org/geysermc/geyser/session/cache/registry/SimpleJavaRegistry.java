@@ -48,6 +48,7 @@ public class SimpleJavaRegistry<T> implements JavaRegistry<T> {
 
     @Override
     public void reset(List<T> values) {
+        this.values.clear();
         this.values.addAll(values);
         this.values.trim();
     }
