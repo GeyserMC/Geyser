@@ -46,7 +46,7 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
 
     @Override
     public void onInitialize() {
-        if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
+        if (isServer()) {
             // Set as an event, so we can get the proper IP and port if needed
             ServerLifecycleEvents.SERVER_STARTED.register((server) -> {
                 this.setServer(server);
@@ -60,7 +60,7 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
 
         // These are only registered once
         ServerLifecycleEvents.SERVER_STOPPING.register((server) -> {
-            if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
+            if (isServer()) {
                 onGeyserShutdown();
             } else {
                 onGeyserDisable();
@@ -70,6 +70,11 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
         ServerPlayConnectionEvents.JOIN.register((handler, $, $$) -> GeyserModUpdateListener.onPlayReady(handler.getPlayer()));
 
         this.onGeyserInitialize();
+    }
+
+    @Override
+    public boolean isServer() {
+        return FabricLoader.getInstance().getEnvironmentType().equals(EnvType.SERVER);
     }
 
     @Override

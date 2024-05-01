@@ -27,7 +27,6 @@ package org.geysermc.geyser.platform.neoforge;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.common.NeoForge;
@@ -47,7 +46,7 @@ public class GeyserNeoForgeBootstrap extends GeyserModBootstrap {
     public GeyserNeoForgeBootstrap() {
         super(new GeyserNeoForgePlatform());
 
-        if (FMLLoader.getDist() == Dist.DEDICATED_SERVER) {
+        if (isServer()) {
             // Set as an event so we can get the proper IP and port if needed
             NeoForge.EVENT_BUS.addListener(this::onServerStarted);
         } else {
@@ -67,7 +66,7 @@ public class GeyserNeoForgeBootstrap extends GeyserModBootstrap {
     }
 
     private void onServerStopping(ServerStoppingEvent event) {
-        if (FMLLoader.getDist() == Dist.DEDICATED_SERVER) {
+        if (isServer()) {
             this.onGeyserShutdown();
         } else {
             this.onGeyserDisable();
@@ -80,6 +79,11 @@ public class GeyserNeoForgeBootstrap extends GeyserModBootstrap {
 
     private void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
         GeyserModUpdateListener.onPlayReady(event.getEntity());
+    }
+
+    @Override
+    public boolean isServer() {
+        return FMLLoader.getDist().isDedicatedServer();
     }
 
     @Override
