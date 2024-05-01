@@ -28,14 +28,15 @@ package org.geysermc.geyser.platform.fabric;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.world.entity.player.Player;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.platform.mod.GeyserModUpdateListener;
-import org.checkerframework.checker.nullness.qual.NonNull;
 
 public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInitializer {
 
@@ -51,10 +52,21 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
                 this.setServer(server);
                 onGeyserEnable();
             });
+        } else {
+            ClientLifecycleEvents.CLIENT_STOPPING.register(($)-> {
+                onGeyserShutdown();
+            });
         }
 
         // These are only registered once
-        ServerLifecycleEvents.SERVER_STOPPING.register((server) -> onGeyserShutdown());
+        ServerLifecycleEvents.SERVER_STOPPING.register((server) -> {
+            if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
+                onGeyserShutdown();
+            } else {
+                onGeyserDisable();
+            }
+        });
+
         ServerPlayConnectionEvents.JOIN.register((handler, $, $$) -> GeyserModUpdateListener.onPlayReady(handler.getPlayer()));
 
         this.onGeyserInitialize();
