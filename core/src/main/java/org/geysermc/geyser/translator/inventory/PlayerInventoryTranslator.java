@@ -261,6 +261,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         GeyserItemStack sourceItem = inventory.getItem(sourceSlot);
                         if (playerInv.getCursor().isEmpty()) {
                             playerInv.setCursor(sourceItem.copy(0), session);
+                        } else if (!InventoryUtils.canStack(sourceItem, playerInv.getCursor())) {
+                            return rejectRequest(request);
                         }
 
                         playerInv.getCursor().add(transferAmount);
@@ -272,6 +274,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         GeyserItemStack sourceItem = playerInv.getCursor();
                         if (inventory.getItem(destSlot).isEmpty()) {
                             inventory.setItem(destSlot, sourceItem.copy(0), session);
+                        } else if (!InventoryUtils.canStack(sourceItem, inventory.getItem(destSlot))) {
+                            return rejectRequest(request);
                         }
 
                         inventory.getItem(destSlot).add(transferAmount);
@@ -284,6 +288,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         GeyserItemStack sourceItem = inventory.getItem(sourceSlot);
                         if (inventory.getItem(destSlot).isEmpty()) {
                             inventory.setItem(destSlot, sourceItem.copy(0), session);
+                        } else if (!InventoryUtils.canStack(sourceItem, inventory.getItem(destSlot))) {
+                            return rejectRequest(request);
                         }
 
                         inventory.getItem(destSlot).add(transferAmount);

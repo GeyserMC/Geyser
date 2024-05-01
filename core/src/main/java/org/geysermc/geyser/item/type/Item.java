@@ -151,6 +151,10 @@ public class Item {
         if (repairCost != null) {
             builder.putInt("RepairCost", repairCost);
         }
+
+        // Prevents the client from trying to stack items with untranslated components
+        // Relies on correct hash code implementation, and some luck
+        builder.putInt("GeyserHash", components.hashCode()); // TODO: don't rely on this
     }
 
     /**

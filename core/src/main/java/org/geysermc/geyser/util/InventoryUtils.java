@@ -178,9 +178,24 @@ public class InventoryUtils {
     }
 
     public static boolean canStack(GeyserItemStack item1, GeyserItemStack item2) {
+        if (GeyserImpl.getInstance().getConfig().isDebugMode())
+            canStackDebug(item1, item2);
         if (item1.isEmpty() || item2.isEmpty())
             return false;
         return item1.getJavaId() == item2.getJavaId() && Objects.equals(item1.getComponents(), item2.getComponents());
+    }
+
+    private static void canStackDebug(GeyserItemStack item1, GeyserItemStack item2) {
+        DataComponents components1 = item1.getComponents();
+        DataComponents components2 = item2.getComponents();
+        if (components1 != null && components2 != null) {
+            if (components1.hashCode() == components2.hashCode() && !components1.equals(components2)) {
+                GeyserImpl.getInstance().getLogger().error("DEBUG: DataComponents hash collision");
+                GeyserImpl.getInstance().getLogger().error("hash: " + components1.hashCode());
+                GeyserImpl.getInstance().getLogger().error("components1: " + components1);
+                GeyserImpl.getInstance().getLogger().error("components2: " + components2);
+            }
+        }
     }
 
     /**
