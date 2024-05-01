@@ -33,13 +33,14 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.protocol.common.util.Int2ObjectBiMap;
 import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.inventory.item.DyeColor;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistry;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
+import org.geysermc.mcprotocollib.protocol.data.game.Identifier;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
@@ -57,7 +58,6 @@ public class BannerItem extends BlockItem {
      * the correct ominous banner pattern if Bedrock pulls the item from creative.
      */
     private static final List<Pair<BannerPattern, DyeColor>> OMINOUS_BANNER_PATTERN;
-    private static final List<NbtMap> OMINOUS_BANNER_PATTERN_BLOCK;
 
     // TODO fix - we somehow need to be able to get the sessions banner pattern registry, which we don't have where we need this :/
     private static final int[] ominousBannerPattern = new int[] { 21, 29, 30, 1, 34, 15, 3, 1 };
@@ -74,11 +74,6 @@ public class BannerItem extends BlockItem {
                 Pair.of(BannerPattern.CIRCLE, DyeColor.LIGHT_GRAY),
                 Pair.of(BannerPattern.BORDER, DyeColor.BLACK)
         );
-
-        OMINOUS_BANNER_PATTERN_BLOCK = new ArrayList<>();
-        for (Pair<BannerPattern, DyeColor> pair : OMINOUS_BANNER_PATTERN) {
-            OMINOUS_BANNER_PATTERN_BLOCK.add(getJavaBannerPatternTag(pair.left(), pair.right()));
-        }
     }
 
     public static boolean isOminous(GeyserSession session, List<BannerPatternLayer> patternLayers) {
@@ -92,7 +87,7 @@ public class BannerItem extends BlockItem {
                     !patternLayer.getPattern().isId()) {
                 return false;
             }
-            BannerPattern bannerPattern = session.getRegistryCache().bannerPatterns().get(patternLayer.getPattern().id());
+            BannerPattern bannerPattern = session.getRegistryCache().bannerPatterns().byId(patternLayer.getPattern().id());
             if (bannerPattern != pair.left()) {
                 return false;
             }
@@ -101,7 +96,25 @@ public class BannerItem extends BlockItem {
     }
 
     public static boolean isOminous(List<NbtMap> blockEntityPatterns) {
-        return OMINOUS_BANNER_PATTERN_BLOCK.equals(blockEntityPatterns);
+        // Cannot do a simple NBT equals check here because the IDs may not be full resource locations
+        // ViaVersion's fault, 1.20.4 -> 1.20.5, but it works on Java so we need to support it.
+        if (OMINOUS_BANNER_PATTERN.size() != blockEntityPatterns.size()) {
+            return false;
+        }
+        for (int i = 0; i < OMINOUS_BANNER_PATTERN.size(); i++) {
+            NbtMap patternLayer = blockEntityPatterns.get(i);
+            Pair<BannerPattern, DyeColor> pair = OMINOUS_BANNER_PATTERN.get(i);
+            DyeColor color = DyeColor.getByJavaIdentifier(patternLayer.getString("color"));
+            if (color != pair.right()) {
+                return false;
+            }
+            String id = Identifier.formalize(patternLayer.getString("pattern")); // Ouch
+            BannerPattern bannerPattern = BannerPattern.getByJavaIdentifier(id);
+            if (bannerPattern != pair.left()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -133,7 +146,7 @@ public class BannerItem extends BlockItem {
             List<NbtMap> patternList = new ArrayList<>(patterns.size());
             for (BannerPatternLayer patternLayer : patterns) {
                 patternLayer.getPattern().ifId(holder -> {
-                    BannerPattern bannerPattern = session.getRegistryCache().bannerPatterns().get(holder.id());
+                    BannerPattern bannerPattern = session.getRegistryCache().bannerPatterns().byId(holder.id());
                     if (bannerPattern != null) {
                         NbtMap tag = NbtMap.builder()
                                 .putString("Pattern", bannerPattern.getBedrockIdentifier())
@@ -154,7 +167,8 @@ public class BannerItem extends BlockItem {
      * @return The Bedrock edition format pattern nbt
      */
     private static NbtMap getBedrockBannerPattern(NbtMap pattern) {
-        BannerPattern bannerPattern = BannerPattern.getByJavaIdentifier(pattern.getString("pattern"));
+        // ViaVersion 1.20.4 -> 1.20.5 can send without the namespace
+        BannerPattern bannerPattern = BannerPattern.getByJavaIdentifier(Identifier.formalize(pattern.getString("pattern")));
         DyeColor dyeColor = DyeColor.getByJavaIdentifier(pattern.getString("color"));
         if (bannerPattern == null || dyeColor == null) {
             return null;
@@ -166,13 +180,6 @@ public class BannerItem extends BlockItem {
                 .build();
     }
 
-    public static NbtMap getJavaBannerPatternTag(BannerPattern bannerPattern, DyeColor dyeColor) {
-        return NbtMap.builder()
-                .putString("pattern", bannerPattern.getJavaIdentifier())
-                .putString("color", dyeColor.getJavaIdentifier())
-                .build();
-    }
-
     /**
      * Convert the Bedrock edition banner pattern nbt to Java edition
      *
@@ -180,11 +187,14 @@ public class BannerItem extends BlockItem {
      * @return The Java edition format pattern layer
      */
     public static BannerPatternLayer getJavaBannerPattern(GeyserSession session, NbtMap pattern) {
-        Int2ObjectBiMap<BannerPattern> registry = session.getRegistryCache().bannerPatterns();
+        JavaRegistry<BannerPattern> registry = session.getRegistryCache().bannerPatterns();
         BannerPattern bannerPattern = BannerPattern.getByBedrockIdentifier(pattern.getString("Pattern"));
         DyeColor dyeColor = DyeColor.getById(15 - pattern.getInt("Color"));
-        if (bannerPattern != null && dyeColor != null && registry.containsValue(bannerPattern)) {
-            return new BannerPatternLayer(Holder.ofId(registry.get(bannerPattern)), dyeColor.ordinal());
+        if (bannerPattern != null && dyeColor != null) {
+            int id = registry.byValue(bannerPattern);
+            if (id != -1) {
+                return new BannerPatternLayer(Holder.ofId(id), dyeColor.ordinal());
+            }
         }
         return null;
     }

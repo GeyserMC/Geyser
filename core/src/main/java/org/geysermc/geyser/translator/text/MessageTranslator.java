@@ -330,7 +330,7 @@ public class MessageTranslator {
 
         textPacket.setNeedsTranslation(false);
 
-        TextDecoration decoration = session.getRegistryCache().chatTypes().get(chatType);
+        TextDecoration decoration = session.getRegistryCache().chatTypes().byId(chatType);
         if (decoration != null) {
             // As of 1.19 - do this to apply all the styling for signed messages
             // Though, Bedrock cannot care about the signed stuff.

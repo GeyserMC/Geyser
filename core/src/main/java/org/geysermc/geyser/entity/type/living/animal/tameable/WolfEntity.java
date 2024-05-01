@@ -113,7 +113,7 @@ public class WolfEntity extends TameableEntity {
 
     // 1.20.5+
     public void setWolfVariant(IntEntityMetadata entityMetadata) {
-        WolfVariant wolfVariant = session.getRegistryCache().wolfVariants().get(entityMetadata.getPrimitiveValue());
+        WolfVariant wolfVariant = session.getRegistryCache().wolfVariants().byId(entityMetadata.getPrimitiveValue());
         if (wolfVariant == null) {
             wolfVariant = WolfVariant.PALE;
         }

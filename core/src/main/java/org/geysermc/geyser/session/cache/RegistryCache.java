@@ -27,25 +27,25 @@ package org.geysermc.geyser.session.cache;
 
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
-import org.cloudburstmc.protocol.common.util.Int2ObjectBiMap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
 import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.inventory.recipe.TrimRecipe;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistry;
+import org.geysermc.geyser.session.cache.registry.SimpleJavaRegistry;
 import org.geysermc.geyser.text.TextDecoration;
 import org.geysermc.geyser.translator.level.BiomeTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
 import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundRegistryDataPacket;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +71,7 @@ public final class RegistryCache {
         register("trim_material", cache -> cache.trimMaterials, TrimRecipe::readTrimMaterial);
         register("trim_pattern", cache -> cache.trimPatterns, TrimRecipe::readTrimPattern);
         register("worldgen/biome", (cache, array) -> cache.biomeTranslations = array, BiomeTranslator::loadServerBiome);
-        registerBannerRegistry(($, entry) -> BannerPattern.getByJavaIdentifier(entry.getId()));
+        register("banner_pattern", cache -> cache.bannerPatterns, ($, entry) -> BannerPattern.getByJavaIdentifier(entry.getId()));
         register("wolf_variant", cache -> cache.wolfVariants, ($, entry) -> WolfEntity.WolfVariant.getByJavaIdentifier(entry.getId()));
     }
 
@@ -82,16 +82,16 @@ public final class RegistryCache {
      * Java -> Bedrock biome network IDs.
      */
     private int[] biomeTranslations;
-    private final Int2ObjectMap<TextDecoration> chatTypes = new Int2ObjectOpenHashMap<>(7);
+    private final JavaRegistry<TextDecoration> chatTypes = new SimpleJavaRegistry<>();
     /**
      * All dimensions that the client could possibly connect to.
      */
-    private final Int2ObjectMap<JavaDimension> dimensions = new Int2ObjectOpenHashMap<>(4);
-    private final Int2ObjectMap<TrimMaterial> trimMaterials = new Int2ObjectOpenHashMap<>();
-    private final Int2ObjectMap<TrimPattern> trimPatterns = new Int2ObjectOpenHashMap<>();
+    private final JavaRegistry<JavaDimension> dimensions = new SimpleJavaRegistry<>();
+    private final JavaRegistry<TrimMaterial> trimMaterials = new SimpleJavaRegistry<>();
+    private final JavaRegistry<TrimPattern> trimPatterns = new SimpleJavaRegistry<>();
 
-    private Int2ObjectBiMap<BannerPattern> bannerPatterns = new Int2ObjectBiMap<>();
-    private final Int2ObjectMap<WolfEntity.WolfVariant> wolfVariants = new Int2ObjectOpenHashMap<>();
+    private final JavaRegistry<BannerPattern> bannerPatterns = new SimpleJavaRegistry<>();
+    private final JavaRegistry<WolfEntity.WolfVariant> wolfVariants = new SimpleJavaRegistry<>();
 
     public RegistryCache(GeyserSession session) {
         this.session = session;
@@ -109,47 +109,25 @@ public final class RegistryCache {
         }
     }
 
-    private static <T> void registerBannerRegistry(BiFunction<GeyserSession, RegistryEntry, T> reader) {
-        REGISTRIES.put("minecraft:banner_pattern", ((registryCache, entries) -> {
-            // Clear each local cache every time a new registry entry is given to us
-            // (e.g. proxy server switches)
-            registryCache.bannerPatterns = new Int2ObjectBiMap<>(); // Cannot clear it, must re-create :(
-            for (int i = 0; i < entries.size(); i++) {
-                RegistryEntry entry = entries.get(i);
-                // This is what Geyser wants to keep as a value for this registry.
-                T cacheEntry = reader.apply(registryCache.session, entry);
-                if (cacheEntry != null) {
-                    registryCache.bannerPatterns.put(i, (BannerPattern) cacheEntry);
-                } else {
-                    // TODO - seems to be possible with viaversion :/
-                    GeyserImpl.getInstance().getLogger().warning("Was not able to translate entry: ");
-                }
-            }
-        }));
-    }
-
     /**
      * @param registry the Java registry resource location, without the "minecraft:" prefix.
      * @param localCacheFunction which local field in RegistryCache are we caching entries for this registry?
      * @param reader converts the RegistryEntry NBT into a class file
      * @param <T> the class that represents these entries.
      */
-    private static <T> void register(String registry, Function<RegistryCache, Int2ObjectMap<T>> localCacheFunction, BiFunction<GeyserSession, RegistryEntry, T> reader) {
+    private static <T> void register(String registry, Function<RegistryCache, JavaRegistry<T>> localCacheFunction, BiFunction<GeyserSession, RegistryEntry, T> reader) {
         REGISTRIES.put("minecraft:" + registry, (registryCache, entries) -> {
-            Int2ObjectMap<T> localCache = localCacheFunction.apply(registryCache);
+            JavaRegistry<T> localCache = localCacheFunction.apply(registryCache);
             // Clear each local cache every time a new registry entry is given to us
             // (e.g. proxy server switches)
-            localCache.clear();
+            List<T> builder = new ArrayList<>(entries.size());
             for (int i = 0; i < entries.size(); i++) {
                 RegistryEntry entry = entries.get(i);
                 // This is what Geyser wants to keep as a value for this registry.
                 T cacheEntry = reader.apply(registryCache.session, entry);
-                localCache.put(i, cacheEntry);
+                builder.add(i, cacheEntry);
             }
-            // Trim registry down to needed size
-            if (localCache instanceof Int2ObjectOpenHashMap<T> hashMap) {
-                hashMap.trim();
-            }
+            localCache.reset(builder);
         });
     }
 

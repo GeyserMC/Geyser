@@ -56,8 +56,8 @@ public class ArmorItem extends Item {
                 return;
             }
 
-            TrimMaterial material = session.getRegistryCache().trimMaterials().get(trim.material().id());
-            TrimPattern pattern = session.getRegistryCache().trimPatterns().get(trim.pattern().id());
+            TrimMaterial material = session.getRegistryCache().trimMaterials().byId(trim.material().id());
+            TrimPattern pattern = session.getRegistryCache().trimPatterns().byId(trim.pattern().id());
 
             NbtMapBuilder trimBuilder = NbtMap.builder();
             // bedrock has an uppercase first letter key, and the value is not namespaced
