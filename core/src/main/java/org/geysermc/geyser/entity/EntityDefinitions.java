@@ -202,7 +202,6 @@ public final class EntityDefinitions {
                     .type(EntityType.AREA_EFFECT_CLOUD)
                     .height(0.5f).width(1.0f)
                     .addTranslator(MetadataType.FLOAT, AreaEffectCloudEntity::setRadius)
-                    .addTranslator(MetadataType.INT, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityDataTypes.EFFECT_COLOR, entityMetadata.getValue()))
                     .addTranslator(null) // Waiting
                     .addTranslator(MetadataType.PARTICLE, AreaEffectCloudEntity::setParticle)
                     .build();

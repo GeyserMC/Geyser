@@ -50,7 +50,7 @@ public class PotionItem extends Item {
         if (potionContents != null) {
             ItemDefinition customItemDefinition = CustomItemTranslator.getCustomItem(components, mapping);
             if (customItemDefinition == null) {
-                Potion potion = Potion.VALUES[potionContents.getPotionId()];
+                Potion potion = Potion.getByJavaId(potionContents.getPotionId());
                 if (potion != null) {
                     return ItemData.builder()
                             .definition(mapping.getBedrockDefinition())
