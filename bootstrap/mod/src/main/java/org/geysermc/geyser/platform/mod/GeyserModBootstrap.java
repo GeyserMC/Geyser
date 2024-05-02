@@ -261,11 +261,6 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     public abstract boolean isServer();
 
     @Override
-    public @Nullable SocketAddress getSocketAddress() {
-        return this.geyserInjector.getServerSocketAddress();
-    }
-
-    @Override
     public boolean testFloodgatePluginPresent() {
         return this.platform.testFloodgatePluginPresent(this);
     }
