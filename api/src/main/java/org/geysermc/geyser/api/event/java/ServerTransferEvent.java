@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.event.java;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.value.qual.IntRange;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
@@ -44,7 +45,8 @@ public class ServerTransferEvent extends ConnectionEvent {
     private int bedrockPort;
     private final Map<String, byte[]> cookies;
 
-    public ServerTransferEvent(@NonNull GeyserConnection connection, String host, int port, Map<String, byte[]> cookies) {
+    public ServerTransferEvent(@NonNull GeyserConnection connection,
+                               @NonNull String host, int port, @NonNull Map<String, byte[]> cookies) {
         super(connection);
         this.host = host;
         this.port = port;
@@ -58,7 +60,7 @@ public class ServerTransferEvent extends ConnectionEvent {
      *
      * @return the host
      */
-    public String host() {
+    public @NonNull String host() {
         return this.host;
     }
 
@@ -77,7 +79,7 @@ public class ServerTransferEvent extends ConnectionEvent {
      *
      * @return the host where the Bedrock client will be transferred to, or null if not set.
      */
-    public String bedrockHost() {
+    public @Nullable String bedrockHost() {
         return this.bedrockHost;
     }
 
