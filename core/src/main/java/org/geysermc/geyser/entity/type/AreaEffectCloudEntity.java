@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.EntityEffectParticleData;
@@ -52,7 +53,7 @@ public class AreaEffectCloudEntity extends Entity {
         dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_DURATION, Integer.MAX_VALUE);
 
         // This disabled client side shrink of the cloud
-        dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_RADIUS, 0.5f);
+        dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_RADIUS, 3.0f);
         dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_CHANGE_RATE, Float.MIN_VALUE);
         dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_CHANGE_ON_PICKUP, Float.MIN_VALUE);
 
@@ -61,7 +62,7 @@ public class AreaEffectCloudEntity extends Entity {
 
     public void setRadius(FloatEntityMetadata entityMetadata) {
         // Anything less than 0.5 will cause the cloud to despawn
-        float value = Math.max(entityMetadata.getPrimitiveValue(), 0.5f);
+        float value = MathUtils.clamp(entityMetadata.getPrimitiveValue(), 0.5f, 32.0f);
         dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_RADIUS, value);
         dirtyMetadata.put(EntityDataTypes.WIDTH, 2.0f * value);
     }
