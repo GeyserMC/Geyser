@@ -62,6 +62,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemAttribut
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,8 +72,20 @@ public final class ItemTranslator {
     /**
      * The order of these slots is their display order on Java Edition clients
      */
-    private static final ItemAttributeModifiers.EquipmentSlotGroup[] ALL_SLOTS = ItemAttributeModifiers.EquipmentSlotGroup.values();
+    private static final EnumMap<ItemAttributeModifiers.EquipmentSlotGroup, String> SLOT_NAMES;
     private static final DecimalFormat ATTRIBUTE_FORMAT = new DecimalFormat("0.#####");
+
+    static {
+        // These are the only slots that are used and have translation strings
+        SLOT_NAMES = new EnumMap<>(ItemAttributeModifiers.EquipmentSlotGroup.class);
+        SLOT_NAMES.put(ItemAttributeModifiers.EquipmentSlotGroup.MAIN_HAND, "mainhand");
+        SLOT_NAMES.put(ItemAttributeModifiers.EquipmentSlotGroup.OFF_HAND, "offhand");
+        SLOT_NAMES.put(ItemAttributeModifiers.EquipmentSlotGroup.FEET, "feet");
+        SLOT_NAMES.put(ItemAttributeModifiers.EquipmentSlotGroup.LEGS, "legs");
+        SLOT_NAMES.put(ItemAttributeModifiers.EquipmentSlotGroup.CHEST, "chest");
+        SLOT_NAMES.put(ItemAttributeModifiers.EquipmentSlotGroup.HEAD, "head");
+        SLOT_NAMES.put(ItemAttributeModifiers.EquipmentSlotGroup.BODY, "body");
+    }
 
     private ItemTranslator() {
     }
@@ -208,7 +221,7 @@ public final class ItemTranslator {
             ItemAttributeModifiers.EquipmentSlotGroup slotGroup = entry.getSlot();
             if (slotGroup == ItemAttributeModifiers.EquipmentSlotGroup.ANY) {
                 // modifier applies to all slots implicitly
-                for (var slot : ALL_SLOTS) {
+                for (var slot : SLOT_NAMES.keySet()) {
                     slotsToModifiers.computeIfAbsent(slot, s -> new ArrayList<>()).add(loreEntry);
                 }
             } else {
@@ -218,7 +231,7 @@ public final class ItemTranslator {
         }
 
         // iterate through the small array, not the map, so that ordering matches Java Edition
-        for (var slot : ALL_SLOTS) {
+        for (var slot : SLOT_NAMES.keySet()) {
             List<String> modifierStrings = slotsToModifiers.get(slot);
             if (modifierStrings == null || modifierStrings.isEmpty()) {
                 continue;
@@ -228,7 +241,7 @@ public final class ItemTranslator {
             Component slotComponent = Component.text()
                     .resetStyle()
                     .color(NamedTextColor.GRAY)
-                    .append(Component.newline(), Component.translatable("item.modifiers." + slot))
+                    .append(Component.newline(), Component.translatable("item.modifiers." + SLOT_NAMES.get(slot)))
                     .build();
             builder.getOrCreateLore().add(MessageTranslator.convertMessage(slotComponent, language));
 
