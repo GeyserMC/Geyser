@@ -31,6 +31,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
 import java.util.UUID;
 
@@ -41,7 +42,9 @@ public class BasePiglinEntity extends MonsterEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
         // Both TARGET_EID and BLOCK are needed for melee attack animation
         dirtyMetadata.put(EntityDataTypes.TARGET_EID, session.getPlayerEntity().getGeyserId());
-        dirtyMetadata.put(EntityDataTypes.BLOCK, session.getBlockMappings().getDefinition(1));
+        if (definition.entityType() == EntityType.PIGLIN_BRUTE) {
+            dirtyMetadata.put(EntityDataTypes.BLOCK, session.getBlockMappings().getDefinition(1));
+        }
     }
 
     public void setImmuneToZombification(BooleanEntityMetadata entityMetadata) {
