@@ -40,7 +40,6 @@ import java.util.Map;
 @Getter
 @Accessors(fluent = true)
 public class StoredItemMappings {
-    private final ItemMapping bamboo;
     private final ItemMapping banner;
     private final ItemMapping barrier;
     private final ItemMapping compass;
@@ -56,7 +55,6 @@ public class StoredItemMappings {
     private final ItemMapping writtenBook;
 
     public StoredItemMappings(Map<Item, ItemMapping> itemMappings) {
-        this.bamboo = load(itemMappings, Items.BAMBOO);
         this.banner = load(itemMappings, Items.WHITE_BANNER); // As of 1.17.10, all banners have the same Bedrock ID
         this.barrier = load(itemMappings, Items.BARRIER);
         this.compass = load(itemMappings, Items.COMPASS);
