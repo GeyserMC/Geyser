@@ -45,6 +45,7 @@ public class BasePiglinEntity extends MonsterEntity {
         if (definition.entityType() == EntityType.PIGLIN_BRUTE) {
             dirtyMetadata.put(EntityDataTypes.BLOCK, session.getBlockMappings().getDefinition(1));
         }
+        setFlag(EntityFlag.SHAKING, isShaking());
     }
 
     @Override
