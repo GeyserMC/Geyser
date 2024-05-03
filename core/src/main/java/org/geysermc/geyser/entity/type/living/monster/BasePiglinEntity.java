@@ -26,6 +26,7 @@
 package org.geysermc.geyser.entity.type.living.monster;
 
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
@@ -38,6 +39,9 @@ public class BasePiglinEntity extends MonsterEntity {
 
     public BasePiglinEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+        // Both TARGET_EID and BLOCK are needed for melee attack animation
+        dirtyMetadata.put(EntityDataTypes.TARGET_EID, session.getPlayerEntity().getGeyserId());
+        dirtyMetadata.put(EntityDataTypes.BLOCK, session.getBlockMappings().getDefinition(1));
     }
 
     public void setImmuneToZombification(BooleanEntityMetadata entityMetadata) {
@@ -49,5 +53,10 @@ public class BasePiglinEntity extends MonsterEntity {
     @Override
     protected boolean isShaking() {
         return (!isImmuneToZombification && !session.getDimensionType().piglinSafe()) || super.isShaking();
+    }
+
+    @Override
+    public boolean useArmSwingAttack() {
+        return true;
     }
 }
