@@ -116,8 +116,8 @@ jobs:
 
       - name: Get Release Metadata
         if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
-        # See https://github.com/Kas-tle/base-release-action/releases/tag/main-11
-        uses: Kas-tle/base-release-action@b863fa0f89bd15267a96a72efb84aec25f168d4c # main-11
+        # See https://github.com/Kas-tle/base-release-action/releases/tag/main-13
+        uses: Kas-tle/base-release-action@6136c130f60f494d7eea76e9041e54bd90501aca # main-13
         with:
           appID: ${{ secrets.RELEASE_APP_ID }}
           appPrivateKey: ${{ secrets.RELEASE_APP_PK }}

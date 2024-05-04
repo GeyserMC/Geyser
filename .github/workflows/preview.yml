@@ -48,8 +48,8 @@ jobs:
           merge-multiple: true
       - name: Get Preview Metadata
         if: success()
-        # See https://github.com/Kas-tle/base-release-action/releases/tag/main-11
-        uses: Kas-tle/base-release-action@664c39985eb9d0d393ce98e7eb8414d3d98e762a # main-11
+        # See https://github.com/Kas-tle/base-release-action/releases/tag/main-13
+        uses: Kas-tle/base-release-action@6136c130f60f494d7eea76e9041e54bd90501aca # main-13
         with:
           appID: ${{ secrets.RELEASE_APP_ID }}
           appPrivateKey: ${{ secrets.RELEASE_APP_PK }}
