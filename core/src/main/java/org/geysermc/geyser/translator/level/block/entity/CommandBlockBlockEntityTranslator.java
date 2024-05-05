@@ -25,34 +25,31 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
-import com.github.steveice10.opennbt.tag.builtin.*;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
 @BlockEntity(type = BlockEntityType.COMMAND_BLOCK)
 public class CommandBlockBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
     @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
-        if (tag == null || tag.size() < 5) {
+    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, int blockState) {
+        if (javaNbt == null || javaNbt.size() < 5) {
             return; // These values aren't here
         }
         // Java infers from the block state, but Bedrock needs it in the tag
-        builder.put("conditionalMode", BlockStateValues.getCommandBlockValues().getOrDefault(blockState, (byte) 0));
+        bedrockNbt.putByte("conditionalMode", BlockStateValues.getCommandBlockValues().getOrDefault(blockState, (byte) 0));
         // Java and Bedrock values
-        builder.put("conditionMet", ((ByteTag) tag.get("conditionMet")).getValue());
-        builder.put("auto", ((ByteTag) tag.get("auto")).getValue());
-        builder.put("CustomName", MessageTranslator.convertJsonMessage(((StringTag) tag.get("CustomName")).getValue()));
-        builder.put("powered", ((ByteTag) tag.get("powered")).getValue());
-        builder.put("Command", ((StringTag) tag.get("Command")).getValue());
-        builder.put("SuccessCount", ((IntTag) tag.get("SuccessCount")).getValue());
-        builder.put("TrackOutput", ((ByteTag) tag.get("TrackOutput")).getValue());
-        builder.put("UpdateLastExecution", ((ByteTag) tag.get("UpdateLastExecution")).getValue());
-        if (tag.get("LastExecution") != null) {
-            builder.put("LastExecution", ((LongTag) tag.get("LastExecution")).getValue());
-        } else {
-            builder.put("LastExecution", (long) 0);
-        }
+        bedrockNbt.putByte("conditionMet", javaNbt.getByte("conditionMet"));
+        bedrockNbt.putByte("auto", javaNbt.getByte("auto"));
+        bedrockNbt.putString("CustomName", MessageTranslator.convertJsonMessage(javaNbt.getString("CustomName"), session.locale()));
+        bedrockNbt.putByte("powered", javaNbt.getByte("powered"));
+        bedrockNbt.putString("Command", javaNbt.getString("Command"));
+        bedrockNbt.putInt("SuccessCount", javaNbt.getInt("SuccessCount"));
+        bedrockNbt.putByte("TrackOutput", javaNbt.getByte("TrackOutput"));
+        bedrockNbt.putByte("UpdateLastExecution", javaNbt.getByte("UpdateLastExecution"));
+        bedrockNbt.putLong("LastExecution", javaNbt.getLong("LastExecution")); // Note: may not be present? Was a null check before 1.20.5
     }
 }

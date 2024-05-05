@@ -25,35 +25,29 @@
 
 package org.geysermc.geyser.util;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.inventory.item.Enchantment;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.FishingRodItem;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
 
 public class ItemUtils {
 
-    public static int getEnchantmentLevel(@Nullable CompoundTag itemNBTData, String enchantmentId) {
-        if (itemNBTData == null) {
+    public static int getEnchantmentLevel(@Nullable DataComponents components, Enchantment.JavaEnchantment enchantment) {
+        if (components == null) {
             return 0;
         }
-        ListTag enchantments = itemNBTData.get("Enchantments");
-        if (enchantments != null) {
-            for (Tag tag : enchantments) {
-                CompoundTag enchantment = (CompoundTag) tag;
-                StringTag enchantId = enchantment.get("id");
-                if (enchantId.getValue().equals(enchantmentId)) {
-                    Tag lvl = enchantment.get("lvl");
-                    if (lvl != null && lvl.getValue() instanceof Number number) {
-                        return number.intValue();
-                    }
-                }
-            }
+
+        ItemEnchantments enchantmentData = components.get(DataComponentType.ENCHANTMENTS);
+        if (enchantmentData == null) {
+            return 0;
         }
-        return 0;
+
+        return enchantmentData.getEnchantments().getOrDefault(enchantment.ordinal(), 0);
     }
 
     /**
@@ -70,17 +64,13 @@ public class ItemUtils {
     }
 
     /**
-     * @param itemTag the NBT tag of the item
+     * @param components the data components of the item
      * @return the custom name of the item
      */
-    public static @Nullable String getCustomName(CompoundTag itemTag) {
-        if (itemTag != null) {
-            if (itemTag.get("display") instanceof CompoundTag displayTag) {
-                if (displayTag.get("Name") instanceof StringTag nameTag) {
-                    return nameTag.getValue();
-                }
-            }
+    public static @Nullable Component getCustomName(DataComponents components) {
+        if (components == null) {
+            return null;
         }
-        return null;
+        return components.get(DataComponentType.CUSTOM_NAME);
     }
 }

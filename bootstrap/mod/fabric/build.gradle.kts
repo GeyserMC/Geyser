@@ -44,9 +44,7 @@ tasks.withType<Jar> {
 
 relocate("org.cloudburstmc.netty")
 relocate("org.cloudburstmc.protocol")
-relocate("com.github.steveice10.mc.protocol")
 relocate("com.github.steveice10.mc.auth")
-relocate("com.github.steveice10.packetlib")
 
 tasks {
     remapJar {

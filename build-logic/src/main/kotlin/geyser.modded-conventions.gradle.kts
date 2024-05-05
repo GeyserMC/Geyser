@@ -40,11 +40,17 @@ provided("org.incendo", ".*") // fabric-cloud/neoforge-cloud jij's all cloud dep
 provided("org.ow2.asm", "asm")
 
 architectury {
-    minecraft = "1.20.4"
+    minecraft = "1.20.5"
 }
 
 loom {
     silentMojangMappingsLicense()
+}
+
+indra {
+    javaVersions {
+        target(21)
+    }
 }
 
 configurations {
@@ -105,7 +111,7 @@ afterEvaluate {
 }
 
 dependencies {
-    minecraft("com.mojang:minecraft:1.20.4")
+    minecraft("com.mojang:minecraft:1.20.5")
     mappings(loom.officialMojangMappings())
 }
 
@@ -129,6 +135,6 @@ modrinth {
     syncBodyFrom.set(rootProject.file("README.md").readText())
 
     uploadFile.set(tasks.getByPath("remapModrinthJar"))
-    gameVersions.addAll("1.20.4")
+    gameVersions.addAll("1.20.5", "1.20.6")
     failSilently.set(true)
 }

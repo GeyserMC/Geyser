@@ -27,6 +27,7 @@ package org.geysermc.geyser.platform.mod.command;
 
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -64,7 +65,7 @@ public class ModCommandSource implements GeyserCommandSource {
     public void sendMessage(net.kyori.adventure.text.Component message) {
         if (source.getEntity() instanceof ServerPlayer player) {
             String decoded = GsonComponentSerializer.gson().serialize(message);
-            player.displayClientMessage(Objects.requireNonNull(Component.Serializer.fromJson(decoded)), false);
+            player.displayClientMessage(Objects.requireNonNull(Component.Serializer.fromJson(decoded, RegistryAccess.EMPTY)), false);
             return;
         }
         GeyserCommandSource.super.sendMessage(message);

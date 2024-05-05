@@ -25,13 +25,14 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntArrayTag;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Fireworks;
 
 public class FireworkStarItem extends Item {
     public FireworkStarItem(String javaIdentifier, Builder builder) {
@@ -39,22 +40,18 @@ public class FireworkStarItem extends Item {
     }
 
     @Override
-    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag) {
-        super.translateNbtToBedrock(session, tag);
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
+        super.translateComponentsToBedrock(session, components, builder);
 
-        Tag explosion = tag.remove("Explosion");
-        if (explosion instanceof CompoundTag) {
-            CompoundTag newExplosion = FireworkRocketItem.translateExplosionToBedrock((CompoundTag) explosion, "FireworksItem");
-            tag.put(newExplosion);
-            Tag color = ((CompoundTag) explosion).get("Colors");
-            if (color instanceof IntArrayTag) {
+        Fireworks.FireworkExplosion explosion = components.get(DataComponentType.FIREWORK_EXPLOSION);
+        if (explosion != null) {
+            NbtMap newExplosion = FireworkRocketItem.translateExplosionToBedrock(explosion);
+            builder.putCompound("FireworksItem", newExplosion);
+            int[] colors = explosion.getColors();
+            if (colors.length != 0) {
                 // Determine the custom color, if any.
                 // Mostly replicates Java's own rendering code, as Java determines the final firework star color client-side
                 // while Bedrock determines it server-side.
-                int[] colors = ((IntArrayTag) color).getValue();
-                if (colors.length == 0) {
-                    return;
-                }
                 int finalColor;
                 if (colors.length == 1) {
                     finalColor = colors[0];
@@ -75,21 +72,22 @@ public class FireworkStarItem extends Item {
                     finalColor = r << 16 | g << 8 | b;
                 }
 
-                tag.put(new IntTag("customColor", finalColor));
+                builder.putInt("customColor", finalColor);
             }
         }
     }
 
     @Override
-    public void translateNbtToJava(@NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
-        super.translateNbtToJava(tag, mapping);
+    public void translateNbtToJava(@NonNull NbtMap bedrockTag, @NonNull DataComponents components, @NonNull ItemMapping mapping) {
+        super.translateNbtToJava(bedrockTag, components, mapping);
 
-        Tag explosion = tag.remove("FireworksItem");
-        if (explosion instanceof CompoundTag) {
-            CompoundTag newExplosion = FireworkRocketItem.translateExplosionToJava((CompoundTag) explosion, "Explosion");
-            tag.put(newExplosion);
+        NbtMap explosion = bedrockTag.getCompound("FireworksItem");
+        if (!explosion.isEmpty()) {
+            Fireworks.FireworkExplosion newExplosion = FireworkRocketItem.translateExplosionToJava(explosion);
+            if (newExplosion == null) {
+                return;
+            }
+            components.put(DataComponentType.FIREWORK_EXPLOSION, newExplosion);
         }
-        // Remove custom color, if any, since this only exists on Bedrock
-        tag.remove("customColor");
     }
 }

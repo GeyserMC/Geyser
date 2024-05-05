@@ -36,6 +36,7 @@ import java.util.Locale;
  */
 @Getter
 public enum TippedArrowPotion {
+    WATER(-1, ArrowParticleColors.NONE), // Guessing this based off of the Potion enum. TODO merge?
     MUNDANE(2, ArrowParticleColors.NONE), // 3 is extended?
     THICK(4, ArrowParticleColors.NONE),
     AWKWARD(5, ArrowParticleColors.NONE),
@@ -94,13 +95,8 @@ public enum TippedArrowPotion {
         this.javaColor = arrowParticleColor.getColor();
     }
 
-    public static @Nullable TippedArrowPotion getByJavaIdentifier(String javaIdentifier) {
-        for (TippedArrowPotion potion : VALUES) {
-            if (potion.javaIdentifier.equals(javaIdentifier)) {
-                return potion;
-            }
-        }
-        return null;
+    public static TippedArrowPotion of(int id) {
+        return VALUES[id];
     }
 
     public static @Nullable TippedArrowPotion getByBedrockId(int bedrockId) {

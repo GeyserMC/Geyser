@@ -25,14 +25,14 @@
 
 package org.geysermc.geyser.text;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
+import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
 
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -41,28 +41,28 @@ public final class TextDecoration {
     private final Style style;
     private final Set<Parameter> parameters;
 
-    public TextDecoration(CompoundTag tag) {
-        translationKey = (String) tag.get("translation_key").getValue();
+    public TextDecoration(NbtMap tag) {
+        translationKey = tag.getString("translation_key");
 
-        CompoundTag styleTag = tag.get("style");
+        NbtMap styleTag = tag.getCompound("style");
         Style.Builder builder = Style.style();
-        if (styleTag != null) {
-            StringTag color = styleTag.get("color");
+        if (!styleTag.isEmpty()) {
+            String color = styleTag.getString("color", null);
             if (color != null) {
-                builder.color(NamedTextColor.NAMES.value(color.getValue()));
+                builder.color(NamedTextColor.NAMES.value(color));
             }
             //TODO implement the rest
-            Tag italic = styleTag.get("italic");
-            if (italic != null && ((Number) italic.getValue()).byteValue() == (byte) 1) {
+            boolean italic = styleTag.getBoolean("italic");
+            if (italic) {
                 builder.decorate(net.kyori.adventure.text.format.TextDecoration.ITALIC);
             }
         }
         style = builder.build();
 
         this.parameters = EnumSet.noneOf(Parameter.class);
-        ListTag parameters = tag.get("parameters");
-        for (Tag parameter : parameters) {
-            this.parameters.add(Parameter.valueOf(((String) parameter.getValue()).toUpperCase(Locale.ROOT)));
+        List<String> parameters = tag.getList("parameters", NbtType.STRING);
+        for (String parameter : parameters) {
+            this.parameters.add(Parameter.valueOf(parameter.toUpperCase(Locale.ROOT)));
         }
     }
 
@@ -85,6 +85,17 @@ public final class TextDecoration {
                 ", style=" + style +
                 ", parameters=" + parameters +
                 '}';
+    }
+
+    public static TextDecoration readChatType(RegistryEntry entry) {
+        // Note: The ID is NOT ALWAYS THE SAME! ViaVersion as of 1.19 adds two registry entries that do NOT match vanilla.
+        NbtMap tag = entry.getData();
+        NbtMap chat = tag.getCompound("chat", null);
+        TextDecoration textDecoration = null;
+        if (chat != null) {
+            textDecoration = new TextDecoration(chat);
+        }
+        return textDecoration;
     }
 
     public enum Parameter {

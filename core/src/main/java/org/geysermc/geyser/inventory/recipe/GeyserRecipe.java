@@ -26,7 +26,7 @@
 package org.geysermc.geyser.inventory.recipe;
 
 /**
- * A more compact version of {@link com.github.steveice10.mc.protocol.data.game.recipe.Recipe}.
+ * A more compact version of {@link org.geysermc.mcprotocollib.protocol.data.game.recipe.Recipe}.
  */
 public interface GeyserRecipe {
     /**

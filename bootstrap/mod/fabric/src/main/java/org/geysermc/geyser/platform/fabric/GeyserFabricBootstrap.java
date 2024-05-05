@@ -27,6 +27,7 @@ package org.geysermc.geyser.platform.fabric;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
@@ -51,16 +52,27 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
 
     @Override
     public void onInitialize() {
-        if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
+        if (isServer()) {
             // Set as an event, so we can get the proper IP and port if needed
             ServerLifecycleEvents.SERVER_STARTED.register((server) -> {
                 this.setServer(server);
                 onGeyserEnable();
             });
+        } else {
+            ClientLifecycleEvents.CLIENT_STOPPING.register(($)-> {
+                onGeyserShutdown();
+            });
         }
 
         // These are only registered once
-        ServerLifecycleEvents.SERVER_STOPPING.register((server) -> onGeyserShutdown());
+        ServerLifecycleEvents.SERVER_STOPPING.register((server) -> {
+            if (isServer()) {
+                onGeyserShutdown();
+            } else {
+                onGeyserDisable();
+            }
+        });
+
         ServerPlayConnectionEvents.JOIN.register((handler, $, $$) -> GeyserModUpdateListener.onPlayReady(handler.getPlayer()));
 
         this.onGeyserInitialize();
@@ -79,4 +91,8 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
         this.setCommandRegistry(new CommandRegistry(GeyserImpl.getInstance(), cloud));
     }
 
+    @Override
+    public boolean isServer() {
+        return FabricLoader.getInstance().getEnvironmentType().equals(EnvType.SERVER);
+    }
 }

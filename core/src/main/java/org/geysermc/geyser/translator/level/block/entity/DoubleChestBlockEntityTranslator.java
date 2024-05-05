@@ -25,14 +25,14 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.DoubleChestValue;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
 /**
  * Chests have more block entity properties in Bedrock, which is solved by implementing the BedrockOnlyBlockEntity
@@ -47,17 +47,17 @@ public class DoubleChestBlockEntityTranslator extends BlockEntityTranslator impl
     @Override
     public void updateBlock(GeyserSession session, int blockState, Vector3i position) {
         NbtMapBuilder tagBuilder = getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(BlockEntityType.CHEST), position.getX(), position.getY(), position.getZ());
-        translateTag(tagBuilder, null, blockState);
+        translateTag(session, tagBuilder, null, blockState);
         BlockEntityUtils.updateBlockEntity(session, tagBuilder.build(), position);
     }
 
     @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, int blockState) {
         DoubleChestValue chestValues = BlockStateValues.getDoubleChestValues().get(blockState);
         if (chestValues != null) {
-            int x = (int) builder.get("x");
-            int z = (int) builder.get("z");
-            translateChestValue(builder, chestValues, x, z);
+            int x = (int) bedrockNbt.get("x");
+            int z = (int) bedrockNbt.get("z");
+            translateChestValue(bedrockNbt, chestValues, x, z);
         }
     }
 
@@ -88,10 +88,10 @@ public class DoubleChestBlockEntityTranslator extends BlockEntityTranslator impl
                 x = x + (chestValues.isLeft() ? 1 : -1);
             }
         }
-        builder.put("pairx", x);
-        builder.put("pairz", z);
+        builder.putInt("pairx", x);
+        builder.putInt("pairz", z);
         if (!chestValues.isLeft()) {
-            builder.put("pairlead", (byte) 1);
+            builder.putInt("pairlead", (byte) 1);
         }
     }
 }

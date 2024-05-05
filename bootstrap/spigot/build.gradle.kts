@@ -7,6 +7,9 @@ dependencies {
     implementation(variantOf(libs.adapters.spigot) {
         classifier("all") // otherwise the unshaded jar is used without the shaded NMS implementations
     })
+    implementation(variantOf(libs.adapters.paper) {
+        classifier("all") // otherwise the unshaded jar is used without the shaded NMS implementations
+    })
 
     implementation(libs.cloud.paper)
     implementation(libs.commodore)
@@ -35,6 +38,12 @@ tasks.withType<Jar> {
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
+
+    // Prevents Paper 1.20.5+ from remapping Geyser
+    manifest {
+        attributes["paperweight-mappings-namespace"] = "mojang"
+    }
+
     archiveBaseName.set("Geyser-Spigot")
 
     dependencies {

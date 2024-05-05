@@ -25,13 +25,13 @@
 
 package org.geysermc.geyser.entity.type;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.packet.AddPaintingPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.level.PaintingType;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 
 import java.util.UUID;
 
@@ -49,7 +49,7 @@ public class PaintingEntity extends Entity {
         // Wait until we get the metadata needed
     }
 
-    public void setPaintingType(ObjectEntityMetadata<com.github.steveice10.mc.protocol.data.game.entity.type.PaintingType> entityMetadata) {
+    public void setPaintingType(ObjectEntityMetadata<org.geysermc.mcprotocollib.protocol.data.game.entity.type.PaintingType> entityMetadata) {
         PaintingType type = PaintingType.getByPaintingType(entityMetadata.getValue());
         AddPaintingPacket addPaintingPacket = new AddPaintingPacket();
         addPaintingPacket.setUniqueEntityId(geyserId);
