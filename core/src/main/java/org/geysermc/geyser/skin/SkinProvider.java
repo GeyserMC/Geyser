@@ -271,17 +271,17 @@ public class SkinProvider {
 
                             @Override
                             public void skin(@NonNull Skin newSkin) {
-                                eventSkinData.skinData(new SkinData(newSkin, skinData.cape(), skinData.geometry()));
+                                eventSkinData.skinData(new SkinData(Objects.requireNonNull(newSkin), skinData.cape(), skinData.geometry()));
                             }
 
                             @Override
                             public void cape(@NonNull Cape newCape) {
-                                eventSkinData.skinData(new SkinData(skinData.skin(), newCape, skinData.geometry()));
+                                eventSkinData.skinData(new SkinData(skinData.skin(), Objects.requireNonNull(newCape), skinData.geometry()));
                             }
 
                             @Override
                             public void geometry(@NonNull SkinGeometry newGeometry) {
-                                eventSkinData.skinData(new SkinData(skinData.skin(),  skinData.cape(), newGeometry));
+                                eventSkinData.skinData(new SkinData(skinData.skin(), skinData.cape(), Objects.requireNonNull(newGeometry)));
                             }
                         });
 

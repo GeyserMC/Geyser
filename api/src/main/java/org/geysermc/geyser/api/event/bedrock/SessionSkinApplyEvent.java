@@ -62,7 +62,7 @@ public abstract class SessionSkinApplyEvent extends ConnectionEvent {
      *
      * @return the username of the player
      */
-    public String username() {
+    public @NonNull String username() {
         return username;
     }
 
@@ -71,7 +71,7 @@ public abstract class SessionSkinApplyEvent extends ConnectionEvent {
      *
      * @return the UUID of the player
      */
-    public UUID uuid() {
+    public @NonNull UUID uuid() {
         return uuid;
     }
 
@@ -98,16 +98,16 @@ public abstract class SessionSkinApplyEvent extends ConnectionEvent {
      *
      * @return the original skin data of the player
      */
-    public SkinData originalSkin() {
+    public @NonNull SkinData originalSkin() {
         return originalSkinData;
     }
 
     /**
      * The skin data of the player.
      *
-     * @return the skin data of the player
+     * @return the current skin data of the player
      */
-    public abstract SkinData skinData();
+    public abstract @NonNull SkinData skinData();
 
     /**
      * Change the skin of the player.
