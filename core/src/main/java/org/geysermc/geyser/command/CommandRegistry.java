@@ -37,6 +37,7 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.api.util.TriState;
+import org.geysermc.geyser.command.GeyserPermission.Result;
 import org.geysermc.geyser.command.defaults.AdvancedTooltipsCommand;
 import org.geysermc.geyser.command.defaults.AdvancementsCommand;
 import org.geysermc.geyser.command.defaults.ConnectionTestCommand;
@@ -259,21 +260,20 @@ public class CommandRegistry {
     }
 
     private void handleNoPermission(GeyserCommandSource source, NoPermissionException exception) {
-        // we basically recheck bedrock-only and player-only to see if they were the cause of this
-        if (exception.missingPermission() instanceof GeyserPermission permission) {
-            GeyserPermission.Result result = permission.check(source);
-            if (result == GeyserPermission.Result.NOT_BEDROCK) {
+        // custom handling if the source can't use the command because of additional requirements
+        if (exception.permissionResult() instanceof Result result) {
+            if (result.meta() == Result.Meta.NOT_BEDROCK) {
                 source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.command.bedrock_only", source.locale()));
                 return;
             }
-            if (result == GeyserPermission.Result.NOT_PLAYER) {
+            if (result.meta() == Result.Meta.NOT_PLAYER) {
                 source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.command.player_only", source.locale()));
                 return;
             }
         } else {
             GeyserLogger logger = GeyserImpl.getInstance().getLogger();
             if (logger.isDebug()) {
-                logger.debug("Expected a GeyserPermission for %s but instead got %s".formatted(exception.currentChain(), exception.missingPermission()));
+                logger.debug("Expected a GeyserPermission.Result for %s but instead got %s from %s".formatted(exception.currentChain(), exception.permissionResult(), exception.missingPermission()));
             }
         }
 

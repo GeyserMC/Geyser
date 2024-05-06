@@ -33,33 +33,48 @@ import org.incendo.cloud.permission.Permission;
 import org.incendo.cloud.permission.PermissionResult;
 import org.incendo.cloud.permission.PredicatePermission;
 
+import static org.geysermc.geyser.command.GeyserPermission.Result.Meta;
+
 @AllArgsConstructor
 public class GeyserPermission implements PredicatePermission<GeyserCommandSource> {
 
+    /**
+     * True if this permission requires the command source to be a bedrock player
+     */
     private final boolean bedrockOnly;
+
+    /**
+     * True if this permission requires the command source to be any player
+     */
     private final boolean playerOnly;
+
+    /**
+     * The permission node that the command source must have
+     */
     private final String permission;
+
+    /**
+     * The command manager to delegate permission checks to
+     */
     private final CommandManager<GeyserCommandSource> manager;
 
-    public Result check(GeyserCommandSource source) {
-        if (permission.isBlank()) {
-            return Result.ALLOWED;
-        }
+    @Override
+    public @NonNull PermissionResult testPermission(@NonNull GeyserCommandSource source) {
         if (bedrockOnly) {
             if (source.connection() == null) {
-                return Result.NOT_BEDROCK;
+                return new Result(Meta.NOT_BEDROCK);
             }
             // connection is present -> it is a player -> playerOnly is irrelevant
         } else if (playerOnly) {
             if (source.isConsole()) {
-                return Result.NOT_PLAYER; // must be a player but is console
+                return new Result(Meta.NOT_PLAYER); // must be a player but is console
             }
         }
 
-        if (manager.hasPermission(source, permission)) {
-            return Result.ALLOWED;
+        if (permission.isBlank() || manager.hasPermission(source, permission)) {
+            return new Result(Meta.ALLOWED);
         }
-        return Result.NO_PERMISSION;
+        return new Result(Meta.NO_PERMISSION);
     }
 
     @Override
@@ -67,35 +82,55 @@ public class GeyserPermission implements PredicatePermission<GeyserCommandSource
         return CloudKey.cloudKey(permission);
     }
 
-    @Override
-    public @NonNull PermissionResult testPermission(@NonNull GeyserCommandSource sender) {
-        return check(sender).toPermission(permission);
-    }
+    /**
+     * Basic implementation of cloud's {@link PermissionResult} that delegates to the more informative {@link Meta}.
+     */
+    public final class Result implements PermissionResult {
 
-    public enum Result {
+        private final Meta meta;
+
+        private Result(Meta meta) {
+            this.meta = meta;
+        }
+
+        public Meta meta() {
+            return meta;
+        }
+
+        @Override
+        public boolean allowed() {
+            return meta == Meta.ALLOWED;
+        }
+
+        @Override
+        public @NonNull Permission permission() {
+            return GeyserPermission.this;
+        }
 
         /**
-         * The source must be a bedrock player, but is not.
+         * More detailed explanation of whether the permission check passed.
          */
-        NOT_BEDROCK,
+        public enum Meta {
 
-        /**
-         * The source must be a player, but is not.
-         */
-        NOT_PLAYER,
+            /**
+             * The source must be a bedrock player, but is not.
+             */
+            NOT_BEDROCK,
 
-        /**
-         * The source does not have a required permission node.
-         */
-        NO_PERMISSION,
+            /**
+             * The source must be a player, but is not.
+             */
+            NOT_PLAYER,
 
-        /**
-         * The source meets all requirements.
-         */
-        ALLOWED;
+            /**
+             * The source does not have a required permission node.
+             */
+            NO_PERMISSION,
 
-        public PermissionResult toPermission(String  permission) {
-            return PermissionResult.of(this == ALLOWED, Permission.of(permission));
+            /**
+             * The source meets all requirements.
+             */
+            ALLOWED;
         }
     }
 }
