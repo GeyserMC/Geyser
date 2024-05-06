@@ -194,7 +194,6 @@ public class GeyserSpigotWorldManager extends WorldManager {
         return GameMode.byId(Bukkit.getDefaultGameMode().ordinal());
     }
 
-    @NonNull
     @Override
     public @NonNull CompletableFuture<@Nullable DataComponents> getPickItemComponents(GeyserSession session, int x, int y, int z, boolean addNbtData) {
         CompletableFuture<@Nullable DataComponents> future = new CompletableFuture<>();
