@@ -26,7 +26,6 @@
 package org.geysermc.geyser.command;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import lombok.AllArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
@@ -64,14 +63,11 @@ import org.incendo.cloud.exception.InvalidCommandSenderException;
 import org.incendo.cloud.exception.InvalidSyntaxException;
 import org.incendo.cloud.exception.NoPermissionException;
 import org.incendo.cloud.exception.NoSuchCommandException;
-import org.incendo.cloud.exception.handling.ExceptionContext;
 import org.incendo.cloud.exception.handling.ExceptionController;
-import org.incendo.cloud.exception.handling.ExceptionHandler;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
@@ -107,18 +103,13 @@ public class CommandRegistry {
         // Yeet the default exception handlers that the typical cloud implementations provide so that we can perform localization.
         // This is kind of meaningless for our Geyser-Standalone implementation since these handlers are the default exception handlers in that case.
         cloud.exceptionController().clearHandlers();
-        List<GeyserExceptionHandler<?>> exceptionHandlers = List.of(
-                new GeyserExceptionHandler<>(InvalidSyntaxException.class, (src, e) -> src.sendLocaleString("geyser.command.invalid_syntax", e.correctSyntax())),
-                new GeyserExceptionHandler<>(InvalidCommandSenderException.class, (src, e) -> src.sendLocaleString("geyser.command.invalid_sender", e.commandSender().getClass().getSimpleName(), e.requiredSender())),
-                new GeyserExceptionHandler<>(NoPermissionException.class, this::handleNoPermission),
-                new GeyserExceptionHandler<>(NoSuchCommandException.class, (src, e) -> src.sendLocaleString("geyser.command.not_found")),
-                new GeyserExceptionHandler<>(ArgumentParseException.class, (src, e) -> src.sendLocaleString("geyser.command.invalid_argument", e.getCause().getMessage())),
-                new GeyserExceptionHandler<>(CommandExecutionException.class, (src, e) -> handleUnexpectedThrowable(src, e.getCause())),
-                new GeyserExceptionHandler<>(Throwable.class, (src, e) -> handleUnexpectedThrowable(src, e.getCause()))
-        );
-        for (GeyserExceptionHandler<?> handler : exceptionHandlers) {
-            handler.register(cloud);
-        }
+        registerExceptionHandler(InvalidSyntaxException.class, (src, e) -> src.sendLocaleString("geyser.command.invalid_syntax", e.correctSyntax()));
+        registerExceptionHandler(InvalidCommandSenderException.class, (src, e) -> src.sendLocaleString("geyser.command.invalid_sender", e.commandSender().getClass().getSimpleName(), e.requiredSender()));
+        registerExceptionHandler(NoPermissionException.class, CommandRegistry::handleNoPermission);
+        registerExceptionHandler(NoSuchCommandException.class, (src, e) -> src.sendLocaleString("geyser.command.not_found"));
+        registerExceptionHandler(ArgumentParseException.class, (src, e) -> src.sendLocaleString("geyser.command.invalid_argument", e.getCause().getMessage()));
+        registerExceptionHandler(CommandExecutionException.class, (src, e) -> handleUnexpectedThrowable(src, e.getCause()));
+        registerExceptionHandler(Throwable.class, (src, e) -> handleUnexpectedThrowable(src, e.getCause()));
 
         // begin command registration
         registerBuiltInCommand(new HelpCommand(geyser, "help", "geyser.commands.help.desc", "geyser.command.help", "geyser", "geyser.command", this.commands));
@@ -186,6 +177,13 @@ public class CommandRegistry {
         return Collections.unmodifiableMap(this.commands);
     }
 
+    private <E extends Throwable> void registerExceptionHandler(Class<E> type, BiConsumer<GeyserCommandSource, E> handler) {
+        cloud.exceptionController().registerHandler(type, context -> {
+            Throwable unwrapped = ExceptionController.unwrapCompletionException(context.exception());
+            handler.accept(context.context().sender(), type.cast(unwrapped));
+        });
+    }
+
     /**
      * For internal Geyser commands
      */
@@ -195,10 +193,6 @@ public class CommandRegistry {
 
     public void registerExtensionCommand(@NonNull Extension extension, @NonNull GeyserCommand command) {
         register(command, this.extensionCommands.computeIfAbsent(extension, e -> new HashMap<>()));
-    }
-
-    public boolean hasPermission(GeyserCommandSource source, String permission) {
-        return cloud.hasPermission(source, permission);
     }
 
     private void register(GeyserCommand command, Map<String, Command> commands) {
@@ -231,6 +225,11 @@ public class CommandRegistry {
         event.register(Constants.SETTINGS_GAMERULES_PERMISSION, TriState.NOT_SET);
     }
 
+    public boolean hasPermission(GeyserCommandSource source, String permission) {
+        return cloud.hasPermission(source, permission);
+    }
+
+
     /**
      * Returns the description of the given command
      *
@@ -259,7 +258,7 @@ public class CommandRegistry {
         cloud.commandExecutor().executeCommand(source, command);
     }
 
-    private void handleNoPermission(GeyserCommandSource source, NoPermissionException exception) {
+    private static void handleNoPermission(GeyserCommandSource source, NoPermissionException exception) {
         // custom handling if the source can't use the command because of additional requirements
         if (exception.permissionResult() instanceof Result result) {
             if (result.meta() == Result.Meta.NOT_BEDROCK) {
@@ -281,25 +280,8 @@ public class CommandRegistry {
         source.sendLocaleString("geyser.command.permission_fail");
     }
 
-    private void handleUnexpectedThrowable(GeyserCommandSource source, Throwable throwable) {
+    private static void handleUnexpectedThrowable(GeyserCommandSource source, Throwable throwable) {
         source.sendMessage(MinecraftLocale.getLocaleString("command.failed", source.locale())); // java edition translation key
         GeyserImpl.getInstance().getLogger().error("Exception while executing command handler", throwable);
-    }
-
-    @AllArgsConstructor
-    private static class GeyserExceptionHandler<E extends Throwable> implements ExceptionHandler<GeyserCommandSource, E> {
-
-        final Class<E> type;
-        final BiConsumer<GeyserCommandSource, E> handler;
-
-        void register(CommandManager<GeyserCommandSource> manager) {
-            manager.exceptionController().registerHandler(type, this);
-        }
-
-        @Override
-        public void handle(@NonNull ExceptionContext context) throws Throwable {
-            Throwable unwrapped = ExceptionController.unwrapCompletionException(context.exception());
-            handler.accept((GeyserCommandSource) context.context().sender(), type.cast(unwrapped));
-        }
     }
 }
