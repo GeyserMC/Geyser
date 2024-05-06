@@ -82,7 +82,11 @@ public final class TrimRecipe {
     private static String stripNamespace(String identifier) {
         int i = identifier.indexOf(':');
         if (i >= 0) {
-            return identifier.substring(i + 1);
+            String namespace = identifier.substring(0, i);
+            // Only strip minecraft namespace
+            if (namespace.equals("minecraft")) {
+                return identifier.substring(i + 1);
+            }
         }
         return identifier;
     }
