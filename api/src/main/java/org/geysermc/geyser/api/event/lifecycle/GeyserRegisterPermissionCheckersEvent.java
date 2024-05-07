@@ -31,7 +31,7 @@ import org.geysermc.geyser.api.permission.PermissionChecker;
 
 /**
  * Fired by any permission manager implementations that wish to add support for custom permission checking.
- * This event is not guaranteed to be fired - it is currently only fired on Geyser-Standalone.
+ * This event is not guaranteed to be fired - it is currently only fired on Geyser-Standalone and ViaProxy.
  * <p>
  * Subscribing to this event with an earlier {@link PostOrder} and registering a {@link PermissionChecker}
  * will result in that checker having a higher priority than others.

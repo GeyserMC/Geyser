@@ -83,12 +83,11 @@ public record CommandSourceConverter<S>(Class<S> senderType,
         return commandSourceLookup.apply(base);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public @NonNull S reverse(GeyserCommandSource source) throws IllegalArgumentException {
         Object handle = source.handle();
         if (senderType.isInstance(handle)) {
-            return (S) handle; // one of the server platform implementations
+            return senderType.cast(source); // one of the server platform implementations
         }
 
         if (source.isConsole()) {

@@ -59,7 +59,7 @@ public class GeyserPermission implements PredicatePermission<GeyserCommandSource
     private final CommandManager<GeyserCommandSource> manager;
 
     @Override
-    public @NonNull PermissionResult testPermission(@NonNull GeyserCommandSource source) {
+    public @NonNull Result testPermission(@NonNull GeyserCommandSource source) {
         if (bedrockOnly) {
             if (source.connection() == null) {
                 return new Result(Meta.NOT_BEDROCK);
@@ -130,7 +130,7 @@ public class GeyserPermission implements PredicatePermission<GeyserCommandSource
             /**
              * The source meets all requirements.
              */
-            ALLOWED;
+            ALLOWED
         }
     }
 }

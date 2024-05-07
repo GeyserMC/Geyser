@@ -63,7 +63,6 @@ import org.incendo.cloud.exception.InvalidCommandSenderException;
 import org.incendo.cloud.exception.InvalidSyntaxException;
 import org.incendo.cloud.exception.NoPermissionException;
 import org.incendo.cloud.exception.NoSuchCommandException;
-import org.incendo.cloud.exception.handling.ExceptionController;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 
 import java.util.Collections;
@@ -101,7 +100,6 @@ public class CommandRegistry {
         this.cloud = cloud;
 
         // Yeet the default exception handlers that the typical cloud implementations provide so that we can perform localization.
-        // This is kind of meaningless for our Geyser-Standalone implementation since these handlers are the default exception handlers in that case.
         cloud.exceptionController().clearHandlers();
         registerExceptionHandler(InvalidSyntaxException.class, (src, e) -> src.sendLocaleString("geyser.command.invalid_syntax", e.correctSyntax()));
         registerExceptionHandler(InvalidCommandSenderException.class, (src, e) -> src.sendLocaleString("geyser.command.invalid_sender", e.commandSender().getClass().getSimpleName(), e.requiredSender()));
@@ -142,7 +140,6 @@ public class CommandRegistry {
                 registerExtensionCommand(extensionCommand.extension(), extensionCommand);
             }
         };
-
         this.geyser.eventBus().fire(defineCommandsEvent);
 
         for (Map.Entry<Extension, Map<String, Command>> entry : this.extensionCommands.entrySet()) {
@@ -178,10 +175,8 @@ public class CommandRegistry {
     }
 
     private <E extends Throwable> void registerExceptionHandler(Class<E> type, BiConsumer<GeyserCommandSource, E> handler) {
-        cloud.exceptionController().registerHandler(type, context -> {
-            Throwable unwrapped = ExceptionController.unwrapCompletionException(context.exception());
-            handler.accept(context.context().sender(), type.cast(unwrapped));
-        });
+        cloud.exceptionController().registerHandler(type, context ->
+            handler.accept(context.context().sender(), context.exception()));
     }
 
     /**
@@ -276,7 +271,7 @@ public class CommandRegistry {
             }
         }
 
-        // Result.NO_PERMISSION, or we're unable to recheck
+        // Result.NO_PERMISSION or generic permission failure
         source.sendLocaleString("geyser.command.permission_fail");
     }
 
