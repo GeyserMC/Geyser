@@ -353,6 +353,15 @@ public class LivingEntity extends Entity {
     }
 
     /**
+     * Called when a SWING_ARM animation packet is received
+     *
+     * @return true if an ATTACK_START event should be used instead
+     */
+    public boolean useArmSwingAttack() {
+        return false;
+    }
+
+    /**
      * Attributes are properties of an entity that are generally more runtime-based instead of permanent properties.
      * Movement speed, current attack damage with a weapon, current knockback resistance.
      *

@@ -57,4 +57,9 @@ public class ZombieEntity extends MonsterEntity {
     protected boolean isShaking() {
         return convertingToDrowned || super.isShaking();
     }
+
+    @Override
+    public boolean useArmSwingAttack() {
+        return true;
+    }
 }
