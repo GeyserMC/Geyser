@@ -42,9 +42,7 @@ public class BasePiglinEntity extends MonsterEntity {
     public BasePiglinEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
         // Both TARGET_EID and BLOCK are needed for melee attack animation
-        if (definition.entityType() == EntityType.PIGLIN_BRUTE) {
-            dirtyMetadata.put(EntityDataTypes.BLOCK, session.getBlockMappings().getDefinition(1));
-        }
+        dirtyMetadata.put(EntityDataTypes.BLOCK, session.getBlockMappings().getDefinition(1));
         setFlag(EntityFlag.SHAKING, isShaking());
     }
 
