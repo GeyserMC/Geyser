@@ -51,13 +51,14 @@ public class ArmorItem extends Item {
 
         ArmorTrim trim = components.get(DataComponentType.TRIM);
         if (trim != null) {
-            // discard custom trim patterns/materials to prevent visual glitches on bedrock
-            if (trim.material().isCustom() || trim.pattern().isCustom()) {
-                return;
-            }
-
             TrimMaterial material = session.getRegistryCache().trimMaterials().byId(trim.material().id());
             TrimPattern pattern = session.getRegistryCache().trimPatterns().byId(trim.pattern().id());
+
+            // discard custom trim patterns/materials to prevent visual glitches on bedrock
+            if (!getNamespace(material.getMaterialId()).equals("minecraft")
+                    || !getNamespace(pattern.getPatternId()).equals("minecraft")) {
+                return;
+            }
 
             NbtMapBuilder trimBuilder = NbtMap.builder();
             // bedrock has an uppercase first letter key, and the value is not namespaced
@@ -70,5 +71,14 @@ public class ArmorItem extends Item {
     @Override
     public boolean isValidRepairItem(Item other) {
         return material.getRepairIngredient() == other;
+    }
+
+    // TODO maybe some kind of namespace util?
+    private static String getNamespace(String identifier) {
+        int i = identifier.indexOf(':');
+        if (i >= 0) {
+            return identifier.substring(0, i);
+        }
+        return "minecraft";
     }
 }

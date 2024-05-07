@@ -47,7 +47,7 @@ public final class TrimRecipe {
     public static final ItemDescriptorWithCount TEMPLATE = tagDescriptor("minecraft:trim_templates");
 
     public static TrimMaterial readTrimMaterial(GeyserSession session, RegistryEntry entry) {
-        String key = stripNamespace(entry.getId());
+        String key = stripMinecraftNamespace(entry.getId());
 
         // Color is used when hovering over the item
         // Find the nearest legacy color from the RGB Java gives us to work with
@@ -67,7 +67,7 @@ public final class TrimRecipe {
     }
 
     public static TrimPattern readTrimPattern(GeyserSession session, RegistryEntry entry) {
-        String key = stripNamespace(entry.getId());
+        String key = stripMinecraftNamespace(entry.getId());
 
         String itemIdentifier = entry.getData().getString("template_item");
         ItemMapping itemMapping = session.getItemMappings().getMapping(itemIdentifier);
@@ -79,10 +79,14 @@ public final class TrimRecipe {
     }
 
     // TODO find a good place for a stripNamespace util method
-    private static String stripNamespace(String identifier) {
+    private static String stripMinecraftNamespace(String identifier) {
         int i = identifier.indexOf(':');
         if (i >= 0) {
-            return identifier.substring(i + 1);
+            String namespace = identifier.substring(0, i);
+            // Only strip minecraft namespace
+            if (namespace.equals("minecraft")) {
+                return identifier.substring(i + 1);
+            }
         }
         return identifier;
     }
