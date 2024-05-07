@@ -95,8 +95,11 @@ public enum TippedArrowPotion {
         this.javaColor = arrowParticleColor.getColor();
     }
 
-    public static TippedArrowPotion of(int id) {
-        return VALUES[id];
+    public static @Nullable TippedArrowPotion of(int id) {
+        if (id >= 0 && id < VALUES.length) {
+            return VALUES[id];
+        }
+        return null;
     }
 
     public static @Nullable TippedArrowPotion getByBedrockId(int bedrockId) {
