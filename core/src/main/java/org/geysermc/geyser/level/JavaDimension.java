@@ -25,36 +25,31 @@
 
 package org.geysermc.geyser.level;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
-import org.geysermc.geyser.util.JavaCodecUtil;
-
-import java.util.Map;
+import org.cloudburstmc.nbt.NbtMap;
+import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
 
 /**
  * Represents the information we store from the current Java dimension
  * @param piglinSafe Whether piglins and hoglins are safe from conversion in this dimension.
  *      This controls if they have the shaking effect applied in the dimension.
- * @param ultraWarm If this dimension is ultrawarm.
+ * @param ultrawarm If this dimension is ultrawarm.
  *      Used when calculating movement in lava for client-side vehicles.
  */
-public record JavaDimension(int minY, int maxY, boolean piglinSafe, boolean ultraWarm, double worldCoordinateScale) {
+public record JavaDimension(int minY, int maxY, boolean piglinSafe, boolean ultrawarm, double worldCoordinateScale) {
 
-    public static void load(CompoundTag tag, Map<String, JavaDimension> map) {
-        for (CompoundTag dimension : JavaCodecUtil.iterateAsTag(tag.get("minecraft:dimension_type"))) {
-            CompoundTag elements = dimension.get("element");
-            int minY = ((IntTag) elements.get("min_y")).getValue();
-            int maxY = ((IntTag) elements.get("height")).getValue();
-            // Logical height can be ignored probably - seems to be for artificial limits like the Nether.
+    public static JavaDimension read(RegistryEntry entry) {
+        NbtMap dimension = entry.getData();
+        int minY = dimension.getInt("min_y");
+        int maxY = dimension.getInt("height");
+        // Logical height can be ignored probably - seems to be for artificial limits like the Nether.
 
-            // Set if piglins/hoglins should shake
-            boolean piglinSafe = ((Number) elements.get("piglin_safe").getValue()).byteValue() != (byte) 0;
-            // Entities in lava move faster in ultrawarm dimensions
-            boolean ultraWarm = ((Number) elements.get("ultrawarm").getValue()).byteValue() != (byte) 0;
-            // Load world coordinate scale for the world border
-            double coordinateScale = ((Number) elements.get("coordinate_scale").getValue()).doubleValue();
+        // Set if piglins/hoglins should shake
+        boolean piglinSafe = dimension.getBoolean("piglin_safe");
+        // Entities in lava move faster in ultrawarm dimensions
+        boolean ultrawarm = dimension.getBoolean("ultrawarm");
+        // Load world coordinate scale for the world border
+        double coordinateScale = dimension.getDouble("coordinate_scale");
 
-            map.put((String) dimension.get("name").getValue(), new JavaDimension(minY, maxY, piglinSafe, ultraWarm, coordinateScale));
-        }
+        return new JavaDimension(minY, maxY, piglinSafe, ultrawarm, coordinateScale);
     }
 }

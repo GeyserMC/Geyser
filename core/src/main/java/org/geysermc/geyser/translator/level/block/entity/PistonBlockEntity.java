@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.value.PistonValueType;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.PistonValueType;
 import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -36,13 +36,13 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
-import org.geysermc.common.PlatformType;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.level.physics.Direction;
-import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.PistonCache;
 import org.geysermc.geyser.translator.collision.BlockCollision;
@@ -95,7 +95,7 @@ public class PistonBlockEntity {
 
     static {
         // Create a ~1 x ~0.5 x ~1 bounding box above the honey block
-        BlockCollision blockCollision = Registries.COLLISIONS.get(BlockStateValues.JAVA_HONEY_BLOCK_ID);
+        BlockCollision blockCollision = BlockRegistries.COLLISIONS.get(BlockStateValues.JAVA_HONEY_BLOCK_ID);
         if (blockCollision == null) {
             throw new RuntimeException("Failed to find honey block collision");
         }
@@ -485,7 +485,7 @@ public class PistonBlockEntity {
             pistonCache.displacePlayer(movement.mul(delta));
         } else {
             // Move the player out of collision
-            BlockCollision blockCollision = Registries.COLLISIONS.get(javaId);
+            BlockCollision blockCollision = BlockRegistries.COLLISIONS.get(javaId);
             if (blockCollision != null) {
                 Vector3d extend = movement.mul(Math.min(1 - blockMovement, 0.5));
                 Direction movementDirection = orientation;

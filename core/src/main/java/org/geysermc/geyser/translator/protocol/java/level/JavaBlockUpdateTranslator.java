@@ -25,11 +25,11 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundBlockUpdatePacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundBlockUpdatePacket;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
-import org.geysermc.common.PlatformType;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -100,7 +100,7 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
                 || lastInteractPos.getZ() != packet.getEntry().getPosition().getZ())) {
             return;
         }
-        String identifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(packet.getEntry().getBlock(), BlockMapping.AIR).getJavaIdentifier();
+        String identifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(packet.getEntry().getBlock(), BlockMapping.DEFAULT).getJavaIdentifier();
         session.setInteracting(false);
         BlockSoundInteractionTranslator.handleBlockInteraction(session, lastInteractPos.toFloat(), identifier);
     }

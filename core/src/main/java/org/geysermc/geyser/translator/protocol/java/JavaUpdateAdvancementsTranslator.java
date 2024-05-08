@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import com.github.steveice10.mc.protocol.data.game.advancement.Advancement;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateAdvancementsPacket;
+import org.geysermc.mcprotocollib.protocol.data.game.advancement.Advancement;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundUpdateAdvancementsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ToastRequestPacket;
 import org.geysermc.geyser.level.GeyserAdvancement;
 import org.geysermc.geyser.session.GeyserSession;
@@ -81,7 +81,7 @@ public class JavaUpdateAdvancementsTranslator extends PacketTranslator<Clientbou
             GeyserAdvancement advancement = session.getAdvancementsCache().getStoredAdvancements().get(advancementId);
             if (advancement != null && advancement.getDisplayData() != null) {
                 if (advancement.getDisplayData().isShowToast() && session.getAdvancementsCache().isEarned(advancement)) {
-                    String frameType = advancement.getDisplayData().getFrameType().toString().toLowerCase(Locale.ROOT);
+                    String frameType = advancement.getDisplayData().getAdvancementType().toString().toLowerCase(Locale.ROOT);
                     String frameTitle = advancement.getDisplayColor() + MinecraftLocale.getLocaleString("advancements.toast." + frameType, session.locale());
                     String advancementName = MessageTranslator.convertMessage(advancement.getDisplayData().getTitle(), session.locale());
 

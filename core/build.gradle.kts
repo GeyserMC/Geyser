@@ -1,12 +1,15 @@
 import net.kyori.blossom.BlossomExtension
 
 plugins {
-    id("net.kyori.blossom")
-    id("net.kyori.indra.git")
+    alias(libs.plugins.blossom)
     id("geyser.publish-conventions")
 }
 
 dependencies {
+    constraints {
+        implementation(libs.raknet) // Ensure protocol does not override the RakNet version
+    }
+
     api(projects.common)
     api(projects.api)
 
@@ -21,6 +24,7 @@ dependencies {
     implementation(libs.websocket)
 
     api(libs.bundles.protocol)
+    implementation(libs.blockstateupdater)
 
     api(libs.mcauthlib)
     api(libs.mcprotocollib) {
@@ -30,7 +34,7 @@ dependencies {
     }
 
     implementation(libs.raknet) {
-        exclude("io.netty", "*");
+        exclude("io.netty", "*")
     }
 
     implementation(libs.netty.resolver.dns)
@@ -43,6 +47,8 @@ dependencies {
     implementation(libs.netty.transport.native.epoll) { artifact { classifier = "linux-x86_64" } }
     implementation(libs.netty.transport.native.epoll) { artifact { classifier = "linux-aarch_64" } }
     implementation(libs.netty.transport.native.kqueue) { artifact { classifier = "osx-x86_64" } }
+    implementation(libs.netty.transport.native.io.uring) { artifact { classifier = "linux-x86_64" } }
+    implementation(libs.netty.transport.native.io.uring) { artifact { classifier = "linux-aarch_64" } }
 
     // Adventure text serialization
     api(libs.bundles.adventure)
@@ -60,11 +66,6 @@ dependencies {
     annotationProcessor(projects.ap)
 
     api(libs.events)
-}
-
-configurations.api {
-    // This is still experimental - additionally, it could only really benefit standalone
-    exclude(group = "io.netty.incubator", module = "netty-incubator-transport-native-io_uring")
 }
 
 tasks.processResources {
@@ -97,7 +98,7 @@ configure<BlossomExtension> {
 }
 
 fun Project.buildNumber(): Int =
-    (System.getenv("GITHUB_RUN_NUMBER") ?: jenkinsBuildNumber())?.let { Integer.parseInt(it) } ?: -1
+    (System.getenv("BUILD_NUMBER"))?.let { Integer.parseInt(it) } ?: -1
 
 inner class GitInfo {
     val branch: String
@@ -130,5 +131,18 @@ inner class GitInfo {
     }
 }
 
-// todo remove this when we're not using Jenkins anymore
-fun jenkinsBuildNumber(): String? = System.getenv("BUILD_NUMBER")
+// Manual task to download the bedrock data files from the CloudburstMC/Data repository
+// Invoke with ./gradlew :core:downloadBedrockData --suffix=1_20_70
+// Set suffix to the current Bedrock version
+tasks.register<DownloadFilesTask>("downloadBedrockData") {
+    urls = listOf(
+        "https://raw.githubusercontent.com/CloudburstMC/Data/master/entity_identifiers.dat",
+        "https://raw.githubusercontent.com/CloudburstMC/Data/master/biome_definitions.dat",
+        "https://raw.githubusercontent.com/CloudburstMC/Data/master/block_palette.nbt",
+        "https://raw.githubusercontent.com/CloudburstMC/Data/master/creative_items.json",
+        "https://raw.githubusercontent.com/CloudburstMC/Data/master/runtime_item_states.json"
+    )
+    suffixedFiles = listOf("block_palette.nbt", "creative_items.json", "runtime_item_states.json")
+
+    destinationDir = "$projectDir/src/main/resources/bedrock"
+}

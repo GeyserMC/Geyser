@@ -26,8 +26,8 @@
 package org.geysermc.geyser.registry;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.registry.loader.RegistryLoader;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 

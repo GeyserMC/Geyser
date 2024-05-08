@@ -36,7 +36,12 @@ public final class RegistryLoaders {
     /**
      * The {@link RegistryLoader} responsible for loading NBT.
      */
-    public static NbtRegistryLoader NBT = new NbtRegistryLoader();
+    public static final NbtRegistryLoader NBT = new NbtRegistryLoader();
+
+    /**
+     * The {@link RegistryLoader} responsible for loading resource packs.
+     */
+    public static final ResourcePackLoader RESOURCE_PACKS = new ResourcePackLoader();
 
     /**
      * Wraps the surrounding {@link Supplier} in a {@link RegistryLoader} which does
@@ -51,10 +56,14 @@ public final class RegistryLoaders {
     }
 
     /**
+     * Returns a {@link RegistryLoader} which has not taken
+     * in any input value.
+     *
+     * @param <I> the input
      * @param <V> the value
      * @return a RegistryLoader that is yet to contain a value.
      */
-    public static <V> RegistryLoader<Object, V> uninitialized() {
+    public static <I, V> RegistryLoader<I, V> uninitialized() {
         return input -> null;
     }
 

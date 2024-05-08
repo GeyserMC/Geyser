@@ -25,13 +25,9 @@
 
 package org.geysermc.geyser.entity.type.player;
 
-import com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute;
-import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeType;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.GlobalPos;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import lombok.Setter;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -44,8 +40,14 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.DimensionUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.Attribute;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.GlobalPos;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -72,17 +74,15 @@ public class SessionPlayerEntity extends PlayerEntity {
     /**
      * Used when emulating client-side vehicles
      */
-    @Getter @Setter
+    @Getter
+    @Setter
     private Vector2f vehicleInput = Vector2f.ZERO;
     /**
      * Used when emulating client-side vehicles
      */
-    @Getter @Setter
+    @Getter
+    @Setter
     private int vehicleJumpStrength;
-    /**
-     * Used for villager inventory emulation.
-     */
-    private int fakeTradeXp;
 
     public SessionPlayerEntity(GeyserSession session) {
         super(session, -1, 1, null, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, null, null);
@@ -125,16 +125,23 @@ public class SessionPlayerEntity extends PlayerEntity {
         this.position = position;
     }
 
+    /**
+     * Sending any updated flags (sprinting, onFire, etc.) to the client while in spectator is not needed
+     * Also "fixes" <a href="https://github.com/GeyserMC/Geyser/issues/3318">issue 3318</a>
+     */
     @Override
     public void setFlags(ByteEntityMetadata entityMetadata) {
-        super.setFlags(entityMetadata);
-        session.setSwimmingInWater((entityMetadata.getPrimitiveValue() & 0x10) == 0x10 && getFlag(EntityFlag.SPRINTING));
+        // TODO: proper fix, BDS somehow does it? https://paste.gg/p/anonymous/3adfb7612f1540be80fa03a2281f93dc (BDS 1.20.13)
+        if (!this.session.getGameMode().equals(GameMode.SPECTATOR)) {
+            super.setFlags(entityMetadata);
+            session.setSwimmingInWater((entityMetadata.getPrimitiveValue() & 0x10) == 0x10 && getFlag(EntityFlag.SPRINTING));
+        }
         refreshSpeed = true;
     }
 
     /**
      * Since 1.19.40, the client must be re-informed of its bounding box on respawn
-     * See https://github.com/GeyserMC/Geyser/issues/3370
+     * See <a href="https://github.com/GeyserMC/Geyser/issues/3370">issue 3370</a>
      */
     public void updateBoundingBox() {
         dirtyMetadata.put(EntityDataTypes.HEIGHT, getBoundingBoxHeight());
@@ -185,11 +192,6 @@ public class SessionPlayerEntity extends PlayerEntity {
     public void setRiderSeatPosition(Vector3f position) {
         super.setRiderSeatPosition(position);
         this.isRidingInFront = position != null && position.getX() > 0;
-    }
-
-    public void addFakeTradeExperience(int tradeXp) {
-        fakeTradeXp += tradeXp;
-        dirtyMetadata.put(EntityDataTypes.TRADE_EXPERIENCE, fakeTradeXp);
     }
 
     @Override
@@ -266,5 +268,56 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Override
     public UUID getTabListUuid() {
         return session.getAuthData().uuid();
+    }
+
+    @Override
+    public void setAbsorptionHearts(FloatEntityMetadata entityMetadata) {
+        // The bedrock client can glitch when sending a health and absorption attribute in the same tick
+        // This can happen when switching servers. Resending the absorption attribute fixes the issue
+        attributes.put(GeyserAttributeType.ABSORPTION, GeyserAttributeType.ABSORPTION.getAttribute(entityMetadata.getPrimitiveValue()));
+        super.setAbsorptionHearts(entityMetadata);
+    }
+
+    public void resetMetadata() {
+        // Reset all metadata to their default values
+        // This is used when a player respawns
+        this.flags.clear();
+        this.initializeMetadata();
+
+        // Reset air
+        this.resetAir();
+
+        // Explicitly reset all metadata not handled by initializeMetadata
+        setParrot(null, true);
+        setParrot(null, false);
+
+        // Absorption is metadata in java edition
+        attributes.remove(GeyserAttributeType.ABSORPTION);
+        UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+        attributesPacket.setRuntimeEntityId(geyserId);
+        attributesPacket.setAttributes(Collections.singletonList(
+                GeyserAttributeType.ABSORPTION.getAttribute(0f)));
+        session.sendUpstreamPacket(attributesPacket);
+
+        dirtyMetadata.put(EntityDataTypes.EFFECT_COLOR, 0);
+        dirtyMetadata.put(EntityDataTypes.EFFECT_AMBIENCE, (byte) 0);
+        dirtyMetadata.put(EntityDataTypes.FREEZING_EFFECT_STRENGTH, 0f);
+
+        silent = false;
+    }
+
+    public void resetAttributes() {
+        attributes.clear();
+        maxHealth = GeyserAttributeType.MAX_HEALTH.getDefaultValue();
+
+        UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+        attributesPacket.setRuntimeEntityId(geyserId);
+        attributesPacket.setAttributes(Collections.singletonList(
+                GeyserAttributeType.MOVEMENT_SPEED.getAttribute()));
+        session.sendUpstreamPacket(attributesPacket);
+    }
+
+    public void resetAir() {
+        this.setAirSupply(getMaxAir());
     }
 }

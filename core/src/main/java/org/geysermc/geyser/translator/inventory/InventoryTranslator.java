@@ -25,11 +25,6 @@
 
 package org.geysermc.geyser.translator.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
-import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
 import it.unimi.dsi.fastutil.ints.*;
 import lombok.AllArgsConstructor;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -59,6 +54,11 @@ import org.geysermc.geyser.translator.inventory.furnace.FurnaceInventoryTranslat
 import org.geysermc.geyser.translator.inventory.furnace.SmokerInventoryTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.ItemUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.Ingredient;
 
 import java.util.*;
 
@@ -86,6 +86,7 @@ public abstract class InventoryTranslator {
             put(ContainerType.BEACON, new BeaconInventoryTranslator());
             put(ContainerType.BREWING_STAND, new BrewingInventoryTranslator());
             put(ContainerType.CARTOGRAPHY, new CartographyInventoryTranslator());
+            //put(ContainerType.CRAFTER_3x3, new CrafterInventoryTranslator()); todo Output slot is currently broken
             put(ContainerType.CRAFTING, new CraftingInventoryTranslator());
             put(ContainerType.ENCHANTMENT, new EnchantingInventoryTranslator());
             put(ContainerType.HOPPER, new HopperInventoryTranslator());
@@ -129,7 +130,7 @@ public abstract class InventoryTranslator {
     /**
      * Should be overwritten in cases where specific inventories should reject an item being in a specific spot.
      * For examples, looms use this to reject items that are dyes in Bedrock but not in Java.
-     *
+     * <p>
      * The source/destination slot will be -1 if the cursor is the slot
      *
      * @return true if this transfer should be rejected
@@ -223,8 +224,8 @@ public abstract class InventoryTranslator {
                             //only set the head if the destination is the head slot
                             GeyserItemStack javaItem = inventory.getItem(sourceSlot);
                             if (javaItem.asItem() == Items.PLAYER_HEAD
-                                    && javaItem.getNbt() != null) {
-                                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getNbt().get("SkullOwner"));
+                                    && javaItem.getComponents() != null) {
+                                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponents());
                             }
                         } else if (sourceSlot == 5) {
                             //we are probably removing the head, so restore the original skin
@@ -908,10 +909,11 @@ public abstract class InventoryTranslator {
             // As of 1.16.210: Bedrock needs confirmation on what the current item durability is.
             // If 0 is sent, then Bedrock thinks the item is not damaged
             int durability = 0;
-            if (itemStack.getNbt() != null) {
-                Tag damage = itemStack.getNbt().get("Damage");
-                if (damage instanceof IntTag) {
-                    durability = ItemUtils.getCorrectBedrockDurability(itemStack.asItem(), ((IntTag) damage).getValue());
+            DataComponents components = itemStack.getComponents();
+            if (components != null) {
+                Integer damage = components.get(DataComponentType.DAMAGE);
+                if (damage != null) {
+                    durability = ItemUtils.getCorrectBedrockDurability(itemStack.asItem(), damage);
                 }
             }
 

@@ -25,11 +25,11 @@
 
 package org.geysermc.geyser.level;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -38,9 +38,10 @@ import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.erosion.util.LecternUtils;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
-import org.jetbrains.annotations.Nullable;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityInfo;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -98,6 +99,7 @@ public class GeyserWorldManager extends WorldManager {
             return;
         }
         List<Vector3i> vectors = new ObjectArrayList<>(blockEntityInfos.size());
+        //noinspection ForLoopReplaceableByForEach - avoid constructing iterator
         for (int i = 0; i < blockEntityInfos.size(); i++) {
             BlockEntityInfo info = blockEntityInfos.get(i);
             vectors.add(Vector3i.from(info.getX(), info.getY(), info.getZ()));
@@ -161,18 +163,23 @@ public class GeyserWorldManager extends WorldManager {
     }
 
     @Override
+    public GameMode getDefaultGameMode(GeyserSession session) {
+        return GameMode.SURVIVAL;
+    }
+
+    @Override
     public boolean hasPermission(GeyserSession session, String permission) {
         return false;
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    public CompletableFuture<@Nullable CompoundTag> getPickItemNbt(GeyserSession session, int x, int y, int z, boolean addNbtData) {
+    public CompletableFuture<@Nullable DataComponents> getPickItemComponents(GeyserSession session, int x, int y, int z, boolean addNbtData) {
         var erosionHandler = session.getErosionHandler().getAsActive();
         if (erosionHandler == null) {
-            return super.getPickItemNbt(session, x, y, z, addNbtData);
+            return super.getPickItemComponents(session, x, y, z, addNbtData);
         }
-        CompletableFuture<CompoundTag> future = new CompletableFuture<>();
+        CompletableFuture<DataComponents> future = new CompletableFuture<>();
         erosionHandler.setPickBlockLookup(future);
         erosionHandler.sendPacket(new BackendboundPickBlockPacket(Vector3i.from(x, y, z)));
         return future;

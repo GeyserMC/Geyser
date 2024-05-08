@@ -26,9 +26,7 @@
 package org.geysermc.geyser.translator.protocol.java.entity.player;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
-import com.github.steveice10.mc.protocol.data.game.PlayerListEntry;
-import com.github.steveice10.mc.protocol.data.game.PlayerListEntryAction;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundPlayerInfoUpdatePacket;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.geysermc.geyser.GeyserImpl;
@@ -37,10 +35,14 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.data.game.PlayerListEntry;
+import org.geysermc.mcprotocollib.protocol.data.game.PlayerListEntryAction;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundPlayerInfoUpdatePacket;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @Translator(packet = ClientboundPlayerInfoUpdatePacket.class)
 public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<ClientboundPlayerInfoUpdatePacket> {
@@ -50,13 +52,24 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
 
         if (actions.contains(PlayerListEntryAction.ADD_PLAYER)) {
             for (PlayerListEntry entry : packet.getEntries()) {
-                GameProfile profile = entry.getProfile();
+                @Nullable GameProfile profile = entry.getProfile();
+
+                UUID id = entry.getProfileId();
+                String name = null;
+                String texturesProperty = null;
+
+                if (profile != null) {
+                    name = profile.getName();
+
+                    GameProfile.Property textures = profile.getProperty("textures");
+                    if (textures != null) {
+                        texturesProperty = textures.getValue();
+                    }
+                }
+
+                boolean self = id.equals(session.getPlayerEntity().getUuid());
+
                 PlayerEntity playerEntity;
-                boolean self = profile.getId().equals(session.getPlayerEntity().getUuid());
-
-                GameProfile.Property textures = profile.getProperty("textures");
-                String texturesProperty = textures == null ? null : textures.getValue();
-
                 if (self) {
                     // Entity is ourself
                     playerEntity = session.getPlayerEntity();
@@ -66,17 +79,17 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                             session,
                             -1,
                             session.getEntityCache().getNextEntityId().incrementAndGet(),
-                            profile.getId(),
+                            id,
                             Vector3f.ZERO,
                             Vector3f.ZERO,
                             0, 0, 0,
-                            profile.getName(),
+                            name,
                             texturesProperty
                     );
 
                     session.getEntityCache().addPlayerEntity(playerEntity);
                 }
-                playerEntity.setUsername(profile.getName());
+                playerEntity.setUsername(name);
                 playerEntity.setTexturesProperty(texturesProperty);
 
                 if (self) {

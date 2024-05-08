@@ -29,7 +29,13 @@ import it.unimi.dsi.fastutil.ints.AbstractInt2ByteMap;
 import it.unimi.dsi.fastutil.ints.Int2ByteMap;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 
+import java.io.Serial;
+
 public class FixedInt2ByteMap extends AbstractInt2ByteMap {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     protected byte[] value;
     protected int start = -1;
 

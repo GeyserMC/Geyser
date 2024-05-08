@@ -25,9 +25,8 @@
 
 package org.geysermc.geyser.entity.type.living.merchant;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.VillagerData;
 import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
@@ -37,6 +36,8 @@ import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.VillagerData;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -78,6 +79,7 @@ public class VillagerEntity extends AbstractMerchantEntity {
         VILLAGER_REGIONS[6] = 6;
     }
 
+    @Nullable
     private Vector3i bedPosition;
     /**
      * Used in the interactive tag manager
@@ -103,7 +105,7 @@ public class VillagerEntity extends AbstractMerchantEntity {
     }
 
     @Override
-    public Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
+    public @Nullable Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
         return bedPosition = super.setBedPosition(entityMetadata);
     }
 
@@ -118,7 +120,7 @@ public class VillagerEntity extends AbstractMerchantEntity {
         
         // The bed block
         int blockId = session.getGeyser().getWorldManager().getBlockAt(session, bedPosition);
-        String fullIdentifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(blockId, BlockMapping.AIR).getJavaIdentifier();
+        String fullIdentifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(blockId, BlockMapping.DEFAULT).getJavaIdentifier();
 
         // Set the correct position offset and rotation when sleeping
         int bedRotation = 0;

@@ -29,9 +29,14 @@ import it.unimi.dsi.fastutil.ints.AbstractInt2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 
+import java.io.Serial;
+
 public class FixedInt2IntMap extends AbstractInt2IntMap {
     protected int[] value;
     protected int start = -1;
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     @Override
     public int size() {

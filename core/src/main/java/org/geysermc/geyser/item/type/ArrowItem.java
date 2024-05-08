@@ -25,26 +25,31 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.item.TippedArrowPotion;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents;
+
+import java.util.Collections;
 
 public class ArrowItem extends Item {
     public ArrowItem(String javaIdentifier, Builder builder) {
         super(javaIdentifier, builder);
     }
 
-    public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, ItemMappings mappings) {
+    @Override
+    public @NonNull GeyserItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
         TippedArrowPotion tippedArrowPotion = TippedArrowPotion.getByBedrockId(itemData.getDamage());
-        ItemStack itemStack = super.translateToJava(itemData, mapping, mappings);
+        GeyserItemStack itemStack = super.translateToJava(itemData, mapping, mappings);
         if (tippedArrowPotion != null) {
-            itemStack = Items.TIPPED_ARROW.newItemStack(itemStack.getAmount(), itemStack.getNbt());
-            StringTag potionTag = new StringTag("Potion", tippedArrowPotion.getJavaIdentifier());
-            itemStack.getNbt().put(potionTag);
+            itemStack = Items.TIPPED_ARROW.newItemStack(itemStack.getAmount(), itemStack.getComponents());
+            PotionContents contents = new PotionContents(tippedArrowPotion.ordinal(), -1, Collections.emptyList());
+            itemStack.getOrCreateComponents().put(DataComponentType.POTION_CONTENTS, contents);
         }
         return itemStack;
     }

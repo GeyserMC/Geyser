@@ -25,10 +25,10 @@
 
 package org.geysermc.geyser.entity.vehicle;
 
-import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 
 public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
     private float horseJumpStrength = 0.42f; // This is the default for Camels. Not sent by vanilla Java server when spawned

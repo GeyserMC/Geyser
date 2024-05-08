@@ -25,40 +25,44 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.item.type.BannerItem;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
+
+import java.util.List;
 
 @BlockEntity(type = BlockEntityType.BANNER)
 public class BannerBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
     @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, @Nullable NbtMap javaNbt, int blockState) {
         int bannerColor = BlockStateValues.getBannerColor(blockState);
         if (bannerColor != -1) {
-            builder.put("Base", 15 - bannerColor);
+            bedrockNbt.putInt("Base", 15 - bannerColor);
         }
 
-        if (tag == null) {
+        if (javaNbt == null) {
             return;
         }
 
-        if (tag.get("Patterns") instanceof ListTag patterns) {
-            if (patterns.equals(BannerItem.OMINOUS_BANNER_PATTERN)) {
+        List<NbtMap> patterns = javaNbt.getList("patterns", NbtType.COMPOUND);
+        if (!patterns.isEmpty()) {
+            if (BannerItem.isOminous(patterns)) {
                 // This is an ominous banner; don't try to translate the raw patterns (it doesn't translate correctly)
                 // and tell the Bedrock client that this is an ominous banner
-                builder.putInt("Type", 1);
+                bedrockNbt.putInt("Type", 1);
             } else {
-                builder.put("Patterns", BannerItem.convertBannerPattern(patterns));
+                bedrockNbt.putList("Patterns", NbtType.COMPOUND, BannerItem.convertBannerPattern(patterns));
             }
         }
 
-        Tag customName = tag.get("CustomName");
+        String customName = javaNbt.getString("CustomName", null);
         if (customName != null) {
-            builder.put("CustomName", customName.getValue());
+            bedrockNbt.putString("CustomName", customName);
         }
     }
 }

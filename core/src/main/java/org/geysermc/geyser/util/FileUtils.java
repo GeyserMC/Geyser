@@ -25,6 +25,9 @@
 
 package org.geysermc.geyser.util;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.geysermc.geyser.GeyserBootstrap;
@@ -53,7 +56,10 @@ public class FileUtils {
      * @throws IOException if the config could not be loaded
      */
     public static <T> T loadConfig(File src, Class<T> valueType) throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
+        ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory())
+                // Allow inference of single values as arrays
+                .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+                .setDefaultSetterInfo(JsonSetter.Value.forValueNulls(Nulls.AS_EMPTY));
         return objectMapper.readValue(src, valueType);
     }
 
@@ -76,7 +82,7 @@ public class FileUtils {
             //noinspection ResultOfMethodCallIgnored
             file.createNewFile();
             try (FileOutputStream fos = new FileOutputStream(file)) {
-                try (InputStream input = bootstrap.getResource(name)) {
+                try (InputStream input = bootstrap.getResourceOrThrow(name)) {
                     byte[] bytes = new byte[input.available()];
 
                     //noinspection ResultOfMethodCallIgnored
@@ -129,14 +135,14 @@ public class FileUtils {
     /**
      * Calculate the SHA256 hash of a file
      *
-     * @param file File to calculate the hash for
+     * @param path Path to calculate the hash for
      * @return A byte[] representation of the hash
      */
-    public static byte[] calculateSHA256(File file) {
+    public static byte[] calculateSHA256(Path path) {
         byte[] sha256;
 
         try {
-            sha256 = MessageDigest.getInstance("SHA-256").digest(readAllBytes(file));
+            sha256 = MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(path));
         } catch (Exception e) {
             throw new RuntimeException("Could not calculate pack hash", e);
         }
@@ -147,14 +153,14 @@ public class FileUtils {
     /**
      * Calculate the SHA1 hash of a file
      *
-     * @param file File to calculate the hash for
+     * @param path Path to calculate the hash for
      * @return A byte[] representation of the hash
      */
-    public static byte[] calculateSHA1(File file) {
+    public static byte[] calculateSHA1(Path path) {
         byte[] sha1;
 
         try {
-            sha1 = MessageDigest.getInstance("SHA-1").digest(readAllBytes(file));
+            sha1 = MessageDigest.getInstance("SHA-1").digest(Files.readAllBytes(path));
         } catch (Exception e) {
             throw new RuntimeException("Could not calculate pack hash", e);
         }
@@ -163,29 +169,24 @@ public class FileUtils {
     }
 
     /**
-     * An android compatible version of {@link Files#readAllBytes}
-     *
-     * @param file File to read bytes of
-     * @return The byte array of the file
+     * @param resource the internal resource to read off from
+     * @return the byte array of an InputStream
      */
-    public static byte[] readAllBytes(File file) {
-        try (InputStream stream = new FileInputStream(file)) {
+    public static byte[] readAllBytes(String resource) {
+        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow(resource)) {
             return stream.readAllBytes();
         } catch (IOException e) {
-            throw new RuntimeException("Cannot read " + file);
+            throw new RuntimeException("Error while trying to read internal input stream!", e);
         }
     }
 
     /**
      * @param resource the internal resource to read off from
-     * @return the byte array of an InputStream
+     * 
+     * @return the contents decoded as a UTF-8 String
      */
-    public static byte[] readAllBytes(String resource) {
-        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource(resource)) {
-            return stream.readAllBytes();
-        } catch (IOException e) {
-            throw new RuntimeException("Error while trying to read internal input stream!", e);
-        }
+    public static String readToString(String resource) {
+        return new String(readAllBytes(resource), StandardCharsets.UTF_8);
     }
 
     /**
@@ -227,7 +228,7 @@ public class FileUtils {
      * @return a set of all the classes annotated by the given annotation
      */
     public static Set<Class<?>> getGeneratedClassesForAnnotation(String input) {
-        try (InputStream annotatedClass = GeyserImpl.getInstance().getBootstrap().getResource(input);
+        try (InputStream annotatedClass = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow(input);
              BufferedReader reader = new BufferedReader(new InputStreamReader(annotatedClass))) {
             return reader.lines().map(className -> {
                 try {

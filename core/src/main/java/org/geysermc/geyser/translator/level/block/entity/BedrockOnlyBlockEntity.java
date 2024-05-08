@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
@@ -57,12 +58,12 @@ public interface BedrockOnlyBlockEntity extends RequiresBlockState {
      * @param blockState Java BlockState of block.
      * @return Bedrock tag, or null if not a Bedrock-only Block Entity
      */
-    static NbtMap getTag(GeyserSession session, Vector3i position, int blockState) {
+    static @Nullable NbtMap getTag(GeyserSession session, Vector3i position, int blockState) {
         if (FlowerPotBlockEntityTranslator.isFlowerBlock(blockState)) {
             return FlowerPotBlockEntityTranslator.getTag(session, blockState, position);
         } else if (PistonBlockEntityTranslator.isBlock(blockState)) {
             return PistonBlockEntityTranslator.getTag(blockState, position);
-        } else if (BlockStateValues.isNonWaterCauldron(blockState)) {
+        } else if (BlockStateValues.isCauldron(blockState)) {
             // As of 1.18.30: this is required to make rendering not look weird on chunk load (lava and snow cauldrons look dim)
             return NbtMap.builder()
                     .putString("id", "Cauldron")

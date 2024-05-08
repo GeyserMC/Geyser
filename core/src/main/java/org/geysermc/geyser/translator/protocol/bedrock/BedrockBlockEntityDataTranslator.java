@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetJigsawBlockPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundSignUpdatePacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundSetJigsawBlockPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundSignUpdatePacket;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
@@ -43,9 +43,9 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
     public void translate(GeyserSession session, BlockEntityDataPacket packet) {
         NbtMap tag = packet.getData();
         String id = tag.getString("id");
-        if (id.equals("Sign")) {
+        if (id.endsWith("Sign")) {
             // Hanging signs are narrower
-            int widthMax = SignUtils.getSignWidthMax(session.getGeyser().getWorldManager().getBlockAt(session, packet.getBlockPosition()));
+            int widthMax = SignUtils.getSignWidthMax(id.startsWith("Hanging"));
 
             String text = MessageTranslator.convertToPlainText(
                 tag.getCompound(session.getWorldCache().isEditingSignOnFront() ? "FrontText" : "BackText").getString("Text"));
@@ -108,7 +108,7 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
             if (iterator < lines.length) lines[iterator] = newMessage.toString();
             Vector3i pos = Vector3i.from(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
             ServerboundSignUpdatePacket signUpdatePacket = new ServerboundSignUpdatePacket(pos, lines, session.getWorldCache().isEditingSignOnFront());
-            session.sendDownstreamPacket(signUpdatePacket);
+            session.sendDownstreamGamePacket(signUpdatePacket);
 
         } else if (id.equals("JigsawBlock")) {
             // Client has just sent a jigsaw block update
@@ -118,9 +118,10 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
             String pool = tag.getString("target_pool");
             String finalState = tag.getString("final_state");
             String joint = tag.getString("joint");
+            // last two parameters are priority values that Bedrock doesn't have (yet?)
             ServerboundSetJigsawBlockPacket jigsawPacket = new ServerboundSetJigsawBlockPacket(pos, name, target, pool,
-                    finalState, joint);
-            session.sendDownstreamPacket(jigsawPacket);
+                    finalState, joint, 0, 0);
+            session.sendDownstreamGamePacket(jigsawPacket);
         }
 
     }

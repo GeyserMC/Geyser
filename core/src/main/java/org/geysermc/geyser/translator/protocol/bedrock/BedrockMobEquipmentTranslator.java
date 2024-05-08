@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundSetCarriedItemPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundUseItemPacket;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSetCarriedItemPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemPacket;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -58,7 +58,7 @@ public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipment
         session.getPlayerInventory().setHeldItemSlot(newSlot);
 
         ServerboundSetCarriedItemPacket setCarriedItemPacket = new ServerboundSetCarriedItemPacket(newSlot);
-        session.sendDownstreamPacket(setCarriedItemPacket);
+        session.sendDownstreamGamePacket(setCarriedItemPacket);
 
         GeyserItemStack newItem = session.getPlayerInventory().getItemInHand();
 
@@ -66,7 +66,7 @@ public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipment
             // Activate shield since we are already sneaking
             // (No need to send a release item packet - Java doesn't do this when swapping items)
             // Required to do it a tick later or else it doesn't register
-            session.scheduleInEventLoop(() -> session.sendDownstreamPacket(new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getWorldCache().nextPredictionSequence())),
+            session.scheduleInEventLoop(() -> session.sendDownstreamGamePacket(new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getWorldCache().nextPredictionSequence())),
                     50, TimeUnit.MILLISECONDS);
         }
 

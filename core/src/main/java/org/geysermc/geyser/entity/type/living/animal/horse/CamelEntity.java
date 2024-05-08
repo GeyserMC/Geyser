@@ -25,12 +25,8 @@
 
 package org.geysermc.geyser.entity.type.living.animal.horse;
 
-import com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute;
-import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeType;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.cloudburstmc.math.vector.Vector2f;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
@@ -44,11 +40,14 @@ import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.vehicle.CamelVehicleComponent;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.entity.vehicle.VehicleComponent;
-import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.tags.ItemTag;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.Attribute;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 
-import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class CamelEntity extends AbstractHorseEntity implements Tickable, ClientVehicle {
@@ -102,8 +101,8 @@ public class CamelEntity extends AbstractHorseEntity implements Tickable, Client
     }
 
     @Override
-    public boolean canEat(Item item) {
-        return item == Items.CACTUS;
+    protected @Nullable ItemTag getFoodTag() {
+        return ItemTag.CAMEL_FOOD;
     }
 
     @Override
@@ -132,7 +131,7 @@ public class CamelEntity extends AbstractHorseEntity implements Tickable, Client
     @Override
     protected AttributeData calculateAttribute(Attribute javaAttribute, GeyserAttributeType type) {
         AttributeData attributeData = super.calculateAttribute(javaAttribute, type);
-        if (javaAttribute.getType() == AttributeType.Builtin.HORSE_JUMP_STRENGTH) {
+        if (javaAttribute.getType() == AttributeType.Builtin.GENERIC_JUMP_STRENGTH) {
             vehicleComponent.setHorseJumpStrength(attributeData.getValue());
         }
         return attributeData;
@@ -147,13 +146,11 @@ public class CamelEntity extends AbstractHorseEntity implements Tickable, Client
         }
     }
 
-    @Nonnull
     @Override
     public VehicleComponent<?> getVehicleComponent() {
         return vehicleComponent;
     }
 
-    @Nonnull
     @Override
     public Vector2f getAdjustedInput(Vector2f input) {
         return input.mul(0.5f, input.getY() < 0 ? 0.25f : 1.0f);
@@ -170,7 +167,6 @@ public class CamelEntity extends AbstractHorseEntity implements Tickable, Client
         if (dashTicks == 0 && session.getPlayerEntity().getFlag(EntityFlag.SPRINTING)) {
             return moveSpeed + 0.1f;
         }
-
         return moveSpeed;
     }
 

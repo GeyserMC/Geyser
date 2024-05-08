@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.translator.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetBeaconPacket;
 import it.unimi.dsi.fastutil.ints.IntSets;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
@@ -47,6 +45,8 @@ import org.geysermc.geyser.inventory.holder.BlockInventoryHolder;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundSetBeaconPacket;
 
 import java.util.OptionalInt;
 
@@ -114,12 +114,12 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
         // Input a beacon payment
         BeaconPaymentAction beaconPayment = (BeaconPaymentAction) request.getActions()[0];
         ServerboundSetBeaconPacket packet = new ServerboundSetBeaconPacket(toJava(beaconPayment.getPrimaryEffect()), toJava(beaconPayment.getSecondaryEffect()));
-        session.sendDownstreamPacket(packet);
+        session.sendDownstreamGamePacket(packet);
         return acceptRequest(request, makeContainerEntries(session, inventory, IntSets.emptySet()));
     }
 
     private OptionalInt toJava(int effectChoice) {
-        return effectChoice == 0 ? OptionalInt.empty() : OptionalInt.of(effectChoice);
+        return effectChoice == 0 ? OptionalInt.empty() : OptionalInt.of(effectChoice - 1);
     }
 
     @Override

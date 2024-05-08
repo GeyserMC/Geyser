@@ -25,10 +25,12 @@
 
 package org.geysermc.geyser.translator.text;
 
-import com.github.steveice10.mc.protocol.data.DefaultComponentSerializer;
-import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
+import org.geysermc.mcprotocollib.protocol.data.DefaultComponentSerializer;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ScoreComponent;
 import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.text.flattener.ComponentFlattener;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
@@ -50,8 +52,8 @@ public class MessageTranslator {
     // Possible TODO: replace the legacy hover event serializer with an empty one since we have no use for hover events
     private static final GsonComponentSerializer GSON_SERIALIZER;
 
-    private static final LegacyComponentSerializer LEGACY_SERIALIZER;
-    private static final String ALL_COLORS;
+    private static final LegacyComponentSerializer BEDROCK_SERIALIZER;
+    private static final String BEDROCK_COLORS;
 
     // Store team colors for player names
     private static final Map<TeamColor, String> TEAM_COLORS = new EnumMap<>(TeamColor.class);
@@ -99,47 +101,43 @@ public class MessageTranslator {
         // Tell MCProtocolLib to use this serializer, too.
         DefaultComponentSerializer.set(GSON_SERIALIZER);
 
-        LegacyComponentSerializer legacySerializer;
-        String allColors;
-        try {
-            Class.forName("net.kyori.adventure.text.serializer.legacy.CharacterAndFormat");
+        // Customize the formatting characters of our legacy serializer for bedrock edition
+        List<CharacterAndFormat> formats = new ArrayList<>(CharacterAndFormat.defaults());
+        // The following two do not yet exist on Bedrock - https://bugs.mojang.com/browse/MCPE-41729
+        formats.remove(CharacterAndFormat.STRIKETHROUGH);
+        formats.remove(CharacterAndFormat.UNDERLINED);
 
-            List<CharacterAndFormat> formats = new ArrayList<>(CharacterAndFormat.defaults());
-            // The following two do not yet exist on Bedrock - https://bugs.mojang.com/browse/MCPE-41729
-            formats.remove(CharacterAndFormat.STRIKETHROUGH);
-            formats.remove(CharacterAndFormat.UNDERLINED);
+        formats.add(CharacterAndFormat.characterAndFormat('g', TextColor.color(221, 214, 5))); // Minecoin Gold
+        // Add the new characters implemented in 1.19.80
+        formats.add(CharacterAndFormat.characterAndFormat('h', TextColor.color(227, 212, 209))); // Quartz
+        formats.add(CharacterAndFormat.characterAndFormat('i', TextColor.color(206, 202, 202))); // Iron
+        formats.add(CharacterAndFormat.characterAndFormat('j', TextColor.color(68, 58, 59))); // Netherite
+        formats.add(CharacterAndFormat.characterAndFormat('m', TextColor.color(151, 22, 7))); // Redstone
+        formats.add(CharacterAndFormat.characterAndFormat('n', TextColor.color(180, 104, 77))); // Copper
+        formats.add(CharacterAndFormat.characterAndFormat('p', TextColor.color(222, 177, 45))); // Gold
+        formats.add(CharacterAndFormat.characterAndFormat('q', TextColor.color(17, 160, 54))); // Emerald
+        formats.add(CharacterAndFormat.characterAndFormat('s', TextColor.color(44, 186, 168))); // Diamond
+        formats.add(CharacterAndFormat.characterAndFormat('t', TextColor.color(33, 73, 123))); // Lapis
+        formats.add(CharacterAndFormat.characterAndFormat('u', TextColor.color(154, 92, 198))); // Amethyst
 
-            formats.add(CharacterAndFormat.characterAndFormat('g', TextColor.color(221, 214, 5))); // Minecoin Gold
-            // Add the new characters implemented in 1.19.80
-            formats.add(CharacterAndFormat.characterAndFormat('h', TextColor.color(227, 212, 209))); // Quartz
-            formats.add(CharacterAndFormat.characterAndFormat('i', TextColor.color(206, 202, 202))); // Iron
-            formats.add(CharacterAndFormat.characterAndFormat('j', TextColor.color(68, 58, 59))); // Netherite
-            formats.add(CharacterAndFormat.characterAndFormat('m', TextColor.color(151, 22, 7))); // Redstone
-            formats.add(CharacterAndFormat.characterAndFormat('n', TextColor.color(180, 104, 77))); // Copper
-            formats.add(CharacterAndFormat.characterAndFormat('p', TextColor.color(222, 177, 45))); // Gold
-            formats.add(CharacterAndFormat.characterAndFormat('q', TextColor.color(17, 160, 54))); // Emerald
-            formats.add(CharacterAndFormat.characterAndFormat('s', TextColor.color(44, 186, 168))); // Diamond
-            formats.add(CharacterAndFormat.characterAndFormat('t', TextColor.color(33, 73, 123))); // Lapis
-            formats.add(CharacterAndFormat.characterAndFormat('u', TextColor.color(154, 92, 198))); // Amethyst
+        // Can be removed once Adventure 1.15.0 is released (see https://github.com/KyoriPowered/adventure/pull/954)
+        ComponentFlattener flattener = ComponentFlattener.basic().toBuilder()
+                .mapper(ScoreComponent.class, component -> "")
+                .build();
 
-            legacySerializer = LegacyComponentSerializer.legacySection().toBuilder()
-                    .formats(formats)
-                    .build();
+        BEDROCK_SERIALIZER = LegacyComponentSerializer.legacySection().toBuilder()
+                .formats(formats)
+                .flattener(flattener)
+                .build();
 
-            StringBuilder colorBuilder = new StringBuilder();
-            for (CharacterAndFormat format : formats) {
-                if (format.format() instanceof TextColor) {
-                    colorBuilder.append(format.character());
-                }
+        // cache all the legacy character codes
+        StringBuilder colorBuilder = new StringBuilder();
+        for (CharacterAndFormat format : formats) {
+            if (format.format() instanceof TextColor) {
+                colorBuilder.append(format.character());
             }
-            allColors = colorBuilder.toString();
-        } catch (ClassNotFoundException ignored) {
-            // Velocity doesn't have this yet.
-            legacySerializer = LegacyComponentSerializer.legacySection();
-            allColors = "0123456789abcdef";
         }
-        LEGACY_SERIALIZER = legacySerializer;
-        ALL_COLORS = allColors;
+        BEDROCK_COLORS = colorBuilder.toString();
     }
 
     /**
@@ -154,7 +152,7 @@ public class MessageTranslator {
             // Translate any components that require it
             message = RENDERER.render(message, locale);
 
-            String legacy = LEGACY_SERIALIZER.serialize(message);
+            String legacy = BEDROCK_SERIALIZER.serialize(message);
 
             StringBuilder finalLegacy = new StringBuilder();
             char[] legacyChars = legacy.toCharArray();
@@ -170,7 +168,7 @@ public class MessageTranslator {
                 }
 
                 char next = legacyChars[++i];
-                if (ALL_COLORS.indexOf(next) != -1) {
+                if (BEDROCK_COLORS.indexOf(next) != -1) {
                     // Append this color code, as well as a necessary reset code
                     if (!lastFormatReset) {
                         finalLegacy.append(RESET);
@@ -189,21 +187,35 @@ public class MessageTranslator {
         }
     }
 
-    public static String convertMessage(String message, String locale) {
+    /**
+     * Convenience method for locale getting.
+     */
+    public static String convertJsonMessage(GeyserSession session, String message) {
+        return convertJsonMessage(message, session.locale());
+    }
+
+    public static String convertJsonMessage(String message, String locale) {
         return convertMessage(GSON_SERIALIZER.deserialize(message), locale);
     }
 
-    public static String convertMessage(String message) {
-        return convertMessage(message, GeyserLocale.getDefaultLocale());
+    /**
+     * Convenience method for locale getting.
+     */
+    public static String convertMessage(GeyserSession session, Component message) {
+        return convertMessage(message, session.locale());
     }
 
+    /**
+     * DO NOT USE THIS METHOD unless where you're calling from does not have a (reliable) way of getting the
+     * context's locale.
+     */
     public static String convertMessage(Component message) {
         return convertMessage(message, GeyserLocale.getDefaultLocale());
     }
 
     /**
-     * Verifies the message is valid JSON in case it's plaintext. Works around GsonComponentSeraializer not using lenient mode.
-     * See https://wiki.vg/Chat for messages sent in lenient mode, and for a description on leniency.
+     * Verifies the message is valid JSON in case it's plaintext. Works around GsonComponentSerializer not using lenient mode.
+     * See <a href="https://wiki.vg/Chat">here</a> for messages sent in lenient mode, and for a description on leniency.
      *
      * @param message Potentially lenient JSON message
      * @param locale Locale to use for translation strings
@@ -218,9 +230,10 @@ public class MessageTranslator {
         }
 
         try {
-            return convertMessage(message, locale);
+            return convertJsonMessage(message, locale);
         } catch (Exception ignored) {
-            String convertedMessage = convertMessage(convertToJavaMessage(message), locale);
+            // Use the default legacy serializer since message is java-legacy
+            String convertedMessage = convertMessage(LegacyComponentSerializer.legacySection().deserialize(message), locale);
 
             // We have to do this since Adventure strips the starting reset character
             if (message.startsWith(RESET) && !convertedMessage.startsWith(RESET)) {
@@ -242,10 +255,23 @@ public class MessageTranslator {
      * @return The formatted JSON string
      */
     public static String convertToJavaMessage(String message) {
-        Component component = LegacyComponentSerializer.legacySection().deserialize(message);
+        Component component = BEDROCK_SERIALIZER.deserialize(message);
         return GSON_SERIALIZER.serialize(component);
     }
 
+    /**
+     * Convert a Java message to plain text
+     *
+     * @param message Message to convert
+     * @param locale Locale to use for translation strings
+     * @return The plain text of the message
+     */
+    public static String convertToPlainText(Component message, String locale) {
+        if (message == null) {
+            return "";
+        }
+        return PlainTextComponentSerializer.plainText().serialize(RENDERER.render(message, locale));
+    }
 
     /**
      * Convert legacy format message to plain text
@@ -275,7 +301,7 @@ public class MessageTranslator {
      * @param locale Locale to use for translation strings
      * @return The plain text of the message
      */
-    public static String convertToPlainText(String message, String locale) {
+    public static String convertToPlainTextLenient(String message, String locale) {
         if (message == null) {
             return "";
         }
@@ -304,7 +330,7 @@ public class MessageTranslator {
 
         textPacket.setNeedsTranslation(false);
 
-        TextDecoration decoration = session.getChatTypes().get(chatType);
+        TextDecoration decoration = session.getRegistryCache().chatTypes().byId(chatType);
         if (decoration != null) {
             // As of 1.19 - do this to apply all the styling for signed messages
             // Though, Bedrock cannot care about the signed stuff.

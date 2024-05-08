@@ -26,15 +26,17 @@
 package org.geysermc.geyser.inventory.item;
 
 import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Locale;
 
 /**
  * Potion identifiers and their respective Bedrock IDs used with arrows.
- * https://minecraft.gamepedia.com/Arrow#Item_Data
+ * <a href="https://minecraft.wiki/w/Arrow#Data_values">See here</a>
  */
 @Getter
 public enum TippedArrowPotion {
+    WATER(-1, ArrowParticleColors.NONE), // Guessing this based off of the Potion enum. TODO merge?
     MUNDANE(2, ArrowParticleColors.NONE), // 3 is extended?
     THICK(4, ArrowParticleColors.NONE),
     AWKWARD(5, ArrowParticleColors.NONE),
@@ -93,16 +95,14 @@ public enum TippedArrowPotion {
         this.javaColor = arrowParticleColor.getColor();
     }
 
-    public static TippedArrowPotion getByJavaIdentifier(String javaIdentifier) {
-        for (TippedArrowPotion potion : VALUES) {
-            if (potion.javaIdentifier.equals(javaIdentifier)) {
-                return potion;
-            }
+    public static @Nullable TippedArrowPotion of(int id) {
+        if (id >= 0 && id < VALUES.length) {
+            return VALUES[id];
         }
         return null;
     }
 
-    public static TippedArrowPotion getByBedrockId(int bedrockId) {
+    public static @Nullable TippedArrowPotion getByBedrockId(int bedrockId) {
         for (TippedArrowPotion potion : VALUES) {
             if (potion.bedrockId == bedrockId) {
                 return potion;
@@ -115,7 +115,7 @@ public enum TippedArrowPotion {
      * @param color the potion color to look up
      * @return the tipped arrow potion that most closely resembles that color.
      */
-    public static TippedArrowPotion getByJavaColor(int color) {
+    public static @Nullable TippedArrowPotion getByJavaColor(int color) {
         for (TippedArrowPotion potion : VALUES) {
             if (potion.javaColor == color) {
                 return potion;

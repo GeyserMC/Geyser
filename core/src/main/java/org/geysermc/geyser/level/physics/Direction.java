@@ -25,18 +25,17 @@
 
 package org.geysermc.geyser.level.physics;
 
-import org.cloudburstmc.math.vector.Vector3i;
 import lombok.Getter;
-
-import javax.annotation.Nonnull;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.math.vector.Vector3i;
 
 public enum Direction {
-    DOWN(1, Vector3i.from(0, -1, 0), Axis.Y, com.github.steveice10.mc.protocol.data.game.entity.object.Direction.DOWN),
-    UP(0, Vector3i.UNIT_Y, Axis.Y, com.github.steveice10.mc.protocol.data.game.entity.object.Direction.UP),
-    NORTH(3, Vector3i.from(0, 0, -1), Axis.Z, com.github.steveice10.mc.protocol.data.game.entity.object.Direction.NORTH),
-    SOUTH(2, Vector3i.UNIT_Z, Axis.Z, com.github.steveice10.mc.protocol.data.game.entity.object.Direction.SOUTH),
-    WEST(5, Vector3i.from(-1, 0, 0), Axis.X, com.github.steveice10.mc.protocol.data.game.entity.object.Direction.WEST),
-    EAST(4, Vector3i.UNIT_X, Axis.X, com.github.steveice10.mc.protocol.data.game.entity.object.Direction.EAST);
+    DOWN(1, Vector3i.from(0, -1, 0), Axis.Y, org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction.DOWN),
+    UP(0, Vector3i.UNIT_Y, Axis.Y, org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction.UP),
+    NORTH(3, Vector3i.from(0, 0, -1), Axis.Z, org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction.NORTH),
+    SOUTH(2, Vector3i.UNIT_Z, Axis.Z, org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction.SOUTH),
+    WEST(5, Vector3i.from(-1, 0, 0), Axis.X, org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction.WEST),
+    EAST(4, Vector3i.UNIT_X, Axis.X, org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction.EAST);
 
     public static final Direction[] VALUES = values();
     public static final Direction[] HORIZONTAL = new Direction[]{Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
@@ -46,9 +45,9 @@ public enum Direction {
     private final Vector3i unitVector;
     @Getter
     private final Axis axis;
-    private final com.github.steveice10.mc.protocol.data.game.entity.object.Direction pistonValue;
+    private final org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction pistonValue;
 
-    Direction(int reversedId, Vector3i unitVector, Axis axis, com.github.steveice10.mc.protocol.data.game.entity.object.Direction pistonValue) {
+    Direction(int reversedId, Vector3i unitVector, Axis axis, org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction pistonValue) {
         this.reversedId = reversedId;
         this.unitVector = unitVector;
         this.axis = axis;
@@ -67,8 +66,7 @@ public enum Direction {
         return axis == Axis.X || axis == Axis.Z;
     }
 
-    @Nonnull
-    public static Direction fromPistonValue(com.github.steveice10.mc.protocol.data.game.entity.object.Direction pistonValue) {
+    public static @NonNull Direction fromPistonValue(org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction pistonValue) {
         for (Direction direction : VALUES) {
             if (direction.pistonValue == pistonValue) {
                 return direction;

@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundExplodePacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundExplodePacket;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
@@ -46,6 +46,7 @@ public class JavaExplodeTranslator extends PacketTranslator<ClientboundExplodePa
 
     @Override
     public void translate(GeyserSession session, ClientboundExplodePacket packet) {
+        // todo 1.20.3 handle the 4 new fields
         LevelEventGenericPacket levelEventPacket = new LevelEventGenericPacket();
         levelEventPacket.setType(LevelEvent.PARTICLE_BLOCK_EXPLOSION);
         NbtMapBuilder builder = NbtMap.builder();

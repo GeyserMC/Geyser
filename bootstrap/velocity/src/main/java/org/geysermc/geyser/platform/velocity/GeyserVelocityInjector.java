@@ -29,6 +29,7 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.local.LocalAddress;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.network.netty.GeyserInjector;
 import org.geysermc.geyser.network.netty.LocalServerChannelWrapper;
@@ -76,7 +77,7 @@ public class GeyserVelocityInjector extends GeyserInjector {
                 .channel(LocalServerChannelWrapper.class)
                 .childHandler(new ChannelInitializer<>() {
                     @Override
-                    protected void initChannel(Channel ch) throws Exception {
+                    protected void initChannel(@NonNull Channel ch) throws Exception {
                         initChannel.invoke(channelInitializer, ch);
 
                         if (bootstrap.getGeyserConfig().isDisableCompression() && GeyserVelocityCompressionDisabler.ENABLED) {

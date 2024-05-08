@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.util;
 
-import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
 import lombok.Getter;
+import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.PreferencesCache;
 import org.geysermc.geyser.text.ChatColor;
@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Manages the sending of a cooldown indicator to the Bedrock player as there is no cooldown indicator in Bedrock.
- * Much of the work here is from the wonderful folks from ViaRewind: https://github.com/ViaVersion/ViaRewind
+ * Much of the work here is from the wonderful folks from <a href="https://github.com/ViaVersion/ViaRewind">ViaRewind</a>
  */
 public class CooldownUtils {
     private static CooldownType DEFAULT_SHOW_COOLDOWN;

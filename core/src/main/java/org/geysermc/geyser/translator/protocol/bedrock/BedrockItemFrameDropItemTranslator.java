@@ -25,31 +25,33 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.github.steveice10.mc.protocol.data.game.entity.player.InteractAction;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ItemFrameDropItemPacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 
 /**
  * Pre-1.16.210: used for both survival and creative item frame item removal
- *
+ * <p>
  * 1.16.210: only used in creative.
+ * 1.20.70: no longer used.
  */
 @Translator(packet = ItemFrameDropItemPacket.class)
 public class BedrockItemFrameDropItemTranslator extends PacketTranslator<ItemFrameDropItemPacket> {
 
+    // TODO: Remove when 1.20.60 is no longer supported
     @Override
     public void translate(GeyserSession session, ItemFrameDropItemPacket packet) {
         Entity entity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
         if (entity != null) {
             ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(entity.getEntityId(),
                     InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
-            session.sendDownstreamPacket(interactPacket);
+            session.sendDownstreamGamePacket(interactPacket);
         }
     }
 }

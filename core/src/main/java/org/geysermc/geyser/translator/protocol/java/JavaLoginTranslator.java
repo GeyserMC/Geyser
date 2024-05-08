@@ -25,30 +25,25 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundLoginPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundCustomPayloadPacket;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerSpawnInfo;
+import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundLoginPacket;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
+import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetPlayerGameTypePacket;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.erosion.GeyserboundHandshakePacketHandler;
-import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.TextDecoration;
-import org.geysermc.geyser.translator.level.BiomeTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.DimensionUtils;
-import org.geysermc.geyser.util.JavaCodecUtil;
-import org.geysermc.geyser.util.PluginMessageUtils;
-
-import java.util.Map;
+import org.geysermc.geyser.util.EntityUtils;
 
 @Translator(packet = ClientboundLoginPacket.class)
 public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket> {
@@ -63,42 +58,46 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             session.setErosionHandler(new GeyserboundHandshakePacketHandler(session));
         }
 
-        Map<String, JavaDimension> dimensions = session.getDimensions();
-        dimensions.clear();
-
-        JavaDimension.load(packet.getRegistry(), dimensions);
-
-        Int2ObjectMap<TextDecoration> chatTypes = session.getChatTypes();
-        chatTypes.clear();
-        for (CompoundTag tag : JavaCodecUtil.iterateAsTag(packet.getRegistry().get("minecraft:chat_type"))) {
-            // The ID is NOT ALWAYS THE SAME! ViaVersion as of 1.19 adds two registry entries that do NOT match vanilla.
-            int id = ((IntTag) tag.get("id")).getValue();
-            CompoundTag element = tag.get("element");
-            CompoundTag chat = element.get("chat");
-            TextDecoration textDecoration = null;
-            if (chat != null) {
-                textDecoration = new TextDecoration(chat);
-            }
-            chatTypes.put(id, textDecoration);
-        }
+        PlayerSpawnInfo spawnInfo = packet.getCommonPlayerSpawnInfo();
 
         // If the player is already initialized and a join game packet is sent, they
         // are swapping servers
         if (session.isSpawned()) {
-            String fakeDim = DimensionUtils.getTemporaryDimension(session.getDimension(), packet.getDimension());
+            int fakeDim = DimensionUtils.getTemporaryDimension(session.getDimension(), spawnInfo.getDimension());
             DimensionUtils.switchDimension(session, fakeDim);
 
             session.getWorldCache().removeScoreboard();
+
+            // Remove all bossbars
+            session.getEntityCache().removeAllBossBars();
+            // Remove extra hearts, hunger, etc.
+            entity.resetAttributes();
+            entity.resetMetadata();
+
+            // Reset weather
+            if (session.isRaining()) {
+                LevelEventPacket stopRainPacket = new LevelEventPacket();
+                stopRainPacket.setType(LevelEvent.STOP_RAINING);
+                stopRainPacket.setData(0);
+                stopRainPacket.setPosition(Vector3f.ZERO);
+                session.sendUpstreamPacket(stopRainPacket);
+                session.setRaining(false);
+            }
+
+            if (session.isThunder()) {
+                LevelEventPacket stopThunderPacket = new LevelEventPacket();
+                stopThunderPacket.setType(LevelEvent.STOP_THUNDERSTORM);
+                stopThunderPacket.setData(0);
+                stopThunderPacket.setPosition(Vector3f.ZERO);
+                session.sendUpstreamPacket(stopThunderPacket);
+                session.setThunder(false);
+            }
         }
-        session.setWorldName(packet.getWorldName());
+
+        session.setWorldName(spawnInfo.getWorldName());
         session.setLevels(packet.getWorldNames());
-
-        BiomeTranslator.loadServerBiomes(session, packet.getRegistry());
-        session.getTagCache().clear();
-
-        session.setGameMode(packet.getGameMode());
-
-        String newDimension = packet.getDimension();
+        session.setGameMode(spawnInfo.getGameMode());
+        int newDimension = spawnInfo.getDimension();
 
         boolean needsSpawnPacket = !session.isSentSpawnPacket();
         if (needsSpawnPacket) {
@@ -109,15 +108,13 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
 
             // It is now safe to send these packets
             session.getUpstream().sendPostStartGamePackets();
-        }
-
-        if (!needsSpawnPacket) {
+        } else {
             SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
-            playerGameTypePacket.setGamemode(packet.getGameMode().ordinal());
+            playerGameTypePacket.setGamemode(EntityUtils.toBedrockGamemode(spawnInfo.getGameMode()).ordinal());
             session.sendUpstreamPacket(playerGameTypePacket);
         }
 
-        entity.setLastDeathPosition(packet.getLastDeathPos());
+        entity.setLastDeathPosition(spawnInfo.getLastDeathPos());
 
         entity.updateBedrockMetadata();
 
@@ -130,25 +127,19 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
 
         session.setServerRenderDistance(packet.getViewDistance());
 
-        // TODO customize
+        // send this again now that we know the server render distance
+        // as the bedrock client isn't required to send a render distance
         session.sendJavaClientSettings();
 
-        session.sendDownstreamPacket(new ServerboundCustomPayloadPacket("minecraft:brand", PluginMessageUtils.getGeyserBrandData()));
-
-        // TODO don't send two packets
-//        if (true) {
-//            session.sendDownstreamPacket(new ServerboundCustomPayloadPacket("minecraft:register", Constants.PLUGIN_MESSAGE.getBytes(StandardCharsets.UTF_8)));
-//        }
-        // register the plugin messaging channels used in Floodgate
         if (session.remoteServer().authType() == AuthType.FLOODGATE) {
             session.sendDownstreamPacket(new ServerboundCustomPayloadPacket("minecraft:register", PluginMessageChannels.getFloodgateRegisterData()));
         }
 
-        if (!newDimension.equals(session.getDimension())) {
+        if (newDimension != session.getDimension()) {
             DimensionUtils.switchDimension(session, newDimension);
-        } else if (DimensionUtils.isCustomBedrockNetherId() && newDimension.equalsIgnoreCase(DimensionUtils.NETHER)) {
+        } else if (DimensionUtils.isCustomBedrockNetherId() && newDimension == DimensionUtils.NETHER) {
             // If the player is spawning into the "fake" nether, send them some fog
-            session.sendFog("minecraft:fog_hell");
+            session.camera().sendFog(DimensionUtils.BEDROCK_FOG_HELL);
         }
 
         ChunkUtils.loadDimension(session);

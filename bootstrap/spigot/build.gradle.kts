@@ -4,23 +4,21 @@ dependencies {
         isTransitive = false
     }
 
-    implementation(libs.adapters.spigot)
+    implementation(variantOf(libs.adapters.spigot) {
+        classifier("all") // otherwise the unshaded jar is used without the shaded NMS implementations
+    })
+    implementation(variantOf(libs.adapters.paper) {
+        classifier("all") // otherwise the unshaded jar is used without the shaded NMS implementations
+    })
 
     implementation(libs.commodore)
 
     implementation(libs.adventure.text.serializer.bungeecord)
-    
-    // Both folia-api and paper-mojangapi only provide Java 17 versions for 1.19
-    compileOnly(libs.folia.api) {
-        attributes {
-            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
-        }
-    }
-    compileOnly(libs.paper.mojangapi) {
-        attributes {
-            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
-        }
-    }
+
+    compileOnly(libs.folia.api)
+    compileOnly(libs.paper.mojangapi)
+
+    compileOnlyApi(libs.viaversion)
 }
 
 platformRelocate("it.unimi.dsi.fastutil")
@@ -39,6 +37,12 @@ application {
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
+
+    // Prevents Paper 1.20.5+ from remapping Geyser
+    manifest {
+        attributes["paperweight-mappings-namespace"] = "mojang"
+    }
+
     archiveBaseName.set("Geyser-Spigot")
 
     dependencies {
@@ -46,6 +50,7 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
 
         // We cannot shade Netty, or else native libraries will not load
         // Needed because older Spigot builds do not provide the haproxy module
+        exclude(dependency("io.netty.incubator:.*"))
         exclude(dependency("io.netty:netty-transport-classes-epoll:.*"))
         exclude(dependency("io.netty:netty-transport-native-epoll:.*"))
         exclude(dependency("io.netty:netty-transport-native-unix-common:.*"))

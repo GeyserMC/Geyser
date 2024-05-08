@@ -25,8 +25,7 @@
 
 package org.geysermc.geyser.util;
 
-import com.github.steveice10.mc.protocol.data.game.level.sound.BuiltinSound;
-import com.github.steveice10.mc.protocol.data.game.level.sound.Sound;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
@@ -39,6 +38,7 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.SoundMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.level.sound.Sound;
 
 import java.util.Locale;
 
@@ -51,7 +51,7 @@ public final class SoundUtils {
      * @param sound the sound name
      * @return a sound event from the given sound
      */
-    private static SoundEvent toSoundEvent(String sound) {
+    private static @Nullable SoundEvent toSoundEvent(String sound) {
         try {
             return SoundEvent.valueOf(sound.toUpperCase(Locale.ROOT).replace(".", "_"));
         } catch (Exception ex) {
@@ -66,22 +66,20 @@ public final class SoundUtils {
      * @return a Bedrock sound
      */
     public static String translatePlaySound(String javaIdentifier) {
-        javaIdentifier = trim(javaIdentifier);
-
-        SoundMapping soundMapping = Registries.SOUNDS.get(javaIdentifier);
+        String soundIdentifier = removeMinecraftNamespace(javaIdentifier);
+        SoundMapping soundMapping = Registries.SOUNDS.get(soundIdentifier);
         if (soundMapping == null || soundMapping.getPlaysound() == null) {
             // no mapping
             GeyserImpl.getInstance().getLogger().debug("[PlaySound] Defaulting to sound server gave us for " + javaIdentifier);
-            return javaIdentifier;
+            return soundIdentifier;
         }
         return soundMapping.getPlaysound();
     }
 
-    private static String trim(String identifier) {
-        // Drop any namespace if applicable
-        int i = identifier.indexOf(':');
-        if (i >= 0) {
-            return identifier.substring(i + 1);
+    private static String removeMinecraftNamespace(String identifier) {
+        // Drop any minecraft namespace if applicable
+        if (identifier.startsWith("minecraft:")) {
+            return identifier.substring("minecraft:".length());
         }
         return identifier;
     }
@@ -104,18 +102,12 @@ public final class SoundUtils {
      * @param pitch the pitch
      */
     public static void playSound(GeyserSession session, Sound javaSound, Vector3f position, float volume, float pitch) {
-        String packetSound;
-        if (!(javaSound instanceof BuiltinSound)) {
-            // Identifier needs trimmed probably.
-            packetSound = trim(javaSound.getName());
-        } else {
-            packetSound = javaSound.getName();
-        }
+        String soundIdentifier = removeMinecraftNamespace(javaSound.getName());
 
-        SoundMapping soundMapping = Registries.SOUNDS.get(packetSound);
+        SoundMapping soundMapping = Registries.SOUNDS.get(soundIdentifier);
         if (soundMapping == null) {
-            session.getGeyser().getLogger().debug("[Builtin] Sound mapping for " + packetSound + " not found; assuming custom.");
-            playSound(session, packetSound, position, volume, pitch);
+            session.getGeyser().getLogger().debug("[Builtin] Sound mapping for " + soundIdentifier + " not found; assuming custom.");
+            playSound(session, soundIdentifier, position, volume, pitch);
             return;
         }
 
@@ -137,10 +129,10 @@ public final class SoundUtils {
         LevelSoundEventPacket soundPacket = new LevelSoundEventPacket();
         SoundEvent sound = SoundUtils.toSoundEvent(soundMapping.getBedrock());
         if (sound == null) {
-            sound = SoundUtils.toSoundEvent(packetSound);
+            sound = SoundUtils.toSoundEvent(soundIdentifier);
         }
         if (sound == null) {
-            session.getGeyser().getLogger().debug("[Builtin] Sound for original '" + packetSound + "' to mappings '" + soundMapping.getBedrock()
+            session.getGeyser().getLogger().debug("[Builtin] Sound for original '" + soundIdentifier + "' to mappings '" + soundMapping.getBedrock()
                     + "' was not a playable level sound, or has yet to be mapped to an enum in SoundEvent.");
             return;
         }

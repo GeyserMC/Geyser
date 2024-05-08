@@ -25,63 +25,69 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundEditBookPacket;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Filterable;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.WritableBookContent;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundEditBookPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BookEditPacket;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.item.type.WrittenBookItem;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 @Translator(packet = BookEditPacket.class)
 public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> {
-    private static final int MAXIMUM_PAGE_LENGTH = 8192 * 4;
-    private static final int MAXIMUM_TITLE_LENGTH = 128 * 4;
 
     @Override
     public void translate(GeyserSession session, BookEditPacket packet) {
-        if (packet.getText() != null && !packet.getText().isEmpty() && packet.getText().getBytes(StandardCharsets.UTF_8).length > MAXIMUM_PAGE_LENGTH) {
+        if (packet.getText() != null && !packet.getText().isEmpty() && packet.getText().length() > WrittenBookItem.MAXIMUM_PAGE_EDIT_LENGTH) {
             session.getGeyser().getLogger().warning("Page length greater than server allowed!");
             return;
         }
 
         GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand();
         if (itemStack != null) {
-            CompoundTag tag = itemStack.getNbt() != null ? itemStack.getNbt() : new CompoundTag("");
-            ItemStack bookItem = new ItemStack(itemStack.getJavaId(), itemStack.getAmount(), tag);
-            List<Tag> pages = tag.contains("pages") ? new LinkedList<>(((ListTag) tag.get("pages")).getValue()) : new LinkedList<>();
+            DataComponents components = itemStack.getComponents() != null ? itemStack.getComponents() : new DataComponents(new HashMap<>());
+            ItemStack bookItem = new ItemStack(itemStack.getJavaId(), itemStack.getAmount(), components);
+            List<String> pages = new LinkedList<>();
+
+            WritableBookContent writableBookContent = components.get(DataComponentType.WRITABLE_BOOK_CONTENT);
+            if (writableBookContent != null) {
+                for (Filterable<String> page : writableBookContent.getPages()) {
+                    pages.add(page.getRaw());
+                }
+            }
 
             int page = packet.getPageNumber();
+            if (page < 0 || WrittenBookItem.MAXIMUM_PAGE_COUNT <= page) {
+                session.getGeyser().getLogger().warning("Edited page is out of acceptable bounds!");
+                return;
+            }
             switch (packet.getAction()) {
                 case ADD_PAGE: {
                     // Add empty pages in between
                     for (int i = pages.size(); i < page; i++) {
-                        pages.add(i, new StringTag("", ""));
+                        pages.add(i, "");
                     }
-                    pages.add(page, new StringTag("", MessageTranslator.convertToPlainText(packet.getText())));
+                    pages.add(page, MessageTranslator.convertToPlainText(packet.getText()));
                     break;
                 }
                 // Called whenever a page is modified
                 case REPLACE_PAGE: {
                     if (page < pages.size()) {
-                        pages.set(page, new StringTag("", MessageTranslator.convertToPlainText(packet.getText())));
+                        pages.set(page, MessageTranslator.convertToPlainText(packet.getText()));
                     } else {
                         // Add empty pages in between
                         for (int i = pages.size(); i < page; i++) {
-                            pages.add(i, new StringTag("", ""));
+                            pages.add(i, "");
                         }
-                        pages.add(page, new StringTag("", MessageTranslator.convertToPlainText(packet.getText())));
+                        pages.add(page, MessageTranslator.convertToPlainText(packet.getText()));
                     }
                     break;
                 }
@@ -99,37 +105,37 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
                     break;
                 }
                 case SIGN_BOOK: {
-                    tag.put(new StringTag("author", MessageTranslator.convertToPlainText(packet.getAuthor())));
-                    tag.put(new StringTag("title", MessageTranslator.convertToPlainText(packet.getTitle())));
+                    // As of JE 1.20.5, client no longer adds title and author on its own
                     break;
                 }
                 default:
                     return;
             }
             // Remove empty pages at the end
-            while (pages.size() > 0) {
-                StringTag currentPage = (StringTag) pages.get(pages.size() - 1);
-                if (currentPage.getValue() == null || currentPage.getValue().isEmpty()) {
+            while (!pages.isEmpty()) {
+                String currentPage = pages.get(pages.size() - 1);
+                if (currentPage.isEmpty()) {
                     pages.remove(pages.size() - 1);
                 } else {
                     break;
                 }
             }
-            tag.put(new ListTag("pages", pages));
+
+            List<Filterable<String>> filterablePages = new ArrayList<>(pages.size());
+            for (String raw : pages) {
+                filterablePages.add(new Filterable<>(raw, null));
+            }
+            components.put(DataComponentType.WRITABLE_BOOK_CONTENT, new WritableBookContent(filterablePages));
+
             // Update local copy
             session.getPlayerInventory().setItem(36 + session.getPlayerInventory().getHeldItemSlot(), GeyserItemStack.from(bookItem), session);
             session.getInventoryTranslator().updateInventory(session, session.getPlayerInventory());
-
-            List<String> networkPages = new ArrayList<>();
-            for (Tag pageTag : pages) {
-                networkPages.add(((StringTag) pageTag).getValue());
-            }
 
             String title;
             if (packet.getAction() == BookEditPacket.Action.SIGN_BOOK) {
                 // Add title to packet so the server knows we're signing
                 title = MessageTranslator.convertToPlainText(packet.getTitle());
-                if (title.getBytes(StandardCharsets.UTF_8).length > MAXIMUM_TITLE_LENGTH) {
+                if (title.length() > WrittenBookItem.MAXIMUM_TITLE_LENGTH) {
                     session.getGeyser().getLogger().warning("Book title larger than server allows!");
                     return;
                 }
@@ -137,7 +143,7 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
                 title = null;
             }
 
-            session.getBookEditCache().setPacket(new ServerboundEditBookPacket(session.getPlayerInventory().getHeldItemSlot(), networkPages, title));
+            session.getBookEditCache().setPacket(new ServerboundEditBookPacket(session.getPlayerInventory().getHeldItemSlot(), pages, title));
             // There won't be any more book updates after this, so we can try sending the edit packet immediately
             if (packet.getAction() == BookEditPacket.Action.SIGN_BOOK) {
                 session.getBookEditCache().checkForSend();

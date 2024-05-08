@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
-import com.github.steveice10.mc.protocol.data.game.level.map.MapData;
-import com.github.steveice10.mc.protocol.data.game.level.map.MapIcon;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundMapItemDataPacket;
+import org.geysermc.mcprotocollib.protocol.data.game.level.map.MapData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.map.MapIcon;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundMapItemDataPacket;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.MapDecoration;
 import org.cloudburstmc.protocol.bedrock.data.MapTrackedObject;
@@ -44,7 +44,6 @@ public class JavaMapItemDataTranslator extends PacketTranslator<ClientboundMapIt
     @Override
     public void translate(GeyserSession session, ClientboundMapItemDataPacket packet) {
         org.cloudburstmc.protocol.bedrock.packet.ClientboundMapItemDataPacket mapItemDataPacket = new org.cloudburstmc.protocol.bedrock.packet.ClientboundMapItemDataPacket();
-        boolean shouldStore = false;
 
         mapItemDataPacket.setUniqueMapId(packet.getMapId());
         mapItemDataPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
@@ -60,11 +59,6 @@ public class JavaMapItemDataTranslator extends PacketTranslator<ClientboundMapIt
             mapItemDataPacket.setYOffset(data.getY());
             mapItemDataPacket.setWidth(data.getColumns());
             mapItemDataPacket.setHeight(data.getRows());
-
-            // We have a full map image, this usually only happens on spawn for the initial image
-            if (mapItemDataPacket.getWidth() == 128 && mapItemDataPacket.getHeight() == 128) {
-                shouldStore = true;
-            }
 
             // Every int entry is an ARGB color
             int[] colors = new int[data.getData().length];
@@ -87,12 +81,11 @@ public class JavaMapItemDataTranslator extends PacketTranslator<ClientboundMapIt
             id++;
         }
 
-        // Store the map to send when the client requests it, as bedrock expects the data after a MapInfoRequestPacket
-        if (shouldStore) {
-            session.getStoredMaps().put(mapItemDataPacket.getUniqueMapId(), mapItemDataPacket);
+        // Client will ignore if sent too early
+        if (session.isSentSpawnPacket()) {
+            session.sendUpstreamPacket(mapItemDataPacket);
+        } else {
+            session.getUpstream().queuePostStartGamePacket(mapItemDataPacket);
         }
-
-        // Send anyway just in case
-        session.sendUpstreamPacket(mapItemDataPacket);
     }
 }

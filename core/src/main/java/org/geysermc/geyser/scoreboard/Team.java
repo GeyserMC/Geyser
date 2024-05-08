@@ -25,16 +25,16 @@
 
 package org.geysermc.geyser.scoreboard;
 
-import com.github.steveice10.mc.protocol.data.game.scoreboard.NameTagVisibility;
-import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.NameTagVisibility;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -46,7 +46,7 @@ public final class Team {
 
     @Getter(AccessLevel.PACKAGE)
     private final Set<String> entities;
-    @Nonnull private NameTagVisibility nameTagVisibility = NameTagVisibility.ALWAYS;
+    @NonNull private NameTagVisibility nameTagVisibility = NameTagVisibility.ALWAYS;
     @Setter private TeamColor color;
 
     private final TeamData currentData;

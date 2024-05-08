@@ -25,8 +25,9 @@
 
 package org.geysermc.geyser.translator.protocol.java.inventory;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.ClientboundContainerSetContentPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundContainerSetContentPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.session.GeyserSession;
@@ -48,12 +49,12 @@ public class JavaContainerSetContentTranslator extends PacketTranslator<Clientbo
         int inventorySize = inventory.getSize();
         for (int i = 0; i < packet.getItems().length; i++) {
             if (i >= inventorySize) {
-                GeyserImpl geyser = session.getGeyser();
-                geyser.getLogger().warning("ClientboundContainerSetContentPacket sent to " + session.bedrockUsername()
+                GeyserLogger logger = session.getGeyser().getLogger();
+                logger.warning("ClientboundContainerSetContentPacket sent to " + session.bedrockUsername()
                         + " that exceeds inventory size!");
-                if (geyser.getConfig().isDebugMode()) {
-                    geyser.getLogger().debug(packet);
-                    geyser.getLogger().debug(inventory);
+                if (logger.isDebug()) {
+                    logger.debug(packet);
+                    logger.debug(inventory);
                 }
                 updateInventory(session, inventory, packet.getContainerId());
                 // 1.18.1 behavior: the previous items will be correctly set, but the state ID and carried item will not

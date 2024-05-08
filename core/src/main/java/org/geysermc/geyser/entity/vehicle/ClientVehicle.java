@@ -27,13 +27,9 @@ package org.geysermc.geyser.entity.vehicle;
 
 import org.cloudburstmc.math.vector.Vector2f;
 
-import javax.annotation.Nonnull;
-
 public interface ClientVehicle {
-    @Nonnull
     VehicleComponent<?> getVehicleComponent();
 
-    @Nonnull
     Vector2f getAdjustedInput(Vector2f input);
 
     boolean isLogicalSideForUpdatingMovement();

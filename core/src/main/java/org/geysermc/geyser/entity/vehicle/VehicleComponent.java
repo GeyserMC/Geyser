@@ -25,9 +25,6 @@
 
 package org.geysermc.geyser.entity.vehicle;
 
-import com.github.steveice10.mc.protocol.data.game.entity.Effect;
-import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
 import it.unimi.dsi.fastutil.Pair;
 import org.cloudburstmc.math.TrigMath;
 import org.cloudburstmc.math.vector.Vector2f;
@@ -50,6 +47,9 @@ import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.translator.collision.SolidCollision;
 import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.MathUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
 
 import java.util.Optional;
 
@@ -150,7 +150,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         int[] blocks = vehicle.getSession().getGeyser().getWorldManager().getBlocksAt(vehicle.getSession(), iter);
 
         double waterHeight = getFluidHeightAndApplyMovement(Fluid.WATER, 0.014, min.getY(), vehicle, iter, blocks);
-        double lavaHeight = getFluidHeightAndApplyMovement(Fluid.LAVA, vehicle.getSession().getDimensionType().ultraWarm() ? 0.007 : 0.007 / 3, min.getY(), vehicle, iter, blocks);
+        double lavaHeight = getFluidHeightAndApplyMovement(Fluid.LAVA, vehicle.getSession().getDimensionType().ultrawarm() ? 0.007 : 0.007 / 3, min.getY(), vehicle, iter, blocks);
 
         if (lavaHeight > 0 && vehicle.getDefinition().entityType() == EntityType.STRIDER) {
             Vector3i blockPos = boundingBox.getBottomCenter().toInt();
@@ -424,7 +424,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
 
         // Iterate backwards
         for (int i = blocks.length - 1; i >= 0; i--) {
-            String cleanIdentifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(blocks[i], BlockMapping.AIR).getCleanJavaIdentifier();
+            String cleanIdentifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(blocks[i], BlockMapping.DEFAULT).getCleanJavaIdentifier();
 
             Vector3f multiplier = switch (cleanIdentifier) {
                 case "minecraft:cobweb" -> Vector3f.from(0.25f, 0.05f, 0.25f);

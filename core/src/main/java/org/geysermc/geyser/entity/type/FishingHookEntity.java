@@ -25,11 +25,10 @@
 
 package org.geysermc.geyser.entity.type;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
+import lombok.Getter;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
-import lombok.Getter;
 import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
@@ -38,6 +37,7 @@ import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.util.BlockUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -133,6 +133,9 @@ public class FishingHookEntity extends ThrowableEntity {
 
     @Override
     public void tick() {
+        if (removedInVoid()) {
+            return;
+        }
         if (hooked || !isInAir() && !isInWater() || isOnGround()) {
             motion = Vector3f.ZERO;
             return;

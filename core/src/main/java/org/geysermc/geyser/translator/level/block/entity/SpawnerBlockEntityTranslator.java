@@ -25,66 +25,105 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
 @BlockEntity(type = BlockEntityType.MOB_SPAWNER)
 public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
+
     @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
-        Tag current;
-
-        if ((current = tag.get("MaxNearbyEntities")) != null) {
-            builder.put("MaxNearbyEntities", current.getValue());
+    public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, @Nullable NbtMap javaNbt, int blockState) {
+        if (javaNbt == null) {
+            return super.getBlockEntityTag(session, type, x, y, z, javaNbt, blockState);
         }
-
-        if ((current = tag.get("RequiredPlayerRange")) != null) {
-            builder.put("RequiredPlayerRange", current.getValue());
-        }
-
-        if ((current = tag.get("SpawnCount")) != null) {
-            builder.put("SpawnCount", current.getValue());
-        }
-
-        if ((current = tag.get("MaxSpawnDelay")) != null) {
-            builder.put("MaxSpawnDelay", current.getValue());
-        }
-
-        if ((current = tag.get("Delay")) != null) {
-            builder.put("Delay", current.getValue());
-        }
-
-        if ((current = tag.get("SpawnRange")) != null) {
-            builder.put("SpawnRange", current.getValue());
-        }
-
-        if ((current = tag.get("MinSpawnDelay")) != null) {
-            builder.put("MinSpawnDelay", current.getValue());
-        }
-
-        CompoundTag spawnData = tag.get("SpawnData");
+        // Sending an empty EntityIdentifier to empty the spawner is ignored by the client, so we send a whole new spawner!
+        // Fixes https://github.com/GeyserMC/Geyser/issues/4214
+        NbtMap spawnData = javaNbt.getCompound("SpawnData");
         if (spawnData != null) {
-            StringTag idTag = ((CompoundTag) spawnData.get("entity")).get("id");
-            if (idTag != null) {
-                // As of 1.19.3, spawners can be empty
-                String entityId = idTag.getValue();
-                builder.put("EntityIdentifier", entityId);
+            NbtMap entityTag = spawnData.getCompound("entity");
+            if (entityTag.isEmpty()) {
+                Vector3i position = Vector3i.from(x, y, z);
+                // Set to air and back to reset the spawner - "just" updating the spawner doesn't work
+                UpdateBlockPacket emptyBlockPacket = new UpdateBlockPacket();
+                emptyBlockPacket.setDataLayer(0);
+                emptyBlockPacket.setBlockPosition(position);
+                emptyBlockPacket.setDefinition(session.getBlockMappings().getBedrockAir());
+                session.sendUpstreamPacket(emptyBlockPacket);
 
-                EntityDefinition<?> definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityId);
-                if (definition != null) {
-                    builder.put("DisplayEntityWidth", definition.width());
-                    builder.put("DisplayEntityHeight", definition.height());
-                    builder.put("DisplayEntityScale", 1.0f);
-                }
+                UpdateBlockPacket spawnerBlockPacket = new UpdateBlockPacket();
+                spawnerBlockPacket.setDataLayer(0);
+                spawnerBlockPacket.setBlockPosition(position);
+                spawnerBlockPacket.setDefinition(session.getBlockMappings().getMobSpawnerBlock());
+                session.sendUpstreamPacket(spawnerBlockPacket);
             }
         }
 
-        builder.put("id", "MobSpawner");
-        builder.put("isMovable", (byte) 1);
+        return super.getBlockEntityTag(session, type, x, y, z, javaNbt, blockState);
+    }
+
+    @Override
+    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, int blockState) {
+        Object current;
+
+        // TODO use primitive get and put methods
+        if ((current = javaNbt.get("MaxNearbyEntities")) != null) {
+            bedrockNbt.put("MaxNearbyEntities", current);
+        }
+
+        if ((current = javaNbt.get("RequiredPlayerRange")) != null) {
+            bedrockNbt.put("RequiredPlayerRange", current);
+        }
+
+        if ((current = javaNbt.get("SpawnCount")) != null) {
+            bedrockNbt.put("SpawnCount", current);
+        }
+
+        if ((current = javaNbt.get("MaxSpawnDelay")) != null) {
+            bedrockNbt.put("MaxSpawnDelay", current);
+        }
+
+        if ((current = javaNbt.get("Delay")) != null) {
+            bedrockNbt.put("Delay", current);
+        }
+
+        if ((current = javaNbt.get("SpawnRange")) != null) {
+            bedrockNbt.put("SpawnRange", current);
+        }
+
+        if ((current = javaNbt.get("MinSpawnDelay")) != null) {
+            bedrockNbt.put("MinSpawnDelay", current);
+        }
+
+        translateSpawnData(bedrockNbt, javaNbt.getCompound("SpawnData", null));
+
+        bedrockNbt.put("isMovable", (byte) 1);
+    }
+
+    static void translateSpawnData(@NonNull NbtMapBuilder builder, @Nullable NbtMap spawnData) {
+        if (spawnData == null) {
+            return;
+        }
+
+        NbtMap entityTag = spawnData.getCompound("entity");
+        String entityId = entityTag.getString("id");
+        if (entityId != null) {
+            // As of 1.19.3, spawners can be empty
+            builder.put("EntityIdentifier", entityId);
+
+            EntityDefinition<?> definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityId);
+            if (definition != null) {
+                builder.putFloat("DisplayEntityWidth", definition.width());
+                builder.putFloat("DisplayEntityHeight", definition.height());
+                builder.putFloat("DisplayEntityScale", 1.0f);
+            }
+        }
     }
 }

@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.entity.attribute;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -48,9 +49,10 @@ public enum GeyserAttributeType {
     ATTACK_KNOCKBACK("minecraft:generic.attack_knockback", null, 1.5f, Float.MAX_VALUE, 0f),
     ATTACK_SPEED("minecraft:generic.attack_speed", null, 0f, 1024f, 4f),
     MAX_HEALTH("minecraft:generic.max_health", null, 0f, 1024f, 20f),
+    SCALE("minecraft:generic.scale", null, 0.0625f, 16f, 1f), // Unused. Do we need this?
 
     // Bedrock Attributes
-    ABSORPTION(null, "minecraft:absorption", 0f, Float.MAX_VALUE, 0f),
+    ABSORPTION(null, "minecraft:absorption", 0f, 1024f, 0f),
     EXHAUSTION(null, "minecraft:player.exhaustion", 0f, 5f, 0f),
     EXPERIENCE(null, "minecraft:player.experience", 0f, 1f, 0f),
     EXPERIENCE_LEVEL(null, "minecraft:player.level", 0f, 24791.00f, 0f),
@@ -65,11 +67,15 @@ public enum GeyserAttributeType {
     private final float maximum;
     private final float defaultValue;
 
+    public AttributeData getAttribute() {
+        return getAttribute(defaultValue);
+    }
+
     public AttributeData getAttribute(float value) {
         return getAttribute(value, maximum);
     }
 
-    public AttributeData getAttribute(float value, float maximum) {
+    public @Nullable AttributeData getAttribute(float value, float maximum) {
         if (bedrockIdentifier == null) {
             return null;
         }
