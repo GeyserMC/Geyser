@@ -25,24 +25,24 @@
 
 package org.geysermc.geyser.platform.neoforge;
 
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.neoforge.PermissionNotRegisteredException;
 
 public class GeyserNeoForgeCommandRegistry extends CommandRegistry {
     public GeyserNeoForgeCommandRegistry(GeyserImpl geyser, CommandManager<GeyserCommandSource> cloud) {
         super(geyser, cloud);
     }
 
-    // todo yeet once cloud enforced method contract here:
-    // https://github.com/Incendo/cloud/blob/master/cloud-core/src/main/java/org/incendo/cloud/CommandManager.java#L441-L449
     @Override
     public boolean hasPermission(GeyserCommandSource source, String permission) {
+        // NeoForgeServerCommandManager will throw this exception if the permission is not registered to the server.
+        // We can't realistically ensure that every permission is registered (calls by API users), so we catch this.
         try {
             return super.hasPermission(source, permission);
-        } catch (UncheckedExecutionException e) {
+        } catch (PermissionNotRegisteredException e) {
             return false;
         }
     }
