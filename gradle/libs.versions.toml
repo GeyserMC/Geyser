@@ -26,7 +26,9 @@ terminalconsoleappender = "1.2.0"
 folia = "1.19.4-R0.1-SNAPSHOT"
 viaversion = "4.9.2"
 adapters = "1.12-SNAPSHOT"
-cloud = "2.0.0-beta.4"
+cloud = "2.0.0-20240503.181645-64" # todo: cloud - update when beta6 is released. this is currrently required for 1.20.6
+cloud-minecraft = "2.0.0-20240503.183307-62"
+cloud-minecraft-modded = "2.0.0-SNAPSHOT"
 commodore = "2.2"
 bungeecord = "a7c6ede"
 velocity = "3.3.0-SNAPSHOT"
@@ -87,11 +89,11 @@ jline-terminal-jna = { group = "org.jline", name = "jline-terminal-jna", version
 jline-reader = { group = "org.jline", name = "jline-reader", version.ref = "jline" }
 
 cloud-core = { group = "org.incendo", name = "cloud-core", version.ref = "cloud" }
-cloud-paper = { group = "org.incendo", name = "cloud-paper", version.ref = "cloud" }
-cloud-velocity = { group = "org.incendo", name = "cloud-velocity", version.ref = "cloud" }
-cloud-bungee = { group = "org.incendo", name = "cloud-bungee", version.ref = "cloud" }
-cloud-fabric = { group = "org.incendo", name = "cloud-fabric", version.ref = "cloud" }
-cloud-neoforge = { group = "org.incendo", name = "cloud-neoforge", version.ref = "cloud" }
+cloud-paper = { group = "org.incendo", name = "cloud-paper", version.ref = "cloud-minecraft" }
+cloud-velocity = { group = "org.incendo", name = "cloud-velocity", version.ref = "cloud-minecraft" }
+cloud-bungee = { group = "org.incendo", name = "cloud-bungee", version.ref = "cloud-minecraft" }
+cloud-fabric = { group = "org.incendo", name = "cloud-fabric", version.ref = "cloud-minecraft-modded" }
+cloud-neoforge = { group = "org.incendo", name = "cloud-neoforge", version.ref = "cloud-minecraft-modded" }
 
 folia-api = { group = "dev.folia", name = "folia-api", version.ref = "folia" }
 

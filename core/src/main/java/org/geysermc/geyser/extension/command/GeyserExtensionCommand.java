@@ -85,19 +85,19 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
         private boolean bedrockOnly = false;
         @Nullable private CommandExecutor<T> executor;
 
-        public Builder(Extension extension) {
+        public Builder(@NonNull Extension extension) {
             this.extension = Objects.requireNonNull(extension);
         }
 
         @Override
         public Command.Builder<T> source(@NonNull Class<? extends T> sourceType) {
-            this.sourceType = sourceType;
+            this.sourceType = Objects.requireNonNull(sourceType, "command source type");
             return this;
         }
 
         @Override
         public Builder<T> name(@NonNull String name) {
-            this.name = name;
+            this.name = Objects.requireNonNull(name, "command name");
             return this;
         }
 
@@ -122,7 +122,7 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
 
         @Override
         public Builder<T> aliases(@NonNull List<String> aliases) {
-            this.aliases = aliases;
+            this.aliases = Objects.requireNonNull(aliases, "command aliases");
             return this;
         }
 
@@ -158,7 +158,7 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
 
         @Override
         public Builder<T> executor(@NonNull CommandExecutor<T> executor) {
-            this.executor = executor;
+            this.executor = Objects.requireNonNull(executor, "command executor");
             return this;
         }
 
