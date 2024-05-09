@@ -25,12 +25,12 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundBlockEntityDataPacket;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
+import org.cloudburstmc.protocol.bedrock.data.structure.StructureMirror;
+import org.cloudburstmc.protocol.bedrock.data.structure.StructureRotation;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.level.block.BlockStateValues;
@@ -41,6 +41,10 @@ import org.geysermc.geyser.translator.level.block.entity.SkullBlockEntityTransla
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.BlockEntityUtils;
+import org.geysermc.geyser.util.StructureBlockUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundBlockEntityDataPacket;
 
 @Translator(packet = ClientboundBlockEntityDataPacket.class)
 public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundBlockEntityDataPacket> {
@@ -66,7 +70,7 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
                 packet.getNbt(), blockState), packet.getPosition());
         // Check for custom skulls.
         boolean hasCustomHeadBlock = false;
-        if (session.getPreferencesCache().showCustomSkulls() && packet.getNbt() != null && packet.getNbt().contains("SkullOwner")) {
+        if (session.getPreferencesCache().showCustomSkulls() && packet.getNbt() != null && packet.getNbt().containsKey("profile")) {
             BlockDefinition blockDefinition = SkullBlockEntityTranslator.translateSkull(session, packet.getNbt(), position, blockState);
             if (blockDefinition != null) {
                 hasCustomHeadBlock = true;
@@ -94,6 +98,54 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
             openPacket.setType(ContainerType.COMMAND_BLOCK);
             openPacket.setUniqueEntityId(-1);
             session.sendUpstreamPacket(openPacket);
+        }
+
+        // When a Java client is trying to load a structure, it expects the server to send it the size of the structure.
+        // On 1.20.4, the server does so here - we can pass that through to Bedrock, so we're properly selecting the area.
+        if (type == BlockEntityType.STRUCTURE_BLOCK && session.getGameMode() == GameMode.CREATIVE
+                && packet.getPosition().equals(session.getStructureBlockCache().getCurrentStructureBlock())
+                && packet.getNbt() != null && packet.getNbt().size() > 5
+        ) {
+            NbtMap map = packet.getNbt();
+
+            String mode = map.getString("mode");
+            if (!mode.equalsIgnoreCase("LOAD")) {
+                return;
+            }
+
+            String mirror = map.getString("mirror");
+            StructureMirror bedrockMirror = switch (mirror) {
+                case "FRONT_BACK" -> StructureMirror.X;
+                case "LEFT_RIGHT" -> StructureMirror.Z;
+                default -> StructureMirror.NONE;
+            };
+
+            String rotation = map.getString("rotation");
+            StructureRotation bedrockRotation = switch (rotation) {
+                case "CLOCKWISE_90" -> StructureRotation.ROTATE_90;
+                case "CLOCKWISE_180" -> StructureRotation.ROTATE_180;
+                case "COUNTERCLOCKWISE_90" -> StructureRotation.ROTATE_270;
+                default -> StructureRotation.NONE;
+            };
+
+            String name = map.getString("name");
+            int sizeX = map.getInt("sizeX");
+            int sizeY = map.getInt("sizeY");
+            int sizeZ = map.getInt("sizeZ");
+
+            session.getStructureBlockCache().setCurrentStructureBlock(null);
+
+            Vector3i size = Vector3i.from(sizeX, sizeY, sizeZ);
+            if (size.equals(Vector3i.ZERO)) {
+                StructureBlockUtils.sendEmptyStructureData(session);
+                return;
+            }
+
+            Vector3i offset = StructureBlockUtils.calculateOffset(bedrockRotation, bedrockMirror,
+                    sizeX, sizeZ);
+            session.getStructureBlockCache().setBedrockOffset(offset);
+            session.getStructureBlockCache().setCurrentStructureName(name);
+            StructureBlockUtils.sendStructureData(session, size, name);
         }
     }
 }

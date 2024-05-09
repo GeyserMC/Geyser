@@ -35,7 +35,7 @@ import java.util.stream.Stream;
 
 public class Conversion662_649 {
     
-    private static final List<String> NEW_MISC = List.of("minecraft:grass_block", "minecraft:trial_spawner");
+    private static final List<String> NEW_MISC = List.of("minecraft:grass_block", "minecraft:vault");
     private static final List<String> NEW_WOODS = List.of("minecraft:oak_wood", "minecraft:spruce_wood", "minecraft:birch_wood", "minecraft:jungle_wood", "minecraft:acacia_wood", "minecraft:dark_oak_wood", "minecraft:stripped_oak_wood", "minecraft:stripped_spruce_wood", "minecraft:stripped_birch_wood", "minecraft:stripped_jungle_wood", "minecraft:stripped_acacia_wood", "minecraft:stripped_dark_oak_wood");
     private static final List<String> NEW_LEAVES = List.of("minecraft:oak_leaves", "minecraft:spruce_leaves", "minecraft:birch_leaves", "minecraft:jungle_leaves");
     private static final List<String> NEW_LEAVES2 = List.of("minecraft:acacia_leaves", "minecraft:dark_oak_leaves");
@@ -44,11 +44,16 @@ public class Conversion662_649 {
 
 
     static GeyserMappingItem remapItem(@SuppressWarnings("unused") Item item, GeyserMappingItem mapping) {
+        mapping = Conversion671_662.remapItem(item, mapping);
+
         String identifer = mapping.getBedrockIdentifier();
 
-        if (identifer.equals("minecraft:grass_block")) {
-            return mapping.withBedrockIdentifier("minecraft:grass");
-        }
+        switch (identifer) {
+            case "minecraft:bogged_spawn_egg" -> { return mapping.withBedrockIdentifier("minecraft:creeper_spawn_egg"); }
+            case "minecraft:grass_block" -> { return mapping.withBedrockIdentifier("minecraft:grass"); }
+            case "minecraft:vault" -> { return mapping.withBedrockIdentifier("minecraft:trial_spawner"); }
+            case "minecraft:wind_charge" -> { return mapping.withBedrockIdentifier("minecraft:snowball"); }
+        };
 
         if (NEW_WOODS.contains(identifer)) {
             switch (identifer) {
@@ -93,6 +98,8 @@ public class Conversion662_649 {
     }
 
     static NbtMap remapBlock(NbtMap tag) {
+        tag = Conversion671_662.remapBlock(tag);
+
         final String name = tag.getString("name");
         
         if (!NEW_BLOCKS.contains(name)) {
@@ -106,6 +113,19 @@ public class Conversion662_649 {
 
             NbtMapBuilder builder = tag.toBuilder();
             builder.putString("name", replacement);
+
+            return builder.build();
+        }
+
+        if (name.equals("minecraft:vault")) {
+            replacement = "minecraft:trial_spawner";
+
+            NbtMapBuilder statesBuilder = NbtMap.builder()
+                    .putInt("trial_spawner_state", 0);
+
+            NbtMapBuilder builder = tag.toBuilder();
+            builder.putString("name", replacement);
+            builder.putCompound("states", statesBuilder.build());
 
             return builder.build();
         }

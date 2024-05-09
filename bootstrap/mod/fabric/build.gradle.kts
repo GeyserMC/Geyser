@@ -7,6 +7,8 @@ architectury {
     fabric()
 }
 
+val includeTransitive: Configuration = configurations.getByName("includeTransitive")
+
 dependencies {
     modImplementation(libs.fabric.loader)
     modApi(libs.fabric.api)
@@ -15,14 +17,28 @@ dependencies {
     shadow(project(path = ":mod", configuration = "transformProductionFabric")) {
         isTransitive = false
     }
-    shadow(projects.core) {
-        exclude(group = "com.google.guava", module = "guava")
-        exclude(group = "com.google.code.gson", module = "gson")
-        exclude(group = "org.slf4j")
-        exclude(group = "com.nukkitx.fastutil")
-        exclude(group = "io.netty.incubator")
-    }
+    shadow(projects.core) { isTransitive = false }
+    includeTransitive(projects.core)
 
+    // These are NOT transitively included, and instead shadowed + relocated.
+    // Avoids fabric complaining about non-SemVer versioning
+    shadow(libs.protocol.connection) { isTransitive = false }
+    shadow(libs.protocol.common) { isTransitive = false }
+    shadow(libs.protocol.codec) { isTransitive = false }
+    shadow(libs.mcauthlib) { isTransitive = false }
+    shadow(libs.raknet) { isTransitive = false }
+
+    // Consequences of shading + relocating mcauthlib: shadow/relocate mcpl!
+    shadow(libs.mcprotocollib) { isTransitive = false }
+
+    // Since we also relocate cloudburst protocol: shade erosion common
+    shadow(libs.erosion.common) { isTransitive = false }
+
+    // Let's shade in our own api/common module
+    shadow(projects.api) { isTransitive = false }
+    shadow(projects.common) { isTransitive = false }
+
+    // Permissions
     modImplementation(libs.fabric.permissions)
     include(libs.fabric.permissions)
 }
@@ -30,6 +46,10 @@ dependencies {
 application {
     mainClass.set("org.geysermc.geyser.platform.fabric.GeyserFabricMain")
 }
+
+relocate("org.cloudburstmc.netty")
+relocate("org.cloudburstmc.protocol")
+relocate("com.github.steveice10.mc.auth")
 
 tasks {
     remapJar {

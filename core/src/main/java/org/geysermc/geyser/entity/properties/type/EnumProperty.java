@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,30 +23,39 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.type;
+package org.geysermc.geyser.entity.properties.type;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.item.DyeableLeatherItem;
-import org.geysermc.geyser.registry.type.ItemMapping;
-import org.geysermc.geyser.session.GeyserSession;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
 
-public class DyeableHorseArmorItem extends Item implements DyeableLeatherItem {
-    public DyeableHorseArmorItem(String javaIdentifier, Builder builder) {
-        super(javaIdentifier, builder);
+import java.util.List;
+
+public class EnumProperty implements PropertyType {
+    private final String name;
+    private final List<String> values;
+    private final Object2IntMap<String> valueIndexMap;
+
+    public EnumProperty(String name, List<String> values) {
+        this.name = name;
+        this.values = values;
+                this.valueIndexMap = new Object2IntOpenHashMap<>(values.size());
+        for (int i = 0; i < values.size(); i++) {
+            valueIndexMap.put(values.get(i), i);
+        }
     }
 
     @Override
-    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag) {
-        super.translateNbtToBedrock(session, tag);
-
-        DyeableLeatherItem.translateNbtToBedrock(tag);
+    public NbtMap nbtMap() {
+        return NbtMap.builder()
+                .putString("name", name)
+                .putList("enum", NbtType.STRING, values)
+                .putInt("type", 3)
+                .build();
     }
 
-    @Override
-    public void translateNbtToJava(@NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
-        super.translateNbtToJava(tag, mapping);
-
-        DyeableLeatherItem.translateNbtToJava(tag);
+    public int getIndex(String value) {
+        return valueIndexMap.getOrDefault(value, -1);
     }
 }

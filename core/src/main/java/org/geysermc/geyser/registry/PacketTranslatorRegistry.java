@@ -25,10 +25,10 @@
 
 package org.geysermc.geyser.registry;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundDelimiterPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundTabListPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundChunkBatchStartPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLightUpdatePacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundDelimiterPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundTabListPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundChunkBatchStartPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundLightUpdatePacket;
 import io.netty.channel.EventLoop;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.registry.loader.RegistryLoaders;

@@ -27,7 +27,9 @@ package org.geysermc.geyser.inventory.item;
 
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents;
 
+import java.util.Collections;
 import java.util.Locale;
 
 @Getter
@@ -41,16 +43,19 @@ public enum Potion {
     INVISIBILITY(7),
     LONG_INVISIBILITY(8),
     LEAPING(9),
-    STRONG_LEAPING(11),
     LONG_LEAPING(10),
+    STRONG_LEAPING(11),
     FIRE_RESISTANCE(12),
     LONG_FIRE_RESISTANCE(13),
     SWIFTNESS(14),
-    STRONG_SWIFTNESS(16),
     LONG_SWIFTNESS(15),
+    STRONG_SWIFTNESS(16),
     SLOWNESS(17),
-    STRONG_SLOWNESS(42),
     LONG_SLOWNESS(18),
+    STRONG_SLOWNESS(42),
+    TURTLE_MASTER(37),
+    LONG_TURTLE_MASTER(38),
+    STRONG_TURTLE_MASTER(39),
     WATER_BREATHING(19),
     LONG_WATER_BREATHING(20),
     HEALING(21),
@@ -58,20 +63,17 @@ public enum Potion {
     HARMING(23),
     STRONG_HARMING(24),
     POISON(25),
-    STRONG_POISON(27),
     LONG_POISON(26),
+    STRONG_POISON(27),
     REGENERATION(28),
-    STRONG_REGENERATION(30),
     LONG_REGENERATION(29),
+    STRONG_REGENERATION(30),
     STRENGTH(31),
-    STRONG_STRENGTH(33),
     LONG_STRENGTH(32),
+    STRONG_STRENGTH(33),
     WEAKNESS(34),
     LONG_WEAKNESS(35),
     LUCK(2), //does not exist
-    TURTLE_MASTER(37),
-    STRONG_TURTLE_MASTER(39),
-    LONG_TURTLE_MASTER(38),
     SLOW_FALLING(40),
     LONG_SLOW_FALLING(41);
 
@@ -85,11 +87,13 @@ public enum Potion {
         this.bedrockId = (short) bedrockId;
     }
 
-    public static @Nullable Potion getByJavaIdentifier(String javaIdentifier) {
-        for (Potion potion : VALUES) {
-            if (potion.javaIdentifier.equals(javaIdentifier)) {
-                return potion;
-            }
+    public PotionContents toComponent() {
+        return new PotionContents(this.ordinal(), -1, Collections.emptyList());
+    }
+
+    public static @Nullable Potion getByJavaId(int javaId) {
+        if (javaId >= 0 && javaId < VALUES.length) {
+            return VALUES[javaId];
         }
         return null;
     }

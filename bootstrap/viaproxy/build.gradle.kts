@@ -1,5 +1,7 @@
 dependencies {
     api(projects.core)
+
+    compileOnlyApi(libs.viaproxy)
 }
 
 platformRelocate("net.kyori")
@@ -20,6 +22,7 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     dependencies {
         exclude(dependency("com.google.*:.*"))
         exclude(dependency("io.netty:.*"))
+        exclude(dependency("io.netty.incubator:.*"))
         exclude(dependency("org.slf4j:.*"))
         exclude(dependency("org.ow2.asm:.*"))
     }

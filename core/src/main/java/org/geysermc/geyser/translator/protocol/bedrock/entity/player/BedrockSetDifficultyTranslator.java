@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
-import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
+import org.geysermc.mcprotocollib.protocol.data.game.setting.Difficulty;
 import org.cloudburstmc.protocol.bedrock.packet.SetDifficultyPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;

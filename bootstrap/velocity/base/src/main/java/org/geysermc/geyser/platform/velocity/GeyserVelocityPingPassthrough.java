@@ -26,6 +26,7 @@
 package org.geysermc.geyser.platform.velocity;
 
 import com.velocitypowered.api.event.proxy.ProxyPingEvent;
+import com.velocitypowered.api.network.ProtocolState;
 import com.velocitypowered.api.network.ProtocolVersion;
 import com.velocitypowered.api.proxy.InboundConnection;
 import com.velocitypowered.api.proxy.ProxyServer;
@@ -87,6 +88,11 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
         @Override
         public ProtocolVersion getProtocolVersion() {
             return ProtocolVersion.MAXIMUM_VERSION;
+        }
+
+        @Override
+        public ProtocolState getProtocolState() {
+            return ProtocolState.STATUS;
         }
     }
 

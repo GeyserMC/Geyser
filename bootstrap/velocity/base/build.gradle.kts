@@ -6,20 +6,19 @@ dependencies {
     implementation(libs.floodgate.velocity)
     api(projects.core)
 
-    compileOnlyApi(libs.velocity.api) {
-        exclude(module = "org.yaml:snakeyaml")
-    }
+    compileOnlyApi(libs.velocity.api)
 }
 
 platformRelocate("com.fasterxml.jackson")
 platformRelocate("it.unimi.dsi.fastutil")
 platformRelocate("net.kyori.adventure.text.serializer.gson.legacyimpl")
-platformRelocate("org.yaml.snakeyaml")
+platformRelocate("org.yaml")
 platformRelocate("org.bstats") //todo
 
 exclude("com.google.*:*")
 
 // Needed because Velocity provides every dependency except netty-resolver-dns
+exclude("io.netty.incubator:.*")
 exclude("io.netty:netty-transport-native-epoll:*")
 exclude("io.netty:netty-transport-native-unix-common:*")
 exclude("io.netty:netty-transport-native-kqueue:*")
@@ -40,6 +39,9 @@ exclude("net.kyori:examination-string:*")
 exclude("net.kyori:adventure-text-serializer-gson:*")
 exclude("net.kyori:adventure-text-serializer-legacy:*")
 exclude("net.kyori:adventure-nbt:*")
+        
+// These dependencies are already present on the platform
+provided(libs.velocity.api)
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     archiveBaseName.set("Geyser-Velocity")
@@ -57,6 +59,7 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
         exclude(dependency("io.netty:netty-transport:.*"))
         exclude(dependency("io.netty:netty-codec:.*"))
         exclude(dependency("io.netty:netty-codec-haproxy:.*"))
+        exclude(dependency("io.netty.incubator:.*"))
         exclude(dependency("org.slf4j:.*"))
         exclude(dependency("org.ow2.asm:.*"))
         // Exclude all Kyori dependencies except the legacy NBT serializer

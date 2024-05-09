@@ -25,23 +25,24 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
 @BlockEntity(type = BlockEntityType.TRIAL_SPAWNER)
 public class TrialSpawnerBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
-        if (tag == null) {
+    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, int blockState) {
+        if (javaNbt == null) {
             return;
         }
 
         // trial spawners have "spawn_data" instead of "SpawnData"
-        SpawnerBlockEntityTranslator.translateSpawnData(builder, tag.get("spawn_data"));
+        SpawnerBlockEntityTranslator.translateSpawnData(bedrockNbt, javaNbt.getCompound("spawn_data", null));
 
         // Because trial spawners don't exist on bedrock yet
-        builder.put("id", "MobSpawner");
+        bedrockNbt.put("id", "MobSpawner");
     }
 }

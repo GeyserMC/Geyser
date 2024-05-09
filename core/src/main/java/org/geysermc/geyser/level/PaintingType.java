@@ -75,7 +75,7 @@ public enum PaintingType {
         return KEBAB;
     }
 
-    public static PaintingType getByPaintingType(com.github.steveice10.mc.protocol.data.game.entity.type.PaintingType paintingType) {
+    public static PaintingType getByPaintingType(org.geysermc.mcprotocollib.protocol.data.game.entity.type.PaintingType paintingType) {
         return getByName(paintingType.name());
     }
 }

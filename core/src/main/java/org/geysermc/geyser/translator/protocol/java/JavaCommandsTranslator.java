@@ -25,11 +25,11 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import com.github.steveice10.mc.protocol.data.game.command.CommandNode;
-import com.github.steveice10.mc.protocol.data.game.command.CommandParser;
-import com.github.steveice10.mc.protocol.data.game.command.properties.ResourceProperties;
-import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeType;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundCommandsPacket;
+import org.geysermc.mcprotocollib.protocol.data.game.command.CommandNode;
+import org.geysermc.mcprotocollib.protocol.data.game.command.CommandParser;
+import org.geysermc.mcprotocollib.protocol.data.game.command.properties.ResourceProperties;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundCommandsPacket;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -60,7 +60,7 @@ import java.util.*;
 public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommandsPacket> {
 
     private static final String[] ALL_EFFECT_IDENTIFIERS = EntityUtils.getAllEffectIdentifiers();
-    private static final String[] ATTRIBUTES = AttributeType.Builtin.BUILTIN.keySet().toArray(new String[0]);
+    private static final String[] ATTRIBUTES = AttributeType.Builtin.BUILTIN.values().stream().map(AttributeType::getIdentifier).toList().toArray(new String[0]);
     private static final String[] ENUM_BOOLEAN = {"true", "false"};
     private static final String[] VALID_COLORS;
     private static final String[] VALID_SCOREBOARD_SLOTS;

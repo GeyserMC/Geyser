@@ -27,7 +27,6 @@ package org.geysermc.geyser.platform.viaproxy;
 import net.lenni0451.lambdaevents.EventHandler;
 import net.raphimc.vialegacy.api.LegacyProtocolVersion;
 import net.raphimc.viaproxy.ViaProxy;
-import net.raphimc.viaproxy.cli.options.Options;
 import net.raphimc.viaproxy.plugins.PluginManager;
 import net.raphimc.viaproxy.plugins.ViaProxyPlugin;
 import net.raphimc.viaproxy.plugins.events.ConsoleCommandEvent;
@@ -137,7 +136,7 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
 
         GeyserImpl.start();
 
-        if (Options.PROTOCOL_VERSION != null && Options.PROTOCOL_VERSION.newerThanOrEqualTo(LegacyProtocolVersion.b1_8tob1_8_1)) {
+        if (ViaProxy.getConfig().getTargetVersion() != null && ViaProxy.getConfig().getTargetVersion().newerThanOrEqualTo(LegacyProtocolVersion.b1_8tob1_8_1)) {
             // Only initialize the ping passthrough if the protocol version is above beta 1.7.3, as that's when the status protocol was added
             this.pingPassthrough = GeyserLegacyPingPassthrough.init(this.geyser);
         }
@@ -186,19 +185,19 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
     @NotNull
     @Override
     public String getServerBindAddress() {
-        if (Options.BIND_ADDRESS instanceof InetSocketAddress socketAddress) {
+        if (ViaProxy.getConfig().getBindAddress() instanceof InetSocketAddress socketAddress) {
             return socketAddress.getHostString();
         } else {
-            throw new IllegalStateException("Unsupported bind address type: " + Options.BIND_ADDRESS.getClass().getName());
+            throw new IllegalStateException("Unsupported bind address type: " + ViaProxy.getConfig().getBindAddress().getClass().getName());
         }
     }
 
     @Override
     public int getServerPort() {
-        if (Options.BIND_ADDRESS instanceof InetSocketAddress socketAddress) {
+        if (ViaProxy.getConfig().getBindAddress() instanceof InetSocketAddress socketAddress) {
             return socketAddress.getPort();
         } else {
-            throw new IllegalStateException("Unsupported bind address type: " + Options.BIND_ADDRESS.getClass().getName());
+            throw new IllegalStateException("Unsupported bind address type: " + ViaProxy.getConfig().getBindAddress().getClass().getName());
         }
     }
 

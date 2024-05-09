@@ -11,6 +11,9 @@ dependencies {
     implementation(variantOf(libs.adapters.spigot) {
         classifier("all") // otherwise the unshaded jar is used without the shaded NMS implementations
     })
+    implementation(variantOf(libs.adapters.paper) {
+        classifier("all") // otherwise the unshaded jar is used without the shaded NMS implementations
+    })
 
     implementation(libs.commodore)
 
@@ -19,7 +22,10 @@ dependencies {
     compileOnly(libs.folia.api)
     compileOnly(libs.paper.mojangapi)
 
+    compileOnlyApi(libs.viaversion)
+
     implementation(libs.floodgate.spigot)
+    compileOnly("com.mojang", "authlib", "1.5.21")
 }
 
 platformRelocate("it.unimi.dsi.fastutil")
@@ -32,9 +38,15 @@ platformRelocate("org.yaml") // Broken as of 1.20
 
 // These dependencies are already present on the platform
 provided(libs.viaversion)
-provided("com.mojang", "authlib", "1.5.21")
+provided("com.mojang", "authlib")
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
+
+    // Prevents Paper 1.20.5+ from remapping Geyser
+    manifest {
+        attributes["paperweight-mappings-namespace"] = "mojang"
+    }
+
     archiveBaseName.set("Geyser-Spigot")
 
     dependencies {
@@ -42,6 +54,7 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
 
         // We cannot shade Netty, or else native libraries will not load
         // Needed because older Spigot builds do not provide the haproxy module
+        exclude(dependency("io.netty.incubator:.*"))
         exclude(dependency("io.netty:netty-transport-classes-epoll:.*"))
         exclude(dependency("io.netty:netty-transport-native-epoll:.*"))
         exclude(dependency("io.netty:netty-transport-native-unix-common:.*"))

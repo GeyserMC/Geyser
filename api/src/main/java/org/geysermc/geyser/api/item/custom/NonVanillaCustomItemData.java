@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -63,6 +63,14 @@ public interface NonVanillaCustomItemData extends CustomItemData {
      * @return the max damage of the item
      */
     int maxDamage();
+
+    /**
+     * Gets the attack damage of the item.
+     * This is purely visual, and only applied to tools
+     *
+     * @return the attack damage of the item
+     */
+    int attackDamage();
 
     /**
      * Gets the tool type of the item.
@@ -153,6 +161,13 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         return displayHandheld();
     }
 
+    /**
+     * Gets the block the item places.
+     *
+     * @return the block the item places
+     */
+    String block();
+
     static NonVanillaCustomItemData.Builder builder() {
         return GeyserApi.api().provider(NonVanillaCustomItemData.Builder.class);
     }
@@ -168,6 +183,8 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         Builder stackSize(@NonNegative int stackSize);
 
         Builder maxDamage(int maxDamage);
+
+        Builder attackDamage(int attackDamage);
 
         Builder toolType(@Nullable String toolType);
 
@@ -190,6 +207,8 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         Builder canAlwaysEat(boolean canAlwaysEat);
 
         Builder chargeable(boolean isChargeable);
+
+        Builder block(String block);
 
         /**
          * @deprecated Use {@link #displayHandheld(boolean)} instead.

@@ -29,6 +29,7 @@ import lombok.AllArgsConstructor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.Connection;
 import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.protocol.Packet;
@@ -69,7 +70,7 @@ public class ModPingPassthrough implements IGeyserPingPassthrough {
             StatusInterceptor connection = new StatusInterceptor();
             ServerStatusPacketListener statusPacketListener = new ServerStatusPacketListenerImpl(status, connection);
 
-            statusPacketListener.handleStatusRequest(new ServerboundStatusRequestPacket());
+            statusPacketListener.handleStatusRequest(ServerboundStatusRequestPacket.INSTANCE);
             // mods like MiniMOTD (that inject into the above method) have now processed the response
             status = Objects.requireNonNull(connection.status, "status response");
         } catch (Exception e) {
@@ -79,7 +80,7 @@ public class ModPingPassthrough implements IGeyserPingPassthrough {
             }
         }
 
-        String jsonDescription = net.minecraft.network.chat.Component.Serializer.toJson(status.description());
+        String jsonDescription = net.minecraft.network.chat.Component.Serializer.toJson(status.description(), RegistryAccess.EMPTY);
         String legacyDescription = LEGACY_SERIALIZER.serialize(GSON_SERIALIZER.deserializeOr(jsonDescription, Component.empty()));
 
         return new GeyserPingInfo(
