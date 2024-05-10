@@ -53,6 +53,16 @@ import java.util.List;
 import java.util.Map;
 
 public class Item {
+    /**
+     * This is a map from Java-only enchantments to their translation keys so that we can
+     * map these enchantments to Bedrock clients, since they don't actually exist there.
+     */
+    private static final Map<Enchantment.JavaEnchantment, String> ENCHANTMENT_TRANSLATION_KEYS = Map.of(
+            Enchantment.JavaEnchantment.SWEEPING_EDGE, "enchantment.minecraft.sweeping",
+            Enchantment.JavaEnchantment.DENSITY, "enchantment.minecraft.density",
+            Enchantment.JavaEnchantment.BREACH, "enchantment.minecraft.breach",
+            Enchantment.JavaEnchantment.WIND_BURST, "enchantment.minecraft.wind_burst");
+
     private final String javaIdentifier;
     private int javaId = -1;
     private final int stackSize;
@@ -227,25 +237,10 @@ public class Item {
         // TODO verify
         // TODO streamline Enchantment process
         Enchantment.JavaEnchantment enchantment = Enchantment.JavaEnchantment.of(enchantId);
-        if (enchantment == Enchantment.JavaEnchantment.SWEEPING_EDGE) {
-            String sweepingTranslation = MinecraftLocale.getLocaleString("enchantment.minecraft.sweeping", session.locale());
-            addJavaOnlyEnchantment(session, builder, sweepingTranslation, level);
-            return null;
-        }
-        if (enchantment == Enchantment.JavaEnchantment.DENSITY) {
-            String densityTranslation = MinecraftLocale.getLocaleString("enchantment.minecraft.density", session.locale());
-            addJavaOnlyEnchantment(session, builder, densityTranslation, level);
-            return null;
-        }
-        if (enchantment == Enchantment.JavaEnchantment.BREACH) {
-            String breachTranslation = MinecraftLocale.getLocaleString("enchantment.minecraft.breach", session.locale());
-            addJavaOnlyEnchantment(session, builder, breachTranslation, level);
-            return null;
-        }
-        if (enchantment == Enchantment.JavaEnchantment.WIND_BURST) {
-            String windBurstTranslation = MinecraftLocale.getLocaleString("enchantment.minecraft.wind_burst", session.locale());
-            addJavaOnlyEnchantment(session, builder, windBurstTranslation, level);
-            return null;
+        if (ENCHANTMENT_TRANSLATION_KEYS.containsKey(enchantment)) {
+            String translationKey = ENCHANTMENT_TRANSLATION_KEYS.get(enchantment);
+            String enchantmentTranslation = MinecraftLocale.getLocaleString(translationKey, session.locale());
+            addJavaOnlyEnchantment(session, builder, enchantmentTranslation, level);
         }
         if (enchantment == null) {
             GeyserImpl.getInstance().getLogger().debug("Unknown Java enchantment while NBT item translating: " + enchantId);
