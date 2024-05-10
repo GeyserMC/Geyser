@@ -37,6 +37,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.OptionalInt;
 import java.util.Set;
+import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 
 @EqualsAndHashCode
 @ToString
@@ -52,29 +53,39 @@ public class GeyserCustomItemData implements CustomItemData {
     private final int textureSize;
     private final CustomRenderOffsets renderOffsets;
     private final Set<String> tags;
+    private final int stackSize;
+    private final int maxDamage;
+    private final int attackDamage;
+    private final String toolType;
+    private final String toolTier;
+    private final String translationString;
+    private final int protectionValue;
+    private final boolean isFoil;
+    private final boolean isEdible;
+    private final boolean canAlwaysEat;
 
-    public GeyserCustomItemData(String name,
-                                CustomItemOptions customItemOptions,
-                                String displayName,
-                                String icon,
-                                boolean allowOffhand,
-                                boolean displayHandheld,
-                                OptionalInt creativeCategory,
-                                String creativeGroup,
-                                int textureSize,
-                                CustomRenderOffsets renderOffsets,
-                                Set<String> tags) {
-        this.name = name;
-        this.customItemOptions = customItemOptions;
-        this.displayName = displayName;
-        this.icon = icon;
-        this.allowOffhand = allowOffhand;
-        this.displayHandheld = displayHandheld;
-        this.creativeCategory = creativeCategory;
-        this.creativeGroup = creativeGroup;
-        this.textureSize = textureSize;
-        this.renderOffsets = renderOffsets;
-        this.tags = tags;
+    public GeyserCustomItemData(Builder builder) {
+        this.name = builder.name;
+        this.customItemOptions = builder.customItemOptions;
+        this.displayName = builder.displayName;
+        this.icon = builder.icon;
+        this.allowOffhand = builder.allowOffhand;
+        this.displayHandheld = builder.displayHandheld;
+        this.creativeCategory = builder.creativeCategory;
+        this.creativeGroup = builder.creativeGroup;
+        this.textureSize = builder.textureSize;
+        this.renderOffsets = builder.renderOffsets;
+        this.tags = builder.tags;
+        this.stackSize = builder.stackSize;
+        this.maxDamage = builder.maxDamage;
+        this.attackDamage = builder.attackDamage;
+        this.toolType = builder.toolType;
+        this.toolTier = builder.toolTier;
+        this.translationString = builder.translationString;
+        this.protectionValue = builder.protectionValue;
+        this.isFoil = builder.foil;
+        this.isEdible = builder.edible;
+        this.canAlwaysEat = builder.canAlwaysEat;
     }
 
     @Override
@@ -132,6 +143,56 @@ public class GeyserCustomItemData implements CustomItemData {
         return tags;
     }
 
+    @Override
+    public int stackSize() {
+        return stackSize;
+    }
+
+    @Override
+    public int maxDamage() {
+        return maxDamage;
+    }
+
+    @Override
+    public int attackDamage() {
+        return attackDamage;
+    }
+
+    @Override
+    public String toolType() {
+        return toolType;
+    }
+
+    @Override
+    public String toolTier() {
+        return toolTier;
+    }
+
+    @Override
+    public int protectionValue() {
+        return protectionValue;
+    }
+
+    @Override
+    public String translationString() {
+        return translationString;
+    }
+
+    @Override
+    public boolean isFoil() {
+        return isFoil;
+    }
+
+    @Override
+    public boolean isEdible() {
+        return isEdible;
+    }
+
+    @Override
+    public boolean canAlwaysEat() {
+        return canAlwaysEat;
+    }
+
     public static class Builder implements CustomItemData.Builder {
         protected String name = null;
         protected CustomItemOptions customItemOptions = null;
@@ -144,6 +205,17 @@ public class GeyserCustomItemData implements CustomItemData {
         protected int textureSize = 16;
         protected CustomRenderOffsets renderOffsets = null;
         protected Set<String> tags = new HashSet<>();
+        private int stackSize = 64;
+        private int maxDamage = 0;
+        private int attackDamage = 0;
+        private String toolType = null;
+        private String toolTier = null;
+        private int protectionValue = 0;
+        private String translationString;
+        private boolean foil = false;
+        private boolean tool = false;
+        private boolean edible = false;
+        private boolean canAlwaysEat = false;
 
         @Override
         public Builder name(@NonNull String name) {
@@ -212,6 +284,66 @@ public class GeyserCustomItemData implements CustomItemData {
         }
 
         @Override
+        public Builder stackSize(int stackSize) {
+            this.stackSize = stackSize;
+            return this;
+        }
+
+        @Override
+        public Builder maxDamage(int maxDamage) {
+            this.maxDamage = maxDamage;
+            return this;
+        }
+
+        @Override
+        public Builder attackDamage(int attackDamage) {
+            this.attackDamage = attackDamage;
+            return this;
+        }
+
+        @Override
+        public Builder toolType(@Nullable String toolType) {
+            this.toolType = toolType;
+            return this;
+        }
+
+        @Override
+        public Builder toolTier(@Nullable String toolTier) {
+            this.toolTier = toolTier;
+            return this;
+        }
+
+        @Override
+        public Builder protectionValue(int protectionValue) {
+            this.protectionValue = protectionValue;
+            return this;
+        }
+
+        @Override
+        public Builder translationString(@Nullable String translationString) {
+            this.translationString = translationString;
+            return this;
+        }
+
+        @Override
+        public Builder foil(boolean isFoil) {
+            this.foil = isFoil;
+            return this;
+        }
+
+        @Override
+        public Builder edible(boolean isEdible) {
+            this.edible = isEdible;
+            return this;
+        }
+
+        @Override
+        public Builder canAlwaysEat(boolean canAlwaysEat) {
+            this.canAlwaysEat = canAlwaysEat;
+            return this;
+        }
+
+        @Override
         public CustomItemData build() {
             if (this.name == null || this.customItemOptions == null) {
                 throw new IllegalArgumentException("Name and custom item options must be set");
@@ -223,8 +355,8 @@ public class GeyserCustomItemData implements CustomItemData {
             if (this.icon == null) {
                 this.icon = this.name;
             }
-            return new GeyserCustomItemData(this.name, this.customItemOptions, this.displayName, this.icon, this.allowOffhand,
-                    this.displayHandheld, this.creativeCategory, this.creativeGroup, this.textureSize, this.renderOffsets, this.tags);
+
+            return new GeyserCustomItemData(this);
         }
     }
 }
