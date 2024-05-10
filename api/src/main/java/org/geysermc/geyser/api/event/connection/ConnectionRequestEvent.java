@@ -52,7 +52,7 @@ public final class ConnectionRequestEvent implements Event, Cancellable {
      * @return the IP address of the client attempting to connect
      * @deprecated Use {@link #inetSocketAddress()} instead
      */
-    @NonNull @Deprecated
+    @NonNull @Deprecated(forRemoval = true)
     public InetSocketAddress getInetSocketAddress() {
         return ip;
     }
@@ -63,7 +63,7 @@ public final class ConnectionRequestEvent implements Event, Cancellable {
      * @return the IP address of the proxy handling the connection
      * @deprecated Use {@link #proxyIp()} instead
      */
-    @Nullable @Deprecated
+    @Nullable @Deprecated(forRemoval = true)
     public InetSocketAddress getProxyIp() {
         return proxyIp;
     }

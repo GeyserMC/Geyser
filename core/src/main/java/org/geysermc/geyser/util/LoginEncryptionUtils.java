@@ -40,7 +40,6 @@ import org.geysermc.cumulus.response.SimpleFormResponse;
 import org.geysermc.cumulus.response.result.FormResponseResult;
 import org.geysermc.cumulus.response.result.ValidFormResponseResult;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.event.bedrock.SessionInitializeEvent;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
@@ -101,9 +100,6 @@ public class LoginEncryptionUtils {
 
                 sendEncryptionFailedMessage(geyser);
             }
-
-            // Fire SessionInitializeEvent here as we now know the client data etc
-            geyser.eventBus().fire(new SessionInitializeEvent(session));
         } catch (Exception ex) {
             session.disconnect("disconnectionScreen.internalError.cantConnect");
             throw new RuntimeException("Unable to complete login", ex);

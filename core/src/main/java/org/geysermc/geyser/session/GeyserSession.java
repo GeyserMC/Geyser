@@ -1427,7 +1427,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public String name() {
-        return this.isLoggedIn() ? this.javaUsername() : this.bedrockUsername();
+        return this.playerEntity != null ? this.javaUsername() : this.bedrockUsername();
     }
 
     @Override
