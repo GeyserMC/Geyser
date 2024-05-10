@@ -169,17 +169,6 @@ public class MathUtils {
     }
 
     /**
-     * Ensures the resulting object is a byte. Java Edition does not care whether a byte is encoded as an integer or not;
-     * it converts it into a byte anyway.
-     *
-     * @param value The value to convert
-     * @return The converted byte
-     */
-    public static byte getNbtByte(Object value) {
-        return ((Number) value).byteValue();
-    }
-
-    /**
      * Packs a chunk's X and Z coordinates into a single {@code long}.
      *
      * @param x the X coordinate
@@ -188,12 +177,5 @@ public class MathUtils {
      */
     public static long chunkPositionToLong(int x, int z) {
         return ((x & 0xFFFFFFFFL) << 32L) | (z & 0xFFFFFFFFL);
-    }
-
-    /**
-     * @return the bits per entry used when this number is the maximum amount of entries.
-     */
-    public static int getGlobalPaletteForSize(int size) {
-        return 32 - Integer.numberOfLeadingZeros(size - 1);
     }
 }

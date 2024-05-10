@@ -25,10 +25,10 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundSetChunkCacheRadiusPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundSetChunkCacheRadiusPacket;
 
 @Translator(packet = ClientboundSetChunkCacheRadiusPacket.class)
 public class JavaSetChunkCacheRadiusTranslator extends PacketTranslator<ClientboundSetChunkCacheRadiusPacket> {

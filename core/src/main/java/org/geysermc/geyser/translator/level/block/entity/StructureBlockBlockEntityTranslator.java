@@ -25,8 +25,7 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -35,22 +34,26 @@ import org.cloudburstmc.protocol.bedrock.data.structure.StructureRotation;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.StructureBlockUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
 @BlockEntity(type = BlockEntityType.STRUCTURE_BLOCK)
 public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
-    public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, CompoundTag tag, int blockState) {
+    public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, @Nullable NbtMap javaNbt, int blockState) {
+        if (javaNbt == null) {
+            return super.getBlockEntityTag(session, type, x, y, z, javaNbt, blockState);
+        }
         // Sending a structure with size 0 doesn't clear the outline. Hence, we have to force it by replacing the block :/
-        int xStructureSize = getOrDefault(tag.get("sizeX"), 0);
-        int yStructureSize = getOrDefault(tag.get("sizeY"), 0);
-        int zStructureSize = getOrDefault(tag.get("sizeZ"), 0);
+        int xStructureSize = javaNbt.getInt("sizeX");
+        int yStructureSize = javaNbt.getInt("sizeY");
+        int zStructureSize = javaNbt.getInt("sizeZ");
 
         Vector3i size = Vector3i.from(xStructureSize, yStructureSize, zStructureSize);
 
         if (size.equals(Vector3i.ZERO)) {
             Vector3i position = Vector3i.from(x, y, z);
-            String mode = getOrDefault(tag.get("mode"), "");
+            String mode = javaNbt.getString("mode");
             
             // Set to air and back to reset the structure block
             UpdateBlockPacket emptyBlockPacket = new UpdateBlockPacket();
@@ -66,18 +69,18 @@ public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
             session.sendUpstreamPacket(spawnerBlockPacket);
         }
 
-        return super.getBlockEntityTag(session, type, x, y, z, tag, blockState);
+        return super.getBlockEntityTag(session, type, x, y, z, javaNbt, blockState);
     }
 
     @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
-        if (tag.size() < 5) {
+    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, int blockState) {
+        if (javaNbt.size() < 5) {
             return; // These values aren't here
         }
 
-        builder.putString("structureName", getOrDefault(tag.get("name"), ""));
+        bedrockNbt.putString("structureName", javaNbt.getString("name"));
 
-        String mode = getOrDefault(tag.get("mode"), "");
+        String mode = javaNbt.getString("mode");
         int bedrockData = switch (mode) {
             case "LOAD" -> 2;
             case "CORNER" -> 3;
@@ -85,53 +88,53 @@ public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
             default -> 1; // SAVE
         };
 
-        builder.putInt("data", bedrockData);
-        builder.putString("dataField", ""); // ??? possibly related to Java's "metadata"
+        bedrockNbt.putInt("data", bedrockData);
+        bedrockNbt.putString("dataField", ""); // ??? possibly related to Java's "metadata"
 
         // Mirror behaves different in Java and Bedrock - it requires modifying the position in space as well
-        String mirror = getOrDefault(tag.get("mirror"), "");
+        String mirror = javaNbt.getString("mirror");
         StructureMirror bedrockMirror = switch (mirror) {
             case "FRONT_BACK" -> StructureMirror.X;
             case "LEFT_RIGHT" -> StructureMirror.Z;
             default -> StructureMirror.NONE;
         };
-        builder.putByte("mirror", (byte) bedrockMirror.ordinal());
+        bedrockNbt.putByte("mirror", (byte) bedrockMirror.ordinal());
 
-        builder.putByte("ignoreEntities", getOrDefault(tag.get("ignoreEntities"), (byte) 0));
-        builder.putByte("isPowered", getOrDefault(tag.get("powered"), (byte) 0));
-        builder.putLong("seed", getOrDefault(tag.get("seed"), 0L));
-        builder.putByte("showBoundingBox", getOrDefault(tag.get("showboundingbox"), (byte) 0));
+        bedrockNbt.putByte("ignoreEntities", javaNbt.getByte("ignoreEntities"));
+        bedrockNbt.putByte("isPowered", javaNbt.getByte("powered"));
+        bedrockNbt.putLong("seed", javaNbt.getLong("seed"));
+        bedrockNbt.putByte("showBoundingBox", javaNbt.getByte("showboundingbox"));
 
-        String rotation = getOrDefault(tag.get("rotation"), "");
+        String rotation = javaNbt.getString("rotation");
         StructureRotation bedrockRotation = switch (rotation) {
             case "CLOCKWISE_90" -> StructureRotation.ROTATE_90;
             case "CLOCKWISE_180" -> StructureRotation.ROTATE_180;
             case "COUNTERCLOCKWISE_90" -> StructureRotation.ROTATE_270;
             default -> StructureRotation.NONE;
         };
-        builder.putByte("rotation", (byte) bedrockRotation.ordinal());
+        bedrockNbt.putByte("rotation", (byte) bedrockRotation.ordinal());
 
-        int xStructureSize = getOrDefault(tag.get("sizeX"), 0);
-        int yStructureSize = getOrDefault(tag.get("sizeY"), 0);
-        int zStructureSize = getOrDefault(tag.get("sizeZ"), 0);
+        int xStructureSize = javaNbt.getInt("sizeX");
+        int yStructureSize = javaNbt.getInt("sizeY");
+        int zStructureSize = javaNbt.getInt("sizeZ");
 
         // The "positions" are also offsets on Java
-        int posX = getOrDefault(tag.get("posX"), 0);
-        int posY = getOrDefault(tag.get("posY"), 0);
-        int posZ = getOrDefault(tag.get("posZ"), 0);
+        int posX = javaNbt.getInt("posX");
+        int posY = javaNbt.getInt("posY");
+        int posZ = javaNbt.getInt("posZ");
 
         Vector3i offset = StructureBlockUtils.calculateOffset(bedrockRotation, bedrockMirror,
                 xStructureSize, zStructureSize);
 
-        builder.putInt("xStructureOffset", posX + offset.getX());
-        builder.putInt("yStructureOffset", posY);
-        builder.putInt("zStructureOffset", posZ + offset.getZ());
+        bedrockNbt.putInt("xStructureOffset", posX + offset.getX());
+        bedrockNbt.putInt("yStructureOffset", posY);
+        bedrockNbt.putInt("zStructureOffset", posZ + offset.getZ());
 
-        builder.putInt("xStructureSize", xStructureSize);
-        builder.putInt("yStructureSize", yStructureSize);
-        builder.putInt("zStructureSize", zStructureSize);
+        bedrockNbt.putInt("xStructureSize", xStructureSize);
+        bedrockNbt.putInt("yStructureSize", yStructureSize);
+        bedrockNbt.putInt("zStructureSize", zStructureSize);
 
-        builder.putFloat("integrity", getOrDefault(tag.get("integrity"), 0f)); // Is 1.0f by default on Java but 100.0f on Bedrock
+        bedrockNbt.putFloat("integrity", javaNbt.getFloat("integrity")); // Is 1.0f by default on Java but 100.0f on Bedrock
 
         // Java's "showair" is unrepresented
     }

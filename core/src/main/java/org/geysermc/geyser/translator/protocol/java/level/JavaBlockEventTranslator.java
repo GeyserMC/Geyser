@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.value.*;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundBlockEventPacket;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.*;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundBlockEventPacket;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;

@@ -38,19 +38,10 @@ import org.cloudburstmc.protocol.bedrock.data.camera.CameraSetInstruction;
 import org.cloudburstmc.protocol.bedrock.packet.CameraInstructionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CameraShakePacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerFogPacket;
-import org.geysermc.geyser.api.bedrock.camera.CameraEaseType;
-import org.geysermc.geyser.api.bedrock.camera.CameraData;
-import org.geysermc.geyser.api.bedrock.camera.CameraFade;
-import org.geysermc.geyser.api.bedrock.camera.CameraPerspective;
-import org.geysermc.geyser.api.bedrock.camera.CameraPosition;
-import org.geysermc.geyser.api.bedrock.camera.CameraShake;
+import org.geysermc.geyser.api.bedrock.camera.*;
 import org.geysermc.geyser.session.GeyserSession;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class GeyserCameraData implements CameraData {
 

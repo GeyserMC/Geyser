@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.scoreboard;
 
-import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -40,6 +39,7 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreboardPosition;
 import org.jetbrains.annotations.Contract;
 
 import java.util.*;
@@ -48,10 +48,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static org.geysermc.geyser.scoreboard.UpdateType.ADD;
-import static org.geysermc.geyser.scoreboard.UpdateType.NOTHING;
-import static org.geysermc.geyser.scoreboard.UpdateType.REMOVE;
-import static org.geysermc.geyser.scoreboard.UpdateType.UPDATE;
+import static org.geysermc.geyser.scoreboard.UpdateType.*;
 
 public final class Scoreboard {
     private static final boolean SHOW_SCOREBOARD_LOGS = Boolean.parseBoolean(System.getProperty("Geyser.ShowScoreboardLogs", "true"));

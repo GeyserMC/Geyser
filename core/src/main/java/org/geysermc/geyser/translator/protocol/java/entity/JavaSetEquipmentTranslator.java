@@ -25,19 +25,17 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Equipment;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundSetEquipmentPacket;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.FakeHeadProvider;
-import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Equipment;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundSetEquipmentPacket;
 
 @Translator(packet = ClientboundSetEquipmentPacket.class)
 public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetEquipmentPacket> {
@@ -58,40 +56,41 @@ public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetE
         boolean mainHandUpdated = false;
         boolean offHandUpdated = false;
         for (Equipment equipment : packet.getEquipment()) {
-            ItemData item = ItemTranslator.translateToBedrock(session, equipment.getItem());
+            ItemStack stack = equipment.getItem();
             switch (equipment.getSlot()) {
                 case HELMET -> {
                     ItemStack javaItem = equipment.getItem();
                     if (livingEntity instanceof PlayerEntity
                             && javaItem != null
                             && javaItem.getId() == Items.PLAYER_HEAD.javaId()
-                            && javaItem.getNbt() != null) {
-                        FakeHeadProvider.setHead(session, (PlayerEntity) livingEntity, javaItem.getNbt().get("SkullOwner"));
+                            && javaItem.getDataComponents() != null) {
+                        FakeHeadProvider.setHead(session, (PlayerEntity) livingEntity, javaItem.getDataComponents());
                     } else {
                         FakeHeadProvider.restoreOriginalSkin(session, livingEntity);
                     }
 
-                    livingEntity.setHelmet(item);
+                    livingEntity.setHelmet(stack);
                     armorUpdated = true;
                 }
-                case CHESTPLATE -> {
-                    livingEntity.setChestplate(item);
+                case CHESTPLATE, BODY -> {
+                    // BODY is sent for llamas with a carpet equipped, as of 1.20.5
+                    livingEntity.setChestplate(stack);
                     armorUpdated = true;
                 }
                 case LEGGINGS -> {
-                    livingEntity.setLeggings(item);
+                    livingEntity.setLeggings(stack);
                     armorUpdated = true;
                 }
                 case BOOTS -> {
-                    livingEntity.setBoots(item);
+                    livingEntity.setBoots(stack);
                     armorUpdated = true;
                 }
                 case MAIN_HAND -> {
-                    livingEntity.setHand(item);
+                    livingEntity.setHand(stack);
                     mainHandUpdated = true;
                 }
                 case OFF_HAND -> {
-                    livingEntity.setOffHand(item);
+                    livingEntity.setOffhand(stack);
                     offHandUpdated = true;
                 }
             }

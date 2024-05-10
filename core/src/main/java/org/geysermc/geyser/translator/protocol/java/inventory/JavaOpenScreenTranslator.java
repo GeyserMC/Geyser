@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.translator.protocol.java.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.ClientboundOpenScreenPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundOpenScreenPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
 import net.kyori.adventure.text.Component;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.network.GameProtocol;

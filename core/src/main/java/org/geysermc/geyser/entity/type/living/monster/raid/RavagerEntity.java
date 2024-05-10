@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,34 +23,32 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item;
+package org.geysermc.geyser.entity.type.living.monster.raid;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.session.GeyserSession;
 
-public interface DyeableLeatherItem {
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
-    static void translateNbtToBedrock(CompoundTag tag) {
-        CompoundTag displayTag = tag.get("display");
-        if (displayTag == null) {
-            return;
-        }
-        IntTag color = displayTag.remove("color");
-        if (color != null) {
-            tag.put(new IntTag("customColor", color.getValue()));
-        }
+public class RavagerEntity extends RaidParticipantEntity {
+
+    public RavagerEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    static void translateNbtToJava(CompoundTag tag) {
-        IntTag color = tag.get("customColor");
-        if (color == null) {
-            return;
-        }
-        CompoundTag displayTag = tag.get("display");
-        if (displayTag == null) {
-            displayTag = new CompoundTag("display");
-        }
-        displayTag.put(color);
-        tag.remove("customColor");
+    @Override
+    public boolean useArmSwingAttack() {
+        setFlag(EntityFlag.DELAYED_ATTACK, false);
+        updateBedrockMetadata();
+
+        session.scheduleInEventLoop(() -> {
+            setFlag(EntityFlag.DELAYED_ATTACK, true);
+            updateBedrockMetadata();
+        }, 75, TimeUnit.MILLISECONDS);
+
+        return true;
     }
 }

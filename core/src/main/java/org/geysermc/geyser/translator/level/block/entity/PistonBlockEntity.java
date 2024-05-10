@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.value.PistonValueType;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.PistonValueType;
 import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;

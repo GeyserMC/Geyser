@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

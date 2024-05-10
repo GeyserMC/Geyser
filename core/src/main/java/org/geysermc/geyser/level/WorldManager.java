@@ -25,15 +25,15 @@
 
 package org.geysermc.geyser.level;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
-import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityInfo;
+import org.geysermc.mcprotocollib.protocol.data.game.setting.Difficulty;
 
 import java.util.List;
 import java.util.Locale;
@@ -220,7 +220,7 @@ public abstract class WorldManager {
      * @return expected NBT for this item.
      */
     @NonNull
-    public CompletableFuture<@Nullable CompoundTag> getPickItemNbt(GeyserSession session, int x, int y, int z, boolean addNbtData) {
+    public CompletableFuture<@Nullable DataComponents> getPickItemComponents(GeyserSession session, int x, int y, int z, boolean addExtraData) {
         return CompletableFuture.completedFuture(null);
     }
 }

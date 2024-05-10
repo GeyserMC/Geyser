@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.session.cache;
 
-import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -37,6 +36,7 @@ import org.geysermc.geyser.scoreboard.Scoreboard;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater.ScoreboardSession;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.ChunkUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.setting.Difficulty;
 
 import java.util.Iterator;
 

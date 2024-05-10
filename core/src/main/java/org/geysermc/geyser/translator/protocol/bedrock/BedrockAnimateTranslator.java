@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundPaddleBoatPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundPaddleBoatPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;

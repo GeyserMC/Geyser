@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.registry.type;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import lombok.Builder;
@@ -69,7 +69,6 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
 
     List<ItemDefinition> buckets;
     List<ItemDefinition> boats;
-    List<ItemData> carpets;
 
     List<ComponentItemData> componentItemData;
     Int2ObjectMap<String> customIdMappings;
@@ -99,9 +98,9 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
         return javaId >= 0 && javaId < this.items.length ? this.items[javaId] : ItemMapping.AIR;
     }
 
-    @Nullable
+    @NonNull
     public ItemMapping getMapping(Item javaItem) {
-        return getMapping(javaItem.javaIdentifier());
+        return getMapping(javaItem.javaId());
     }
 
     /**
@@ -149,9 +148,10 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
                     }
                 } else {
                     if (!(mapping.getBedrockData() == data.getDamage() ||
-                            // Make exceptions for potions, tipped arrows, firework stars, and goat horns, whose damage values can vary
+                            // Make exceptions for potions, tipped arrows, firework stars, goat horns, and suspicious stews, whose damage values can vary
                             (mapping.getJavaItem() instanceof PotionItem || mapping.getJavaItem() == Items.ARROW
-                                    || mapping.getJavaItem() == Items.FIREWORK_STAR || mapping.getJavaItem() == Items.GOAT_HORN))) {
+                                    || mapping.getJavaItem() == Items.FIREWORK_STAR || mapping.getJavaItem() == Items.GOAT_HORN
+                                    || mapping.getJavaItem() == Items.SUSPICIOUS_STEW))) {
                         continue;
                     }
                 }

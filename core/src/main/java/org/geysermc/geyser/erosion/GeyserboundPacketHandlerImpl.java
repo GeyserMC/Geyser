@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.erosion;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.value.PistonValueType;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.PistonValueType;
 import io.netty.channel.Channel;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
@@ -43,7 +43,14 @@ import org.geysermc.erosion.packet.ErosionPacketHandler;
 import org.geysermc.erosion.packet.ErosionPacketSender;
 import org.geysermc.erosion.packet.backendbound.BackendboundInitializePacket;
 import org.geysermc.erosion.packet.backendbound.BackendboundPacket;
-import org.geysermc.erosion.packet.geyserbound.*;
+import org.geysermc.erosion.packet.geyserbound.GeyserboundBatchBlockIdPacket;
+import org.geysermc.erosion.packet.geyserbound.GeyserboundBlockEntityPacket;
+import org.geysermc.erosion.packet.geyserbound.GeyserboundBlockIdPacket;
+import org.geysermc.erosion.packet.geyserbound.GeyserboundBlockLookupFailPacket;
+import org.geysermc.erosion.packet.geyserbound.GeyserboundBlockPlacePacket;
+import org.geysermc.erosion.packet.geyserbound.GeyserboundHandshakePacket;
+import org.geysermc.erosion.packet.geyserbound.GeyserboundPickBlockPacket;
+import org.geysermc.erosion.packet.geyserbound.GeyserboundPistonEventPacket;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.network.GameProtocol;
@@ -64,7 +71,7 @@ public final class GeyserboundPacketHandlerImpl extends AbstractGeyserboundPacke
     @Setter
     private CompletableFuture<int[]> pendingBatchLookup = null;
     @Setter
-    private CompletableFuture<CompoundTag> pickBlockLookup = null;
+    private CompletableFuture<DataComponents> pickBlockLookup = null;
 
     private final AtomicInteger nextTransactionId = new AtomicInteger(1);
 
@@ -140,7 +147,7 @@ public final class GeyserboundPacketHandlerImpl extends AbstractGeyserboundPacke
     @Override
     public void handlePickBlock(GeyserboundPickBlockPacket packet) {
         if (this.pickBlockLookup != null) {
-            this.pickBlockLookup.complete(packet.getTag());
+            //this.pickBlockLookup.complete(packet.getTag()); // TODO 1.20.5
         }
     }
 

@@ -118,7 +118,7 @@ public enum Enchantment {
         KNOCKBACK,
         FIRE_ASPECT,
         LOOTING,
-        SWEEPING,
+        SWEEPING_EDGE,
         EFFICIENCY,
         SILK_TOUCH,
         UNBREAKING,
@@ -136,6 +136,9 @@ public enum Enchantment {
         MULTISHOT,
         QUICK_CHARGE,
         PIERCING,
+        DENSITY,
+        BREACH,
+        WIND_BURST,
         MENDING,
         VANISHING_CURSE;
 

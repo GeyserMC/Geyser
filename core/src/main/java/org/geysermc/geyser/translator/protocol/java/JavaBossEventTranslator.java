@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundBossEventPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundBossEventPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.BossBar;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;

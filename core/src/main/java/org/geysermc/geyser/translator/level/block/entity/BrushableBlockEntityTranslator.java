@@ -25,49 +25,51 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.geyser.network.GameProtocol;
-import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
 @BlockEntity(type = BlockEntityType.BRUSHABLE_BLOCK)
 public class BrushableBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
 
     @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
-        if (!(tag.remove("item") instanceof CompoundTag itemTag)) {
+    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, @Nullable NbtMap javaNbt, int blockState) {
+        if (javaNbt == null) {
             return;
         }
-        Tag hitDirection = tag.get("hit_direction");
-        if (hitDirection == null) {
+
+        NbtMap itemTag = javaNbt.getCompound("item");
+        if (itemTag.isEmpty()) {
+            return;
+        }
+        byte hitDirection = javaNbt.getByte("hit_direction", (byte) -1);
+        if (hitDirection == -1) {
             // java server sends no direction when the item recedes back into the block (if player stops brushing)
             return;
         }
 
-        String id = ((StringTag) itemTag.get("id")).getValue();
+        String id = itemTag.getString("id");
         if (Items.AIR.javaIdentifier().equals(id)) {
             return; // server sends air when the block contains nothing
         }
 
-        ItemMapping mapping = Registries.ITEMS.forVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getMapping(id);
+        ItemMapping mapping = session.getItemMappings().getMapping(id);
         if (mapping == null) {
             return;
         }
         NbtMapBuilder itemBuilder = NbtMap.builder()
             .putString("Name", mapping.getBedrockIdentifier())
-            .putByte("Count", (byte) itemTag.get("Count").getValue());
+            .putByte("Count", (byte) itemTag.getByte("Count"));
 
-        builder.putCompound("item", itemBuilder.build());
+        bedrockNbt.putCompound("item", itemBuilder.build());
         // controls which side the item protrudes from
-        builder.putByte("brush_direction", ((Number) hitDirection.getValue()).byteValue());
+        bedrockNbt.putByte("brush_direction", hitDirection);
         // controls how much the item protrudes
-        builder.putInt("brush_count", BlockStateValues.getBrushProgress(blockState));
+        bedrockNbt.putInt("brush_count", BlockStateValues.getBrushProgress(blockState));
     }
 }

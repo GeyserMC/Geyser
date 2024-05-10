@@ -25,9 +25,7 @@
 
 package org.geysermc.geyser.entity.type.living.animal;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.SnifferState;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
@@ -37,8 +35,11 @@ import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Tickable;
-import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.tags.ItemTag;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.SnifferState;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
 
 import java.util.UUID;
 
@@ -71,8 +72,9 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
     }
 
     @Override
-    public boolean canEat(Item item) {
-        return session.getTagCache().isSnifferFood(item);
+    @Nullable
+    protected ItemTag getFoodTag() {
+        return ItemTag.SNIFFER_FOOD;
     }
 
     public void setSnifferState(ObjectEntityMetadata<SnifferState> entityMetadata) {
