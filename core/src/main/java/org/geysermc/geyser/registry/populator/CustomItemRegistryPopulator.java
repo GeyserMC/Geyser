@@ -131,8 +131,8 @@ public class CustomItemRegistryPopulator {
         Set<String> repairMaterials = customItemData.repairMaterials();
 
         Item.Builder itemBuilder = Item.builder()
-                .stackSize(customItemData.stackSize())
-                .maxDamage(customItemData.maxDamage());
+                .stackSize(customItemData.stackSize() == 0 ? 64 : customItemData.stackSize())
+                .maxDamage(Math.max(customItemData.maxDamage(), 0));
         Item item = new Item(customIdentifier, itemBuilder) {
             @Override
             public boolean isValidRepairItem(Item other) {
@@ -168,12 +168,24 @@ public class CustomItemRegistryPopulator {
         NbtMapBuilder itemProperties = NbtMap.builder();
         NbtMapBuilder componentBuilder = NbtMap.builder();
 
-        setupBasicItemInfo(javaItem.maxDamage(), javaItem.maxStackSize(), mapping.getToolType() != null || customItemData.displayHandheld(), customItemData, itemProperties, componentBuilder, protocolVersion);
+        setupBasicItemInfo(customItemData.maxDamage() < 0 ? javaItem.maxDamage() : customItemData.maxDamage(),
+                customItemData.stackSize() == 0 ? javaItem.maxStackSize() : customItemData.stackSize(),
+                mapping.getToolType() != null || customItemData.displayHandheld(),
+                customItemData, itemProperties, componentBuilder, protocolVersion);
 
         boolean canDestroyInCreative = true;
-        if (mapping.getToolType() != null) { // This is not using the isTool boolean because it is not just a render type here.
-            canDestroyInCreative = computeToolProperties(mapping.getToolType(), itemProperties, componentBuilder, javaItem.attackDamage());
+        String toolType = null;
+        if (mapping.getToolType() != null) {
+            toolType = mapping.getToolType();
+        } else if (customItemData.toolType() != null) {
+            toolType = customItemData.toolType();
         }
+
+        if (toolType != null) {
+            canDestroyInCreative = computeToolProperties(toolType, itemProperties, componentBuilder,
+                    customItemData.attackDamage() == 0 ? javaItem.attackDamage() : customItemData.attackDamage());
+        }
+
         itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
 
         if (mapping.getArmorType() != null) {
@@ -184,12 +196,16 @@ public class CustomItemRegistryPopulator {
             computeBlockItemProperties(mapping.getBedrockIdentifier(), componentBuilder);
         }
 
-        if (mapping.isEdible()) {
-            computeConsumableProperties(itemProperties, componentBuilder, 1, false);
+        if (mapping.isEdible() || customItemData.isEdible()) {
+            computeConsumableProperties(itemProperties, componentBuilder, 1, customItemData.canAlwaysEat());
         }
 
         if (mapping.isEntityPlacer()) {
             computeEntityPlacerProperties(componentBuilder);
+        }
+
+        if (customItemData.isFoil()) {
+            itemProperties.putBoolean("foil", true);
         }
 
         switch (mapping.getBedrockIdentifier()) {
@@ -217,7 +233,8 @@ public class CustomItemRegistryPopulator {
         NbtMapBuilder itemProperties = NbtMap.builder();
         NbtMapBuilder componentBuilder = NbtMap.builder();
 
-        setupBasicItemInfo(customItemData.maxDamage(), customItemData.stackSize(), displayHandheld, customItemData, itemProperties, componentBuilder, protocolVersion);
+        setupBasicItemInfo(Math.max(customItemData.maxDamage(), 0), customItemData.stackSize() == 0 ? 64 : customItemData.stackSize(),
+                displayHandheld, customItemData, itemProperties, componentBuilder, protocolVersion);
 
         boolean canDestroyInCreative = true;
         if (customItemData.toolType() != null) { // This is not using the isTool boolean because it is not just a render type here.

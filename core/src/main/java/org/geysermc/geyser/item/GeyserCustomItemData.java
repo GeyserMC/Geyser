@@ -205,8 +205,8 @@ public class GeyserCustomItemData implements CustomItemData {
         protected int textureSize = 16;
         protected CustomRenderOffsets renderOffsets = null;
         protected Set<String> tags = new HashSet<>();
-        private int stackSize = 64;
-        private int maxDamage = 0;
+        private int stackSize = 0;
+        private int maxDamage = -1;
         private int attackDamage = 0;
         private String toolType = null;
         private String toolTier = null;

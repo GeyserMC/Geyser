@@ -118,6 +118,8 @@ public interface CustomItemData {
     /**
      * Gets the stack size of the item.
      *
+     * Returns 0 if not set. When not set (or 0), takes the Java item stack count when based of a vanilla item, or uses 64 when porting a modded item.
+     *
      * @return the stack size of the item
      */
     @NonNegative
@@ -126,6 +128,8 @@ public interface CustomItemData {
     /**
      * Gets the max damage of the item.
      *
+     * Returns -1 if not set. When not set (or below 0), takes the Java item max damage when based of a vanilla item, or uses 0 when porting a modded item.
+     *
      * @return the max damage of the item
      */
     int maxDamage();
@@ -133,6 +137,8 @@ public interface CustomItemData {
     /**
      * Gets the attack damage of the item.
      * This is purely visual, and only applied to tools
+     *
+     * Returns 0 if not set. When 0, takes the Java item attack damage when based of a vanilla item, or uses 0 when porting a modded item.
      *
      * @return the attack damage of the item
      */
