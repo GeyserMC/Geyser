@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.platform.spigot;
 
-import com.github.steveice10.mc.protocol.MinecraftProtocol;
+import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 import com.viaversion.viaversion.bukkit.handlers.BukkitChannelInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
@@ -119,8 +119,11 @@ public class GeyserSpigotInjector extends GeyserInjector {
                     protected void initChannel(@NonNull Channel ch) throws Exception {
                         initChannel.invoke(childHandler, ch);
 
+                        int index = ch.pipeline().names().indexOf("encoder");
+                        String baseName = index != -1 ? "encoder" : "outbound_config";
+
                         if (bootstrap.getGeyserConfig().isDisableCompression() && GeyserSpigotCompressionDisabler.ENABLED) {
-                            ch.pipeline().addAfter("encoder", "geyser-compression-disabler", new GeyserSpigotCompressionDisabler());
+                            ch.pipeline().addAfter(baseName, "geyser-compression-disabler", new GeyserSpigotCompressionDisabler());
                         }
                     }
                 })
@@ -177,6 +180,7 @@ public class GeyserSpigotInjector extends GeyserInjector {
                 bootstrap.getGeyserConfig().getRemote().port(), this.serverSocketAddress,
                 InetAddress.getLoopbackAddress().getHostAddress(), protocol, protocol.createHelper());
         session.connect();
+        session.disconnect("");
     }
 
     @Override

@@ -32,6 +32,9 @@ import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 import org.geysermc.geyser.api.network.RemoteServer;
 
+import java.util.Map;
+import java.util.Objects;
+
 /**
  * Called when a session has logged in, and is about to connect to a remote java server.
  * This event is cancellable, and can be used to prevent the player from connecting to the remote server.
@@ -40,10 +43,16 @@ public final class SessionLoginEvent extends ConnectionEvent implements Cancella
     private RemoteServer remoteServer;
     private boolean cancelled;
     private String disconnectReason;
+    private Map<String, byte[]> cookies;
+    private boolean transferring;
 
-    public SessionLoginEvent(@NonNull GeyserConnection connection, @NonNull RemoteServer remoteServer) {
+    public SessionLoginEvent(@NonNull GeyserConnection connection,
+                             @NonNull RemoteServer remoteServer,
+                             @NonNull Map<String, byte[]> cookies) {
         super(connection);
         this.remoteServer = remoteServer;
+        this.cookies = cookies;
+        this.transferring = false;
     }
 
     /**
@@ -105,5 +114,37 @@ public final class SessionLoginEvent extends ConnectionEvent implements Cancella
      */
     public void remoteServer(@NonNull RemoteServer remoteServer) {
         this.remoteServer = remoteServer;
+    }
+
+    /**
+     * Sets a map of cookies from a possible previous session. The Java server can send and request these
+     * to store information on the client across server transfers.
+     */
+    public void cookies(@NonNull Map<String, byte[]> cookies) {
+        Objects.requireNonNull(cookies);
+        this.cookies = cookies;
+    }
+
+    /**
+     * Gets a map of the sessions cookies, if set.
+     * @return the connections cookies
+     */
+    public @NonNull Map<String, byte[]> cookies() {
+        return cookies;
+    }
+
+    /**
+     * Determines the connection intent of the connection
+     */
+    public void transferring(boolean transferring) {
+        this.transferring = transferring;
+    }
+
+    /**
+     * Gets whether this login attempt to the Java server
+     * has the transfer intent
+     */
+    public boolean transferring() {
+        return this.transferring;
     }
 }

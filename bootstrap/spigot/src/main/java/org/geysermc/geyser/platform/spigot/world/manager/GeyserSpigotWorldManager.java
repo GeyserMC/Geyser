@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.platform.spigot.world.manager;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityInfo;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
@@ -39,7 +39,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.erosion.bukkit.BukkitLecterns;
 import org.geysermc.erosion.bukkit.BukkitUtils;
-import org.geysermc.erosion.bukkit.PickBlockUtils;
 import org.geysermc.erosion.bukkit.SchedulerUtils;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.GameRule;
@@ -205,8 +204,8 @@ public class GeyserSpigotWorldManager extends WorldManager {
     }
 
     @Override
-    public @NonNull CompletableFuture<@Nullable CompoundTag> getPickItemNbt(GeyserSession session, int x, int y, int z, boolean addNbtData) {
-        CompletableFuture<@Nullable CompoundTag> future = new CompletableFuture<>();
+    public @NonNull CompletableFuture<@Nullable DataComponents> getPickItemComponents(GeyserSession session, int x, int y, int z, boolean addNbtData) {
+        CompletableFuture<@Nullable DataComponents> future = new CompletableFuture<>();
         Player bukkitPlayer;
         if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUuid())) == null) {
             future.complete(null);
@@ -215,7 +214,7 @@ public class GeyserSpigotWorldManager extends WorldManager {
         Block block = bukkitPlayer.getWorld().getBlockAt(x, y, z);
         // Paper 1.19.3 complains about async access otherwise.
         // java.lang.IllegalStateException: Tile is null, asynchronous access?
-        SchedulerUtils.runTask(this.plugin, () -> future.complete(PickBlockUtils.pickBlock(block)), block);
+        SchedulerUtils.runTask(this.plugin, () -> future.complete(/*PickBlockUtils.pickBlock(block)*/ null), block); // TODO fix erosion once clear how to handle this
         return future;
     }
 

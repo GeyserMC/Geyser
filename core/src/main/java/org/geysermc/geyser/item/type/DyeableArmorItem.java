@@ -25,29 +25,28 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.item.ArmorMaterial;
-import org.geysermc.geyser.item.DyeableLeatherItem;
-import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DyedItemColor;
 
-public class DyeableArmorItem extends ArmorItem implements DyeableLeatherItem {
+public class DyeableArmorItem extends ArmorItem {
     public DyeableArmorItem(String javaIdentifier, ArmorMaterial material, Builder builder) {
         super(javaIdentifier, material, builder);
     }
 
     @Override
-    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag) {
-        super.translateNbtToBedrock(session, tag);
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
+        super.translateComponentsToBedrock(session, components, builder);
 
-        DyeableLeatherItem.translateNbtToBedrock(tag);
-    }
-
-    @Override
-    public void translateNbtToJava(@NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
-        super.translateNbtToJava(tag, mapping);
-
-        DyeableLeatherItem.translateNbtToJava(tag);
+        // Note that this is handled as of 1.20.5 in the ItemColors class.
+        // But horse leather armor and body leather armor are now both armor items. So it works!
+        DyedItemColor dyedItemColor = components.get(DataComponentType.DYED_COLOR);
+        if (dyedItemColor != null) {
+            builder.putInt("customColor", dyedItemColor.getRgb());
+        }
     }
 }

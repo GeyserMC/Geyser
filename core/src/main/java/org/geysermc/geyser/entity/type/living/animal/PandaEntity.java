@@ -25,9 +25,6 @@
 
 package org.geysermc.geyser.entity.type.living.animal;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -37,11 +34,13 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
 import java.util.UUID;
 
@@ -62,7 +61,8 @@ public class PandaEntity extends AnimalEntity {
             EntityEventPacket packet = new EntityEventPacket();
             packet.setRuntimeEntityId(geyserId);
             packet.setType(EntityEventType.EATING_ITEM);
-            packet.setData(session.getItemMappings().getStoredItems().bamboo().getBedrockDefinition().getRuntimeId() << 16);
+            // As of 1.20.5 - pandas can eat cake
+            packet.setData(this.hand.getDefinition().getRuntimeId() << 16);
             session.sendUpstreamPacket(packet);
         }
     }
@@ -89,8 +89,9 @@ public class PandaEntity extends AnimalEntity {
     }
 
     @Override
-    public boolean canEat(Item item) {
-        return item == Items.BAMBOO;
+    @Nullable
+    protected ItemTag getFoodTag() {
+        return ItemTag.PANDA_FOOD;
     }
 
     @NonNull

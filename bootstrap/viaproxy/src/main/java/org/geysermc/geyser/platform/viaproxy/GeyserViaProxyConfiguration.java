@@ -26,7 +26,7 @@ package org.geysermc.geyser.platform.viaproxy;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import net.raphimc.vialegacy.api.LegacyProtocolVersion;
-import net.raphimc.viaproxy.cli.options.Options;
+import net.raphimc.viaproxy.ViaProxy;
 import org.geysermc.geyser.configuration.GeyserJacksonConfiguration;
 
 import java.io.File;
@@ -43,7 +43,7 @@ public class GeyserViaProxyConfiguration extends GeyserJacksonConfiguration {
     @Override
     public int getPingPassthroughInterval() {
         int interval = super.getPingPassthroughInterval();
-        if (interval < 15 && Options.PROTOCOL_VERSION != null && Options.PROTOCOL_VERSION.olderThanOrEqualTo(LegacyProtocolVersion.r1_6_4)) {
+        if (interval < 15 && ViaProxy.getConfig().getTargetVersion() != null && ViaProxy.getConfig().getTargetVersion().olderThanOrEqualTo(LegacyProtocolVersion.r1_6_4)) {
             // <= 1.6.4 servers sometimes block incoming connections from an IP address if too many connections are made
             interval = 15;
         }

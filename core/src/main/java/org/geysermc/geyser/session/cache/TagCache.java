@@ -25,66 +25,47 @@
 
 package org.geysermc.geyser.session.cache;
 
-import com.github.steveice10.mc.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
+import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
 import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.ints.IntLists;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.tags.BlockTag;
+import org.geysermc.geyser.session.cache.tags.ItemTag;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Manages information sent from the {@link ClientboundUpdateTagsPacket}. If that packet is not sent, all lists here
  * will remain empty, matching Java Edition behavior.
+ *
+ * This system is designed for easy extensibility - just add an enum to {@link BlockTag} or {@link ItemTag}.
  */
 @ParametersAreNonnullByDefault
-public class TagCache {
-    /* Blocks */
-    private IntList leaves;
-    private IntList wool;
+public final class TagCache {
+    // Put these here so the enums can load without a static map
+    public static final Map<String, BlockTag> ALL_BLOCK_TAGS = new HashMap<>();
+    public static final Map<String, ItemTag> ALL_ITEM_TAGS = new HashMap<>();
 
-    private IntList axeEffective;
-    private IntList hoeEffective;
-    private IntList pickaxeEffective;
-    private IntList shovelEffective;
-
-    private IntList requiresStoneTool;
-    private IntList requiresIronTool;
-    private IntList requiresDiamondTool;
-
-    /* Items */
-    private IntList axolotlTemptItems;
-    private IntList creeperIgniters;
-    private IntList fishes;
-    private IntList flowers;
-    private IntList foxFood;
-    private IntList piglinLoved;
-    private IntList smallFlowers;
-    private IntList snifferFood;
-
-    public TagCache() {
-        // Ensure all lists are non-null
-        clear();
-    }
+    private final Map<BlockTag, IntList> blocks = new EnumMap<>(BlockTag.class);
+    private final Map<ItemTag, IntList> items = new EnumMap<>(ItemTag.class);
 
     public void loadPacket(GeyserSession session, ClientboundUpdateTagsPacket packet) {
         Map<String, int[]> blockTags = packet.getTags().get("minecraft:block");
-        this.leaves = IntList.of(blockTags.get("minecraft:leaves"));
-        this.wool = IntList.of(blockTags.get("minecraft:wool"));
-
-        this.axeEffective = IntList.of(blockTags.get("minecraft:mineable/axe"));
-        this.hoeEffective = IntList.of(blockTags.get("minecraft:mineable/hoe"));
-        this.pickaxeEffective = IntList.of(blockTags.get("minecraft:mineable/pickaxe"));
-        this.shovelEffective = IntList.of(blockTags.get("minecraft:mineable/shovel"));
-
-        this.requiresStoneTool = IntList.of(blockTags.get("minecraft:needs_stone_tool"));
-        this.requiresIronTool = IntList.of(blockTags.get("minecraft:needs_iron_tool"));
-        this.requiresDiamondTool = IntList.of(blockTags.get("minecraft:needs_diamond_tool"));
+        this.blocks.clear();
+        ALL_BLOCK_TAGS.forEach((location, tag) -> {
+            int[] values = blockTags.get(location);
+            if (values != null) {
+                this.blocks.put(tag, IntList.of(values));
+            } else {
+                session.getGeyser().getLogger().debug("Block tag not found from server: " + location);
+            }
+        });
 
         // Hack btw
         GeyserLogger logger = session.getGeyser().getLogger();
@@ -96,14 +77,15 @@ public class TagCache {
         }
 
         Map<String, int[]> itemTags = packet.getTags().get("minecraft:item");
-        this.axolotlTemptItems = IntList.of(itemTags.get("minecraft:axolotl_tempt_items"));
-        this.creeperIgniters = load(itemTags.get("minecraft:creeper_igniters"));
-        this.fishes = IntList.of(itemTags.get("minecraft:fishes"));
-        this.flowers = IntList.of(itemTags.get("minecraft:flowers"));
-        this.foxFood = IntList.of(itemTags.get("minecraft:fox_food"));
-        this.piglinLoved = IntList.of(itemTags.get("minecraft:piglin_loved"));
-        this.smallFlowers = IntList.of(itemTags.get("minecraft:small_flowers"));
-        this.snifferFood = load(itemTags.get("minecraft:sniffer_food"));
+        this.items.clear();
+        ALL_ITEM_TAGS.forEach((location, tag) -> {
+            int[] values = itemTags.get(location);
+            if (values != null) {
+                this.items.put(tag, IntList.of(values));
+            } else {
+                session.getGeyser().getLogger().debug("Item tag not found from server: " + location);
+            }
+        });
 
         // Hack btw
         boolean emulatePost1_13Logic = itemTags.get("minecraft:signs").length > 1;
@@ -113,98 +95,32 @@ public class TagCache {
         }
     }
 
-    private IntList load(int @Nullable[] tags) {
-        if (tags == null) {
-            return IntLists.EMPTY_LIST;
+    /**
+     * @return true if the block tag is present and contains this block mapping's Java ID.
+     */
+    public boolean is(BlockTag tag, BlockMapping mapping) {
+        IntList values = this.blocks.get(tag);
+        if (values != null) {
+            return values.contains(mapping.getJavaBlockId());
         }
-        return IntList.of(tags);
+        return false;
     }
 
-    public void clear() {
-        this.leaves = IntLists.emptyList();
-        this.wool = IntLists.emptyList();
-
-        this.axeEffective = IntLists.emptyList();
-        this.hoeEffective = IntLists.emptyList();
-        this.pickaxeEffective = IntLists.emptyList();
-        this.shovelEffective = IntLists.emptyList();
-
-        this.requiresStoneTool = IntLists.emptyList();
-        this.requiresIronTool = IntLists.emptyList();
-        this.requiresDiamondTool = IntLists.emptyList();
-
-        this.axolotlTemptItems = IntLists.emptyList();
-        this.creeperIgniters = IntLists.emptyList();
-        this.fishes = IntLists.emptyList();
-        this.flowers = IntLists.emptyList();
-        this.foxFood = IntLists.emptyList();
-        this.piglinLoved = IntLists.emptyList();
-        this.smallFlowers = IntLists.emptyList();
-        this.snifferFood = IntLists.emptyList();
+    /**
+     * @return true if the item tag is present and contains this item stack's Java ID.
+     */
+    public boolean is(ItemTag tag, GeyserItemStack itemStack) {
+        return is(tag, itemStack.asItem());
     }
 
-    public boolean isAxolotlTemptItem(Item item) {
-        return axolotlTemptItems.contains(item.javaId());
-    }
-
-    public boolean isCreeperIgniter(Item item) {
-        return creeperIgniters.contains(item.javaId());
-    }
-
-    public boolean isFish(GeyserItemStack itemStack) {
-        return fishes.contains(itemStack.getJavaId());
-    }
-
-    public boolean isFlower(Item item) {
-        return flowers.contains(item.javaId());
-    }
-
-    public boolean isFoxFood(Item item) {
-        return foxFood.contains(item.javaId());
-    }
-
-    public boolean shouldPiglinAdmire(Item item) {
-        return piglinLoved.contains(item.javaId());
-    }
-
-    public boolean isSmallFlower(GeyserItemStack itemStack) {
-        return smallFlowers.contains(itemStack.getJavaId());
-    }
-
-    public boolean isSnifferFood(Item item) {
-        return snifferFood.contains(item.javaId());
-    }
-
-    public boolean isAxeEffective(BlockMapping blockMapping) {
-        return axeEffective.contains(blockMapping.getJavaBlockId());
-    }
-
-    public boolean isHoeEffective(BlockMapping blockMapping) {
-        return hoeEffective.contains(blockMapping.getJavaBlockId());
-    }
-
-    public boolean isPickaxeEffective(BlockMapping blockMapping) {
-        return pickaxeEffective.contains(blockMapping.getJavaBlockId());
-    }
-
-    public boolean isShovelEffective(BlockMapping blockMapping) {
-        return shovelEffective.contains(blockMapping.getJavaBlockId());
-    }
-
-    public boolean isShearsEffective(BlockMapping blockMapping) {
-        int javaBlockId = blockMapping.getJavaBlockId();
-        return leaves.contains(javaBlockId) || wool.contains(javaBlockId);
-    }
-
-    public boolean requiresStoneTool(BlockMapping blockMapping) {
-        return requiresStoneTool.contains(blockMapping.getJavaBlockId());
-    }
-
-    public boolean requiresIronTool(BlockMapping blockMapping) {
-        return requiresIronTool.contains(blockMapping.getJavaBlockId());
-    }
-
-    public boolean requiresDiamondTool(BlockMapping blockMapping) {
-        return requiresDiamondTool.contains(blockMapping.getJavaBlockId());
+    /**
+     * @return true if the item tag is present and contains this item's Java ID.
+     */
+    public boolean is(ItemTag tag, Item item) {
+        IntList values = this.items.get(tag);
+        if (values != null) {
+            return values.contains(item.javaId());
+        }
+        return false;
     }
 }

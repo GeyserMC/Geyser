@@ -25,18 +25,14 @@
 
 package org.geysermc.geyser.util;
 
-import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.PlayerActionType;
-import org.cloudburstmc.protocol.bedrock.packet.ChangeDimensionPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
-import org.cloudburstmc.protocol.bedrock.packet.MobEffectPacket;
-import org.cloudburstmc.protocol.bedrock.packet.PlayerActionPacket;
-import org.cloudburstmc.protocol.bedrock.packet.StopSoundPacket;
+import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 
 import java.util.Set;
 
@@ -50,19 +46,19 @@ public class DimensionUtils {
     /**
      * String reference to vanilla Java overworld dimension identifier
      */
-    public static final String OVERWORLD = "minecraft:overworld";
+    public static final int OVERWORLD = 0;
     /**
      * String reference to vanilla Java nether dimension identifier
      */
-    public static final String NETHER = "minecraft:the_nether";
+    public static final int NETHER = 3;
     /**
      * String reference to vanilla Java end dimension identifier
      */
-    public static final String THE_END = "minecraft:the_end";
+    public static final int THE_END = 2;
 
-    public static void switchDimension(GeyserSession session, String javaDimension) {
+    public static void switchDimension(GeyserSession session, int javaDimension) {
         int bedrockDimension = javaToBedrock(javaDimension); // new bedrock dimension
-        String previousDimension = session.getDimension(); // previous java dimension
+        int previousDimension = session.getDimension(); // previous java dimension
 
         Entity player = session.getPlayerEntity();
 
@@ -142,15 +138,15 @@ public class DimensionUtils {
         // we check if the player is entering the nether and apply the nether fog to fake the fact that the client
         // thinks they are in the end dimension.
         if (isCustomBedrockNetherId()) {
-            if (NETHER.equals(javaDimension)) {
+            if (NETHER == javaDimension) {
                 session.camera().sendFog(BEDROCK_FOG_HELL);
-            } else if (NETHER.equals(previousDimension)) {
+            } else if (NETHER == previousDimension) {
                 session.camera().removeFog(BEDROCK_FOG_HELL);
             }
         }
     }
 
-    public static void setBedrockDimension(GeyserSession session, String javaDimension) {
+    public static void setBedrockDimension(GeyserSession session, int javaDimension) {
         session.getChunkCache().setBedrockDimension(switch (javaDimension) {
             case DimensionUtils.THE_END -> BedrockDimension.THE_END;
             case DimensionUtils.NETHER -> DimensionUtils.isCustomBedrockNetherId() ? BedrockDimension.THE_END : BedrockDimension.THE_NETHER;
@@ -174,10 +170,24 @@ public class DimensionUtils {
      * @param javaDimension Dimension ID to convert
      * @return Converted Bedrock edition dimension ID
      */
-    public static int javaToBedrock(String javaDimension) {
+    public static int javaToBedrock(int javaDimension) {
         return switch (javaDimension) {
             case NETHER -> BEDROCK_NETHER_ID;
             case THE_END -> 2;
+            default -> 0;
+        };
+    }
+
+    /**
+     * Map the Java edition dimension IDs to Bedrock edition
+     *
+     * @param javaDimension Dimension ID to convert
+     * @return Converted Bedrock edition dimension ID
+     */
+    public static int javaToBedrock(String javaDimension) {
+        return switch (javaDimension) {
+            case "minecraft:the_nether" -> BEDROCK_NETHER_ID;
+            case "minecraft:the_end" -> 2;
             default -> 0;
         };
     }
@@ -201,7 +211,7 @@ public class DimensionUtils {
      * @param newDimension the new dimension that the player will be transferred to
      * @return the fake dimension to transfer to
      */
-    public static String getTemporaryDimension(String currentDimension, String newDimension) {
+    public static int getTemporaryDimension(int currentDimension, int newDimension) {
         if (isCustomBedrockNetherId()) {
             // Prevents rare instances of Bedrock locking up
             return javaToBedrock(newDimension) == 2 ? OVERWORLD : NETHER;

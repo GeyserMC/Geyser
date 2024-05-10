@@ -37,9 +37,11 @@ public class Conversion649_630 {
             String identifer = mapping.getBedrockIdentifier();
 
             switch (identifer) {
-                case "minecraft:turtle_scute" -> { return mapping.withBedrockIdentifier("minecraft:scute"); }
+                case "minecraft:armadillo_scute", "minecraft:turtle_scute" -> { return mapping.withBedrockIdentifier("minecraft:scute"); }
+                case "minecraft:armadillo_spawn_egg" -> { return mapping.withBedrockIdentifier("minecraft:rabbit_spawn_egg"); }
                 case "minecraft:trial_spawner" -> { return mapping.withBedrockIdentifier("minecraft:mob_spawner"); }
                 case "minecraft:trial_key" -> { return mapping.withBedrockIdentifier("minecraft:echo_shard"); }
+                case "minecraft:wolf_armor" -> { return mapping.withBedrockIdentifier("minecraft:leather_horse_armor"); }
                 default -> { return mapping; }
             }
         }

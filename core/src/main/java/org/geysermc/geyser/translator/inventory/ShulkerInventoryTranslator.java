@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.translator.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -39,6 +38,7 @@ import org.geysermc.geyser.inventory.updater.ContainerInventoryUpdater;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
 public class ShulkerInventoryTranslator extends AbstractBlockInventoryTranslator {
     public ShulkerInventoryTranslator() {
@@ -58,7 +58,7 @@ public class ShulkerInventoryTranslator extends AbstractBlockInventoryTranslator
                         .putInt("z", position.getZ())
                         .putString("CustomName", inventory.getTitle());
                 // Don't reset facing property
-                shulkerBoxTranslator.translateTag(tag, null, javaBlockState);
+                shulkerBoxTranslator.translateTag(session, tag, null, javaBlockState);
 
                 BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
                 dataPacket.setData(tag.build());

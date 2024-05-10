@@ -58,6 +58,7 @@ import org.geysermc.geyser.util.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.UUID;
@@ -127,7 +128,9 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         // We want to do this late in the server startup process to allow other mods
         // To do their job injecting, then connect into *that*
         this.geyserInjector = new GeyserModInjector(server, this.platform);
-        this.geyserInjector.initializeLocalChannel(this);
+        if (isServer()) {
+            this.geyserInjector.initializeLocalChannel(this);
+        }
 
         // Start command building
         // Set just "geyser" as the help command
@@ -241,9 +244,21 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     }
 
     @Override
-    public int getServerPort() {
-        return ((GeyserServerPortGetter) server).geyser$getServerPort();
+    public SocketAddress getSocketAddress() {
+        return this.geyserInjector.getServerSocketAddress();
     }
+
+    @Override
+    public int getServerPort() {
+        if (isServer()) {
+            return ((GeyserServerPortGetter) server).geyser$getServerPort();
+        } else {
+            // Set in the IntegratedServerMixin
+            return geyserConfig.getRemote().port();
+        }
+    }
+
+    public abstract boolean isServer();
 
     @Override
     public boolean testFloodgatePluginPresent() {
