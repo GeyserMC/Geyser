@@ -25,13 +25,12 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
 /**
  * The class that all block entities (on both Java and Bedrock) should translate with
@@ -40,24 +39,27 @@ public abstract class BlockEntityTranslator {
     protected BlockEntityTranslator() {
     }
 
-    public abstract void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState);
+    public abstract void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, int blockState);
 
-    public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, CompoundTag tag, int blockState) {
-        NbtMapBuilder tagBuilder = getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(type), x, y, z);
-        translateTag(tagBuilder, tag, blockState);
+    public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, @Nullable NbtMap javaNbt, int blockState) {
+        NbtMapBuilder tagBuilder = getConstantBedrockTag(type, x, y, z);
+        if (javaNbt != null || this instanceof RequiresBlockState) {
+            // Always process tags if the block state is part of the tag.
+            // See: banner base colors.
+            translateTag(session, tagBuilder, javaNbt, blockState);
+        }
         return tagBuilder.build();
     }
 
-    protected NbtMapBuilder getConstantBedrockTag(String bedrockId, int x, int y, int z) {
+    public static NbtMapBuilder getConstantBedrockTag(BlockEntityType type, int x, int y, int z) {
+        return getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(type), x, y, z);
+    }
+
+    public static NbtMapBuilder getConstantBedrockTag(String bedrockId, int x, int y, int z) {
         return NbtMap.builder()
                 .putInt("x", x)
                 .putInt("y", y)
                 .putInt("z", z)
                 .putString("id", bedrockId);
-    }
-
-    @SuppressWarnings("unchecked")
-    protected <T> T getOrDefault(Tag tag, T defaultValue) {
-        return (tag != null && tag.getValue() != null) ? (T) tag.getValue() : defaultValue;
     }
 }

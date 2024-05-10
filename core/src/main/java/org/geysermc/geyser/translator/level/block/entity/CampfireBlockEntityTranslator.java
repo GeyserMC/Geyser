@@ -25,37 +25,37 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.geysermc.geyser.network.GameProtocol;
-import org.geysermc.geyser.registry.Registries;
+import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
+
+import java.util.List;
 
 @BlockEntity(type = BlockEntityType.CAMPFIRE)
 public class CampfireBlockEntityTranslator extends BlockEntityTranslator {
     @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
-        if (tag.get("Items") instanceof ListTag items) {
+    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, int blockState) {
+        List<NbtMap> items = javaNbt.getList("Items", NbtType.COMPOUND);
+        if (items != null) {
             int i = 1;
-            for (Tag itemTag : items.getValue()) {
-                builder.put("Item" + i, getItem((CompoundTag) itemTag));
+            for (NbtMap itemTag : items) {
+                bedrockNbt.put("Item" + i, getItem(session, itemTag));
                 i++;
             }
         }
     }
 
-    protected NbtMap getItem(CompoundTag tag) {
-        // TODO: Version independent mappings
-        ItemMapping mapping = Registries.ITEMS.forVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getMapping((String) tag.get("id").getValue());
-        NbtMapBuilder tagBuilder = NbtMap.builder()
-                .putString("Name", mapping.getBedrockIdentifier())
-                .putByte("Count", (byte) tag.get("Count").getValue())
-                .putShort("Damage", (short) mapping.getBedrockData());
-        tagBuilder.put("tag", NbtMap.builder().build());
+    protected NbtMap getItem(GeyserSession session, NbtMap tag) {
+        ItemMapping mapping = session.getItemMappings().getMapping(tag.getString("id"));
+        if (mapping == null) {
+            mapping = ItemMapping.AIR;
+        }
+        NbtMapBuilder tagBuilder = BedrockItemBuilder.createItemNbt(mapping, tag.getByte("Count"), mapping.getBedrockData());
+        tagBuilder.put("tag", NbtMap.builder().build()); // I don't think this is necessary... - Camo, 1.20.5/1.20.80
         return tagBuilder.build();
     }
 }

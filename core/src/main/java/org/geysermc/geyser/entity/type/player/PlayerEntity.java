@@ -25,36 +25,26 @@
 
 package org.geysermc.geyser.entity.type.player;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
-import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.Ability;
 import org.cloudburstmc.protocol.bedrock.data.AbilityLayer;
-import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
 import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
-import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
-import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
-import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
-import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
-import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
@@ -63,8 +53,21 @@ import org.geysermc.geyser.scoreboard.Score;
 import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.scoreboard.UpdateType;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
+import org.geysermc.mcprotocollib.protocol.codec.NbtComponentSerializer;
+import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.BlankFormat;
+import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.FixedFormat;
+import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.NumberFormat;
+import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.StyledFormat;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreboardPosition;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
 
 import java.util.Collections;
 import java.util.List;
@@ -283,7 +286,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         attributesPacket.setRuntimeEntityId(geyserId);
         // Setting to a higher maximum since plugins/datapacks can probably extend the Bedrock soft limit
         attributesPacket.setAttributes(Collections.singletonList(
-                new AttributeData("minecraft:absorption", 0.0f, 1024f, entityMetadata.getPrimitiveValue(), 0.0f)));
+                GeyserAttributeType.ABSORPTION.getAttribute(entityMetadata.getPrimitiveValue())));
         session.sendUpstreamPacket(attributesPacket);
     }
 
@@ -295,11 +298,11 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
         dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, ~entityMetadata.getPrimitiveValue() & 0xff);
     }
 
-    public void setLeftParrot(EntityMetadata<CompoundTag, ?> entityMetadata) {
+    public void setLeftParrot(EntityMetadata<NbtMap, ?> entityMetadata) {
         setParrot(entityMetadata.getValue(), true);
     }
 
-    public void setRightParrot(EntityMetadata<CompoundTag, ?> entityMetadata) {
+    public void setRightParrot(EntityMetadata<NbtMap, ?> entityMetadata) {
         setParrot(entityMetadata.getValue(), false);
     }
 
@@ -307,7 +310,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
      * Sets the parrot occupying the shoulder. Bedrock Edition requires a full entity whereas Java Edition just
      * spawns it from the NBT data provided
      */
-    private void setParrot(CompoundTag tag, boolean isLeft) {
+    protected void setParrot(NbtMap tag, boolean isLeft) {
         if (tag != null && !tag.isEmpty()) {
             if ((isLeft && leftParrot != null) || (!isLeft && rightParrot != null)) {
                 // No need to update a parrot's data when it already exists
@@ -317,7 +320,7 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
             ParrotEntity parrot = new ParrotEntity(session, 0, session.getEntityCache().getNextEntityId().incrementAndGet(),
                     null, EntityDefinitions.PARROT, position, motion, getYaw(), getPitch(), getHeadYaw());
             parrot.spawnEntity();
-            parrot.getDirtyMetadata().put(EntityDataTypes.VARIANT, (Integer) tag.get("Variant").getValue());
+            parrot.getDirtyMetadata().put(EntityDataTypes.VARIANT, (Integer) tag.get("Variant"));
             // Different position whether the parrot is left or right
             float offset = isLeft ? 0.4f : -0.4f;
             parrot.getDirtyMetadata().put(EntityDataTypes.SEAT_OFFSET, Vector3f.from(offset, -0.22, -0.1));
@@ -414,14 +417,36 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
 
     public void setBelowNameText(Objective objective) {
         if (objective != null && objective.getUpdateType() != UpdateType.REMOVE) {
-            int amount;
             Score score = objective.getScores().get(username);
+            String numberString;
+            NumberFormat numberFormat;
+            int amount;
             if (score != null) {
-                amount = score.getCurrentData().getScore();
+                amount = score.getScore();
+                numberFormat = score.getNumberFormat();
+                if (numberFormat == null) {
+                    numberFormat = objective.getNumberFormat();
+                }
             } else {
                 amount = 0;
+                numberFormat = objective.getNumberFormat();
             }
-            String displayString = amount + " " + objective.getDisplayName();
+
+            if (numberFormat instanceof BlankFormat) {
+                numberString = "";
+            } else if (numberFormat instanceof FixedFormat fixedFormat) {
+                numberString = MessageTranslator.convertMessage(fixedFormat.getValue());
+            } else if (numberFormat instanceof StyledFormat styledFormat) {
+                NbtMapBuilder styledAmount = styledFormat.getStyle().toBuilder();
+                styledAmount.putString("text", String.valueOf(amount));
+
+                numberString = MessageTranslator.convertJsonMessage(
+                        NbtComponentSerializer.tagComponentToJson(styledAmount.build()).toString(), session.locale());
+            } else {
+                numberString = String.valueOf(amount);
+            }
+
+            String displayString = numberString + " " + ChatColor.RESET + objective.getDisplayName();
 
             if (valid) {
                 // Already spawned - we still need to run the rest of this code because the spawn packet will be
@@ -430,13 +455,22 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
                 packet.setRuntimeEntityId(geyserId);
                 packet.getMetadata().put(EntityDataTypes.SCORE, displayString);
                 session.sendUpstreamPacket(packet);
+            } else {
+                // Not spawned yet, store score value in dirtyMetadata to be picked up by #spawnEntity
+                dirtyMetadata.put(EntityDataTypes.SCORE, displayString);
             }
-        } else if (valid) {
-            SetEntityDataPacket packet = new SetEntityDataPacket();
-            packet.setRuntimeEntityId(geyserId);
-            packet.getMetadata().put(EntityDataTypes.SCORE, "");
-            session.sendUpstreamPacket(packet);
+        } else {
+            if (valid) {
+                SetEntityDataPacket packet = new SetEntityDataPacket();
+                packet.setRuntimeEntityId(geyserId);
+                packet.getMetadata().put(EntityDataTypes.SCORE, "");
+                session.sendUpstreamPacket(packet);
+            } else {
+                // Not spawned yet, store score value in dirtyMetadata to be picked up by #spawnEntity
+                dirtyMetadata.put(EntityDataTypes.SCORE, "");
+            }
         }
+
     }
 
     /**

@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerSpawnInfo;
-import com.github.steveice10.mc.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundLoginPacket;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerSpawnInfo;
+import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundLoginPacket;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
@@ -63,7 +63,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         // If the player is already initialized and a join game packet is sent, they
         // are swapping servers
         if (session.isSpawned()) {
-            String fakeDim = DimensionUtils.getTemporaryDimension(session.getDimension(), spawnInfo.getDimension());
+            int fakeDim = DimensionUtils.getTemporaryDimension(session.getDimension(), spawnInfo.getDimension());
             DimensionUtils.switchDimension(session, fakeDim);
 
             session.getWorldCache().removeScoreboard();
@@ -71,7 +71,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             // Remove all bossbars
             session.getEntityCache().removeAllBossBars();
             // Remove extra hearts, hunger, etc.
-            entity.getAttributes().clear();
+            entity.resetAttributes();
             entity.resetMetadata();
 
             // Reset weather
@@ -97,7 +97,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         session.setWorldName(spawnInfo.getWorldName());
         session.setLevels(packet.getWorldNames());
         session.setGameMode(spawnInfo.getGameMode());
-        String newDimension = spawnInfo.getDimension();
+        int newDimension = spawnInfo.getDimension();
 
         boolean needsSpawnPacket = !session.isSentSpawnPacket();
         if (needsSpawnPacket) {
@@ -135,9 +135,9 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             session.sendDownstreamPacket(new ServerboundCustomPayloadPacket("minecraft:register", PluginMessageChannels.getFloodgateRegisterData()));
         }
 
-        if (!newDimension.equals(session.getDimension())) {
+        if (newDimension != session.getDimension()) {
             DimensionUtils.switchDimension(session, newDimension);
-        } else if (DimensionUtils.isCustomBedrockNetherId() && newDimension.equalsIgnoreCase(DimensionUtils.NETHER)) {
+        } else if (DimensionUtils.isCustomBedrockNetherId() && newDimension == DimensionUtils.NETHER) {
             // If the player is spawning into the "fake" nether, send them some fog
             session.camera().sendFog(DimensionUtils.BEDROCK_FOG_HELL);
         }

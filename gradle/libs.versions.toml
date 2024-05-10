@@ -6,15 +6,16 @@ events = "1.1-SNAPSHOT"
 jackson = "2.17.0"
 fastutil = "8.5.2"
 netty = "4.1.107.Final"
+netty-io-uring = "0.0.25.Final-SNAPSHOT"
 guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8
 websocket = "1.5.1"
-protocol = "3.0.0.Beta1-20240313.120922-126"
-protocol-connection = "3.0.0.Beta1-20240313.120922-125"
-raknet = "1.0.0.CR1-20240330.103819-16"
-blockstateupdater="1.20.70-20240303.125052-2"
-mcauthlib = "d9d773e"
-mcprotocollib = "1.20.4-2-20240116.220521-7"
+protocol = "3.0.0.Beta1-20240411.165033-129"
+protocol-connection = "3.0.0.Beta1-20240411.165033-128"
+raknet = "1.0.0.CR3-20240416.144209-1"
+blockstateupdater="1.20.80-20240411.142413-1"
+mcauthlib = "e5b0bcc"
+mcprotocollib = "42ea4a4" # Revert from jitpack after release
 adventure = "4.14.0"
 adventure-platform = "4.3.0"
 junit = "5.9.2"
@@ -24,23 +25,23 @@ jline = "3.21.0"
 terminalconsoleappender = "1.2.0"
 folia = "1.19.4-R0.1-SNAPSHOT"
 viaversion = "4.9.2"
-adapters = "1.11-SNAPSHOT"
+adapters = "1.12-SNAPSHOT"
 commodore = "2.2"
 bungeecord = "a7c6ede"
-velocity = "3.1.1"
-viaproxy = "3.2.0-SNAPSHOT"
-fabric-minecraft = "1.20.4"
-fabric-loader = "0.15.2"
-fabric-api = "0.91.2+1.20.4"
+velocity = "3.3.0-SNAPSHOT"
+viaproxy = "3.2.1"
+fabric-minecraft = "1.20.5"
+fabric-loader = "0.15.10"
+fabric-api = "0.97.6+1.20.5"
 fabric-permissions = "0.2-SNAPSHOT"
-neoforge-minecraft = "20.4.48-beta"
+neoforge-minecraft = "20.5.0-beta"
 mixin = "0.8.5"
 
 # plugin versions
 indra = "3.1.3"
 shadow = "8.1.1"
 architectury-plugin = "3.4-SNAPSHOT"
-architectury-loom = "1.4-SNAPSHOT"
+architectury-loom = "1.6-SNAPSHOT"
 minotaur = "2.8.7"
 lombok = "8.4"
 blossom = "1.2.0"
@@ -75,6 +76,7 @@ netty-codec-haproxy = { group = "io.netty", name = "netty-codec-haproxy", versio
 netty-handler = { group = "io.netty", name = "netty-handler", version.ref = "netty" }
 netty-transport-native-epoll = { group = "io.netty", name = "netty-transport-native-epoll", version.ref = "netty" }
 netty-transport-native-kqueue = { group = "io.netty", name = "netty-transport-native-kqueue", version.ref = "netty" }
+netty-transport-native-io_uring = { group = "io.netty.incubator", name = "netty-incubator-transport-native-io_uring", version.ref = "netty-io-uring" }
 
 log4j-api = { group = "org.apache.logging.log4j", name = "log4j-api", version.ref = "log4j" }
 log4j-core = { group = "org.apache.logging.log4j", name = "log4j-core", version.ref = "log4j" }
@@ -98,6 +100,7 @@ fabric-permissions = { group = "me.lucko", name = "fabric-permissions-api", vers
 neoforge-minecraft = { group = "net.neoforged", name = "neoforge", version.ref = "neoforge-minecraft" }
 
 adapters-spigot = { group = "org.geysermc.geyser.adapters", name = "spigot-all", version.ref = "adapters" }
+adapters-paper = { group = "org.geysermc.geyser.adapters", name = "paper-all", version.ref = "adapters" }
 bungeecord-proxy = { group = "com.github.SpigotMC.BungeeCord", name = "bungeecord-proxy", version.ref = "bungeecord" }
 checker-qual = { group = "org.checkerframework", name = "checker-qual", version.ref = "checkerframework" }
 commodore = { group = "me.lucko", name = "commodore", version.ref = "commodore" }
@@ -105,7 +108,7 @@ guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 junit = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
 mcauthlib = { group = "com.github.GeyserMC", name = "MCAuthLib", version.ref = "mcauthlib" }
-mcprotocollib = { group = "com.github.steveice10", name = "mcprotocollib", version.ref = "mcprotocollib" }
+mcprotocollib = { group = "com.github.geysermc", name = "mcprotocollib", version.ref = "mcprotocollib" }
 raknet = { group = "org.cloudburstmc.netty", name = "netty-transport-raknet", version.ref = "raknet" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }
 velocity-api = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }
@@ -113,9 +116,12 @@ viaproxy = { group = "net.raphimc", name = "ViaProxy", version.ref = "viaproxy" 
 viaversion = { group = "com.viaversion", name = "viaversion", version.ref = "viaversion" }
 websocket = { group = "org.java-websocket", name = "Java-WebSocket", version.ref = "websocket" }
 
-protocol-common = { group = "org.cloudburstmc.protocol", name = "common", version.ref = "protocol-connection" }
-protocol-codec = { group = "org.cloudburstmc.protocol", name = "bedrock-codec", version.ref = "protocol" }
-protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol-connection" }
+#protocol-common = { group = "org.cloudburstmc.protocol", name = "common", version.ref = "protocol-connection" }
+#protocol-codec = { group = "org.cloudburstmc.protocol", name = "bedrock-codec", version.ref = "protocol" }
+#protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol-connection" }
+protocol-common = { group = "com.github.GeyserMC.Protocol", name = "common", version = "ade21be" }
+protocol-codec = { group = "com.github.GeyserMC.Protocol", name = "bedrock-codec", version = "ade21be" }
+protocol-connection = { group = "com.github.GeyserMC.Protocol", name = "bedrock-connection", version = "ade21be" }
 
 math = { group = "org.cloudburstmc.math", name = "immutable", version = "2.0" }
 

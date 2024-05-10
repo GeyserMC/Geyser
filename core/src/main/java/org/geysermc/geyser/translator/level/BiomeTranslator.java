@@ -25,78 +25,32 @@
 
 package org.geysermc.geyser.translator.level;
 
-import com.github.steveice10.mc.protocol.data.game.chunk.BitStorage;
-import com.github.steveice10.mc.protocol.data.game.chunk.DataPalette;
-import com.github.steveice10.mc.protocol.data.game.chunk.palette.GlobalPalette;
-import com.github.steveice10.mc.protocol.data.game.chunk.palette.Palette;
-import com.github.steveice10.mc.protocol.data.game.chunk.palette.SingletonPalette;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import it.unimi.dsi.fastutil.ints.*;
+import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
+import org.geysermc.mcprotocollib.protocol.data.game.chunk.BitStorage;
+import org.geysermc.mcprotocollib.protocol.data.game.chunk.DataPalette;
+import org.geysermc.mcprotocollib.protocol.data.game.chunk.palette.GlobalPalette;
+import org.geysermc.mcprotocollib.protocol.data.game.chunk.palette.Palette;
+import org.geysermc.mcprotocollib.protocol.data.game.chunk.palette.SingletonPalette;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntLists;
 import org.geysermc.geyser.level.chunk.BlockStorage;
 import org.geysermc.geyser.level.chunk.bitarray.BitArray;
 import org.geysermc.geyser.level.chunk.bitarray.BitArrayVersion;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.util.JavaCodecUtil;
-import org.geysermc.geyser.util.MathUtils;
 
 // Array index formula by https://wiki.vg/Chunk_Format
 public class BiomeTranslator {
 
-    public static void loadServerBiomes(GeyserSession session, CompoundTag codec) {
-        Int2IntMap biomeTranslations = new Int2IntOpenHashMap();
-
-        CompoundTag worldGen = codec.get("minecraft:worldgen/biome");
-        ListTag serverBiomes = worldGen.get("value");
-        session.setBiomeGlobalPalette(MathUtils.getGlobalPaletteForSize(serverBiomes.size()));
-
-        int greatestBiomeId = 0;
-        for (CompoundTag biomeTag : JavaCodecUtil.iterateAsTag(worldGen)) {
-            String javaIdentifier = ((StringTag) biomeTag.get("name")).getValue();
-            int bedrockId = Registries.BIOME_IDENTIFIERS.get().getOrDefault(javaIdentifier, 0);
-            int javaId = ((IntTag) biomeTag.get("id")).getValue();
-            if (javaId > greatestBiomeId) {
-                greatestBiomeId = javaId;
-            }
-
-            // TODO - the category tag no longer exists - find a better replacement option
-//            if (bedrockId == -1) {
-//                // There is no matching Bedrock variation for this biome; let's set the closest match based on biome category
-//                String category = ((StringTag) ((CompoundTag) biomeTag.get("element")).get("category")).getValue();
-//                String replacementBiome = switch (category) {
-//                    case "extreme_hills" -> "minecraft:mountains";
-//                    case "icy" -> "minecraft:ice_spikes";
-//                    case "mesa" -> "minecraft:badlands";
-//                    case "mushroom" -> "minecraft:mushroom_fields";
-//                    case "nether" -> "minecraft:nether_wastes";
-//                    default -> "minecraft:ocean"; // Typically ID 0 so a good default
-//                    case "taiga", "jungle", "plains", "savanna", "the_end", "beach", "ocean", "desert", "river", "swamp" -> "minecraft:" + category;
-//                };
-//                bedrockId = Registries.BIOME_IDENTIFIERS.get().getInt(replacementBiome);
-//            }
-
-            // When we see the Java ID, we should instead apply the Bedrock ID
-            biomeTranslations.put(javaId, bedrockId);
-
-            if (javaId == 0) {
-                // Matches Java behavior when it sees an invalid biome - it just replaces it with ID 0
-                biomeTranslations.defaultReturnValue(bedrockId);
-            }
-        }
-
-        int[] biomes = new int[greatestBiomeId + 1];
-        for (Int2IntMap.Entry entry : biomeTranslations.int2IntEntrySet()) {
-            biomes[entry.getIntKey()] = entry.getIntValue();
-        }
-        session.setBiomeTranslations(biomes);
+    public static int loadServerBiome(RegistryEntry entry) {
+        String javaIdentifier = entry.getId();
+        return Registries.BIOME_IDENTIFIERS.get().getOrDefault(javaIdentifier, 0);
     }
 
     public static BlockStorage toNewBedrockBiome(GeyserSession session, DataPalette biomeData) {
-        int[] biomeTranslations = session.getBiomeTranslations();
+        int[] biomeTranslations = session.getRegistryCache().biomeTranslations();
         // As of 1.17.10: the client expects the same format as a chunk but filled with biomes
         // As of 1.18 this is the same as Java Edition
 

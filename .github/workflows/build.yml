@@ -7,7 +7,9 @@ on:
       - 'gh-readonly-queue/**'
     paths-ignore:
       - '.github/ISSUE_TEMPLATE/*.yml'
-      - '.github/actions/pullrequest.yml'
+      - '.github/workflows/build-remote.yml'
+      - '.github/workflows/preview.yml'
+      - '.github/workflows/pull-request.yml'
       - '.idea/copyright/*.xml'
       - '.gitignore'
       - 'CONTRIBUTING.md'
@@ -19,7 +21,16 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      PROJECT: 'geyser'
     steps:
+      - name: Set Build Number
+        env:
+          BUILD_JSON: ${{ vars.RELEASEACTION_PREVRELEASE }}
+        run: |
+          BUILD_NUMBER=$(echo $BUILD_JSON | jq --arg branch "${GITHUB_REF_NAME}" 'if .[$branch] == null then 1 else .[$branch] | .t | tonumber + 1 end // 1')
+          echo "BUILD_NUMBER=${BUILD_NUMBER:=$GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+
       - name: Checkout repository and submodules
         # See https://github.com/actions/checkout/commits
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -33,12 +44,12 @@ jobs:
         # See https://github.com/actions/setup-java/commits
       - uses: actions/setup-java@387ac29b308b003ca37ba93a6cab5eb57c8f5f93 # v4.0.0
         with:
-          java-version: 17
+          java-version: 21
           distribution: temurin
           
       - name: Build
-        # See https://github.com/gradle/gradle-build-action/commits
-        uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0 from https://github.com/gradle/actions/commits
+        # See https://github.com/gradle/actions/commits
+        uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
         with:
           arguments: build
           gradle-home-cache-cleanup: true
@@ -103,6 +114,37 @@ jobs:
         with:
           arguments: publish
 
+      - name: Get Release Metadata
+        if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
+        # See https://github.com/Kas-tle/base-release-action/releases/tag/main-11
+        uses: Kas-tle/base-release-action@b863fa0f89bd15267a96a72efb84aec25f168d4c # main-11
+        with:
+          appID: ${{ secrets.RELEASE_APP_ID }}
+          appPrivateKey: ${{ secrets.RELEASE_APP_PK }}
+          files: |
+            bungeecord:bootstrap/bungeecord/build/libs/Geyser-BungeeCord.jar
+            fabric:bootstrap/mod/fabric/build/libs/Geyser-Fabric.jar
+            neoforge:bootstrap/mod/neoforge/build/libs/Geyser-NeoForge.jar
+            spigot:bootstrap/spigot/build/libs/Geyser-Spigot.jar
+            standalone:bootstrap/standalone/build/libs/Geyser-Standalone.jar
+            velocity:bootstrap/velocity/build/libs/Geyser-Velocity.jar
+            viaproxy:bootstrap/viaproxy/build/libs/Geyser-ViaProxy.jar
+          releaseEnabled: false
+          saveMetadata: true
+      - name: Update Generated Metadata
+        if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
+        run: |
+          cat metadata.json
+          echo
+          mv metadata.json metadata.json.tmp
+          version=$(cat gradle.properties | grep -o "version=[0-9\\.]*" | cut -d"=" -f2)
+          jq --arg project "${PROJECT}" --arg version "${version}" '
+            .
+            | .changes |= map({"commit", "summary", "message"}) 
+            | .downloads |= map_values({"name", "sha256"})
+            | {$project, "repo", $version, "number": .build, "changes", "downloads"}
+          ' metadata.json.tmp > metadata.json
+          cat metadata.json
       - name: Publish to Downloads API
         if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
         shell: bash
@@ -114,19 +156,13 @@ jobs:
           # Save the private key to a file
           echo "$DOWNLOADS_PRIVATE_KEY" > id_ecdsa
           chmod 600 id_ecdsa
-          # Set the project
-          project=geyser
-          # Get the version from gradle.properties
-          version=$(cat gradle.properties | grep -o "version=[0-9\\.]*" | cut -d"=" -f2)
           # Create the build folder
-          ssh -o StrictHostKeyChecking=no -i id_ecdsa $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP mkdir -p "~/uploads/$project/$GITHUB_RUN_NUMBER/"
+          ssh -o StrictHostKeyChecking=no -i id_ecdsa $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP mkdir -p "~/uploads/$PROJECT/$GITHUB_RUN_NUMBER/"
           # Copy over artifacts
-          rsync -P -e "ssh -o StrictHostKeyChecking=no -i id_ecdsa" bootstrap/**/build/libs/Geyser-*.jar $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP:~/uploads/$project/$GITHUB_RUN_NUMBER/
-          rsync -P -e "ssh -o StrictHostKeyChecking=no -i id_ecdsa" bootstrap/mod/**/build/libs/Geyser-*.jar $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP:~/uploads/$project/$GITHUB_RUN_NUMBER/
+          rsync -P -e "ssh -o StrictHostKeyChecking=no -i id_ecdsa" bootstrap/**/build/libs/Geyser-*.jar $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP:~/uploads/$PROJECT/$GITHUB_RUN_NUMBER/
+          rsync -P -e "ssh -o StrictHostKeyChecking=no -i id_ecdsa" bootstrap/mod/**/build/libs/Geyser-*.jar $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP:~/uploads/$PROJECT/$GITHUB_RUN_NUMBER/
           # Run the build script
-          # Push the metadata
-          echo "{\"project\": \"$project\", \"version\": \"$version\", \"id\": $GITHUB_RUN_NUMBER, \"commit\": \"$GITHUB_SHA\"}" > metadata.json
-          rsync -P -e "ssh -o StrictHostKeyChecking=no -i id_ecdsa" metadata.json $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP:~/uploads/$project/$GITHUB_RUN_NUMBER/
+          rsync -P -e "ssh -o StrictHostKeyChecking=no -i id_ecdsa" metadata.json $DOWNLOADS_USERNAME@$DOWNLOADS_SERVER_IP:~/uploads/$PROJECT/$GITHUB_RUN_NUMBER/
 
       - name: Publish to Modrinth (Fabric)
         uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5

@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.translator.text;
 
-import com.github.steveice10.mc.protocol.data.DefaultComponentSerializer;
-import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
+import org.geysermc.mcprotocollib.protocol.data.DefaultComponentSerializer;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ScoreComponent;
 import net.kyori.adventure.text.TranslatableComponent;
@@ -187,14 +187,28 @@ public class MessageTranslator {
         }
     }
 
+    /**
+     * Convenience method for locale getting.
+     */
+    public static String convertJsonMessage(GeyserSession session, String message) {
+        return convertJsonMessage(message, session.locale());
+    }
+
     public static String convertJsonMessage(String message, String locale) {
         return convertMessage(GSON_SERIALIZER.deserialize(message), locale);
     }
 
-    public static String convertJsonMessage(String message) {
-        return convertJsonMessage(message, GeyserLocale.getDefaultLocale());
+    /**
+     * Convenience method for locale getting.
+     */
+    public static String convertMessage(GeyserSession session, Component message) {
+        return convertMessage(message, session.locale());
     }
 
+    /**
+     * DO NOT USE THIS METHOD unless where you're calling from does not have a (reliable) way of getting the
+     * context's locale.
+     */
     public static String convertMessage(Component message) {
         return convertMessage(message, GeyserLocale.getDefaultLocale());
     }
@@ -243,6 +257,20 @@ public class MessageTranslator {
     public static String convertToJavaMessage(String message) {
         Component component = BEDROCK_SERIALIZER.deserialize(message);
         return GSON_SERIALIZER.serialize(component);
+    }
+
+    /**
+     * Convert a Java message to plain text
+     *
+     * @param message Message to convert
+     * @param locale Locale to use for translation strings
+     * @return The plain text of the message
+     */
+    public static String convertToPlainText(Component message, String locale) {
+        if (message == null) {
+            return "";
+        }
+        return PlainTextComponentSerializer.plainText().serialize(RENDERER.render(message, locale));
     }
 
     /**
@@ -302,7 +330,7 @@ public class MessageTranslator {
 
         textPacket.setNeedsTranslation(false);
 
-        TextDecoration decoration = session.getChatTypes().get(chatType);
+        TextDecoration decoration = session.getRegistryCache().chatTypes().byId(chatType);
         if (decoration != null) {
             // As of 1.19 - do this to apply all the styling for signed messages
             // Though, Bedrock cannot care about the signed stuff.

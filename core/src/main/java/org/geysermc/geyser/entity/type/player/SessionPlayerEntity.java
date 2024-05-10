@@ -25,12 +25,6 @@
 
 package org.geysermc.geyser.entity.type.player;
 
-import com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute;
-import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeType;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.GlobalPos;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -44,6 +38,13 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.DimensionUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.Attribute;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.GlobalPos;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 
 import java.util.Collections;
 import java.util.List;
@@ -255,13 +256,51 @@ public class SessionPlayerEntity extends PlayerEntity {
         return session.getAuthData().uuid();
     }
 
+    @Override
+    public void setAbsorptionHearts(FloatEntityMetadata entityMetadata) {
+        // The bedrock client can glitch when sending a health and absorption attribute in the same tick
+        // This can happen when switching servers. Resending the absorption attribute fixes the issue
+        attributes.put(GeyserAttributeType.ABSORPTION, GeyserAttributeType.ABSORPTION.getAttribute(entityMetadata.getPrimitiveValue()));
+        super.setAbsorptionHearts(entityMetadata);
+    }
+
     public void resetMetadata() {
         // Reset all metadata to their default values
         // This is used when a player respawns
+        this.flags.clear();
         this.initializeMetadata();
 
         // Reset air
         this.resetAir();
+
+        // Explicitly reset all metadata not handled by initializeMetadata
+        setParrot(null, true);
+        setParrot(null, false);
+
+        // Absorption is metadata in java edition
+        attributes.remove(GeyserAttributeType.ABSORPTION);
+        UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+        attributesPacket.setRuntimeEntityId(geyserId);
+        attributesPacket.setAttributes(Collections.singletonList(
+                GeyserAttributeType.ABSORPTION.getAttribute(0f)));
+        session.sendUpstreamPacket(attributesPacket);
+
+        dirtyMetadata.put(EntityDataTypes.EFFECT_COLOR, 0);
+        dirtyMetadata.put(EntityDataTypes.EFFECT_AMBIENCE, (byte) 0);
+        dirtyMetadata.put(EntityDataTypes.FREEZING_EFFECT_STRENGTH, 0f);
+
+        silent = false;
+    }
+
+    public void resetAttributes() {
+        attributes.clear();
+        maxHealth = GeyserAttributeType.MAX_HEALTH.getDefaultValue();
+
+        UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+        attributesPacket.setRuntimeEntityId(geyserId);
+        attributesPacket.setAttributes(Collections.singletonList(
+                GeyserAttributeType.MOVEMENT_SPEED.getAttribute()));
+        session.sendUpstreamPacket(attributesPacket);
     }
 
     public void resetAir() {

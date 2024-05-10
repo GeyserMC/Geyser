@@ -25,39 +25,34 @@
 
 package org.geysermc.geyser.platform.mod.world;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityInfo;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.ByteArrayTag;
-import net.minecraft.nbt.ByteTag;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.DoubleTag;
-import net.minecraft.nbt.EndTag;
-import net.minecraft.nbt.FloatTag;
-import net.minecraft.nbt.IntArrayTag;
-import net.minecraft.nbt.IntTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.LongArrayTag;
-import net.minecraft.nbt.LongTag;
-import net.minecraft.nbt.ShortTag;
-import net.minecraft.nbt.StringTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.nbt.TagVisitor;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.Filterable;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.WritableBookItem;
-import net.minecraft.world.item.WrittenBookItem;
+import net.minecraft.world.item.component.WritableBookContent;
+import net.minecraft.world.item.component.WrittenBookContent;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BannerBlockEntity;
+import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
@@ -71,11 +66,14 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 public class GeyserModWorldManager extends GeyserWorldManager {
+
+    private static final GsonComponentSerializer GSON_SERIALIZER = GsonComponentSerializer.gson();
+    private static final LegacyComponentSerializer LEGACY_SERIALIZER = LegacyComponentSerializer.legacySection();
     private final MinecraftServer server;
 
     public GeyserModWorldManager(MinecraftServer server) {
@@ -180,7 +178,7 @@ public class GeyserModWorldManager extends GeyserWorldManager {
         }
 
         ItemStack book = lectern.getBook();
-        int pageCount = WrittenBookItem.getPageCount(book);
+        int pageCount = getPageCount(book);
         boolean hasBookPages = pageCount > 0;
         NbtMapBuilder lecternTag = LecternUtils.getBaseLecternTag(x, y, z, hasBookPages ? pageCount : 1);
         lecternTag.putInt("page", lectern.getPage() / 2);
@@ -189,11 +187,9 @@ public class GeyserModWorldManager extends GeyserWorldManager {
                 .putShort("Damage", (short) 0)
                 .putString("Name", "minecraft:writable_book");
         List<NbtMap> pages = new ArrayList<>(hasBookPages ? pageCount : 1);
-        if (hasBookPages && WritableBookItem.makeSureTagIsValid(book.getTag())) {
-            ListTag listTag = book.getTag().getList("pages", 8);
-
-            for (int i = 0; i < listTag.size(); i++) {
-                String page = listTag.getString(i);
+        if (hasBookPages) {
+            List<String> bookPages = getPages(book);
+            for (String page : bookPages) {
                 NbtMapBuilder pageBuilder = NbtMap.builder()
                         .putString("photoname", "")
                         .putString("text", page);
@@ -226,8 +222,8 @@ public class GeyserModWorldManager extends GeyserWorldManager {
 
     @NonNull
     @Override
-    public CompletableFuture<com.github.steveice10.opennbt.tag.builtin.CompoundTag> getPickItemNbt(GeyserSession session, int x, int y, int z, boolean addNbtData) {
-        CompletableFuture<com.github.steveice10.opennbt.tag.builtin.CompoundTag> future = new CompletableFuture<>();
+    public CompletableFuture<org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents> getPickItemComponents(GeyserSession session, int x, int y, int z, boolean addNbtData) {
+        CompletableFuture<org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents> future = new CompletableFuture<>();
         server.execute(() -> {
             ServerPlayer player = getPlayer(session);
             if (player == null) {
@@ -243,9 +239,23 @@ public class GeyserModWorldManager extends GeyserWorldManager {
                 // Potentially exposes other NBT data? But we need to get the NBT data for the banner patterns *and*
                 // the banner might have a custom name, both of which a Java client knows and caches
                 ItemStack itemStack = banner.getItem();
-                var tag = OpenNbtTagVisitor.convert("", itemStack.getOrCreateTag());
 
-                future.complete(tag);
+                org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents components =
+                        new org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents(new HashMap<>());
+
+                components.put(DataComponentType.DAMAGE, itemStack.getDamageValue());
+
+                Component customName = itemStack.getComponents().get(DataComponents.CUSTOM_NAME);
+                if (customName != null) {
+                    components.put(DataComponentType.CUSTOM_NAME, toKyoriComponent(customName));
+                }
+
+                BannerPatternLayers pattern = itemStack.get(DataComponents.BANNER_PATTERNS);
+                if (pattern != null) {
+                    components.put(DataComponentType.BANNER_PATTERNS, toPatternList(pattern));
+                }
+
+                future.complete(components);
                 return;
             }
             future.complete(null);
@@ -257,95 +267,52 @@ public class GeyserModWorldManager extends GeyserWorldManager {
         return server.getPlayerList().getPlayer(session.getPlayerEntity().getUuid());
     }
 
-    // Future considerations: option to clone; would affect arrays
-    private static class OpenNbtTagVisitor implements TagVisitor {
-        private String currentKey;
-        private final com.github.steveice10.opennbt.tag.builtin.CompoundTag root;
-        private com.github.steveice10.opennbt.tag.builtin.Tag currentTag;
-
-        OpenNbtTagVisitor(String key) {
-            root = new com.github.steveice10.opennbt.tag.builtin.CompoundTag(key);
+    private static int getPageCount(ItemStack itemStack) {
+        WrittenBookContent writtenBookContent = itemStack.get(DataComponents.WRITTEN_BOOK_CONTENT);
+        if (writtenBookContent != null) {
+            return writtenBookContent.pages().size();
+        } else {
+            WritableBookContent writableBookContent = itemStack.get(DataComponents.WRITABLE_BOOK_CONTENT);
+            return writableBookContent != null ? writableBookContent.pages().size() : 0;
         }
+    }
 
-        @Override
-        public void visitString(StringTag stringTag) {
-            currentTag = new com.github.steveice10.opennbt.tag.builtin.StringTag(currentKey, stringTag.getAsString());
-        }
-
-        @Override
-        public void visitByte(ByteTag byteTag) {
-            currentTag = new com.github.steveice10.opennbt.tag.builtin.ByteTag(currentKey, byteTag.getAsByte());
-        }
-
-        @Override
-        public void visitShort(ShortTag shortTag) {
-            currentTag = new com.github.steveice10.opennbt.tag.builtin.ShortTag(currentKey, shortTag.getAsShort());
-        }
-
-        @Override
-        public void visitInt(IntTag intTag) {
-            currentTag = new com.github.steveice10.opennbt.tag.builtin.IntTag(currentKey, intTag.getAsInt());
-        }
-
-        @Override
-        public void visitLong(LongTag longTag) {
-            currentTag = new com.github.steveice10.opennbt.tag.builtin.LongTag(currentKey, longTag.getAsLong());
-        }
-
-        @Override
-        public void visitFloat(FloatTag floatTag) {
-            currentTag = new com.github.steveice10.opennbt.tag.builtin.FloatTag(currentKey, floatTag.getAsFloat());
-        }
-
-        @Override
-        public void visitDouble(DoubleTag doubleTag) {
-            currentTag = new com.github.steveice10.opennbt.tag.builtin.DoubleTag(currentKey, doubleTag.getAsDouble());
-        }
-
-        @Override
-        public void visitByteArray(ByteArrayTag byteArrayTag) {
-            currentTag = new com.github.steveice10.opennbt.tag.builtin.ByteArrayTag(currentKey, byteArrayTag.getAsByteArray());
-        }
-
-        @Override
-        public void visitIntArray(IntArrayTag intArrayTag) {
-            currentTag = new com.github.steveice10.opennbt.tag.builtin.IntArrayTag(currentKey, intArrayTag.getAsIntArray());
-        }
-
-        @Override
-        public void visitLongArray(LongArrayTag longArrayTag) {
-            currentTag = new com.github.steveice10.opennbt.tag.builtin.LongArrayTag(currentKey, longArrayTag.getAsLongArray());
-        }
-
-        @Override
-        public void visitList(ListTag listTag) {
-            var newList = new com.github.steveice10.opennbt.tag.builtin.ListTag(currentKey);
-            for (Tag tag : listTag) {
-                currentKey = "";
-                tag.accept(this);
-                newList.add(currentTag);
+    private static List<String> getPages(ItemStack itemStack) {
+        WrittenBookContent writtenBookContent = itemStack.get(DataComponents.WRITTEN_BOOK_CONTENT);
+        if (writtenBookContent != null) {
+            return writtenBookContent.pages().stream()
+                    .map(Filterable::raw)
+                    .map(GeyserModWorldManager::fromComponent)
+                    .toList();
+        } else {
+            WritableBookContent writableBookContent = itemStack.get(DataComponents.WRITABLE_BOOK_CONTENT);
+            if (writableBookContent == null) {
+                return List.of();
             }
-            currentTag = newList;
+            return writableBookContent.pages().stream()
+                    .map(Filterable::raw)
+                    .toList();
         }
+    }
 
-        @Override
-        public void visitCompound(@NonNull CompoundTag compoundTag) {
-            currentTag = convert(currentKey, compoundTag);
-        }
+    private static String fromComponent(Component component) {
+        String json = Component.Serializer.toJson(component, RegistryAccess.EMPTY);
+        return LEGACY_SERIALIZER.serialize(GSON_SERIALIZER.deserializeOr(json, net.kyori.adventure.text.Component.empty()));
+    }
 
-        private static com.github.steveice10.opennbt.tag.builtin.CompoundTag convert(String name, CompoundTag compoundTag) {
-            OpenNbtTagVisitor visitor = new OpenNbtTagVisitor(name);
-            for (String key : compoundTag.getAllKeys()) {
-                visitor.currentKey = key;
-                Tag tag = Objects.requireNonNull(compoundTag.get(key));
-                tag.accept(visitor);
-                visitor.root.put(visitor.currentTag);
-            }
-            return visitor.root;
-        }
+    private static net.kyori.adventure.text.Component toKyoriComponent(Component component) {
+        String json = Component.Serializer.toJson(component, RegistryAccess.EMPTY);
+        return GSON_SERIALIZER.deserializeOr(json, net.kyori.adventure.text.Component.empty());
+    }
 
-        @Override
-        public void visitEnd(@NonNull EndTag endTag) {
-        }
+    private static List<BannerPatternLayer> toPatternList(BannerPatternLayers patternLayers) {
+        return patternLayers.layers().stream()
+                .map(layer -> {
+                    BannerPatternLayer.BannerPattern pattern = new BannerPatternLayer.BannerPattern(
+                            layer.pattern().value().assetId().toString(), layer.pattern().value().translationKey()
+                    );
+                    return new BannerPatternLayer(Holder.ofCustom(pattern), layer.color().getId());
+                })
+                .toList();
     }
 }

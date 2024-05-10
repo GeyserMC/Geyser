@@ -26,6 +26,8 @@ provided("io.netty", "netty-transport-native-epoll")
 provided("io.netty", "netty-transport-native-unix-common")
 provided("io.netty", "netty-transport-classes-kqueue")
 provided("io.netty", "netty-transport-native-kqueue")
+provided("io.netty.incubator", "netty-incubator-transport-native-io_uring")
+provided("io.netty.incubator", "netty-incubator-transport-classes-io_uring")
 provided("io.netty", "netty-handler")
 provided("io.netty", "netty-common")
 provided("io.netty", "netty-buffer")
@@ -37,11 +39,17 @@ provided("io.netty", "netty-resolver-dns-native-macos")
 provided("org.ow2.asm", "asm")
 
 architectury {
-    minecraft = "1.20.4"
+    minecraft = "1.20.5"
 }
 
 loom {
     silentMojangMappingsLicense()
+}
+
+indra {
+    javaVersions {
+        target(21)
+    }
 }
 
 configurations {
@@ -102,11 +110,12 @@ afterEvaluate {
 }
 
 dependencies {
-    minecraft("com.mojang:minecraft:1.20.4")
+    minecraft("com.mojang:minecraft:1.20.5")
     mappings(loom.officialMojangMappings())
 }
 
 repositories {
+    // mavenLocal()
     maven("https://repo.opencollab.dev/maven-releases/")
     maven("https://repo.opencollab.dev/maven-snapshots/")
     maven("https://jitpack.io")
@@ -125,6 +134,6 @@ modrinth {
     syncBodyFrom.set(rootProject.file("README.md").readText())
 
     uploadFile.set(tasks.getByPath("remapModrinthJar"))
-    gameVersions.addAll("1.20.4")
+    gameVersions.addAll("1.20.5", "1.20.6")
     failSilently.set(true)
 }

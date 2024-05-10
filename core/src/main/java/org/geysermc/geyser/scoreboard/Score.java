@@ -25,9 +25,16 @@
 
 package org.geysermc.geyser.scoreboard;
 
+import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.FixedFormat;
+import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.NumberFormat;
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.protocol.bedrock.data.ScoreInfo;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import org.geysermc.geyser.text.ChatColor;
+import org.geysermc.geyser.translator.text.MessageTranslator;
+
+import java.util.Objects;
 
 @Getter
 @Accessors(chain = true)
@@ -52,6 +59,10 @@ public final class Score {
     }
 
     public String getDisplayName() {
+        String displayName = cachedData.displayName;
+        if (displayName != null) {
+            return displayName;
+        }
         Team team = cachedData.team;
         if (team != null) {
             return team.getDisplayName(name);
@@ -88,6 +99,35 @@ public final class Score {
         return this;
     }
 
+    public Score setDisplayName(Component displayName) {
+        if (currentData.displayName != null && displayName != null) {
+            String convertedDisplayName = MessageTranslator.convertMessage(displayName);
+            if (!currentData.displayName.equals(convertedDisplayName)) {
+                currentData.displayName = convertedDisplayName;
+                setUpdateType(UpdateType.UPDATE);
+            }
+            return this;
+        }
+        // simplified from (this.displayName != null && displayName == null) || (this.displayName == null && displayName != null)
+        if (currentData.displayName != null || displayName != null) {
+            currentData.displayName = MessageTranslator.convertMessage(displayName);
+            setUpdateType(UpdateType.UPDATE);
+        }
+        return this;
+    }
+
+    public NumberFormat getNumberFormat() {
+        return currentData.numberFormat;
+    }
+
+    public Score setNumberFormat(NumberFormat numberFormat) {
+        if (!Objects.equals(currentData.numberFormat, numberFormat)) {
+            currentData.numberFormat = numberFormat;
+            setUpdateType(UpdateType.UPDATE);
+        }
+        return this;
+    }
+
     public UpdateType getUpdateType() {
         return currentData.updateType;
     }
@@ -105,7 +145,7 @@ public final class Score {
                 (currentData.team != null && currentData.team.shouldUpdate());
     }
 
-    public void update(String objectiveName) {
+    public void update(Objective objective) {
         if (cachedData == null) {
             cachedData = new ScoreData();
             cachedData.updateType = UpdateType.ADD;
@@ -119,13 +159,26 @@ public final class Score {
         currentData.changed = false;
         cachedData.team = currentData.team;
         cachedData.score = currentData.score;
+        cachedData.displayName = currentData.displayName;
+        cachedData.numberFormat = currentData.numberFormat;
 
         String name = this.name;
-        if (cachedData.team != null) {
+        if (cachedData.displayName != null) {
+            name = cachedData.displayName;
+        } else if (cachedData.team != null) {
             cachedData.team.prepareUpdate();
             name = cachedData.team.getDisplayName(name);
         }
-        cachedInfo = new ScoreInfo(id, objectiveName, cachedData.score, name);
+
+        NumberFormat numberFormat = cachedData.numberFormat;
+        if (numberFormat == null) {
+            numberFormat = objective.getNumberFormat();
+        }
+        if (numberFormat instanceof FixedFormat fixedFormat) {
+            name += " " + ChatColor.RESET + MessageTranslator.convertMessage(fixedFormat.getValue());
+        }
+
+        cachedInfo = new ScoreInfo(id, objective.getObjectiveName(), cachedData.score, name);
     }
 
     @Getter
@@ -135,6 +188,9 @@ public final class Score {
 
         private Team team;
         private int score;
+
+        private String displayName;
+        private NumberFormat numberFormat;
 
         private ScoreData() {
             updateType = UpdateType.ADD;

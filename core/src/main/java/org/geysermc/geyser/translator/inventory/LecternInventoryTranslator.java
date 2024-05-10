@@ -25,11 +25,6 @@
 
 package org.geysermc.geyser.translator.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -37,16 +32,18 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.erosion.util.LecternUtils;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.inventory.Container;
-import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.inventory.LecternContainer;
-import org.geysermc.geyser.inventory.PlayerInventory;
+import org.geysermc.geyser.inventory.*;
 import org.geysermc.geyser.inventory.updater.ContainerInventoryUpdater;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.WritableBookContent;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.WrittenBookContent;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
 
 import java.util.Collections;
 
@@ -152,7 +149,6 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
             session.setDroppingLecternBook(false);
             InventoryUtils.closeInventory(session, inventory.getJavaId(), false);
         } else if (lecternContainer.getBlockEntityTag() == null) {
-            CompoundTag tag = book.getNbt();
             Vector3i position = lecternContainer.isUsingRealBlock() ? session.getLastInteractionBlockPosition() : inventory.getHolderPosition();
 
             // If shouldExpectLecternHandled returns true, this is already handled for us
@@ -163,10 +159,20 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
                     && !GameProtocol.is1_20_60orHigher(session.getUpstream().getProtocolVersion());
 
             NbtMap blockEntityTag;
-            if (tag != null) {
-                int pagesSize = ((ListTag) tag.get("pages")).size();
+            if (book.getComponents() != null) {
+                int pages = 0;
+                WrittenBookContent writtenBookComponents = book.getComponents().get(DataComponentType.WRITTEN_BOOK_CONTENT);
+                if (writtenBookComponents != null) {
+                    pages = writtenBookComponents.getPages().size();
+                } else {
+                    WritableBookContent writableBookComponents = book.getComponents().get(DataComponentType.WRITABLE_BOOK_CONTENT);
+                    if (writableBookComponents != null) {
+                        pages = writableBookComponents.getPages().size();
+                    }
+                }
+
                 ItemData itemData = book.getItemData(session);
-                NbtMapBuilder lecternTag = LecternUtils.getBaseLecternTag(position.getX(), position.getY(), position.getZ(), pagesSize);
+                NbtMapBuilder lecternTag = LecternUtils.getBaseLecternTag(position.getX(), position.getY(), position.getZ(), pages);
                 lecternTag.putCompound("book", NbtMap.builder()
                         .putByte("Count", (byte) itemData.getCount())
                         .putShort("Damage", (short) 0)

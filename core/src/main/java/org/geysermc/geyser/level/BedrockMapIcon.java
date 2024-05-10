@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.level;
 
-import com.github.steveice10.mc.protocol.data.game.level.map.MapIconType;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.mcprotocollib.protocol.data.game.level.map.MapIconType;
 
 public enum BedrockMapIcon {
     ICON_WHITE_ARROW(MapIconType.WHITE_ARROW, 0),

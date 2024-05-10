@@ -1,43 +1,40 @@
-name: Build Pull Request
+name: Build Remote
 
-on: 
-  pull_request:
-  merge_group:
+on:
+  workflow_call:
+    inputs:
+      repository:
+        required: true
+        description: 'The repo of the remote'
+        type: string
+      ref:
+        required: true
+        description: 'The ref of the remote'
+        type: string
+
+permissions: {}
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Set up JDK 17
+      - name: Set Build Number
+        run: |
+          echo "BUILD_NUMBER=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+
+      - name: Set up JDK 21
         # See https://github.com/actions/setup-java/commits
         uses: actions/setup-java@387ac29b308b003ca37ba93a6cab5eb57c8f5f93 # v4.0.0
         with:
-          java-version: 17
+          java-version: 21
           distribution: temurin
-
-      - name: Check if the author has forked the API repo
-        # See https://github.com/Kas-tle/find-forks-action/commits
-        uses: Kas-tle/find-forks-action@1b5447d1e3c7a8ed79583dd817cc5399686eed3a
-        id: find_forks
-        with:
-          owner: GeyserMC
-          repo: api
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Use author's API repo if it exists
-        if: ${{ steps.find_forks.outputs.target_branch_found == 'true' }}
-        env:
-          API_FORK_URL: ${{ steps.find_forks.outputs.user_fork_url }}
-          API_FORK_BRANCH: ${{ github.event.pull_request.head.ref }}
-        run: |
-          git clone "${API_FORK_URL}" --single-branch --branch "${API_FORK_BRANCH}" api
-          cd api
-          ./gradlew publishToMavenLocal
 
       - name: Checkout repository and submodules
         # See https://github.com/actions/checkout/commits
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
+          repository: ${{ inputs.repository }}
+          ref: ${{ inputs.ref }}
           submodules: recursive
           path: geyser
 
@@ -46,11 +43,12 @@ jobs:
         uses: gradle/wrapper-validation-action@699bb18358f12c5b78b37bb0111d3a0e2276e0e2 # v2.1.1
 
       - name: Build Geyser
-        # See https://github.com/gradle/gradle-build-action/commits
-        uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0 from https://github.com/gradle/actions/commits
+        # See https://github.com/gradle/actions/commits
+        uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
         with:
           arguments: build
           build-root-directory: geyser
+          cache-read-only: true
 
       - name: Archive artifacts (Geyser Fabric)
         # See https://github.com/actions/upload-artifact/commits

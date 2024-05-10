@@ -25,9 +25,11 @@
 
 package org.geysermc.geyser.skin;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
+import com.github.steveice10.mc.auth.data.GameProfile;
+import com.github.steveice10.mc.auth.data.GameProfile.Texture;
+import com.github.steveice10.mc.auth.data.GameProfile.TextureModel;
+import com.github.steveice10.mc.auth.data.GameProfile.TextureType;
+import com.github.steveice10.mc.auth.exception.property.PropertyException;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -39,11 +41,15 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.skin.SkinManager.GameProfileData;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -95,38 +101,60 @@ public class FakeHeadProvider {
                 }
             });
 
-    public static void setHead(GeyserSession session, PlayerEntity entity, Tag skullOwner) {
-        if (skullOwner == null) {
+    public static void setHead(GeyserSession session, PlayerEntity entity, DataComponents components) {
+        GameProfile profile = components.get(DataComponentType.PROFILE);
+
+        if (profile == null) {
             return;
         }
-        if (skullOwner instanceof CompoundTag profileTag) {
-            SkinManager.GameProfileData gameProfileData = SkinManager.GameProfileData.from(profileTag);
-            if (gameProfileData == null) {
+
+        Map<TextureType, Texture> textures = null;
+        try {
+            textures = profile.getTextures(false);
+        } catch (PropertyException e) {
+            session.getGeyser().getLogger().debug("Failed to get textures from GameProfile: " + e);
+        }
+
+        if (textures == null || textures.isEmpty()) {
+            loadHead(session, entity, profile.getName());
+            return;
+        }
+
+        Texture skinTexture = textures.get(TextureType.SKIN);
+
+        if (skinTexture == null) {
+            return;
+        }
+
+        Texture capeTexture = textures.get(TextureType.CAPE);
+        String capeUrl = capeTexture != null ? capeTexture.getURL() : null;
+
+        boolean isAlex = skinTexture.getModel() == TextureModel.SLIM;
+
+        loadHead(session, entity, new GameProfileData(skinTexture.getURL(), capeUrl, isAlex));
+    }
+
+    public static void loadHead(GeyserSession session, PlayerEntity entity, String owner) {
+        if (owner == null || owner.isEmpty()) {
+            return;
+        }
+
+        CompletableFuture<String> completableFuture = SkinProvider.requestTexturesFromUsername(owner);
+        completableFuture.whenCompleteAsync((encodedJson, throwable) -> {
+            if (throwable != null) {
+                GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), throwable);
                 return;
             }
-            loadHead(session, entity, gameProfileData);
-        } else if (skullOwner instanceof StringTag ownerTag) {
-            String owner = ownerTag.getValue();
-            if (owner.isEmpty()) {
-                return;
-            }
-            CompletableFuture<String> completableFuture = SkinProvider.requestTexturesFromUsername(owner);
-            completableFuture.whenCompleteAsync((encodedJson, throwable) -> {
-                if (throwable != null) {
-                    GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), throwable);
+            try {
+                SkinManager.GameProfileData gameProfileData = SkinManager.GameProfileData.loadFromJson(encodedJson);
+                if (gameProfileData == null) {
                     return;
                 }
-                try {
-                    SkinManager.GameProfileData gameProfileData = SkinManager.GameProfileData.loadFromJson(encodedJson);
-                    if (gameProfileData == null) {
-                        return;
-                    }
-                    loadHead(session, entity, gameProfileData);
-                } catch (IOException e) {
-                    GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid(), e.getMessage()));
-                }
-            });
-        }
+                loadHead(session, entity, gameProfileData);
+            } catch (IOException e) {
+                GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid(), e.getMessage()));
+            }
+        });
     }
 
     public static void loadHead(GeyserSession session, PlayerEntity entity, SkinManager.GameProfileData gameProfileData) {
