@@ -237,10 +237,11 @@ public class Item {
         // TODO verify
         // TODO streamline Enchantment process
         Enchantment.JavaEnchantment enchantment = Enchantment.JavaEnchantment.of(enchantId);
-        if (ENCHANTMENT_TRANSLATION_KEYS.containsKey(enchantment)) {
-            String translationKey = ENCHANTMENT_TRANSLATION_KEYS.get(enchantment);
+        String translationKey = ENCHANTMENT_TRANSLATION_KEYS.get(enchantment);
+        if (translationKey != null) {
             String enchantmentTranslation = MinecraftLocale.getLocaleString(translationKey, session.locale());
             addJavaOnlyEnchantment(session, builder, enchantmentTranslation, level);
+            return null;
         }
         if (enchantment == null) {
             GeyserImpl.getInstance().getLogger().debug("Unknown Java enchantment while NBT item translating: " + enchantId);
