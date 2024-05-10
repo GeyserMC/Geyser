@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.api.item.custom;
 
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
@@ -114,6 +115,89 @@ public interface CustomItemData {
      */
     @NonNull Set<String> tags();
 
+    /**
+     * Gets the stack size of the item.
+     *
+     * @return the stack size of the item
+     */
+    @NonNegative
+    int stackSize();
+
+    /**
+     * Gets the max damage of the item.
+     *
+     * @return the max damage of the item
+     */
+    int maxDamage();
+
+    /**
+     * Gets the attack damage of the item.
+     * This is purely visual, and only applied to tools
+     *
+     * @return the attack damage of the item
+     */
+    int attackDamage();
+
+    /**
+     * Gets the tool type of the item.
+     *
+     * @return the tool type of the item
+     */
+    @Nullable String toolType();
+
+    /**
+     * Gets the tool tier of the item.
+     *
+     * @return the tool tier of the item
+     */
+    @Nullable String toolTier();
+
+    /**
+     * Gets the item's translation string.
+     *
+     * @return the item's translation string
+     */
+    @Nullable String translationString();
+
+    /**
+     * Gets the armor protection value of the item.
+     *
+     * @return the armor protection value of the item
+     */
+    int protectionValue();
+
+    /**
+     * Gets if the item is a foil. This is used to determine if the item should be rendered with an enchantment glint effect.
+     *
+     * @return if the item is a foil
+     */
+    boolean isFoil();
+
+    /**
+     * Gets if the item is edible.
+     *
+     * @return if the item is edible
+     */
+    boolean isEdible();
+
+    /**
+     * Gets if the food item can always be eaten.
+     *
+     * @return if the item is allowed to be eaten all the time
+     */
+    boolean canAlwaysEat();
+
+    /**
+     * @deprecated Use {@link #displayHandheld()} instead.
+     * Gets if the item is a tool. This is used to set the render type of the item, if the item is handheld.
+     *
+     * @return if the item is a tool
+     */
+    @Deprecated
+    default boolean isTool() {
+        return displayHandheld();
+    }
+
     static CustomItemData.Builder builder() {
         return GeyserApi.api().provider(CustomItemData.Builder.class);
     }
@@ -143,6 +227,34 @@ public interface CustomItemData {
         Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets);
 
         Builder tags(@Nullable Set<String> tags);
+
+        Builder stackSize(@NonNegative int stackSize);
+
+        Builder maxDamage(int maxDamage);
+
+        Builder attackDamage(int attackDamage);
+
+        Builder toolType(@Nullable String toolType);
+
+        Builder toolTier(@Nullable String toolTier);
+
+        Builder protectionValue(int protectionValue);
+
+        Builder translationString(@Nullable String translationString);
+
+        Builder foil(boolean isFoil);
+
+        Builder edible(boolean isEdible);
+
+        Builder canAlwaysEat(boolean canAlwaysEat);
+
+        /**
+         * @deprecated Use {@link #displayHandheld(boolean)} instead.
+         */
+        @Deprecated
+        default Builder tool(boolean isTool) {
+            return displayHandheld(isTool);
+        }
 
         CustomItemData build();
     }

@@ -51,61 +51,11 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     @NonNegative int javaId();
 
     /**
-     * Gets the stack size of the item.
-     *
-     * @return the stack size of the item
-     */
-    @NonNegative int stackSize();
-
-    /**
-     * Gets the max damage of the item.
-     *
-     * @return the max damage of the item
-     */
-    int maxDamage();
-
-    /**
-     * Gets the attack damage of the item.
-     * This is purely visual, and only applied to tools
-     *
-     * @return the attack damage of the item
-     */
-    int attackDamage();
-
-    /**
-     * Gets the tool type of the item.
-     *
-     * @return the tool type of the item
-     */
-    @Nullable String toolType();
-
-    /**
-     * Gets the tool tier of the item.
-     *
-     * @return the tool tier of the item
-     */
-    @Nullable String toolTier();
-
-    /**
      * Gets the armor type of the item.
      *
      * @return the armor type of the item
      */
     @Nullable String armorType();
-
-    /**
-     * Gets the armor protection value of the item.
-     *
-     * @return the armor protection value of the item
-     */
-    int protectionValue();
-
-    /**
-     * Gets the item's translation string.
-     *
-     * @return the item's translation string
-     */
-    @Nullable String translationString();
 
     /**
      * Gets the repair materials of the item.
@@ -123,43 +73,11 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     boolean isHat();
 
     /**
-     * Gets if the item is a foil. This is used to determine if the item should be rendered with an enchantment glint effect.
-     *
-     * @return if the item is a foil
-     */
-    boolean isFoil();
-
-    /**
-     * Gets if the item is edible.
-     *
-     * @return if the item is edible
-     */
-    boolean isEdible();
-
-    /**
-     * Gets if the food item can always be eaten.
-     *
-     * @return if the item is allowed to be eaten all the time
-     */
-    boolean canAlwaysEat();
-
-    /**
      * Gets if the item is chargable, like a bow.
      *
      * @return if the item should act like a chargable item
      */
     boolean isChargeable();
-
-    /**
-     * @deprecated Use {@link #displayHandheld()} instead.
-     * Gets if the item is a tool. This is used to set the render type of the item, if the item is handheld.
-     *
-     * @return if the item is a tool
-     */
-    @Deprecated
-    default boolean isTool() {
-        return displayHandheld();
-    }
 
     /**
      * Gets the block the item places.
@@ -180,73 +98,15 @@ public interface NonVanillaCustomItemData extends CustomItemData {
 
         Builder javaId(@NonNegative int javaId);
 
-        Builder stackSize(@NonNegative int stackSize);
-
-        Builder maxDamage(int maxDamage);
-
-        Builder attackDamage(int attackDamage);
-
-        Builder toolType(@Nullable String toolType);
-
-        Builder toolTier(@Nullable String toolTier);
-
         Builder armorType(@Nullable String armorType);
-
-        Builder protectionValue(int protectionValue);
-
-        Builder translationString(@Nullable String translationString);
 
         Builder repairMaterials(@Nullable Set<String> repairMaterials);
 
         Builder hat(boolean isHat);
 
-        Builder foil(boolean isFoil);
-
-        Builder edible(boolean isEdible);
-
-        Builder canAlwaysEat(boolean canAlwaysEat);
-
         Builder chargeable(boolean isChargeable);
 
         Builder block(String block);
-
-        /**
-         * @deprecated Use {@link #displayHandheld(boolean)} instead.
-         */
-        @Deprecated
-        default Builder tool(boolean isTool) {
-            return displayHandheld(isTool);
-        }
-
-        @Override
-        Builder creativeCategory(int creativeCategory);
-
-        @Override
-        Builder creativeGroup(@Nullable String creativeGroup);
-
-        @Override
-        Builder customItemOptions(@NonNull CustomItemOptions customItemOptions);
-
-        @Override
-        Builder displayName(@NonNull String displayName);
-
-        @Override
-        Builder icon(@NonNull String icon);
-
-        @Override
-        Builder allowOffhand(boolean allowOffhand);
-
-        @Override
-        Builder displayHandheld(boolean displayHandheld);
-
-        @Override
-        Builder textureSize(int textureSize);
-
-        @Override
-        Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets);
-
-        @Override
-        Builder tags(@Nullable Set<String> tags);
 
         NonVanillaCustomItemData build();
     }
