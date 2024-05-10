@@ -53,6 +53,16 @@ import java.util.List;
 import java.util.Map;
 
 public class Item {
+    /**
+     * This is a map from Java-only enchantments to their translation keys so that we can
+     * map these enchantments to Bedrock clients, since they don't actually exist there.
+     */
+    private static final Map<Enchantment.JavaEnchantment, String> ENCHANTMENT_TRANSLATION_KEYS = Map.of(
+            Enchantment.JavaEnchantment.SWEEPING_EDGE, "enchantment.minecraft.sweeping",
+            Enchantment.JavaEnchantment.DENSITY, "enchantment.minecraft.density",
+            Enchantment.JavaEnchantment.BREACH, "enchantment.minecraft.breach",
+            Enchantment.JavaEnchantment.WIND_BURST, "enchantment.minecraft.wind_burst");
+
     private final String javaIdentifier;
     private int javaId = -1;
     private final int stackSize;
@@ -227,8 +237,10 @@ public class Item {
         // TODO verify
         // TODO streamline Enchantment process
         Enchantment.JavaEnchantment enchantment = Enchantment.JavaEnchantment.of(enchantId);
-        if (enchantment == Enchantment.JavaEnchantment.SWEEPING_EDGE) {
-            addSweeping(session, builder, level);
+        String translationKey = ENCHANTMENT_TRANSLATION_KEYS.get(enchantment);
+        if (translationKey != null) {
+            String enchantmentTranslation = MinecraftLocale.getLocaleString(translationKey, session.locale());
+            addJavaOnlyEnchantment(session, builder, enchantmentTranslation, level);
             return null;
         }
         if (enchantment == null) {
@@ -242,11 +254,10 @@ public class Item {
                 .build();
     }
 
-    private void addSweeping(GeyserSession session, BedrockItemBuilder builder, int level) {
-        String sweepingTranslation = MinecraftLocale.getLocaleString("enchantment.minecraft.sweeping", session.locale());
+    private void addJavaOnlyEnchantment(GeyserSession session, BedrockItemBuilder builder, String enchantmentName, int level) {
         String lvlTranslation = MinecraftLocale.getLocaleString("enchantment.level." + level, session.locale());
 
-        builder.getOrCreateLore().add(ChatColor.RESET + ChatColor.GRAY + sweepingTranslation + " " + lvlTranslation);
+        builder.getOrCreateLore().add(ChatColor.RESET + ChatColor.GRAY + enchantmentName + " " + lvlTranslation);
     }
 
     /* Translation methods end */
