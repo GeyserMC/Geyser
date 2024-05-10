@@ -40,7 +40,6 @@ import java.util.Set;
 public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData implements NonVanillaCustomItemData {
     private final String identifier;
     private final int javaId;
-    private final String armorType;
     private final Set<String> repairMaterials;
     private final boolean isHat;
     private final boolean isChargeable;
@@ -51,7 +50,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
 
         this.identifier = builder.identifier;
         this.javaId = builder.javaId;
-        this.armorType = builder.armorType;
         this.repairMaterials = builder.repairMaterials;
         this.isHat = builder.hat;
         this.isChargeable = builder.chargeable;
@@ -66,11 +64,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     @Override
     public int javaId() {
         return javaId;
-    }
-
-    @Override
-    public @Nullable String armorType() {
-        return armorType;
     }
 
     @Override
@@ -96,7 +89,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     public static class Builder extends GeyserCustomItemData.Builder implements NonVanillaCustomItemData.Builder {
         private String identifier = null;
         private int javaId = -1;
-        private String armorType = null;
         private Set<String> repairMaterials;
         private boolean hat = false;
         private boolean chargeable = false;
@@ -157,12 +149,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         @Override
         public Builder javaId(int javaId) {
             this.javaId = javaId;
-            return this;
-        }
-
-        @Override
-        public Builder armorType(@Nullable String armorType) {
-            this.armorType = armorType;
             return this;
         }
 

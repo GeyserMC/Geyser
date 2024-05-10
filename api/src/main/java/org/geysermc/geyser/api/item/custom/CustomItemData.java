@@ -166,6 +166,13 @@ public interface CustomItemData {
     @Nullable String translationString();
 
     /**
+     * Gets the armor type of the item.
+     *
+     * @return the armor type of the item
+     */
+    @Nullable String armorType();
+
+    /**
      * Gets the armor protection value of the item.
      *
      * @return the armor protection value of the item
@@ -243,6 +250,8 @@ public interface CustomItemData {
         Builder toolType(@Nullable String toolType);
 
         Builder toolTier(@Nullable String toolTier);
+
+        Builder armorType(@Nullable String armorType);
 
         Builder protectionValue(int protectionValue);
 

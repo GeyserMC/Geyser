@@ -188,8 +188,18 @@ public class CustomItemRegistryPopulator {
 
         itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
 
+        String armorType = null;
+        int protectionValue = 0;
         if (mapping.getArmorType() != null) {
-            computeArmorProperties(mapping.getArmorType(), mapping.getProtectionValue(), itemProperties, componentBuilder);
+            armorType = mapping.getArmorType();
+            protectionValue = mapping.getProtectionValue();
+        } else if (customItemData.armorType() != null) {
+            armorType = customItemData.armorType();
+            protectionValue = customItemData.protectionValue();
+        }
+
+        if (armorType != null) {
+            computeArmorProperties(armorType, protectionValue, itemProperties, componentBuilder);
         }
 
         if (mapping.getFirstBlockRuntimeId() != null) {

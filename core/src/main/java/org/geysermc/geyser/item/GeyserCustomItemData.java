@@ -37,7 +37,6 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.OptionalInt;
 import java.util.Set;
-import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 
 @EqualsAndHashCode
 @ToString
@@ -59,6 +58,7 @@ public class GeyserCustomItemData implements CustomItemData {
     private final String toolType;
     private final String toolTier;
     private final String translationString;
+    private final String armorType;
     private final int protectionValue;
     private final boolean isFoil;
     private final boolean isEdible;
@@ -82,6 +82,7 @@ public class GeyserCustomItemData implements CustomItemData {
         this.toolType = builder.toolType;
         this.toolTier = builder.toolTier;
         this.translationString = builder.translationString;
+        this.armorType = builder.armorType;
         this.protectionValue = builder.protectionValue;
         this.isFoil = builder.foil;
         this.isEdible = builder.edible;
@@ -169,6 +170,11 @@ public class GeyserCustomItemData implements CustomItemData {
     }
 
     @Override
+    public @Nullable String armorType() {
+        return armorType;
+    }
+
+    @Override
     public int protectionValue() {
         return protectionValue;
     }
@@ -210,10 +216,10 @@ public class GeyserCustomItemData implements CustomItemData {
         private int attackDamage = 0;
         private String toolType = null;
         private String toolTier = null;
+        private String armorType = null;
         private int protectionValue = 0;
         private String translationString;
         private boolean foil = false;
-        private boolean tool = false;
         private boolean edible = false;
         private boolean canAlwaysEat = false;
 
@@ -310,6 +316,12 @@ public class GeyserCustomItemData implements CustomItemData {
         @Override
         public Builder toolTier(@Nullable String toolTier) {
             this.toolTier = toolTier;
+            return this;
+        }
+
+        @Override
+        public Builder armorType(@Nullable String armorType) {
+            this.armorType = armorType;
             return this;
         }
 

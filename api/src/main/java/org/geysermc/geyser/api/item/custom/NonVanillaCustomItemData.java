@@ -51,13 +51,6 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     @NonNegative int javaId();
 
     /**
-     * Gets the armor type of the item.
-     *
-     * @return the armor type of the item
-     */
-    @Nullable String armorType();
-
-    /**
      * Gets the repair materials of the item.
      *
      * @return the repair materials of the item
@@ -97,8 +90,6 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         Builder identifier(@NonNull String identifier);
 
         Builder javaId(@NonNegative int javaId);
-
-        Builder armorType(@Nullable String armorType);
 
         Builder repairMaterials(@Nullable Set<String> repairMaterials);
 
