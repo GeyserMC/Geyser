@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.session.cache;
 
-import com.github.steveice10.mc.protocol.data.game.advancement.Advancement;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSeenAdvancementsPacket;
+import org.geysermc.mcprotocollib.protocol.data.game.advancement.Advancement;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundSeenAdvancementsPacket;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.cumulus.form.SimpleForm;

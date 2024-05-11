@@ -29,7 +29,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.value.qual.IntRange;
 import org.geysermc.geyser.api.bedrock.camera.CameraFade;
 
-import java.awt.Color;
+import java.awt.*;
 import java.util.Objects;
 
 public record GeyserCameraFade(

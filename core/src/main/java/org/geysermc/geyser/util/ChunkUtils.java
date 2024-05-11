@@ -280,7 +280,7 @@ public class ChunkUtils {
      * This must be done after the player has switched dimensions so we know what their dimension is
      */
     public static void loadDimension(GeyserSession session) {
-        JavaDimension dimension = session.getDimensions().get(session.getDimension());
+        JavaDimension dimension = session.getRegistryCache().dimensions().byId(session.getDimension());
         session.setDimensionType(dimension);
         int minY = dimension.minY();
         int maxY = dimension.maxY();

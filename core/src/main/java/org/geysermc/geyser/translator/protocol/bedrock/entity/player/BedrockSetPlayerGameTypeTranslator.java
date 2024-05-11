@@ -25,12 +25,12 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import org.cloudburstmc.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.EntityUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 
 /**
  * In vanilla Bedrock, if you have operator status, this sets the player's gamemode without confirmation from the server.

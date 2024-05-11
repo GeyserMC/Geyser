@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.github.steveice10.mc.protocol.data.game.inventory.UpdateStructureBlockAction;
-import com.github.steveice10.mc.protocol.data.game.inventory.UpdateStructureBlockMode;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureSettings;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureTemplateRequestOperation;
@@ -35,6 +33,8 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.StructureBlockUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.UpdateStructureBlockAction;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.UpdateStructureBlockMode;
 
 /**
  * Packet used in Bedrock to load structure size into the structure block GUI. It is sent every time the GUI is opened.

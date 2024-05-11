@@ -25,9 +25,6 @@
 
 package org.geysermc.geyser.level;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -41,6 +38,9 @@ import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.erosion.util.LecternUtils;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityInfo;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -174,12 +174,12 @@ public class GeyserWorldManager extends WorldManager {
 
     @NonNull
     @Override
-    public CompletableFuture<@Nullable CompoundTag> getPickItemNbt(GeyserSession session, int x, int y, int z, boolean addNbtData) {
+    public CompletableFuture<@Nullable DataComponents> getPickItemComponents(GeyserSession session, int x, int y, int z, boolean addNbtData) {
         var erosionHandler = session.getErosionHandler().getAsActive();
         if (erosionHandler == null) {
-            return super.getPickItemNbt(session, x, y, z, addNbtData);
+            return super.getPickItemComponents(session, x, y, z, addNbtData);
         }
-        CompletableFuture<CompoundTag> future = new CompletableFuture<>();
+        CompletableFuture<DataComponents> future = new CompletableFuture<>();
         erosionHandler.setPickBlockLookup(future);
         erosionHandler.sendPacket(new BackendboundPickBlockPacket(Vector3i.from(x, y, z)));
         return future;

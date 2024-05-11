@@ -25,10 +25,10 @@
 
 package org.geysermc.geyser.inventory.recipe;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
-import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.Ingredient;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.data.ShapedRecipeData;
 
 public record GeyserShapedRecipe(int width, int height, Ingredient[] ingredients, @Nullable ItemStack result) implements GeyserRecipe {
 

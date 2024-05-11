@@ -25,63 +25,70 @@
 
 package org.geysermc.geyser.inventory.recipe;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescriptor;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
 
 /**
- * Hardcoded recipe information about armor trims until further improvements can be made. This information was scraped
- * from BDS 1.19.81 with a world with the next_major_update and sniffer features enabled, using ProxyPass.
+ * Stores information on trim materials and patterns, including smithing armor hacks for pre-1.20.
  */
-public class TrimRecipe {
-
-    // For TrimDataPacket, which BDS sends just before the CraftingDataPacket
-    public static final List<TrimPattern> PATTERNS;
-    public static final List<TrimMaterial> MATERIALS;
-
+public final class TrimRecipe {
     // For CraftingDataPacket
     public static final String ID = "minecraft:smithing_armor_trim";
     public static final ItemDescriptorWithCount BASE = tagDescriptor("minecraft:trimmable_armors");
     public static final ItemDescriptorWithCount ADDITION = tagDescriptor("minecraft:trim_materials");
     public static final ItemDescriptorWithCount TEMPLATE = tagDescriptor("minecraft:trim_templates");
 
-    static {
-        List<TrimPattern> patterns = new ArrayList<>(16);
-        patterns.add(new TrimPattern("minecraft:ward_armor_trim_smithing_template", "ward"));
-        patterns.add(new TrimPattern("minecraft:sentry_armor_trim_smithing_template", "sentry"));
-        patterns.add(new TrimPattern("minecraft:snout_armor_trim_smithing_template", "snout"));
-        patterns.add(new TrimPattern("minecraft:dune_armor_trim_smithing_template", "dune"));
-        patterns.add(new TrimPattern("minecraft:spire_armor_trim_smithing_template", "spire"));
-        patterns.add(new TrimPattern("minecraft:tide_armor_trim_smithing_template", "tide"));
-        patterns.add(new TrimPattern("minecraft:wild_armor_trim_smithing_template", "wild"));
-        patterns.add(new TrimPattern("minecraft:rib_armor_trim_smithing_template", "rib"));
-        patterns.add(new TrimPattern("minecraft:coast_armor_trim_smithing_template", "coast"));
-        patterns.add(new TrimPattern("minecraft:shaper_armor_trim_smithing_template", "shaper"));
-        patterns.add(new TrimPattern("minecraft:eye_armor_trim_smithing_template", "eye"));
-        patterns.add(new TrimPattern("minecraft:vex_armor_trim_smithing_template", "vex"));
-        patterns.add(new TrimPattern("minecraft:silence_armor_trim_smithing_template", "silence"));
-        patterns.add(new TrimPattern("minecraft:wayfinder_armor_trim_smithing_template", "wayfinder"));
-        patterns.add(new TrimPattern("minecraft:raiser_armor_trim_smithing_template", "raiser"));
-        patterns.add(new TrimPattern("minecraft:host_armor_trim_smithing_template", "host"));
-        PATTERNS = Collections.unmodifiableList(patterns);
+    public static TrimMaterial readTrimMaterial(GeyserSession session, RegistryEntry entry) {
+        String key = stripMinecraftNamespace(entry.getId());
 
-        List<TrimMaterial> materials = new ArrayList<>(10);
-        materials.add(new TrimMaterial("quartz", "§h", "minecraft:quartz"));
-        materials.add(new TrimMaterial("iron", "§i", "minecraft:iron_ingot"));
-        materials.add(new TrimMaterial("netherite", "§j", "minecraft:netherite_ingot"));
-        materials.add(new TrimMaterial("redstone", "§m", "minecraft:redstone"));
-        materials.add(new TrimMaterial("copper", "§n", "minecraft:copper_ingot"));
-        materials.add(new TrimMaterial("gold", "§p", "minecraft:gold_ingot"));
-        materials.add(new TrimMaterial("emerald", "§q", "minecraft:emerald"));
-        materials.add(new TrimMaterial("diamond", "§s", "minecraft:diamond"));
-        materials.add(new TrimMaterial("lapis", "§t", "minecraft:lapis_lazuli"));
-        materials.add(new TrimMaterial("amethyst", "§u", "minecraft:amethyst_shard"));
-        MATERIALS = Collections.unmodifiableList(materials);
+        // Color is used when hovering over the item
+        // Find the nearest legacy color from the RGB Java gives us to work with
+        // Also yes this is a COMPLETE hack but it works ok!!!!!
+        String colorTag = entry.getData().getCompound("description").getString("color");
+        TextColor color = TextColor.fromHexString(colorTag);
+        String legacy = MessageTranslator.convertMessage(Component.space().color(color));
+
+        String itemIdentifier = entry.getData().getString("ingredient");
+        ItemMapping itemMapping = session.getItemMappings().getMapping(itemIdentifier);
+        if (itemMapping == null) {
+            // This should never happen so not sure what to do here.
+            itemMapping = ItemMapping.AIR;
+        }
+        // Just pick out the resulting color code, without RESET in front.
+        return new TrimMaterial(key, legacy.substring(2).trim(), itemMapping.getBedrockIdentifier());
+    }
+
+    public static TrimPattern readTrimPattern(GeyserSession session, RegistryEntry entry) {
+        String key = stripMinecraftNamespace(entry.getId());
+
+        String itemIdentifier = entry.getData().getString("template_item");
+        ItemMapping itemMapping = session.getItemMappings().getMapping(itemIdentifier);
+        if (itemMapping == null) {
+            // This should never happen so not sure what to do here.
+            itemMapping = ItemMapping.AIR;
+        }
+        return new TrimPattern(itemMapping.getBedrockIdentifier(), key);
+    }
+
+    // TODO find a good place for a stripNamespace util method
+    private static String stripMinecraftNamespace(String identifier) {
+        int i = identifier.indexOf(':');
+        if (i >= 0) {
+            String namespace = identifier.substring(0, i);
+            // Only strip minecraft namespace
+            if (namespace.equals("minecraft")) {
+                return identifier.substring(i + 1);
+            }
+        }
+        return identifier;
     }
 
     private TrimRecipe() {

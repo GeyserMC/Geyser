@@ -25,18 +25,18 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
-import org.geysermc.geyser.translator.inventory.item.CustomItemTranslator;
-import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
+import org.geysermc.geyser.translator.item.CustomItemTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents;
 
 public class PotionItem extends Item {
     public PotionItem(String javaIdentifier, Builder builder) {
@@ -44,38 +44,35 @@ public class PotionItem extends Item {
     }
 
     @Override
-    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
-        if (itemStack.getNbt() == null) return super.translateToBedrock(itemStack, mapping, mappings);
-        Tag potionTag = itemStack.getNbt().get("Potion");
-        if (potionTag instanceof StringTag) {
-            ItemDefinition customItemDefinition = CustomItemTranslator.getCustomItem(itemStack.getNbt(), mapping);
+    public ItemData.Builder translateToBedrock(int count, DataComponents components, ItemMapping mapping, ItemMappings mappings) {
+        if (components == null) return super.translateToBedrock(count, components, mapping, mappings);
+        PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
+        if (potionContents != null) {
+            ItemDefinition customItemDefinition = CustomItemTranslator.getCustomItem(components, mapping);
             if (customItemDefinition == null) {
-                Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
+                Potion potion = Potion.getByJavaId(potionContents.getPotionId());
                 if (potion != null) {
                     return ItemData.builder()
                             .definition(mapping.getBedrockDefinition())
                             .damage(potion.getBedrockId())
-                            .count(itemStack.getAmount())
-                            .tag(ItemTranslator.translateNbtToBedrock(itemStack.getNbt()));
+                            .count(count);
                 }
-                GeyserImpl.getInstance().getLogger().debug("Unknown Java potion: " + potionTag.getValue());
+                GeyserImpl.getInstance().getLogger().debug("Unknown Java potion: " + potionContents.getPotionId());
             } else {
                 return ItemData.builder()
                         .definition(customItemDefinition)
-                        .count(itemStack.getAmount())
-                        .tag(ItemTranslator.translateNbtToBedrock(itemStack.getNbt()));
+                        .count(count);
             }
         }
-        return super.translateToBedrock(itemStack, mapping, mappings);
+        return super.translateToBedrock(count, components, mapping, mappings);
     }
 
     @Override
-    public @NonNull ItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
+    public @NonNull GeyserItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
         Potion potion = Potion.getByBedrockId(itemData.getDamage());
-        ItemStack itemStack = super.translateToJava(itemData, mapping, mappings);
+        GeyserItemStack itemStack = super.translateToJava(itemData, mapping, mappings);
         if (potion != null) {
-            StringTag potionTag = new StringTag("Potion", potion.getJavaIdentifier());
-            itemStack.getNbt().put(potionTag);
+            itemStack.getOrCreateComponents().put(DataComponentType.POTION_CONTENTS, potion.toComponent());
         }
         return itemStack;
     }
