@@ -106,6 +106,16 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         }
 
         @Override
+        public Builder displayName(@NonNull String displayName) {
+            return (Builder) super.displayName(displayName);
+        }
+
+        @Override
+        public Builder icon(@NonNull String icon) {
+            return (Builder) super.icon(icon);
+        }
+
+        @Override
         public Builder allowOffhand(boolean allowOffhand) {
             return (Builder) super.allowOffhand(allowOffhand);
         }
@@ -116,13 +126,13 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         }
 
         @Override
-        public Builder displayName(@NonNull String displayName) {
-            return (Builder) super.displayName(displayName);
+        public Builder creativeCategory(int creativeCategory) {
+            return (Builder) super.creativeCategory(creativeCategory);
         }
 
         @Override
-        public Builder icon(@NonNull String icon) {
-            return (Builder) super.icon(icon);
+        public Builder creativeGroup(@Nullable String creativeGroup) {
+            return (Builder) super.creativeGroup(creativeGroup);
         }
 
         @Override
@@ -138,6 +148,61 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         @Override
         public Builder tags(@Nullable Set<String> tags) {
             return (Builder) super.tags(tags);
+        }
+
+        @Override
+        public Builder stackSize(int stackSize) {
+            return (Builder) super.stackSize(stackSize);
+        }
+
+        @Override
+        public Builder maxDamage(int maxDamage) {
+            return (Builder) super.maxDamage(maxDamage);
+        }
+
+        @Override
+        public Builder attackDamage(int attackDamage) {
+            return (Builder) super.attackDamage(attackDamage);
+        }
+
+        @Override
+        public Builder toolType(@Nullable String toolType) {
+            return (Builder) super.toolType(toolType);
+        }
+
+        @Override
+        public Builder toolTier(@Nullable String toolTier) {
+            return (Builder) super.toolTier(toolTier);
+        }
+
+        @Override
+        public Builder armorType(@Nullable String armorType) {
+            return (Builder) super.armorType(armorType);
+        }
+
+        @Override
+        public Builder protectionValue(int protectionValue) {
+            return (Builder) super.protectionValue(protectionValue);
+        }
+
+        @Override
+        public Builder hat(boolean isHat) {
+            return (Builder) super.hat(isHat);
+        }
+
+        @Override
+        public Builder foil(boolean isFoil) {
+            return (Builder) super.foil(isFoil);
+        }
+
+        @Override
+        public Builder edible(boolean isEdible) {
+            return (Builder) super.edible(isEdible);
+        }
+
+        @Override
+        public Builder canAlwaysEat(boolean canAlwaysEat) {
+            return (Builder) super.canAlwaysEat(canAlwaysEat);
         }
 
         @Override
@@ -162,16 +227,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         public Builder repairMaterials(@Nullable Set<String> repairMaterials) {
             this.repairMaterials = repairMaterials;
             return this;
-        }
-
-        @Override
-        public Builder creativeCategory(int creativeCategory) {
-            return (Builder) super.creativeCategory(creativeCategory);
-        }
-
-        @Override
-        public Builder creativeGroup(@Nullable String creativeGroup) {
-            return (Builder) super.creativeGroup(creativeGroup);
         }
 
         @Override

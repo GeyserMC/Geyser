@@ -86,6 +86,74 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         @Override
         Builder name(@NonNull String name);
 
+        @Override
+        Builder customItemOptions(@NonNull CustomItemOptions customItemOptions);
+
+        @Override
+        Builder displayName(@NonNull String displayName);
+
+        @Override
+        Builder icon(@NonNull String icon);
+
+        @Override
+        Builder allowOffhand(boolean allowOffhand);
+
+        @Override
+        Builder displayHandheld(boolean displayHandheld);
+
+        @Override
+        Builder creativeCategory(int creativeCategory);
+
+        @Override
+        Builder creativeGroup(@Nullable String creativeGroup);
+
+        @Override
+        Builder textureSize(int textureSize);
+
+        @Override
+        Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets);
+
+        @Override
+        Builder tags(@Nullable Set<String> tags);
+
+        @Override
+        Builder stackSize(@NonNegative int stackSize);
+
+        @Override
+        Builder maxDamage(int maxDamage);
+
+        @Override
+        Builder attackDamage(int attackDamage);
+
+        @Override
+        Builder toolType(@Nullable String toolType);
+
+        @Override
+        Builder toolTier(@Nullable String toolTier);
+
+        @Override
+        Builder armorType(@Nullable String armorType);
+
+        @Override
+        Builder protectionValue(int protectionValue);
+
+        @Override
+        Builder hat(boolean isHat);
+
+        @Override
+        Builder foil(boolean isFoil);
+
+        @Override
+        Builder edible(boolean isEdible);
+
+        @Override
+        Builder canAlwaysEat(boolean canAlwaysEat);
+
+        @Override
+        default Builder tool(boolean isTool) {
+            return displayHandheld(isTool);
+        }
+
         Builder identifier(@NonNull String identifier);
 
         Builder javaId(@NonNegative int javaId);
