@@ -57,9 +57,9 @@ public class GeyserCustomItemData implements CustomItemData {
     private final int attackDamage;
     private final String toolType;
     private final String toolTier;
-    private final String translationString;
     private final String armorType;
     private final int protectionValue;
+    private final boolean isHat;
     private final boolean isFoil;
     private final boolean isEdible;
     private final boolean canAlwaysEat;
@@ -81,9 +81,9 @@ public class GeyserCustomItemData implements CustomItemData {
         this.attackDamage = builder.attackDamage;
         this.toolType = builder.toolType;
         this.toolTier = builder.toolTier;
-        this.translationString = builder.translationString;
         this.armorType = builder.armorType;
         this.protectionValue = builder.protectionValue;
+        this.isHat = builder.hat;
         this.isFoil = builder.foil;
         this.isEdible = builder.edible;
         this.canAlwaysEat = builder.canAlwaysEat;
@@ -180,8 +180,8 @@ public class GeyserCustomItemData implements CustomItemData {
     }
 
     @Override
-    public String translationString() {
-        return translationString;
+    public boolean isHat() {
+        return isHat;
     }
 
     @Override
@@ -218,7 +218,7 @@ public class GeyserCustomItemData implements CustomItemData {
         private String toolTier = null;
         private String armorType = null;
         private int protectionValue = 0;
-        private String translationString;
+        private boolean hat = false;
         private boolean foil = false;
         private boolean edible = false;
         private boolean canAlwaysEat = false;
@@ -332,8 +332,8 @@ public class GeyserCustomItemData implements CustomItemData {
         }
 
         @Override
-        public Builder translationString(@Nullable String translationString) {
-            this.translationString = translationString;
+        public Builder hat(boolean isHat) {
+            this.hat = isHat;
             return this;
         }
 

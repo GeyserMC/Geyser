@@ -153,7 +153,7 @@ public class CustomItemRegistryPopulator {
                 .build();
 
         NbtMapBuilder builder = createComponentNbt(customItemData, customItemData.identifier(), customItemId,
-                customItemData.isHat(), customItemData.displayHandheld(), protocolVersion);
+                customItemData.displayHandheld(), protocolVersion);
         ComponentItemData componentItemData = new ComponentItemData(customIdentifier, builder.build());
 
         return new NonVanillaItemRegistration(componentItemData, item, customItemMapping);
@@ -226,7 +226,7 @@ public class CustomItemRegistryPopulator {
                     computeThrowableProperties(componentBuilder);
         }
 
-        computeRenderOffsets(false, customItemData, componentBuilder);
+        computeRenderOffsets(customItemData.isHat(), customItemData, componentBuilder);
 
         componentBuilder.putCompound("item_properties", itemProperties.build());
         builder.putCompound("components", componentBuilder.build());
@@ -235,7 +235,7 @@ public class CustomItemRegistryPopulator {
     }
 
     private static NbtMapBuilder createComponentNbt(NonVanillaCustomItemData customItemData, String customItemName,
-                                                    int customItemId, boolean isHat, boolean displayHandheld, int protocolVersion) {
+                                                    int customItemId, boolean displayHandheld, int protocolVersion) {
         NbtMapBuilder builder = NbtMap.builder();
         builder.putString("name", customItemName)
                 .putInt("id", customItemId);
@@ -269,7 +269,7 @@ public class CustomItemRegistryPopulator {
             computeChargeableProperties(itemProperties, componentBuilder, "minecraft:" + tooltype, protocolVersion);
         }
 
-        computeRenderOffsets(isHat, customItemData, componentBuilder);
+        computeRenderOffsets(customItemData.isHat(), customItemData, componentBuilder);
 
         if (customItemData.isFoil()) {
             itemProperties.putBoolean("foil", true);

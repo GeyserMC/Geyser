@@ -51,19 +51,18 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     @NonNegative int javaId();
 
     /**
+     * Gets the item's translation string.
+     *
+     * @return the item's translation string
+     */
+    @Nullable String translationString();
+
+    /**
      * Gets the repair materials of the item.
      *
      * @return the repair materials of the item
      */
     @Nullable Set<String> repairMaterials();
-
-    /**
-     * Gets if the item is a hat. This is used to determine if the item should be rendered on the player's head, and
-     * normally allow the player to equip it. This is not meant for armor.
-     *
-     * @return if the item is a hat
-     */
-    boolean isHat();
 
     /**
      * Gets if the item is chargable, like a bow.
@@ -91,9 +90,9 @@ public interface NonVanillaCustomItemData extends CustomItemData {
 
         Builder javaId(@NonNegative int javaId);
 
-        Builder repairMaterials(@Nullable Set<String> repairMaterials);
+        Builder translationString(@Nullable String translationString);
 
-        Builder hat(boolean isHat);
+        Builder repairMaterials(@Nullable Set<String> repairMaterials);
 
         Builder chargeable(boolean isChargeable);
 

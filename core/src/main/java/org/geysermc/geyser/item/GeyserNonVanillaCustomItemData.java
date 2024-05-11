@@ -40,8 +40,8 @@ import java.util.Set;
 public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData implements NonVanillaCustomItemData {
     private final String identifier;
     private final int javaId;
+    private final String translationString;
     private final Set<String> repairMaterials;
-    private final boolean isHat;
     private final boolean isChargeable;
     private final String block;
 
@@ -50,8 +50,8 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
 
         this.identifier = builder.identifier;
         this.javaId = builder.javaId;
+        this.translationString = builder.translationString;
         this.repairMaterials = builder.repairMaterials;
-        this.isHat = builder.hat;
         this.isChargeable = builder.chargeable;
         this.block = builder.block;
     }
@@ -67,13 +67,13 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     }
 
     @Override
-    public Set<String> repairMaterials() {
-        return repairMaterials;
+    public String translationString() {
+        return translationString;
     }
 
     @Override
-    public boolean isHat() {
-        return isHat;
+    public Set<String> repairMaterials() {
+        return repairMaterials;
     }
 
     @Override
@@ -89,8 +89,8 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     public static class Builder extends GeyserCustomItemData.Builder implements NonVanillaCustomItemData.Builder {
         private String identifier = null;
         private int javaId = -1;
+        private String translationString;
         private Set<String> repairMaterials;
-        private boolean hat = false;
         private boolean chargeable = false;
         private String block = null;
 
@@ -153,6 +153,12 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         }
 
         @Override
+        public Builder translationString(@Nullable String translationString) {
+            this.translationString = translationString;
+            return this;
+        }
+
+        @Override
         public Builder repairMaterials(@Nullable Set<String> repairMaterials) {
             this.repairMaterials = repairMaterials;
             return this;
@@ -166,12 +172,6 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         @Override
         public Builder creativeGroup(@Nullable String creativeGroup) {
             return (Builder) super.creativeGroup(creativeGroup);
-        }
-
-        @Override
-        public Builder hat(boolean isHat) {
-            this.hat = isHat;
-            return this;
         }
 
         @Override

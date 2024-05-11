@@ -159,13 +159,6 @@ public interface CustomItemData {
     @Nullable String toolTier();
 
     /**
-     * Gets the item's translation string.
-     *
-     * @return the item's translation string
-     */
-    @Nullable String translationString();
-
-    /**
      * Gets the armor type of the item.
      *
      * @return the armor type of the item
@@ -178,6 +171,14 @@ public interface CustomItemData {
      * @return the armor protection value of the item
      */
     int protectionValue();
+
+    /**
+     * Gets if the item is a hat. This is used to determine if the item should be rendered on the player's head, and
+     * normally allow the player to equip it. This is not meant for armor.
+     *
+     * @return if the item is a hat
+     */
+    boolean isHat();
 
     /**
      * Gets if the item is a foil. This is used to determine if the item should be rendered with an enchantment glint effect.
@@ -255,7 +256,7 @@ public interface CustomItemData {
 
         Builder protectionValue(int protectionValue);
 
-        Builder translationString(@Nullable String translationString);
+        Builder hat(boolean isHat);
 
         Builder foil(boolean isFoil);
 
