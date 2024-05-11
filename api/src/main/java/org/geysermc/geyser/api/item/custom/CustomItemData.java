@@ -201,17 +201,6 @@ public interface CustomItemData {
      */
     boolean canAlwaysEat();
 
-    /**
-     * @deprecated Use {@link #displayHandheld()} instead.
-     * Gets if the item is a tool. This is used to set the render type of the item, if the item is handheld.
-     *
-     * @return if the item is a tool
-     */
-    @Deprecated
-    default boolean isTool() {
-        return displayHandheld();
-    }
-
     static CustomItemData.Builder builder() {
         return GeyserApi.api().provider(CustomItemData.Builder.class);
     }
@@ -263,14 +252,6 @@ public interface CustomItemData {
         Builder edible(boolean isEdible);
 
         Builder canAlwaysEat(boolean canAlwaysEat);
-
-        /**
-         * @deprecated Use {@link #displayHandheld(boolean)} instead.
-         */
-        @Deprecated
-        default Builder tool(boolean isTool) {
-            return displayHandheld(isTool);
-        }
 
         CustomItemData build();
     }
