@@ -207,7 +207,8 @@ public class CustomItemRegistryPopulator {
         }
 
         if (mapping.isEdible() || customItemData.isEdible()) {
-            computeConsumableProperties(itemProperties, componentBuilder, 1, customItemData.canAlwaysEat());
+            computeConsumableProperties(itemProperties, componentBuilder, 1,
+                    customItemData.canAlwaysEat(), protocolVersion);
         }
 
         if (mapping.isEntityPlacer()) {
@@ -221,7 +222,7 @@ public class CustomItemRegistryPopulator {
         switch (mapping.getBedrockIdentifier()) {
             case "minecraft:fire_charge", "minecraft:flint_and_steel" -> computeBlockItemProperties("minecraft:fire", componentBuilder);
             case "minecraft:bow", "minecraft:crossbow", "minecraft:trident" -> computeChargeableProperties(itemProperties, componentBuilder, mapping.getBedrockIdentifier(), protocolVersion);
-            case "minecraft:honey_bottle", "minecraft:milk_bucket", "minecraft:potion" -> computeConsumableProperties(itemProperties, componentBuilder, 2, true);
+            case "minecraft:honey_bottle", "minecraft:milk_bucket", "minecraft:potion" -> computeConsumableProperties(itemProperties, componentBuilder, 2, true, protocolVersion);
             case "minecraft:experience_bottle", "minecraft:egg", "minecraft:ender_pearl", "minecraft:ender_eye", "minecraft:lingering_potion", "minecraft:snowball", "minecraft:splash_potion" ->
                     computeThrowableProperties(componentBuilder);
         }
@@ -258,7 +259,7 @@ public class CustomItemRegistryPopulator {
         }
 
         if (customItemData.isEdible()) {
-            computeConsumableProperties(itemProperties, componentBuilder, 1, customItemData.canAlwaysEat());
+            computeConsumableProperties(itemProperties, componentBuilder, 1, customItemData.canAlwaysEat(), protocolVersion);
         }
 
         if (customItemData.isChargeable()) {
@@ -515,7 +516,8 @@ public class CustomItemRegistryPopulator {
         }
     }
 
-    private static void computeConsumableProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder, int useAnimation, boolean canAlwaysEat) {
+    private static void computeConsumableProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder,
+            int useAnimation, boolean canAlwaysEat, int protocolVersion) {
         // this is the duration of the use animation in ticks; note that in behavior packs this is set as a float in seconds, but over the network it is an int in ticks
         itemProperties.putInt("use_duration", 32);
         // this dictates that the item will use the eat or drink animation (in the first person) and play eat or drink sounds
@@ -523,6 +525,13 @@ public class CustomItemRegistryPopulator {
         itemProperties.putInt("use_animation", useAnimation);
         // this component is required to allow the eat animation to play
         componentBuilder.putCompound("minecraft:food", NbtMap.builder().putBoolean("can_always_eat", canAlwaysEat).build());
+
+        if (GameProtocol.is1_20_60orHigher(protocolVersion)) {
+            componentBuilder.putCompound("minecraft:use_modifiers", NbtMap.builder()
+                    .putFloat("use_duration", 100F)
+                    .putFloat("movement_modifier", 0.35F)
+                    .build());
+        }
     }
 
     private static void computeEntityPlacerProperties(NbtMapBuilder componentBuilder) {
