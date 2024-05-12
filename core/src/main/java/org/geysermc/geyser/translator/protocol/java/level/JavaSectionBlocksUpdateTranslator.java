@@ -44,6 +44,7 @@ import org.geysermc.geyser.translator.protocol.Translator;
 
 import java.util.BitSet;
 
+import static org.cloudburstmc.protocol.bedrock.data.BlockChangeEntry.MessageType;
 import static org.geysermc.geyser.level.block.BlockStateValues.JAVA_AIR_ID;
 
 @Translator(packet = ClientboundSectionBlocksUpdatePacket.class)
@@ -162,7 +163,7 @@ public class JavaSectionBlocksUpdateTranslator extends PacketTranslator<Clientbo
                     definition,
                     NEIGHBORS_NETWORK_FLAG,
                     -1,
-                    org.cloudburstmc.protocol.bedrock.data.BlockChangeEntry.MessageType.NONE
+                    MessageType.NONE
             ));
 
             if (updateWaterlogged) {
@@ -173,7 +174,7 @@ public class JavaSectionBlocksUpdateTranslator extends PacketTranslator<Clientbo
                         waterDefinition,
                         0,
                         -1,
-                        org.cloudburstmc.protocol.bedrock.data.BlockChangeEntry.MessageType.NONE
+                        MessageType.NONE
                 ));
             }
         }
@@ -190,7 +191,7 @@ public class JavaSectionBlocksUpdateTranslator extends PacketTranslator<Clientbo
                         belowBedrockExtendedCollisionDefinition,
                         NETWORK_FLAG,
                         -1,
-                        org.cloudburstmc.protocol.bedrock.data.BlockChangeEntry.MessageType.NONE
+                        MessageType.NONE
                 ));
             } else if (aboveBedrockExtendedCollisionDefinition != null && aboveBlock == BlockStateValues.JAVA_AIR_ID) {
                 subChunkBlocksPacket.getStandardBlocks().add(new org.cloudburstmc.protocol.bedrock.data.BlockChangeEntry(
@@ -198,7 +199,7 @@ public class JavaSectionBlocksUpdateTranslator extends PacketTranslator<Clientbo
                         aboveBedrockExtendedCollisionDefinition,
                         NETWORK_FLAG,
                         -1,
-                        org.cloudburstmc.protocol.bedrock.data.BlockChangeEntry.MessageType.NONE
+                        MessageType.NONE
                 ));
             } else if (aboveBlock == BlockStateValues.JAVA_AIR_ID) {
                 subChunkBlocksPacket.getStandardBlocks().add(new org.cloudburstmc.protocol.bedrock.data.BlockChangeEntry(
@@ -206,7 +207,7 @@ public class JavaSectionBlocksUpdateTranslator extends PacketTranslator<Clientbo
                         session.getBlockMappings().getBedrockAir(),
                         NETWORK_FLAG,
                         -1,
-                        org.cloudburstmc.protocol.bedrock.data.BlockChangeEntry.MessageType.NONE
+                        MessageType.NONE
                 ));
             }
         }
