@@ -69,7 +69,7 @@ public class JavaSectionBlocksUpdateTranslator extends PacketTranslator<Clientbo
 
         // If the entire section is updated, this might be a legacy non-full chunk update
         // which can contain thousands of unchanged blocks
-        if (packet.getEntries().length == 4096) {
+        if (packet.getEntries().length == 4096 && !session.getGeyser().getWorldManager().hasOwnChunkCache()) {
             // hack - bedrock might ignore the block updates if the chunk was still loading.
             // sending an UpdateBlockPacket seems to force it
             BlockChangeEntry firstEntry = packet.getEntries()[0];
