@@ -26,35 +26,14 @@
 package org.geysermc.geyser.platform.neoforge;
 
 import net.neoforged.neoforge.server.permission.events.PermissionGatherEvent;
-import net.neoforged.neoforge.server.permission.nodes.PermissionDynamicContextKey;
 import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
-import net.neoforged.neoforge.server.permission.nodes.PermissionType;
 import net.neoforged.neoforge.server.permission.nodes.PermissionTypes;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 import org.geysermc.geyser.api.util.TriState;
-
-import java.lang.reflect.Constructor;
+import org.geysermc.geyser.platform.neoforge.mixin.PermissionNodeMixin;
 
 public class GeyserNeoForgePermissionHandler {
-
-    private static final Constructor<?> PERMISSION_NODE_CONSTRUCTOR;
-
-    static {
-        try {
-            @SuppressWarnings("rawtypes")
-            Constructor<PermissionNode> constructor = PermissionNode.class.getDeclaredConstructor(
-                    String.class,
-                    PermissionType.class,
-                    PermissionNode.PermissionResolver.class,
-                    PermissionDynamicContextKey[].class
-            );
-            constructor.setAccessible(true);
-            PERMISSION_NODE_CONSTRUCTOR = constructor;
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException("Unable to construct PermissionNode!", e);
-        }
-    }
 
     public void onPermissionGather(PermissionGatherEvent.Nodes event) {
         GeyserImpl.getInstance().eventBus().fire(
@@ -62,13 +41,13 @@ public class GeyserNeoForgePermissionHandler {
                 if (permission.isBlank()) {
                     return;
                 }
-                this.registerNode(permission, defaultValue, event);
+                registerNode(permission, defaultValue, event);
             }
         );
     }
 
     private void registerNode(String node, TriState permissionDefault, PermissionGatherEvent.Nodes event) {
-        PermissionNode<Boolean> permissionNode = this.createNode(node, permissionDefault);
+        PermissionNode<Boolean> permissionNode = createNode(node, permissionDefault);
 
         // NeoForge likes to crash if you try and register a duplicate node
         if (event.getNodes().stream().noneMatch(eventNode -> eventNode.getNodeName().equals(node))) {
@@ -76,31 +55,20 @@ public class GeyserNeoForgePermissionHandler {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private PermissionNode<Boolean> createNode(String node, TriState permissionDefault) {
-        // The typical constructors in PermissionNode require a
-        // mod id, which means our permission nodes end up becoming
-        // geyser_neoforge.<node> instead of just <node>. We work around
-        // this by using reflection to access the constructor that
-        // doesn't require a mod id or ResourceLocation.
-        try {
-            return (PermissionNode<Boolean>) PERMISSION_NODE_CONSTRUCTOR.newInstance(
-                    node,
-                    PermissionTypes.BOOLEAN,
-                    (PermissionNode.PermissionResolver<Boolean>) (player, playerUUID, context) -> switch (permissionDefault) {
-                        case TRUE -> true;
-                        case FALSE -> false;
-                        case NOT_SET -> {
-                            if (player != null) {
-                                yield player.createCommandSourceStack().hasPermission(player.server.getOperatorUserPermissionLevel());
-                            }
-                            yield false;
+    private static PermissionNode<Boolean> createNode(String node, TriState permissionDefault) {
+        return PermissionNodeMixin.geyser$construct(
+                node,
+                PermissionTypes.BOOLEAN,
+                (player, playerUUID, context) -> switch (permissionDefault) {
+                    case TRUE -> true;
+                    case FALSE -> false;
+                    case NOT_SET -> {
+                        if (player != null) {
+                            yield player.createCommandSourceStack().hasPermission(player.server.getOperatorUserPermissionLevel());
                         }
-                    },
-                    new PermissionDynamicContextKey[0]
-            );
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to create permission node " + node, e);
-        }
+                        yield false;
+                    }
+                }
+        );
     }
 }
