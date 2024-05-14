@@ -55,7 +55,7 @@ import org.geysermc.geyser.text.GeyserLocale;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 
-import java.util.Collections;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -146,24 +146,22 @@ public class CommandRegistry {
         geyser.eventBus().subscribe(new GeyserEventRegistrar(this), GeyserRegisterPermissionsEvent.class, this::onRegisterPermissions);
     }
 
+    /**
+     * @return an immutable view of the root commands registered to this command registry
+     */
     @NonNull
-    public CommandManager<GeyserCommandSource> cloud() {
-        return cloud;
-    }
-
-    @NonNull
-    public Map<String, Command> commands() {
-        return Collections.unmodifiableMap(this.commands);
+    public Collection<String> rootCommands() {
+        return cloud.rootCommands();
     }
 
     /**
      * For internal Geyser commands
      */
-    public void registerBuiltInCommand(GeyserCommand command) {
+    private void registerBuiltInCommand(GeyserCommand command) {
         register(command, this.commands);
     }
 
-    public void registerExtensionCommand(@NonNull Extension extension, @NonNull GeyserCommand command) {
+    private void registerExtensionCommand(@NonNull Extension extension, @NonNull GeyserCommand command) {
         register(command, this.extensionCommands.computeIfAbsent(extension, e -> new HashMap<>()));
     }
 

@@ -57,7 +57,7 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
                 String root = args[0];
 
                 CommandRegistry registry = GeyserImpl.getInstance().commandRegistry();
-                if (registry.cloud().rootCommands().contains(root)) {
+                if (registry.rootCommands().contains(root)) {
                     registry.runCommand(session, command);
                     return; // don't pass the command to the java server
                 }

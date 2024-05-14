@@ -261,8 +261,6 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
     @Override
     public void onGeyserDisable() {
-        // We can re-register commands on standalone, so why not
-        commandRegistry.commands().clear();
         geyser.disable();
     }
 

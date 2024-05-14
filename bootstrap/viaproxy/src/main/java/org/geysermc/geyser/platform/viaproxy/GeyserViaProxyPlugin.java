@@ -87,7 +87,7 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
     private void onConsoleCommand(final ConsoleCommandEvent event) {
         final String command = event.getCommand().startsWith("/") ? event.getCommand().substring(1) : event.getCommand();
         CommandRegistry registry = this.getCommandRegistry();
-        if (registry.cloud().rootCommands().contains(command)) {
+        if (registry.rootCommands().contains(command)) {
             registry.runCommand(this.getGeyserLogger(), command + " " + String.join(" ", event.getArgs()));
             event.setCancelled(true);
         }
