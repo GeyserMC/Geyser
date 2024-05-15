@@ -25,9 +25,7 @@
 
 package org.geysermc.geyser.platform.spigot.world.manager;
 
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
-import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityInfo;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
@@ -39,6 +37,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.erosion.bukkit.BukkitLecterns;
 import org.geysermc.erosion.bukkit.BukkitUtils;
+import org.geysermc.erosion.bukkit.PickBlockUtils;
 import org.geysermc.erosion.bukkit.SchedulerUtils;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.GameRule;
@@ -47,6 +46,9 @@ import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityInfo;
 
 import java.util.List;
 import java.util.Objects;
@@ -205,17 +207,16 @@ public class GeyserSpigotWorldManager extends WorldManager {
 
     @Override
     public @NonNull CompletableFuture<@Nullable DataComponents> getPickItemComponents(GeyserSession session, int x, int y, int z, boolean addNbtData) {
-        CompletableFuture<@Nullable DataComponents> future = new CompletableFuture<>();
         Player bukkitPlayer;
         if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUuid())) == null) {
-            future.complete(null);
-            return future;
+            return CompletableFuture.completedFuture(null);
         }
+        CompletableFuture<Int2ObjectMap<byte[]>> future = new CompletableFuture<>();
         Block block = bukkitPlayer.getWorld().getBlockAt(x, y, z);
         // Paper 1.19.3 complains about async access otherwise.
         // java.lang.IllegalStateException: Tile is null, asynchronous access?
-        SchedulerUtils.runTask(this.plugin, () -> future.complete(/*PickBlockUtils.pickBlock(block)*/ null), block); // TODO fix erosion once clear how to handle this
-        return future;
+        SchedulerUtils.runTask(this.plugin, () -> future.complete(PickBlockUtils.pickBlock(block)), block);
+        return future.thenApply(RAW_TRANSFORMER);
     }
 
     /**

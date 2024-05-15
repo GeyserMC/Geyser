@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.level;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -179,9 +180,9 @@ public class GeyserWorldManager extends WorldManager {
         if (erosionHandler == null) {
             return super.getPickItemComponents(session, x, y, z, addNbtData);
         }
-        CompletableFuture<DataComponents> future = new CompletableFuture<>();
+        CompletableFuture<Int2ObjectMap<byte[]>> future = new CompletableFuture<>();
         erosionHandler.setPickBlockLookup(future);
         erosionHandler.sendPacket(new BackendboundPickBlockPacket(Vector3i.from(x, y, z)));
-        return future;
+        return future.thenApply(RAW_TRANSFORMER);
     }
 }

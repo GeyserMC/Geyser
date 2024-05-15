@@ -1,7 +1,7 @@
 [versions]
 base-api = "1.0.0-SNAPSHOT"
 cumulus = "1.1.2"
-erosion = "1.0-20230406.174837-8"
+erosion = "1.1-20240515.191456-1"
 events = "1.1-SNAPSHOT"
 jackson = "2.17.0"
 fastutil = "8.5.2"
@@ -15,7 +15,7 @@ protocol-connection = "3.0.0.Beta1-20240411.165033-128"
 raknet = "1.0.0.CR3-20240416.144209-1"
 blockstateupdater="1.20.80-20240411.142413-1"
 mcauthlib = "e5b0bcc"
-mcprotocollib = "42ea4a4" # Revert from jitpack after release
+mcprotocollib = "1.20.6-2-20240515.051848-2" # Revert from jitpack after release
 adventure = "4.14.0"
 adventure-platform = "4.3.0"
 junit = "5.9.2"
@@ -52,6 +52,7 @@ cumulus = { group = "org.geysermc.cumulus", name = "cumulus", version.ref = "cum
 events = { group = "org.geysermc.event", name = "events", version.ref = "events" }
 
 erosion-bukkit-common = { group = "org.geysermc.erosion", name = "bukkit-common", version.ref = "erosion" }
+erosion-bukkit-nms = { group = "org.geysermc.erosion", name = "bukkit-nms", version.ref = "erosion" }
 erosion-common = { group = "org.geysermc.erosion", name = "common", version.ref = "erosion" }
 
 jackson-annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson" }
@@ -108,7 +109,7 @@ guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 junit = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
 mcauthlib = { group = "com.github.GeyserMC", name = "MCAuthLib", version.ref = "mcauthlib" }
-mcprotocollib = { group = "com.github.geysermc", name = "mcprotocollib", version.ref = "mcprotocollib" }
+mcprotocollib = { group = "org.geysermc.mcprotocollib", name = "protocol", version.ref = "mcprotocollib" }
 raknet = { group = "org.cloudburstmc.netty", name = "netty-transport-raknet", version.ref = "raknet" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }
 velocity-api = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }

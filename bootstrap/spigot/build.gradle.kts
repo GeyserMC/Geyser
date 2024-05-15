@@ -4,6 +4,12 @@ dependencies {
         isTransitive = false
     }
 
+    implementation(libs.erosion.bukkit.nms) {
+        attributes {
+            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 21)
+        }
+    }
+
     implementation(variantOf(libs.adapters.spigot) {
         classifier("all") // otherwise the unshaded jar is used without the shaded NMS implementations
     })
