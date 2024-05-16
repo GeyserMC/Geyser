@@ -53,8 +53,8 @@ public class BoostableVehicleComponent<T extends LivingEntity & ClientVehicle> e
     }
 
     @Override
-    public void tickVehicle(T vehicle) {
-        super.tickVehicle(vehicle);
+    public void tickVehicle() {
+        super.tickVehicle();
         if (isBoosting()) {
             boostTicks++;
         }

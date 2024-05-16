@@ -67,6 +67,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
             "minecraft:sweet_berry_bush", Vector3f.from(0.8f, 0.75f, 0.8f)
     );
 
+    protected final T vehicle;
     protected final BoundingBox boundingBox;
 
     protected float moveSpeed;
@@ -74,16 +75,18 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     protected boolean slowFalling;
 
     public VehicleComponent(T vehicle) {
+        this.vehicle = vehicle;
+
         double width = Double.parseDouble(Float.toString(vehicle.getBoundingBoxWidth()));
         double height = Double.parseDouble(Float.toString(vehicle.getBoundingBoxHeight()));
-        boundingBox = new BoundingBox(
+        this.boundingBox = new BoundingBox(
                 vehicle.getPosition().getX(),
                 vehicle.getPosition().getY() + height / 2,
                 vehicle.getPosition().getZ(),
                 width, height, width
         );
 
-        moveSpeed = GeyserAttributeType.MOVEMENT_SPEED.getDefaultValue();
+        this.moveSpeed = GeyserAttributeType.MOVEMENT_SPEED.getDefaultValue();
     }
 
     public void setWidth(float width) {
@@ -128,7 +131,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return moveSpeed;
     }
 
-    public void tickVehicle(T vehicle) {
+    public void tickVehicle() {
         if (!vehicle.isClientControlled()) {
             return;
         }

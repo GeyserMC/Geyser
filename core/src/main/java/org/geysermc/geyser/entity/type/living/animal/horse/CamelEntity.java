@@ -36,7 +36,6 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
-import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.vehicle.CamelVehicleComponent;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.entity.vehicle.VehicleComponent;
@@ -50,11 +49,10 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEn
 
 import java.util.UUID;
 
-public class CamelEntity extends AbstractHorseEntity implements Tickable, ClientVehicle {
+public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
     public static final float SITTING_HEIGHT_DIFFERENCE = 1.43F;
 
     private final CamelVehicleComponent vehicleComponent = new CamelVehicleComponent(this);
-    private int dashTicks;
 
     public CamelEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
@@ -124,7 +122,7 @@ public class CamelEntity extends AbstractHorseEntity implements Tickable, Client
     public void setDashing(BooleanEntityMetadata entityMetadata) {
         if (entityMetadata.getPrimitiveValue()) {
             setFlag(EntityFlag.HAS_DASH_COOLDOWN, true);
-            dashTicks = 55;
+            vehicleComponent.startDashCooldown();
         }
     }
 
@@ -135,15 +133,6 @@ public class CamelEntity extends AbstractHorseEntity implements Tickable, Client
             vehicleComponent.setHorseJumpStrength(attributeData.getValue());
         }
         return attributeData;
-    }
-
-    @Override
-    public void tick() {
-        vehicleComponent.tickVehicle(this);
-        if (dashTicks > 0 && --dashTicks == 0) {
-            setFlag(EntityFlag.HAS_DASH_COOLDOWN, false);
-            updateBedrockMetadata();
-        }
     }
 
     @Override
@@ -164,7 +153,7 @@ public class CamelEntity extends AbstractHorseEntity implements Tickable, Client
     @Override
     public float getVehicleSpeed() {
         float moveSpeed = vehicleComponent.getMoveSpeed();
-        if (dashTicks == 0 && session.getPlayerEntity().getFlag(EntityFlag.SPRINTING)) {
+        if (!getFlag(EntityFlag.HAS_DASH_COOLDOWN) && session.getPlayerEntity().getFlag(EntityFlag.SPRINTING)) {
             return moveSpeed + 0.1f;
         }
         return moveSpeed;

@@ -117,6 +117,7 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.erosion.AbstractGeyserboundPacketHandler;
 import org.geysermc.geyser.erosion.GeyserboundHandshakePacketHandler;
 import org.geysermc.geyser.impl.camera.CameraDefinitions;
@@ -544,6 +545,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * The thread that will run every 50 milliseconds - one Minecraft tick.
      */
     private ScheduledFuture<?> tickThread = null;
+
+    /**
+     * The number of ticks that have elapsed since the start of this session
+     */
+    private int ticks;
 
     /**
      * Used to return the player to their original rotation after using an item in BedrockInventoryTransactionTranslator
@@ -1198,6 +1204,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 isInWorldBorderWarningArea = false;
             }
 
+            Entity vehicle = playerEntity.getVehicle();
+            if (vehicle instanceof ClientVehicle clientVehicle && vehicle.isValid()) {
+                clientVehicle.getVehicleComponent().tickVehicle();
+            }
 
             for (Tickable entity : entityCache.getTickableEntities()) {
                 entity.tick();
@@ -1233,6 +1243,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
+
+        ticks++;
     }
 
     public void setAuthenticationData(AuthData authData) {

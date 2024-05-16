@@ -31,7 +31,6 @@ import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.vehicle.BoostableVehicleComponent;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.entity.vehicle.VehicleComponent;
@@ -47,7 +46,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
 import java.util.UUID;
 
-public class PigEntity extends AnimalEntity implements Tickable, ClientVehicle {
+public class PigEntity extends AnimalEntity implements ClientVehicle {
     private final BoostableVehicleComponent<PigEntity> vehicleComponent = new BoostableVehicleComponent<>(this);
 
     public PigEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
@@ -95,11 +94,6 @@ public class PigEntity extends AnimalEntity implements Tickable, ClientVehicle {
 
     public void setBoost(IntEntityMetadata entityMetadata) {
         vehicleComponent.startBoost(entityMetadata.getPrimitiveValue());
-    }
-
-    @Override
-    public void tick() {
-        vehicleComponent.tickVehicle(this);
     }
 
     @Override

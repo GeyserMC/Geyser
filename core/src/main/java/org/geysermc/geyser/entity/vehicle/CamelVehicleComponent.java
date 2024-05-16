@@ -26,12 +26,14 @@
 package org.geysermc.geyser.entity.vehicle;
 
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 
 public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
     private float horseJumpStrength = 0.42f; // This is the default for Camels. Not sent by vanilla Java server when spawned
+    private int dashTick;
     private int jumpBoost;
 
     public CamelVehicleComponent(CamelEntity vehicle) {
@@ -40,6 +42,22 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
 
     public void setHorseJumpStrength(float horseJumpStrength) {
         this.horseJumpStrength = horseJumpStrength;
+    }
+
+    public void startDashCooldown() {
+        this.dashTick = vehicle.getSession().getTicks() + 55;
+    }
+
+    @Override
+    public void tickVehicle() {
+        if (vehicle.getFlag(EntityFlag.HAS_DASH_COOLDOWN)) {
+            if (vehicle.getSession().getTicks() > dashTick) {
+                vehicle.setFlag(EntityFlag.HAS_DASH_COOLDOWN, false);
+                vehicle.updateBedrockMetadata();
+            }
+        }
+
+        super.tickVehicle();
     }
 
     @Override
