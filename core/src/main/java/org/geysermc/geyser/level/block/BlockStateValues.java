@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -39,7 +40,6 @@ import org.geysermc.geyser.util.collection.FixedInt2IntMap;
 import org.geysermc.geyser.util.collection.LecternHasBookMap;
 
 import java.util.Locale;
-import java.util.Optional;
 
 /**
  * Used for block entities if the Java block state contains Bedrock block information.
@@ -638,10 +638,10 @@ public final class BlockStateValues {
      * Used when determining if an entity is climbing
      *
      * @param state BlockState of the block
-     * @return The ladder's direction, or empty if not a ladder
+     * @return The ladder's direction, or null if not a ladder
      */
-    public static Optional<Direction> getLadderDirection(int state) {
-        return Optional.ofNullable(LADDER_DIRECTION.get(state));
+    public static @Nullable Direction getLadderDirection(int state) {
+        return LADDER_DIRECTION.get(state);
     }
 
     /**
@@ -649,10 +649,10 @@ public final class BlockStateValues {
      * Used when determining if an entity is climbing
      *
      * @param state BlockState of the block
-     * @return The open trapdoor's direction, or empty if not an open trapdoor
+     * @return The open trapdoor's direction, or null if not an open trapdoor
      */
-    public static Optional<Direction> getOpenTrapdoorDirection(int state) {
-        return Optional.ofNullable(OPEN_TRAPDOOR_DIRECTION.get(state));
+    public static @Nullable Direction getOpenTrapdoorDirection(int state) {
+        return OPEN_TRAPDOOR_DIRECTION.get(state);
     }
 
     private static Direction getBlockDirection(String javaId) {

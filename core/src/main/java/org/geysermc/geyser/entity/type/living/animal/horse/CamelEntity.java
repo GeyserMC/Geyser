@@ -157,12 +157,12 @@ public class CamelEntity extends AbstractHorseEntity implements Tickable, Client
     }
 
     @Override
-    public boolean isLogicalSideForUpdatingMovement() {
+    public boolean isClientControlled() {
         return getFlag(EntityFlag.SADDLED) && !passengers.isEmpty() && passengers.get(0) == session.getPlayerEntity();
     }
 
     @Override
-    public float getSaddledSpeed() {
+    public float getVehicleSpeed() {
         float moveSpeed = vehicleComponent.getMoveSpeed();
         if (dashTicks == 0 && session.getPlayerEntity().getFlag(EntityFlag.SPRINTING)) {
             return moveSpeed + 0.1f;

@@ -32,9 +32,9 @@ public interface ClientVehicle {
 
     Vector2f getAdjustedInput(Vector2f input);
 
-    boolean isLogicalSideForUpdatingMovement();
+    boolean isClientControlled();
 
-    float getSaddledSpeed();
+    float getVehicleSpeed();
 
     default boolean canWalkOnLava() {
         return false;

@@ -108,7 +108,7 @@ public class PigEntity extends AnimalEntity implements Tickable, ClientVehicle {
     }
 
     @Override
-    public boolean isLogicalSideForUpdatingMovement() {
+    public boolean isClientControlled() {
         return getFlag(EntityFlag.SADDLED)
                 && !passengers.isEmpty()
                 && passengers.get(0) == session.getPlayerEntity()
@@ -116,12 +116,12 @@ public class PigEntity extends AnimalEntity implements Tickable, ClientVehicle {
     }
 
     @Override
-    public float getSaddledSpeed() {
+    public float getVehicleSpeed() {
         return vehicleComponent.getMoveSpeed() * 0.225f * vehicleComponent.getBoostMultiplier();
     }
 
     @Override
     public Vector2f getAdjustedInput(Vector2f input) {
-        return Vector2f.from(0, 1.0f);
+        return Vector2f.UNIT_Y;
     }
 }

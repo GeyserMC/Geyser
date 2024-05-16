@@ -25,7 +25,8 @@
 
 package org.geysermc.geyser.entity.vehicle;
 
-import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.objects.ObjectDoublePair;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.TrigMath;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3d;
@@ -51,13 +52,20 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
 
-import java.util.Optional;
+import java.util.Map;
 
 public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
+    private static final ObjectDoublePair<Fluid> EMPTY_FLUID_PAIR = ObjectDoublePair.of(Fluid.EMPTY, 0.0);
     private static final float MAX_LOGICAL_FLUID_HEIGHT = 8.0f / BlockStateValues.NUM_FLUID_LEVELS;
     private static final float BASE_SLIPPERINESS_CUBED = 0.6f * 0.6f * 0.6f;
     private static final float MIN_VELOCITY = 0.003f;
     private static final float CLIMB_SPEED = 0.15f;
+
+    private static final Map<String, Vector3f> MOVEMENT_MULTIPLIERS = Map.of(
+            "minecraft:cobweb", Vector3f.from(0.25f, 0.05f, 0.25f),
+            "minecraft:powder_snow", Vector3f.from(0.9f, 1.5f, 0.9f),
+            "minecraft:sweet_berry_bush", Vector3f.from(0.8f, 0.75f, 0.8f)
+    );
 
     protected final BoundingBox boundingBox;
 
@@ -121,25 +129,25 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     }
 
     public void tickVehicle(T vehicle) {
-        if (!vehicle.isLogicalSideForUpdatingMovement()) {
+        if (!vehicle.isClientControlled()) {
             return;
         }
 
-        Pair<Fluid, Double> fluidHeight = updateFluidMovement(vehicle);
+        ObjectDoublePair<Fluid> fluidHeight = updateFluidMovement(vehicle);
         switch (fluidHeight.left()) {
             case WATER -> waterMovement(vehicle);
             case LAVA -> {
                 if (vehicle.canWalkOnLava() && BlockStateValues.getFluid(getBlockAt(vehicle, boundingBox.getBottomCenter().toInt())) == Fluid.LAVA) {
                     landMovement(vehicle);
                 } else {
-                    lavaMovement(vehicle, fluidHeight.right());
+                    lavaMovement(vehicle, fluidHeight.rightDouble());
                 }
             }
             case EMPTY -> landMovement(vehicle);
         }
     }
 
-    protected Pair<Fluid, Double> updateFluidMovement(T vehicle) {
+    protected ObjectDoublePair<Fluid> updateFluidMovement(T vehicle) {
         BoundingBox box = boundingBox.clone();
         box.expand(-0.001);
 
@@ -163,14 +171,14 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
 
         // Water movement has priority over lava movement
         if (waterHeight > 0) {
-            return Pair.of(Fluid.WATER, waterHeight);
+            return ObjectDoublePair.of(Fluid.WATER, waterHeight);
         }
 
         if (lavaHeight > 0) {
-            return Pair.of(Fluid.LAVA, lavaHeight);
+            return ObjectDoublePair.of(Fluid.LAVA, lavaHeight);
         }
 
-        return Pair.of(Fluid.EMPTY, 0.0);
+        return EMPTY_FLUID_PAIR;
     }
 
     protected double getFluidHeightAndApplyMovement(Fluid fluid, double speed, double minY, T vehicle, BlockPositionIterator iter, int[] blocks) {
@@ -348,7 +356,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         float gravity = getGravity(vehicle);
         float slipperiness = BlockStateValues.getSlipperiness(getBlockAt(vehicle, getVelocityAffectingPos(vehicle)));
         float drag = vehicle.isOnGround() ? 0.91f * slipperiness : 0.91f;
-        float speed = vehicle.getSaddledSpeed() * (vehicle.isOnGround() ? BASE_SLIPPERINESS_CUBED / (slipperiness * slipperiness * slipperiness) : 0.1f);
+        float speed = vehicle.getVehicleSpeed() * (vehicle.isOnGround() ? BASE_SLIPPERINESS_CUBED / (slipperiness * slipperiness * slipperiness) : 0.1f);
 
         boolean horizontalCollision = travel(vehicle, speed);
         if (isClimbing(vehicle)) {
@@ -412,7 +420,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return motion;
     }
 
-    protected Optional<Vector3f> getBlockMovementMultiplier(T vehicle) {
+    protected @Nullable Vector3f getBlockMovementMultiplier(T vehicle) {
         BoundingBox box = boundingBox.clone();
         box.expand(-1.0E-7);
 
@@ -425,20 +433,14 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         // Iterate backwards
         for (int i = blocks.length - 1; i >= 0; i--) {
             String cleanIdentifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(blocks[i], BlockMapping.DEFAULT).getCleanJavaIdentifier();
-
-            Vector3f multiplier = switch (cleanIdentifier) {
-                case "minecraft:cobweb" -> Vector3f.from(0.25f, 0.05f, 0.25f);
-                case "minecraft:powder_snow" -> Vector3f.from(0.9f, 1.5f, 0.9f);
-                case "minecraft:sweet_berry_bush" -> Vector3f.from(0.8f, 0.75f, 0.8f);
-                default -> null;
-            };
+            Vector3f multiplier = MOVEMENT_MULTIPLIERS.get(cleanIdentifier);
 
             if (multiplier != null) {
-                return Optional.of(multiplier);
+                return multiplier;
             }
         }
 
-        return Optional.empty();
+        return null;
     }
 
     protected void applyBlockCollisionEffects(T vehicle) {
@@ -508,9 +510,9 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         motion = motion.add(getInputVelocity(vehicle, speed));
         motion = motion.add(getJumpVelocity(vehicle));
 
-        Optional<Vector3f> movementMultiplier = getBlockMovementMultiplier(vehicle);
-        if (movementMultiplier.isPresent()) {
-            motion = motion.mul(movementMultiplier.get());
+        Vector3f movementMultiplier = getBlockMovementMultiplier(vehicle);
+        if (movementMultiplier != null) {
+            motion = motion.mul(movementMultiplier);
         }
 
         Vector3d correctedMovement = vehicle.getSession().getCollisionManager().correctMovement(
@@ -548,7 +550,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         }
 
         // Set motion to 0 if a movement multiplier was used, else set to 0 on each axis with a collision
-        if (movementMultiplier.isPresent()) {
+        if (movementMultiplier != null) {
             motion = Vector3f.ZERO;
         } else {
             motion = motion.mul(
@@ -583,10 +585,10 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         }
 
         // Check if the vehicle is in an open trapdoor with a ladder of the same direction under it
-        Optional<Direction> openTrapdoorDirection = BlockStateValues.getOpenTrapdoorDirection(blockId);
-        if (openTrapdoorDirection.isPresent()) {
-            Optional<Direction> ladderDirection = BlockStateValues.getLadderDirection(getBlockAt(vehicle, blockPos.down()));
-            return ladderDirection.isPresent() && ladderDirection.get() == openTrapdoorDirection.get();
+        Direction openTrapdoorDirection = BlockStateValues.getOpenTrapdoorDirection(blockId);
+        if (openTrapdoorDirection != null) {
+            Direction ladderDirection = BlockStateValues.getLadderDirection(getBlockAt(vehicle, blockPos.down()));
+            return ladderDirection != null && ladderDirection == openTrapdoorDirection;
         }
 
         return false;
@@ -679,7 +681,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return 0.08f;
     }
 
-    protected Optional<Vector3i> getSupportingBlockPos(T vehicle) {
+    protected @Nullable Vector3i getSupportingBlockPos(T vehicle) {
         Vector3i result = null;
 
         if (vehicle.isOnGround()) {
@@ -717,13 +719,12 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
             }
         }
 
-        return Optional.ofNullable(result);
+        return result;
     }
 
     protected Vector3i getVelocityAffectingPos(T vehicle) {
-        Optional<Vector3i> supportingBlockPos = getSupportingBlockPos(vehicle);
-        if (supportingBlockPos.isPresent()) {
-            Vector3i blockPos = supportingBlockPos.get();
+        Vector3i blockPos = getSupportingBlockPos(vehicle);
+        if (blockPos != null) {
             return Vector3i.from(blockPos.getX(), Math.floor(boundingBox.getBottomCenter().getY() - 0.500001f), blockPos.getZ());
         } else {
             return vehicle.getPosition().sub(0, 0.500001f, 0).toInt();

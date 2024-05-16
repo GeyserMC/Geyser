@@ -156,11 +156,11 @@ public class StriderEntity extends AnimalEntity implements Tickable, ClientVehic
 
     @Override
     public @NonNull Vector2f getAdjustedInput(Vector2f input) {
-        return Vector2f.from(0, 1.0f);
+        return Vector2f.UNIT_Y;
     }
 
     @Override
-    public boolean isLogicalSideForUpdatingMovement() {
+    public boolean isClientControlled() {
         // Does not require saddle
         return !passengers.isEmpty()
                 && passengers.get(0) == session.getPlayerEntity()
@@ -168,7 +168,7 @@ public class StriderEntity extends AnimalEntity implements Tickable, ClientVehic
     }
 
     @Override
-    public float getSaddledSpeed() {
+    public float getVehicleSpeed() {
         return vehicleComponent.getMoveSpeed() * (isCold ? 0.35f : 0.55f) * vehicleComponent.getBoostMultiplier();
     }
 
