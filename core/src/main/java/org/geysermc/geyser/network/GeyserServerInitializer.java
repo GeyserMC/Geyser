@@ -25,11 +25,8 @@
 
 package org.geysermc.geyser.network;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.DefaultEventLoopGroup;
-import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.BedrockPeer;
@@ -37,7 +34,6 @@ import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.cloudburstmc.protocol.bedrock.netty.initializer.BedrockServerInitializer;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.event.bedrock.SessionInitializeEvent;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.net.InetSocketAddress;
@@ -72,7 +68,6 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
             channel.pipeline().addAfter(BedrockPacketCodec.NAME, InvalidPacketHandler.NAME, new InvalidPacketHandler(session));
 
             bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(this.geyser, session));
-            this.geyser.eventBus().fire(new SessionInitializeEvent(session));
         } catch (Throwable e) {
             // Error must be caught or it will be swallowed
             this.geyser.getLogger().error("Error occurred while initializing player!", e);
