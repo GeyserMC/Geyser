@@ -138,7 +138,7 @@ public final class BlockRegistryPopulator {
             List<NbtMap> vanillaBlockStates;
             List<NbtMap> blockStates;
             try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow(String.format("bedrock/block_palette.%s.nbt", palette.key()));
-                 NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(new GZIPInputStream(stream)), true, true)) {
+                NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(new GZIPInputStream(stream)), true, true)) {
                 NbtMap blockPalette = (NbtMap) nbtInputStream.readTag();
 
                 vanillaBlockStates = new ArrayList<>(blockPalette.getList("blocks", NbtType.COMPOUND));
@@ -260,7 +260,7 @@ public final class BlockRegistryPopulator {
                     bedrockDefinition = customBlockStateDefinitions.get(blockStateOverride);
                     if (bedrockDefinition == null) {
                         throw new RuntimeException("Unable to find " + javaId + " Bedrock runtime ID! Custom block override: \n" +
-                                blockStateOverride);
+                            blockStateOverride);
                     }
                 }
 
@@ -409,7 +409,6 @@ public final class BlockRegistryPopulator {
         Deque<String> cleanIdentifiers = new ArrayDeque<>();
 
         int javaRuntimeId = -1;
-        int cobwebBlockId = -1;
         int furnaceRuntimeId = -1;
         int furnaceLitRuntimeId = -1;
         int honeyBlockRuntimeId = -1;
@@ -417,10 +416,6 @@ public final class BlockRegistryPopulator {
         int spawnerRuntimeId = -1;
         int uniqueJavaId = -1;
         int waterRuntimeId = -1;
-        int bubbleColumnUpwardRuntimeId = -1;
-        int bubbleColumnDragRuntimeId = -1;
-        int soulSandRuntimeId = -1;
-        int iceRuntimeId = -1;
         Iterator<Map.Entry<String, JsonNode>> blocksIterator = blocksJson.fields();
         while (blocksIterator.hasNext()) {
             javaRuntimeId++;
@@ -489,10 +484,7 @@ public final class BlockRegistryPopulator {
             // It's possible to only have this store differences in names, but the key set of all Java names is used in sending command suggestions
             BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.register(cleanJavaIdentifier.intern(), bedrockIdentifier.intern());
 
-            if (javaId.contains("cobweb")) {
-                cobwebBlockId = uniqueJavaId;
-
-            } else if (javaId.startsWith("minecraft:furnace[facing=north")) {
+            if (javaId.startsWith("minecraft:furnace[facing=north")) {
                 if (javaId.contains("lit=true")) {
                     furnaceLitRuntimeId = javaRuntimeId;
                 } else {
@@ -508,23 +500,8 @@ public final class BlockRegistryPopulator {
                 honeyBlockRuntimeId = javaRuntimeId;
             } else if (javaId.equals("minecraft:slime_block")) {
                 slimeBlockRuntimeId = javaRuntimeId;
-            } else if (javaId.startsWith("minecraft:bubble_column")) {
-                if (javaId.contains("drag=true")) {
-                    bubbleColumnDragRuntimeId = javaRuntimeId;
-                } else {
-                    bubbleColumnUpwardRuntimeId = javaRuntimeId;
-                }
-            } else if (javaId.equals("minecraft:soul_sand")) {
-                soulSandRuntimeId = javaRuntimeId;
-            } else if (javaId.equals("minecraft:ice")) {
-                iceRuntimeId = javaRuntimeId;
             }
         }
-
-        if (cobwebBlockId == -1) {
-            throw new AssertionError("Unable to find cobwebs in palette");
-        }
-        BlockStateValues.JAVA_COBWEB_ID = cobwebBlockId;
 
         if (furnaceRuntimeId == -1) {
             throw new AssertionError("Unable to find furnace in palette");
@@ -570,15 +547,15 @@ public final class BlockRegistryPopulator {
                 int stateRuntimeId = javaBlockState.javaId();
                 String pistonBehavior = javaBlockState.pistonBehavior();
                 BlockMapping blockMapping = BlockMapping.builder()
-                        .canBreakWithHand(javaBlockState.canBreakWithHand())
-                        .pickItem(javaBlockState.pickItem())
-                        .isNonVanilla(true)
-                        .javaIdentifier(javaId)
-                        .javaBlockId(javaBlockState.stateGroupId())
-                        .hardness(javaBlockState.blockHardness())
-                        .pistonBehavior(pistonBehavior == null ? PistonBehavior.NORMAL : PistonBehavior.getByName(pistonBehavior))
-                        .isBlockEntity(javaBlockState.hasBlockEntity())
-                        .build();
+                    .canBreakWithHand(javaBlockState.canBreakWithHand())
+                    .pickItem(javaBlockState.pickItem())
+                    .isNonVanilla(true)
+                    .javaIdentifier(javaId)
+                    .javaBlockId(javaBlockState.stateGroupId())
+                    .hardness(javaBlockState.blockHardness())
+                    .pistonBehavior(pistonBehavior == null ? PistonBehavior.NORMAL : PistonBehavior.getByName(pistonBehavior))
+                    .isBlockEntity(javaBlockState.hasBlockEntity())
+                    .build();
 
                 Block.Builder builder = Block.builder()
                         .destroyTime(javaBlockState.blockHardness());
