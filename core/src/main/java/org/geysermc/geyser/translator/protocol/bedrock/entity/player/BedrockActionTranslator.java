@@ -40,6 +40,7 @@ import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
@@ -160,7 +161,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 LevelEventPacket startBreak = new LevelEventPacket();
                 startBreak.setType(LevelEvent.BLOCK_START_BREAK);
                 startBreak.setPosition(vector.toFloat());
-                double breakTime = BlockUtils.getSessionBreakTime(session, BlockRegistries.JAVA_BLOCKS.getOrDefault(blockState, BlockMapping.DEFAULT)) * 20;
+                double breakTime = BlockUtils.getSessionBreakTime(session, BlockRegistries.BLOCK_STATES.getOrDefault(blockState, BlockState.of(Block.JAVA_AIR_ID)).block()) * 20;
 
                 // If the block is custom or the breaking item is custom, we must keep track of break time ourselves
                 GeyserItemStack item = session.getPlayerInventory().getItemInHand();
@@ -212,7 +213,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 LevelEventPacket updateBreak = new LevelEventPacket();
                 updateBreak.setType(LevelEvent.BLOCK_UPDATE_BREAK);
                 updateBreak.setPosition(vectorFloat);
-                double breakTime = BlockUtils.getSessionBreakTime(session, BlockRegistries.JAVA_BLOCKS.getOrDefault(breakingBlock, BlockMapping.DEFAULT)) * 20;
+                double breakTime = BlockUtils.getSessionBreakTime(session, BlockRegistries.BLOCK_STATES.getOrDefault(breakingBlock, BlockState.of(Block.JAVA_AIR_ID)).block()) * 20;
 
 
                 // If the block is custom, we must keep track of when it should break ourselves

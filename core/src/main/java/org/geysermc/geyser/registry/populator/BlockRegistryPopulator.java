@@ -51,6 +51,7 @@ import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
@@ -564,6 +565,15 @@ public final class BlockRegistryPopulator {
                     .pistonBehavior(pistonBehavior == null ? PistonBehavior.NORMAL : PistonBehavior.getByName(pistonBehavior))
                     .isBlockEntity(javaBlockState.hasBlockEntity())
                     .build();
+
+                Block.Builder builder = Block.builder()
+                        .destroyTime(javaBlockState.blockHardness());
+                if (!javaBlockState.canBreakWithHand()) {
+                    builder.requiresCorrectToolForDrops();
+                }
+                if (javaBlockState.hasBlockEntity()) {
+                    builder.setBlockEntity();
+                }
 
                 String cleanJavaIdentifier = BlockUtils.getCleanIdentifier(javaBlockState.identifier());
                 String bedrockIdentifier = customBlockState.block().identifier();

@@ -41,15 +41,33 @@ public class Block {
     public static final int JAVA_AIR_ID = 0;
 
     private final String javaIdentifier;
+    private final boolean requiresCorrectToolForDrops;
+    private final boolean hasBlockEntity;
+    private final float destroyTime;
     private int javaId = -1;
 
     public Block(String javaIdentifier, Builder builder) {
         this.javaIdentifier = Identifier.formalize(javaIdentifier).intern();
+        this.requiresCorrectToolForDrops = builder.requiresCorrectToolForDrops;
+        this.hasBlockEntity = builder.hasBlockEntity;
+        this.destroyTime = builder.destroyTime;
         builder.build(this);
     }
 
     public String javaIdentifier() {
         return javaIdentifier;
+    }
+
+    public boolean requiresCorrectToolForDrops() {
+        return requiresCorrectToolForDrops;
+    }
+
+    public boolean hasBlockEntity() {
+        return hasBlockEntity;
+    }
+
+    public float destroyTime() {
+        return destroyTime;
     }
 
     public int javaId() {
@@ -77,6 +95,9 @@ public class Block {
 
     public static final class Builder {
         private final Map<Property<?>, List<Comparable<?>>> states = new LinkedHashMap<>();
+        private boolean requiresCorrectToolForDrops = false;
+        private boolean hasBlockEntity = false;
+        private float destroyTime;
 
         /**
          * For states that we're just tracking for mirroring Java states.
@@ -104,6 +125,21 @@ public class Block {
                 list.add(i);
             }
             states.put(property, List.copyOf(list)); // Boxing reasons for that copy I guess.
+            return this;
+        }
+
+        public Builder requiresCorrectToolForDrops() {
+            this.requiresCorrectToolForDrops = true;
+            return this;
+        }
+
+        public Builder setBlockEntity() {
+            this.hasBlockEntity = true;
+            return this;
+        }
+
+        public Builder destroyTime(float destroyTime) {
+            this.destroyTime = destroyTime;
             return this;
         }
 
