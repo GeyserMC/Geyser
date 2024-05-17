@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.entity.vehicle;
 
+import lombok.Setter;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
@@ -32,7 +33,15 @@ import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 
 public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
-    private float horseJumpStrength = 0.42f; // This is the default for Camels. Not sent by vanilla Java server when spawned
+    private static final int STANDING_TICKS = 52;
+    private static final int DASH_TICKS = 55;
+
+    @Setter
+    private float horseJumpStrength = 0.42f; // Not sent by vanilla Java server when spawned
+
+    @Setter
+    private long lastPoseTick;
+
     private int dashTick;
     private int jumpBoost;
 
@@ -40,24 +49,76 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
         super(vehicle);
     }
 
-    public void setHorseJumpStrength(float horseJumpStrength) {
-        this.horseJumpStrength = horseJumpStrength;
-    }
-
     public void startDashCooldown() {
-        this.dashTick = vehicle.getSession().getTicks() + 55;
+        this.dashTick = vehicle.getSession().getTicks() + DASH_TICKS;
     }
 
     @Override
     public void tickVehicle() {
-        if (vehicle.getFlag(EntityFlag.HAS_DASH_COOLDOWN)) {
-            if (vehicle.getSession().getTicks() > dashTick) {
+        if (this.dashTick != 0) {
+            if (vehicle.getSession().getTicks() > this.dashTick) {
                 vehicle.setFlag(EntityFlag.HAS_DASH_COOLDOWN, false);
-                vehicle.updateBedrockMetadata();
+                this.dashTick = 0;
+            } else {
+                vehicle.setFlag(EntityFlag.HAS_DASH_COOLDOWN, true);
             }
         }
 
+        vehicle.setFlag(EntityFlag.CAN_DASH, vehicle.getFlag(EntityFlag.SADDLED) && !isStationary());
+        vehicle.updateBedrockMetadata();
+
         super.tickVehicle();
+    }
+
+    @Override
+    public void onDismount() {
+        vehicle.setFlag(EntityFlag.HAS_DASH_COOLDOWN, false);
+        vehicle.updateBedrockMetadata();
+    }
+
+    @Override
+    protected boolean travel(CamelEntity vehicle, float speed) {
+        if (vehicle.isOnGround() && isStationary()) {
+            vehicle.setMotion(vehicle.getMotion().mul(0, 1, 0));
+        }
+
+        return super.travel(vehicle, speed);
+    }
+
+    @Override
+    protected Vector3f getInputVelocity(CamelEntity vehicle, float speed) {
+        if (isStationary()) {
+            return Vector3f.ZERO;
+        }
+
+        SessionPlayerEntity player = vehicle.getSession().getPlayerEntity();
+        Vector3f inputVelocity = super.getInputVelocity(vehicle, speed);
+        float jumpStrength = player.getVehicleJumpStrength();
+
+        if (jumpStrength > 0) {
+            player.setVehicleJumpStrength(0);
+
+            if (jumpStrength >= 90) {
+                jumpStrength = 1.0f;
+            } else {
+                jumpStrength = 0.4f + 0.4f * jumpStrength / 90.0f;
+            }
+
+            return inputVelocity.add(Vector3f.createDirectionDeg(0, -player.getYaw())
+                    .mul(22.2222f * jumpStrength * this.moveSpeed * getVelocityMultiplier(vehicle))
+                    .up(1.4285f * jumpStrength * (this.horseJumpStrength * getJumpVelocityMultiplier(vehicle) + (this.jumpBoost * 0.1f))));
+        }
+
+        return inputVelocity;
+    }
+
+    /**
+     * Checks if the camel is sitting
+     * or transitioning to standing pose.
+     */
+    private boolean isStationary() {
+        // Java checks if sitting using lastPoseTick
+        return this.lastPoseTick < 0 || vehicle.getSession().getWorldTicks() < this.lastPoseTick + STANDING_TICKS;
     }
 
     @Override
@@ -76,22 +137,5 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
         } else {
             super.removeEffect(effect);
         }
-    }
-
-    @Override
-    protected Vector3f getJumpVelocity(CamelEntity vehicle) {
-        SessionPlayerEntity player = vehicle.getSession().getPlayerEntity();
-        float jumpStrength = player.getVehicleJumpStrength();
-
-        if (jumpStrength > 0) {
-            player.setVehicleJumpStrength(0);
-
-            jumpStrength = jumpStrength >= 90 ? 1.0f : 0.4f + 0.4f * jumpStrength / 90.0f;
-            return Vector3f.createDirectionDeg(0, -player.getYaw())
-                    .mul(22.2222f * jumpStrength * moveSpeed * getVelocityMultiplier(vehicle))
-                    .up(1.4285f * jumpStrength * (horseJumpStrength * getJumpVelocityMultiplier(vehicle) + (jumpBoost * 0.1f)));
-        }
-
-        return Vector3f.ZERO;
     }
 }

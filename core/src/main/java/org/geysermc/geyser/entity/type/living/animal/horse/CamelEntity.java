@@ -46,6 +46,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeT
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.LongEntityMetadata;
 
 import java.util.UUID;
 
@@ -120,10 +121,21 @@ public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
     }
 
     public void setDashing(BooleanEntityMetadata entityMetadata) {
+        // Java sends true to show dash animation and start the dash cooldown,
+        // false ends the dash animation, not the cooldown.
+        // Bedrock shows dash animation if HAS_DASH_COOLDOWN is set and the camel is above ground
         if (entityMetadata.getPrimitiveValue()) {
             setFlag(EntityFlag.HAS_DASH_COOLDOWN, true);
             vehicleComponent.startDashCooldown();
+        } else if (!isClientControlled()) { // Don't remove dash cooldown prematurely if client is controlling
+            setFlag(EntityFlag.HAS_DASH_COOLDOWN, false);
         }
+    }
+
+    public void setLastPoseTick(LongEntityMetadata entityMetadata) {
+        // Tick is based on world time. If negative, the camel is sitting.
+        // Must be compared to world time to know if the camel is fully standing/sitting or transitioning.
+        vehicleComponent.setLastPoseTick(entityMetadata.getPrimitiveValue());
     }
 
     @Override

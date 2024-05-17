@@ -30,6 +30,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -99,6 +100,10 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
                         // Note that this isn't present in JavaSetPassengersTranslator as that code is not called for players
                         // as of Java 1.19.3, but the scheduled future checks for the vehicle being null anyway.
                         session.getMountVehicleScheduledFuture().cancel(false);
+                    }
+
+                    if (entity instanceof ClientVehicle clientVehicle) {
+                        clientVehicle.getVehicleComponent().onDismount();
                     }
                 }
             }

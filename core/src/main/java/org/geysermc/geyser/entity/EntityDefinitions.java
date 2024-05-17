@@ -926,7 +926,7 @@ public final class EntityDefinitions {
                     .type(EntityType.CAMEL)
                     .height(2.375f).width(1.7f)
                     .addTranslator(MetadataType.BOOLEAN, CamelEntity::setDashing)
-                    .addTranslator(null) // Last pose change tick
+                    .addTranslator(MetadataType.LONG, CamelEntity::setLastPoseTick)
                     .build();
             HORSE = EntityDefinition.inherited(HorseEntity::new, abstractHorseEntityBase)
                     .type(EntityType.HORSE)

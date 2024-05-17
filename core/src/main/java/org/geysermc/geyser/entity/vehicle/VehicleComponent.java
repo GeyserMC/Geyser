@@ -96,7 +96,9 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     }
 
     public void setHeight(float height) {
-        boundingBox.setSizeY(Double.parseDouble(Float.toString(height)));
+        double doubleHeight = Double.parseDouble(Float.toString(height));
+        boundingBox.translate(0, (doubleHeight - boundingBox.getSizeY()) / 2, 0);
+        boundingBox.setSizeY(doubleHeight);
     }
 
     public void moveAbsolute(double x, double y, double z) {
@@ -129,6 +131,10 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
 
     public float getMoveSpeed() {
         return moveSpeed;
+    }
+
+    public void onDismount() {
+        //
     }
 
     public void tickVehicle() {
@@ -489,10 +495,6 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         ));
     }
 
-    protected Vector3f getJumpVelocity(T vehicle) {
-        return Vector3f.ZERO;
-    }
-
     /**
      * @return True if there was a horizontal collision
      */
@@ -511,7 +513,6 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         // TODO: isImmobile? set input to 0 and jump to false
 
         motion = motion.add(getInputVelocity(vehicle, speed));
-        motion = motion.add(getJumpVelocity(vehicle));
 
         Vector3f movementMultiplier = getBlockMovementMultiplier(vehicle);
         if (movementMultiplier != null) {
