@@ -82,6 +82,8 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
                 entity.setPitch(pitch);
                 entity.setHeadYaw(headYaw);
                 entity.setMotion(motion);
+
+
             }
             session.getEntityCache().cacheEntity(entity);
 
