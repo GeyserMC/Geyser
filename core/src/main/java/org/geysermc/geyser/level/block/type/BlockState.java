@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,27 +23,42 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.level.block.entity;
+package org.geysermc.geyser.level.block.type;
 
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.geysermc.geyser.level.block.type.BlockState;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectMaps;
+import org.geysermc.geyser.level.block.property.Property;
+import org.geysermc.geyser.registry.BlockRegistries;
 
-@BlockEntity(type = BlockEntityType.TRIAL_SPAWNER)
-public class TrialSpawnerBlockEntityTranslator extends BlockEntityTranslator {
+public final class BlockState {
+    private final Block block;
+    private final int javaId;
+    private final Reference2ObjectMap<Property<?>, Comparable<?>> states;
 
-    @Override
-    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
-        if (javaNbt == null) {
-            return;
-        }
+    BlockState(Block block, int javaId) {
+        this(block, javaId, Reference2ObjectMaps.emptyMap());
+    }
 
-        // trial spawners have "spawn_data" instead of "SpawnData"
-        SpawnerBlockEntityTranslator.translateSpawnData(bedrockNbt, javaNbt.getCompound("spawn_data", null));
+    BlockState(Block block, int javaId, Reference2ObjectMap<Property<?>, Comparable<?>> states) {
+        this.block = block;
+        this.javaId = javaId;
+        this.states = states;
+    }
 
-        // Because trial spawners don't exist on bedrock yet
-        bedrockNbt.put("id", "MobSpawner");
+    public <T extends Comparable<T>> T getValue(Property<T> property) {
+        //noinspection unchecked
+        return (T) states.get(property);
+    }
+
+    public Block block() {
+        return block;
+    }
+
+    public int javaId() {
+        return javaId;
+    }
+
+    public static BlockState of(int javaId) {
+        return BlockRegistries.BLOCK_STATES.get(javaId);
     }
 }

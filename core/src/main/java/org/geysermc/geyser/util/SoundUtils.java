@@ -34,6 +34,7 @@ import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.SoundMapping;
@@ -147,7 +148,7 @@ public final class SoundUtils {
             soundPacket.setExtraData(soundMapping.getExtraData() + (int)(Math.round((Math.log10(pitch) / Math.log10(2)) * 12)) + 12);
         } else if (sound == SoundEvent.PLACE && soundMapping.getExtraData() == -1) {
             if (!soundMapping.getIdentifier().equals(":")) {
-                int javaId = BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().getOrDefault(soundMapping.getIdentifier(), BlockStateValues.JAVA_AIR_ID);
+                int javaId = BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().getOrDefault(soundMapping.getIdentifier(), Block.JAVA_AIR_ID);
                 soundPacket.setExtraData(session.getBlockMappings().getBedrockBlockId(javaId));
             } else {
                 session.getGeyser().getLogger().debug("PLACE sound mapping identifier was invalid! Please report: " + soundMapping);

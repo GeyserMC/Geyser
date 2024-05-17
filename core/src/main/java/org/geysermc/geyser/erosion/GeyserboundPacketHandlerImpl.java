@@ -43,6 +43,7 @@ import org.geysermc.erosion.packet.backendbound.BackendboundInitializePacket;
 import org.geysermc.erosion.packet.backendbound.BackendboundPacket;
 import org.geysermc.erosion.packet.geyserbound.*;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
@@ -119,7 +120,7 @@ public final class GeyserboundPacketHandlerImpl extends AbstractGeyserboundPacke
         }
         CompletableFuture<Integer> future = this.asyncPendingLookups.remove(transactionId);
         if (future != null) {
-            future.complete(BlockStateValues.JAVA_AIR_ID);
+            future.complete(Block.JAVA_AIR_ID);
         }
     }
 

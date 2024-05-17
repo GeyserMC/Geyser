@@ -1592,9 +1592,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setRewindHistorySize(0);
         startGamePacket.setServerAuthoritativeBlockBreaking(false);
 
-        // Entity properties for older versions
-        startGamePacket.getExperiments().add(new ExperimentData("upcoming_creator_features", true));
-
         upstream.sendPacket(startGamePacket);
     }
 

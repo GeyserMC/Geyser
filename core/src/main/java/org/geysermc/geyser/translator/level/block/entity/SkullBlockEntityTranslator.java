@@ -34,6 +34,8 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.skin.SkinProvider;
@@ -50,16 +52,19 @@ import java.util.concurrent.ExecutionException;
 public class SkullBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
 
     @Override
-    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, int blockState) {
-        byte skullVariant = BlockStateValues.getSkullVariant(blockState);
-        float rotation = BlockStateValues.getSkullRotation(blockState) * 22.5f;
+    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
+        byte skullVariant = BlockStateValues.getSkullVariant(blockState.javaId()); // TODO
         // Just in case...
         if (skullVariant == -1) {
             skullVariant = 0;
         }
-        bedrockNbt.putFloat("Rotation", rotation);
+        Integer rotation = blockState.getValue(Properties.ROTATION_16);
+        if (rotation != null) {
+            // Could be a wall skull block
+            bedrockNbt.putFloat("Rotation", rotation * 22.5f);
+        }
         bedrockNbt.putByte("SkullType", skullVariant);
-        if (BlockStateValues.isSkullPowered(blockState)) {
+        if (blockState.getValue(Properties.POWERED)) {
             bedrockNbt.putBoolean("MouthMoving", true);
         }
     }

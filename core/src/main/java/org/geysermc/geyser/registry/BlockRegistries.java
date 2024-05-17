@@ -34,6 +34,8 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
+import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.loader.CollisionRegistryLoader;
 import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.registry.populator.BlockRegistryPopulator;
@@ -44,8 +46,8 @@ import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 
+import java.util.ArrayList;
 import java.util.BitSet;
-
 import java.util.Set;
 
 /**
@@ -57,6 +59,14 @@ public class BlockRegistries {
      * primarily Bedrock version-specific data.
      */
     public static final VersionedRegistry<BlockMappings> BLOCKS = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
+
+    /**
+     * A registry which stores Java IDs to Java {@link BlockState}s, each with their specific state differences and a link
+     * to the overarching block.
+     */
+    public static final ListRegistry<BlockState> BLOCK_STATES = ListRegistry.create(RegistryLoaders.empty(ArrayList::new));
+
+    public static final ListRegistry<Block> JAVA_BLOCKS_TO_RENAME = ListRegistry.create(RegistryLoaders.empty(ArrayList::new));
 
     /**
      * A mapped registry which stores Java to Bedrock block identifiers.

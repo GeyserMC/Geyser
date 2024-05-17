@@ -57,6 +57,7 @@ import org.geysermc.geyser.item.type.BoatItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.item.type.SpawnEggItem;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
@@ -444,7 +445,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.getWorldCache().markPositionInSequence(packet.getBlockPosition());
                         // -1 means we don't know what block they're breaking
                         if (blockState == -1) {
-                            blockState = BlockStateValues.JAVA_AIR_ID;
+                            blockState = Block.JAVA_AIR_ID;
                         }
 
                         LevelEventPacket blockBreakPacket = new LevelEventPacket();

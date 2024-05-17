@@ -27,7 +27,8 @@ package org.geysermc.geyser.translator.level.block.entity;
 
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
@@ -35,12 +36,12 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType
 @BlockEntity(type = BlockEntityType.COMMAND_BLOCK)
 public class CommandBlockBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
     @Override
-    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, int blockState) {
+    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
         if (javaNbt == null || javaNbt.size() < 5) {
             return; // These values aren't here
         }
         // Java infers from the block state, but Bedrock needs it in the tag
-        bedrockNbt.putByte("conditionalMode", BlockStateValues.getCommandBlockValues().getOrDefault(blockState, (byte) 0));
+        bedrockNbt.putBoolean("conditionalMode", blockState.getValue(Properties.CONDITIONAL));
         // Java and Bedrock values
         bedrockNbt.putByte("conditionMet", javaNbt.getByte("conditionMet"));
         bedrockNbt.putByte("auto", javaNbt.getByte("auto"));

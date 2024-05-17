@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -48,7 +49,6 @@ public final class BlockStateValues {
     private static final Int2IntMap BANNER_COLORS = new FixedInt2IntMap();
     private static final Int2ByteMap BED_COLORS = new FixedInt2ByteMap();
     private static final Int2IntMap BRUSH_PROGRESS = new Int2IntOpenHashMap();
-    private static final Int2ByteMap COMMAND_BLOCK_VALUES = new Int2ByteOpenHashMap();
     private static final Int2ObjectMap<DoubleChestValue> DOUBLE_CHEST_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Int2ObjectMap<String> FLOWER_POT_VALUES = new Int2ObjectOpenHashMap<>();
     private static final IntSet HORIZONTAL_FACING_JIGSAWS = new IntOpenHashSet();
@@ -108,11 +108,6 @@ public final class BlockStateValues {
                 BRUSH_PROGRESS.put(javaBlockState, brushedProgress.intValue());
                 return;
             }
-        }
-
-        if (javaId.contains("command_block")) {
-            COMMAND_BLOCK_VALUES.put(javaBlockState, javaId.contains("conditional=true") ? (byte) 1 : (byte) 0);
-            return;
         }
 
         if (blockData.get("double_chest_position") != null) {
@@ -278,16 +273,6 @@ public final class BlockStateValues {
     }
 
     /**
-     * The block state in Java and Bedrock both contain the conditional bit, however command block block entity tags
-     * in Bedrock need the conditional information.
-     *
-     * @return the list of all command blocks and if they are conditional (1 or 0)
-     */
-    public static Int2ByteMap getCommandBlockValues() {
-        return COMMAND_BLOCK_VALUES;
-    }
-
-    /**
      * All double chest values are part of the block state in Java and part of the block entity tag in Bedrock.
      * This gives the DoubleChestValue that can be calculated into the final tag.
      *
@@ -356,7 +341,7 @@ public final class BlockStateValues {
      * @return Block state for the piston head
      */
     public static int getPistonHead(Direction direction) {
-        return PISTON_HEADS.getOrDefault(direction, BlockStateValues.JAVA_AIR_ID);
+        return PISTON_HEADS.getOrDefault(direction, Block.JAVA_AIR_ID);
     }
 
     /**
@@ -420,7 +405,7 @@ public final class BlockStateValues {
     }
 
     public static boolean canPistonMoveBlock(int javaId, boolean isPushing) {
-        if (javaId == JAVA_AIR_ID) {
+        if (javaId == Block.JAVA_AIR_ID) {
             return true;
         }
         // Pistons can only be moved if they aren't extended

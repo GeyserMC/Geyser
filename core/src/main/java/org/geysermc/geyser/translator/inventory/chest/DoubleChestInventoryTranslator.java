@@ -36,8 +36,7 @@ import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.geyser.level.block.DoubleChestValue;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -72,8 +71,8 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
                             .putString("CustomName", inventory.getTitle())
                             .putString("id", "Chest");
 
-                    DoubleChestValue chestValue = BlockStateValues.getDoubleChestValues().get(javaBlockId);
-                    DoubleChestBlockEntityTranslator.translateChestValue(tag, chestValue,
+                    BlockState blockState = BlockState.of(javaBlockId);
+                    DoubleChestBlockEntityTranslator.translateChestValue(tag, blockState,
                             session.getLastInteractionBlockPosition().getX(), session.getLastInteractionBlockPosition().getZ());
 
                     BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();

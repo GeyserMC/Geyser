@@ -42,6 +42,9 @@ import org.geysermc.erosion.util.LecternUtils;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.chunk.BlockStorage;
 import org.geysermc.geyser.level.chunk.GeyserChunkSection;
 import org.geysermc.geyser.level.chunk.bitarray.BitArray;
@@ -175,7 +178,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                         // Extended collision blocks
                         if (useExtendedCollisions) {
                             if (EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY) != 0) {
-                                if (javaId == BlockStateValues.JAVA_AIR_ID) {
+                                if (javaId == Block.JAVA_AIR_ID) {
                                     section.getBlockStorageArray()[0].setFullBlock(xzy, EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY));
                                 }
                                 EXTENDED_COLLISIONS_STORAGE.get().set(yzx, 0, sectionY);
@@ -238,7 +241,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                         waterloggedPaletteIds.set(i);
                     }
 
-                    if (javaId == BlockStateValues.JAVA_AIR_ID) {
+                    if (javaId == Block.JAVA_AIR_ID) {
                         airPaletteId = i;
                     }
 
@@ -396,9 +399,9 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
                 // Get the Java block state ID from block entity position
                 DataPalette section = javaChunks[(y >> 4) - yOffset];
-                int blockState = section.get(x, y & 0xF, z);
+                BlockState blockState = BlockRegistries.BLOCK_STATES.get(section.get(x, y & 0xF, z));
 
-                if (type == BlockEntityType.LECTERN && BlockStateValues.getLecternBookStates().get(blockState)) {
+                if (type == BlockEntityType.LECTERN && blockState.getValue(Properties.HAS_BOOK)) {
                     // If getLecternBookStates is false, let's just treat it like a normal block entity
                     // Fill in tag with a default value
                     NbtMapBuilder lecternTag = LecternUtils.getBaseLecternTag(x + chunkBlockX, y, z + chunkBlockZ, 1);
@@ -419,7 +422,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
                 // Check for custom skulls
                 if (session.getPreferencesCache().showCustomSkulls() && type == BlockEntityType.SKULL && tag != null && tag.containsKey("profile")) {
-                    BlockDefinition blockDefinition = SkullBlockEntityTranslator.translateSkull(session, tag, Vector3i.from(x + chunkBlockX, y, z + chunkBlockZ), blockState);
+                    BlockDefinition blockDefinition = SkullBlockEntityTranslator.translateSkull(session, tag, Vector3i.from(x + chunkBlockX, y, z + chunkBlockZ), blockState.javaId());
                     if (blockDefinition != null) {
                         int bedrockSectionY = (y >> 4) - (bedrockDimension.minY() >> 4);
                         int subChunkIndex = (y >> 4) + (bedrockDimension.minY() >> 4);

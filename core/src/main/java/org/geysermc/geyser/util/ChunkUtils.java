@@ -41,6 +41,8 @@ import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.chunk.BlockStorage;
 import org.geysermc.geyser.level.chunk.GeyserChunkSection;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
@@ -49,8 +51,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.level.block.entity.BedrockOnlyBlockEntity;
-
-import static org.geysermc.geyser.level.block.BlockStateValues.JAVA_AIR_ID;
 
 @UtilityClass
 public class ChunkUtils {
@@ -130,7 +130,7 @@ public class ChunkUtils {
         // Checks for item frames so they aren't tripped up and removed
         ItemFrameEntity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, position);
         if (itemFrameEntity != null) {
-            if (blockState == JAVA_AIR_ID) { // Item frame is still present and no block overrides that; refresh it
+            if (blockState == Block.JAVA_AIR_ID) { // Item frame is still present and no block overrides that; refresh it
                 itemFrameEntity.updateBlock(true);
                 // Still update the chunk cache with the new block if updateBlock is called
                 return;
@@ -180,21 +180,21 @@ public class ChunkUtils {
             BlockDefinition aboveBedrockExtendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes().get(blockState);
             int belowBlock = session.getGeyser().getWorldManager().getBlockAt(session, position.getX(), position.getY() - 1, position.getZ());
             BlockDefinition belowBedrockExtendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes().get(belowBlock);
-            if (belowBedrockExtendedCollisionDefinition != null && blockState == BlockStateValues.JAVA_AIR_ID) {
+            if (belowBedrockExtendedCollisionDefinition != null && blockState == Block.JAVA_AIR_ID) {
                 UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
                 updateBlockPacket.setDataLayer(0);
                 updateBlockPacket.setBlockPosition(position);
                 updateBlockPacket.setDefinition(belowBedrockExtendedCollisionDefinition);
                 updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
                 session.sendUpstreamPacket(updateBlockPacket);
-            } else if (aboveBedrockExtendedCollisionDefinition != null && aboveBlock == BlockStateValues.JAVA_AIR_ID) {
+            } else if (aboveBedrockExtendedCollisionDefinition != null && aboveBlock == Block.JAVA_AIR_ID) {
                 UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
                 updateBlockPacket.setDataLayer(0);
                 updateBlockPacket.setBlockPosition(position.add(0, 1, 0));
                 updateBlockPacket.setDefinition(aboveBedrockExtendedCollisionDefinition);
                 updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
                 session.sendUpstreamPacket(updateBlockPacket);
-            } else if (aboveBlock == BlockStateValues.JAVA_AIR_ID) {
+            } else if (aboveBlock == Block.JAVA_AIR_ID) {
                 UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
                 updateBlockPacket.setDataLayer(0);
                 updateBlockPacket.setBlockPosition(position.add(0, 1, 0));
@@ -211,7 +211,7 @@ public class ChunkUtils {
         for (BedrockOnlyBlockEntity bedrockOnlyBlockEntity : BlockEntityUtils.BEDROCK_ONLY_BLOCK_ENTITIES) {
             if (bedrockOnlyBlockEntity.isBlock(blockState)) {
                 // Flower pots are block entities only in Bedrock and are not updated anywhere else like note blocks
-                bedrockOnlyBlockEntity.updateBlock(session, blockState, position);
+                bedrockOnlyBlockEntity.updateBlock(session, BlockState.of(blockState), position); //TODO blockState
                 break; //No block will be a part of two classes
             }
         }

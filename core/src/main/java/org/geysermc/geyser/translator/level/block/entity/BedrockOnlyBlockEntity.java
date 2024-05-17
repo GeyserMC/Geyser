@@ -31,6 +31,7 @@ import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 
 /**
@@ -50,7 +51,7 @@ public interface BedrockOnlyBlockEntity extends RequiresBlockState {
      * @param blockState The Java block state.
      * @param position The Bedrock block position.
      */
-    void updateBlock(GeyserSession session, int blockState, Vector3i position);
+    void updateBlock(GeyserSession session, BlockState blockState, Vector3i position);
 
     /**
      * Get the tag of the Bedrock-only block entity

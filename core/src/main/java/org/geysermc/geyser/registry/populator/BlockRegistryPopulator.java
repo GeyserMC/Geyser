@@ -582,8 +582,6 @@ public final class BlockRegistryPopulator {
             }
         }
 
-        BlockRegistries.CLEAN_JAVA_IDENTIFIERS.set(cleanIdentifiers.toArray(new String[0]));
-
         BLOCKS_JSON = blocksJson;
 
         JsonNode blockInteractionsJson;

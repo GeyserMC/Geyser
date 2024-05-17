@@ -39,6 +39,7 @@ import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
@@ -197,7 +198,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 }
                 int breakingBlock = session.getBreakingBlock();
                 if (breakingBlock == -1) {
-                    breakingBlock = BlockStateValues.JAVA_AIR_ID;
+                    breakingBlock = Block.JAVA_AIR_ID;
                 }
 
                 Vector3f vectorFloat = vector.toFloat();

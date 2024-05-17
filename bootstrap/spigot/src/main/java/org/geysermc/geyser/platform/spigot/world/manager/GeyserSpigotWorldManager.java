@@ -70,12 +70,12 @@ public class GeyserSpigotWorldManager extends WorldManager {
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
         Player bukkitPlayer;
         if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
-            return BlockStateValues.JAVA_AIR_ID;
+            return org.geysermc.geyser.level.block.type.Block.JAVA_AIR_ID;
         }
         World world = bukkitPlayer.getWorld();
         if (!world.isChunkLoaded(x >> 4, z >> 4)) {
             // If the chunk isn't loaded, how could we even be here?
-            return BlockStateValues.JAVA_AIR_ID;
+            return org.geysermc.geyser.level.block.type.Block.JAVA_AIR_ID;
         }
 
         return getBlockNetworkId(world.getBlockAt(x, y, z));
@@ -86,9 +86,9 @@ public class GeyserSpigotWorldManager extends WorldManager {
             // Terrible behavior, but this is basically what's always been happening behind the scenes anyway.
             CompletableFuture<String> blockData = new CompletableFuture<>();
             Bukkit.getRegionScheduler().execute(this.plugin, block.getLocation(), () -> blockData.complete(block.getBlockData().getAsString()));
-            return BlockRegistries.JAVA_IDENTIFIER_TO_ID.getOrDefault(blockData.join(), BlockStateValues.JAVA_AIR_ID);
+            return BlockRegistries.JAVA_IDENTIFIER_TO_ID.getOrDefault(blockData.join(), org.geysermc.geyser.level.block.type.Block.JAVA_AIR_ID);
         }
-        return BlockRegistries.JAVA_IDENTIFIER_TO_ID.getOrDefault(block.getBlockData().getAsString(), BlockStateValues.JAVA_AIR_ID);
+        return BlockRegistries.JAVA_IDENTIFIER_TO_ID.getOrDefault(block.getBlockData().getAsString(), org.geysermc.geyser.level.block.type.Block.JAVA_AIR_ID);
     }
 
     @Override

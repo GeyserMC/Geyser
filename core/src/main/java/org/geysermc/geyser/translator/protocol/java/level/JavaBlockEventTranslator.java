@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.*;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundBlockEventPacket;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -82,7 +83,7 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
                     if (action != PistonValueType.CANCELLED_MID_PUSH) {
                         Vector3i blockInFrontPos = position.add(direction.getUnitVector());
                         int blockInFront = session.getGeyser().getWorldManager().getBlockAt(session, blockInFrontPos);
-                        if (blockInFront != BlockStateValues.JAVA_AIR_ID) {
+                        if (blockInFront != Block.JAVA_AIR_ID) {
                             // Piston pulled something
                             return;
                         }
