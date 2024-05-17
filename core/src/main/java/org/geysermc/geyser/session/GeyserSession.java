@@ -552,6 +552,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private int ticks;
 
     /**
+     * The world time in ticks according to the server
+     * <p>
+     * Note: The TickingStatePacket is currently ignored.
+     */
+    @Setter
+    private long worldTicks;
+
+    /**
      * Used to return the player to their original rotation after using an item in BedrockInventoryTransactionTranslator
      */
     @Setter
@@ -1247,6 +1255,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         ticks++;
+        worldTicks++;
     }
 
     public void setAuthenticationData(AuthData authData) {

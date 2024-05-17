@@ -36,6 +36,8 @@ public class JavaSetTimeTranslator extends PacketTranslator<ClientboundSetTimePa
 
     @Override
     public void translate(GeyserSession session, ClientboundSetTimePacket packet) {
+        session.setWorldTicks(packet.getWorldAge());
+
         // Bedrock sends a GameRulesChangedPacket if there is no daylight cycle
         // Java just sends a negative long if there is no daylight cycle
         long time = packet.getTime();
