@@ -69,9 +69,6 @@ public final class BlockStateValues {
     private static final Int2IntMap WATER_LEVEL = new Int2IntOpenHashMap();
     private static final IntSet UPPER_DOORS = new IntOpenHashSet();
 
-    public static final int JAVA_AIR_ID = 0;
-
-    public static int JAVA_COBWEB_ID;
     public static int JAVA_FURNACE_ID;
     public static int JAVA_FURNACE_LIT_ID;
     public static int JAVA_HONEY_BLOCK_ID;

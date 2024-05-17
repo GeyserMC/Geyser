@@ -409,7 +409,6 @@ public final class BlockRegistryPopulator {
         Deque<String> cleanIdentifiers = new ArrayDeque<>();
 
         int javaRuntimeId = -1;
-        int cobwebBlockId = -1;
         int furnaceRuntimeId = -1;
         int furnaceLitRuntimeId = -1;
         int honeyBlockRuntimeId = -1;
@@ -485,10 +484,7 @@ public final class BlockRegistryPopulator {
             // It's possible to only have this store differences in names, but the key set of all Java names is used in sending command suggestions
             BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.register(cleanJavaIdentifier.intern(), bedrockIdentifier.intern());
 
-            if (javaId.contains("cobweb")) {
-                cobwebBlockId = uniqueJavaId;
-
-            } else if (javaId.startsWith("minecraft:furnace[facing=north")) {
+            if (javaId.startsWith("minecraft:furnace[facing=north")) {
                 if (javaId.contains("lit=true")) {
                     furnaceLitRuntimeId = javaRuntimeId;
                 } else {
@@ -506,11 +502,6 @@ public final class BlockRegistryPopulator {
                 slimeBlockRuntimeId = javaRuntimeId;
             }
         }
-
-        if (cobwebBlockId == -1) {
-            throw new AssertionError("Unable to find cobwebs in palette");
-        }
-        BlockStateValues.JAVA_COBWEB_ID = cobwebBlockId;
 
         if (furnaceRuntimeId == -1) {
             throw new AssertionError("Unable to find furnace in palette");

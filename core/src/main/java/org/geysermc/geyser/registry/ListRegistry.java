@@ -29,6 +29,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.registry.loader.RegistryLoader;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 public class ListRegistry<M> extends Registry<List<M>> {
     /**
@@ -98,6 +99,18 @@ public class ListRegistry<M> extends Registry<List<M>> {
      * @return a new registry with the given RegistryLoader supplier
      */
     public static <I, M> ListRegistry<M> create(RegistryLoader<I, List<M>> registryLoader) {
-        return new ListRegistry<M>(null, registryLoader);
+        return new ListRegistry<>(null, registryLoader);
+    }
+
+    /**
+     * Creates a new integer mapped registry with the given {@link RegistryLoader} and input.
+     *
+     * @param registryLoader the registry loader
+     * @param <I> the input
+     * @param <M> the type value
+     * @return a new registry with the given RegistryLoader supplier
+     */
+    public static <I, M> ListRegistry<M> create(I input, Supplier<RegistryLoader<I, List<M>>> registryLoader) {
+        return new ListRegistry<>(input, registryLoader.get());
     }
 }
