@@ -25,13 +25,13 @@
 
 package org.geysermc.geyser.scoreboard;
 
-import com.github.steveice10.mc.protocol.data.game.chat.numbers.NumberFormat;
-import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
-import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.NumberFormat;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreboardPosition;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
 
 import java.util.Map;
 import java.util.Objects;

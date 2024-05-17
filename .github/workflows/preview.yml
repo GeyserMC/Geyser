@@ -69,11 +69,13 @@ jobs:
         run: |
           cat metadata.json
           echo
-          cat metadata.json | jq --arg project "${PROJECT}" --arg version "${VERSION}" --arg number "${BUILD}" '
+          mv metadata.json metadata.json.tmp
+          jq --arg project "${PROJECT}" --arg version "${VERSION}" --arg number "${BUILD}" '
             .
             | .downloads |= map_values({"name", "sha256"})
             | {$project, "repo", $version, "number": $number | tonumber, "changes": [], "downloads"}
-          ' | tee metadata.json
+          ' metadata.json.tmp > metadata.json
+          cat metadata.json
       - name: Publish to Downloads API
         if: success()
         shell: bash

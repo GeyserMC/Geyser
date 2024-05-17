@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.util;
 
-import com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute;
-import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeModifier;
-import com.github.steveice10.mc.protocol.data.game.entity.attribute.ModifierOperation;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.Attribute;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeModifier;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.ModifierOperation;
 
 public class AttributeUtils {
     /**
@@ -45,12 +45,12 @@ public class AttributeUtils {
         }
         double value = base;
         for (AttributeModifier modifier : attribute.getModifiers()) {
-            if (modifier.getOperation() == ModifierOperation.ADD_MULTIPLIED) {
+            if (modifier.getOperation() == ModifierOperation.ADD_MULTIPLIED_BASE) {
                 value += base * modifier.getAmount();
             }
         }
         for (AttributeModifier modifier : attribute.getModifiers()) {
-            if (modifier.getOperation() == ModifierOperation.MULTIPLY) {
+            if (modifier.getOperation() == ModifierOperation.ADD_MULTIPLIED_TOTAL) {
                 value *= 1.0D + modifier.getAmount();
             }
         }

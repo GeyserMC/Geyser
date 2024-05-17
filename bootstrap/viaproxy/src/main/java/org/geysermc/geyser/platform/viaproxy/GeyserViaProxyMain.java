@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.platform.viaproxy;
 
-import net.raphimc.viaproxy.plugins.PluginManager;
 import org.geysermc.geyser.GeyserMain;
 
 public class GeyserViaProxyMain extends GeyserMain {
@@ -39,7 +38,7 @@ public class GeyserViaProxyMain extends GeyserMain {
     }
 
     public String getPluginFolder() {
-        return PluginManager.PLUGINS_DIR.getName();
+        return "plugins";
     }
 
 }

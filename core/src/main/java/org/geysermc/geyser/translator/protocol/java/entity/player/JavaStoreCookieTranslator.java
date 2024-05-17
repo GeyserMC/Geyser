@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,34 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item;
+package org.geysermc.geyser.translator.protocol.java.entity.player;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundStoreCookiePacket;
 
-public interface DyeableLeatherItem {
+@Translator(packet = ClientboundStoreCookiePacket.class)
+public class JavaStoreCookieTranslator extends PacketTranslator<ClientboundStoreCookiePacket> {
 
-    static void translateNbtToBedrock(CompoundTag tag) {
-        CompoundTag displayTag = tag.get("display");
-        if (displayTag == null) {
-            return;
-        }
-        IntTag color = displayTag.remove("color");
-        if (color != null) {
-            tag.put(new IntTag("customColor", color.getValue()));
-        }
-    }
-
-    static void translateNbtToJava(CompoundTag tag) {
-        IntTag color = tag.get("customColor");
-        if (color == null) {
-            return;
-        }
-        CompoundTag displayTag = tag.get("display");
-        if (displayTag == null) {
-            displayTag = new CompoundTag("display");
-        }
-        displayTag.put(color);
-        tag.remove("customColor");
+    @Override
+    public void translate(GeyserSession session, ClientboundStoreCookiePacket packet) {
+        session.getCookies().put(packet.getKey(), packet.getPayload());
     }
 }

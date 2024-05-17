@@ -25,15 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
-import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
-import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
-import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
-import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
-import com.github.steveice10.mc.protocol.data.game.recipe.data.SmithingTransformRecipeData;
-import com.github.steveice10.mc.protocol.data.game.recipe.data.StoneCuttingRecipeData;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateRecipesPacket;
 import it.unimi.dsi.fastutil.ints.*;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -48,18 +39,23 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescri
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.TrimDataPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
-import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
-import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
-import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
-import org.geysermc.geyser.inventory.recipe.TrimRecipe;
+import org.geysermc.geyser.inventory.recipe.*;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
+import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.Ingredient;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.Recipe;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.RecipeType;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.data.ShapedRecipeData;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.data.ShapelessRecipeData;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.data.SmithingTransformRecipeData;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.data.StoneCuttingRecipeData;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundUpdateRecipesPacket;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -162,7 +158,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                         bedrockRecipeIDs.add(uuid.toString());
                         craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData.shaped(uuid.toString(),
                                 shapedRecipeData.getWidth(), shapedRecipeData.getHeight(), Arrays.asList(inputs),
-                                Collections.singletonList(output), uuid, "crafting_table", 0, netId));
+                                Collections.singletonList(output), uuid, "crafting_table", 0, netId, false));
                         recipeMap.put(netId++, new GeyserShapedRecipe(shapedRecipeData));
                     }
                     addRecipeIdentifier(session, recipe.getIdentifier(), bedrockRecipeIDs);
@@ -269,8 +265,8 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         if (sendTrimRecipes) {
             // BDS sends armor trim templates and materials before the CraftingDataPacket
             TrimDataPacket trimDataPacket = new TrimDataPacket();
-            trimDataPacket.getPatterns().addAll(TrimRecipe.PATTERNS);
-            trimDataPacket.getMaterials().addAll(TrimRecipe.MATERIALS);
+            trimDataPacket.getPatterns().addAll(session.getRegistryCache().trimPatterns().values());
+            trimDataPacket.getMaterials().addAll(session.getRegistryCache().trimMaterials().values());
             session.sendUpstreamPacket(trimDataPacket);
 
             // Identical smithing_trim recipe sent by BDS that uses tag-descriptors, as the client seems to ignore the

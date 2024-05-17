@@ -25,17 +25,20 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.Animation;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundAnimatePacket;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.AnimateEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
+import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SpawnParticleEffectPacket;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.DimensionUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Animation;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundAnimatePacket;
 
 import java.util.Optional;
 
@@ -57,6 +60,14 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
         animatePacket.setRuntimeEntityId(entity.getGeyserId());
         switch (animation) {
             case SWING_ARM -> {
+                if (entity instanceof LivingEntity livingEntity && livingEntity.useArmSwingAttack()) {
+                    EntityEventPacket entityEventPacket = new EntityEventPacket();
+                    entityEventPacket.setRuntimeEntityId(entity.getGeyserId());
+                    entityEventPacket.setType(EntityEventType.ATTACK_START);
+                    session.sendUpstreamPacket(entityEventPacket);
+                    return;
+                }
+
                 animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
                 if (entity.getEntityId() == session.getPlayerEntity().getEntityId()) {
                     session.activateArmAnimationTicking();

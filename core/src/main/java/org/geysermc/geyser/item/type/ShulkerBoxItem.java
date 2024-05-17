@@ -25,13 +25,21 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.mc.protocol.data.game.Identifier;
-import com.github.steveice10.opennbt.tag.builtin.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
-import org.geysermc.geyser.util.MathUtils;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.geyser.translator.item.ItemTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ShulkerBoxItem extends BlockItem {
     public ShulkerBoxItem(String javaIdentifier, Builder builder) {
@@ -39,62 +47,41 @@ public class ShulkerBoxItem extends BlockItem {
     }
 
     @Override
-    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag) {
-        super.translateNbtToBedrock(session, tag);
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
+        super.translateComponentsToBedrock(session, components, builder);
 
-        CompoundTag blockEntityTag = tag.get("BlockEntityTag");
-        if (blockEntityTag == null) {
+        List<ItemStack> contents = components.get(DataComponentType.CONTAINER);
+        if (contents == null || contents.isEmpty()) {
             // Empty shulker box
             return;
         }
-        if (blockEntityTag.get("Items") == null) return;
-        ListTag itemsList = new ListTag("Items");
-        for (Tag item : (ListTag) blockEntityTag.get("Items")) {
-            CompoundTag itemData = (CompoundTag) item; // Information about the item
-            CompoundTag boxItemTag = new CompoundTag(""); // Final item tag to add to the list
-            boxItemTag.put(new ByteTag("Slot", (byte) (MathUtils.getNbtByte(itemData.get("Slot").getValue()) & 255)));
-            boxItemTag.put(new ByteTag("WasPickedUp", (byte) 0)); // ???
-
-            ItemMapping boxMapping = session.getItemMappings().getMapping(Identifier.formalize(((StringTag) itemData.get("id")).getValue()));
-
-            if (boxMapping == null) {
-                // If invalid ID
+        List<NbtMap> itemsList = new ArrayList<>();
+        for (int slot = 0; slot < contents.size(); slot++) {
+            ItemStack item = contents.get(slot);
+            if (item == null || item.getId() == Items.AIR_ID) {
                 continue;
             }
+            ItemMapping boxMapping = session.getItemMappings().getMapping(item.getId());
 
-            boxItemTag.put(new StringTag("Name", boxMapping.getBedrockIdentifier()));
-            boxItemTag.put(new ShortTag("Damage", (short) boxMapping.getBedrockData()));
-            boxItemTag.put(new ByteTag("Count", MathUtils.getNbtByte(itemData.get("Count").getValue())));
+            NbtMapBuilder boxItemNbt = BedrockItemBuilder.createItemNbt(boxMapping, item.getAmount(), boxMapping.getBedrockData()); // Final item tag to add to the list
+            boxItemNbt.putByte("Slot", (byte) slot);
+            boxItemNbt.putByte("WasPickedUp", (byte) 0); // ??? TODO might not be needed
+
             // Only the display name is what we have interest in, so just translate that if relevant
-            CompoundTag displayTag = itemData.get("tag");
-            if (displayTag == null && boxMapping.hasTranslation()) {
-                displayTag = new CompoundTag("tag");
-            }
-            if (displayTag != null) {
-                boxItemTag.put(ItemTranslator.translateDisplayProperties(session, displayTag, boxMapping, '7'));
+            DataComponents boxComponents = item.getDataComponents();
+            if (boxComponents != null) {
+                String customName = ItemTranslator.getCustomName(session, boxComponents, boxMapping, '7');
+                if (customName != null) {
+                    boxItemNbt.putCompound("tag", NbtMap.builder()
+                            .putCompound("display", NbtMap.builder()
+                                    .putString("Name", customName)
+                                    .build())
+                            .build());
+                }
             }
 
-            itemsList.add(boxItemTag);
+            itemsList.add(boxItemNbt.build());
         }
-        tag.put(itemsList);
-
-        // Strip the BlockEntityTag from the chests contents
-        // sent to the client. The client does not parse this
-        // or use it for anything, as this tag is fully
-        // server-side, so we remove it to reduce bandwidth and
-        // solve potential issues with very large tags.
-
-        // There was a problem in the past where this would strip
-        // NBT data in creative mode, however with the new server
-        // authoritative inventories, this is no longer a concern.
-        tag.remove("BlockEntityTag");
-    }
-
-    @Override
-    public void translateNbtToJava(@NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
-        super.translateNbtToJava(tag, mapping);
-
-        // Remove any extraneous Bedrock tag and don't touch the Java one
-        tag.remove("Items");
+        builder.putList("Items", NbtType.COMPOUND, itemsList);
     }
 }

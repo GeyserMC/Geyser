@@ -26,7 +26,6 @@ package org.geysermc.geyser.platform.viaproxy;
 
 import lombok.Getter;
 import net.raphimc.viaproxy.ViaProxy;
-import net.raphimc.viaproxy.cli.options.Options;
 import net.raphimc.viaproxy.plugins.ViaProxyPlugin;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.text.AsteriskSerializer;
@@ -49,8 +48,8 @@ public class GeyserViaProxyDumpInfo extends BootstrapDumpInfo {
 
     public GeyserViaProxyDumpInfo() {
         this.platformVersion = ViaProxy.VERSION;
-        this.onlineMode = Options.ONLINE_MODE;
-        if (Options.BIND_ADDRESS instanceof InetSocketAddress inetSocketAddress) {
+        this.onlineMode = ViaProxy.getConfig().isProxyOnlineMode();
+        if (ViaProxy.getConfig().getBindAddress() instanceof InetSocketAddress inetSocketAddress) {
             this.serverIP = inetSocketAddress.getHostString();
             this.serverPort = inetSocketAddress.getPort();
         } else {

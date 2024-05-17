@@ -56,13 +56,7 @@ public class EnchantmentRegistryLoader implements RegistryLoader<String, Map<Jav
             Map.Entry<String, JsonNode> entry = it.next();
             JavaEnchantment key = JavaEnchantment.getByJavaIdentifier(entry.getKey());
             JsonNode node = entry.getValue();
-            int rarityMultiplier = switch (node.get("rarity").textValue()) {
-                case "common" -> 1;
-                case "uncommon" -> 2;
-                case "rare" -> 4;
-                case "very_rare" -> 8;
-                default -> throw new IllegalStateException("Unexpected value: " + node.get("rarity").textValue());
-            };
+            int rarityMultiplier = node.get("anvil_cost").asInt();
             int maxLevel = node.get("max_level").asInt();
 
             EnumSet<JavaEnchantment> incompatibleEnchantments = EnumSet.noneOf(JavaEnchantment.class);

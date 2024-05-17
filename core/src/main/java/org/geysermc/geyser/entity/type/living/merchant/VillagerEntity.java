@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.entity.type.living.merchant;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.VillagerData;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -38,6 +36,8 @@ import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.VillagerData;
 
 import java.util.Optional;
 import java.util.UUID;

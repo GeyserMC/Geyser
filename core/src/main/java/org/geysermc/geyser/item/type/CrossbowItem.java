@@ -25,14 +25,18 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.opennbt.tag.builtin.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.geyser.translator.item.ItemTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+
+import java.util.List;
 
 public class CrossbowItem extends Item {
     public CrossbowItem(String javaIdentifier, Builder builder) {
@@ -40,46 +44,19 @@ public class CrossbowItem extends Item {
     }
 
     @Override
-    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag) {
-        super.translateNbtToBedrock(session, tag);
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
+        super.translateComponentsToBedrock(session, components, builder);
 
-        ListTag chargedProjectiles = tag.get("ChargedProjectiles");
-        if (chargedProjectiles != null) {
-            if (!chargedProjectiles.getValue().isEmpty()) {
-                CompoundTag javaProjectileAsNbt = (CompoundTag) chargedProjectiles.getValue().get(0);
+        List<ItemStack> chargedProjectiles = components.get(DataComponentType.CHARGED_PROJECTILES);
+        if (chargedProjectiles != null && !chargedProjectiles.isEmpty()) {
+            ItemStack javaProjectile = chargedProjectiles.get(0);
 
-                ItemMapping projectileMapping = session.getItemMappings().getMapping((String) javaProjectileAsNbt.get("id").getValue());
-                if (projectileMapping == null) return;
-                @Nullable CompoundTag projectileTag = javaProjectileAsNbt.get("tag");
-                ItemStack itemStack = new ItemStack(projectileMapping.getJavaItem().javaId(), (byte) javaProjectileAsNbt.get("Count").getValue(), projectileTag);
-                ItemData itemData = ItemTranslator.translateToBedrock(session, itemStack);
+            ItemMapping projectileMapping = session.getItemMappings().getMapping(javaProjectile.getId());
+            ItemData itemData = ItemTranslator.translateToBedrock(session, javaProjectile);
 
-                CompoundTag newProjectile = new CompoundTag("chargedItem");
-                newProjectile.put(new ByteTag("Count", (byte) itemData.getCount()));
-                newProjectile.put(new StringTag("Name", projectileMapping.getBedrockIdentifier()));
+            NbtMapBuilder newProjectile = BedrockItemBuilder.createItemNbt(projectileMapping, itemData.getCount(), itemData.getDamage());
 
-                newProjectile.put(new ShortTag("Damage", (short) itemData.getDamage()));
-
-                tag.put(newProjectile);
-            }
-        }
-    }
-
-    @Override
-    public void translateNbtToJava(@NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
-        super.translateNbtToJava(tag, mapping);
-
-        if (tag.get("chargedItem") != null) {
-            CompoundTag chargedItem = tag.get("chargedItem");
-
-            CompoundTag newProjectile = new CompoundTag("");
-            newProjectile.put(new ByteTag("Count", (byte) chargedItem.get("Count").getValue()));
-            newProjectile.put(new StringTag("id", (String) chargedItem.get("Name").getValue()));
-
-            ListTag chargedProjectiles = new ListTag("ChargedProjectiles");
-            chargedProjectiles.add(newProjectile);
-
-            tag.put(chargedProjectiles);
+            builder.putCompound("chargedItem", newProjectile.build());
         }
     }
 }

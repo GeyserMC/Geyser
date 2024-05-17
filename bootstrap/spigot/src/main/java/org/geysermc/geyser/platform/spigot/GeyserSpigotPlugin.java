@@ -46,6 +46,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.adapters.paper.PaperAdapters;
 import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.extension.Extension;
@@ -244,16 +245,27 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
         if (Boolean.parseBoolean(System.getProperty("Geyser.UseDirectAdapters", "true"))) {
             try {
-                String name = Bukkit.getServer().getClass().getPackage().getName();
-                String nmsVersion = name.substring(name.lastIndexOf('.') + 1);
-                SpigotAdapters.registerWorldAdapter(nmsVersion);
+                boolean isPaper = false;
+                try {
+                    String name = Bukkit.getServer().getClass().getPackage().getName();
+                    String nmsVersion = name.substring(name.lastIndexOf('.') + 1);
+                    SpigotAdapters.registerWorldAdapter(nmsVersion);
+                    geyserLogger.debug("Using spigot NMS adapter for nms version: " + nmsVersion);
+                } catch (Exception e) { // Likely running on Paper 1.20.5+
+                    //noinspection deprecation
+                    int protocolVersion = Bukkit.getUnsafe().getProtocolVersion();
+                    PaperAdapters.registerClosestWorldAdapter(protocolVersion);
+                    isPaper = true;
+                    geyserLogger.debug("Using paper world adapter for protocol version: " + protocolVersion);
+                }
+
                 if (isViaVersion && isViaVersionNeeded()) {
-                    this.geyserWorldManager = new GeyserSpigotLegacyNativeWorldManager(this);
+                    this.geyserWorldManager = new GeyserSpigotLegacyNativeWorldManager(this, isPaper);
                 } else {
                     // No ViaVersion
-                    this.geyserWorldManager = new GeyserSpigotNativeWorldManager(this);
+                    this.geyserWorldManager = new GeyserSpigotNativeWorldManager(this, isPaper);
                 }
-                geyserLogger.debug("Using NMS adapter: " + this.geyserWorldManager.getClass() + ", " + nmsVersion);
+                geyserLogger.debug("Using world manager of type: " + this.geyserWorldManager.getClass().getSimpleName());
             } catch (Exception e) {
                 if (geyserConfig.isDebugMode()) {
                     geyserLogger.debug("Error while attempting to find NMS adapter. Most likely, this can be safely ignored. :)");
