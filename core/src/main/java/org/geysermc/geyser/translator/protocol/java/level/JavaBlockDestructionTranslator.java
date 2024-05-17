@@ -25,16 +25,17 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundBlockDestructionPacket;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
+import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.BlockUtils;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundBlockDestructionPacket;
 
 @Translator(packet = ClientboundBlockDestructionPacket.class)
 public class JavaBlockDestructionTranslator extends PacketTranslator<ClientboundBlockDestructionPacket> {
@@ -42,7 +43,7 @@ public class JavaBlockDestructionTranslator extends PacketTranslator<Clientbound
     @Override
     public void translate(GeyserSession session, ClientboundBlockDestructionPacket packet) {
         int state = session.getGeyser().getWorldManager().getBlockAt(session, packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ());
-        int breakTime = (int) (65535 / Math.ceil(BlockUtils.getBreakTime(session, BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.DEFAULT), ItemMapping.AIR, null, false) * 20));
+        int breakTime = (int) (65535 / Math.ceil(BlockUtils.getBreakTime(session, BlockRegistries.BLOCK_STATES.getOrDefault(state, BlockState.of(Block.JAVA_AIR_ID)).block(), ItemMapping.AIR, null, false) * 20));
         LevelEventPacket levelEventPacket = new LevelEventPacket();
         levelEventPacket.setPosition(packet.getPosition().toFloat());
         levelEventPacket.setType(LevelEvent.BLOCK_START_BREAK);

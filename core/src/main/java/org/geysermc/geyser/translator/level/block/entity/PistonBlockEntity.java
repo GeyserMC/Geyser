@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.PistonValueType;
 import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -222,10 +223,10 @@ public class PistonBlockEntity {
         Vector3i blockInFront = position.add(orientation.getUnitVector());
         int blockId = session.getGeyser().getWorldManager().getBlockAt(session, blockInFront);
         if (BlockStateValues.isPistonHead(blockId)) {
-            ChunkUtils.updateBlock(session, BlockStateValues.JAVA_AIR_ID, blockInFront);
-        } else if ((session.getGeyser().getPlatformType() == PlatformType.SPIGOT || session.getErosionHandler().isActive()) && blockId == BlockStateValues.JAVA_AIR_ID) {
+            ChunkUtils.updateBlock(session, Block.JAVA_AIR_ID, blockInFront);
+        } else if ((session.getGeyser().getPlatformType() == PlatformType.SPIGOT || session.getErosionHandler().isActive()) && blockId == Block.JAVA_AIR_ID) {
             // Spigot removes the piston head from the cache, but we need to send the block update ourselves
-            ChunkUtils.updateBlock(session, BlockStateValues.JAVA_AIR_ID, blockInFront);
+            ChunkUtils.updateBlock(session, Block.JAVA_AIR_ID, blockInFront);
         }
     }
 
@@ -255,7 +256,7 @@ public class PistonBlockEntity {
                 continue;
             }
             int blockId = session.getGeyser().getWorldManager().getBlockAt(session, blockPos);
-            if (blockId == BlockStateValues.JAVA_AIR_ID) {
+            if (blockId == Block.JAVA_AIR_ID) {
                 continue;
             }
             if (BlockStateValues.canPistonMoveBlock(blockId, action == PistonValueType.PUSHING)) {
@@ -278,7 +279,7 @@ public class PistonBlockEntity {
                             continue;
                         }
                         int adjacentBlockId = session.getGeyser().getWorldManager().getBlockAt(session, adjacentPos);
-                        if (adjacentBlockId != BlockStateValues.JAVA_AIR_ID && BlockStateValues.isBlockAttached(blockId, adjacentBlockId) && BlockStateValues.canPistonMoveBlock(adjacentBlockId, false)) {
+                        if (adjacentBlockId != Block.JAVA_AIR_ID && BlockStateValues.isBlockAttached(blockId, adjacentBlockId) && BlockStateValues.canPistonMoveBlock(adjacentBlockId, false)) {
                             // If it is another slime/honey block we need to check its adjacent blocks
                             if (BlockStateValues.isBlockSticky(adjacentBlockId)) {
                                 blocksToCheck.add(adjacentPos);
@@ -322,7 +323,7 @@ public class PistonBlockEntity {
      */
     private void removeBlocks() {
         for (Vector3i blockPos : attachedBlocks.keySet()) {
-            ChunkUtils.updateBlock(session, BlockStateValues.JAVA_AIR_ID, blockPos);
+            ChunkUtils.updateBlock(session, Block.JAVA_AIR_ID, blockPos);
         }
         if (action != PistonValueType.PUSHING) {
             removePistonHead();
@@ -560,7 +561,7 @@ public class PistonBlockEntity {
         if (blockPos.equals(getPistonHeadPos())) {
             return BlockStateValues.getPistonHead(orientation);
         } else {
-            return attachedBlocks.getOrDefault(blockPos, BlockStateValues.JAVA_AIR_ID);
+            return attachedBlocks.getOrDefault(blockPos, Block.JAVA_AIR_ID);
         }
     }
 

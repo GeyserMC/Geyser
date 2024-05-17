@@ -32,6 +32,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureMirror;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureRotation;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.StructureBlockUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
@@ -40,7 +41,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType
 public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
-    public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, @Nullable NbtMap javaNbt, int blockState) {
+    public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, @Nullable NbtMap javaNbt, BlockState blockState) {
         if (javaNbt == null) {
             return super.getBlockEntityTag(session, type, x, y, z, javaNbt, blockState);
         }
@@ -73,7 +74,7 @@ public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
     }
 
     @Override
-    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, int blockState) {
+    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
         if (javaNbt.size() < 5) {
             return; // These values aren't here
         }

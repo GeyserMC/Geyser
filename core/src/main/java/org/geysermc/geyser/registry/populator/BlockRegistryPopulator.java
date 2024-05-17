@@ -51,6 +51,7 @@ import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
@@ -137,7 +138,7 @@ public final class BlockRegistryPopulator {
             List<NbtMap> vanillaBlockStates;
             List<NbtMap> blockStates;
             try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow(String.format("bedrock/block_palette.%s.nbt", palette.key()));
-                NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(new GZIPInputStream(stream)), true, true)) {
+                 NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(new GZIPInputStream(stream)), true, true)) {
                 NbtMap blockPalette = (NbtMap) nbtInputStream.readTag();
 
                 vanillaBlockStates = new ArrayList<>(blockPalette.getList("blocks", NbtType.COMPOUND));
@@ -259,7 +260,7 @@ public final class BlockRegistryPopulator {
                     bedrockDefinition = customBlockStateDefinitions.get(blockStateOverride);
                     if (bedrockDefinition == null) {
                         throw new RuntimeException("Unable to find " + javaId + " Bedrock runtime ID! Custom block override: \n" +
-                            blockStateOverride);
+                                blockStateOverride);
                     }
                 }
 
@@ -555,26 +556,6 @@ public final class BlockRegistryPopulator {
         }
         BlockStateValues.JAVA_WATER_ID = waterRuntimeId;
 
-        if (bubbleColumnDragRuntimeId == -1) {
-            throw new AssertionError("Unable to find drag bubble column in palette");
-        }
-        BlockStateValues.JAVA_BUBBLE_COLUMN_DRAG_ID = bubbleColumnDragRuntimeId;
-
-        if (bubbleColumnUpwardRuntimeId == -1) {
-            throw new AssertionError("Unable to find upward bubble column in palette");
-        }
-        BlockStateValues.JAVA_BUBBLE_COLUMN_UPWARD_ID = bubbleColumnUpwardRuntimeId;
-
-        if (soulSandRuntimeId == -1) {
-            throw new AssertionError("Unable to find soul sand in palette");
-        }
-        BlockStateValues.JAVA_SOUL_SAND_ID = soulSandRuntimeId;
-
-        if (iceRuntimeId == -1) {
-            throw new AssertionError("Unable to find ice in palette");
-        }
-        BlockStateValues.JAVA_ICE_ID = iceRuntimeId;
-
         if (!BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().isEmpty()) {
             Set<Integer> usedNonVanillaRuntimeIDs = new HashSet<>();
 
@@ -589,15 +570,24 @@ public final class BlockRegistryPopulator {
                 int stateRuntimeId = javaBlockState.javaId();
                 String pistonBehavior = javaBlockState.pistonBehavior();
                 BlockMapping blockMapping = BlockMapping.builder()
-                    .canBreakWithHand(javaBlockState.canBreakWithHand())
-                    .pickItem(javaBlockState.pickItem())
-                    .isNonVanilla(true)
-                    .javaIdentifier(javaId)
-                    .javaBlockId(javaBlockState.stateGroupId())
-                    .hardness(javaBlockState.blockHardness())
-                    .pistonBehavior(pistonBehavior == null ? PistonBehavior.NORMAL : PistonBehavior.getByName(pistonBehavior))
-                    .isBlockEntity(javaBlockState.hasBlockEntity())
-                    .build();
+                        .canBreakWithHand(javaBlockState.canBreakWithHand())
+                        .pickItem(javaBlockState.pickItem())
+                        .isNonVanilla(true)
+                        .javaIdentifier(javaId)
+                        .javaBlockId(javaBlockState.stateGroupId())
+                        .hardness(javaBlockState.blockHardness())
+                        .pistonBehavior(pistonBehavior == null ? PistonBehavior.NORMAL : PistonBehavior.getByName(pistonBehavior))
+                        .isBlockEntity(javaBlockState.hasBlockEntity())
+                        .build();
+
+                Block.Builder builder = Block.builder()
+                        .destroyTime(javaBlockState.blockHardness());
+                if (!javaBlockState.canBreakWithHand()) {
+                    builder.requiresCorrectToolForDrops();
+                }
+                if (javaBlockState.hasBlockEntity()) {
+                    builder.setBlockEntity();
+                }
 
                 String cleanJavaIdentifier = BlockUtils.getCleanIdentifier(javaBlockState.identifier());
                 String bedrockIdentifier = customBlockState.block().identifier();
@@ -615,8 +605,6 @@ public final class BlockRegistryPopulator {
                 BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.register(cleanJavaIdentifier.intern(), bedrockIdentifier.intern());
             }
         }
-
-        BlockRegistries.CLEAN_JAVA_IDENTIFIERS.set(cleanIdentifiers.toArray(new String[0]));
 
         BLOCKS_JSON = blocksJson;
 

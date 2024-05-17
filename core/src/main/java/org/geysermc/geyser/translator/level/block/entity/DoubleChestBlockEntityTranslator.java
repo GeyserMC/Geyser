@@ -29,7 +29,9 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.geyser.level.block.DoubleChestValue;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
@@ -45,52 +47,40 @@ public class DoubleChestBlockEntityTranslator extends BlockEntityTranslator impl
     }
 
     @Override
-    public void updateBlock(GeyserSession session, int blockState, Vector3i position) {
+    public void updateBlock(GeyserSession session, BlockState blockState, Vector3i position) {
         NbtMapBuilder tagBuilder = getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(BlockEntityType.CHEST), position.getX(), position.getY(), position.getZ());
         translateTag(session, tagBuilder, null, blockState);
         BlockEntityUtils.updateBlockEntity(session, tagBuilder.build(), position);
     }
 
     @Override
-    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, int blockState) {
-        DoubleChestValue chestValues = BlockStateValues.getDoubleChestValues().get(blockState);
-        if (chestValues != null) {
-            int x = (int) bedrockNbt.get("x");
-            int z = (int) bedrockNbt.get("z");
-            translateChestValue(bedrockNbt, chestValues, x, z);
-        }
+    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
+        int x = (int) bedrockNbt.get("x");
+        int z = (int) bedrockNbt.get("z");
+        translateChestValue(bedrockNbt, blockState, x, z);
     }
 
     /**
      * Add Bedrock block entity tags to a NbtMap based on Java properties
      *
      * @param builder the NbtMapBuilder to apply properties to
-     * @param chestValues the position properties of this double chest
+     * @param state the BlockState of this double chest
      * @param x the x position of this chest pair
      * @param z the z position of this chest pair
      */
-    public static void translateChestValue(NbtMapBuilder builder, DoubleChestValue chestValues, int x, int z) {
+    public static void translateChestValue(NbtMapBuilder builder, BlockState state, int x, int z) {
         // Calculate the position of the other chest based on the Java block state
-        if (chestValues.isFacingEast()) {
-            if (chestValues.isDirectionPositive()) {
-                // East
-                z = z + (chestValues.isLeft() ? 1 : -1);
-            } else {
-                // West
-                z = z + (chestValues.isLeft() ? -1 : 1);
-            }
-        } else {
-            if (chestValues.isDirectionPositive()) {
-                // South
-                x = x + (chestValues.isLeft() ? -1 : 1);
-            } else {
-                // North
-                x = x + (chestValues.isLeft() ? 1 : -1);
-            }
+        Direction facing = state.getValue(Properties.HORIZONTAL_FACING);
+        boolean isLeft = state.getValue(Properties.CHEST_TYPE).equals("left"); //TODO enum
+        switch (facing) {
+            case EAST -> z = z + (isLeft ? 1 : -1);
+            case WEST -> z = z + (isLeft ? -1 : 1);
+            case SOUTH -> x = x + (isLeft ? -1 : 1);
+            case NORTH -> x = x + (isLeft ? 1 : -1);
         }
         builder.putInt("pairx", x);
         builder.putInt("pairz", z);
-        if (!chestValues.isLeft()) {
+        if (!isLeft) {
             builder.putInt("pairlead", (byte) 1);
         }
     }

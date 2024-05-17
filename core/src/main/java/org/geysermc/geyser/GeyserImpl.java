@@ -45,6 +45,7 @@ import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.geysermc.api.Geyser;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
+import org.geysermc.erosion.packet.Packets;
 import org.geysermc.floodgate.crypto.AesCipher;
 import org.geysermc.floodgate.crypto.AesKeyProducer;
 import org.geysermc.floodgate.crypto.Base64Topping;
@@ -77,6 +78,7 @@ import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
 import org.geysermc.geyser.session.SessionManager;
+import org.geysermc.geyser.session.cache.RegistryCache;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
 import org.geysermc.geyser.skin.ProvidedSkins;
 import org.geysermc.geyser.skin.SkinProvider;
@@ -211,6 +213,8 @@ public class GeyserImpl implements GeyserApi {
         Registries.init();
         BlockRegistries.init();
 
+        RegistryCache.init();
+
         /* Initialize translators */
         EntityDefinitions.init();
         MessageTranslator.init();
@@ -252,6 +256,17 @@ public class GeyserImpl implements GeyserApi {
         }
 
         VersionCheckUtils.checkForOutdatedJava(logger);
+
+        for (int i = 0; i < BlockRegistries.JAVA_BLOCKS.get().length; i++) {
+            String cleanIdentifier = BlockRegistries.JAVA_BLOCKS.get(i).getCleanJavaIdentifier();
+            String newIdentifier = BlockRegistries.BLOCK_STATES.get(i).block().javaIdentifier();
+            if (!cleanIdentifier.equals(newIdentifier)) {
+                System.out.println("Check block " + BlockRegistries.BLOCK_STATES.get(i).block().javaIdentifier());
+                break;
+            }
+        }
+        System.out.println(BlockRegistries.JAVA_BLOCKS.get().length);
+        System.out.println(BlockRegistries.BLOCK_STATES.get().size());
     }
 
     private void startInstance() {
@@ -383,7 +398,7 @@ public class GeyserImpl implements GeyserApi {
 
         this.newsHandler = new NewsHandler(BRANCH, this.buildNumber());
 
-        //Packets.initGeyser();
+        Packets.initGeyser();
 
         if (Epoll.isAvailable()) {
             this.erosionUnixListener = new UnixSocketClientListener();

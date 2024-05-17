@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundExplodePacket;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -58,7 +59,7 @@ public class JavaExplodeTranslator extends PacketTranslator<ClientboundExplodePa
         int i = 0;
         for (Vector3i position : packet.getExploded()) {
             Vector3i pos = Vector3i.from(packet.getX() + position.getX(), packet.getY() + position.getY(), packet.getZ() + position.getZ());
-            ChunkUtils.updateBlock(session, BlockStateValues.JAVA_AIR_ID, pos);
+            ChunkUtils.updateBlock(session, Block.JAVA_AIR_ID, pos);
             builder.putFloat("pos" + i + "x", pos.getX());
             builder.putFloat("pos" + i + "y", pos.getY());
             builder.putFloat("pos" + i + "z", pos.getZ());

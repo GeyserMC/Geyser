@@ -31,13 +31,14 @@ import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
 @BlockEntity(type = BlockEntityType.END_GATEWAY)
 public class EndGatewayBlockEntityTranslator extends BlockEntityTranslator {
     @Override
-    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, int blockState) {
+    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
         bedrockNbt.putInt("Age", (int) javaNbt.getLong("Age"));
         // Java sometimes does not provide this tag, but Bedrock crashes if it doesn't exist
         // Linked coordinates

@@ -35,6 +35,7 @@ import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.holder.BlockInventoryHolder;
 import org.geysermc.geyser.inventory.updater.ContainerInventoryUpdater;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
@@ -58,7 +59,7 @@ public class ShulkerInventoryTranslator extends AbstractBlockInventoryTranslator
                         .putInt("z", position.getZ())
                         .putString("CustomName", inventory.getTitle());
                 // Don't reset facing property
-                shulkerBoxTranslator.translateTag(session, tag, null, javaBlockState);
+                shulkerBoxTranslator.translateTag(session, tag, null, BlockState.of(javaBlockState));
 
                 BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
                 dataPacket.setData(tag.build());

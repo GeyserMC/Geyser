@@ -30,6 +30,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
 
@@ -75,12 +76,12 @@ public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity {
     }
 
     @Override
-    public void updateBlock(GeyserSession session, int blockState, Vector3i position) {
-        NbtMap tag = getTag(session, blockState, position);
+    public void updateBlock(GeyserSession session, BlockState blockState, Vector3i position) {
+        NbtMap tag = getTag(session, blockState.javaId(), position);
         BlockEntityUtils.updateBlockEntity(session, tag, position);
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
-        updateBlockPacket.setDefinition(session.getBlockMappings().getBedrockBlock(blockState));
+        updateBlockPacket.setDefinition(session.getBlockMappings().getBedrockBlock(blockState.javaId()));
         updateBlockPacket.setBlockPosition(position);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
