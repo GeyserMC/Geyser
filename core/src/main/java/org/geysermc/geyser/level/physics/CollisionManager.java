@@ -52,7 +52,7 @@ import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
 public class CollisionManager {
-    public static final BlockCollision SOLID_COLLISION = new SolidCollision("");
+    public static final BlockCollision SOLID_COLLISION = new SolidCollision(null);
     public static final BlockCollision FLUID_COLLISION = new OtherCollision(new BoundingBox[]{new BoundingBox(0.5, 0.25, 0.5, 1, 0.5, 1)});
 
     private final GeyserSession session;

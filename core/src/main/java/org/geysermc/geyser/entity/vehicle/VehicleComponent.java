@@ -38,12 +38,14 @@ import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.Fluid;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.level.physics.Direction;
-import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.translator.collision.SolidCollision;
 import org.geysermc.geyser.util.BlockUtils;
@@ -61,10 +63,10 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     private static final float MIN_VELOCITY = 0.003f;
     private static final float CLIMB_SPEED = 0.15f;
 
-    private static final Map<String, Vector3f> MOVEMENT_MULTIPLIERS = Map.of(
-            "minecraft:cobweb", Vector3f.from(0.25f, 0.05f, 0.25f),
-            "minecraft:powder_snow", Vector3f.from(0.9f, 1.5f, 0.9f),
-            "minecraft:sweet_berry_bush", Vector3f.from(0.8f, 0.75f, 0.8f)
+    private static final Map<Block, Vector3f> MOVEMENT_MULTIPLIERS = Map.of(
+            Blocks.COBWEB, Vector3f.from(0.25f, 0.05f, 0.25f),
+            Blocks.POWDER_SNOW, Vector3f.from(0.9f, 1.5f, 0.9f),
+            Blocks.SWEET_BERRY_BUSH, Vector3f.from(0.8f, 0.75f, 0.8f)
     );
 
     protected final T vehicle;
@@ -146,7 +148,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         switch (fluidHeight.left()) {
             case WATER -> waterMovement();
             case LAVA -> {
-                if (vehicle.canWalkOnLava() && BlockStateValues.getFluid(getBlockAt(boundingBox.getBottomCenter().toInt())) == Fluid.LAVA) {
+                if (vehicle.canWalkOnLava() && getBlock(boundingBox.getBottomCenter().toInt()) == Blocks.LAVA) {
                     landMovement();
                 } else {
                     lavaMovement(fluidHeight.rightDouble());
@@ -171,7 +173,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
 
         if (lavaHeight > 0 && vehicle.getDefinition().entityType() == EntityType.STRIDER) {
             Vector3i blockPos = boundingBox.getBottomCenter().toInt();
-            if (!CollisionManager.FLUID_COLLISION.isBelow(blockPos.getY(), boundingBox) || BlockStateValues.getFluid(getBlockAt(blockPos.up())) == Fluid.LAVA) {
+            if (!CollisionManager.FLUID_COLLISION.isBelow(blockPos.getY(), boundingBox) || getBlock(boundingBox.getBottomCenter().toInt()) == Blocks.LAVA) {
                 vehicle.setMotion(vehicle.getMotion().mul(0.5f).add(0, 0.05f, 0));
             } else {
                 vehicle.setOnGround(true);
@@ -213,7 +215,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
             Vector3d velocity = Vector3d.ZERO;
             for (Direction direction : Direction.HORIZONTAL) {
                 Vector3i adjacentBlockPos = blockPos.add(direction.getUnitVector());
-                int adjacentBlockId = getBlockAt(adjacentBlockPos);
+                int adjacentBlockId = getBlockId(adjacentBlockPos);
                 Fluid adjacentFluid = BlockStateValues.getFluid(adjacentBlockId);
 
                 float fluidHeightDiff = 0;
@@ -224,7 +226,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
                     // check if there is a fluid under it
                     BlockCollision adjacentBlockCollision = BlockUtils.getCollision(adjacentBlockId);
                     if (adjacentBlockCollision == null) {
-                        float adjacentFluidHeight = getLogicalFluidHeight(fluid, getBlockAt(adjacentBlockPos.add(Direction.DOWN.getUnitVector())));
+                        float adjacentFluidHeight = getLogicalFluidHeight(fluid, getBlockId(adjacentBlockPos.add(Direction.DOWN.getUnitVector())));
                         if (adjacentFluidHeight != -1) { // Only care about same type of fluid
                             fluidHeightDiff = getLogicalFluidHeight(fluid, blockId) - (adjacentFluidHeight - MAX_LOGICAL_FLUID_HEIGHT);
                         }
@@ -243,7 +245,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
                 if (!flowBlocked) {
                     Vector3i blockPosUp = blockPos.up();
                     for (Direction direction : Direction.HORIZONTAL) {
-                        flowBlocked = isFlowBlocked(fluid, getBlockAt(blockPosUp.add(direction.getUnitVector())));
+                        flowBlocked = isFlowBlocked(fluid, getBlockId(blockPosUp.add(direction.getUnitVector())));
                         if (flowBlocked) {
                             break;
                         }
@@ -290,11 +292,19 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return len < 1.0E-4 ? Vector3d.ZERO : Vector3d.from(vec.getX() / len, vec.getY() / len, vec.getZ() / len);
     }
 
-    protected int getBlockAt(Vector3i blockPos) {
+    protected int getBlockId(Vector3i blockPos) {
         return vehicle.getSession().getGeyser().getWorldManager().getBlockAt(vehicle.getSession(), blockPos);
     }
 
-    private float getWorldFluidHeight(Fluid fluidType, int blockId) {
+    protected BlockState getBlockState(Vector3i blockPos) {
+        return BlockState.of(getBlockId(blockPos));
+    }
+
+    protected Block getBlock(Vector3i blockPos) {
+        return getBlockState(blockPos).block();
+    }
+
+    protected float getWorldFluidHeight(Fluid fluidType, int blockId) {
         return (float) switch (fluidType) {
             case WATER -> BlockStateValues.getWaterHeight(blockId);
             case LAVA -> BlockStateValues.getLavaHeight(blockId);
@@ -302,12 +312,12 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         };
     }
 
-    private float getLogicalFluidHeight(Fluid fluidType, int blockId) {
+    protected float getLogicalFluidHeight(Fluid fluidType, int blockId) {
         return Math.min(getWorldFluidHeight(fluidType, blockId), MAX_LOGICAL_FLUID_HEIGHT);
     }
 
-    private boolean isFlowBlocked(Fluid fluid, int adjacentBlockId) {
-        if (adjacentBlockId == BlockStateValues.JAVA_ICE_ID) {
+    protected boolean isFlowBlocked(Fluid fluid, int adjacentBlockId) {
+        if (BlockState.of(adjacentBlockId).block() == Blocks.ICE) {
             return false;
         }
 
@@ -363,7 +373,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
 
     protected void landMovement() {
         float gravity = getGravity();
-        float slipperiness = BlockStateValues.getSlipperiness(getBlockAt(getVelocityAffectingPos()));
+        float slipperiness = BlockStateValues.getSlipperiness(getBlockId(getVelocityAffectingPos()));
         float drag = vehicle.isOnGround() ? 0.91f * slipperiness : 0.91f;
         float speed = vehicle.getVehicleSpeed() * (vehicle.isOnGround() ? BASE_SLIPPERINESS_CUBED / (slipperiness * slipperiness * slipperiness) : 0.1f);
 
@@ -441,8 +451,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
 
         // Iterate backwards
         for (int i = blocks.length - 1; i >= 0; i--) {
-            String cleanIdentifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(blocks[i], BlockMapping.DEFAULT).getCleanJavaIdentifier();
-            Vector3f multiplier = MOVEMENT_MULTIPLIERS.get(cleanIdentifier);
+            Vector3f multiplier = MOVEMENT_MULTIPLIERS.get(BlockState.of(blocks[i]).block());
 
             if (multiplier != null) {
                 return multiplier;
@@ -463,14 +472,12 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         int[] blocks = vehicle.getSession().getGeyser().getWorldManager().getBlocksAt(vehicle.getSession(), iter);
 
         for (iter.reset(); iter.hasNext(); iter.next()) {
-            int blockId = blocks[iter.getIteration()];
+            BlockState blockState = BlockState.of(blocks[iter.getIteration()]);
 
-            if (BlockStateValues.JAVA_HONEY_BLOCK_ID == blockId) {
+            if (blockState.block() == Blocks.HONEY_BLOCK) {
                 onHoneyBlockCollision();
-            } else if (BlockStateValues.JAVA_BUBBLE_COLUMN_DRAG_ID == blockId) {
-                onBubbleColumnCollision(true);
-            } else if (BlockStateValues.JAVA_BUBBLE_COLUMN_UPWARD_ID == blockId) {
-                onBubbleColumnCollision(false);
+            } else if (blockState.block() == Blocks.BUBBLE_COLUMN) {
+                onBubbleColumnCollision(blockState.getValue(Properties.DRAG));
             }
         }
     }
@@ -535,9 +542,9 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         boolean bounced = false;
         if (onGround) {
             Vector3i landingPos = newPos.sub(0, 0.2f, 0).toInt();
-            int landingBlockId = getBlockAt(landingPos);
+            int landingBlockId = getBlockId(landingPos);
 
-            if (landingBlockId == BlockStateValues.JAVA_SLIME_BLOCK_ID) {
+            if (BlockState.of(landingBlockId).block() == Blocks.SLIME_BLOCK) {
                 motion = Vector3f.from(motion.getX(), -motion.getY(), motion.getZ());
                 bounced = true;
 
@@ -582,7 +589,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         }
 
         Vector3i blockPos = boundingBox.getBottomCenter().toInt();
-        int blockId = getBlockAt(blockPos);
+        int blockId = getBlockId(blockPos);
 
         if (BlockStateValues.isClimbable(blockId)) {
             return true;
@@ -591,8 +598,8 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         // Check if the vehicle is in an open trapdoor with a ladder of the same direction under it
         Direction openTrapdoorDirection = BlockStateValues.getOpenTrapdoorDirection(blockId);
         if (openTrapdoorDirection != null) {
-            Direction ladderDirection = BlockStateValues.getLadderDirection(getBlockAt(blockPos.down()));
-            return ladderDirection != null && ladderDirection == openTrapdoorDirection;
+            BlockState ladder = getBlockState(blockPos.down());
+            return ladder.block() == Blocks.LADDER && ladder.getValue(Properties.HORIZONTAL_FACING) == openTrapdoorDirection;
         }
 
         return false;
@@ -736,19 +743,17 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     }
 
     protected float getVelocityMultiplier() {
-        int blockId = getBlockAt(boundingBox.getBottomCenter().toInt());
-        if (BlockStateValues.getWaterLevel(blockId) != -1 // getWaterLevel does not include waterlogged blocks
-                || blockId == BlockStateValues.JAVA_BUBBLE_COLUMN_DRAG_ID
-                || blockId == BlockStateValues.JAVA_BUBBLE_COLUMN_UPWARD_ID) {
+        Block block = getBlock(boundingBox.getBottomCenter().toInt());
+        if (block == Blocks.WATER || block == Blocks.BUBBLE_COLUMN) {
             return 1.0f;
         }
 
-        if (blockId == BlockStateValues.JAVA_SOUL_SAND_ID || blockId == BlockStateValues.JAVA_HONEY_BLOCK_ID) {
+        if (block == Blocks.SOUL_SAND || block == Blocks.HONEY_BLOCK) {
             return 0.4f;
         }
 
-        blockId = getBlockAt(getVelocityAffectingPos());
-        if (blockId == BlockStateValues.JAVA_SOUL_SAND_ID || blockId == BlockStateValues.JAVA_HONEY_BLOCK_ID) {
+        block = getBlock(getVelocityAffectingPos());
+        if (block == Blocks.SOUL_SAND || block == Blocks.HONEY_BLOCK) {
             return 0.4f;
         }
 
@@ -756,13 +761,13 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     }
 
     protected float getJumpVelocityMultiplier() {
-        int blockId = getBlockAt(boundingBox.getBottomCenter().toInt());
-        if (blockId == BlockStateValues.JAVA_HONEY_BLOCK_ID) {
+        Block block = getBlock(boundingBox.getBottomCenter().toInt());
+        if (block == Blocks.HONEY_BLOCK) {
             return 0.5f;
         }
 
-        blockId = getBlockAt(getVelocityAffectingPos());
-        if (blockId == BlockStateValues.JAVA_HONEY_BLOCK_ID) {
+        block = getBlock(getVelocityAffectingPos());
+        if (block == Blocks.HONEY_BLOCK) {
             return 0.5f;
         }
 

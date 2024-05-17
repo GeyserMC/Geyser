@@ -71,7 +71,6 @@ public final class BlockStateValues {
     private static final Int2IntMap WATER_LEVEL = new Int2IntOpenHashMap();
     private static final Int2IntMap LAVA_LEVEL = new Int2IntOpenHashMap();
     private static final IntSet ALL_CLIMBABLE = new IntOpenHashSet();
-    private static final Int2ObjectMap<Direction> LADDER_DIRECTION = new Int2ObjectOpenHashMap<>();
     private static final Int2ObjectMap<Direction> OPEN_TRAPDOOR_DIRECTION = new Int2ObjectOpenHashMap<>();
 
     public static final int JAVA_AIR_ID = 0;
@@ -230,10 +229,6 @@ public final class BlockStateValues {
 
         if (javaId.contains("vine") || javaId.startsWith("minecraft:ladder") || javaId.startsWith("minecraft:scaffolding")) {
             ALL_CLIMBABLE.add(javaBlockState);
-        }
-
-        if (javaId.startsWith("minecraft:ladder")) {
-            LADDER_DIRECTION.put(javaBlockState, getBlockDirection(javaId));
         }
 
         if (javaId.contains("_trapdoor[") && javaId.contains("open=true")) {
@@ -612,17 +607,6 @@ public final class BlockStateValues {
             case "minecraft:blue_ice" -> 0.989f;
             default -> 0.6f;
         };
-    }
-
-    /**
-     * Get the direction of a ladder.
-     * Used when determining if an entity is climbing
-     *
-     * @param state BlockState of the block
-     * @return The ladder's direction, or null if not a ladder
-     */
-    public static @Nullable Direction getLadderDirection(int state) {
-        return LADDER_DIRECTION.get(state);
     }
 
     /**
