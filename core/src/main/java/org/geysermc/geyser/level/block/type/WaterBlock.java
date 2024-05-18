@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,21 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.type;
+package org.geysermc.geyser.level.block.type;
 
-import lombok.Builder;
-import lombok.Value;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import java.util.List;
 
-@Builder
-@Value
-public class BlockMapping {
-    public static BlockMapping DEFAULT = BlockMapping.builder().javaIdentifier("minecraft:air").build();
+public class WaterBlock extends Block {
+    private static BlockState LEVEL_0;
 
-    String javaIdentifier;
+    public WaterBlock(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
+    }
 
-    @Nullable String pickItem;
-
-    boolean isBlockEntity;
-    boolean isNonVanilla;
+    @Override
+    protected void processStates(List<BlockState> states) {
+        super.processStates(states);
+    }
 }

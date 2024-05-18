@@ -50,10 +50,12 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
@@ -391,7 +393,7 @@ public final class BlockRegistryPopulator {
             throw new AssertionError("Unable to load Java block mappings", e);
         }
 
-        JAVA_BLOCKS_SIZE = blocksJson.size();
+        JAVA_BLOCKS_SIZE = BlockRegistries.BLOCK_STATES.get().size();
 
         if (!BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().isEmpty()) {
             MIN_CUSTOM_RUNTIME_ID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().min(Comparator.comparing(JavaBlockState::javaId)).orElseThrow().javaId();
@@ -409,12 +411,6 @@ public final class BlockRegistryPopulator {
         Deque<String> cleanIdentifiers = new ArrayDeque<>();
 
         int javaRuntimeId = -1;
-        int furnaceRuntimeId = -1;
-        int furnaceLitRuntimeId = -1;
-        int honeyBlockRuntimeId = -1;
-        int slimeBlockRuntimeId = -1;
-        int spawnerRuntimeId = -1;
-        int uniqueJavaId = -1;
         int waterRuntimeId = -1;
         Iterator<Map.Entry<String, JsonNode>> blocksIterator = blocksJson.fields();
         while (blocksIterator.hasNext()) {
@@ -422,7 +418,6 @@ public final class BlockRegistryPopulator {
             Map.Entry<String, JsonNode> entry = blocksIterator.next();
             String javaId = entry.getKey();
 
-            // TODO fix this, (no block should have a null hardness)
             BlockMapping.BlockMappingBuilder builder = BlockMapping.builder();
 
             JsonNode pickItemNode = entry.getValue().get("pick_item");
@@ -443,7 +438,6 @@ public final class BlockRegistryPopulator {
             String bedrockIdentifier = entry.getValue().get("bedrock_identifier").asText();
 
             if (!cleanJavaIdentifier.equals(cleanIdentifiers.peekLast())) {
-                uniqueJavaId++;
                 cleanIdentifiers.add(cleanJavaIdentifier.intern());
             }
 
@@ -456,49 +450,10 @@ public final class BlockRegistryPopulator {
             // It's possible to only have this store differences in names, but the key set of all Java names is used in sending command suggestions
             BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.register(cleanJavaIdentifier.intern(), bedrockIdentifier.intern());
 
-            if (javaId.startsWith("minecraft:furnace[facing=north")) {
-                if (javaId.contains("lit=true")) {
-                    furnaceLitRuntimeId = javaRuntimeId;
-                } else {
-                    furnaceRuntimeId = javaRuntimeId;
-                }
-
-            } else if (javaId.startsWith("minecraft:spawner")) {
-                spawnerRuntimeId = javaRuntimeId;
-
-            } else if ("minecraft:water[level=0]".equals(javaId)) {
+            if ("minecraft:water[level=0]".equals(javaId)) {
                 waterRuntimeId = javaRuntimeId;
-            } else if (javaId.equals("minecraft:honey_block")) {
-                honeyBlockRuntimeId = javaRuntimeId;
-            } else if (javaId.equals("minecraft:slime_block")) {
-                slimeBlockRuntimeId = javaRuntimeId;
             }
         }
-
-        if (furnaceRuntimeId == -1) {
-            throw new AssertionError("Unable to find furnace in palette");
-        }
-        BlockStateValues.JAVA_FURNACE_ID = furnaceRuntimeId;
-
-        if (furnaceLitRuntimeId == -1) {
-            throw new AssertionError("Unable to find lit furnace in palette");
-        }
-        BlockStateValues.JAVA_FURNACE_LIT_ID = furnaceLitRuntimeId;
-
-        if (honeyBlockRuntimeId == -1) {
-            throw new AssertionError("Unable to find honey block in palette");
-        }
-        BlockStateValues.JAVA_HONEY_BLOCK_ID = honeyBlockRuntimeId;
-
-        if (slimeBlockRuntimeId == -1) {
-            throw new AssertionError("Unable to find slime block in palette");
-        }
-        BlockStateValues.JAVA_SLIME_BLOCK_ID = slimeBlockRuntimeId;
-
-        if (spawnerRuntimeId == -1) {
-            throw new AssertionError("Unable to find spawner in palette");
-        }
-        BlockStateValues.JAVA_SPAWNER_ID = spawnerRuntimeId;
 
         if (waterRuntimeId == -1) {
             throw new AssertionError("Unable to find Java water in palette");
@@ -534,12 +489,20 @@ public final class BlockRegistryPopulator {
                     builder.setBlockEntity();
                 }
                 String cleanJavaIdentifier = BlockUtils.getCleanIdentifier(javaBlockState.identifier());
-                Block block = new Block(cleanJavaIdentifier, builder);
+                String pickItem = javaBlockState.pickItem();
+                Block block = new Block(cleanJavaIdentifier, builder) {
+                    @Override
+                    public Item asItem() {
+                        if (this.item == null) {
+                            return Registries.JAVA_ITEM_IDENTIFIERS.get(pickItem);
+                        }
+                        return this.item;
+                    }
+                };
 
                 String bedrockIdentifier = customBlockState.block().identifier();
 
                 if (!cleanJavaIdentifier.equals(cleanIdentifiers.peekLast())) {
-                    uniqueJavaId++;
                     cleanIdentifiers.add(cleanJavaIdentifier.intern());
                 }
 

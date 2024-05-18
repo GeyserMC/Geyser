@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
+import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundBlockUpdatePacket;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
@@ -66,14 +68,14 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
         // We need to check if the identifier is the same, else a packet with the sound of what the
         // player has in their hand is played, despite if the block is being placed or not
         boolean contains = false;
-        String identifier = BlockRegistries.JAVA_BLOCKS.get(packet.getEntry().getBlock()).getItemIdentifier();
-        if (identifier.equals(session.getLastBlockPlacedId())) {
+        Item item = BlockState.of(packet.getEntry().getBlock()).block().asItem();
+        if (item == session.getLastBlockPlaced()) {
             contains = true;
         }
 
         if (!contains) {
             session.setLastBlockPlacePosition(null);
-            session.setLastBlockPlacedId(null);
+            session.setLastBlockPlaced(null);
             return false;
         }
 
@@ -86,7 +88,7 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
         placeBlockSoundPacket.setIdentifier(":");
         session.sendUpstreamPacket(placeBlockSoundPacket);
         session.setLastBlockPlacePosition(null);
-        session.setLastBlockPlacedId(null);
+        session.setLastBlockPlaced(null);
         return true;
     }
 

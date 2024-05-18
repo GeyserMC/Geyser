@@ -82,7 +82,7 @@ public final class Blocks {
             .intState(STAGE, 0, 1)
             .booleanState(WATERLOGGED)));
     public static final Block BEDROCK = register(new Block("bedrock", builder().destroyTime(-1.0f)));
-    public static final Block WATER = register(new Block("water", builder().destroyTime(100.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block WATER = register(new WaterBlock("water", builder().destroyTime(100.0f).pushReaction(PistonBehavior.DESTROY)
             .intState(LEVEL, 0, 15)));
     public static final Block LAVA = register(new Block("lava", builder().destroyTime(100.0f).pushReaction(PistonBehavior.DESTROY)
             .intState(LEVEL, 0, 15)));
@@ -379,7 +379,7 @@ public final class Blocks {
             .booleanState(UP)
             .booleanState(WEST)));
     public static final Block SOUL_FIRE = register(new Block("soul_fire", builder().pushReaction(PistonBehavior.DESTROY)));
-    public static final Block SPAWNER = register(new Block("spawner", builder().setBlockEntity().requiresCorrectToolForDrops().destroyTime(5.0f)));
+    public static final Block SPAWNER = register(new SpawnerBlock("spawner", builder().setBlockEntity().requiresCorrectToolForDrops().destroyTime(5.0f)));
     public static final Block OAK_STAIRS = register(new Block("oak_stairs", builder().destroyTime(2.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .enumState(HALF, "top", "bottom")
@@ -403,7 +403,7 @@ public final class Blocks {
             .intState(AGE_7, 0, 7)));
     public static final Block FARMLAND = register(new Block("farmland", builder().destroyTime(0.6f)
             .intState(MOISTURE, 0, 7)));
-    public static final Block FURNACE = register(new Block("furnace", builder().setBlockEntity().requiresCorrectToolForDrops().destroyTime(3.5f)
+    public static final Block FURNACE = register(new FurnaceBlock("furnace", builder().setBlockEntity().requiresCorrectToolForDrops().destroyTime(3.5f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(LIT)));
     public static final Block OAK_SIGN = register(new Block("oak_sign", builder().setBlockEntity().destroyTime(1.0f)
@@ -823,10 +823,10 @@ public final class Blocks {
             .booleanState(HAS_BOTTLE_1)
             .booleanState(HAS_BOTTLE_2)));
     public static final Block CAULDRON = register(new CauldronBlock("cauldron", builder().requiresCorrectToolForDrops().destroyTime(2.0f)));
-    public static final Block WATER_CAULDRON = register(new Block("water_cauldron", builder().requiresCorrectToolForDrops().destroyTime(2.0f)
+    public static final Block WATER_CAULDRON = register(new CauldronBlock("water_cauldron", builder().requiresCorrectToolForDrops().destroyTime(2.0f)
             .intState(LEVEL_CAULDRON, 1, 3)));
-    public static final Block LAVA_CAULDRON = register(new Block("lava_cauldron", builder().requiresCorrectToolForDrops().destroyTime(2.0f)));
-    public static final Block POWDER_SNOW_CAULDRON = register(new Block("powder_snow_cauldron", builder().requiresCorrectToolForDrops().destroyTime(2.0f)
+    public static final Block LAVA_CAULDRON = register(new CauldronBlock("lava_cauldron", builder().requiresCorrectToolForDrops().destroyTime(2.0f)));
+    public static final Block POWDER_SNOW_CAULDRON = register(new CauldronBlock("powder_snow_cauldron", builder().requiresCorrectToolForDrops().destroyTime(2.0f)
             .intState(LEVEL_CAULDRON, 1, 3)));
     public static final Block END_PORTAL = register(new Block("end_portal", builder().setBlockEntity().destroyTime(-1.0f).pushReaction(PistonBehavior.BLOCK)));
     public static final Block END_PORTAL_FRAME = register(new Block("end_portal_frame", builder().destroyTime(-1.0f)
@@ -2179,7 +2179,7 @@ public final class Blocks {
     public static final Block BEEHIVE = register(new Block("beehive", builder().setBlockEntity().destroyTime(0.6f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .intState(LEVEL_HONEY, 0, 5)));
-    public static final Block HONEY_BLOCK = register(new Block("honey_block", builder()));
+    public static final Block HONEY_BLOCK = register(new HoneyBlock("honey_block", builder()));
     public static final Block HONEYCOMB_BLOCK = register(new Block("honeycomb_block", builder().destroyTime(0.6f)));
     public static final Block NETHERITE_BLOCK = register(new Block("netherite_block", builder().requiresCorrectToolForDrops().destroyTime(50.0f)));
     public static final Block ANCIENT_DEBRIS = register(new Block("ancient_debris", builder().requiresCorrectToolForDrops().destroyTime(30.0f)));

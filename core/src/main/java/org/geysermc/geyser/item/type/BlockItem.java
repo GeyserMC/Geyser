@@ -25,11 +25,26 @@
 
 package org.geysermc.geyser.item.type;
 
-/**
- * TODO needed?
- */
+import org.geysermc.geyser.level.block.type.Block;
+
 public class BlockItem extends Item {
-    public BlockItem(String javaIdentifier, Builder builder) {
+    public BlockItem(Builder builder, Block block, Block... otherBlocks) {
+        super(block.javaIdentifier().value(), builder);
+
+        // Ensure this item can be looked up by its block(s)
+        registerBlock(block, this);
+        for (Block otherBlock : otherBlocks) {
+            registerBlock(otherBlock, this);
+        }
+    }
+
+    // Use this constructor if the item name is not the same as its primary block
+    public BlockItem(String javaIdentifier, Builder builder, Block block, Block... otherBlocks) {
         super(javaIdentifier, builder);
+
+        registerBlock(block, this);
+        for (Block otherBlock : otherBlocks) {
+            registerBlock(otherBlock, this);
+        }
     }
 }

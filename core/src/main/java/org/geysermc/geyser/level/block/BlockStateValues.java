@@ -250,25 +250,6 @@ public final class BlockStateValues {
     }
 
     /**
-     * All double chest values are part of the block state in Java and part of the block entity tag in Bedrock.
-     * This gives the DoubleChestValue that can be calculated into the final tag.
-     *
-     * @return The map of all DoubleChestValues.
-     */
-    public static Int2ObjectMap<DoubleChestValue> getDoubleChestValues() {
-        return DOUBLE_CHEST_VALUES;
-    }
-
-    /**
-     * Get the Int2ObjectMap of flower pot block states to containing plant
-     *
-     * @return Int2ObjectMap of flower pot values
-     */
-    public static Int2ObjectMap<String> getFlowerPotValues() {
-        return FLOWER_POT_VALUES;
-    }
-
-    /**
      * @return a set of all forward-facing jigsaws, to use as a fallback if NBT is missing.
      */
     public static IntSet getHorizontalFacingJigsaws() {
@@ -280,26 +261,6 @@ public final class BlockStateValues {
      */
     public static LecternHasBookMap getLecternBookStates() {
         return LECTERN_BOOK_STATES;
-    }
-
-    /**
-     * The note that noteblocks output when hit is part of the block state in Java but sent as a BlockEventPacket in Bedrock.
-     * This gives an integer pitch that Bedrock can use.
-     *
-     * @param state BlockState of the block
-     * @return note block note integer or -1 if not present
-     */
-    public static int getNoteblockPitch(int state) {
-        return NOTEBLOCK_PITCHES.getOrDefault(state, -1);
-    }
-
-    /**
-     * Get the Int2BooleanMap showing if a piston block state is extended or not.
-     *
-     * @return the Int2BooleanMap of piston extensions.
-     */
-    public static Int2BooleanMap getPistonValues() {
-        return PISTON_VALUES;
     }
 
     public static boolean isStickyPiston(int blockState) {
@@ -433,16 +394,6 @@ public final class BlockStateValues {
      */
     public static int getWaterLevel(int state) {
         return WATER_LEVEL.getOrDefault(state, -1);
-    }
-
-    /**
-     * Check if a block is the upper half of a door.
-     *
-     * @param state BlockState of the block
-     * @return True if the block is the upper half of a door
-     */
-    public static boolean isUpperDoor(int state) {
-        return UPPER_DOORS.contains(state);
     }
 
     /**

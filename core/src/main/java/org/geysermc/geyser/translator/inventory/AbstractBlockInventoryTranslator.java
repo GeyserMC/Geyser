@@ -30,6 +30,7 @@ import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.holder.BlockInventoryHolder;
 import org.geysermc.geyser.inventory.holder.InventoryHolder;
 import org.geysermc.geyser.inventory.updater.InventoryUpdater;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
 
 /**
@@ -44,10 +45,10 @@ public abstract class AbstractBlockInventoryTranslator extends BaseInventoryTran
      * @param javaBlockIdentifier a Java block identifier that is used as a temporary block
      * @param containerType the container type of this inventory
      * @param updater updater
-     * @param additionalValidBlocks any other block identifiers that can safely use this inventory without a fake block
+     * @param additionalValidBlocks any other blocks that can safely use this inventory without a fake block
      */
     public AbstractBlockInventoryTranslator(int size, String javaBlockIdentifier, ContainerType containerType, InventoryUpdater updater,
-                                            String... additionalValidBlocks) {
+                                            Block... additionalValidBlocks) {
         super(size);
         this.holder = new BlockInventoryHolder(javaBlockIdentifier, containerType, additionalValidBlocks);
         this.updater = updater;

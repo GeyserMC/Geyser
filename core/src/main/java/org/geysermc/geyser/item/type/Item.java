@@ -35,6 +35,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.item.Enchantment;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
@@ -49,20 +50,12 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class Item {
-    /**
-     * This is a map from Java-only enchantments to their translation keys so that we can
-     * map these enchantments to Bedrock clients, since they don't actually exist there.
-     */
-    private static final Map<Enchantment.JavaEnchantment, String> ENCHANTMENT_TRANSLATION_KEYS = Map.of(
-            Enchantment.JavaEnchantment.SWEEPING_EDGE, "enchantment.minecraft.sweeping",
-            Enchantment.JavaEnchantment.DENSITY, "enchantment.minecraft.density",
-            Enchantment.JavaEnchantment.BREACH, "enchantment.minecraft.breach",
-            Enchantment.JavaEnchantment.WIND_BURST, "enchantment.minecraft.wind_burst");
-
+    private static final Map<Block, Item> BLOCK_TO_ITEM = new HashMap<>();
     private final String javaIdentifier;
     private int javaId = -1;
     private final int stackSize;
@@ -233,6 +226,16 @@ public class Item {
 //        }
     }
 
+    /**
+     * This is a map from Java-only enchantments to their translation keys so that we can
+     * map these enchantments to Bedrock clients, since they don't actually exist there.
+     */
+    private static final Map<Enchantment.JavaEnchantment, String> ENCHANTMENT_TRANSLATION_KEYS = Map.of(
+            Enchantment.JavaEnchantment.SWEEPING_EDGE, "enchantment.minecraft.sweeping",
+            Enchantment.JavaEnchantment.DENSITY, "enchantment.minecraft.density",
+            Enchantment.JavaEnchantment.BREACH, "enchantment.minecraft.breach",
+            Enchantment.JavaEnchantment.WIND_BURST, "enchantment.minecraft.wind_burst");
+
     protected final @Nullable NbtMap remapEnchantment(GeyserSession session, int enchantId, int level, BedrockItemBuilder builder) {
         // TODO verify
         // TODO streamline Enchantment process
@@ -279,6 +282,18 @@ public class Item {
                 "javaIdentifier='" + javaIdentifier + '\'' +
                 ", javaId=" + javaId +
                 '}';
+    }
+
+    /**
+     * @return the block associated with this item, or air if nothing
+     */
+    @NonNull
+    public static Item byBlock(Block block) {
+        return BLOCK_TO_ITEM.getOrDefault(block, Items.AIR);
+    }
+
+    protected static void registerBlock(Block block, Item item) {
+        BLOCK_TO_ITEM.put(block, item);
     }
 
     public static Builder builder() {

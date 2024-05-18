@@ -30,6 +30,7 @@ import it.unimi.dsi.fastutil.objects.*;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.block.type.HoneyBlock;
 import org.geysermc.geyser.level.block.type.PistonBlock;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.PistonValueType;
 import org.cloudburstmc.math.vector.Vector3d;
@@ -98,7 +99,7 @@ public class PistonBlockEntity {
 
     static {
         // Create a ~1 x ~0.5 x ~1 bounding box above the honey block
-        BlockCollision blockCollision = BlockRegistries.COLLISIONS.get(BlockStateValues.JAVA_HONEY_BLOCK_ID);
+        BlockCollision blockCollision = BlockRegistries.COLLISIONS.get(HoneyBlock.state().javaId());
         if (blockCollision == null) {
             throw new RuntimeException("Failed to find honey block collision");
         }
@@ -622,11 +623,11 @@ public class PistonBlockEntity {
         }
         placedFinalBlocks = true;
         Vector3i movement = getMovement();
-        attachedBlocks.forEach((blockPos, javaId) -> {
+        attachedBlocks.forEach((blockPos, state) -> {
             blockPos = blockPos.add(movement);
             // Don't place blocks that collide with the player
             if (!SOLID_BOUNDING_BOX.checkIntersection(blockPos.toDouble(), session.getCollisionManager().getPlayerBoundingBox())) {
-                ChunkUtils.updateBlock(session, javaId, blockPos);
+                ChunkUtils.updateBlock(session, state, blockPos);
             }
         });
         if (action == PistonValueType.PUSHING) {

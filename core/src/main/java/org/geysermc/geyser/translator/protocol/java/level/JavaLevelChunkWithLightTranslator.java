@@ -166,11 +166,13 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     GeyserChunkSection section = new GeyserChunkSection(session.getBlockMappings().getBedrockAir().getRuntimeId(), subChunkIndex);
                     for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
                         int javaId = javaData.get(yzx);
+                        BlockState state = BlockState.of(javaId);
                         int bedrockId = session.getBlockMappings().getBedrockBlockId(javaId);
                         int xzy = indexYZXtoXZY(yzx);
                         section.getBlockStorageArray()[0].setFullBlock(xzy, bedrockId);
 
-                        if (BlockRegistries.WATERLOGGED.get().get(javaId)) {
+                        Boolean waterlogged = state.getValue(Properties.WATERLOGGED); // TODO performance check
+                        if (waterlogged == Boolean.TRUE) {
                             section.getBlockStorageArray()[1].setFullBlock(xzy, session.getBlockMappings().getBedrockWater().getRuntimeId());
                         }
 
@@ -192,7 +194,6 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                             }
                         }
 
-                        BlockState state = BlockState.of(javaId);
                         // Check if block is piston or flower to see if we'll need to create additional block entities, as they're only block entities in Bedrock
                         if (state.block() instanceof BedrockChunkWantsBlockEntityTag blockEntity) {
                             bedrockBlockEntities.add(blockEntity.createTag(session,

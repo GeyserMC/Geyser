@@ -147,6 +147,7 @@ public class BlockRegistries {
         CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.CUSTOM_REGISTRATION);
         BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.INIT_BEDROCK);
         BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.POST_INIT);
+        System.out.println("Block registries loaded");
     }
 
     public static void init() {

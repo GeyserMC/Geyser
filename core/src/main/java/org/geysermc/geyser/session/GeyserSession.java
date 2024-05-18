@@ -97,6 +97,7 @@ import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.physics.CollisionManager;
@@ -349,7 +350,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private Vector3i lastBlockPlacePosition;
 
     @Setter
-    private String lastBlockPlacedId;
+    private BlockItem lastBlockPlaced;
 
     @Setter
     private boolean interacting;

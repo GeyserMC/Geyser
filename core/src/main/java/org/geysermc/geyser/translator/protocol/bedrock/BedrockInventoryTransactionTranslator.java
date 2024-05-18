@@ -355,9 +355,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 }
                             }
                         }
-                        if (item instanceof BlockItem) {
+                        if (item instanceof BlockItem blockItem) {
                             session.setLastBlockPlacePosition(blockPos);
-                            session.setLastBlockPlacedId(item.javaIdentifier());
+                            session.setLastBlockPlaced(blockItem);
                         }
                         session.setInteracting(true);
                     }
@@ -420,7 +420,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         int blockState = session.getGameMode() == GameMode.CREATIVE ?
                                 session.getGeyser().getWorldManager().getBlockAt(session, packet.getBlockPosition()) : session.getBreakingBlock();
 
-                        session.setLastBlockPlacedId(null);
+                        session.setLastBlockPlaced(null);
                         session.setLastBlockPlacePosition(null);
 
                         // Same deal with vanilla block placing as above.

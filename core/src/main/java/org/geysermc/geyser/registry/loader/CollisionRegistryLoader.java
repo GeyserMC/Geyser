@@ -106,7 +106,7 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
     }
 
     private @Nullable BlockCollision instantiateCollision(BlockState state, Map<Class<?>, CollisionInfo> annotationMap, int collisionIndex, List<BoundingBox[]> collisionList) {
-        String blockName = state.block().javaIdentifier().substring("minecraft:".length());
+        String blockName = state.block().javaIdentifier().value();
 
         for (Map.Entry<Class<?>, CollisionInfo> collisionRemappers : annotationMap.entrySet()) {
             Class<?> type = collisionRemappers.getKey();

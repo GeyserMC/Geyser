@@ -258,10 +258,10 @@ public class GeyserImpl implements GeyserApi {
         VersionCheckUtils.checkForOutdatedJava(logger);
 
         for (int i = 0; i < BlockRegistries.JAVA_BLOCKS.get().length; i++) {
-            String cleanIdentifier = BlockRegistries.JAVA_BLOCKS.get(i).getCleanJavaIdentifier();
-            String newIdentifier = BlockRegistries.BLOCK_STATES.get(i).block().javaIdentifier();
-            if (!cleanIdentifier.equals(newIdentifier)) {
-                System.out.println("Check block " + BlockRegistries.BLOCK_STATES.get(i).block().javaIdentifier());
+            String oldIdentifier = BlockRegistries.JAVA_BLOCKS.get(i).getJavaIdentifier();
+            String newIdentifier = BlockRegistries.BLOCK_STATES.get(i).toString();
+            if (!oldIdentifier.equals(newIdentifier)) {
+                System.out.println("Check block " + oldIdentifier + " " + newIdentifier);
                 break;
             }
         }
