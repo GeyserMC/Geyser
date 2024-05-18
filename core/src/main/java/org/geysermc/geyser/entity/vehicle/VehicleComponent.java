@@ -41,6 +41,7 @@ import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.Fluid;
 import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.BedBlock;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.BoundingBox;
@@ -317,7 +318,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     }
 
     protected boolean isFlowBlocked(Fluid fluid, int adjacentBlockId) {
-        if (BlockState.of(adjacentBlockId).block() == Blocks.ICE) {
+        if (BlockState.of(adjacentBlockId).is(Blocks.ICE)) {
             return false;
         }
 
@@ -474,9 +475,9 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         for (iter.reset(); iter.hasNext(); iter.next()) {
             BlockState blockState = BlockState.of(blocks[iter.getIteration()]);
 
-            if (blockState.block() == Blocks.HONEY_BLOCK) {
+            if (blockState.is(Blocks.HONEY_BLOCK)) {
                 onHoneyBlockCollision();
-            } else if (blockState.block() == Blocks.BUBBLE_COLUMN) {
+            } else if (blockState.is(Blocks.BUBBLE_COLUMN)) {
                 onBubbleColumnCollision(blockState.getValue(Properties.DRAG));
             }
         }
@@ -542,9 +543,9 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         boolean bounced = false;
         if (onGround) {
             Vector3i landingPos = newPos.sub(0, 0.2f, 0).toInt();
-            int landingBlockId = getBlockId(landingPos);
+            Block landingBlock = getBlock(landingPos);
 
-            if (BlockState.of(landingBlockId).block() == Blocks.SLIME_BLOCK) {
+            if (landingBlock == Blocks.SLIME_BLOCK) {
                 motion = Vector3f.from(motion.getX(), -motion.getY(), motion.getZ());
                 bounced = true;
 
@@ -554,7 +555,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
                     float mul = 0.4f + absY * 0.2f;
                     motion = motion.mul(mul, 1.0f, mul);
                 }
-            } else if (BlockStateValues.getBedColor(landingBlockId) != -1) { // If bed
+            } else if (landingBlock instanceof BedBlock) {
                 motion = Vector3f.from(motion.getX(), -motion.getY() * 0.66f, motion.getZ());
                 bounced = true;
             }
@@ -599,7 +600,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         Direction openTrapdoorDirection = BlockStateValues.getOpenTrapdoorDirection(blockId);
         if (openTrapdoorDirection != null) {
             BlockState ladder = getBlockState(blockPos.down());
-            return ladder.block() == Blocks.LADDER && ladder.getValue(Properties.HORIZONTAL_FACING) == openTrapdoorDirection;
+            return ladder.is(Blocks.LADDER) && ladder.getValue(Properties.HORIZONTAL_FACING) == openTrapdoorDirection;
         }
 
         return false;
