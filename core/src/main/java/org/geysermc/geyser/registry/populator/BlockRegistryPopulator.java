@@ -424,37 +424,10 @@ public final class BlockRegistryPopulator {
 
             // TODO fix this, (no block should have a null hardness)
             BlockMapping.BlockMappingBuilder builder = BlockMapping.builder();
-            JsonNode hardnessNode = entry.getValue().get("block_hardness");
-            if (hardnessNode != null) {
-                builder.hardness(hardnessNode.floatValue());
-            }
-
-            JsonNode canBreakWithHandNode = entry.getValue().get("can_break_with_hand");
-            if (canBreakWithHandNode != null) {
-                builder.canBreakWithHand(canBreakWithHandNode.booleanValue());
-            } else {
-                builder.canBreakWithHand(false);
-            }
-
-            JsonNode collisionIndexNode = entry.getValue().get("collision_index");
-            if (hardnessNode != null) {
-                builder.collisionIndex(collisionIndexNode.intValue());
-            }
 
             JsonNode pickItemNode = entry.getValue().get("pick_item");
             if (pickItemNode != null) {
                 builder.pickItem(pickItemNode.textValue().intern());
-            }
-
-            if (javaId.equals("minecraft:obsidian") || javaId.equals("minecraft:crying_obsidian") || javaId.startsWith("minecraft:respawn_anchor") || javaId.startsWith("minecraft:reinforced_deepslate")) {
-                builder.pistonBehavior(PistonBehavior.BLOCK);
-            } else {
-                JsonNode pistonBehaviorNode = entry.getValue().get("piston_behavior");
-                if (pistonBehaviorNode != null) {
-                    builder.pistonBehavior(PistonBehavior.getByName(pistonBehaviorNode.textValue()));
-                } else {
-                    builder.pistonBehavior(PistonBehavior.NORMAL);
-                }
             }
 
             JsonNode hasBlockEntityNode = entry.getValue().get("has_block_entity");
@@ -475,7 +448,6 @@ public final class BlockRegistryPopulator {
             }
 
             builder.javaIdentifier(javaId);
-            builder.javaBlockId(uniqueJavaId);
 
             BlockRegistries.JAVA_IDENTIFIER_TO_ID.register(javaId, javaRuntimeId);
             BlockRegistries.JAVA_BLOCKS.register(javaRuntimeId, builder.build());
@@ -547,26 +519,23 @@ public final class BlockRegistryPopulator {
                 int stateRuntimeId = javaBlockState.javaId();
                 String pistonBehavior = javaBlockState.pistonBehavior();
                 BlockMapping blockMapping = BlockMapping.builder()
-                    .canBreakWithHand(javaBlockState.canBreakWithHand())
                     .pickItem(javaBlockState.pickItem())
                     .isNonVanilla(true)
                     .javaIdentifier(javaId)
-                    .javaBlockId(javaBlockState.stateGroupId())
-                    .hardness(javaBlockState.blockHardness())
-                    .pistonBehavior(pistonBehavior == null ? PistonBehavior.NORMAL : PistonBehavior.getByName(pistonBehavior))
-                    .isBlockEntity(javaBlockState.hasBlockEntity())
                     .build();
 
                 Block.Builder builder = Block.builder()
-                        .destroyTime(javaBlockState.blockHardness());
+                        .destroyTime(javaBlockState.blockHardness())
+                        .pushReaction(pistonBehavior == null ? PistonBehavior.NORMAL : PistonBehavior.getByName(pistonBehavior));
                 if (!javaBlockState.canBreakWithHand()) {
                     builder.requiresCorrectToolForDrops();
                 }
                 if (javaBlockState.hasBlockEntity()) {
                     builder.setBlockEntity();
                 }
-
                 String cleanJavaIdentifier = BlockUtils.getCleanIdentifier(javaBlockState.identifier());
+                Block block = new Block(cleanJavaIdentifier, builder);
+
                 String bedrockIdentifier = customBlockState.block().identifier();
 
                 if (!cleanJavaIdentifier.equals(cleanIdentifiers.peekLast())) {
@@ -574,6 +543,7 @@ public final class BlockRegistryPopulator {
                     cleanIdentifiers.add(cleanJavaIdentifier.intern());
                 }
 
+                BlockRegistries.JAVA_BLOCKS_TO_RENAME.get().add(javaBlockState.stateGroupId(), block); //TODO don't allow duplicates, allow blanks
                 BlockRegistries.JAVA_IDENTIFIER_TO_ID.register(javaId, stateRuntimeId);
                 BlockRegistries.JAVA_BLOCKS.register(stateRuntimeId, blockMapping);
 

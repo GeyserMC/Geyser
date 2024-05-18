@@ -25,23 +25,25 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
-import org.geysermc.geyser.level.block.type.Block;
-import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.*;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundBlockEventPacket;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEventPacket;
-import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.PistonCache;
+import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.geyser.translator.level.block.entity.PistonBlockEntity;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.*;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundBlockEventPacket;
 
 @Translator(packet = ClientboundBlockEventPacket.class)
 public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockEventPacket> {
@@ -63,7 +65,7 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
             session.sendUpstreamPacket(blockEventPacket);
         } else if (value instanceof NoteBlockValue) {
             session.getGeyser().getWorldManager().getBlockAtAsync(session, position).thenAccept(blockState -> {
-                blockEventPacket.setEventData(BlockStateValues.getNoteblockPitch(blockState));
+                blockEventPacket.setEventData(BlockState.of(blockState).getValue(Properties.NOTE));
                 session.sendUpstreamPacket(blockEventPacket);
             });
         } else if (value instanceof PistonValue pistonValue) {
@@ -90,7 +92,7 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
                     }
                     PistonBlockEntity blockEntity = pistonCache.getPistons().computeIfAbsent(position, pos -> new PistonBlockEntity(session, pos, direction, true, true));
                     if (blockEntity.getAction() != action) {
-                        blockEntity.setAction(action, Object2IntMaps.emptyMap());
+                        blockEntity.setAction(action, Object2ObjectMaps.emptyMap());
                     }
                 }
             } else {
@@ -110,11 +112,7 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
             BlockEntityDataPacket blockEntityPacket = new BlockEntityDataPacket();
             blockEntityPacket.setBlockPosition(position);
 
-            NbtMapBuilder builder = NbtMap.builder();
-            builder.putInt("x", position.getX());
-            builder.putInt("y", position.getY());
-            builder.putInt("z", position.getZ());
-            builder.putString("id", "Bell");
+            NbtMapBuilder builder = BlockEntityTranslator.getConstantBedrockTag("Bell", position.getX(), position.getY(), position.getZ());
             int bedrockRingDirection = switch (bellValue.getDirection()) {
                 case SOUTH -> 0;
                 case WEST -> 1;

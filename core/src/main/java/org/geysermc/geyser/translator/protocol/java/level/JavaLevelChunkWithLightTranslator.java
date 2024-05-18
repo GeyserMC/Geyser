@@ -41,7 +41,6 @@ import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
 import org.geysermc.erosion.util.LecternUtils;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.level.BedrockDimension;
-import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
@@ -53,7 +52,7 @@ import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.BiomeTranslator;
-import org.geysermc.geyser.translator.level.block.entity.BedrockOnlyBlockEntity;
+import org.geysermc.geyser.translator.level.block.entity.BedrockChunkWantsBlockEntityTag;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.geyser.translator.level.block.entity.SkullBlockEntityTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -193,11 +192,12 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                             }
                         }
 
+                        BlockState state = BlockState.of(javaId);
                         // Check if block is piston or flower to see if we'll need to create additional block entities, as they're only block entities in Bedrock
-                        if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId) || BlockStateValues.isCauldron(javaId)) {
-                            bedrockBlockEntities.add(BedrockOnlyBlockEntity.getTag(session,
+                        if (state.block() instanceof BedrockChunkWantsBlockEntityTag blockEntity) {
+                            bedrockBlockEntities.add(blockEntity.createTag(session,
                                     Vector3i.from((packet.getX() << 4) + (yzx & 0xF), ((sectionY + yOffset) << 4) + ((yzx >> 8) & 0xF), (packet.getZ() << 4) + ((yzx >> 4) & 0xF)),
-                                    javaId
+                                    state
                             ));
                         }
                     }
@@ -253,7 +253,9 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     }
 
                     // Check if block is piston, flower or cauldron to see if we'll need to create additional block entities, as they're only block entities in Bedrock
-                    if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId) || BlockStateValues.isCauldron(javaId)) {
+                    // TODO this needs a performance check when my head is clearer
+                    BlockState state = BlockState.of(javaId);
+                    if (state.block() instanceof BedrockChunkWantsBlockEntityTag) {
                         bedrockOnlyBlockEntityIds.set(i);
                     }
                 }
@@ -265,9 +267,10 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
                         int paletteId = javaData.get(yzx);
                         if (bedrockOnlyBlockEntityIds.get(paletteId)) {
-                            bedrockBlockEntities.add(BedrockOnlyBlockEntity.getTag(session,
+                            BlockState state = BlockState.of(javaPalette.idToState(paletteId));
+                            bedrockBlockEntities.add(((BedrockChunkWantsBlockEntityTag) state.block()).createTag(session,
                                     Vector3i.from((packet.getX() << 4) + (yzx & 0xF), ((sectionY + yOffset) << 4) + ((yzx >> 8) & 0xF), (packet.getZ() << 4) + ((yzx >> 4) & 0xF)),
-                                    javaPalette.idToState(paletteId)
+                                    state
                             ));
                         }
                     }

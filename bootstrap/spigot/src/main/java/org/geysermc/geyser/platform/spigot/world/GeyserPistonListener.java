@@ -25,10 +25,8 @@
 
 package org.geysermc.geyser.platform.spigot.world;
 
-import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.PistonValueType;
-import org.cloudburstmc.math.vector.Vector3i;
-import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -40,13 +38,16 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPistonEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotWorldManager;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.PistonCache;
 import org.geysermc.geyser.translator.level.block.entity.PistonBlockEntity;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.PistonValueType;
 
 import java.util.List;
 import java.util.Map;
@@ -85,7 +86,7 @@ public class GeyserPistonListener implements Listener {
         PistonValueType type = isExtend ? PistonValueType.PUSHING : PistonValueType.PULLING;
         boolean sticky = event.isSticky();
 
-        Object2IntMap<Vector3i> attachedBlocks = new Object2IntArrayMap<>();
+        Object2ObjectMap<Vector3i, BlockState> attachedBlocks = new Object2ObjectArrayMap<>();
         boolean blocksFilled = false;
 
         for (Map.Entry<UUID, GeyserSession> entry : geyser.getSessionManager().getSessions().entrySet()) {
@@ -108,10 +109,10 @@ public class GeyserPistonListener implements Listener {
                 List<Block> blocks = isExtend ? ((BlockPistonExtendEvent) event).getBlocks() : ((BlockPistonRetractEvent) event).getBlocks();
                 for (Block block : blocks) {
                     Location attachedLocation = block.getLocation();
-                    int blockId = worldManager.getBlockNetworkId(block);
+                    BlockState state = BlockState.of(worldManager.getBlockNetworkId(block));
                     // Ignore blocks that will be destroyed
-                    if (BlockStateValues.canPistonMoveBlock(blockId, isExtend)) {
-                        attachedBlocks.put(getVector(attachedLocation), blockId);
+                    if (BlockStateValues.canPistonMoveBlock(state, isExtend)) {
+                        attachedBlocks.put(getVector(attachedLocation), state);
                     }
                 }
                 blocksFilled = true;

@@ -118,7 +118,7 @@ public final class Properties {
     public static final Property<Integer> RESPAWN_ANCHOR_CHARGES = Property.create("charges");
     public static final Property<Integer> ROTATION_16 = Property.create("rotation");
     public static final Property<String> BED_PART = Property.create("part");
-    public static final Property<String> CHEST_TYPE = Property.create("type");
+    public static final Property<ChestType> CHEST_TYPE = Property.create("type");
     public static final Property<String> MODE_COMPARATOR = Property.create("mode");
     public static final Property<String> DOOR_HINGE = Property.create("hinge");
     public static final Property<String> NOTEBLOCK_INSTRUMENT = Property.create("instrument");

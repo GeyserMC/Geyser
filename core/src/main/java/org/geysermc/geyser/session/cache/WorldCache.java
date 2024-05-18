@@ -180,7 +180,7 @@ public final class WorldCache {
                 // This block may be out of sync with the server
                 // In 1.19.0 Java, you can verify this by trying to mine in spawn protection
                 Vector3i position = entry.getKey();
-                ChunkUtils.updateBlockClientSide(session, session.getGeyser().getWorldManager().getBlockAt(session, position), position);
+                ChunkUtils.updateBlockClientSide(session, session.getGeyser().getWorldManager().blockAt(session, position), position);
                 it.remove();
             }
         }

@@ -58,6 +58,20 @@ public final class BlockState {
         return javaId;
     }
 
+    public boolean is(Block block) {
+        return this.block == block;
+    }
+
+    private String paramsToString() {
+        StringBuilder builder = new StringBuilder();
+        var it = this.states.entrySet().iterator();
+        while (it.hasNext()) {
+            var entry = it.next();
+            builder.append(entry.getKey()).append("=").append(entry.getValue());
+        }
+        return builder.toString();
+    }
+
     public static BlockState of(int javaId) {
         return BlockRegistries.BLOCK_STATES.get(javaId);
     }

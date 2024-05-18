@@ -30,12 +30,14 @@ import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.block.type.PistonBlock;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
-import org.geysermc.geyser.translator.level.block.entity.PistonBlockEntityTranslator;
 import org.geysermc.geyser.util.collection.FixedInt2ByteMap;
 import org.geysermc.geyser.util.collection.FixedInt2IntMap;
 import org.geysermc.geyser.util.collection.LecternHasBookMap;
@@ -73,9 +75,6 @@ public final class BlockStateValues {
     private static final IntSet ALL_CLIMBABLE = new IntOpenHashSet();
     private static final Int2ObjectMap<Direction> OPEN_TRAPDOOR_DIRECTION = new Int2ObjectOpenHashMap<>();
 
-    public static final int JAVA_AIR_ID = 0;
-
-    public static int JAVA_COBWEB_ID;
     public static int JAVA_FURNACE_ID;
     public static int JAVA_FURNACE_LIT_ID;
     public static int JAVA_HONEY_BLOCK_ID;
@@ -224,7 +223,7 @@ public final class BlockStateValues {
             ALL_CAULDRONS.add(javaBlockState);
         }
         if (javaId.contains("_cauldron") && !javaId.contains("water_")) {
-            NON_WATER_CAULDRONS.add(javaBlockState);
+             NON_WATER_CAULDRONS.add(javaBlockState);
         }
 
         if (javaId.contains("vine") || javaId.startsWith("minecraft:ladder") || javaId.startsWith("minecraft:scaffolding")) {
@@ -249,28 +248,6 @@ public final class BlockStateValues {
      */
     public static int getBannerColor(int state) {
         return BANNER_COLORS.getOrDefault(state, -1);
-    }
-
-    /**
-     * Bed colors are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
-     * This gives a byte color that Bedrock can use - Bedrock needs a byte in the final tag.
-     *
-     * @param state BlockState of the block
-     * @return Bed color byte or -1 if no color
-     */
-    public static byte getBedColor(int state) {
-        return BED_COLORS.getOrDefault(state, (byte) -1);
-    }
-
-    /**
-     * The brush progress of suspicious sand/gravel is not sent by the java server when it updates the block entity.
-     * Although brush progress is part of the bedrock block state, it must be included in the block entity update.
-     *
-     * @param state BlockState of the block
-     * @return brush progress or 0 if the lookup failed
-     */
-    public static int getBrushProgress(int state) {
-        return BRUSH_PROGRESS.getOrDefault(state, 0);
     }
 
     /**
@@ -364,18 +341,6 @@ public final class BlockStateValues {
     }
 
     /**
-     * Check if a block is a minecraft:moving_piston
-     * This is used in ChunkUtils to prevent them from being placed as it causes
-     * pistons to flicker and it is not needed
-     *
-     * @param state Block state of the block
-     * @return True if the block is a moving_piston
-     */
-    public static boolean isMovingPiston(int state) {
-        return MOVING_PISTONS.contains(state);
-    }
-
-    /**
      * This is used in GeyserPistonEvents.java and accepts minecraft:piston,
      * minecraft:sticky_piston, and minecraft:moving_piston.
      *
@@ -393,8 +358,9 @@ public final class BlockStateValues {
      * @param state The block state
      * @return True if the block sticks to adjacent blocks
      */
-    public static boolean isBlockSticky(int state) {
-        return state == JAVA_SLIME_BLOCK_ID || state == JAVA_HONEY_BLOCK_ID;
+    public static boolean isBlockSticky(BlockState state) {
+        Block block = state.block();
+        return block == Blocks.SLIME_BLOCK || block == Blocks.HONEY_BLOCK;
     }
 
     /**
@@ -404,13 +370,13 @@ public final class BlockStateValues {
      * @param stateB The block state of block b
      * @return True if the blocks are attached to each other
      */
-    public static boolean isBlockAttached(int stateA, int stateB) {
+    public static boolean isBlockAttached(BlockState stateA, BlockState stateB) {
         boolean aSticky = isBlockSticky(stateA);
         boolean bSticky = isBlockSticky(stateB);
         if (aSticky && bSticky) {
             // Only matching sticky blocks are attached together
             // Honey + Honey & Slime + Slime
-            return stateA == stateB;
+            return stateA.block() == stateB.block();
         }
         return aSticky || bSticky;
     }
@@ -419,27 +385,30 @@ public final class BlockStateValues {
      * @param state The block state of the block
      * @return true if a piston can break the block
      */
-    public static boolean canPistonDestroyBlock(int state)  {
-        return BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.DEFAULT).getPistonBehavior() == PistonBehavior.DESTROY;
+    public static boolean canPistonDestroyBlock(BlockState state)  {
+        return state.block().pushReaction() == PistonBehavior.DESTROY;
     }
 
-    public static boolean canPistonMoveBlock(int javaId, boolean isPushing) {
-        if (javaId == Block.JAVA_AIR_ID) {
+    public static boolean canPistonMoveBlock(BlockState state, boolean isPushing) {
+        Block block = state.block();
+        if (block == Blocks.AIR) {
             return true;
         }
-        // Pistons can only be moved if they aren't extended
-        if (PistonBlockEntityTranslator.isBlock(javaId)) {
-            return !PISTON_VALUES.get(javaId);
-        }
-        BlockMapping block = BlockRegistries.JAVA_BLOCKS.getOrDefault(javaId, BlockMapping.DEFAULT);
-        // Bedrock, End portal frames, etc. can't be moved
-        if (block.getHardness() == -1.0d) {
+        if (block == Blocks.OBSIDIAN || block == Blocks.CRYING_OBSIDIAN || block == Blocks.RESPAWN_ANCHOR || block == Blocks.REINFORCED_DEEPSLATE) { // Hardcoded as of 1.20.5
             return false;
         }
-        return switch (block.getPistonBehavior()) {
+        // Pistons can only be moved if they aren't extended
+        if (block instanceof PistonBlock) {
+            return !state.getValue(Properties.EXTENDED);
+        }
+        // Bedrock, End portal frames, etc. can't be moved
+        if (block.destroyTime() == -1.0f) {
+            return false;
+        }
+        return switch (block.pushReaction()) {
             case BLOCK, DESTROY -> false;
             case PUSH_ONLY -> isPushing; // Glazed terracotta can only be pushed
-            default -> !block.isBlockEntity(); // Pistons can't move block entities
+            default -> !block.hasBlockEntity(); // Pistons can't move block entities
         };
     }
 
@@ -466,17 +435,6 @@ public final class BlockStateValues {
     }
 
     /**
-     * As of Java 1.20.2:
-     * Skull powered states are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
-     *
-     * @param state BlockState of the block
-     * @return true if this skull is currently being powered.
-     */
-    public static boolean isSkullPowered(int state) {
-        return SKULL_POWERED.contains(state);
-    }
-
-    /**
      * Skull rotations are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
      * This gives a integer rotation that Bedrock can use.
      *
@@ -484,17 +442,6 @@ public final class BlockStateValues {
      */
     public static Int2IntMap getSkullWallDirections() {
         return SKULL_WALL_DIRECTIONS;
-    }
-
-    /**
-     * Shulker box directions are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
-     * This gives a byte direction that Bedrock can use.
-     *
-     * @param state BlockState of the block
-     * @return Shulker direction value or -1 if no value
-     */
-    public static byte getShulkerBoxDirection(int state) {
-        return SHULKERBOX_DIRECTIONS.getOrDefault(state, (byte) -1);
     }
 
     /**

@@ -30,8 +30,15 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.property.Property;
+import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.Identifier;
 
 import java.util.*;
@@ -44,6 +51,7 @@ public class Block {
     private final boolean requiresCorrectToolForDrops;
     private final boolean hasBlockEntity;
     private final float destroyTime;
+    private final @NonNull PistonBehavior pushReaction;
     private int javaId = -1;
 
     public Block(String javaIdentifier, Builder builder) {
@@ -51,7 +59,74 @@ public class Block {
         this.requiresCorrectToolForDrops = builder.requiresCorrectToolForDrops;
         this.hasBlockEntity = builder.hasBlockEntity;
         this.destroyTime = builder.destroyTime;
+        this.pushReaction = builder.pushReaction;
         builder.build(this);
+    }
+
+    public void updateBlock(GeyserSession session, BlockState state, Vector3i position) {
+        BlockDefinition definition = session.getBlockMappings().getBedrockBlock(state);
+        sendBlockUpdatePacket(session, state, definition, position);
+
+        {
+            // Extended collision boxes for custom blocks
+            if (!session.getBlockMappings().getExtendedCollisionBoxes().isEmpty()) {
+                int aboveBlock = session.getGeyser().getWorldManager().getBlockAt(session, position.getX(), position.getY() + 1, position.getZ());
+                BlockDefinition aboveBedrockExtendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes().get(state.javaId());
+                int belowBlock = session.getGeyser().getWorldManager().getBlockAt(session, position.getX(), position.getY() - 1, position.getZ());
+                BlockDefinition belowBedrockExtendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes().get(belowBlock);
+                if (belowBedrockExtendedCollisionDefinition != null && state.is(Blocks.AIR)) {
+                    UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+                    updateBlockPacket.setDataLayer(0);
+                    updateBlockPacket.setBlockPosition(position);
+                    updateBlockPacket.setDefinition(belowBedrockExtendedCollisionDefinition);
+                    updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+                    session.sendUpstreamPacket(updateBlockPacket);
+                } else if (aboveBedrockExtendedCollisionDefinition != null && aboveBlock == Block.JAVA_AIR_ID) {
+                    UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+                    updateBlockPacket.setDataLayer(0);
+                    updateBlockPacket.setBlockPosition(position.add(0, 1, 0));
+                    updateBlockPacket.setDefinition(aboveBedrockExtendedCollisionDefinition);
+                    updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+                    session.sendUpstreamPacket(updateBlockPacket);
+                } else if (aboveBlock == Block.JAVA_AIR_ID) {
+                    UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+                    updateBlockPacket.setDataLayer(0);
+                    updateBlockPacket.setBlockPosition(position.add(0, 1, 0));
+                    updateBlockPacket.setDefinition(session.getBlockMappings().getBedrockAir());
+                    updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+                    session.sendUpstreamPacket(updateBlockPacket);
+                }
+            }
+        }
+
+        handleLecternBlockUpdate(session, state, position);
+    }
+
+    protected void sendBlockUpdatePacket(GeyserSession session, BlockState state, BlockDefinition definition, Vector3i position) {
+        UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+        updateBlockPacket.setDataLayer(0);
+        updateBlockPacket.setBlockPosition(position);
+        updateBlockPacket.setDefinition(definition);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
+        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+        session.sendUpstreamPacket(updateBlockPacket);
+
+        UpdateBlockPacket waterPacket = new UpdateBlockPacket();
+        waterPacket.setDataLayer(1);
+        waterPacket.setBlockPosition(position);
+        if (BlockRegistries.WATERLOGGED.get().get(state.javaId())) {
+            waterPacket.setDefinition(session.getBlockMappings().getBedrockWater());
+        } else {
+            waterPacket.setDefinition(session.getBlockMappings().getBedrockAir());
+        }
+        session.sendUpstreamPacket(waterPacket);
+    }
+
+    protected void handleLecternBlockUpdate(GeyserSession session, BlockState state, Vector3i position) {
+        // Block state is out of bounds of this map - lectern has been destroyed, if it existed
+        if (!session.getGeyser().getWorldManager().shouldExpectLecternHandled(session)) {
+            session.getLecternCache().remove(position);
+        }
     }
 
     public String javaIdentifier() {
@@ -68,6 +143,11 @@ public class Block {
 
     public float destroyTime() {
         return destroyTime;
+    }
+
+    @NonNull
+    public PistonBehavior pushReaction() {
+        return this.pushReaction;
     }
 
     public int javaId() {
@@ -97,6 +177,7 @@ public class Block {
         private final Map<Property<?>, List<Comparable<?>>> states = new LinkedHashMap<>();
         private boolean requiresCorrectToolForDrops = false;
         private boolean hasBlockEntity = false;
+        private PistonBehavior pushReaction = PistonBehavior.NORMAL;
         private float destroyTime;
 
         /**
@@ -140,6 +221,11 @@ public class Block {
 
         public Builder destroyTime(float destroyTime) {
             this.destroyTime = destroyTime;
+            return this;
+        }
+
+        public Builder pushReaction(PistonBehavior pushReaction) {
+            this.pushReaction = pushReaction;
             return this;
         }
 
