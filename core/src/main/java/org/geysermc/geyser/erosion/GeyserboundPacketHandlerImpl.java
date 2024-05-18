@@ -30,8 +30,8 @@ import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -157,7 +157,7 @@ public final class GeyserboundPacketHandlerImpl extends AbstractGeyserboundPacke
                 .stream()
                 .map(entry -> Pair.of(entry.getKey(), BlockState.of(entry.getIntValue())))
                 .filter(pair -> BlockStateValues.canPistonMoveBlock(pair.value(), isExtend));
-        Object2ObjectMap<Vector3i, BlockState> attachedBlocks = new Object2ObjectOpenHashMap<>();
+        Object2ObjectMap<Vector3i, BlockState> attachedBlocks = new Object2ObjectArrayMap<>();
         stream.forEach(pair -> attachedBlocks.put(pair.key(), pair.value()));
 
         session.executeInEventLoop(() -> {

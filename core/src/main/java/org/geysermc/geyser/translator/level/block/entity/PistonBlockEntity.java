@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
+import it.unimi.dsi.fastutil.ints.IntArrays;
 import it.unimi.dsi.fastutil.objects.*;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.type.Block;
@@ -74,7 +75,7 @@ public class PistonBlockEntity {
     /**
      * A flattened array of the positions of attached blocks, stored in XYZ order.
      */
-    private int[] flattenedAttachedBlocks = new int[0];
+    private int[] flattenedAttachedBlocks = IntArrays.EMPTY_ARRAY;
 
     private boolean placedFinalBlocks = true;
 
@@ -732,18 +733,14 @@ public class PistonBlockEntity {
      * @return A piston data tag
      */
     private NbtMap buildPistonTag() {
-        NbtMapBuilder builder = NbtMap.builder()
-                .putString("id", "PistonArm")
+        NbtMapBuilder builder = BlockEntityTranslator.getConstantBedrockTag("PistonArm", position)
                 .putIntArray("AttachedBlocks", flattenedAttachedBlocks)
                 .putFloat("Progress", progress)
                 .putFloat("LastProgress", lastProgress)
                 .putByte("NewState", getState())
                 .putByte("State", getState())
                 .putBoolean("Sticky", sticky)
-                .putBoolean("isMovable", false)
-                .putInt("x", position.getX())
-                .putInt("y", position.getY())
-                .putInt("z", position.getZ());
+                .putBoolean("isMovable", false);
         return builder.build();
     }
 
@@ -756,17 +753,13 @@ public class PistonBlockEntity {
      * @return A piston data tag for a fully extended/retracted piston
      */
     public static NbtMap buildStaticPistonTag(Vector3i position, boolean extended, boolean sticky) {
-        NbtMapBuilder builder = NbtMap.builder()
-                .putString("id", "PistonArm")
+        NbtMapBuilder builder = BlockEntityTranslator.getConstantBedrockTag("PistonArm", position)
                 .putFloat("Progress", extended ? 1.0f : 0.0f)
                 .putFloat("LastProgress", extended ? 1.0f : 0.0f)
                 .putByte("NewState", (byte) (extended ? 2 : 0))
                 .putByte("State", (byte) (extended ? 2 : 0))
                 .putBoolean("Sticky", sticky)
-                .putBoolean("isMovable", false)
-                .putInt("x", position.getX())
-                .putInt("y", position.getY())
-                .putInt("z", position.getZ());
+                .putBoolean("isMovable", false);
         return builder.build();
     }
 
@@ -781,17 +774,13 @@ public class PistonBlockEntity {
     private NbtMap buildMovingBlockTag(Vector3i position, BlockState state, Vector3i pistonPosition) {
         // Get Bedrock block state data
         NbtMap movingBlock = session.getBlockMappings().getBedrockBlock(state).getState();
-        NbtMapBuilder builder = NbtMap.builder()
-                .putString("id", "MovingBlock")
+        NbtMapBuilder builder = BlockEntityTranslator.getConstantBedrockTag("MovingBlock", position)
                 .putBoolean("expanding", action == PistonValueType.PUSHING)
                 .putCompound("movingBlock", movingBlock)
                 .putBoolean("isMovable", true)
                 .putInt("pistonPosX", pistonPosition.getX())
                 .putInt("pistonPosY", pistonPosition.getY())
-                .putInt("pistonPosZ", pistonPosition.getZ())
-                .putInt("x", position.getX())
-                .putInt("y", position.getY())
-                .putInt("z", position.getZ());
+                .putInt("pistonPosZ", pistonPosition.getZ());
         if (state.block() instanceof PistonBlock piston) {
             builder.putCompound("movingEntity", piston.createTag(session, position, state));
         }

@@ -26,6 +26,7 @@
 package org.geysermc.geyser.translator.level.block.entity;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.level.block.type.BlockState;
@@ -54,6 +55,10 @@ public abstract class BlockEntityTranslator {
 
     public static NbtMapBuilder getConstantBedrockTag(BlockEntityType type, int x, int y, int z) {
         return getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(type), x, y, z);
+    }
+
+    public static NbtMapBuilder getConstantBedrockTag(String bedrockId, Vector3i position) {
+        return getConstantBedrockTag(bedrockId, position.getX(), position.getY(), position.getZ());
     }
 
     public static NbtMapBuilder getConstantBedrockTag(String bedrockId, int x, int y, int z) {
