@@ -172,11 +172,6 @@ public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
     }
 
     @Override
-    public float getStepHeight() {
-        return 1.5f;
-    }
-
-    @Override
     public boolean canClimb() {
         return false;
     }

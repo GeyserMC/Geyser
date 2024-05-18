@@ -47,7 +47,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import java.util.UUID;
 
 public class PigEntity extends AnimalEntity implements ClientVehicle {
-    private final BoostableVehicleComponent<PigEntity> vehicleComponent = new BoostableVehicleComponent<>(this);
+    private final BoostableVehicleComponent<PigEntity> vehicleComponent = new BoostableVehicleComponent<>(this, 1.0f);
 
     public PigEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);

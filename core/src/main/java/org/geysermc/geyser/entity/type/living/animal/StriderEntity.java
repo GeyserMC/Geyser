@@ -50,7 +50,7 @@ import java.util.UUID;
 
 public class StriderEntity extends AnimalEntity implements ClientVehicle {
 
-    private final BoostableVehicleComponent<StriderEntity> vehicleComponent = new BoostableVehicleComponent<>(this);
+    private final BoostableVehicleComponent<StriderEntity> vehicleComponent = new BoostableVehicleComponent<>(this, 1.0f);
     private boolean isCold = false;
 
     public StriderEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {

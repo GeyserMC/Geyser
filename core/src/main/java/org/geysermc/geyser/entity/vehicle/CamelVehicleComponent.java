@@ -46,7 +46,7 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
     private int jumpBoost;
 
     public CamelVehicleComponent(CamelEntity vehicle) {
-        super(vehicle);
+        super(vehicle, 1.5f);
     }
 
     public void startDashCooldown() {

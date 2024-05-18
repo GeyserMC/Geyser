@@ -40,10 +40,6 @@ public interface ClientVehicle {
         return false;
     }
 
-    default float getStepHeight() {
-        return 1.0f;
-    }
-
     default boolean canClimb() {
         return true;
     }

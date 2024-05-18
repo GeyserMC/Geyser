@@ -32,8 +32,8 @@ public class BoostableVehicleComponent<T extends LivingEntity & ClientVehicle> e
     private int boostLength;
     private int boostTicks = 1;
 
-    public BoostableVehicleComponent(T vehicle) {
-        super(vehicle);
+    public BoostableVehicleComponent(T vehicle, float stepHeight) {
+        super(vehicle, stepHeight);
     }
 
     public void startBoost(int boostLength) {

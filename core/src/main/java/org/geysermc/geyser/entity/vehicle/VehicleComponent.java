@@ -73,12 +73,15 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     protected final T vehicle;
     protected final BoundingBox boundingBox;
 
+    protected float stepHeight;
     protected float moveSpeed;
     protected int levitation;
     protected boolean slowFalling;
 
-    public VehicleComponent(T vehicle) {
+    public VehicleComponent(T vehicle, float stepHeight) {
         this.vehicle = vehicle;
+        this.stepHeight = stepHeight;
+        this.moveSpeed = GeyserAttributeType.MOVEMENT_SPEED.getDefaultValue();
 
         double width = Double.parseDouble(Float.toString(vehicle.getBoundingBoxWidth()));
         double height = Double.parseDouble(Float.toString(vehicle.getBoundingBoxHeight()));
@@ -88,8 +91,6 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
                 vehicle.getPosition().getZ(),
                 width, height, width
         );
-
-        this.moveSpeed = GeyserAttributeType.MOVEMENT_SPEED.getDefaultValue();
     }
 
     public void setWidth(float width) {
@@ -136,6 +137,10 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return moveSpeed;
     }
 
+    public void setStepHeight(float stepHeight) {
+        this.stepHeight = MathUtils.clamp(stepHeight, 1.0f, 10.0f);
+    }
+
     public void onDismount() {
         //
     }
@@ -174,7 +179,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
 
         if (lavaHeight > 0 && vehicle.getDefinition().entityType() == EntityType.STRIDER) {
             Vector3i blockPos = boundingBox.getBottomCenter().toInt();
-            if (!CollisionManager.FLUID_COLLISION.isBelow(blockPos.getY(), boundingBox) || getBlock(boundingBox.getBottomCenter().toInt()) == Blocks.LAVA) {
+            if (!CollisionManager.FLUID_COLLISION.isBelow(blockPos.getY(), boundingBox) || getBlock(blockPos.up()) == Blocks.LAVA) {
                 vehicle.setMotion(vehicle.getMotion().mul(0.5f).add(0, 0.05f, 0));
             } else {
                 vehicle.setOnGround(true);
@@ -528,7 +533,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         }
 
         Vector3d correctedMovement = vehicle.getSession().getCollisionManager().correctMovement(
-                motion.toDouble(), boundingBox, vehicle.isOnGround(), vehicle.getStepHeight(), true, vehicle.canWalkOnLava()
+                motion.toDouble(), boundingBox, vehicle.isOnGround(), this.stepHeight, true, vehicle.canWalkOnLava()
         );
 
         boundingBox.translate(correctedMovement);
