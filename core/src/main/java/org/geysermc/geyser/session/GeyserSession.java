@@ -896,6 +896,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             this.downstream.getSession().setFlag(BuiltinFlags.ATTEMPT_SRV_RESOLVE, resolveSrv);
         }
 
+        // Disable automatic creation of a new TcpClientSession when transferring - we don't use that functionality.
+        this.downstream.getSession().setFlag(MinecraftConstants.FOLLOW_TRANSFERS, false);
+
         if (geyser.getConfig().getRemote().isUseProxyProtocol()) {
             downstream.setFlag(BuiltinFlags.ENABLE_CLIENT_PROXY_PROTOCOL, true);
             downstream.setFlag(BuiltinFlags.CLIENT_PROXIED_ADDRESS, upstream.getAddress());
