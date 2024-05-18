@@ -25,44 +25,27 @@
 
 package org.geysermc.geyser.level.block.type;
 
-import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectMaps;
-import org.geysermc.geyser.level.block.property.Property;
-import org.geysermc.geyser.registry.BlockRegistries;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtList;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.level.block.entity.BedrockChunkWantsBlockEntityTag;
+import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 
-public final class BlockState {
-    private final Block block;
-    private final int javaId;
-    private final Reference2ObjectMap<Property<?>, Comparable<?>> states;
-
-    BlockState(Block block, int javaId) {
-        this(block, javaId, Reference2ObjectMaps.emptyMap());
+public class CauldronBlock extends Block implements BedrockChunkWantsBlockEntityTag {
+    public CauldronBlock(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
     }
 
-    BlockState(Block block, int javaId, Reference2ObjectMap<Property<?>, Comparable<?>> states) {
-        this.block = block;
-        this.javaId = javaId;
-        this.states = states;
-    }
-
-    public <T extends Comparable<T>> T getValue(Property<T> property) {
-        //noinspection unchecked
-        return (T) states.get(property);
-    }
-
-    public Block block() {
-        return block;
-    }
-
-    public int javaId() {
-        return javaId;
-    }
-
-    public boolean is(Block block) {
-        return this.block == block;
-    }
-
-    public static BlockState of(int javaId) {
-        return BlockRegistries.BLOCK_STATES.get(javaId);
+    @Override
+    public NbtMap createTag(GeyserSession session, Vector3i position, BlockState blockState) {
+        // As of 1.18.30: this is required to make rendering not look weird on chunk load (lava and snow cauldrons look dim)
+        return BlockEntityTranslator.getConstantBedrockTag("Cauldron", position.getX(), position.getY(), position.getZ())
+                .putByte("isMovable", (byte) 0)
+                .putShort("PotionId", (short) -1)
+                .putShort("PotionType", (short) -1)
+                .putList("Items", NbtType.END, NbtList.EMPTY)
+                .build();
     }
 }

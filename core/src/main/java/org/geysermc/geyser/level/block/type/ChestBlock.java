@@ -25,44 +25,28 @@
 
 package org.geysermc.geyser.level.block.type;
 
-import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectMaps;
-import org.geysermc.geyser.level.block.property.Property;
-import org.geysermc.geyser.registry.BlockRegistries;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.geysermc.geyser.level.block.property.ChestType;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
+import org.geysermc.geyser.util.BlockEntityUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
-public final class BlockState {
-    private final Block block;
-    private final int javaId;
-    private final Reference2ObjectMap<Property<?>, Comparable<?>> states;
-
-    BlockState(Block block, int javaId) {
-        this(block, javaId, Reference2ObjectMaps.emptyMap());
+public class ChestBlock extends Block {
+    public ChestBlock(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
     }
 
-    BlockState(Block block, int javaId, Reference2ObjectMap<Property<?>, Comparable<?>> states) {
-        this.block = block;
-        this.javaId = javaId;
-        this.states = states;
-    }
+    @Override
+    public void updateBlock(GeyserSession session, BlockState state, Vector3i position) {
+        super.updateBlock(session, state, position);
 
-    public <T extends Comparable<T>> T getValue(Property<T> property) {
-        //noinspection unchecked
-        return (T) states.get(property);
-    }
-
-    public Block block() {
-        return block;
-    }
-
-    public int javaId() {
-        return javaId;
-    }
-
-    public boolean is(Block block) {
-        return this.block == block;
-    }
-
-    public static BlockState of(int javaId) {
-        return BlockRegistries.BLOCK_STATES.get(javaId);
+        if (state.getValue(Properties.CHEST_TYPE) != ChestType.SINGLE) {
+            NbtMapBuilder tagBuilder = BlockEntityTranslator.getConstantBedrockTag(BlockEntityType.CHEST, position.getX(), position.getY(), position.getZ());
+            BlockEntityUtils.getBlockEntityTranslator(BlockEntityType.CHEST).translateTag(session, tagBuilder, null, state); //TODO
+            BlockEntityUtils.updateBlockEntity(session, tagBuilder.build(), position);
+        }
     }
 }

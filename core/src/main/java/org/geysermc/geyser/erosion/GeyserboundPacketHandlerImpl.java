@@ -26,11 +26,12 @@
 package org.geysermc.geyser.erosion;
 
 import io.netty.channel.Channel;
+import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -44,6 +45,7 @@ import org.geysermc.erosion.packet.backendbound.BackendboundPacket;
 import org.geysermc.erosion.packet.geyserbound.*;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
@@ -153,9 +155,10 @@ public final class GeyserboundPacketHandlerImpl extends AbstractGeyserboundPacke
         var stream = packet.getAttachedBlocks()
                 .object2IntEntrySet()
                 .stream()
-                .filter(entry -> BlockStateValues.canPistonMoveBlock(entry.getIntValue(), isExtend));
-        Object2IntMap<Vector3i> attachedBlocks = new Object2IntArrayMap<>();
-        stream.forEach(entry -> attachedBlocks.put(entry.getKey(), entry.getIntValue()));
+                .map(entry -> Pair.of(entry.getKey(), BlockState.of(entry.getIntValue())))
+                .filter(pair -> BlockStateValues.canPistonMoveBlock(pair.value(), isExtend));
+        Object2ObjectMap<Vector3i, BlockState> attachedBlocks = new Object2ObjectOpenHashMap<>();
+        stream.forEach(pair -> attachedBlocks.put(pair.key(), pair.value()));
 
         session.executeInEventLoop(() -> {
             PistonCache pistonCache = session.getPistonCache();

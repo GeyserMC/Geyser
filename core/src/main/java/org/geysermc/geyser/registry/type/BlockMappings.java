@@ -35,6 +35,7 @@ import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
+import org.geysermc.geyser.level.block.type.BlockState;
 
 import java.util.List;
 import java.util.Map;
@@ -76,6 +77,10 @@ public class BlockMappings implements DefinitionRegistry<GeyserBedrockBlock> {
             return bedrockAir;
         }
         return this.javaToBedrockBlocks[javaState];
+    }
+
+    public GeyserBedrockBlock getBedrockBlock(BlockState javaState) {
+        return this.getBedrockBlock(javaState.javaId());
     }
 
     public GeyserBedrockBlock getVanillaBedrockBlock(int javaState) {

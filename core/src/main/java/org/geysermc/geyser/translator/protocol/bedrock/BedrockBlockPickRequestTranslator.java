@@ -25,13 +25,12 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import org.geysermc.geyser.level.block.type.Block;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.packet.BlockPickRequestPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -39,6 +38,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 @Translator(packet = BlockPickRequestPacket.class)
 public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPickRequestPacket> {
