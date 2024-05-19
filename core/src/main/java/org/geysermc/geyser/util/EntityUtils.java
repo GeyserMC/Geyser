@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.TextDisplayEntity;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
@@ -153,6 +154,12 @@ public final class EntityUtils {
      * Adjust an entity's height if they have mounted/dismounted an entity.
      */
     public static void updateMountOffset(Entity passenger, Entity mount, boolean rider, boolean riding, boolean moreThanOneEntity) {
+        if(passenger instanceof TextDisplayEntity) {
+            TextDisplayEntity d = (TextDisplayEntity) passenger;
+            if(d.baseTranslation == null) return; // still no meta
+            d.setRiderSeatPosition(d.baseTranslation.add(getMountOffset(passenger, mount)));
+            return;
+        }
         passenger.setFlag(EntityFlag.RIDING, riding);
         if (riding) {
             // Without the Y offset, Bedrock players will find themselves in the floor when mounting
@@ -226,6 +233,57 @@ public final class EntityUtils {
             passenger.setRiderSeatPosition(offset);
         }
     }
+
+    public static Vector3f getMountOffset(Entity passenger, Entity mount) {
+            // Without the Y offset, Bedrock players will find themselves in the floor when mounting
+            float mountedHeightOffset = getMountedHeightOffset(mount);
+            float heightOffset = getHeightOffset(passenger);
+
+            float xOffset = 0;
+            float yOffset = mountedHeightOffset + heightOffset;
+            float zOffset = 0;
+            switch (mount.getDefinition().entityType()) {
+                case CAMEL -> {
+                    zOffset = 0.5f;
+                    if (mount.getFlag(EntityFlag.SITTING)) {
+                        if (mount.getFlag(EntityFlag.BABY)) {
+                            yOffset += CamelEntity.SITTING_HEIGHT_DIFFERENCE * 0.5f;
+                        } else {
+                            yOffset += CamelEntity.SITTING_HEIGHT_DIFFERENCE;
+                        }
+                    }
+                }
+                case CHEST_BOAT -> xOffset = 0.15F;
+                case CHICKEN -> zOffset = -0.1f;
+                case TRADER_LLAMA, LLAMA -> zOffset = -0.3f;
+            }
+            /*
+             * Bedrock Differences
+             * Zoglin & Hoglin seem to be taller in Bedrock edition
+             * Horses are tinier
+             * Players, Minecarts, and Boats have different origins
+             */
+            if (mount.getDefinition().entityType() == EntityType.PLAYER) {
+                yOffset -= EntityDefinitions.PLAYER.offset();
+            }
+            if (passenger.getDefinition().entityType() == EntityType.PLAYER) {
+                yOffset += EntityDefinitions.PLAYER.offset();
+            }
+            switch (mount.getDefinition().entityType()) {
+                case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
+                        COMMAND_BLOCK_MINECART, BOAT, CHEST_BOAT -> yOffset -= mount.getDefinition().height() * 0.5f;
+            }
+            switch (passenger.getDefinition().entityType()) {
+                case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
+                        COMMAND_BLOCK_MINECART, BOAT, CHEST_BOAT -> yOffset += passenger.getDefinition().height() * 0.5f;
+                case FALLING_BLOCK -> yOffset += 0.5f;
+            }
+            if (mount instanceof ArmorStandEntity armorStand) {
+                yOffset -= armorStand.getYOffset();
+            }
+        return Vector3f.from(xOffset, yOffset, zOffset);
+    }
+
 
     public static void updateRiderRotationLock(Entity passenger, Entity mount, boolean isRiding) {
         if (isRiding && mount instanceof BoatEntity) {

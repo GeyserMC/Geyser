@@ -299,12 +299,12 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataType.INT, TNTEntity::setFuseLength)
                     .build();
 
-            EntityDefinition<Entity> displayBase = EntityDefinition.inherited(entityBase.factory(), entityBase)
+            EntityDefinition<DisplayBaseEntity> displayBase = EntityDefinition.inherited(DisplayBaseEntity::new, entityBase)
                     .addTranslator(null) // Interpolation delay
                     .addTranslator(null) // Transformation interpolation duration
                     .addTranslator(null) // Position/Rotation interpolation duration
-                    .addTranslator(null) // Translation
-                    .addTranslator(null) // Scale
+                    .addTranslator(MetadataType.VECTOR3, DisplayBaseEntity::setTranslation) // Translation
+                    .addTranslator(MetadataType.VECTOR3, DisplayBaseEntity::setScale) // Scale
                     .addTranslator(null) // Left rotation
                     .addTranslator(null) // Right rotation
                     .addTranslator(null) // Billboard render constraints
@@ -316,6 +316,8 @@ public final class EntityDefinitions {
                     .addTranslator(null) // Height
                     .addTranslator(null) // Glow color override
                     .build();
+
+
             TEXT_DISPLAY = EntityDefinition.inherited(TextDisplayEntity::new, displayBase)
                     .type(EntityType.TEXT_DISPLAY)
                     .identifier("minecraft:armor_stand")
