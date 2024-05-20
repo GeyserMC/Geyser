@@ -52,6 +52,12 @@ public class BlockMappings implements DefinitionRegistry<GeyserBedrockBlock> {
     GeyserBedrockBlock[] javaToBedrockBlocks;
     GeyserBedrockBlock[] javaToVanillaBedrockBlocks;
 
+    /**
+     * Java block ID -> Bedrock block ID (without minecraft:), IF they are different
+     * While Bedrock is progressing slowly through their flattening, some Bedrock identifiers may differ.
+     */
+    Int2ObjectMap<String> javaToBedrockIdentifiers;
+
     Map<NbtMap, GeyserBedrockBlock> stateDefinitionMap;
     GeyserBedrockBlock[] bedrockRuntimeMap;
     int[] remappedVanillaIds;

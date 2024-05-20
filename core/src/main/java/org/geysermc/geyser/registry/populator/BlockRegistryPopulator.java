@@ -236,6 +236,10 @@ public final class BlockRegistryPopulator {
             GeyserBedrockBlock[] javaToBedrockBlocks = new GeyserBedrockBlock[JAVA_BLOCKS_SIZE];
             GeyserBedrockBlock[] javaToVanillaBedrockBlocks = new GeyserBedrockBlock[JAVA_BLOCKS_SIZE];
 
+            //List<String> javaToBedrockIdentifiers = new ArrayList<>(BlockRegistries.JAVA_BLOCKS.get().size());
+            var javaToBedrockIdentifiers = new Int2ObjectOpenHashMap<String>();
+            Block lastBlockSeen = null;
+
             // Stream isn't ideal.
             List<Block> javaPottable = BlockRegistries.JAVA_BLOCKS.get()
                     .parallelStream()
@@ -291,27 +295,35 @@ public final class BlockRegistryPopulator {
                     case "minecraft:moving_piston[facing=north,type=normal]" -> movingBlockDefinition = bedrockDefinition;
                 }
 
-                if (blockState.block() == Blocks.JIGSAW) {
+                Block block = blockState.block();
+                if (block != lastBlockSeen) {
+                    lastBlockSeen = block;
+                    String bedrockName = bedrockDefinition.getState().getString("name");
+                    if (!block.javaIdentifier().toString().equals(bedrockName)) {
+                        javaToBedrockIdentifiers.put(block.javaId(), bedrockName.substring("minecraft:".length()).intern());
+                    }
+                }
+
+                if (block == Blocks.JIGSAW) {
                     jigsawDefinitions.add(bedrockDefinition);
                 }
 
-                if (blockState.block() == Blocks.STRUCTURE_BLOCK) {
+                if (block == Blocks.STRUCTURE_BLOCK) {
                     String mode = blockState.getValue(Properties.STRUCTUREBLOCK_MODE);
                     structureBlockDefinitions.put(mode.toUpperCase(Locale.ROOT), bedrockDefinition);
                 }
 
                 boolean waterlogged = blockState.getValue(Properties.WATERLOGGED, false)
-                        || blockState.block() == Blocks.BUBBLE_COLUMN || blockState.block() == Blocks.KELP || blockState.block() == Blocks.SEAGRASS;
+                        || block == Blocks.BUBBLE_COLUMN || block == Blocks.KELP || block == Blocks.SEAGRASS;
 
                 if (waterlogged) {
-                    int finalJavaRuntimeId = javaRuntimeId;
-                    BlockRegistries.WATERLOGGED.register(set -> set.set(finalJavaRuntimeId));
+                    BlockRegistries.WATERLOGGED.get().set(javaRuntimeId);
                 }
 
                 // Get the tag needed for non-empty flower pots
-                if (javaPottable.contains(blockState.block())) {
+                if (javaPottable.contains(block)) {
                     // Specifically NOT putIfAbsent - mangrove propagule breaks otherwise
-                    flowerPotBlocks.put(blockState.block(), blockStates.get(bedrockDefinition.getRuntimeId()));
+                    flowerPotBlocks.put(block, blockStates.get(bedrockDefinition.getRuntimeId()));
                 }
 
                 javaToVanillaBedrockBlocks[javaRuntimeId] = vanillaBedrockDefinition;
@@ -367,8 +379,11 @@ public final class BlockRegistryPopulator {
 
                     javaToVanillaBedrockBlocks[stateRuntimeId] = bedrockDefinition; // TODO: Check this?
                     javaToBedrockBlocks[stateRuntimeId] = bedrockDefinition;
+                    javaToBedrockIdentifiers.put(entry.getKey().stateGroupId(), entry.getValue().block().identifier());
                 }
             }
+
+            javaToBedrockIdentifiers.trim();
 
             // Loop around again to find all item frame runtime IDs
             Object2ObjectMaps.fastForEach(blockStateOrderedMap, entry -> {
@@ -381,6 +396,7 @@ public final class BlockRegistryPopulator {
             BlockRegistries.BLOCKS.register(palette.valueInt(), builder.bedrockRuntimeMap(bedrockRuntimeMap)
                     .javaToBedrockBlocks(javaToBedrockBlocks)
                     .javaToVanillaBedrockBlocks(javaToVanillaBedrockBlocks)
+                    .javaToBedrockIdentifiers(javaToBedrockIdentifiers)
                     .stateDefinitionMap(blockStateOrderedMap)
                     .itemFrames(itemFrames)
                     .flowerPotBlocks(flowerPotBlocks)
@@ -484,15 +500,9 @@ public final class BlockRegistryPopulator {
                 };
                 block.setJavaId(javaBlockState.stateGroupId());
 
-                String bedrockIdentifier = customBlockState.block().identifier();
-
                 BlockRegistries.JAVA_BLOCKS.get().add(javaBlockState.stateGroupId(), block); //TODO don't allow duplicates, allow blanks
                 BlockRegistries.JAVA_IDENTIFIER_TO_ID.register(javaId, stateRuntimeId);
                 BlockRegistries.BLOCK_STATES.register(stateRuntimeId, new BlockState(block, stateRuntimeId));
-
-                // Keeping this here since this is currently unchanged between versions
-                // It's possible to only have this store differences in names, but the key set of all Java names is used in sending command suggestions
-                BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.register(cleanJavaIdentifier.intern(), bedrockIdentifier.intern());
             }
         }
 

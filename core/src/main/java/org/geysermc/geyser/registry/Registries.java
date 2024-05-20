@@ -204,6 +204,5 @@ public final class Registries {
             biomesNbt.put(key, value.build());
         }
         BIOMES_NBT.set(biomesNbt.build());
-        System.out.println("Registries loaded");
     }
 }

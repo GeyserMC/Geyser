@@ -67,11 +67,6 @@ public class BlockRegistries {
     public static final ListRegistry<BlockState> BLOCK_STATES = ListRegistry.create(RegistryLoaders.empty(ArrayList::new));
 
     /**
-     * A mapped registry which stores Java to Bedrock block identifiers.
-     */
-    public static final SimpleMappedRegistry<String, String> JAVA_TO_BEDROCK_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
-
-    /**
      * A mapped registry containing which holds block IDs to its {@link BlockCollision}.
      */
     public static final ListRegistry<BlockCollision> COLLISIONS;
@@ -89,6 +84,9 @@ public class BlockRegistries {
 
     /**
      * A registry containing all the waterlogged blockstates.
+     * Properties.WATERLOGGED should not be relied on for two reasons:
+     * - Custom blocks
+     * - Seagrass, kelp, and bubble columns are assumed waterlogged and don't have a waterlogged property
      */
     public static final SimpleRegistry<BitSet> WATERLOGGED = SimpleRegistry.create(RegistryLoaders.empty(BitSet::new));
 
@@ -144,7 +142,6 @@ public class BlockRegistries {
         CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.CUSTOM_REGISTRATION);
         BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.INIT_BEDROCK);
         BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.POST_INIT);
-        System.out.println("Block registries loaded");
     }
 
     public static void init() {
