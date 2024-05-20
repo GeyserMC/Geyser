@@ -26,6 +26,7 @@
 package org.geysermc.geyser.entity.vehicle;
 
 import lombok.Setter;
+import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
@@ -110,6 +111,14 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
         }
 
         return inputVelocity;
+    }
+
+    @Override
+    protected Vector2f getVehicleRotation() {
+        if (isStationary()) {
+            return Vector2f.from(vehicle.getYaw(), vehicle.getPitch());
+        }
+        return super.getVehicleRotation();
     }
 
     /**

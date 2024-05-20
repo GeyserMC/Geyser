@@ -636,10 +636,14 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return Vector3f.from(input.getX() * cos - input.getY() * sin, 0, input.getY() * cos + input.getX() * sin);
     }
 
+    protected Vector2f getVehicleRotation() {
+        LivingEntity player = vehicle.getSession().getPlayerEntity();
+        return Vector2f.from(player.getYaw(), player.getPitch() * 0.5f);
+    }
+
     protected void moveVehicle(Vector3d javaPos, boolean isOnGround) {
         Vector3f bedrockPos = javaPos.toFloat();
-        float yaw = vehicle.getSession().getPlayerEntity().getYaw();
-        float pitch = vehicle.getSession().getPlayerEntity().getPitch() * 0.5f;
+        Vector2f rotation = getVehicleRotation();
 
         MoveEntityDeltaPacket moveEntityDeltaPacket = new MoveEntityDeltaPacket();
         moveEntityDeltaPacket.setRuntimeEntityId(vehicle.getGeyserId());
@@ -663,27 +667,27 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         }
         vehicle.setPosition(bedrockPos);
 
-        if (vehicle.getYaw() != yaw) {
+        if (vehicle.getYaw() != rotation.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
-            moveEntityDeltaPacket.setYaw(yaw);
-            vehicle.setYaw(yaw);
+            moveEntityDeltaPacket.setYaw(rotation.getX());
+            vehicle.setYaw(rotation.getX());
         }
-        if (vehicle.getPitch() != pitch) {
+        if (vehicle.getPitch() != rotation.getY()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
-            moveEntityDeltaPacket.setPitch(pitch);
-            vehicle.setPitch(pitch);
+            moveEntityDeltaPacket.setPitch(rotation.getY());
+            vehicle.setPitch(rotation.getY());
         }
-        if (vehicle.getHeadYaw() != yaw) { // Same as yaw
+        if (vehicle.getHeadYaw() != rotation.getX()) { // Same as yaw
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
-            moveEntityDeltaPacket.setHeadYaw(yaw);
-            vehicle.setHeadYaw(yaw);
+            moveEntityDeltaPacket.setHeadYaw(rotation.getX());
+            vehicle.setHeadYaw(rotation.getX());
         }
 
         if (!moveEntityDeltaPacket.getFlags().isEmpty()) {
             vehicle.getSession().sendUpstreamPacket(moveEntityDeltaPacket);
         }
 
-        ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(javaPos.getX(), javaPos.getY(), javaPos.getZ(), yaw, pitch);
+        ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(javaPos.getX(), javaPos.getY(), javaPos.getZ(), rotation.getX(), rotation.getY());
         vehicle.getSession().sendDownstreamPacket(moveVehiclePacket);
         vehicle.getSession().setLastVehicleMoveTimestamp(System.currentTimeMillis());
     }
