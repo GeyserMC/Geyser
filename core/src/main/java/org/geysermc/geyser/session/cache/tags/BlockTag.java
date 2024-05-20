@@ -36,7 +36,8 @@ public enum BlockTag {
     SHOVEL_EFFECTIVE("mineable/shovel"),
     NEEDS_STONE_TOOL("needs_stone_tool"),
     NEEDS_IRON_TOOL("needs_iron_tool"),
-    NEEDS_DIAMOND_TOOL("needs_diamond_tool");
+    NEEDS_DIAMOND_TOOL("needs_diamond_tool"),
+    CLIMBABLE("climbable");
     
     BlockTag(String identifier) {
         register(identifier, this);

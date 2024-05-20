@@ -44,9 +44,11 @@ import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BedBlock;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.block.type.TrapDoorBlock;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.level.physics.Direction;
+import org.geysermc.geyser.session.cache.tags.BlockTag;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.translator.collision.SolidCollision;
 import org.geysermc.geyser.util.BlockUtils;
@@ -379,7 +381,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
 
     protected void landMovement() {
         float gravity = getGravity();
-        float slipperiness = BlockStateValues.getSlipperiness(getBlockId(getVelocityAffectingPos()));
+        float slipperiness = BlockStateValues.getSlipperiness(getBlockState(getVelocityAffectingPos()));
         float drag = vehicle.isOnGround() ? 0.91f * slipperiness : 0.91f;
         float speed = vehicle.getVehicleSpeed() * (vehicle.isOnGround() ? BASE_SLIPPERINESS_CUBED / (slipperiness * slipperiness * slipperiness) : 0.1f);
 
@@ -595,17 +597,17 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         }
 
         Vector3i blockPos = boundingBox.getBottomCenter().toInt();
-        int blockId = getBlockId(blockPos);
+        BlockState blockState = getBlockState(blockPos);
 
-        if (BlockStateValues.isClimbable(blockId)) {
+        if (vehicle.getSession().getTagCache().is(BlockTag.CLIMBABLE, blockState.block())) {
             return true;
         }
 
         // Check if the vehicle is in an open trapdoor with a ladder of the same direction under it
-        Direction openTrapdoorDirection = BlockStateValues.getOpenTrapdoorDirection(blockId);
-        if (openTrapdoorDirection != null) {
-            BlockState ladder = getBlockState(blockPos.down());
-            return ladder.is(Blocks.LADDER) && ladder.getValue(Properties.HORIZONTAL_FACING) == openTrapdoorDirection;
+        if (blockState.block() instanceof TrapDoorBlock && blockState.getValue(Properties.OPEN)) {
+            BlockState ladderState = getBlockState(blockPos.down());
+            return ladderState.is(Blocks.LADDER) &&
+                    ladderState.getValue(Properties.HORIZONTAL_FACING) == blockState.getValue(Properties.HORIZONTAL_FACING);
         }
 
         return false;

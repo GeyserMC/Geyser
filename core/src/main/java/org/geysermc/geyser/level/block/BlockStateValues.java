@@ -28,7 +28,6 @@ package org.geysermc.geyser.level.block;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
@@ -50,8 +49,6 @@ public final class BlockStateValues {
     private static final IntSet ALL_PISTON_HEADS = new IntOpenHashSet();
     private static final Int2IntMap WATER_LEVEL = new Int2IntOpenHashMap();
     private static final Int2IntMap LAVA_LEVEL = new Int2IntOpenHashMap();
-    private static final IntSet ALL_CLIMBABLE = new IntOpenHashSet();
-    private static final Int2ObjectMap<Direction> OPEN_TRAPDOOR_DIRECTION = new Int2ObjectOpenHashMap<>();
 
     public static int JAVA_WATER_ID;
 
@@ -98,14 +95,6 @@ public final class BlockStateValues {
             if (direction.isHorizontal()) {
                 HORIZONTAL_FACING_JIGSAWS.add(javaBlockState);
             }
-        }
-
-        if (javaId.contains("vine") || javaId.startsWith("minecraft:ladder") || javaId.startsWith("minecraft:scaffolding")) {
-            ALL_CLIMBABLE.add(javaBlockState);
-        }
-
-        if (javaId.contains("_trapdoor[") && javaId.contains("open=true")) {
-            OPEN_TRAPDOOR_DIRECTION.put(javaBlockState, getBlockDirection(javaId));
         }
     }
 
@@ -288,10 +277,6 @@ public final class BlockStateValues {
         return -1;
     }
 
-    public static boolean isClimbable(int state) {
-        return ALL_CLIMBABLE.contains(state);
-    }
-
     /**
      * Get the slipperiness of a block.
      * This is used in ItemEntity to calculate the friction on an item as it slides across the ground
@@ -311,17 +296,6 @@ public final class BlockStateValues {
             return 0.989f;
         }
         return 0.6f;
-    }
-
-    /**
-     * Get the direction of an open trapdoor.
-     * Used when determining if an entity is climbing
-     *
-     * @param state BlockState of the block
-     * @return The open trapdoor's direction, or null if not an open trapdoor
-     */
-    public static @Nullable Direction getOpenTrapdoorDirection(int state) {
-        return OPEN_TRAPDOOR_DIRECTION.get(state);
     }
 
     private static Direction getBlockDirection(String javaId) {
