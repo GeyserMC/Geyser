@@ -102,11 +102,8 @@ public class PigEntity extends AnimalEntity implements ClientVehicle {
     }
 
     @Override
-    public boolean isClientControlled() {
-        return getFlag(EntityFlag.SADDLED)
-                && !passengers.isEmpty()
-                && passengers.get(0) == session.getPlayerEntity()
-                && session.getPlayerInventory().isHolding(Items.CARROT_ON_A_STICK);
+    public Vector2f getAdjustedInput(Vector2f input) {
+        return Vector2f.UNIT_Y;
     }
 
     @Override
@@ -115,7 +112,10 @@ public class PigEntity extends AnimalEntity implements ClientVehicle {
     }
 
     @Override
-    public Vector2f getAdjustedInput(Vector2f input) {
-        return Vector2f.UNIT_Y;
+    public boolean isClientControlled() {
+        return getFlag(EntityFlag.SADDLED)
+                && !passengers.isEmpty()
+                && passengers.get(0) == session.getPlayerEntity()
+                && session.getPlayerInventory().isHolding(Items.CARROT_ON_A_STICK);
     }
 }

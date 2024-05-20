@@ -55,7 +55,7 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
     }
 
     @Override
-    public void tickVehicle() {
+    public boolean tickVehicle() {
         if (this.dashTick != 0) {
             if (vehicle.getSession().getTicks() > this.dashTick) {
                 vehicle.setFlag(EntityFlag.HAS_DASH_COOLDOWN, false);
@@ -68,7 +68,7 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
         vehicle.setFlag(EntityFlag.CAN_DASH, vehicle.getFlag(EntityFlag.SADDLED) && !isStationary());
         vehicle.updateBedrockMetadata();
 
-        super.tickVehicle();
+        return super.tickVehicle();
     }
 
     @Override

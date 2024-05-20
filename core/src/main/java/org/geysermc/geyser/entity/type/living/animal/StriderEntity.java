@@ -144,26 +144,26 @@ public class StriderEntity extends AnimalEntity implements ClientVehicle {
     }
 
     @Override
-    public @NonNull VehicleComponent<?> getVehicleComponent() {
+    public VehicleComponent<?> getVehicleComponent() {
         return vehicleComponent;
     }
 
     @Override
-    public @NonNull Vector2f getAdjustedInput(Vector2f input) {
+    public Vector2f getAdjustedInput(Vector2f input) {
         return Vector2f.UNIT_Y;
-    }
-
-    @Override
-    public boolean isClientControlled() {
-        // Does not require saddle
-        return !passengers.isEmpty()
-                && passengers.get(0) == session.getPlayerEntity()
-                && session.getPlayerInventory().isHolding(Items.WARPED_FUNGUS_ON_A_STICK);
     }
 
     @Override
     public float getVehicleSpeed() {
         return vehicleComponent.getMoveSpeed() * (isCold ? 0.35f : 0.55f) * vehicleComponent.getBoostMultiplier();
+    }
+
+    @Override
+    public boolean isClientControlled() {
+        return getFlag(EntityFlag.SADDLED)
+                && !passengers.isEmpty()
+                && passengers.get(0) == session.getPlayerEntity()
+                && session.getPlayerInventory().isHolding(Items.WARPED_FUNGUS_ON_A_STICK);
     }
 
     @Override

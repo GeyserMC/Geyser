@@ -147,9 +147,9 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         //
     }
 
-    public void tickVehicle() {
+    public boolean tickVehicle() {
         if (!vehicle.isClientControlled()) {
-            return;
+            return false;
         }
 
         ObjectDoublePair<Fluid> fluidHeight = updateFluidMovement();
@@ -164,6 +164,8 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
             }
             case EMPTY -> landMovement();
         }
+
+        return true;
     }
 
     protected ObjectDoublePair<Fluid> updateFluidMovement() {

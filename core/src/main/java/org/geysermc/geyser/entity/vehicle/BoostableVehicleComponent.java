@@ -38,12 +38,12 @@ public class BoostableVehicleComponent<T extends LivingEntity & ClientVehicle> e
 
     public void startBoost(int boostLength) {
         this.boostLength = boostLength;
-        this.boostTicks = 0;
+        this.boostTicks = 1;
     }
 
     public float getBoostMultiplier() {
         if (isBoosting()) {
-            return 1.0f + 1.15f * TrigMath.sin((float)boostTicks / (float)boostLength * TrigMath.PI);
+            return 1.0f + 1.15f * TrigMath.sin((float) boostTicks / (float) boostLength * TrigMath.PI);
         }
         return 1.0f;
     }
@@ -53,10 +53,12 @@ public class BoostableVehicleComponent<T extends LivingEntity & ClientVehicle> e
     }
 
     @Override
-    public void tickVehicle() {
-        super.tickVehicle();
-        if (isBoosting()) {
+    public boolean tickVehicle() {
+        boolean clientControlled = super.tickVehicle();
+        if (clientControlled && isBoosting()) {
             boostTicks++;
         }
+
+        return clientControlled;
     }
 }
