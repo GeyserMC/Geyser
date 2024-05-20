@@ -27,28 +27,58 @@ package org.geysermc.geyser.level.block.type;
 
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
-import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
 
 public class SkullBlock extends Block {
-    public SkullBlock(String javaIdentifier, Builder builder) {
+    private final Type type;
+
+    public SkullBlock(String javaIdentifier, Type type, Builder builder) {
         super(javaIdentifier, builder);
+        this.type = type;
     }
 
     @Override
     protected void sendBlockUpdatePacket(GeyserSession session, BlockState state, BlockDefinition definition, Vector3i position) {
-        int skullVariant = BlockStateValues.getSkullVariant(state.javaId()); // TODO
-        if (skullVariant == -1) {
-            // Skull is gone
-            session.getSkullCache().removeSkull(position);
-        } else if (skullVariant == 3) {
+        if (this.type == Type.PLAYER) {
             // The changed block was a player skull so check if a custom block was defined for this skull
-            SkullCache.Skull skull = session.getSkullCache().updateSkull(position, state.javaId());
+            SkullCache.Skull skull = session.getSkullCache().updateSkull(position, state);
             if (skull != null && skull.getBlockDefinition() != null) {
                 definition = skull.getBlockDefinition();
             }
         }
         super.sendBlockUpdatePacket(session, state, definition, position);
+    }
+
+    @Override
+    protected void checkForEmptySkull(GeyserSession session, BlockState state, Vector3i position) {
+        // It's not an empty skull.
+    }
+
+    public Type skullType() {
+        return type;
+    }
+
+    /**
+     * Enum order matches Java.
+     */
+    public enum Type {
+        SKELETON(0),
+        WITHER_SKELETON(1),
+        PLAYER(3),
+        ZOMBIE(2),
+        CREEPER(4),
+        PIGLIN(6),
+        DRAGON(5);
+
+        private final int bedrockId;
+
+        Type(int bedrockId) {
+            this.bedrockId = bedrockId;
+        }
+
+        public int bedrockId() {
+            return bedrockId;
+        }
     }
 }

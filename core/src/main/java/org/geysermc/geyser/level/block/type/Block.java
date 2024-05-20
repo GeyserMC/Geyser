@@ -25,45 +25,61 @@
 
 package org.geysermc.geyser.level.block.type;
 
-import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectMaps;
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.property.Property;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.Identifier;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.intellij.lang.annotations.Subst;
 
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class Block {
     public static final int JAVA_AIR_ID = 0;
 
-    private final String javaIdentifier;
+    private final Key javaIdentifier;
+    /**
+     * Can you harvest this with your hand.
+     */
     private final boolean requiresCorrectToolForDrops;
     private final boolean hasBlockEntity;
     private final float destroyTime;
     private final @NonNull PistonBehavior pushReaction;
+    /**
+     * Used for classes we don't have implemented yet that override Mojmap getCloneItemStack with their own item.
+     * A supplier prevents any issues arising where the Items class finishes before the Blocks class.
+     */
+    private final Supplier<Item> pickItem;
+    protected Item item = null;
     private int javaId = -1;
 
-    public Block(String javaIdentifier, Builder builder) {
-        this.javaIdentifier = Identifier.formalize(javaIdentifier).intern();
+    public Block(@Subst("empty") String javaIdentifier, Builder builder) {
+        this.javaIdentifier = Key.key(javaIdentifier);
         this.requiresCorrectToolForDrops = builder.requiresCorrectToolForDrops;
         this.hasBlockEntity = builder.hasBlockEntity;
         this.destroyTime = builder.destroyTime;
         this.pushReaction = builder.pushReaction;
-        builder.build(this);
+        this.pickItem = builder.pickItem;
+        processStates(builder.build(this));
     }
 
     public void updateBlock(GeyserSession session, BlockState state, Vector3i position) {
+        checkForEmptySkull(session, state, position);
+
         BlockDefinition definition = session.getBlockMappings().getBedrockBlock(state);
         sendBlockUpdatePacket(session, state, definition, position);
 
@@ -122,6 +138,13 @@ public class Block {
         session.sendUpstreamPacket(waterPacket);
     }
 
+    protected void checkForEmptySkull(GeyserSession session, BlockState state, Vector3i position) {
+        if (!(state.block() instanceof SkullBlock)) {
+            // Skull is gone
+            session.getSkullCache().removeSkull(position);
+        }
+    }
+
     protected void handleLecternBlockUpdate(GeyserSession session, BlockState state, Vector3i position) {
         // Block state is out of bounds of this map - lectern has been destroyed, if it existed
         if (!session.getGeyser().getWorldManager().shouldExpectLecternHandled(session)) {
@@ -129,7 +152,28 @@ public class Block {
         }
     }
 
-    public String javaIdentifier() {
+    public Item asItem() {
+        if (this.item == null) {
+            return this.item = Item.byBlock(this);
+        }
+        return this.item;
+    }
+
+    public ItemStack pickItem(BlockState state) {
+        if (this.pickItem != null) {
+            return new ItemStack(this.pickItem.get().javaId());
+        }
+        return new ItemStack(this.asItem().javaId());
+    }
+
+    /**
+     * A list of BlockStates is created pertaining to this block. Do we need any of them? If so, override this method.
+     */
+    protected void processStates(List<BlockState> states) {
+    }
+
+    @NonNull
+    public Key javaIdentifier() {
         return javaIdentifier;
     }
 
@@ -163,7 +207,7 @@ public class Block {
 
     @Override
     public String toString() {
-        return "Item{" +
+        return "Block{" +
                 "javaIdentifier='" + javaIdentifier + '\'' +
                 ", javaId=" + javaId +
                 '}';
@@ -179,6 +223,7 @@ public class Block {
         private boolean hasBlockEntity = false;
         private PistonBehavior pushReaction = PistonBehavior.NORMAL;
         private float destroyTime;
+        private Supplier<Item> pickItem;
 
         /**
          * For states that we're just tracking for mirroring Java states.
@@ -229,14 +274,32 @@ public class Block {
             return this;
         }
 
-        private void build(Block block) {
+        public Builder pickItem(Supplier<Item> pickItem) {
+            this.pickItem = pickItem;
+            return this;
+        }
+
+        private List<BlockState> build(Block block) {
             if (states.isEmpty()) {
-                BlockRegistries.BLOCK_STATES.get().add(new BlockState(block, BlockRegistries.BLOCK_STATES.get().size()));
+                BlockState state = new BlockState(block, BlockRegistries.BLOCK_STATES.get().size());
+                BlockRegistries.BLOCK_STATES.get().add(state);
+                return List.of(state);
+            } else if (states.size() == 1) {
+                // We can optimize because we don't need to worry about combinations
+                Map.Entry<Property<?>, List<Comparable<?>>> property = this.states.entrySet().stream().findFirst().orElseThrow();
+                List<BlockState> states = new ArrayList<>(property.getValue().size());
+                property.getValue().forEach(value -> {
+                    Reference2ObjectMap<Property<?>, Comparable<?>> propertyMap = Reference2ObjectMaps.singleton(property.getKey(), value);
+                    BlockState state = new BlockState(block, BlockRegistries.BLOCK_STATES.get().size(), propertyMap);
+                    BlockRegistries.BLOCK_STATES.get().add(state);
+                    states.add(state);
+                });
+                return states;
             } else {
                 // Think of this stream as another list containing, at the start, one empty list.
                 // It's two collections. Not a stream from the empty list.
-                Stream<List<Pair<Property<?>, Comparable<?>>>> stream = Stream.of(Collections.emptyList());
-                for (var state : this.states.entrySet()) {
+                Stream<List<Comparable<?>>> stream = Stream.of(Collections.emptyList());
+                for (var values : this.states.values()) {
                     // OK, so here's how I understand this works. Because this was staring at vanilla Java code trying
                     // to figure out exactly how it works so we don't have any discrepencies.
                     // For each existing pair in the list, a new list is created, adding one of the new values.
@@ -247,24 +310,29 @@ public class Block {
                             // or it may be populated if this is not the first property.
                             // We're about to create a new stream, each with a new list,
                             // for every previous property
-                            state.getValue().stream().map(value -> {
+                            values.stream().map(value -> {
                                 var newProperties = new ArrayList<>(aPreviousPropertiesList);
-                                newProperties.add(Pair.of(state.getKey(), value));
+                                newProperties.add(value);
                                 return newProperties;
                             }));
                 }
 
+                List<BlockState> states = new ArrayList<>();
                 // Now we have a list of Pair<Property, Value>s. Each list is a block state!
                 // If we have two boolean properties: up [true/false] and down [true/false],
                 // We'll see [up=true,down=true], [up=false,down=true], [up=true,down=false], [up=false,down=false]
-                stream.forEach(properties -> {
-                    Reference2ObjectMap<Property<?>, Comparable<?>> propertyMap = new Reference2ObjectArrayMap<>(properties.size());
-                    for (int i = 0; i < properties.size(); i++) {
-                        Pair<Property<?>, Comparable<?>> property = properties.get(i);
-                        propertyMap.put(property.key(), property.value());
-                    }
-                    BlockRegistries.BLOCK_STATES.get().add(new BlockState(block, BlockRegistries.BLOCK_STATES.get().size(), propertyMap));
+                List<List<Comparable<?>>> result = stream.toList();
+                // Ensure each block state shares the same key array. Creating a keySet here shouldn't be an issue since
+                // this states map should be removed after build.
+                Property<?>[] keys = this.states.keySet().toArray(new Property<?>[0]);
+                result.forEach(properties -> {
+                    Comparable<?>[] values = properties.toArray(new Comparable<?>[0]);
+                    Reference2ObjectMap<Property<?>, Comparable<?>> propertyMap = new Reference2ObjectArrayMap<>(keys, values);
+                    BlockState state = new BlockState(block, BlockRegistries.BLOCK_STATES.get().size(), propertyMap);
+                    BlockRegistries.BLOCK_STATES.get().add(state);
+                    states.add(state);
                 });
+                return states;
             }
         }
 

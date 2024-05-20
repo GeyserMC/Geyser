@@ -38,12 +38,12 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.Blocks;
+import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
@@ -180,9 +180,8 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
 
                 // Account for fire - the client likes to hit the block behind.
                 Vector3i fireBlockPos = BlockUtils.getBlockPosition(vector, packet.getFace());
-                int blockUp = session.getGeyser().getWorldManager().getBlockAt(session, fireBlockPos);
-                String identifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(blockUp, BlockMapping.DEFAULT).getJavaIdentifier();
-                if (identifier.startsWith("minecraft:fire") || identifier.startsWith("minecraft:soul_fire")) {
+                Block block = session.getGeyser().getWorldManager().blockAt(session, fireBlockPos).block();
+                if (block == Blocks.FIRE || block == Blocks.SOUL_FIRE) {
                     ServerboundPlayerActionPacket startBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.START_DIGGING, fireBlockPos,
                             Direction.VALUES[packet.getFace()], session.getWorldCache().nextPredictionSequence());
                     session.sendDownstreamGamePacket(startBreakingPacket);
@@ -336,9 +335,9 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                     break;
                 }
                 
-                int interactedBlock = session.getGeyser().getWorldManager().getBlockAt(session, vector);
+                BlockState state = session.getGeyser().getWorldManager().blockAt(session, vector);
                 
-                if (BlockStateValues.getLecternBookStates().getOrDefault(interactedBlock, false)) {
+                if (state.getValue(Properties.HAS_BOOK, false)) {
                     session.setDroppingLecternBook(true);
 
                     ServerboundUseItemOnPacket blockPacket = new ServerboundUseItemOnPacket(
@@ -352,16 +351,13 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                     break;
                 }
 
-                if (session.getItemFrameCache().containsKey(vector)) {
-                    Entity itemFrame = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
-
-                    if (itemFrame != null) {
-                        ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(itemFrame.getEntityId(),
-                                InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
-                        session.sendDownstreamGamePacket(interactPacket);
-                    }
-                    break;
+                Entity itemFrame = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
+                if (itemFrame != null) {
+                    ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(itemFrame.getEntityId(),
+                            InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
+                    session.sendDownstreamGamePacket(interactPacket);
                 }
+                break;
         }
     }
 }

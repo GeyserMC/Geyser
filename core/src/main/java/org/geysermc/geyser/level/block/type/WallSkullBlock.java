@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,28 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.type;
+package org.geysermc.geyser.level.block.type;
 
-import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.physics.Direction;
 
-public class BlockItem extends Item {
-    public BlockItem(Builder builder, Block block, Block... otherBlocks) {
-        super(block.javaIdentifier().value(), builder);
-
-        // Ensure this item can be looked up by its block(s)
-        registerBlock(block, this);
-        for (Block otherBlock : otherBlocks) {
-            registerBlock(otherBlock, this);
-        }
+public class WallSkullBlock extends SkullBlock {
+    public WallSkullBlock(String javaIdentifier, Type type, Builder builder) {
+        super(javaIdentifier, type, builder);
     }
 
-    // Use this constructor if the item name is not the same as its primary block
-    public BlockItem(String javaIdentifier, Builder builder, Block block, Block... otherBlocks) {
-        super(javaIdentifier, builder);
+    public static int getDegrees(BlockState state) {
+        return getDegrees(state.getValue(Properties.HORIZONTAL_FACING));
+    }
 
-        registerBlock(block, this);
-        for (Block otherBlock : otherBlocks) {
-            registerBlock(otherBlock, this);
-        }
+    public static int getDegrees(Direction direction) {
+        return switch (direction) {
+            case NORTH -> 180;
+            case WEST -> 90;
+            case EAST -> 270;
+            case SOUTH -> 0;
+            default -> throw new IllegalStateException();
+        };
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,18 +23,34 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.level.block;
+package org.geysermc.geyser.level.block.type;
 
-/**
- * This stores all values of double chests that are part of the Java block state.
- *
- * @param isFacingEast If true, then chest is facing east/west; if false, south/north
- * @param isDirectionPositive If true, direction is positive (east/south); if false, direction is negative (west/north)
- * @param isLeft If true, chest is the left of a pair; if false, chest is the right of a pair.
- */
-public record DoubleChestValue(
-        boolean isFacingEast,
-        boolean isDirectionPositive,
-        boolean isLeft) {
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.physics.Direction;
 
+import java.util.List;
+
+public class FurnaceBlock extends Block {
+    private static BlockState LIT;
+    private static BlockState UNLIT;
+
+    public FurnaceBlock(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
+    }
+
+    @Override
+    protected void processStates(List<BlockState> states) {
+        LIT = states.stream()
+                .filter(state -> state.getValue(Properties.HORIZONTAL_FACING) == Direction.NORTH
+                        && state.getValue(Properties.LIT))
+                .findFirst().orElseThrow();
+        UNLIT = states.stream()
+                .filter(state -> state.getValue(Properties.HORIZONTAL_FACING) == Direction.NORTH
+                        && !state.getValue(Properties.LIT))
+                .findFirst().orElseThrow();
+    }
+
+    public static BlockState state(boolean lit) {
+        return lit ? LIT : UNLIT;
+    }
 }

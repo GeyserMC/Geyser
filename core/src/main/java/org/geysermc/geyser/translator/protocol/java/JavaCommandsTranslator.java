@@ -59,6 +59,7 @@ import java.util.*;
 @Translator(packet = ClientboundCommandsPacket.class)
 public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommandsPacket> {
 
+    private static final String[] ALL_BLOCK_NAMES = BlockRegistries.JAVA_BLOCKS.get().stream().map(block -> block.javaIdentifier().toString()).toArray(String[]::new);
     private static final String[] ALL_EFFECT_IDENTIFIERS = EntityUtils.getAllEffectIdentifiers();
     private static final String[] ATTRIBUTES = AttributeType.Builtin.BUILTIN.values().stream().map(AttributeType::getIdentifier).toList().toArray(new String[0]);
     private static final String[] ENUM_BOOLEAN = {"true", "false"};
@@ -246,7 +247,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             case RESOURCE_LOCATION, FUNCTION -> CommandParam.FILE_PATH;
             case BOOL -> ENUM_BOOLEAN;
             case OPERATION -> CommandParam.OPERATOR; // ">=", "==", etc
-            case BLOCK_STATE -> context.getBlockStates();
+            case BLOCK_STATE -> ALL_BLOCK_NAMES;
             case ITEM_STACK -> context.getItemNames();
             case COLOR -> VALID_COLORS;
             case SCOREBOARD_SLOT -> VALID_SCOREBOARD_SLOTS;
@@ -286,7 +287,6 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         private final GeyserSession session;
         private Object biomesWithTags;
         private Object biomesNoTags;
-        private String[] blockStates;
         private String[] entityTypes;
         private String[] itemNames;
         private CommandEnumData teams;
@@ -311,13 +311,6 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
 
             String[] identifiers = session.getGeyser().getWorldManager().getBiomeIdentifiers(true);
             return (biomesWithTags = identifiers != null ? identifiers : CommandParam.STRING);
-        }
-
-        private String[] getBlockStates() {
-            if (blockStates != null) {
-                return blockStates;
-            }
-            return (blockStates = BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.get().keySet().toArray(new String[0]));
         }
 
         private String[] getEntityTypes() {

@@ -94,9 +94,9 @@ public class StatisticsUtils {
 
                                     for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof BreakBlockStatistic statistic) {
-                                            Block block = BlockRegistries.JAVA_BLOCKS_TO_RENAME.get(statistic.getId());
+                                            Block block = BlockRegistries.JAVA_BLOCKS.get(statistic.getId());
                                             if (block != null) {
-                                                String identifier = block.javaIdentifier().replace("minecraft:", "block.minecraft.");
+                                                String identifier = "block.minecraft." + block.javaIdentifier().value();
                                                 content.add(identifier + ": " + entry.getIntValue());
                                             }
                                         }

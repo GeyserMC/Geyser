@@ -36,8 +36,9 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.LecternContainer;
+import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.util.BlockUtils;
@@ -59,12 +60,14 @@ public class BlockInventoryHolder extends InventoryHolder {
     private final ContainerType containerType;
     private final Set<String> validBlocks;
 
-    public BlockInventoryHolder(String javaBlockIdentifier, ContainerType containerType, String... validBlocks) {
+    public BlockInventoryHolder(String javaBlockIdentifier, ContainerType containerType, Block... validBlocks) {
         this.defaultJavaBlockState = BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().getInt(javaBlockIdentifier);
         this.containerType = containerType;
         if (validBlocks != null) {
             Set<String> validBlocksTemp = new HashSet<>(validBlocks.length + 1);
-            Collections.addAll(validBlocksTemp, validBlocks);
+            for (Block block : validBlocks) {
+                validBlocksTemp.add(block.javaIdentifier().toString());
+            }
             validBlocksTemp.add(BlockUtils.getCleanIdentifier(javaBlockIdentifier));
             this.validBlocks = Set.copyOf(validBlocksTemp);
         } else {
@@ -80,14 +83,15 @@ public class BlockInventoryHolder extends InventoryHolder {
         if (checkInteractionPosition(session)) {
             // Then, check to see if the interacted block is valid for this inventory by ensuring the block state identifier is valid
             // and the bedrock block is vanilla
-            int javaBlockId = session.getGeyser().getWorldManager().getBlockAt(session, session.getLastInteractionBlockPosition());
-            if (!BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get().containsKey(javaBlockId)) {
-                String[] javaBlockString = BlockRegistries.JAVA_BLOCKS.getOrDefault(javaBlockId, BlockMapping.DEFAULT).getJavaIdentifier().split("\\[");
+            BlockState state = session.getGeyser().getWorldManager().blockAt(session, session.getLastInteractionBlockPosition());
+            if (!BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get().containsKey(state.javaId())) {
+                // TODO TODO TODO
+                String[] javaBlockString = state.toString().split("\\[");
                 if (isValidBlock(javaBlockString)) {
                     // We can safely use this block
                     inventory.setHolderPosition(session.getLastInteractionBlockPosition());
-                    ((Container) inventory).setUsingRealBlock(true, javaBlockString[0]);
-                    setCustomName(session, session.getLastInteractionBlockPosition(), inventory, javaBlockId);
+                    ((Container) inventory).setUsingRealBlock(true, state.block());
+                    setCustomName(session, session.getLastInteractionBlockPosition(), inventory, state);
 
                     return true;
                 }
@@ -107,7 +111,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         session.sendUpstreamPacket(blockPacket);
         inventory.setHolderPosition(position);
 
-        setCustomName(session, position, inventory, defaultJavaBlockState);
+        setCustomName(session, position, inventory, BlockState.of(defaultJavaBlockState));
 
         return true;
     }
@@ -129,7 +133,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         return this.validBlocks.contains(javaBlockString[0]);
     }
 
-    protected void setCustomName(GeyserSession session, Vector3i position, Inventory inventory, int javaBlockState) {
+    protected void setCustomName(GeyserSession session, Vector3i position, Inventory inventory, BlockState javaBlockState) {
         NbtMap tag = NbtMap.builder()
                 .putInt("x", position.getX())
                 .putInt("y", position.getY())

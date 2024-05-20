@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.level.block;
 
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.block.property.ChestType;
 import org.geysermc.geyser.level.block.type.*;
 import org.geysermc.geyser.level.physics.Axis;
@@ -82,7 +83,7 @@ public final class Blocks {
             .intState(STAGE, 0, 1)
             .booleanState(WATERLOGGED)));
     public static final Block BEDROCK = register(new Block("bedrock", builder().destroyTime(-1.0f)));
-    public static final Block WATER = register(new Block("water", builder().destroyTime(100.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block WATER = register(new WaterBlock("water", builder().destroyTime(100.0f).pushReaction(PistonBehavior.DESTROY)
             .intState(LEVEL, 0, 15)));
     public static final Block LAVA = register(new Block("lava", builder().destroyTime(100.0f).pushReaction(PistonBehavior.DESTROY)
             .intState(LEVEL, 0, 15)));
@@ -308,7 +309,7 @@ public final class Blocks {
     public static final Block FERN = register(new Block("fern", builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block DEAD_BUSH = register(new Block("dead_bush", builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block SEAGRASS = register(new Block("seagrass", builder().pushReaction(PistonBehavior.DESTROY)));
-    public static final Block TALL_SEAGRASS = register(new Block("tall_seagrass", builder().pushReaction(PistonBehavior.DESTROY)
+    public static final Block TALL_SEAGRASS = register(new Block("tall_seagrass", builder().pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.SEAGRASS)
             .enumState(DOUBLE_BLOCK_HALF, "upper", "lower")));
     public static final Block PISTON = register(new PistonBlock("piston", builder().destroyTime(1.5f).pushReaction(PistonBehavior.BLOCK)
             .booleanState(EXTENDED)
@@ -379,7 +380,7 @@ public final class Blocks {
             .booleanState(UP)
             .booleanState(WEST)));
     public static final Block SOUL_FIRE = register(new Block("soul_fire", builder().pushReaction(PistonBehavior.DESTROY)));
-    public static final Block SPAWNER = register(new Block("spawner", builder().setBlockEntity().requiresCorrectToolForDrops().destroyTime(5.0f)));
+    public static final Block SPAWNER = register(new SpawnerBlock("spawner", builder().setBlockEntity().requiresCorrectToolForDrops().destroyTime(5.0f)));
     public static final Block OAK_STAIRS = register(new Block("oak_stairs", builder().destroyTime(2.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .enumState(HALF, "top", "bottom")
@@ -403,7 +404,7 @@ public final class Blocks {
             .intState(AGE_7, 0, 7)));
     public static final Block FARMLAND = register(new Block("farmland", builder().destroyTime(0.6f)
             .intState(MOISTURE, 0, 7)));
-    public static final Block FURNACE = register(new Block("furnace", builder().setBlockEntity().requiresCorrectToolForDrops().destroyTime(3.5f)
+    public static final Block FURNACE = register(new FurnaceBlock("furnace", builder().setBlockEntity().requiresCorrectToolForDrops().destroyTime(3.5f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(LIT)));
     public static final Block OAK_SIGN = register(new Block("oak_sign", builder().setBlockEntity().destroyTime(1.0f)
@@ -654,55 +655,55 @@ public final class Blocks {
     public static final Block GREEN_STAINED_GLASS = register(new Block("green_stained_glass", builder().destroyTime(0.3f)));
     public static final Block RED_STAINED_GLASS = register(new Block("red_stained_glass", builder().destroyTime(0.3f)));
     public static final Block BLACK_STAINED_GLASS = register(new Block("black_stained_glass", builder().destroyTime(0.3f)));
-    public static final Block OAK_TRAPDOOR = register(new Block("oak_trapdoor", builder().destroyTime(3.0f)
+    public static final Block OAK_TRAPDOOR = register(new TrapDoorBlock("oak_trapdoor", builder().destroyTime(3.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .enumState(HALF, "top", "bottom")
             .booleanState(OPEN)
             .booleanState(POWERED)
             .booleanState(WATERLOGGED)));
-    public static final Block SPRUCE_TRAPDOOR = register(new Block("spruce_trapdoor", builder().destroyTime(3.0f)
+    public static final Block SPRUCE_TRAPDOOR = register(new TrapDoorBlock("spruce_trapdoor", builder().destroyTime(3.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .enumState(HALF, "top", "bottom")
             .booleanState(OPEN)
             .booleanState(POWERED)
             .booleanState(WATERLOGGED)));
-    public static final Block BIRCH_TRAPDOOR = register(new Block("birch_trapdoor", builder().destroyTime(3.0f)
+    public static final Block BIRCH_TRAPDOOR = register(new TrapDoorBlock("birch_trapdoor", builder().destroyTime(3.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .enumState(HALF, "top", "bottom")
             .booleanState(OPEN)
             .booleanState(POWERED)
             .booleanState(WATERLOGGED)));
-    public static final Block JUNGLE_TRAPDOOR = register(new Block("jungle_trapdoor", builder().destroyTime(3.0f)
+    public static final Block JUNGLE_TRAPDOOR = register(new TrapDoorBlock("jungle_trapdoor", builder().destroyTime(3.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .enumState(HALF, "top", "bottom")
             .booleanState(OPEN)
             .booleanState(POWERED)
             .booleanState(WATERLOGGED)));
-    public static final Block ACACIA_TRAPDOOR = register(new Block("acacia_trapdoor", builder().destroyTime(3.0f)
+    public static final Block ACACIA_TRAPDOOR = register(new TrapDoorBlock("acacia_trapdoor", builder().destroyTime(3.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .enumState(HALF, "top", "bottom")
             .booleanState(OPEN)
             .booleanState(POWERED)
             .booleanState(WATERLOGGED)));
-    public static final Block CHERRY_TRAPDOOR = register(new Block("cherry_trapdoor", builder().destroyTime(3.0f)
+    public static final Block CHERRY_TRAPDOOR = register(new TrapDoorBlock("cherry_trapdoor", builder().destroyTime(3.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .enumState(HALF, "top", "bottom")
             .booleanState(OPEN)
             .booleanState(POWERED)
             .booleanState(WATERLOGGED)));
-    public static final Block DARK_OAK_TRAPDOOR = register(new Block("dark_oak_trapdoor", builder().destroyTime(3.0f)
+    public static final Block DARK_OAK_TRAPDOOR = register(new TrapDoorBlock("dark_oak_trapdoor", builder().destroyTime(3.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .enumState(HALF, "top", "bottom")
             .booleanState(OPEN)
             .booleanState(POWERED)
             .booleanState(WATERLOGGED)));
-    public static final Block MANGROVE_TRAPDOOR = register(new Block("mangrove_trapdoor", builder().destroyTime(3.0f)
+    public static final Block MANGROVE_TRAPDOOR = register(new TrapDoorBlock("mangrove_trapdoor", builder().destroyTime(3.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .enumState(HALF, "top", "bottom")
             .booleanState(OPEN)
             .booleanState(POWERED)
             .booleanState(WATERLOGGED)));
-    public static final Block BAMBOO_TRAPDOOR = register(new Block("bamboo_trapdoor", builder().destroyTime(3.0f)
+    public static final Block BAMBOO_TRAPDOOR = register(new TrapDoorBlock("bamboo_trapdoor", builder().destroyTime(3.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .enumState(HALF, "top", "bottom")
             .booleanState(OPEN)
@@ -758,9 +759,9 @@ public final class Blocks {
             .booleanState(WEST)));
     public static final Block PUMPKIN = register(new Block("pumpkin", builder().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)));
     public static final Block MELON = register(new Block("melon", builder().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)));
-    public static final Block ATTACHED_PUMPKIN_STEM = register(new Block("attached_pumpkin_stem", builder().pushReaction(PistonBehavior.DESTROY)
+    public static final Block ATTACHED_PUMPKIN_STEM = register(new Block("attached_pumpkin_stem", builder().pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.PUMPKIN_SEEDS)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)));
-    public static final Block ATTACHED_MELON_STEM = register(new Block("attached_melon_stem", builder().pushReaction(PistonBehavior.DESTROY)
+    public static final Block ATTACHED_MELON_STEM = register(new Block("attached_melon_stem", builder().pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.MELON_SEEDS)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)));
     public static final Block PUMPKIN_STEM = register(new Block("pumpkin_stem", builder().pushReaction(PistonBehavior.DESTROY)
             .intState(AGE_7, 0, 7)));
@@ -823,10 +824,10 @@ public final class Blocks {
             .booleanState(HAS_BOTTLE_1)
             .booleanState(HAS_BOTTLE_2)));
     public static final Block CAULDRON = register(new CauldronBlock("cauldron", builder().requiresCorrectToolForDrops().destroyTime(2.0f)));
-    public static final Block WATER_CAULDRON = register(new Block("water_cauldron", builder().requiresCorrectToolForDrops().destroyTime(2.0f)
+    public static final Block WATER_CAULDRON = register(new CauldronBlock("water_cauldron", builder().requiresCorrectToolForDrops().destroyTime(2.0f)
             .intState(LEVEL_CAULDRON, 1, 3)));
-    public static final Block LAVA_CAULDRON = register(new Block("lava_cauldron", builder().requiresCorrectToolForDrops().destroyTime(2.0f)));
-    public static final Block POWDER_SNOW_CAULDRON = register(new Block("powder_snow_cauldron", builder().requiresCorrectToolForDrops().destroyTime(2.0f)
+    public static final Block LAVA_CAULDRON = register(new CauldronBlock("lava_cauldron", builder().requiresCorrectToolForDrops().destroyTime(2.0f)));
+    public static final Block POWDER_SNOW_CAULDRON = register(new CauldronBlock("powder_snow_cauldron", builder().requiresCorrectToolForDrops().destroyTime(2.0f)
             .intState(LEVEL_CAULDRON, 1, 3)));
     public static final Block END_PORTAL = register(new Block("end_portal", builder().setBlockEntity().destroyTime(-1.0f).pushReaction(PistonBehavior.BLOCK)));
     public static final Block END_PORTAL_FRAME = register(new Block("end_portal_frame", builder().destroyTime(-1.0f)
@@ -963,46 +964,46 @@ public final class Blocks {
             .enumState(ATTACH_FACE, "floor", "wall", "ceiling")
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(POWERED)));
-    public static final Block SKELETON_SKULL = register(new SkullBlock("skeleton_skull", builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block SKELETON_SKULL = register(new SkullBlock("skeleton_skull", SkullBlock.Type.SKELETON, builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
             .booleanState(POWERED)
             .intState(ROTATION_16, 0, 15)));
-    public static final Block SKELETON_WALL_SKULL = register(new SkullBlock("skeleton_wall_skull", builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block SKELETON_WALL_SKULL = register(new WallSkullBlock("skeleton_wall_skull", SkullBlock.Type.SKELETON, builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(POWERED)));
-    public static final Block WITHER_SKELETON_SKULL = register(new SkullBlock("wither_skeleton_skull", builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block WITHER_SKELETON_SKULL = register(new SkullBlock("wither_skeleton_skull", SkullBlock.Type.WITHER_SKELETON, builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
             .booleanState(POWERED)
             .intState(ROTATION_16, 0, 15)));
-    public static final Block WITHER_SKELETON_WALL_SKULL = register(new SkullBlock("wither_skeleton_wall_skull", builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block WITHER_SKELETON_WALL_SKULL = register(new WallSkullBlock("wither_skeleton_wall_skull", SkullBlock.Type.WITHER_SKELETON, builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(POWERED)));
-    public static final Block ZOMBIE_HEAD = register(new SkullBlock("zombie_head", builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block ZOMBIE_HEAD = register(new SkullBlock("zombie_head", SkullBlock.Type.ZOMBIE, builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
             .booleanState(POWERED)
             .intState(ROTATION_16, 0, 15)));
-    public static final Block ZOMBIE_WALL_HEAD = register(new SkullBlock("zombie_wall_head", builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block ZOMBIE_WALL_HEAD = register(new WallSkullBlock("zombie_wall_head", SkullBlock.Type.ZOMBIE, builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(POWERED)));
-    public static final Block PLAYER_HEAD = register(new SkullBlock("player_head", builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block PLAYER_HEAD = register(new SkullBlock("player_head", SkullBlock.Type.PLAYER, builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
             .booleanState(POWERED)
             .intState(ROTATION_16, 0, 15)));
-    public static final Block PLAYER_WALL_HEAD = register(new SkullBlock("player_wall_head", builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block PLAYER_WALL_HEAD = register(new WallSkullBlock("player_wall_head", SkullBlock.Type.PLAYER, builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(POWERED)));
-    public static final Block CREEPER_HEAD = register(new SkullBlock("creeper_head", builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block CREEPER_HEAD = register(new SkullBlock("creeper_head", SkullBlock.Type.CREEPER, builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
             .booleanState(POWERED)
             .intState(ROTATION_16, 0, 15)));
-    public static final Block CREEPER_WALL_HEAD = register(new SkullBlock("creeper_wall_head", builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block CREEPER_WALL_HEAD = register(new WallSkullBlock("creeper_wall_head", SkullBlock.Type.CREEPER, builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(POWERED)));
-    public static final Block DRAGON_HEAD = register(new SkullBlock("dragon_head", builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block DRAGON_HEAD = register(new SkullBlock("dragon_head", SkullBlock.Type.DRAGON, builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
             .booleanState(POWERED)
             .intState(ROTATION_16, 0, 15)));
-    public static final Block DRAGON_WALL_HEAD = register(new SkullBlock("dragon_wall_head", builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block DRAGON_WALL_HEAD = register(new WallSkullBlock("dragon_wall_head", SkullBlock.Type.DRAGON, builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(POWERED)));
-    public static final Block PIGLIN_HEAD = register(new SkullBlock("piglin_head", builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block PIGLIN_HEAD = register(new SkullBlock("piglin_head", SkullBlock.Type.PIGLIN, builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
             .booleanState(POWERED)
             .intState(ROTATION_16, 0, 15)));
-    public static final Block PIGLIN_WALL_HEAD = register(new SkullBlock("piglin_wall_head", builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block PIGLIN_WALL_HEAD = register(new WallSkullBlock("piglin_wall_head", SkullBlock.Type.PIGLIN, builder().setBlockEntity().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(POWERED)));
     public static final Block ANVIL = register(new Block("anvil", builder().requiresCorrectToolForDrops().destroyTime(5.0f).pushReaction(PistonBehavior.BLOCK)
@@ -1195,7 +1196,7 @@ public final class Blocks {
     public static final Block LIGHT = register(new Block("light", builder().destroyTime(-1.0f)
             .intState(LEVEL, 0, 15)
             .booleanState(WATERLOGGED)));
-    public static final Block IRON_TRAPDOOR = register(new Block("iron_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(5.0f)
+    public static final Block IRON_TRAPDOOR = register(new TrapDoorBlock("iron_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(5.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .enumState(HALF, "top", "bottom")
             .booleanState(OPEN)
@@ -1694,7 +1695,7 @@ public final class Blocks {
     public static final Block BLACK_CONCRETE_POWDER = register(new Block("black_concrete_powder", builder().destroyTime(0.5f)));
     public static final Block KELP = register(new Block("kelp", builder().pushReaction(PistonBehavior.DESTROY)
             .intState(AGE_25, 0, 25)));
-    public static final Block KELP_PLANT = register(new Block("kelp_plant", builder().pushReaction(PistonBehavior.DESTROY)));
+    public static final Block KELP_PLANT = register(new Block("kelp_plant", builder().pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.KELP)));
     public static final Block DRIED_KELP_BLOCK = register(new Block("dried_kelp_block", builder().destroyTime(0.5f)));
     public static final Block TURTLE_EGG = register(new Block("turtle_egg", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
             .intState(EGGS, 1, 4)
@@ -1787,7 +1788,7 @@ public final class Blocks {
     public static final Block BLUE_ICE = register(new Block("blue_ice", builder().destroyTime(2.8f)));
     public static final Block CONDUIT = register(new Block("conduit", builder().setBlockEntity().destroyTime(3.0f)
             .booleanState(WATERLOGGED)));
-    public static final Block BAMBOO_SAPLING = register(new Block("bamboo_sapling", builder().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)));
+    public static final Block BAMBOO_SAPLING = register(new Block("bamboo_sapling", builder().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.BAMBOO)));
     public static final Block BAMBOO = register(new Block("bamboo", builder().destroyTime(1.0f).pushReaction(PistonBehavior.DESTROY)
             .intState(AGE_1, 0, 1)
             .enumState(BAMBOO_LEAVES, "none", "small", "large")
@@ -2072,10 +2073,10 @@ public final class Blocks {
     public static final Block SHROOMLIGHT = register(new Block("shroomlight", builder().destroyTime(1.0f)));
     public static final Block WEEPING_VINES = register(new Block("weeping_vines", builder().pushReaction(PistonBehavior.DESTROY)
             .intState(AGE_25, 0, 25)));
-    public static final Block WEEPING_VINES_PLANT = register(new Block("weeping_vines_plant", builder().pushReaction(PistonBehavior.DESTROY)));
+    public static final Block WEEPING_VINES_PLANT = register(new Block("weeping_vines_plant", builder().pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.WEEPING_VINES)));
     public static final Block TWISTING_VINES = register(new Block("twisting_vines", builder().pushReaction(PistonBehavior.DESTROY)
             .intState(AGE_25, 0, 25)));
-    public static final Block TWISTING_VINES_PLANT = register(new Block("twisting_vines_plant", builder().pushReaction(PistonBehavior.DESTROY)));
+    public static final Block TWISTING_VINES_PLANT = register(new Block("twisting_vines_plant", builder().pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.TWISTING_VINES)));
     public static final Block CRIMSON_ROOTS = register(new Block("crimson_roots", builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block CRIMSON_PLANKS = register(new Block("crimson_planks", builder().destroyTime(2.0f)));
     public static final Block WARPED_PLANKS = register(new Block("warped_planks", builder().destroyTime(2.0f)));
@@ -2101,13 +2102,13 @@ public final class Blocks {
             .booleanState(SOUTH)
             .booleanState(WATERLOGGED)
             .booleanState(WEST)));
-    public static final Block CRIMSON_TRAPDOOR = register(new Block("crimson_trapdoor", builder().destroyTime(3.0f)
+    public static final Block CRIMSON_TRAPDOOR = register(new TrapDoorBlock("crimson_trapdoor", builder().destroyTime(3.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .enumState(HALF, "top", "bottom")
             .booleanState(OPEN)
             .booleanState(POWERED)
             .booleanState(WATERLOGGED)));
-    public static final Block WARPED_TRAPDOOR = register(new Block("warped_trapdoor", builder().destroyTime(3.0f)
+    public static final Block WARPED_TRAPDOOR = register(new TrapDoorBlock("warped_trapdoor", builder().destroyTime(3.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .enumState(HALF, "top", "bottom")
             .booleanState(OPEN)
@@ -2179,7 +2180,7 @@ public final class Blocks {
     public static final Block BEEHIVE = register(new Block("beehive", builder().setBlockEntity().destroyTime(0.6f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .intState(LEVEL_HONEY, 0, 5)));
-    public static final Block HONEY_BLOCK = register(new Block("honey_block", builder()));
+    public static final Block HONEY_BLOCK = register(new HoneyBlock("honey_block", builder()));
     public static final Block HONEYCOMB_BLOCK = register(new Block("honeycomb_block", builder().destroyTime(0.6f)));
     public static final Block NETHERITE_BLOCK = register(new Block("netherite_block", builder().requiresCorrectToolForDrops().destroyTime(50.0f)));
     public static final Block ANCIENT_DEBRIS = register(new Block("ancient_debris", builder().requiresCorrectToolForDrops().destroyTime(30.0f)));
@@ -2319,39 +2320,39 @@ public final class Blocks {
             .intState(CANDLES, 1, 4)
             .booleanState(LIT)
             .booleanState(WATERLOGGED)));
-    public static final Block CANDLE_CAKE = register(new Block("candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block CANDLE_CAKE = register(new Block("candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
             .booleanState(LIT)));
-    public static final Block WHITE_CANDLE_CAKE = register(new Block("white_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block WHITE_CANDLE_CAKE = register(new Block("white_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
             .booleanState(LIT)));
-    public static final Block ORANGE_CANDLE_CAKE = register(new Block("orange_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block ORANGE_CANDLE_CAKE = register(new Block("orange_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
             .booleanState(LIT)));
-    public static final Block MAGENTA_CANDLE_CAKE = register(new Block("magenta_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block MAGENTA_CANDLE_CAKE = register(new Block("magenta_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
             .booleanState(LIT)));
-    public static final Block LIGHT_BLUE_CANDLE_CAKE = register(new Block("light_blue_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block LIGHT_BLUE_CANDLE_CAKE = register(new Block("light_blue_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
             .booleanState(LIT)));
-    public static final Block YELLOW_CANDLE_CAKE = register(new Block("yellow_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block YELLOW_CANDLE_CAKE = register(new Block("yellow_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
             .booleanState(LIT)));
-    public static final Block LIME_CANDLE_CAKE = register(new Block("lime_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block LIME_CANDLE_CAKE = register(new Block("lime_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
             .booleanState(LIT)));
-    public static final Block PINK_CANDLE_CAKE = register(new Block("pink_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block PINK_CANDLE_CAKE = register(new Block("pink_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
             .booleanState(LIT)));
-    public static final Block GRAY_CANDLE_CAKE = register(new Block("gray_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block GRAY_CANDLE_CAKE = register(new Block("gray_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
             .booleanState(LIT)));
-    public static final Block LIGHT_GRAY_CANDLE_CAKE = register(new Block("light_gray_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block LIGHT_GRAY_CANDLE_CAKE = register(new Block("light_gray_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
             .booleanState(LIT)));
-    public static final Block CYAN_CANDLE_CAKE = register(new Block("cyan_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block CYAN_CANDLE_CAKE = register(new Block("cyan_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
             .booleanState(LIT)));
-    public static final Block PURPLE_CANDLE_CAKE = register(new Block("purple_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block PURPLE_CANDLE_CAKE = register(new Block("purple_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
             .booleanState(LIT)));
-    public static final Block BLUE_CANDLE_CAKE = register(new Block("blue_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block BLUE_CANDLE_CAKE = register(new Block("blue_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
             .booleanState(LIT)));
-    public static final Block BROWN_CANDLE_CAKE = register(new Block("brown_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block BROWN_CANDLE_CAKE = register(new Block("brown_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
             .booleanState(LIT)));
-    public static final Block GREEN_CANDLE_CAKE = register(new Block("green_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block GREEN_CANDLE_CAKE = register(new Block("green_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
             .booleanState(LIT)));
-    public static final Block RED_CANDLE_CAKE = register(new Block("red_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block RED_CANDLE_CAKE = register(new Block("red_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
             .booleanState(LIT)));
-    public static final Block BLACK_CANDLE_CAKE = register(new Block("black_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block BLACK_CANDLE_CAKE = register(new Block("black_candle_cake", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.CAKE)
             .booleanState(LIT)));
     public static final Block AMETHYST_BLOCK = register(new Block("amethyst_block", builder().requiresCorrectToolForDrops().destroyTime(1.5f)));
     public static final Block BUDDING_AMETHYST = register(new Block("budding_amethyst", builder().requiresCorrectToolForDrops().destroyTime(1.5f).pushReaction(PistonBehavior.DESTROY)));
@@ -2582,49 +2583,49 @@ public final class Blocks {
             .enumState(DOOR_HINGE, "left", "right")
             .booleanState(OPEN)
             .booleanState(POWERED)));
-    public static final Block COPPER_TRAPDOOR = register(new Block("copper_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
+    public static final Block COPPER_TRAPDOOR = register(new TrapDoorBlock("copper_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .enumState(HALF, "top", "bottom")
             .booleanState(OPEN)
             .booleanState(POWERED)
             .booleanState(WATERLOGGED)));
-    public static final Block EXPOSED_COPPER_TRAPDOOR = register(new Block("exposed_copper_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
+    public static final Block EXPOSED_COPPER_TRAPDOOR = register(new TrapDoorBlock("exposed_copper_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .enumState(HALF, "top", "bottom")
             .booleanState(OPEN)
             .booleanState(POWERED)
             .booleanState(WATERLOGGED)));
-    public static final Block OXIDIZED_COPPER_TRAPDOOR = register(new Block("oxidized_copper_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
+    public static final Block OXIDIZED_COPPER_TRAPDOOR = register(new TrapDoorBlock("oxidized_copper_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .enumState(HALF, "top", "bottom")
             .booleanState(OPEN)
             .booleanState(POWERED)
             .booleanState(WATERLOGGED)));
-    public static final Block WEATHERED_COPPER_TRAPDOOR = register(new Block("weathered_copper_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
+    public static final Block WEATHERED_COPPER_TRAPDOOR = register(new TrapDoorBlock("weathered_copper_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .enumState(HALF, "top", "bottom")
             .booleanState(OPEN)
             .booleanState(POWERED)
             .booleanState(WATERLOGGED)));
-    public static final Block WAXED_COPPER_TRAPDOOR = register(new Block("waxed_copper_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
+    public static final Block WAXED_COPPER_TRAPDOOR = register(new TrapDoorBlock("waxed_copper_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .enumState(HALF, "top", "bottom")
             .booleanState(OPEN)
             .booleanState(POWERED)
             .booleanState(WATERLOGGED)));
-    public static final Block WAXED_EXPOSED_COPPER_TRAPDOOR = register(new Block("waxed_exposed_copper_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
+    public static final Block WAXED_EXPOSED_COPPER_TRAPDOOR = register(new TrapDoorBlock("waxed_exposed_copper_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .enumState(HALF, "top", "bottom")
             .booleanState(OPEN)
             .booleanState(POWERED)
             .booleanState(WATERLOGGED)));
-    public static final Block WAXED_OXIDIZED_COPPER_TRAPDOOR = register(new Block("waxed_oxidized_copper_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
+    public static final Block WAXED_OXIDIZED_COPPER_TRAPDOOR = register(new TrapDoorBlock("waxed_oxidized_copper_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .enumState(HALF, "top", "bottom")
             .booleanState(OPEN)
             .booleanState(POWERED)
             .booleanState(WATERLOGGED)));
-    public static final Block WAXED_WEATHERED_COPPER_TRAPDOOR = register(new Block("waxed_weathered_copper_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
+    public static final Block WAXED_WEATHERED_COPPER_TRAPDOOR = register(new TrapDoorBlock("waxed_weathered_copper_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .enumState(HALF, "top", "bottom")
             .booleanState(OPEN)
@@ -2682,7 +2683,7 @@ public final class Blocks {
     public static final Block CAVE_VINES = register(new Block("cave_vines", builder().pushReaction(PistonBehavior.DESTROY)
             .intState(AGE_25, 0, 25)
             .booleanState(BERRIES)));
-    public static final Block CAVE_VINES_PLANT = register(new Block("cave_vines_plant", builder().pushReaction(PistonBehavior.DESTROY)
+    public static final Block CAVE_VINES_PLANT = register(new Block("cave_vines_plant", builder().pushReaction(PistonBehavior.DESTROY).pickItem(() -> Items.GLOW_BERRIES)
             .booleanState(BERRIES)));
     public static final Block SPORE_BLOSSOM = register(new Block("spore_blossom", builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block AZALEA = register(new Block("azalea", builder().pushReaction(PistonBehavior.DESTROY)));
@@ -2811,7 +2812,8 @@ public final class Blocks {
             .booleanState(WATERLOGGED)));
 
     private static <T extends Block> T register(T block) {
-        BlockRegistries.JAVA_BLOCKS_TO_RENAME.get().add(block);
+        block.setJavaId(BlockRegistries.JAVA_BLOCKS.get().size());
+        BlockRegistries.JAVA_BLOCKS.get().add(block);
         return block;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,12 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-/**
- * Contains useful collections for use in Geyser.
- * <p>
- * Of note are the fixed int maps. Designed for use with block states that are positive and sequential, they do not allow keys to be
- * added that are not greater by one versus the previous key. Because of this, speedy operations of {@link java.util.Map#get(java.lang.Object)}
- * and {@link java.util.Map#containsKey(java.lang.Object)} can be performed by simply checking the bounds of the map
- * size and its "start" integer.
- */
-package org.geysermc.geyser.util.collection;
+package org.geysermc.geyser.level.block.type;
+
+import java.util.List;
+
+public class SpawnerBlock extends Block {
+    private static BlockState STATE;
+
+    public SpawnerBlock(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
+    }
+
+    @Override
+    protected void processStates(List<BlockState> states) {
+        STATE = states.get(0);
+    }
+
+    public static BlockState state() {
+        return STATE;
+    }
+}

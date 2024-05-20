@@ -29,15 +29,17 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.holder.BlockInventoryHolder;
 import org.geysermc.geyser.inventory.holder.InventoryHolder;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
 
 public class SingleChestInventoryTranslator extends ChestInventoryTranslator {
     private final InventoryHolder holder;
 
+    // TODO add barrel???
     public SingleChestInventoryTranslator(int size) {
         super(size, 27);
         this.holder = new BlockInventoryHolder("minecraft:chest[facing=north,type=single,waterlogged=false]", ContainerType.CONTAINER,
-                "minecraft:ender_chest", "minecraft:trapped_chest") {
+                Blocks.ENDER_CHEST, Blocks.TRAPPED_CHEST) {
             @Override
             protected boolean isValidBlock(String[] javaBlockString) {
                 if (javaBlockString[0].equals("minecraft:ender_chest")) {

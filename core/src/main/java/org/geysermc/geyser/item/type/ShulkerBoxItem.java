@@ -30,6 +30,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
@@ -42,8 +43,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ShulkerBoxItem extends BlockItem {
-    public ShulkerBoxItem(String javaIdentifier, Builder builder) {
-        super(javaIdentifier, builder);
+    public ShulkerBoxItem(Builder builder, Block block, Block... otherBlocks) {
+        super(builder, block, otherBlocks);
     }
 
     @Override

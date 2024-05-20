@@ -30,12 +30,14 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectMaps;
 import org.geysermc.geyser.level.block.property.Property;
 import org.geysermc.geyser.registry.BlockRegistries;
 
+import java.util.Locale;
+
 public final class BlockState {
     private final Block block;
     private final int javaId;
     private final Reference2ObjectMap<Property<?>, Comparable<?>> states;
 
-    BlockState(Block block, int javaId) {
+    public BlockState(Block block, int javaId) {
         this(block, javaId, Reference2ObjectMaps.emptyMap());
     }
 
@@ -50,6 +52,14 @@ public final class BlockState {
         return (T) states.get(property);
     }
 
+    public boolean getValue(Property<Boolean> property, boolean def) {
+        var value = states.get(property);
+        if (value == null) {
+            return def;
+        }
+        return (Boolean) value;
+    }
+
     public Block block() {
         return block;
     }
@@ -62,12 +72,25 @@ public final class BlockState {
         return this.block == block;
     }
 
+    @Override
+    public String toString() {
+        if (this.states.isEmpty()) {
+            return this.block.javaIdentifier().toString();
+        }
+        return this.block.javaIdentifier().toString() + "[" + paramsToString() + "]";
+    }
+
     private String paramsToString() {
         StringBuilder builder = new StringBuilder();
         var it = this.states.entrySet().iterator();
         while (it.hasNext()) {
             var entry = it.next();
-            builder.append(entry.getKey()).append("=").append(entry.getValue());
+            builder.append(entry.getKey().name())
+                    .append("=")
+                    .append(entry.getValue().toString().toLowerCase(Locale.ROOT)); // lowercase covers enums
+            if (it.hasNext()) {
+                builder.append(",");
+            }
         }
         return builder.toString();
     }

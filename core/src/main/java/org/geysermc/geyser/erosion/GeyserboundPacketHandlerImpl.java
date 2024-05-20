@@ -136,7 +136,7 @@ public final class GeyserboundPacketHandlerImpl extends AbstractGeyserboundPacke
         placeBlockSoundPacket.setIdentifier(":");
         session.sendUpstreamPacket(placeBlockSoundPacket);
         session.setLastBlockPlacePosition(null);
-        session.setLastBlockPlacedId(null);
+        session.setLastBlockPlaced(null);
     }
 
     @Override

@@ -52,14 +52,14 @@ public class ShulkerInventoryTranslator extends AbstractBlockInventoryTranslator
             }
 
             @Override
-            protected void setCustomName(GeyserSession session, Vector3i position, Inventory inventory, int javaBlockState) {
+            protected void setCustomName(GeyserSession session, Vector3i position, Inventory inventory, BlockState javaBlockState) {
                 NbtMapBuilder tag = NbtMap.builder()
                         .putInt("x", position.getX())
                         .putInt("y", position.getY())
                         .putInt("z", position.getZ())
                         .putString("CustomName", inventory.getTitle());
                 // Don't reset facing property
-                shulkerBoxTranslator.translateTag(session, tag, null, BlockState.of(javaBlockState));
+                shulkerBoxTranslator.translateTag(session, tag, null, javaBlockState);
 
                 BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
                 dataPacket.setData(tag.build());

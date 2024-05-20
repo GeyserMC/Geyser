@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.level.block;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -37,10 +36,6 @@ import org.geysermc.geyser.level.block.type.PistonBlock;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.type.BlockMapping;
-import org.geysermc.geyser.util.collection.FixedInt2ByteMap;
-import org.geysermc.geyser.util.collection.FixedInt2IntMap;
-import org.geysermc.geyser.util.collection.LecternHasBookMap;
 
 import java.util.Locale;
 
@@ -48,38 +43,16 @@ import java.util.Locale;
  * Used for block entities if the Java block state contains Bedrock block information.
  */
 public final class BlockStateValues {
-    private static final IntSet ALL_CAULDRONS = new IntOpenHashSet();
-    private static final Int2IntMap BANNER_COLORS = new FixedInt2IntMap();
-    private static final Int2ByteMap BED_COLORS = new FixedInt2ByteMap();
-    private static final Int2IntMap BRUSH_PROGRESS = new Int2IntOpenHashMap();
-    private static final Int2ObjectMap<DoubleChestValue> DOUBLE_CHEST_VALUES = new Int2ObjectOpenHashMap<>();
-    private static final Int2ObjectMap<String> FLOWER_POT_VALUES = new Int2ObjectOpenHashMap<>();
     private static final IntSet HORIZONTAL_FACING_JIGSAWS = new IntOpenHashSet();
-    private static final LecternHasBookMap LECTERN_BOOK_STATES = new LecternHasBookMap();
-    private static final IntSet NON_WATER_CAULDRONS = new IntOpenHashSet();
-    private static final Int2IntMap NOTEBLOCK_PITCHES = new FixedInt2IntMap();
-    private static final Int2BooleanMap PISTON_VALUES = new Int2BooleanOpenHashMap();
     private static final IntSet STICKY_PISTONS = new IntOpenHashSet();
     private static final Object2IntMap<Direction> PISTON_HEADS = new Object2IntOpenHashMap<>();
     private static final Int2ObjectMap<Direction> PISTON_ORIENTATION = new Int2ObjectOpenHashMap<>();
     private static final IntSet ALL_PISTON_HEADS = new IntOpenHashSet();
-    private static final IntSet MOVING_PISTONS = new IntOpenHashSet();
-    private static final Int2ByteMap SKULL_VARIANTS = new FixedInt2ByteMap();
-    private static final IntSet SKULL_POWERED = new IntOpenHashSet();
-    private static final Int2ByteMap SKULL_ROTATIONS = new Int2ByteOpenHashMap();
-    private static final Int2IntMap SKULL_WALL_DIRECTIONS = new Int2IntOpenHashMap();
-    private static final Int2ByteMap SHULKERBOX_DIRECTIONS = new FixedInt2ByteMap();
-    private static final IntSet UPPER_DOORS = new IntOpenHashSet();
     private static final Int2IntMap WATER_LEVEL = new Int2IntOpenHashMap();
     private static final Int2IntMap LAVA_LEVEL = new Int2IntOpenHashMap();
     private static final IntSet ALL_CLIMBABLE = new IntOpenHashSet();
     private static final Int2ObjectMap<Direction> OPEN_TRAPDOOR_DIRECTION = new Int2ObjectOpenHashMap<>();
 
-    public static int JAVA_FURNACE_ID;
-    public static int JAVA_FURNACE_LIT_ID;
-    public static int JAVA_HONEY_BLOCK_ID;
-    public static int JAVA_SLIME_BLOCK_ID;
-    public static int JAVA_SPAWNER_ID;
     public static int JAVA_WATER_ID;
 
     public static final int NUM_FLUID_LEVELS = 9;
@@ -89,66 +62,9 @@ public final class BlockStateValues {
      *
      * @param javaId         The Java Identifier of the block
      * @param javaBlockState the Java Block State of the block
-     * @param blockData      JsonNode of info about the block from blocks.json
      */
-    public static void storeBlockStateValues(String javaId, int javaBlockState, JsonNode blockData) {
-        JsonNode bannerColor = blockData.get("banner_color");
-        if (bannerColor != null) {
-            BANNER_COLORS.put(javaBlockState, (byte) bannerColor.intValue());
-            return; // There will never be a banner color and a skull variant
-        }
-
-        JsonNode bedColor = blockData.get("bed_color");
-        if (bedColor != null) {
-            BED_COLORS.put(javaBlockState, (byte) bedColor.intValue());
-            return;
-        }
-
-        JsonNode bedrockStates = blockData.get("bedrock_states");
-        if (bedrockStates != null) {
-            JsonNode brushedProgress = bedrockStates.get("brushed_progress");
-            if (brushedProgress != null) {
-                BRUSH_PROGRESS.put(javaBlockState, brushedProgress.intValue());
-                return;
-            }
-        }
-
-        if (blockData.get("double_chest_position") != null) {
-            boolean isX = (blockData.get("x") != null);
-            boolean isDirectionPositive = ((blockData.get("x") != null && blockData.get("x").asBoolean()) ||
-                    (blockData.get("z") != null && blockData.get("z").asBoolean()));
-            boolean isLeft = (blockData.get("double_chest_position").asText().contains("left"));
-            DOUBLE_CHEST_VALUES.put(javaBlockState, new DoubleChestValue(isX, isDirectionPositive, isLeft));
-            return;
-        }
-
-        if (javaId.startsWith("minecraft:potted_") || javaId.equals("minecraft:flower_pot")) {
-            String name = javaId.replace("potted_", "");
-            if (name.contains("azalea")) {
-                // Exception to the rule
-                name = name.replace("_bush", "");
-            }
-            FLOWER_POT_VALUES.put(javaBlockState, name);
-            return;
-        }
-
-        if (javaId.startsWith("minecraft:lectern")) {
-            LECTERN_BOOK_STATES.put(javaBlockState, javaId.contains("has_book=true"));
-            return;
-        }
-
-        JsonNode notePitch = blockData.get("note_pitch");
-        if (notePitch != null) {
-            NOTEBLOCK_PITCHES.put(javaBlockState, blockData.get("note_pitch").intValue());
-            return;
-        }
-
+    public static void storeBlockStateValues(String javaId, int javaBlockState) {
         if (javaId.contains("piston[")) { // minecraft:moving_piston, minecraft:sticky_piston, minecraft:piston
-            if (javaId.startsWith("minecraft:moving_piston")) {
-                MOVING_PISTONS.add(javaBlockState);
-            } else {
-                PISTON_VALUES.put(javaBlockState, javaId.contains("extended=true"));
-            }
             if (javaId.contains("sticky")) {
                 STICKY_PISTONS.add(javaBlockState);
             }
@@ -159,40 +75,6 @@ public final class BlockStateValues {
             if (javaId.contains("short=false")) {
                 PISTON_HEADS.put(getBlockDirection(javaId), javaBlockState);
             }
-            return;
-        }
-
-        JsonNode skullVariation = blockData.get("variation");
-        if (skullVariation != null) {
-            SKULL_VARIANTS.put(javaBlockState, (byte) skullVariation.intValue());
-        }
-
-        JsonNode skullRotation = blockData.get("skull_rotation");
-        if (skullRotation != null) {
-            SKULL_ROTATIONS.put(javaBlockState, (byte) skullRotation.intValue());
-        }
-
-        if (javaId.startsWith("minecraft:dragon_head[") || javaId.startsWith("minecraft:piglin_head[")
-                || javaId.startsWith("minecraft:dragon_wall_head[") || javaId.startsWith("minecraft:piglin_wall_head[")) {
-            if (javaId.contains("powered=true")) {
-                SKULL_POWERED.add(javaBlockState);
-            }
-        }
-
-        if (javaId.contains("wall_skull") || javaId.contains("wall_head")) {
-            String direction = javaId.substring(javaId.lastIndexOf("facing=") + 7, javaId.lastIndexOf("powered=") - 1);
-            int rotation = switch (direction) {
-                case "north" -> 180;
-                case "west" -> 90;
-                case "east" -> 270;
-                default -> 0; // Also south
-            };
-            SKULL_WALL_DIRECTIONS.put(javaBlockState, rotation);
-        }
-
-        JsonNode shulkerDirection = blockData.get("shulker_direction");
-        if (shulkerDirection != null) {
-            BlockStateValues.SHULKERBOX_DIRECTIONS.put(javaBlockState, (byte) shulkerDirection.intValue());
             return;
         }
 
@@ -216,14 +98,6 @@ public final class BlockStateValues {
             if (direction.isHorizontal()) {
                 HORIZONTAL_FACING_JIGSAWS.add(javaBlockState);
             }
-            return;
-        }
-
-        if (javaId.contains("cauldron")) {
-            ALL_CAULDRONS.add(javaBlockState);
-        }
-        if (javaId.contains("_cauldron") && !javaId.contains("water_")) {
-             NON_WATER_CAULDRONS.add(javaBlockState);
         }
 
         if (javaId.contains("vine") || javaId.startsWith("minecraft:ladder") || javaId.startsWith("minecraft:scaffolding")) {
@@ -233,58 +107,6 @@ public final class BlockStateValues {
         if (javaId.contains("_trapdoor[") && javaId.contains("open=true")) {
             OPEN_TRAPDOOR_DIRECTION.put(javaBlockState, getBlockDirection(javaId));
         }
-
-        if (javaId.contains("_door[") && javaId.contains("half=upper")) {
-            UPPER_DOORS.add(javaBlockState);
-        }
-    }
-
-    /**
-     * Banner colors are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
-     * This gives an integer color that Bedrock can use.
-     *
-     * @param state BlockState of the block
-     * @return Banner color integer or -1 if no color
-     */
-    public static int getBannerColor(int state) {
-        return BANNER_COLORS.getOrDefault(state, -1);
-    }
-
-    /**
-     * @return if this Java block state is a non-empty non-water cauldron
-     */
-    public static boolean isNonWaterCauldron(int state) {
-        return NON_WATER_CAULDRONS.contains(state);
-    }
-
-    /**
-     * Cauldrons (since Bedrock 1.18.30) must have a block entity packet sent on chunk load to fix rendering issues.
-     * <p>
-     * When using a bucket on a cauldron sending a ServerboundUseItemPacket can result in the liquid being placed.
-     *
-     * @return if this Java block state is a cauldron
-     */
-    public static boolean isCauldron(int state) {
-        return ALL_CAULDRONS.contains(state);
-    }
-
-    /**
-     * All double chest values are part of the block state in Java and part of the block entity tag in Bedrock.
-     * This gives the DoubleChestValue that can be calculated into the final tag.
-     *
-     * @return The map of all DoubleChestValues.
-     */
-    public static Int2ObjectMap<DoubleChestValue> getDoubleChestValues() {
-        return DOUBLE_CHEST_VALUES;
-    }
-
-    /**
-     * Get the Int2ObjectMap of flower pot block states to containing plant
-     *
-     * @return Int2ObjectMap of flower pot values
-     */
-    public static Int2ObjectMap<String> getFlowerPotValues() {
-        return FLOWER_POT_VALUES;
     }
 
     /**
@@ -292,33 +114,6 @@ public final class BlockStateValues {
      */
     public static IntSet getHorizontalFacingJigsaws() {
         return HORIZONTAL_FACING_JIGSAWS;
-    }
-
-    /**
-     * @return the lectern book state map pointing to book present state
-     */
-    public static LecternHasBookMap getLecternBookStates() {
-        return LECTERN_BOOK_STATES;
-    }
-
-    /**
-     * The note that noteblocks output when hit is part of the block state in Java but sent as a BlockEventPacket in Bedrock.
-     * This gives an integer pitch that Bedrock can use.
-     *
-     * @param state BlockState of the block
-     * @return note block note integer or -1 if not present
-     */
-    public static int getNoteblockPitch(int state) {
-        return NOTEBLOCK_PITCHES.getOrDefault(state, -1);
-    }
-
-    /**
-     * Get the Int2BooleanMap showing if a piston block state is extended or not.
-     *
-     * @return the Int2BooleanMap of piston extensions.
-     */
-    public static Int2BooleanMap getPistonValues() {
-        return PISTON_VALUES;
     }
 
     public static boolean isStickyPiston(int blockState) {
@@ -413,38 +208,6 @@ public final class BlockStateValues {
     }
 
     /**
-     * Skull variations are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
-     * This gives a byte variant ID that Bedrock can use.
-     *
-     * @param state BlockState of the block
-     * @return Skull variant byte or -1 if no variant
-     */
-    public static byte getSkullVariant(int state) {
-        return SKULL_VARIANTS.getOrDefault(state, (byte) -1);
-    }
-
-    /**
-     * Skull rotations are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
-     * This gives a byte rotation that Bedrock can use.
-     *
-     * @param state BlockState of the block
-     * @return Skull rotation value or -1 if no value
-     */
-    public static byte getSkullRotation(int state) {
-        return SKULL_ROTATIONS.getOrDefault(state, (byte) -1);
-    }
-
-    /**
-     * Skull rotations are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
-     * This gives a integer rotation that Bedrock can use.
-     *
-     * @return Skull wall rotation value with the blockstate
-     */
-    public static Int2IntMap getSkullWallDirections() {
-        return SKULL_WALL_DIRECTIONS;
-    }
-
-    /**
      * Get the type of fluid from the block state.
      *
      * @param state BlockState of the block
@@ -470,16 +233,6 @@ public final class BlockStateValues {
      */
     public static int getWaterLevel(int state) {
         return WATER_LEVEL.getOrDefault(state, -1);
-    }
-
-    /**
-     * Check if a block is the upper half of a door.
-     *
-     * @param state BlockState of the block
-     * @return True if the block is the upper half of a door
-     */
-    public static boolean isUpperDoor(int state) {
-        return UPPER_DOORS.contains(state);
     }
 
     /**
@@ -546,14 +299,18 @@ public final class BlockStateValues {
      * @param state BlockState of the block
      * @return The block's slipperiness
      */
-    public static float getSlipperiness(int state) {
-        String blockIdentifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.DEFAULT).getJavaIdentifier();
-        return switch (blockIdentifier) {
-            case "minecraft:slime_block" -> 0.8f;
-            case "minecraft:ice", "minecraft:packed_ice" -> 0.98f;
-            case "minecraft:blue_ice" -> 0.989f;
-            default -> 0.6f;
-        };
+    public static float getSlipperiness(BlockState state) {
+        Block block = state.block();
+        if (block == Blocks.SLIME_BLOCK) {
+            return 0.8f;
+        }
+        if (block == Blocks.ICE || block == Blocks.PACKED_ICE) {
+            return 0.98f;
+        }
+        if (block == Blocks.BLUE_ICE) {
+            return 0.989f;
+        }
+        return 0.6f;
     }
 
     /**
