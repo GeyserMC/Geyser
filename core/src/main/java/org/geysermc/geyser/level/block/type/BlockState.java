@@ -37,7 +37,7 @@ public final class BlockState {
     private final int javaId;
     private final Reference2ObjectMap<Property<?>, Comparable<?>> states;
 
-    BlockState(Block block, int javaId) {
+    public BlockState(Block block, int javaId) {
         this(block, javaId, Reference2ObjectMaps.emptyMap());
     }
 
@@ -50,6 +50,14 @@ public final class BlockState {
     public <T extends Comparable<T>> T getValue(Property<T> property) {
         //noinspection unchecked
         return (T) states.get(property);
+    }
+
+    public boolean getValue(Property<Boolean> property, boolean def) {
+        var value = states.get(property);
+        if (value == null) {
+            return def;
+        }
+        return (Boolean) value;
     }
 
     public Block block() {

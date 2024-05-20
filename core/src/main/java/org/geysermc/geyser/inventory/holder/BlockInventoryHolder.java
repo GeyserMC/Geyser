@@ -90,7 +90,7 @@ public class BlockInventoryHolder extends InventoryHolder {
                 if (isValidBlock(javaBlockString)) {
                     // We can safely use this block
                     inventory.setHolderPosition(session.getLastInteractionBlockPosition());
-                    ((Container) inventory).setUsingRealBlock(true, javaBlockString[0]);
+                    ((Container) inventory).setUsingRealBlock(true, state.block());
                     setCustomName(session, session.getLastInteractionBlockPosition(), inventory, state);
 
                     return true;

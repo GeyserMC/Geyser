@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,21 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.type;
+package org.geysermc.geyser.level.block.type;
 
-import lombok.Builder;
-import lombok.Value;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.physics.Direction;
 
-@Builder
-@Value
-public class BlockMapping {
-    public static BlockMapping DEFAULT = BlockMapping.builder().javaIdentifier("minecraft:air").build();
+public class WallSkullBlock extends SkullBlock {
+    public WallSkullBlock(String javaIdentifier, Type type, Builder builder) {
+        super(javaIdentifier, type, builder);
+    }
 
-    String javaIdentifier;
+    public static int getDegrees(BlockState state) {
+        return getDegrees(state.getValue(Properties.HORIZONTAL_FACING));
+    }
 
-    @Nullable String pickItem;
-
-    boolean isBlockEntity;
-    boolean isNonVanilla;
+    public static int getDegrees(Direction direction) {
+        return switch (direction) {
+            case NORTH -> 180;
+            case WEST -> 90;
+            case EAST -> 270;
+            case SOUTH -> 0;
+            default -> throw new IllegalStateException();
+        };
+    }
 }

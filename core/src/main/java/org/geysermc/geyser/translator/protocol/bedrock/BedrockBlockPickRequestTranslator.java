@@ -32,7 +32,7 @@ import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.type.BannerBlock;
-import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -45,10 +45,10 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
     @Override
     public void translate(GeyserSession session, BlockPickRequestPacket packet) {
         Vector3i vector = packet.getBlockPosition();
-        Block blockToPick = session.getGeyser().getWorldManager().blockAt(session, vector.getX(), vector.getY(), vector.getZ()).block();
+        BlockState blockToPick = session.getGeyser().getWorldManager().blockAt(session, vector.getX(), vector.getY(), vector.getZ());
         
         // Block is air - chunk caching is probably off
-        if (blockToPick == Blocks.AIR) {
+        if (blockToPick.is(Blocks.AIR)) {
             // Check for an item frame since the client thinks that's a block when it's an entity in Java
             ItemFrameEntity entity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
             if (entity != null) {
@@ -64,8 +64,8 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
             return;
         }
 
-        boolean addExtraData = packet.isAddUserData() && blockToPick.hasBlockEntity(); // Holding down CTRL
-        if (blockToPick instanceof BannerBlock || addExtraData) { //TODO
+        boolean addExtraData = packet.isAddUserData() && blockToPick.block().hasBlockEntity(); // Holding down CTRL
+        if (blockToPick.block() instanceof BannerBlock || addExtraData) {
             session.getGeyser().getWorldManager().getPickItemComponents(session, vector.getX(), vector.getY(), vector.getZ(), addExtraData)
                     .whenComplete((components, ex) -> session.ensureInEventLoop(() -> {
                         if (components == null) {
@@ -73,7 +73,7 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
                             return;
                         }
 
-                        ItemStack itemStack = new ItemStack(blockToPick.asItem().javaId(), 1, components);
+                        ItemStack itemStack = new ItemStack(blockToPick.block().asItem().javaId(), 1, components);
                         InventoryUtils.findOrCreateItem(session, itemStack);
                     }));
             return;
@@ -82,7 +82,7 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
         pickItem(session, blockToPick);
     }
 
-    private void pickItem(GeyserSession session, Block block) {
-        InventoryUtils.findOrCreateItem(session, block.asItem());
+    private void pickItem(GeyserSession session, BlockState state) {
+        InventoryUtils.findOrCreateItem(session, state.block().pickItem(state));
     }
 }

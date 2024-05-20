@@ -37,24 +37,33 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.Blocks;
-import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.property.Property;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.intellij.lang.annotations.Subst;
 
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class Block {
     public static final int JAVA_AIR_ID = 0;
 
     private final Key javaIdentifier;
+    /**
+     * Can you harvest this with your hand.
+     */
     private final boolean requiresCorrectToolForDrops;
     private final boolean hasBlockEntity;
     private final float destroyTime;
     private final @NonNull PistonBehavior pushReaction;
+    /**
+     * Used for classes we don't have implemented yet that override Mojmap getCloneItemStack with their own item.
+     * A supplier prevents any issues arising where the Items class finishes before the Blocks class.
+     */
+    private final Supplier<Item> pickItem;
     protected Item item = null;
     private int javaId = -1;
 
@@ -64,10 +73,13 @@ public class Block {
         this.hasBlockEntity = builder.hasBlockEntity;
         this.destroyTime = builder.destroyTime;
         this.pushReaction = builder.pushReaction;
+        this.pickItem = builder.pickItem;
         processStates(builder.build(this));
     }
 
     public void updateBlock(GeyserSession session, BlockState state, Vector3i position) {
+        checkForEmptySkull(session, state, position);
+
         BlockDefinition definition = session.getBlockMappings().getBedrockBlock(state);
         sendBlockUpdatePacket(session, state, definition, position);
 
@@ -118,13 +130,19 @@ public class Block {
         UpdateBlockPacket waterPacket = new UpdateBlockPacket();
         waterPacket.setDataLayer(1);
         waterPacket.setBlockPosition(position);
-        Boolean waterlogged = state.getValue(Properties.WATERLOGGED);
-        if (waterlogged == Boolean.TRUE) {
+        if (BlockRegistries.WATERLOGGED.get().get(state.javaId())) {
             waterPacket.setDefinition(session.getBlockMappings().getBedrockWater());
         } else {
             waterPacket.setDefinition(session.getBlockMappings().getBedrockAir());
         }
         session.sendUpstreamPacket(waterPacket);
+    }
+
+    protected void checkForEmptySkull(GeyserSession session, BlockState state, Vector3i position) {
+        if (!(state.block() instanceof SkullBlock)) {
+            // Skull is gone
+            session.getSkullCache().removeSkull(position);
+        }
     }
 
     protected void handleLecternBlockUpdate(GeyserSession session, BlockState state, Vector3i position) {
@@ -139,6 +157,13 @@ public class Block {
             return this.item = Item.byBlock(this);
         }
         return this.item;
+    }
+
+    public ItemStack pickItem(BlockState state) {
+        if (this.pickItem != null) {
+            return new ItemStack(this.pickItem.get().javaId());
+        }
+        return new ItemStack(this.asItem().javaId());
     }
 
     /**
@@ -198,6 +223,7 @@ public class Block {
         private boolean hasBlockEntity = false;
         private PistonBehavior pushReaction = PistonBehavior.NORMAL;
         private float destroyTime;
+        private Supplier<Item> pickItem;
 
         /**
          * For states that we're just tracking for mirroring Java states.
@@ -245,6 +271,11 @@ public class Block {
 
         public Builder pushReaction(PistonBehavior pushReaction) {
             this.pushReaction = pushReaction;
+            return this;
+        }
+
+        public Builder pickItem(Supplier<Item> pickItem) {
+            this.pickItem = pickItem;
             return this;
         }
 

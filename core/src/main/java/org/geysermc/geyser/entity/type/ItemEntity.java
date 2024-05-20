@@ -34,6 +34,7 @@ import org.cloudburstmc.protocol.bedrock.packet.AddItemEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
@@ -137,7 +138,7 @@ public class ItemEntity extends ThrowableEntity {
     protected float getDrag() {
         if (isOnGround()) {
             Vector3i groundBlockPos = position.toInt().down(1);
-            int blockState = session.getGeyser().getWorldManager().getBlockAt(session, groundBlockPos);
+            BlockState blockState = session.getGeyser().getWorldManager().blockAt(session, groundBlockPos);
             return BlockStateValues.getSlipperiness(blockState) * 0.98f;
         }
         return 0.98f;

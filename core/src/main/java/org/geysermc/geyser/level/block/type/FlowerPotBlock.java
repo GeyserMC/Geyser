@@ -34,6 +34,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.block.entity.BedrockChunkWantsBlockEntityTag;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.geyser.util.BlockEntityUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 public class FlowerPotBlock extends Block implements BedrockChunkWantsBlockEntityTag {
     private final Block flower;
@@ -68,11 +69,24 @@ public class FlowerPotBlock extends Block implements BedrockChunkWantsBlockEntit
         if (this.flower != Blocks.AIR) {
             // Get the Bedrock CompoundTag of the block.
             // This is where we need to store the *Java* name because Bedrock has six minecraft:sapling blocks with different block states.
-            NbtMap plant = session.getBlockMappings().getFlowerPotBlocks().get(this.flower.javaIdentifier().asString());
+            // TODO flattening might make this nicer in the future!
+            NbtMap plant = session.getBlockMappings().getFlowerPotBlocks().get(this.flower);
             if (plant != null) {
                 tagBuilder.putCompound("PlantBlock", plant.toBuilder().build());
             }
         }
         return tagBuilder.build();
+    }
+
+    @Override
+    public ItemStack pickItem(BlockState state) {
+        if (this.flower != Blocks.AIR) {
+            return new ItemStack(this.flower.asItem().javaId());
+        }
+        return super.pickItem(state);
+    }
+
+    public Block flower() {
+        return flower;
     }
 }

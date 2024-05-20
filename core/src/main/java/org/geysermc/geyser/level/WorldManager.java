@@ -59,10 +59,12 @@ import java.util.function.Function;
  */
 public abstract class WorldManager {
 
-    public final BlockState blockAt(GeyserSession session, Vector3i vector3i) {
-        return BlockState.of(this.getBlockAt(session, vector3i));
+    @NonNull
+    public final BlockState blockAt(GeyserSession session, Vector3i vector) {
+        return this.blockAt(session, vector.getX(), vector.getY(), vector.getZ());
     }
 
+    @NonNull
     public BlockState blockAt(GeyserSession session, int x, int y, int z) {
         return BlockState.of(this.getBlockAt(session, x, y, z));
     }

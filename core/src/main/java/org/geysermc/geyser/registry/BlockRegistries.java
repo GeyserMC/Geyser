@@ -42,7 +42,6 @@ import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.registry.populator.BlockRegistryPopulator;
 import org.geysermc.geyser.registry.populator.CustomBlockRegistryPopulator;
 import org.geysermc.geyser.registry.populator.CustomSkullRegistryPopulator;
-import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.translator.collision.BlockCollision;
@@ -67,23 +66,21 @@ public class BlockRegistries {
      */
     public static final ListRegistry<BlockState> BLOCK_STATES = ListRegistry.create(RegistryLoaders.empty(ArrayList::new));
 
-    public static final ListRegistry<Block> JAVA_BLOCKS_TO_RENAME = ListRegistry.create(RegistryLoaders.empty(ArrayList::new));
-
     /**
      * A mapped registry which stores Java to Bedrock block identifiers.
      */
     public static final SimpleMappedRegistry<String, String> JAVA_TO_BEDROCK_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     /**
-     * A registry which stores Java IDs to {@link BlockMapping}, containing miscellaneous information about
-     * blocks and their behavior in many cases.
-     */
-    public static final ArrayRegistry<BlockMapping> JAVA_BLOCKS = ArrayRegistry.create(RegistryLoaders.uninitialized());
-
-    /**
      * A mapped registry containing which holds block IDs to its {@link BlockCollision}.
      */
     public static final ListRegistry<BlockCollision> COLLISIONS;
+
+    /**
+     * A registry which stores Java IDs to {@link Block}, containing miscellaneous information about
+     * blocks and their behavior in many cases.
+     */
+    public static final ListRegistry<Block> JAVA_BLOCKS = ListRegistry.create(RegistryLoaders.empty(ArrayList::new));
 
     /**
      * A mapped registry containing the Java identifiers to IDs.

@@ -171,8 +171,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                         int xzy = indexYZXtoXZY(yzx);
                         section.getBlockStorageArray()[0].setFullBlock(xzy, bedrockId);
 
-                        Boolean waterlogged = state.getValue(Properties.WATERLOGGED); // TODO performance check
-                        if (waterlogged == Boolean.TRUE) {
+                        if (BlockRegistries.WATERLOGGED.get().get(javaId)) {
                             section.getBlockStorageArray()[1].setFullBlock(xzy, session.getBlockMappings().getBedrockWater().getRuntimeId());
                         }
 
@@ -426,7 +425,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
                 // Check for custom skulls
                 if (session.getPreferencesCache().showCustomSkulls() && type == BlockEntityType.SKULL && tag != null && tag.containsKey("profile")) {
-                    BlockDefinition blockDefinition = SkullBlockEntityTranslator.translateSkull(session, tag, Vector3i.from(x + chunkBlockX, y, z + chunkBlockZ), blockState.javaId());
+                    BlockDefinition blockDefinition = SkullBlockEntityTranslator.translateSkull(session, tag, Vector3i.from(x + chunkBlockX, y, z + chunkBlockZ), blockState);
                     if (blockDefinition != null) {
                         int bedrockSectionY = (y >> 4) - (bedrockDimension.minY() >> 4);
                         int subChunkIndex = (y >> 4) + (bedrockDimension.minY() >> 4);

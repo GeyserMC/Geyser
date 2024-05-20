@@ -35,6 +35,7 @@ import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 
 import java.util.List;
@@ -59,7 +60,7 @@ public class BlockMappings implements DefinitionRegistry<GeyserBedrockBlock> {
     BlockDefinition mobSpawnerBlock;
 
     Map<NbtMap, BlockDefinition> itemFrames;
-    Map<String, NbtMap> flowerPotBlocks;
+    Map<Block, NbtMap> flowerPotBlocks;
 
     Set<BlockDefinition> jigsawStates;
     Map<String, BlockDefinition> structureBlockStates;
