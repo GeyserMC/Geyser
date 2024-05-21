@@ -91,11 +91,9 @@ public class AdvancementsCache {
         builder.validResultHandler((response) -> {
             String id = rootAdvancementIds.get(response.clickedButtonId());
             if (!id.equals("")) {
-                if (!id.equals(currentAdvancementCategoryId)) {
-                    // Send a packet indicating that we are opening this particular advancement window
-                    ServerboundSeenAdvancementsPacket packet = new ServerboundSeenAdvancementsPacket(id);
-                    session.sendDownstreamGamePacket(packet);
-                }
+                // Send a packet indicating that we are opening this particular advancement window
+                ServerboundSeenAdvancementsPacket packet = new ServerboundSeenAdvancementsPacket(id);
+                session.sendDownstreamGamePacket(packet);
                 currentAdvancementCategoryId = id;
                 buildAndShowListForm();
             }
