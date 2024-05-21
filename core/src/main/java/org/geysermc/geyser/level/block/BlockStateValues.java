@@ -25,7 +25,10 @@
 
 package org.geysermc.geyser.level.block;
 
-import it.unimi.dsi.fastutil.ints.*;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.geyser.level.block.property.Properties;
@@ -36,16 +39,11 @@ import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
 
-import java.util.Locale;
-
 /**
  * Used for block entities if the Java block state contains Bedrock block information.
  */
 public final class BlockStateValues {
-    private static final IntSet HORIZONTAL_FACING_JIGSAWS = new IntOpenHashSet();
-    private static final IntSet STICKY_PISTONS = new IntOpenHashSet();
     private static final Object2IntMap<Direction> PISTON_HEADS = new Object2IntOpenHashMap<>();
-    private static final Int2ObjectMap<Direction> PISTON_ORIENTATION = new Int2ObjectOpenHashMap<>();
     private static final IntSet ALL_PISTON_HEADS = new IntOpenHashSet();
     private static final Int2IntMap WATER_LEVEL = new Int2IntOpenHashMap();
 
@@ -61,10 +59,6 @@ public final class BlockStateValues {
      */
     public static void storeBlockStateValues(String javaId, int javaBlockState) {
         if (javaId.contains("piston[")) { // minecraft:moving_piston, minecraft:sticky_piston, minecraft:piston
-            if (javaId.contains("sticky")) {
-                STICKY_PISTONS.add(javaBlockState);
-            }
-            PISTON_ORIENTATION.put(javaBlockState, getBlockDirection(javaId));
             return;
         } else if (javaId.startsWith("minecraft:piston_head")) {
             ALL_PISTON_HEADS.add(javaBlockState);
@@ -78,27 +72,7 @@ public final class BlockStateValues {
             String strLevel = javaId.substring(javaId.lastIndexOf("level=") + 6, javaId.length() - 1);
             int level = Integer.parseInt(strLevel);
             WATER_LEVEL.put(javaBlockState, level);
-            return;
         }
-
-        if (javaId.startsWith("minecraft:jigsaw[orientation=")) {
-            String blockStateData = javaId.substring(javaId.indexOf("orientation=") + "orientation=".length(), javaId.lastIndexOf('_'));
-            Direction direction = Direction.valueOf(blockStateData.toUpperCase(Locale.ROOT));
-            if (direction.isHorizontal()) {
-                HORIZONTAL_FACING_JIGSAWS.add(javaBlockState);
-            }
-        }
-    }
-
-    /**
-     * @return a set of all forward-facing jigsaws, to use as a fallback if NBT is missing.
-     */
-    public static IntSet getHorizontalFacingJigsaws() {
-        return HORIZONTAL_FACING_JIGSAWS;
-    }
-
-    public static boolean isStickyPiston(int blockState) {
-        return STICKY_PISTONS.contains(blockState);
     }
 
     public static boolean isPistonHead(int state) {
@@ -114,17 +88,6 @@ public final class BlockStateValues {
      */
     public static int getPistonHead(Direction direction) {
         return PISTON_HEADS.getOrDefault(direction, Block.JAVA_AIR_ID);
-    }
-
-    /**
-     * This is used in GeyserPistonEvents.java and accepts minecraft:piston,
-     * minecraft:sticky_piston, and minecraft:moving_piston.
-     *
-     * @param state The block state of the piston base
-     * @return The direction in which the piston faces
-     */
-    public static Direction getPistonOrientation(int state) {
-        return PISTON_ORIENTATION.get(state);
     }
 
     /**

@@ -74,7 +74,7 @@ public final class Properties {
     public static final Property<Direction> FACING_HOPPER = Property.create("facing");
     public static final Property<Direction> HORIZONTAL_FACING = Property.create("facing");
     public static final Property<Integer> FLOWER_AMOUNT = Property.create("flower_amount");
-    public static final Property<String> ORIENTATION = Property.create("orientation");
+    public static final Property<FrontAndTop> ORIENTATION = Property.create("orientation");
     public static final Property<String> ATTACH_FACE = Property.create("face");
     public static final Property<String> BELL_ATTACHMENT = Property.create("attachment");
     public static final Property<String> EAST_WALL = Property.create("east");

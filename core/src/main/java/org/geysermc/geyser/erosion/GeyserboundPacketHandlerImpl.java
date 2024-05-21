@@ -44,6 +44,7 @@ import org.geysermc.erosion.packet.backendbound.BackendboundInitializePacket;
 import org.geysermc.erosion.packet.backendbound.BackendboundPacket;
 import org.geysermc.erosion.packet.geyserbound.*;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.Direction;
@@ -148,7 +149,7 @@ public final class GeyserboundPacketHandlerImpl extends AbstractGeyserboundPacke
 
     @Override
     public void handlePistonEvent(GeyserboundPistonEventPacket packet) {
-        Direction orientation = BlockStateValues.getPistonOrientation(packet.getBlockId());
+        Direction orientation = BlockState.of(packet.getBlockId()).getValue(Properties.FACING);
         Vector3i position = packet.getPos();
         boolean isExtend = packet.isExtend();
 

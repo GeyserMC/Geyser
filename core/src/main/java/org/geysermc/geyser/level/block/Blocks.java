@@ -27,6 +27,7 @@ package org.geysermc.geyser.level.block;
 
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.block.property.ChestType;
+import org.geysermc.geyser.level.block.property.FrontAndTop;
 import org.geysermc.geyser.level.block.type.*;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.Direction;
@@ -2169,7 +2170,7 @@ public final class Blocks {
     public static final Block STRUCTURE_BLOCK = register(new Block("structure_block", builder().setBlockEntity().requiresCorrectToolForDrops().destroyTime(-1.0f)
             .enumState(STRUCTUREBLOCK_MODE, "save", "load", "corner", "data")));
     public static final Block JIGSAW = register(new Block("jigsaw", builder().setBlockEntity().requiresCorrectToolForDrops().destroyTime(-1.0f)
-            .enumState(ORIENTATION, "down_east", "down_north", "down_south", "down_west", "up_east", "up_north", "up_south", "up_west", "west_up", "east_up", "north_up", "south_up")));
+            .enumState(ORIENTATION, FrontAndTop.VALUES)));
     public static final Block COMPOSTER = register(new Block("composter", builder().destroyTime(0.6f)
             .intState(LEVEL_COMPOSTER, 0, 8)));
     public static final Block TARGET = register(new Block("target", builder().destroyTime(0.5f)
@@ -2799,7 +2800,7 @@ public final class Blocks {
             .booleanState(WATERLOGGED)));
     public static final Block CRAFTER = register(new Block("crafter", builder().setBlockEntity().destroyTime(1.5f)
             .booleanState(CRAFTING)
-            .enumState(ORIENTATION, "down_east", "down_north", "down_south", "down_west", "up_east", "up_north", "up_south", "up_west", "west_up", "east_up", "north_up", "south_up")
+            .enumState(ORIENTATION, FrontAndTop.VALUES)
             .booleanState(TRIGGERED)));
     public static final Block TRIAL_SPAWNER = register(new Block("trial_spawner", builder().setBlockEntity().requiresCorrectToolForDrops().destroyTime(50.0f)
             .booleanState(OMINOUS)
