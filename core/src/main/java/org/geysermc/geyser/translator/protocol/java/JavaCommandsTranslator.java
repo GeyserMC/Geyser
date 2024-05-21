@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
+import com.google.common.base.Suppliers;
 import org.geysermc.mcprotocollib.protocol.data.game.command.CommandNode;
 import org.geysermc.mcprotocollib.protocol.data.game.command.CommandParser;
 import org.geysermc.mcprotocollib.protocol.data.game.command.properties.ResourceProperties;
@@ -54,12 +55,16 @@ import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.EntityUtils;
 
 import java.util.*;
+import java.util.function.Supplier;
 
 @SuppressWarnings("removal") // We know. This is our doing.
 @Translator(packet = ClientboundCommandsPacket.class)
 public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommandsPacket> {
 
-    private static final String[] ALL_BLOCK_NAMES = BlockRegistries.JAVA_BLOCKS.get().stream().map(block -> block.javaIdentifier().toString()).toArray(String[]::new);
+    /**
+     * Wait until the registries load before getting all the block names.
+     */
+    private static final Supplier<String[]> ALL_BLOCK_NAMES = Suppliers.memoize(() -> BlockRegistries.JAVA_BLOCKS.get().stream().map(block -> block.javaIdentifier().toString()).toArray(String[]::new));
     private static final String[] ALL_EFFECT_IDENTIFIERS = EntityUtils.getAllEffectIdentifiers();
     private static final String[] ATTRIBUTES = AttributeType.Builtin.BUILTIN.values().stream().map(AttributeType::getIdentifier).toList().toArray(new String[0]);
     private static final String[] ENUM_BOOLEAN = {"true", "false"};
@@ -247,7 +252,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             case RESOURCE_LOCATION, FUNCTION -> CommandParam.FILE_PATH;
             case BOOL -> ENUM_BOOLEAN;
             case OPERATION -> CommandParam.OPERATOR; // ">=", "==", etc
-            case BLOCK_STATE -> ALL_BLOCK_NAMES;
+            case BLOCK_STATE -> ALL_BLOCK_NAMES.get();
             case ITEM_STACK -> context.getItemNames();
             case COLOR -> VALID_COLORS;
             case SCOREBOARD_SLOT -> VALID_SCOREBOARD_SLOTS;

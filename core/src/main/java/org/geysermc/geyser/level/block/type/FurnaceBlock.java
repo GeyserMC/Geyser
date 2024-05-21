@@ -28,29 +28,14 @@ package org.geysermc.geyser.level.block.type;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.physics.Direction;
 
-import java.util.List;
-
 public class FurnaceBlock extends Block {
-    private static BlockState LIT;
-    private static BlockState UNLIT;
-
     public FurnaceBlock(String javaIdentifier, Builder builder) {
         super(javaIdentifier, builder);
     }
 
     @Override
-    protected void processStates(List<BlockState> states) {
-        LIT = states.stream()
-                .filter(state -> state.getValue(Properties.HORIZONTAL_FACING) == Direction.NORTH
-                        && state.getValue(Properties.LIT))
-                .findFirst().orElseThrow();
-        UNLIT = states.stream()
-                .filter(state -> state.getValue(Properties.HORIZONTAL_FACING) == Direction.NORTH
-                        && !state.getValue(Properties.LIT))
-                .findFirst().orElseThrow();
-    }
-
-    public static BlockState state(boolean lit) {
-        return lit ? LIT : UNLIT;
+    protected BlockState setDefaultState(BlockState firstState) {
+        // Both furnace minecart states look north.
+        return firstState.withValue(Properties.HORIZONTAL_FACING, Direction.NORTH);
     }
 }

@@ -25,17 +25,10 @@
 
 package org.geysermc.geyser.level.block;
 
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.PistonBlock;
-import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
 
@@ -43,52 +36,7 @@ import org.geysermc.geyser.registry.BlockRegistries;
  * Used for block entities if the Java block state contains Bedrock block information.
  */
 public final class BlockStateValues {
-    private static final Object2IntMap<Direction> PISTON_HEADS = new Object2IntOpenHashMap<>();
-    private static final IntSet ALL_PISTON_HEADS = new IntOpenHashSet();
-    private static final Int2IntMap WATER_LEVEL = new Int2IntOpenHashMap();
-
-    public static int JAVA_WATER_ID;
-
     public static final int NUM_WATER_LEVELS = 9;
-
-    /**
-     * Determines if the block state contains Bedrock block information
-     *
-     * @param javaId         The Java Identifier of the block
-     * @param javaBlockState the Java Block State of the block
-     */
-    public static void storeBlockStateValues(String javaId, int javaBlockState) {
-        if (javaId.contains("piston[")) { // minecraft:moving_piston, minecraft:sticky_piston, minecraft:piston
-            return;
-        } else if (javaId.startsWith("minecraft:piston_head")) {
-            ALL_PISTON_HEADS.add(javaBlockState);
-            if (javaId.contains("short=false")) {
-                PISTON_HEADS.put(getBlockDirection(javaId), javaBlockState);
-            }
-            return;
-        }
-
-        if (javaId.startsWith("minecraft:water") && !javaId.contains("cauldron")) {
-            String strLevel = javaId.substring(javaId.lastIndexOf("level=") + 6, javaId.length() - 1);
-            int level = Integer.parseInt(strLevel);
-            WATER_LEVEL.put(javaBlockState, level);
-        }
-    }
-
-    public static boolean isPistonHead(int state) {
-        return ALL_PISTON_HEADS.contains(state);
-    }
-
-    /**
-     * Get the Java Block State for a piston head for a specific direction
-     * This is used in PistonBlockEntity to get the BlockCollision for the piston head.
-     *
-     * @param direction Direction the piston head points in
-     * @return Block state for the piston head
-     */
-    public static int getPistonHead(Direction direction) {
-        return PISTON_HEADS.getOrDefault(direction, Block.JAVA_AIR_ID);
-    }
 
     /**
      * Checks if a block sticks to other blocks
@@ -158,7 +106,11 @@ public final class BlockStateValues {
      * @return The water level or -1 if the block isn't water
      */
     public static int getWaterLevel(int state) {
-        return WATER_LEVEL.getOrDefault(state, -1);
+        BlockState blockState = BlockState.of(state);
+        if (!blockState.is(Blocks.WATER)) {
+            return -1;
+        }
+        return blockState.getValue(Properties.LEVEL);
     }
 
     /**
@@ -204,23 +156,6 @@ public final class BlockStateValues {
             return 0.989f;
         }
         return 0.6f;
-    }
-
-    private static Direction getBlockDirection(String javaId) {
-        if (javaId.contains("down")) {
-            return Direction.DOWN;
-        } else if (javaId.contains("up")) {
-            return Direction.UP;
-        } else if (javaId.contains("south")) {
-            return Direction.SOUTH;
-        } else if (javaId.contains("west")) {
-            return Direction.WEST;
-        } else if (javaId.contains("north")) {
-            return Direction.NORTH;
-        } else if (javaId.contains("east")) {
-            return Direction.EAST;
-        }
-        throw new IllegalStateException();
     }
 
     private BlockStateValues() {

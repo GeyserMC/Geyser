@@ -25,21 +25,8 @@
 
 package org.geysermc.geyser.level.block.type;
 
-import java.util.List;
-
 public class SpawnerBlock extends Block {
-    private static BlockState STATE;
-
     public SpawnerBlock(String javaIdentifier, Builder builder) {
         super(javaIdentifier, builder);
-    }
-
-    @Override
-    protected void processStates(List<BlockState> states) {
-        STATE = states.get(0);
-    }
-
-    public static BlockState state() {
-        return STATE;
     }
 }

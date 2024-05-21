@@ -50,7 +50,6 @@ import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.Block;
@@ -433,24 +432,12 @@ public final class BlockRegistryPopulator {
         }
 
         int javaRuntimeId = -1;
-        int waterRuntimeId = -1;
         for (BlockState javaBlockState : BlockRegistries.BLOCK_STATES.get()) {
             javaRuntimeId++;
             String javaId = javaBlockState.toString().intern();
 
-            BlockStateValues.storeBlockStateValues(javaId, javaRuntimeId);
-
             BlockRegistries.JAVA_IDENTIFIER_TO_ID.register(javaId, javaRuntimeId);
-
-            if ("minecraft:water[level=0]".equals(javaId)) {
-                waterRuntimeId = javaRuntimeId;
-            }
         }
-
-        if (waterRuntimeId == -1) {
-            throw new AssertionError("Unable to find Java water in palette");
-        }
-        BlockStateValues.JAVA_WATER_ID = waterRuntimeId;
 
         if (!BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().isEmpty()) {
             IntSet usedNonVanillaRuntimeIDs = new IntOpenHashSet();

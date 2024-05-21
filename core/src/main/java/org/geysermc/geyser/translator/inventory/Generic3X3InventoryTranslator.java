@@ -41,7 +41,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
  */
 public class Generic3X3InventoryTranslator extends AbstractBlockInventoryTranslator {
     public Generic3X3InventoryTranslator() {
-        super(9, "minecraft:dispenser[facing=north,triggered=false]", org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.DISPENSER, ContainerInventoryUpdater.INSTANCE,
+        super(9, Blocks.DISPENSER, org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.DISPENSER, ContainerInventoryUpdater.INSTANCE,
                 Blocks.DROPPER);
     }
 

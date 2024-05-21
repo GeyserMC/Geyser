@@ -26,22 +26,24 @@
 package org.geysermc.geyser.translator.level.block.entity;
 
 import it.unimi.dsi.fastutil.ints.IntArrays;
-import it.unimi.dsi.fastutil.objects.*;
-import org.geysermc.geyser.level.block.Blocks;
-import org.geysermc.geyser.level.block.type.Block;
-import org.geysermc.geyser.level.block.type.BlockState;
-import org.geysermc.geyser.level.block.type.HoneyBlock;
-import org.geysermc.geyser.level.block.type.PistonBlock;
-import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.PistonValueType;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import lombok.Getter;
 import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
-import lombok.Getter;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.Blocks;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.block.type.PistonBlock;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionManager;
@@ -53,6 +55,7 @@ import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.ChunkUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.PistonValueType;
 
 import java.util.LinkedList;
 import java.util.Map;
@@ -99,7 +102,7 @@ public class PistonBlockEntity {
 
     static {
         // Create a ~1 x ~0.5 x ~1 bounding box above the honey block
-        BlockCollision blockCollision = BlockRegistries.COLLISIONS.get(HoneyBlock.state().javaId());
+        BlockCollision blockCollision = BlockRegistries.COLLISIONS.get(Blocks.HONEY_BLOCK.defaultBlockState().javaId());
         if (blockCollision == null) {
             throw new RuntimeException("Failed to find honey block collision");
         }
@@ -224,10 +227,10 @@ public class PistonBlockEntity {
 
     private void removePistonHead() {
         Vector3i blockInFront = position.add(orientation.getUnitVector());
-        int blockId = session.getGeyser().getWorldManager().getBlockAt(session, blockInFront);
-        if (BlockStateValues.isPistonHead(blockId)) {
+        BlockState state = session.getGeyser().getWorldManager().blockAt(session, blockInFront);
+        if (state.is(Blocks.PISTON_HEAD)) {
             ChunkUtils.updateBlock(session, Block.JAVA_AIR_ID, blockInFront);
-        } else if ((session.getGeyser().getPlatformType() == PlatformType.SPIGOT || session.getErosionHandler().isActive()) && blockId == Block.JAVA_AIR_ID) {
+        } else if ((session.getGeyser().getPlatformType() == PlatformType.SPIGOT || session.getErosionHandler().isActive()) && state.is(Blocks.AIR)) {
             // Spigot removes the piston head from the cache, but we need to send the block update ourselves
             ChunkUtils.updateBlock(session, Block.JAVA_AIR_ID, blockInFront);
         }
@@ -353,7 +356,9 @@ public class PistonBlockEntity {
         playerBoundingBox.setSizeZ(playerBoundingBox.getSizeZ() - shrink.getZ());
 
         // Resolve collision with the piston head
-        BlockState pistonHeadId = BlockState.of(BlockStateValues.getPistonHead(orientation));
+        BlockState pistonHeadId = Blocks.PISTON_HEAD.defaultBlockState()
+                .withValue(Properties.SHORT, false)
+                .withValue(Properties.FACING, orientation);
         pushPlayerBlock(pistonHeadId, getPistonHeadPos().toDouble(), blockMovement, playerBoundingBox);
 
         // Resolve collision with any attached moving blocks, but skip slime blocks
@@ -562,9 +567,11 @@ public class PistonBlockEntity {
 
     private BlockState getAttachedBlockId(Vector3i blockPos) {
         if (blockPos.equals(getPistonHeadPos())) {
-            return BlockState.of(BlockStateValues.getPistonHead(orientation));
+            return Blocks.PISTON_HEAD.defaultBlockState()
+                    .withValue(Properties.SHORT, false)
+                    .withValue(Properties.FACING, orientation);
         } else {
-            return attachedBlocks.getOrDefault(blockPos, BlockState.of(Block.JAVA_AIR_ID)); //FIXME
+            return attachedBlocks.getOrDefault(blockPos, Blocks.AIR.defaultBlockState());
         }
     }
 
@@ -633,7 +640,9 @@ public class PistonBlockEntity {
         if (action == PistonValueType.PUSHING) {
             Vector3i pistonHeadPos = getPistonHeadPos().add(movement);
             if (!SOLID_BOUNDING_BOX.checkIntersection(pistonHeadPos.toDouble(), session.getCollisionManager().getPlayerBoundingBox())) {
-                ChunkUtils.updateBlock(session, BlockStateValues.getPistonHead(orientation), pistonHeadPos);
+                ChunkUtils.updateBlock(session, Blocks.PISTON_HEAD.defaultBlockState()
+                        .withValue(Properties.SHORT, false)
+                        .withValue(Properties.FACING, orientation), pistonHeadPos);
             }
         }
     }

@@ -25,23 +25,35 @@
 
 package org.geysermc.geyser.level.block.property;
 
-public abstract class Property<T extends Comparable<T>> {
-    private final String name;
+public final class IntegerProperty extends Property<Integer> {
+    private final int offset;
+    private final int valuesCount;
 
-    protected Property(String name) {
-        this.name = name;
+    private IntegerProperty(String name, int low, int high) {
+        super(name);
+        this.offset = low;
+        this.valuesCount = high - low;
     }
-
-    public String name() {
-        return name;
-    }
-
-    public abstract int valuesCount();
-
-    public abstract int indexOf(T value);
 
     @Override
-    public String toString() {
-        return getClass().getSimpleName() + "[" + name + "]";
+    public int valuesCount() {
+        return this.valuesCount;
+    }
+
+    @Override
+    public int indexOf(Integer value) {
+        return value - this.offset;
+    }
+
+    public int low() {
+        return this.offset;
+    }
+
+    public int high() {
+        return this.offset + this.valuesCount;
+    }
+
+    public static IntegerProperty create(String name, int low, int high) {
+        return new IntegerProperty(name, low, high);
     }
 }

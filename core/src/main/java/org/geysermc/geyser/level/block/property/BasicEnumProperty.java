@@ -25,23 +25,39 @@
 
 package org.geysermc.geyser.level.block.property;
 
-public abstract class Property<T extends Comparable<T>> {
-    private final String name;
+import java.util.List;
 
-    protected Property(String name) {
-        this.name = name;
+/**
+ * Represents enums we don't need classes for in Geyser.
+ */
+public final class BasicEnumProperty extends Property<String> {
+    private final List<String> values;
+
+    private BasicEnumProperty(String name, List<String> values) {
+        super(name);
+        this.values = values;
     }
-
-    public String name() {
-        return name;
-    }
-
-    public abstract int valuesCount();
-
-    public abstract int indexOf(T value);
 
     @Override
-    public String toString() {
-        return getClass().getSimpleName() + "[" + name + "]";
+    public int valuesCount() {
+        return this.values.size();
+    }
+
+    @Override
+    public int indexOf(String value) {
+        int index = this.values.indexOf(value);
+        if (index == -1) {
+            throw new IllegalStateException("Property " + this + " does not have value " + value);
+        }
+        return index;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T values() {
+        return (T) this.values;
+    }
+
+    public static BasicEnumProperty create(String name, String... values) {
+        return new BasicEnumProperty(name, List.of(values));
     }
 }

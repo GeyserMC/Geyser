@@ -25,23 +25,35 @@
 
 package org.geysermc.geyser.level.block.property;
 
-public abstract class Property<T extends Comparable<T>> {
-    private final String name;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 
-    protected Property(String name) {
-        this.name = name;
+public final class EnumProperty<T extends Enum<T>> extends Property<T> {
+    private final IntList ordinalValues;
+
+    /**
+     * @param values all possible values of this enum.
+     */
+    private EnumProperty(String name, T[] values) {
+        super(name);
+        this.ordinalValues = new IntArrayList(values.length);
+        for (T anEnum : values) {
+            this.ordinalValues.add(anEnum.ordinal());
+        }
     }
-
-    public String name() {
-        return name;
-    }
-
-    public abstract int valuesCount();
-
-    public abstract int indexOf(T value);
 
     @Override
-    public String toString() {
-        return getClass().getSimpleName() + "[" + name + "]";
+    public int valuesCount() {
+        return this.ordinalValues.size();
+    }
+
+    @Override
+    public int indexOf(T value) {
+        return this.ordinalValues.indexOf(value.ordinal());
+    }
+
+    @SafeVarargs
+    public static <T extends Enum<T>> EnumProperty<T> create(String name, T... values) {
+        return new EnumProperty<>(name, values);
     }
 }
