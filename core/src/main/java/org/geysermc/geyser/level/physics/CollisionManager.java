@@ -290,20 +290,21 @@ public class CollisionManager {
             stretchedBoundingBox.extend(horizontalMovement);
             double maxStepUp = correctMovementForCollisions(Vector3d.from(0, stepUp, 0), stretchedBoundingBox, checkWorld, walkOnLava).getY();
             if (maxStepUp < stepUp) { // The player collided with a block above them
-                boundingBox.translate(0, maxStepUp, 0);
-                Vector3d adjustedStepUpMovement = correctMovementForCollisions(horizontalMovement, boundingBox, checkWorld, walkOnLava);
-                boundingBox.translate(0, -maxStepUp, 0);
+                BoundingBox stepUpBoundingBox = boundingBox.clone();
+                stepUpBoundingBox.translate(0, maxStepUp, 0);
 
+                Vector3d adjustedStepUpMovement = correctMovementForCollisions(horizontalMovement, stepUpBoundingBox, checkWorld, walkOnLava);
                 if (squaredHorizontalLength(adjustedStepUpMovement) > squaredHorizontalLength(stepUpMovement)) {
                     stepUpMovement = adjustedStepUpMovement.up(maxStepUp);
                 }
             }
 
             if (squaredHorizontalLength(stepUpMovement) > squaredHorizontalLength(adjustedMovement)) {
-                boundingBox.translate(stepUpMovement.getX(), stepUpMovement.getY(), stepUpMovement.getZ());
+                BoundingBox stepUpBoundingBox = boundingBox.clone();
+                stepUpBoundingBox.translate(stepUpMovement.getX(), stepUpMovement.getY(), stepUpMovement.getZ());
+
                 // Apply the player's remaining vertical movement
-                double verticalMovement = correctMovementForCollisions(Vector3d.from(0, movement.getY() - stepUpMovement.getY(), 0), boundingBox, checkWorld, walkOnLava).getY();
-                boundingBox.translate(-stepUpMovement.getX(), -stepUpMovement.getY(), -stepUpMovement.getZ());
+                double verticalMovement = correctMovementForCollisions(Vector3d.from(0, movement.getY() - stepUpMovement.getY(), 0), stepUpBoundingBox, checkWorld, walkOnLava).getY();
 
                 stepUpMovement = stepUpMovement.up(verticalMovement);
                 adjustedMovement = stepUpMovement;
@@ -320,6 +321,11 @@ public class CollisionManager {
         double movementX = movement.getX();
         double movementY = movement.getY();
         double movementZ = movement.getZ();
+
+        // Position might change slightly due to floating point error
+        double originalX = boundingBox.getMiddleX();
+        double originalY = boundingBox.getMiddleY();
+        double originalZ = boundingBox.getMiddleZ();
 
         BoundingBox movementBoundingBox = boundingBox.clone();
         movementBoundingBox.extend(movement);
@@ -342,7 +348,10 @@ public class CollisionManager {
             boundingBox.translate(0, 0, movementZ);
         }
 
-        boundingBox.translate(-movementX, -movementY, -movementZ);
+        boundingBox.setMiddleX(originalX);
+        boundingBox.setMiddleY(originalY);
+        boundingBox.setMiddleZ(originalZ);
+
         return Vector3d.from(movementX, movementY, movementZ);
     }
 
