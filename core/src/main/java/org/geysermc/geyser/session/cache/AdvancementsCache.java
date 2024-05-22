@@ -186,6 +186,10 @@ public class AdvancementsCache {
                         .content(content)
                         .button(GeyserLocale.getPlayerLocaleString("gui.back", language))
                         .validResultHandler((response) -> buildAndShowListForm())
+                        .closedResultHandler(() -> {
+                            // Indicate that we have closed the current advancement tab
+                            session.sendDownstreamGamePacket(new ServerboundSeenAdvancementsPacket());
+                        })
         );
     }
 
