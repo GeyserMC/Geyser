@@ -318,22 +318,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean sprinting;
 
     /**
-     * Whether the player is swimming in water.
-     * Used to update speed when crawling.
-     */
-    @Setter
-    private boolean swimmingInWater;
-
-    /**
-     * Tracks the original speed attribute.
-     * <p>
-     * We need to do this in order to emulate speeds when sneaking under 1.5-blocks-tall areas if the player isn't sneaking,
-     * and when crawling.
-     */
-    @Setter
-    private float originalSpeedAttribute;
-
-    /**
      * The dimension of the player.
      * As all entities are in the same world, this can be safely applied to all other entities.
      */
@@ -1283,21 +1267,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.sneaking = sneaking;
 
         // Update pose and bounding box on our end
-        AttributeData speedAttribute;
-        if (!sneaking && (speedAttribute = adjustSpeed()) != null) {
-            // Update attributes since we're still "sneaking" under a 1.5-block-tall area
-            UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
-            attributesPacket.setRuntimeEntityId(playerEntity.getGeyserId());
-            attributesPacket.setAttributes(Collections.singletonList(speedAttribute));
-            sendUpstreamPacket(attributesPacket);
-            // the server *should* update our pose once it has returned to normal
-        } else {
-            if (!flying) {
-                // The pose and bounding box should not be updated if the player is flying
-                setSneakingPose(sneaking);
-            }
-            collisionManager.updateScaffoldingFlags(false);
+        if (!flying) {
+            // The pose and bounding box should not be updated if the player is flying
+            setSneakingPose(sneaking);
         }
+        collisionManager.updateScaffoldingFlags(false);
 
         playerEntity.updateBedrockMetadata();
 
@@ -1338,30 +1312,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             setSneakingPose(!flying);
             playerEntity.updateBedrockMetadata();
         }
-    }
-
-    /**
-     * Adjusts speed if the player is crawling.
-     *
-     * @return not null if attributes should be updated.
-     */
-    public @Nullable AttributeData adjustSpeed() {
-        AttributeData currentPlayerSpeed = playerEntity.getAttributes().get(GeyserAttributeType.MOVEMENT_SPEED);
-        if (currentPlayerSpeed != null) {
-            if ((pose.equals(Pose.SNEAKING) && !sneaking && collisionManager.mustPlayerSneakHere()) ||
-                    (!swimmingInWater && playerEntity.getFlag(EntityFlag.SWIMMING) && !collisionManager.isPlayerInWater())) {
-                // Either of those conditions means that Bedrock goes zoom when they shouldn't be
-                AttributeData speedAttribute = GeyserAttributeType.MOVEMENT_SPEED.getAttribute(originalSpeedAttribute / 3.32f);
-                playerEntity.getAttributes().put(GeyserAttributeType.MOVEMENT_SPEED, speedAttribute);
-                return speedAttribute;
-            } else if (originalSpeedAttribute != currentPlayerSpeed.getValue()) {
-                // Speed has reset to normal
-                AttributeData speedAttribute = GeyserAttributeType.MOVEMENT_SPEED.getAttribute(originalSpeedAttribute);
-                playerEntity.getAttributes().put(GeyserAttributeType.MOVEMENT_SPEED, speedAttribute);
-                return speedAttribute;
-            }
-        }
-        return null;
     }
 
     /**
