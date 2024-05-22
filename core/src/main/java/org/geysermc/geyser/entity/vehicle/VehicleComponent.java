@@ -152,23 +152,26 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
             return false;
         }
 
-        ObjectDoublePair<Fluid> fluidHeight = updateFluidMovement();
+        VehicleContext ctx = new VehicleContext();
+        ctx.loadSurroundingBlocks();
+
+        ObjectDoublePair<Fluid> fluidHeight = updateFluidMovement(ctx);
         switch (fluidHeight.left()) {
-            case WATER -> waterMovement();
+            case WATER -> waterMovement(ctx);
             case LAVA -> {
-                if (vehicle.canWalkOnLava() && getBlock(boundingBox.getBottomCenter().toInt()) == Blocks.LAVA) {
-                    landMovement();
+                if (vehicle.canWalkOnLava() && ctx.centerBlock().is(Blocks.LAVA)) {
+                    landMovement(ctx);
                 } else {
-                    lavaMovement(fluidHeight.rightDouble());
+                    lavaMovement(ctx, fluidHeight.rightDouble());
                 }
             }
-            case EMPTY -> landMovement();
+            case EMPTY -> landMovement(ctx);
         }
 
         return true;
     }
 
-    protected ObjectDoublePair<Fluid> updateFluidMovement() {
+    protected ObjectDoublePair<Fluid> updateFluidMovement(VehicleContext ctx) {
         BoundingBox box = boundingBox.clone();
         box.expand(-0.001);
 
@@ -176,14 +179,14 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         Vector3d max = box.getMax();
 
         BlockPositionIterator iter = BlockPositionIterator.fromMinMax(min.getFloorX(), min.getFloorY(), min.getFloorZ(), max.getFloorX(), max.getFloorY(), max.getFloorZ());
-        int[] blocks = vehicle.getSession().getGeyser().getWorldManager().getBlocksAt(vehicle.getSession(), iter);
 
-        double waterHeight = getFluidHeightAndApplyMovement(Fluid.WATER, 0.014, min.getY(), iter, blocks);
-        double lavaHeight = getFluidHeightAndApplyMovement(Fluid.LAVA, vehicle.getSession().getDimensionType().ultrawarm() ? 0.007 : 0.007 / 3, min.getY(), iter, blocks);
+        double waterHeight = getFluidHeightAndApplyMovement(ctx, iter, Fluid.WATER, 0.014, min.getY());
+        double lavaHeight = getFluidHeightAndApplyMovement(ctx, iter, Fluid.LAVA, vehicle.getSession().getDimensionType().ultrawarm() ? 0.007 : 0.007 / 3, min.getY());
 
         if (lavaHeight > 0 && vehicle.getDefinition().entityType() == EntityType.STRIDER) {
-            Vector3i blockPos = boundingBox.getBottomCenter().toInt();
-            if (!CollisionManager.FLUID_COLLISION.isBelow(blockPos.getY(), boundingBox) || getBlock(blockPos.up()) == Blocks.LAVA) {
+            Vector3i blockPos = ctx.centerPos().toInt();
+            if (!CollisionManager.FLUID_COLLISION.isBelow(blockPos.getY(), boundingBox)
+                    || ctx.getBlock(blockPos.up()).is(Blocks.LAVA)) {
                 vehicle.setMotion(vehicle.getMotion().mul(0.5f).add(0, 0.05f, 0));
             } else {
                 vehicle.setOnGround(true);
@@ -202,13 +205,13 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return EMPTY_FLUID_PAIR;
     }
 
-    protected double getFluidHeightAndApplyMovement(Fluid fluid, double speed, double minY, BlockPositionIterator iter, int[] blocks) {
+    protected double getFluidHeightAndApplyMovement(VehicleContext ctx, BlockPositionIterator iter, Fluid fluid, double speed, double minY) {
         Vector3d totalVelocity = Vector3d.ZERO;
         double maxFluidHeight = 0;
         int fluidBlocks = 0;
 
         for (iter.reset(); iter.hasNext(); iter.next()) {
-            int blockId = blocks[iter.getIteration()];
+            int blockId = ctx.getBlockId(iter);
             if (BlockStateValues.getFluid(blockId) != fluid) {
                 continue;
             }
@@ -225,7 +228,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
             Vector3d velocity = Vector3d.ZERO;
             for (Direction direction : Direction.HORIZONTAL) {
                 Vector3i adjacentBlockPos = blockPos.add(direction.getUnitVector());
-                int adjacentBlockId = getBlockId(adjacentBlockPos);
+                int adjacentBlockId = ctx.getBlockId(adjacentBlockPos);
                 Fluid adjacentFluid = BlockStateValues.getFluid(adjacentBlockId);
 
                 float fluidHeightDiff = 0;
@@ -236,7 +239,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
                     // check if there is a fluid under it
                     BlockCollision adjacentBlockCollision = BlockUtils.getCollision(adjacentBlockId);
                     if (adjacentBlockCollision == null) {
-                        float adjacentFluidHeight = getLogicalFluidHeight(fluid, getBlockId(adjacentBlockPos.add(Direction.DOWN.getUnitVector())));
+                        float adjacentFluidHeight = getLogicalFluidHeight(fluid, ctx.getBlockId(adjacentBlockPos.add(Direction.DOWN.getUnitVector())));
                         if (adjacentFluidHeight != -1) { // Only care about same type of fluid
                             fluidHeightDiff = getLogicalFluidHeight(fluid, blockId) - (adjacentFluidHeight - MAX_LOGICAL_FLUID_HEIGHT);
                         }
@@ -255,7 +258,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
                 if (!flowBlocked) {
                     Vector3i blockPosUp = blockPos.up();
                     for (Direction direction : Direction.HORIZONTAL) {
-                        flowBlocked = isFlowBlocked(fluid, getBlockId(blockPosUp.add(direction.getUnitVector())));
+                        flowBlocked = isFlowBlocked(fluid, ctx.getBlockId(blockPosUp.add(direction.getUnitVector())));
                         if (flowBlocked) {
                             break;
                         }
@@ -302,18 +305,6 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return len < 1.0E-4 ? Vector3d.ZERO : Vector3d.from(vec.getX() / len, vec.getY() / len, vec.getZ() / len);
     }
 
-    protected int getBlockId(Vector3i blockPos) {
-        return vehicle.getSession().getGeyser().getWorldManager().getBlockAt(vehicle.getSession(), blockPos);
-    }
-
-    protected BlockState getBlockState(Vector3i blockPos) {
-        return BlockState.of(getBlockId(blockPos));
-    }
-
-    protected Block getBlock(Vector3i blockPos) {
-        return getBlockState(blockPos).block();
-    }
-
     protected float getWorldFluidHeight(Fluid fluidType, int blockId) {
         return (float) switch (fluidType) {
             case WATER -> BlockStateValues.getWaterHeight(blockId);
@@ -339,33 +330,34 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return BlockUtils.getCollision(adjacentBlockId) instanceof SolidCollision;
     }
 
-    protected void waterMovement() {
+    protected void waterMovement(VehicleContext ctx) {
         float gravity = getGravity();
         float drag = vehicle.getFlag(EntityFlag.SPRINTING) ? 0.9f : 0.8f; // 0.8f: getBaseMovementSpeedMultiplier
-        double originalY = boundingBox.getBottomCenter().getY();
+        double originalY = ctx.centerPos().getY();
         boolean falling = vehicle.getMotion().getY() <= 0;
 
         // NOT IMPLEMENTED: depth strider and dolphins grace
 
-        boolean horizontalCollision = travel(0.02f);
-        if (horizontalCollision && isClimbing()) {
+        boolean horizontalCollision = travel(ctx, 0.02f);
+
+        if (horizontalCollision && isClimbing(ctx)) {
             vehicle.setMotion(Vector3f.from(vehicle.getMotion().getX(), 0.2f, vehicle.getMotion().getZ()));
         }
 
         vehicle.setMotion(vehicle.getMotion().mul(drag, 0.8f, drag));
         vehicle.setMotion(getFluidGravity(gravity, falling));
 
-        if (horizontalCollision && shouldApplyFluidJumpBoost(originalY)) {
+        if (horizontalCollision && shouldApplyFluidJumpBoost(ctx, originalY)) {
             vehicle.setMotion(Vector3f.from(vehicle.getMotion().getX(), 0.3f, vehicle.getMotion().getZ()));
         }
     }
 
-    protected void lavaMovement(double lavaHeight) {
+    protected void lavaMovement(VehicleContext ctx, double lavaHeight) {
         float gravity = getGravity();
-        double originalY = boundingBox.getBottomCenter().getY();
+        double originalY = ctx.centerPos().getY();
         boolean falling = vehicle.getMotion().getY() <= 0;
 
-        boolean horizontalCollision = travel(0.02f);
+        boolean horizontalCollision = travel(ctx, 0.02f);
 
         if (lavaHeight <= (boundingBox.getSizeY() * 0.85 < 0.4 ? 0.0 : 0.4)) { // Swim height
             vehicle.setMotion(vehicle.getMotion().mul(0.5f, 0.8f, 0.5f));
@@ -376,19 +368,20 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
 
         vehicle.setMotion(vehicle.getMotion().down(gravity / 4.0f));
 
-        if (horizontalCollision && shouldApplyFluidJumpBoost(originalY)) {
+        if (horizontalCollision && shouldApplyFluidJumpBoost(ctx, originalY)) {
             vehicle.setMotion(Vector3f.from(vehicle.getMotion().getX(), 0.3f, vehicle.getMotion().getZ()));
         }
     }
 
-    protected void landMovement() {
+    protected void landMovement(VehicleContext ctx) {
         float gravity = getGravity();
-        float slipperiness = BlockStateValues.getSlipperiness(getBlockState(getVelocityAffectingPos()));
+        float slipperiness = BlockStateValues.getSlipperiness(ctx.velocityAffectingBlock());
         float drag = vehicle.isOnGround() ? 0.91f * slipperiness : 0.91f;
         float speed = vehicle.getVehicleSpeed() * (vehicle.isOnGround() ? BASE_SLIPPERINESS_CUBED / (slipperiness * slipperiness * slipperiness) : 0.1f);
 
-        boolean horizontalCollision = travel(speed);
-        if (isClimbing()) {
+        boolean horizontalCollision = travel(ctx, speed);
+
+        if (isClimbing(ctx)) {
             vehicle.setMotion(getClimbingSpeed(horizontalCollision));
             // NOT IMPLEMENTED: climbing in powdered snow
         }
@@ -403,16 +396,14 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         vehicle.setMotion(vehicle.getMotion().mul(drag, 0.98f, drag));
     }
 
-    protected boolean shouldApplyFluidJumpBoost(double originalY) {
+    protected boolean shouldApplyFluidJumpBoost(VehicleContext ctx, double originalY) {
         BoundingBox box = boundingBox.clone();
-        box.translate(vehicle.getMotion().toDouble().up(0.6f - boundingBox.getBottomCenter().getY() + originalY));
+        box.translate(vehicle.getMotion().toDouble().up(0.6f - ctx.centerPos().getY() + originalY));
         box.expand(-1.0E-7);
 
         BlockPositionIterator iter = vehicle.getSession().getCollisionManager().collidableBlocksIterator(box);
-        int[] blocks = vehicle.getSession().getGeyser().getWorldManager().getBlocksAt(vehicle.getSession(), iter);
-
         for (iter.reset(); iter.hasNext(); iter.next()) {
-            int blockId = blocks[iter.getIteration()];
+            int blockId = ctx.getBlockId(iter);
 
             // Also check for fluids
             BlockCollision blockCollision = BlockUtils.getCollision(blockId);
@@ -449,29 +440,31 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return motion;
     }
 
-    protected @Nullable Vector3f getBlockMovementMultiplier() {
+    protected @Nullable Vector3f getBlockMovementMultiplier(VehicleContext ctx) {
         BoundingBox box = boundingBox.clone();
         box.expand(-1.0E-7);
 
         Vector3i min = box.getMin().toInt();
         Vector3i max = box.getMax().toInt();
 
-        BlockPositionIterator iter = BlockPositionIterator.fromMinMax(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ());
-        int[] blocks = vehicle.getSession().getGeyser().getWorldManager().getBlocksAt(vehicle.getSession(), iter);
+        // Iterate xyz backwards
+        for (int x = max.getX(); x >= min.getX(); x--) {
+            for (int y = max.getY(); y >= min.getY(); y--) {
+                for (int z = max.getZ(); z >= min.getZ(); z--) {
+                    Block block = ctx.getBlock(x, y, z).block();
+                    Vector3f multiplier = MOVEMENT_MULTIPLIERS.get(block);
 
-        // Iterate backwards
-        for (int i = blocks.length - 1; i >= 0; i--) {
-            Vector3f multiplier = MOVEMENT_MULTIPLIERS.get(BlockState.of(blocks[i]).block());
-
-            if (multiplier != null) {
-                return multiplier;
+                    if (multiplier != null) {
+                        return multiplier;
+                    }
+                }
             }
         }
 
         return null;
     }
 
-    protected void applyBlockCollisionEffects() {
+    protected void applyBlockCollisionEffects(VehicleContext ctx) {
         BoundingBox box = boundingBox.clone();
         box.expand(-1.0E-7);
 
@@ -479,10 +472,8 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         Vector3i max = box.getMax().toInt();
 
         BlockPositionIterator iter = BlockPositionIterator.fromMinMax(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ());
-        int[] blocks = vehicle.getSession().getGeyser().getWorldManager().getBlocksAt(vehicle.getSession(), iter);
-
         for (iter.reset(); iter.hasNext(); iter.next()) {
-            BlockState blockState = BlockState.of(blocks[iter.getIteration()]);
+            BlockState blockState = ctx.getBlock(iter);
 
             if (blockState.is(Blocks.HONEY_BLOCK)) {
                 onHoneyBlockCollision();
@@ -515,7 +506,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     /**
      * @return True if there was a horizontal collision
      */
-    protected boolean travel(float speed) {
+    protected boolean travel(VehicleContext ctx, float speed) {
         Vector3f motion = vehicle.getMotion();
 
         // Java only does this client side
@@ -529,9 +520,9 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
 
         // TODO: isImmobile? set input to 0 and jump to false
 
-        motion = motion.add(getInputVelocity(speed));
+        motion = motion.add(getInputVelocity(ctx, speed));
 
-        Vector3f movementMultiplier = getBlockMovementMultiplier();
+        Vector3f movementMultiplier = getBlockMovementMultiplier(ctx);
         if (movementMultiplier != null) {
             motion = motion.mul(movementMultiplier);
         }
@@ -541,7 +532,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         );
 
         boundingBox.translate(correctedMovement);
-        Vector3d newPos = boundingBox.getBottomCenter();
+        ctx.loadSurroundingBlocks();
 
         // Non-zero values indicate a collision on that axis
         Vector3d moveDiff = motion.toDouble().sub(correctedMovement);
@@ -551,8 +542,8 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
 
         boolean bounced = false;
         if (onGround) {
-            Vector3i landingPos = newPos.sub(0, 0.2f, 0).toInt();
-            Block landingBlock = getBlock(landingPos);
+            Vector3i landingPos = ctx.centerPos().sub(0, 0.2f, 0).toInt();
+            Block landingBlock = ctx.getBlock(landingPos).block();
 
             if (landingBlock == Blocks.SLIME_BLOCK) {
                 motion = Vector3f.from(motion.getX(), -motion.getY(), motion.getZ());
@@ -582,32 +573,30 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         }
 
         // Send the new position to the bedrock client and java server
-        moveVehicle(newPos, onGround);
+        moveVehicle(ctx.centerPos(), onGround);
         vehicle.setMotion(motion);
 
-        applyBlockCollisionEffects();
+        applyBlockCollisionEffects(ctx);
 
-        float velocityMultiplier = getVelocityMultiplier();
+        float velocityMultiplier = getVelocityMultiplier(ctx);
         vehicle.setMotion(vehicle.getMotion().mul(velocityMultiplier, 1.0f, velocityMultiplier));
 
         return horizontalCollision;
     }
 
-    protected boolean isClimbing() {
+    protected boolean isClimbing(VehicleContext ctx) {
         if (!vehicle.canClimb()) {
             return false;
         }
 
-        Vector3i blockPos = boundingBox.getBottomCenter().toInt();
-        BlockState blockState = getBlockState(blockPos);
-
+        BlockState blockState = ctx.centerBlock();
         if (vehicle.getSession().getTagCache().is(BlockTag.CLIMBABLE, blockState.block())) {
             return true;
         }
 
         // Check if the vehicle is in an open trapdoor with a ladder of the same direction under it
         if (blockState.block() instanceof TrapDoorBlock && blockState.getValue(Properties.OPEN)) {
-            BlockState ladderState = getBlockState(blockPos.down());
+            BlockState ladderState = ctx.getBlock(ctx.centerPos().toInt().down());
             return ladderState.is(Blocks.LADDER) &&
                     ladderState.getValue(Properties.HORIZONTAL_FACING) == blockState.getValue(Properties.HORIZONTAL_FACING);
         }
@@ -625,7 +614,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return input;
     }
 
-    protected Vector3f getInputVelocity(float speed) {
+    protected Vector3f getInputVelocity(VehicleContext ctx, float speed) {
         Vector2f input = vehicle.getSession().getPlayerEntity().getVehicleInput();
         input = input.mul(0.98f);
         input = vehicle.getAdjustedInput(input);
@@ -706,12 +695,10 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return 0.08f;
     }
 
-    protected @Nullable Vector3i getSupportingBlockPos() {
+    protected @Nullable Vector3i getSupportingBlockPos(VehicleContext ctx) {
         Vector3i result = null;
 
         if (vehicle.isOnGround()) {
-            Vector3d bottomCenter = boundingBox.getBottomCenter();
-
             BoundingBox box = boundingBox.clone();
             box.extend(0, -1.0E-6, 0); // Extend slightly down
 
@@ -720,12 +707,11 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
 
             // Use minY as maxY
             BlockPositionIterator iter = BlockPositionIterator.fromMinMax(min.getX(), min.getY(), min.getZ(), max.getX(), min.getY(), max.getZ());
-            int[] blocks = vehicle.getSession().getGeyser().getWorldManager().getBlocksAt(vehicle.getSession(), iter);
 
             double minDistance = Double.MAX_VALUE;
             for (iter.reset(); iter.hasNext(); iter.next()) {
                 Vector3i blockPos = Vector3i.from(iter.getX(), iter.getY(), iter.getZ());
-                int blockId = blocks[iter.getIteration()];
+                int blockId = ctx.getBlockId(iter);
 
                 BlockCollision blockCollision;
                 if (vehicle.canWalkOnLava()) {
@@ -735,7 +721,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
                 }
 
                 if (blockCollision != null && blockCollision.checkIntersection(blockPos, box)) {
-                    double distance = bottomCenter.distanceSquared(blockPos.toDouble().add(0.5f, 0.5f, 0.5f));
+                    double distance = ctx.centerPos().distanceSquared(blockPos.toDouble().add(0.5f, 0.5f, 0.5f));
                     if (distance <= minDistance) {
                         minDistance = distance;
                         result = blockPos;
@@ -747,17 +733,17 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return result;
     }
 
-    protected Vector3i getVelocityAffectingPos() {
-        Vector3i blockPos = getSupportingBlockPos();
+    protected Vector3i getVelocityAffectingPos(VehicleContext ctx) {
+        Vector3i blockPos = getSupportingBlockPos(ctx);
         if (blockPos != null) {
-            return Vector3i.from(blockPos.getX(), Math.floor(boundingBox.getBottomCenter().getY() - 0.500001f), blockPos.getZ());
+            return Vector3i.from(blockPos.getX(), Math.floor(ctx.centerPos().getY() - 0.500001f), blockPos.getZ());
         } else {
-            return vehicle.getPosition().sub(0, 0.500001f, 0).toInt();
+            return ctx.centerPos().sub(0, 0.500001f, 0).toInt();
         }
     }
 
-    protected float getVelocityMultiplier() {
-        Block block = getBlock(boundingBox.getBottomCenter().toInt());
+    protected float getVelocityMultiplier(VehicleContext ctx) {
+        Block block = ctx.centerBlock().block();
         if (block == Blocks.WATER || block == Blocks.BUBBLE_COLUMN) {
             return 1.0f;
         }
@@ -766,7 +752,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
             return 0.4f;
         }
 
-        block = getBlock(getVelocityAffectingPos());
+        block = ctx.velocityAffectingBlock().block();
         if (block == Blocks.SOUL_SAND || block == Blocks.HONEY_BLOCK) {
             return 0.4f;
         }
@@ -774,17 +760,85 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return 1.0f;
     }
 
-    protected float getJumpVelocityMultiplier() {
-        Block block = getBlock(boundingBox.getBottomCenter().toInt());
+    protected float getJumpVelocityMultiplier(VehicleContext ctx) {
+        Block block = ctx.centerBlock().block();
         if (block == Blocks.HONEY_BLOCK) {
             return 0.5f;
         }
 
-        block = getBlock(getVelocityAffectingPos());
+        block = ctx.velocityAffectingBlock().block();
         if (block == Blocks.HONEY_BLOCK) {
             return 0.5f;
         }
 
         return 1.0f;
+    }
+
+    protected class VehicleContext {
+        private Vector3d centerPos;
+        private BlockState centerBlock;
+        private BlockState velocityAffectingBlock;
+        private BlockPositionIterator blockIter;
+        private int[] blocks;
+
+        protected void loadSurroundingBlocks() {
+            BoundingBox box = boundingBox.clone();
+            box.expand(2);
+
+            Vector3i min = box.getMin().toInt();
+            Vector3i max = box.getMax().toInt();
+            this.blockIter = BlockPositionIterator.fromMinMax(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ());
+            this.blocks = vehicle.getSession().getGeyser().getWorldManager().getBlocksAt(vehicle.getSession(), this.blockIter);
+
+            this.centerPos = boundingBox.getBottomCenter();
+            this.centerBlock = getBlock(this.centerPos.toInt());
+            this.velocityAffectingBlock = null;
+        }
+
+        protected Vector3d centerPos() {
+            return this.centerPos;
+        }
+
+        protected BlockState centerBlock() {
+            return this.centerBlock;
+        }
+
+        protected BlockState velocityAffectingBlock() {
+            if (this.velocityAffectingBlock == null) {
+                this.velocityAffectingBlock = getBlock(getVelocityAffectingPos(this));
+            }
+
+            return this.velocityAffectingBlock;
+        }
+
+        protected int getBlockId(int x, int y, int z) {
+            int index = this.blockIter.getIndex(x, y, z);
+            if (index == -1) {
+                vehicle.getSession().getGeyser().getLogger().debug("[client-vehicle] Block cache miss");
+                return vehicle.getSession().getGeyser().getWorldManager().getBlockAt(vehicle.getSession(), x, y, z);
+            }
+
+            return blocks[index];
+        }
+
+        protected int getBlockId(Vector3i pos) {
+            return getBlockId(pos.getX(), pos.getY(), pos.getZ());
+        }
+
+        protected int getBlockId(BlockPositionIterator iter) {
+            return getBlockId(iter.getX(), iter.getY(), iter.getZ());
+        }
+
+        protected BlockState getBlock(int x, int y, int z) {
+            return BlockState.of(getBlockId(x, y, z));
+        }
+
+        protected BlockState getBlock(Vector3i pos) {
+            return BlockState.of(getBlockId(pos.getX(), pos.getY(), pos.getZ()));
+        }
+
+        protected BlockState getBlock(BlockPositionIterator iter) {
+            return BlockState.of(getBlockId(iter.getX(), iter.getY(), iter.getZ()));
+        }
     }
 }

@@ -56,6 +56,7 @@ public class BoostableVehicleComponent<T extends LivingEntity & ClientVehicle> e
     public boolean tickVehicle() {
         boolean clientControlled = super.tickVehicle();
         if (clientControlled && isBoosting()) {
+            // TODO: the client ticks boost if any player is controlling
             boostTicks++;
         }
 

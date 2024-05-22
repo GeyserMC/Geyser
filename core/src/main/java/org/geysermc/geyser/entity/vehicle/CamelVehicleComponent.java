@@ -78,22 +78,22 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
     }
 
     @Override
-    protected boolean travel(float speed) {
+    protected boolean travel(VehicleContext ctx, float speed) {
         if (vehicle.isOnGround() && isStationary()) {
             vehicle.setMotion(vehicle.getMotion().mul(0, 1, 0));
         }
 
-        return super.travel(speed);
+        return super.travel(ctx, speed);
     }
 
     @Override
-    protected Vector3f getInputVelocity(float speed) {
+    protected Vector3f getInputVelocity(VehicleContext ctx, float speed) {
         if (isStationary()) {
             return Vector3f.ZERO;
         }
 
         SessionPlayerEntity player = vehicle.getSession().getPlayerEntity();
-        Vector3f inputVelocity = super.getInputVelocity(speed);
+        Vector3f inputVelocity = super.getInputVelocity(ctx, speed);
         float jumpStrength = player.getVehicleJumpStrength();
 
         if (jumpStrength > 0) {
@@ -106,8 +106,8 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
             }
 
             return inputVelocity.add(Vector3f.createDirectionDeg(0, -player.getYaw())
-                    .mul(22.2222f * jumpStrength * this.moveSpeed * getVelocityMultiplier())
-                    .up(1.4285f * jumpStrength * (this.horseJumpStrength * getJumpVelocityMultiplier() + (this.jumpBoost * 0.1f))));
+                    .mul(22.2222f * jumpStrength * this.moveSpeed * getVelocityMultiplier(ctx))
+                    .up(1.4285f * jumpStrength * (this.horseJumpStrength * getJumpVelocityMultiplier(ctx) + (this.jumpBoost * 0.1f))));
         }
 
         return inputVelocity;
