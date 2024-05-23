@@ -80,7 +80,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     private GeyserCommandManager geyserCommandManager;
     private GeyserModConfiguration geyserConfig;
     private GeyserModInjector geyserInjector;
-    private GeyserModLogger geyserLogger;
+    private final GeyserModLogger geyserLogger = new GeyserModLogger();
     private IGeyserPingPassthrough geyserPingPassthrough;
     private WorldManager geyserWorldManager;
 
@@ -92,7 +92,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         if (!loadConfig()) {
             return;
         }
-        this.geyserLogger = new GeyserModLogger(geyserConfig.isDebugMode());
+        this.geyserLogger.setDebug(geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
         this.geyser = GeyserImpl.load(this.platform.platformType(), this);
 

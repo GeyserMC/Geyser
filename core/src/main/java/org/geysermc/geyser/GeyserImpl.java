@@ -766,6 +766,7 @@ public class GeyserImpl implements GeyserApi {
             return 0;
         }
 
+        //noinspection DataFlowIssue
         return Integer.parseInt(BUILD_NUMBER);
     }
 

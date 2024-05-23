@@ -76,7 +76,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     private GeyserCommandManager geyserCommandManager;
     private GeyserVelocityConfiguration geyserConfig;
     private GeyserVelocityInjector geyserInjector;
-    private GeyserVelocityLogger geyserLogger;
+    private final GeyserVelocityLogger geyserLogger = new GeyserVelocityLogger(logger);
     private IGeyserPingPassthrough geyserPingPassthrough;
 
     private GeyserImpl geyser;
@@ -101,7 +101,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         if (!loadConfig()) {
             return;
         }
-        this.geyserLogger = new GeyserVelocityLogger(logger, geyserConfig.isDebugMode());
+        this.geyserLogger.setDebug(geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
         this.geyser = GeyserImpl.load(PlatformType.VELOCITY, this);
