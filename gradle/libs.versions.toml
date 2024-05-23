@@ -1,6 +1,6 @@
 [versions]
 base-api = "feature-floodgate-merge-1.1.0-SNAPSHOT"
-floodgate = "development-2.2.2-SNAPSHOT"
+floodgate = "development-3.0.0-SNAPSHOT"
 cumulus = "1.1.2"
 erosion = "1.0-20230406.174837-8"
 events = "1.1-SNAPSHOT"
@@ -28,7 +28,7 @@ folia = "1.19.4-R0.1-SNAPSHOT"
 viaversion = "4.9.2"
 adapters = "1.12-SNAPSHOT"
 commodore = "2.2"
-bungeecord = "a7c6ede"
+bungeecord = "1.20-R0.3-SNAPSHOT"
 velocity = "3.3.0-SNAPSHOT"
 viaproxy = "3.2.1"
 fabric-minecraft = "1.20.5"
@@ -108,7 +108,7 @@ neoforge-minecraft = { group = "net.neoforged", name = "neoforge", version.ref =
 
 adapters-spigot = { group = "org.geysermc.geyser.adapters", name = "spigot-all", version.ref = "adapters" }
 adapters-paper = { group = "org.geysermc.geyser.adapters", name = "paper-all", version.ref = "adapters" }
-bungeecord-proxy = { group = "com.github.SpigotMC.BungeeCord", name = "bungeecord-proxy", version.ref = "bungeecord" }
+bungeecord-proxy = { group = "net.md-5", name = "bungeecord-proxy", version.ref = "bungeecord" }
 checker-qual = { group = "org.checkerframework", name = "checker-qual", version.ref = "checkerframework" }
 commodore = { group = "me.lucko", name = "commodore", version.ref = "commodore" }
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }

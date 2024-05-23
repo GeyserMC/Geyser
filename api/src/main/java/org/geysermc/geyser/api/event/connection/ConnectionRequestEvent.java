@@ -72,7 +72,7 @@ public final class ConnectionRequestEvent implements Event, Cancellable {
      * @return the cancel status of this event
      */
     @Override
-    public boolean isCancelled() {
+    public boolean cancelled() {
         return cancelled;
     }
 
@@ -82,6 +82,30 @@ public final class ConnectionRequestEvent implements Event, Cancellable {
      * @param cancelled the cancel status of this event.
      */
     @Override
+    public void cancelled(boolean cancelled) {
+        this.cancelled = cancelled;
+    }
+
+    /**
+     * The cancel status of this event. If this event is cancelled, the connection will be rejected.
+     *
+     * @return the cancel status of this event
+     * @deprecated use {@link #cancelled()} instead
+     */
+    @Override
+    @Deprecated(forRemoval = true)
+    public boolean isCancelled() {
+        return cancelled;
+    }
+
+    /**
+     * Sets the cancel status of this event. If this event is canceled, the connection will be rejected.
+     *
+     * @param cancelled the cancel status of this event.
+     * @deprecated use {@link #cancelled(boolean)} instead
+     */
+    @Override
+    @Deprecated(forRemoval = true)
     public void setCancelled(boolean cancelled) {
         this.cancelled = cancelled;
     }

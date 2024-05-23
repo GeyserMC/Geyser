@@ -138,7 +138,6 @@ import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.session.cache.*;
-import org.geysermc.geyser.skin.FloodgateSkinUploader;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;

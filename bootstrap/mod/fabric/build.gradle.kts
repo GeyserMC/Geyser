@@ -36,7 +36,6 @@ dependencies {
 
     // Let's shade in our own api/common module
     shadow(projects.api) { isTransitive = false }
-    shadow(projects.common) { isTransitive = false }
 
     // Permissions
     modImplementation(libs.fabric.permissions)
