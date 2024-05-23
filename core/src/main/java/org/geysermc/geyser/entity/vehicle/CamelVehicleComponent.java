@@ -44,7 +44,7 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
     private long lastPoseTick;
 
     private int dashTick;
-    private int jumpBoost;
+    private int effectJumpBoost;
 
     public CamelVehicleComponent(CamelEntity vehicle) {
         super(vehicle, 1.5f);
@@ -108,7 +108,7 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
 
             return inputVelocity.add(Vector3f.createDirectionDeg(0, -player.getYaw())
                     .mul(22.2222f * jumpStrength * this.moveSpeed * getVelocityMultiplier(ctx))
-                    .up(1.4285f * jumpStrength * (this.horseJumpStrength * getJumpVelocityMultiplier(ctx) + (this.jumpBoost * 0.1f))));
+                    .up(1.4285f * jumpStrength * (this.horseJumpStrength * getJumpVelocityMultiplier(ctx) + (this.effectJumpBoost * 0.1f))));
         }
 
         return inputVelocity;
@@ -134,7 +134,7 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
     @Override
     public void setEffect(Effect effect, int effectAmplifier) {
         if (effect == Effect.JUMP_BOOST) {
-            jumpBoost = effectAmplifier + 1;
+            effectJumpBoost = effectAmplifier + 1;
         } else {
             super.setEffect(effect, effectAmplifier);
         }
@@ -143,7 +143,7 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
     @Override
     public void removeEffect(Effect effect) {
         if (effect == Effect.JUMP_BOOST) {
-            jumpBoost = 0;
+            effectJumpBoost = 0;
         } else {
             super.removeEffect(effect);
         }

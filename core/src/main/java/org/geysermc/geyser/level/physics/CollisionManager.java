@@ -366,13 +366,7 @@ public class CollisionManager {
             if (checkWorld) {
                 int blockId = session.getGeyser().getWorldManager().getBlockAt(session, x, y, z);
 
-                BlockCollision blockCollision;
-                if (walkOnLava) {
-                    blockCollision = getCollisionLavaWalking(blockId, y, boundingBox);
-                } else {
-                    blockCollision = BlockUtils.getCollision(blockId);
-                }
-
+                BlockCollision blockCollision = walkOnLava ? getCollisionLavaWalking(blockId, y, boundingBox) : BlockUtils.getCollision(blockId);
                 if (blockCollision != null && !(blockCollision instanceof ScaffoldingCollision)) {
                     offset = blockCollision.computeCollisionOffset(x, y, z, boundingBox, axis, offset);
                 }

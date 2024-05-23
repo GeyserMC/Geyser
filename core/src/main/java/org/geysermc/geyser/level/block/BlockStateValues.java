@@ -100,7 +100,7 @@ public final class BlockStateValues {
     }
 
     /**
-     * Get the type of fluid from the block state.
+     * Get the type of fluid from the block state, including waterlogged blocks.
      *
      * @param state BlockState of the block
      * @return The type of fluid

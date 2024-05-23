@@ -57,8 +57,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
 
-import java.util.Map;
-
 public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     private static final ObjectDoublePair<Fluid> EMPTY_FLUID_PAIR = ObjectDoublePair.of(Fluid.EMPTY, 0.0);
     private static final float MAX_LOGICAL_FLUID_HEIGHT = 8.0f / BlockStateValues.NUM_FLUID_LEVELS;
@@ -66,19 +64,14 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     private static final float MIN_VELOCITY = 0.003f;
     private static final float CLIMB_SPEED = 0.15f;
 
-    private static final Map<Block, Vector3f> MOVEMENT_MULTIPLIERS = Map.of(
-            Blocks.COBWEB, Vector3f.from(0.25f, 0.05f, 0.25f),
-            Blocks.POWDER_SNOW, Vector3f.from(0.9f, 1.5f, 0.9f),
-            Blocks.SWEET_BERRY_BUSH, Vector3f.from(0.8f, 0.75f, 0.8f)
-    );
-
     protected final T vehicle;
     protected final BoundingBox boundingBox;
 
     protected float stepHeight;
     protected float moveSpeed;
-    protected int levitation;
-    protected boolean slowFalling;
+    protected int effectLevitation;
+    protected boolean effectSlowFalling;
+    protected boolean effectWeaving;
 
     public VehicleComponent(T vehicle, float stepHeight) {
         this.vehicle = vehicle;
@@ -119,15 +112,17 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
 
     public void setEffect(Effect effect, int effectAmplifier) {
         switch (effect) {
-            case LEVITATION -> levitation = effectAmplifier + 1;
-            case SLOW_FALLING -> slowFalling = true;
+            case LEVITATION -> effectLevitation = effectAmplifier + 1;
+            case SLOW_FALLING -> effectSlowFalling = true;
+            case WEAVING -> effectWeaving = true;
         }
     }
 
     public void removeEffect(Effect effect) {
         switch (effect) {
-            case LEVITATION -> levitation = 0;
-            case SLOW_FALLING -> slowFalling = false;
+            case LEVITATION -> effectLevitation = 0;
+            case SLOW_FALLING -> effectSlowFalling = false;
+            case WEAVING -> effectWeaving = false;
         }
     }
 
@@ -391,8 +386,8 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
             // NOT IMPLEMENTED: climbing in powdered snow
         }
 
-        if (levitation > 0) {
-            vehicle.setMotion(vehicle.getMotion().up((0.05f * levitation - vehicle.getMotion().getY()) * 0.2f));
+        if (effectLevitation > 0) {
+            vehicle.setMotion(vehicle.getMotion().up((0.05f * effectLevitation - vehicle.getMotion().getY()) * 0.2f));
         } else {
             vehicle.setMotion(vehicle.getMotion().down(gravity));
             // NOT IMPLEMENTED: slow fall when in unloaded chunk
@@ -457,7 +452,19 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
             for (int y = max.getY(); y >= min.getY(); y--) {
                 for (int z = max.getZ(); z >= min.getZ(); z--) {
                     Block block = ctx.getBlock(x, y, z).block();
-                    Vector3f multiplier = MOVEMENT_MULTIPLIERS.get(block);
+                    Vector3f multiplier = null;
+
+                    if (block == Blocks.COBWEB) {
+                        if (effectWeaving) {
+                            multiplier = Vector3f.from(0.5, 0.25, 0.5);
+                        } else {
+                            multiplier = Vector3f.from(0.25, 0.05f, 0.25);
+                        }
+                    } else if (block == Blocks.POWDER_SNOW) {
+                        multiplier = Vector3f.from(0.9f, 1.5, 0.9f);
+                    } else if (block == Blocks.SWEET_BERRY_BUSH) {
+                        multiplier = Vector3f.from(0.8f, 0.75, 0.8f);
+                    }
 
                     if (multiplier != null) {
                         return multiplier;
@@ -693,7 +700,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
             return 0;
         }
 
-        if (vehicle.getMotion().getY() <= 0 && slowFalling) {
+        if (vehicle.getMotion().getY() <= 0 && effectSlowFalling) {
             return 0.01f;
         }
 
