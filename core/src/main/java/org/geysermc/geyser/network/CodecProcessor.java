@@ -236,6 +236,7 @@ class CodecProcessor {
             .updateSerializer(PurchaseReceiptPacket.class, ILLEGAL_SERIALIZER)
             // Illegal unused serverbound packets that are deprecated
             .updateSerializer(ClientCheatAbilityPacket.class, ILLEGAL_SERIALIZER)
+            .updateSerializer(CraftingEventPacket.class, ILLEGAL_SERIALIZER)
             // Illegal unusued serverbound packets that relate to unused features
             .updateSerializer(PlayerAuthInputPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(ClientCacheBlobStatusPacket.class, ILLEGAL_SERIALIZER)
@@ -243,7 +244,6 @@ class CodecProcessor {
             .updateSerializer(SubChunkRequestPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(GameTestRequestPacket.class, ILLEGAL_SERIALIZER)
             // Ignored serverbound packets
-            .updateSerializer(CraftingEventPacket.class, IGNORED_SERIALIZER) // Make illegal when 1.20.40 is removed
             .updateSerializer(ClientToServerHandshakePacket.class, IGNORED_SERIALIZER)
             .updateSerializer(EntityFallPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(MapCreateLockedCopyPacket.class, IGNORED_SERIALIZER)
@@ -272,11 +272,6 @@ class CodecProcessor {
             .updateSerializer(ClientCacheStatusPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(SimpleEventPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(MultiplayerSettingsPacket.class, IGNORED_SERIALIZER);
-
-            if (codec.getProtocolVersion() < 662) {
-                // Ignored only when serverbound
-                codecBuilder.updateSerializer(SetEntityMotionPacket.class, SET_ENTITY_MOTION_SERIALIZER_V291);
-            }
 
             if (codec.getProtocolVersion() < 685) {
                 // Ignored bidirectional packets

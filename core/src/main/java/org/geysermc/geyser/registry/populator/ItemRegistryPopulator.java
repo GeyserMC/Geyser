@@ -38,10 +38,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.protocol.bedrock.codec.v622.Bedrock_v622;
-import org.cloudburstmc.protocol.bedrock.codec.v630.Bedrock_v630;
-import org.cloudburstmc.protocol.bedrock.codec.v649.Bedrock_v649;
-import org.cloudburstmc.protocol.bedrock.codec.v662.Bedrock_v662;
 import org.cloudburstmc.protocol.bedrock.codec.v671.Bedrock_v671;
 import org.cloudburstmc.protocol.bedrock.codec.v685.Bedrock_v685;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
@@ -63,7 +59,6 @@ import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.*;
@@ -92,10 +87,6 @@ public class ItemRegistryPopulator {
 
     public static void populate() {
         List<PaletteVersion> paletteVersions = new ArrayList<>(3);
-        paletteVersions.add(new PaletteVersion("1_20_40", Bedrock_v622.CODEC.getProtocolVersion(), Collections.emptyMap(), Conversion630_622::remapItem));
-        paletteVersions.add(new PaletteVersion("1_20_50", Bedrock_v630.CODEC.getProtocolVersion(), Collections.emptyMap(), Conversion649_630::remapItem));
-        paletteVersions.add(new PaletteVersion("1_20_60", Bedrock_v649.CODEC.getProtocolVersion(), Collections.emptyMap(), Conversion662_649::remapItem));
-        paletteVersions.add(new PaletteVersion("1_20_70", Bedrock_v662.CODEC.getProtocolVersion(), Collections.emptyMap(), Conversion671_662::remapItem));
         paletteVersions.add(new PaletteVersion("1_20_80", Bedrock_v671.CODEC.getProtocolVersion(), Collections.emptyMap(), Conversion685_671::remapItem));
         paletteVersions.add(new PaletteVersion("1_21_0", Bedrock_v685.CODEC.getProtocolVersion()));
 
@@ -604,18 +595,11 @@ public class ItemRegistryPopulator {
         NbtMapBuilder componentBuilder = NbtMap.builder();
         // Conveniently, as of 1.16.200, the furnace minecart has a texture AND translation string already.
         // Not so conveniently, the way to set an icon changed in 1.20.60
-        NbtMap iconMap;
-        if (GameProtocol.is1_20_60orHigher(protocolVersion)) {
-            iconMap = NbtMap.builder()
-                    .putCompound("textures", NbtMap.builder()
-                            .putString("default", "minecart_furnace")
-                            .build())
-                    .build();
-        } else {
-            iconMap = NbtMap.builder()
-                    .putString("texture", "minecart_furnace")
-                    .build();
-        }
+        NbtMap iconMap = NbtMap.builder()
+            .putCompound("textures", NbtMap.builder()
+                    .putString("default", "minecart_furnace")
+                    .build())
+            .build();
         itemProperties.putCompound("minecraft:icon", iconMap);
         componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", "item.minecartFurnace.name").build());
 

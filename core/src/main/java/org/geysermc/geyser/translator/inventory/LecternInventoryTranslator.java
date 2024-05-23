@@ -35,7 +35,6 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.*;
 import org.geysermc.geyser.inventory.updater.ContainerInventoryUpdater;
 import org.geysermc.geyser.level.block.Blocks;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.geyser.util.InventoryUtils;
@@ -44,7 +43,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.WritableBookContent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.WrittenBookContent;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
 
 import java.util.Collections;
 
@@ -152,13 +150,6 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
         } else if (lecternContainer.getBlockEntityTag() == null) {
             Vector3i position = lecternContainer.isUsingRealBlock() ? session.getLastInteractionBlockPosition() : inventory.getHolderPosition();
 
-            // If shouldExpectLecternHandled returns true, this is already handled for us
-            // shouldRefresh means that we should boot out the client on our side because their lectern GUI isn't updated yet
-            // TODO: yeet after 1.20.60 is minimum supported version
-            boolean shouldRefresh = !session.getGeyser().getWorldManager().shouldExpectLecternHandled(session)
-                    && !session.getLecternCache().contains(position)
-                    && !GameProtocol.is1_20_60orHigher(session.getUpstream().getProtocolVersion());
-
             NbtMap blockEntityTag;
             if (book.getComponents() != null) {
                 int pages = 0;
@@ -205,16 +196,6 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
             lecternContainer.setPosition(position);
 
             BlockEntityUtils.updateBlockEntity(session, blockEntityTag, position);
-
-            if (shouldRefresh) {
-                // the lectern cache doesn't always exist; only when we must refresh
-                session.getLecternCache().add(position);
-
-                // Close the window - we will reopen it once the client has this data synced
-                ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(lecternContainer.getJavaId());
-                session.sendDownstreamGamePacket(closeWindowPacket);
-                InventoryUtils.closeInventory(session, inventory.getJavaId(), false);
-            }
         }
     }
 
