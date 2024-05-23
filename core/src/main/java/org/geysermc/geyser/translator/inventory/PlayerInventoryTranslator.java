@@ -550,6 +550,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         ContainerClosePacket packet = new ContainerClosePacket();
         packet.setServerInitiated(true);
         packet.setId((byte) ContainerId.INVENTORY);
+        packet.setType(org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.INVENTORY);
         session.sendUpstreamPacket(packet);
     }
 

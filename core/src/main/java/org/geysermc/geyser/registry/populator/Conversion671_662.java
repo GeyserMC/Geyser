@@ -42,6 +42,8 @@ public class Conversion671_662 {
     private static final List<String> NEW_BLOCKS = Stream.of(NEW_MISC, NEW_CORAL_FANS, NEW_DEAD_CORAL_FANS, NEW_FLOWERS, NEW_SAPLINGS).flatMap(List::stream).toList();
 
     static GeyserMappingItem remapItem(@SuppressWarnings("unused") Item item, GeyserMappingItem mapping) {
+        mapping = Conversion685_671.remapItem(item, mapping);
+
         String identifer = mapping.getBedrockIdentifier();
 
         if (!NEW_BLOCKS.contains(identifer)) {
@@ -111,6 +113,8 @@ public class Conversion671_662 {
     }
 
     static NbtMap remapBlock(NbtMap tag) {
+        tag = Conversion685_671.remapBlock(tag);
+
         final String name = tag.getString("name");
         
         if (!NEW_BLOCKS.contains(name)) {

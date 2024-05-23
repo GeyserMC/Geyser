@@ -224,7 +224,7 @@ class CodecProcessor {
 
     @SuppressWarnings("unchecked")
     static BedrockCodec processCodec(BedrockCodec codec) {
-        return codec.toBuilder()
+        BedrockCodec.Builder codecBuilder = codec.toBuilder()
             // Illegal unused serverbound EDU packets
             .updateSerializer(PhotoTransferPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(LabTablePacket.class, ILLEGAL_SERIALIZER)
@@ -260,22 +260,30 @@ class CodecProcessor {
             .updateSerializer(PlayerHotbarPacket.class, PLAYER_HOTBAR_SERIALIZER)
             .updateSerializer(PlayerSkinPacket.class, PLAYER_SKIN_SERIALIZER)
             .updateSerializer(SetEntityDataPacket.class, SET_ENTITY_DATA_SERIALIZER)
-            .updateSerializer(SetEntityMotionPacket.class, codec.getProtocolVersion() < 662 ?
-                SET_ENTITY_MOTION_SERIALIZER_V291 : 
-                SET_ENTITY_MOTION_SERIALIZER_V662)
+            .updateSerializer(SetEntityMotionPacket.class, SET_ENTITY_MOTION_SERIALIZER_V662)
             .updateSerializer(SetEntityLinkPacket.class, SET_ENTITY_LINK_SERIALIZER)
             // Valid serverbound packets where reading of some fields can be skipped
             .updateSerializer(MobEquipmentPacket.class, MOB_EQUIPMENT_SERIALIZER)
-            // // Illegal bidirectional packets
+            // Illegal bidirectional packets
             .updateSerializer(DebugInfoPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(EditorNetworkPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(ScriptMessagePacket.class, ILLEGAL_SERIALIZER)
-            // // Ignored bidirectional packets
+            // Ignored bidirectional packets
             .updateSerializer(ClientCacheStatusPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(SimpleEventPacket.class, IGNORED_SERIALIZER)
-            .updateSerializer(TickSyncPacket.class, IGNORED_SERIALIZER)
-            .updateSerializer(MultiplayerSettingsPacket.class, IGNORED_SERIALIZER)
-            .build();
+            .updateSerializer(MultiplayerSettingsPacket.class, IGNORED_SERIALIZER);
+
+            if (codec.getProtocolVersion() < 662) {
+                // Ignored only when serverbound
+                codecBuilder.updateSerializer(SetEntityMotionPacket.class, SET_ENTITY_MOTION_SERIALIZER_V291);
+            }
+
+            if (codec.getProtocolVersion() < 685) {
+                // Ignored bidirectional packets
+                codecBuilder.updateSerializer(TickSyncPacket.class, IGNORED_SERIALIZER);
+            }
+
+            return codecBuilder.build();
     }
 
     /**

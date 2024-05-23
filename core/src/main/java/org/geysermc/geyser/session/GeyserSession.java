@@ -1546,6 +1546,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setRewindHistorySize(0);
         startGamePacket.setServerAuthoritativeBlockBreaking(false);
 
+        startGamePacket.setServerId("");
+        startGamePacket.setWorldId("");
+        startGamePacket.setScenarioId("");
+
         upstream.sendPacket(startGamePacket);
     }
 
