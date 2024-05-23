@@ -45,6 +45,8 @@ public final class Constants {
 
     public static final String MINECRAFT_SKIN_SERVER_URL = "https://textures.minecraft.net/texture/";
 
+    public static final int CONFIG_VERSION = 5;
+
     static {
         URI wsUri = null;
         try {

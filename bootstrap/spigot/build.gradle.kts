@@ -28,6 +28,8 @@ platformRelocate("net.kyori", "net.kyori.adventure.text.logger.slf4j.ComponentLo
 platformRelocate("org.objectweb.asm")
 platformRelocate("me.lucko.commodore")
 platformRelocate("org.yaml") // Broken as of 1.20
+platformRelocate("org.spongepowered")
+platformRelocate("io.leangen.geantyref")
 
 // These dependencies are already present on the platform
 provided(libs.viaversion)

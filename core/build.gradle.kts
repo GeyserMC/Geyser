@@ -15,6 +15,9 @@ dependencies {
 
     // Jackson JSON and YAML serialization
     api(libs.bundles.jackson)
+    annotationProcessor(libs.configurate.`interface`.ap)
+    api(libs.configurate.`interface`)
+    implementation(libs.configurate.yaml)
     api(libs.guava)
 
     // Fastutil Maps

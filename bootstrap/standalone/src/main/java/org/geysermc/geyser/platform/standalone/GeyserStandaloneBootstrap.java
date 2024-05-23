@@ -43,8 +43,10 @@ import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.configuration.ConfigLoaderTemp;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.configuration.GeyserJacksonConfiguration;
+import org.geysermc.geyser.configuration.GeyserRemoteConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
@@ -59,12 +61,7 @@ import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class GeyserStandaloneBootstrap implements GeyserBootstrap {
@@ -200,6 +197,8 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
             File configFile = FileUtils.fileOrCopiedFromResource(new File(configFilename), "config.yml",
                     (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
             geyserConfig = FileUtils.loadConfig(configFile, GeyserStandaloneConfiguration.class);
+
+            ConfigLoaderTemp.load(GeyserRemoteConfig.class);
 
             handleArgsConfigOptions();
 
