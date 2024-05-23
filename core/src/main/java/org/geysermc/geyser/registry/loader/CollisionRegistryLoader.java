@@ -77,7 +77,7 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
         }
 
         List<BlockState> blockStates = BlockRegistries.BLOCK_STATES.get();
-        List<BlockCollision> collisions = new ObjectArrayList<>(blockStates.size());
+        var collisions = new ObjectArrayList<BlockCollision>(blockStates.size());
 
         // Map of unique collisions to its instance
         Map<BlockCollision, BlockCollision> collisionInstances = new Object2ObjectOpenHashMap<>();
@@ -102,6 +102,7 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
 
             collisions.add(newCollision);
         }
+        collisions.trim();
         return collisions;
     }
 

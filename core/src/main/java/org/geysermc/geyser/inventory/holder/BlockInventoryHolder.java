@@ -41,7 +41,6 @@ import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
-import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.InventoryUtils;
 
 import java.util.Collections;
@@ -56,22 +55,24 @@ public class BlockInventoryHolder extends InventoryHolder {
     /**
      * The default Java block ID to translate as a fake block
      */
-    private final int defaultJavaBlockState;
+    private final BlockState defaultJavaBlockState;
     private final ContainerType containerType;
-    private final Set<String> validBlocks;
+    private final Set<Block> validBlocks;
 
-    public BlockInventoryHolder(String javaBlockIdentifier, ContainerType containerType, Block... validBlocks) {
-        this.defaultJavaBlockState = BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().getInt(javaBlockIdentifier);
+    public BlockInventoryHolder(Block defaultJavaBlock, ContainerType containerType, Block... validBlocks) {
+        this(defaultJavaBlock.defaultBlockState(), containerType, validBlocks);
+    }
+
+    public BlockInventoryHolder(BlockState defaultJavaBlockState, ContainerType containerType, Block... validBlocks) {
+        this.defaultJavaBlockState = defaultJavaBlockState;
         this.containerType = containerType;
         if (validBlocks != null) {
-            Set<String> validBlocksTemp = new HashSet<>(validBlocks.length + 1);
-            for (Block block : validBlocks) {
-                validBlocksTemp.add(block.javaIdentifier().toString());
-            }
-            validBlocksTemp.add(BlockUtils.getCleanIdentifier(javaBlockIdentifier));
+            Set<Block> validBlocksTemp = new HashSet<>(validBlocks.length + 1);
+            Collections.addAll(validBlocksTemp, validBlocks);
+            validBlocksTemp.add(defaultJavaBlockState.block());
             this.validBlocks = Set.copyOf(validBlocksTemp);
         } else {
-            this.validBlocks = Collections.singleton(BlockUtils.getCleanIdentifier(javaBlockIdentifier));
+            this.validBlocks = Collections.singleton(defaultJavaBlockState.block());
         }
     }
 
@@ -85,9 +86,7 @@ public class BlockInventoryHolder extends InventoryHolder {
             // and the bedrock block is vanilla
             BlockState state = session.getGeyser().getWorldManager().blockAt(session, session.getLastInteractionBlockPosition());
             if (!BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get().containsKey(state.javaId())) {
-                // TODO TODO TODO
-                String[] javaBlockString = state.toString().split("\\[");
-                if (isValidBlock(javaBlockString)) {
+                if (isValidBlock(state)) {
                     // We can safely use this block
                     inventory.setHolderPosition(session.getLastInteractionBlockPosition());
                     ((Container) inventory).setUsingRealBlock(true, state.block());
@@ -111,7 +110,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         session.sendUpstreamPacket(blockPacket);
         inventory.setHolderPosition(position);
 
-        setCustomName(session, position, inventory, BlockState.of(defaultJavaBlockState));
+        setCustomName(session, position, inventory, defaultJavaBlockState);
 
         return true;
     }
@@ -129,8 +128,8 @@ public class BlockInventoryHolder extends InventoryHolder {
     /**
      * @return true if this Java block ID can be used for player inventory.
      */
-    protected boolean isValidBlock(String[] javaBlockString) {
-        return this.validBlocks.contains(javaBlockString[0]);
+    protected boolean isValidBlock(BlockState blockState) {
+        return this.validBlocks.contains(blockState.block());
     }
 
     protected void setCustomName(GeyserSession session, Vector3i position, Inventory inventory, BlockState javaBlockState) {

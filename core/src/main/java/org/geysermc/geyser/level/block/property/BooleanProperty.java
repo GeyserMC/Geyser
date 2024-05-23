@@ -25,23 +25,22 @@
 
 package org.geysermc.geyser.level.block.property;
 
-public abstract class Property<T extends Comparable<T>> {
-    private final String name;
-
-    protected Property(String name) {
-        this.name = name;
+public final class BooleanProperty extends Property<Boolean> {
+    private BooleanProperty(String name) {
+        super(name);
     }
-
-    public String name() {
-        return name;
-    }
-
-    public abstract int valuesCount();
-
-    public abstract int indexOf(T value);
 
     @Override
-    public String toString() {
-        return getClass().getSimpleName() + "[" + name + "]";
+    public int valuesCount() {
+        return 2;
+    }
+
+    @Override
+    public int indexOf(Boolean value) {
+        return value ? 0 : 1;
+    }
+
+    public static BooleanProperty create(String name) {
+        return new BooleanProperty(name);
     }
 }

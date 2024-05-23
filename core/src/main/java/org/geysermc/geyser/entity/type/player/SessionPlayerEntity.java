@@ -33,7 +33,6 @@ import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.item.Items;
@@ -62,10 +61,6 @@ public class SessionPlayerEntity extends PlayerEntity {
      */
     @Getter
     protected final Map<GeyserAttributeType, AttributeData> attributes = new Object2ObjectOpenHashMap<>();
-    /**
-     * Whether to check for updated speed after all entity metadata has been processed
-     */
-    private boolean refreshSpeed = false;
     /**
      * Used in PlayerInputTranslator for movement checks.
      */
@@ -134,9 +129,7 @@ public class SessionPlayerEntity extends PlayerEntity {
         // TODO: proper fix, BDS somehow does it? https://paste.gg/p/anonymous/3adfb7612f1540be80fa03a2281f93dc (BDS 1.20.13)
         if (!this.session.getGameMode().equals(GameMode.SPECTATOR)) {
             super.setFlags(entityMetadata);
-            session.setSwimmingInWater((entityMetadata.getPrimitiveValue() & 0x10) == 0x10 && getFlag(EntityFlag.SPRINTING));
         }
-        refreshSpeed = true;
     }
 
     /**
@@ -164,7 +157,6 @@ public class SessionPlayerEntity extends PlayerEntity {
     public void setPose(Pose pose) {
         super.setPose(pose);
         session.setPose(pose);
-        refreshSpeed = true;
     }
 
     public float getMaxHealth() {
@@ -214,21 +206,6 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
-    public void updateBedrockMetadata() {
-        super.updateBedrockMetadata();
-        if (refreshSpeed) {
-            AttributeData speedAttribute = session.adjustSpeed();
-            if (speedAttribute != null) {
-                UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
-                attributesPacket.setRuntimeEntityId(geyserId);
-                attributesPacket.setAttributes(Collections.singletonList(speedAttribute));
-                session.sendUpstreamPacket(attributesPacket);
-            }
-            refreshSpeed = false;
-        }
-    }
-
-    @Override
     protected void updateAttribute(Attribute javaAttribute, List<AttributeData> newAttributes) {
         if (javaAttribute.getType() == AttributeType.Builtin.GENERIC_ATTACK_SPEED) {
             session.setAttackSpeed(AttributeUtils.calculateValue(javaAttribute));
@@ -240,17 +217,6 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Override
     protected AttributeData calculateAttribute(Attribute javaAttribute, GeyserAttributeType type) {
         AttributeData attributeData = super.calculateAttribute(javaAttribute, type);
-
-        if (javaAttribute.getType() == AttributeType.Builtin.GENERIC_MOVEMENT_SPEED) {
-            session.setOriginalSpeedAttribute(attributeData.getValue());
-            AttributeData speedAttribute = session.adjustSpeed();
-            if (speedAttribute != null) {
-                // Overwrite the attribute with our own
-                this.attributes.put(type, speedAttribute);
-                return speedAttribute;
-            }
-        }
-
         this.attributes.put(type, attributeData);
         return attributeData;
     }
@@ -278,18 +244,12 @@ public class SessionPlayerEntity extends PlayerEntity {
         super.setAbsorptionHearts(entityMetadata);
     }
 
+    @Override
     public void resetMetadata() {
-        // Reset all metadata to their default values
-        // This is used when a player respawns
-        this.flags.clear();
-        this.initializeMetadata();
+        super.resetMetadata();
 
         // Reset air
         this.resetAir();
-
-        // Explicitly reset all metadata not handled by initializeMetadata
-        setParrot(null, true);
-        setParrot(null, false);
 
         // Absorption is metadata in java edition
         attributes.remove(GeyserAttributeType.ABSORPTION);

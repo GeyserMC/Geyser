@@ -91,15 +91,11 @@ public class AdvancementsCache {
         builder.validResultHandler((response) -> {
             String id = rootAdvancementIds.get(response.clickedButtonId());
             if (!id.equals("")) {
-                if (id.equals(currentAdvancementCategoryId)) {
-                    // The server thinks we are already on this tab
-                    buildAndShowListForm();
-                } else {
-                    // Send a packet indicating that we intend to open this particular advancement window
-                    ServerboundSeenAdvancementsPacket packet = new ServerboundSeenAdvancementsPacket(id);
-                    session.sendDownstreamGamePacket(packet);
-                    // Wait for a response there
-                }
+                // Send a packet indicating that we are opening this particular advancement window
+                ServerboundSeenAdvancementsPacket packet = new ServerboundSeenAdvancementsPacket(id);
+                session.sendDownstreamGamePacket(packet);
+                currentAdvancementCategoryId = id;
+                buildAndShowListForm();
             }
         });
 
@@ -190,6 +186,10 @@ public class AdvancementsCache {
                         .content(content)
                         .button(GeyserLocale.getPlayerLocaleString("gui.back", language))
                         .validResultHandler((response) -> buildAndShowListForm())
+                        .closedResultHandler(() -> {
+                            // Indicate that we have closed the current advancement tab
+                            session.sendDownstreamGamePacket(new ServerboundSeenAdvancementsPacket());
+                        })
         );
     }
 

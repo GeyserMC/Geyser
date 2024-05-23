@@ -56,8 +56,8 @@ import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.item.type.BoatItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.item.type.SpawnEggItem;
-import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.Blocks;
+import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.CauldronBlock;
@@ -295,10 +295,10 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                          */
 
                         if (packet.getItemInHand() != null && session.getItemMappings().getMapping(packet.getItemInHand()).getJavaItem() instanceof SpawnEggItem) {
-                            int blockState = session.getGeyser().getWorldManager().getBlockAt(session, packet.getBlockPosition());
-                            if (blockState == BlockStateValues.JAVA_WATER_ID) {
+                            BlockState blockState = session.getGeyser().getWorldManager().blockAt(session, packet.getBlockPosition());
+                            if (blockState.is(Blocks.WATER) && blockState.getValue(Properties.LEVEL) == 0) {
                                 // Otherwise causes multiple mobs to spawn - just send a use item packet
-                                useItem(session, packet, blockState);
+                                useItem(session, packet, blockState.javaId());
                                 break;
                             }
                         }

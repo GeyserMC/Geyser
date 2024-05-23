@@ -31,7 +31,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEventPacket;
 import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
@@ -78,8 +78,8 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
                 // Retracting sticky pistons is an exception, since the event is not called on Spigot from 1.13.2 - 1.17.1
                 // See https://github.com/PaperMC/Paper/blob/6fa1983e9ce177a4a412d5b950fd978620174777/patches/server/0304-Fire-BlockPistonRetractEvent-for-all-empty-pistons.patch
                 if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
-                    int pistonBlock = session.getGeyser().getWorldManager().getBlockAt(session, position);
-                    if (!BlockStateValues.isStickyPiston(pistonBlock)) {
+                    BlockState pistonBlock = session.getGeyser().getWorldManager().blockAt(session, position);
+                    if (!pistonBlock.is(Blocks.STICKY_PISTON)) {
                         return;
                     }
                     if (action != PistonValueType.CANCELLED_MID_PUSH) {
@@ -97,8 +97,8 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
                 }
             } else {
                 PistonBlockEntity blockEntity = pistonCache.getPistons().computeIfAbsent(position, pos -> {
-                    int blockId = session.getGeyser().getWorldManager().getBlockAt(session, position);
-                    boolean sticky = BlockStateValues.isStickyPiston(blockId);
+                    BlockState state = session.getGeyser().getWorldManager().blockAt(session, position);
+                    boolean sticky = state.is(Blocks.STICKY_PISTON);
                     boolean extended = action != PistonValueType.PUSHING;
                     return new PistonBlockEntity(session, pos, direction, sticky, extended);
                 });

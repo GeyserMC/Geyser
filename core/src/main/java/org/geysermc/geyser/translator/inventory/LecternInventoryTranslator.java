@@ -34,6 +34,7 @@ import org.geysermc.erosion.util.LecternUtils;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.*;
 import org.geysermc.geyser.inventory.updater.ContainerInventoryUpdater;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
@@ -56,7 +57,7 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
     private boolean initialized = false;
 
     public LecternInventoryTranslator() {
-        super(1, "minecraft:lectern[facing=north,has_book=true,powered=true]", org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.LECTERN , ContainerInventoryUpdater.INSTANCE);
+        super(1, Blocks.LECTERN, org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.LECTERN , ContainerInventoryUpdater.INSTANCE);
     }
 
     @Override

@@ -28,10 +28,13 @@ package org.geysermc.geyser.registry;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.registry.loader.RegistryLoader;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
 public class ListRegistry<M> extends Registry<List<M>> {
+    private boolean frozen = false;
+
     /**
      * Creates a new instance of this class with the given input and
      * {@link RegistryLoader}. The input specified is what the registry
@@ -85,7 +88,22 @@ public class ListRegistry<M> extends Registry<List<M>> {
      * @return a new value into this registry with the given index.
      */
     public M register(int index, M value) {
+        if (this.frozen) {
+            throw new IllegalStateException("Registry should not be modified after frozen!");
+        }
         return this.mappings.set(index, value);
+    }
+
+    /**
+     * Mark this registry as unsuitable for new additions. The backing list will then be optimized for storage.
+     */
+    public void freeze() {
+        if (!this.frozen) {
+            this.frozen = true;
+            if (this.mappings instanceof ArrayList<M> arrayList) {
+                arrayList.trimToSize();
+            }
+        }
     }
 
     /**

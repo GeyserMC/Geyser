@@ -40,6 +40,7 @@ import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.property.ChestType;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
@@ -51,7 +52,10 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
 
     public DoubleChestInventoryTranslator(int size) {
         super(size, 54);
-        this.defaultJavaBlockState = BlockRegistries.JAVA_IDENTIFIER_TO_ID.get().getInt("minecraft:chest[facing=north,type=single,waterlogged=false]");
+        this.defaultJavaBlockState = Blocks.CHEST.defaultBlockState()
+                .withValue(Properties.HORIZONTAL_FACING, Direction.NORTH)
+                .withValue(Properties.CHEST_TYPE, ChestType.SINGLE)
+                .javaId();
     }
 
     @Override
@@ -96,11 +100,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
 
-        NbtMap tag = NbtMap.builder()
-                .putString("id", "Chest")
-                .putInt("x", position.getX())
-                .putInt("y", position.getY())
-                .putInt("z", position.getZ())
+        NbtMap tag = BlockEntityTranslator.getConstantBedrockTag("Chest", position)
                 .putInt("pairx", pairPosition.getX())
                 .putInt("pairz", pairPosition.getZ())
                 .putString("CustomName", inventory.getTitle()).build();

@@ -25,23 +25,31 @@
 
 package org.geysermc.geyser.level.block.property;
 
-public abstract class Property<T extends Comparable<T>> {
-    private final String name;
+import org.geysermc.geyser.level.physics.Direction;
 
-    protected Property(String name) {
-        this.name = name;
+public enum FrontAndTop {
+    DOWN_EAST(Direction.DOWN),
+    DOWN_NORTH(Direction.DOWN),
+    DOWN_SOUTH(Direction.DOWN),
+    DOWN_WEST(Direction.DOWN),
+    UP_EAST(Direction.UP),
+    UP_NORTH(Direction.UP),
+    UP_SOUTH(Direction.UP),
+    UP_WEST(Direction.UP),
+    WEST_UP(Direction.WEST),
+    EAST_UP(Direction.EAST),
+    NORTH_UP(Direction.NORTH),
+    SOUTH_UP(Direction.SOUTH);
+
+    private final boolean horizontal;
+
+    FrontAndTop(Direction front) {
+        this.horizontal = front.isHorizontal();
     }
 
-    public String name() {
-        return name;
+    public boolean isHorizontal() {
+        return horizontal;
     }
 
-    public abstract int valuesCount();
-
-    public abstract int indexOf(T value);
-
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + "[" + name + "]";
-    }
+    public static final FrontAndTop[] VALUES = values();
 }

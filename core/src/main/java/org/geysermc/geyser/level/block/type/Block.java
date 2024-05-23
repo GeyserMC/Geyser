@@ -27,9 +27,6 @@ package org.geysermc.geyser.level.block.type;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectMaps;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -37,6 +34,8 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.Blocks;
+import org.geysermc.geyser.level.block.property.BasicEnumProperty;
+import org.geysermc.geyser.level.block.property.IntegerProperty;
 import org.geysermc.geyser.level.block.property.Property;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -67,6 +66,12 @@ public class Block {
     protected Item item = null;
     private int javaId = -1;
 
+    /**
+     * Used for switching a given block state to different states.
+     */
+    private final Property<?>[] propertyKeys;
+    private final BlockState defaultState;
+
     public Block(@Subst("empty") String javaIdentifier, Builder builder) {
         this.javaIdentifier = Key.key(javaIdentifier);
         this.requiresCorrectToolForDrops = builder.requiresCorrectToolForDrops;
@@ -74,7 +79,10 @@ public class Block {
         this.destroyTime = builder.destroyTime;
         this.pushReaction = builder.pushReaction;
         this.pickItem = builder.pickItem;
-        processStates(builder.build(this));
+
+        BlockState firstState = builder.build(this).get(0);
+        this.propertyKeys = builder.propertyKeys; // Ensure this is not null before iterating over states
+        this.defaultState = setDefaultState(firstState);
     }
 
     public void updateBlock(GeyserSession session, BlockState state, Vector3i position) {
@@ -167,9 +175,11 @@ public class Block {
     }
 
     /**
-     * A list of BlockStates is created pertaining to this block. Do we need any of them? If so, override this method.
+     * Should only be ran on block creation. Can be overridden.
+     * @param firstState the first state created from this block
      */
-    protected void processStates(List<BlockState> states) {
+    protected BlockState setDefaultState(BlockState firstState) {
+        return firstState;
     }
 
     @NonNull
@@ -194,6 +204,10 @@ public class Block {
         return this.pushReaction;
     }
 
+    public BlockState defaultBlockState() {
+        return this.defaultState;
+    }
+
     public int javaId() {
         return javaId;
     }
@@ -213,6 +227,10 @@ public class Block {
                 '}';
     }
 
+    Property<?>[] propertyKeys() {
+        return propertyKeys;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -225,11 +243,14 @@ public class Block {
         private float destroyTime;
         private Supplier<Item> pickItem;
 
+        // We'll use this field after building
+        private Property<?>[] propertyKeys;
+
         /**
          * For states that we're just tracking for mirroring Java states.
          */
-        public Builder enumState(Property<String> property, String... values) {
-            states.put(property, List.of(values));
+        public Builder enumState(BasicEnumProperty property) {
+            states.put(property, property.values());
             return this;
         }
 
@@ -244,7 +265,9 @@ public class Block {
             return this;
         }
 
-        public Builder intState(Property<Integer> property, int low, int high) {
+        public Builder intState(IntegerProperty property) {
+            int low = property.low();
+            int high = property.high();
             IntList list = new IntArrayList();
             // There is a state for every number between the low and high.
             for (int i = low; i <= high; i++) {
@@ -283,17 +306,18 @@ public class Block {
             if (states.isEmpty()) {
                 BlockState state = new BlockState(block, BlockRegistries.BLOCK_STATES.get().size());
                 BlockRegistries.BLOCK_STATES.get().add(state);
+                propertyKeys = null;
                 return List.of(state);
             } else if (states.size() == 1) {
                 // We can optimize because we don't need to worry about combinations
                 Map.Entry<Property<?>, List<Comparable<?>>> property = this.states.entrySet().stream().findFirst().orElseThrow();
                 List<BlockState> states = new ArrayList<>(property.getValue().size());
                 property.getValue().forEach(value -> {
-                    Reference2ObjectMap<Property<?>, Comparable<?>> propertyMap = Reference2ObjectMaps.singleton(property.getKey(), value);
-                    BlockState state = new BlockState(block, BlockRegistries.BLOCK_STATES.get().size(), propertyMap);
+                    BlockState state = new BlockState(block, BlockRegistries.BLOCK_STATES.get().size(), new Comparable[] {value});
                     BlockRegistries.BLOCK_STATES.get().add(state);
                     states.add(state);
                 });
+                this.propertyKeys = new Property[]{property.getKey()};
                 return states;
             } else {
                 // Think of this stream as another list containing, at the start, one empty list.
@@ -327,11 +351,11 @@ public class Block {
                 Property<?>[] keys = this.states.keySet().toArray(new Property<?>[0]);
                 result.forEach(properties -> {
                     Comparable<?>[] values = properties.toArray(new Comparable<?>[0]);
-                    Reference2ObjectMap<Property<?>, Comparable<?>> propertyMap = new Reference2ObjectArrayMap<>(keys, values);
-                    BlockState state = new BlockState(block, BlockRegistries.BLOCK_STATES.get().size(), propertyMap);
+                    BlockState state = new BlockState(block, BlockRegistries.BLOCK_STATES.get().size(), values);
                     BlockRegistries.BLOCK_STATES.get().add(state);
                     states.add(state);
                 });
+                this.propertyKeys = keys;
                 return states;
             }
         }

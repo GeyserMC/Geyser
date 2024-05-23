@@ -90,6 +90,10 @@ public class BlockMappings implements DefinitionRegistry<GeyserBedrockBlock> {
         return this.getBedrockBlock(javaState.javaId());
     }
 
+    public GeyserBedrockBlock getVanillaBedrockBlock(BlockState javaState) {
+        return getVanillaBedrockBlock(javaState.javaId());
+    }
+
     public GeyserBedrockBlock getVanillaBedrockBlock(int javaState) {
         if (javaState < 0 || javaState >= this.javaToVanillaBedrockBlocks.length) {
             return bedrockAir;

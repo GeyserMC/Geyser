@@ -41,6 +41,7 @@ import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotWorldManager;
@@ -120,7 +121,7 @@ public class GeyserPistonListener implements Listener {
 
             int pistonBlockId = worldManager.getBlockNetworkId(event.getBlock());
             // event.getDirection() is unreliable
-            Direction orientation = BlockStateValues.getPistonOrientation(pistonBlockId);
+            Direction orientation = BlockState.of(pistonBlockId).getValue(Properties.FACING);
 
             session.executeInEventLoop(() -> {
                 PistonCache pistonCache = session.getPistonCache();

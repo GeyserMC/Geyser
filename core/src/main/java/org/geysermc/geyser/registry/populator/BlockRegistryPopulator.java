@@ -50,7 +50,6 @@ import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.Block;
@@ -433,31 +432,12 @@ public final class BlockRegistryPopulator {
         }
 
         int javaRuntimeId = -1;
-        int waterRuntimeId = -1;
         for (BlockState javaBlockState : BlockRegistries.BLOCK_STATES.get()) {
             javaRuntimeId++;
             String javaId = javaBlockState.toString().intern();
 
-            BlockStateValues.storeBlockStateValues(javaId, javaRuntimeId);
-
-            //String cleanJavaIdentifier = javaBlockState.block().javaIdentifier().toString();
-            //String bedrockIdentifier = entry.getValue().get("bedrock_identifier").asText();
-
             BlockRegistries.JAVA_IDENTIFIER_TO_ID.register(javaId, javaRuntimeId);
-
-            // Keeping this here since this is currently unchanged between versions
-            // It's possible to only have this store differences in names, but the key set of all Java names is used in sending command suggestions
-            //BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.register(cleanJavaIdentifier.intern(), bedrockIdentifier.intern());
-
-            if ("minecraft:water[level=0]".equals(javaId)) {
-                waterRuntimeId = javaRuntimeId;
-            }
         }
-
-        if (waterRuntimeId == -1) {
-            throw new AssertionError("Unable to find Java water in palette");
-        }
-        BlockStateValues.JAVA_WATER_ID = waterRuntimeId;
 
         if (!BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().isEmpty()) {
             IntSet usedNonVanillaRuntimeIDs = new IntOpenHashSet();
@@ -466,8 +446,6 @@ public final class BlockRegistryPopulator {
                 if (!usedNonVanillaRuntimeIDs.add(javaBlockState.javaId())) {
                     throw new RuntimeException("Duplicate runtime ID " + javaBlockState.javaId() + " for non vanilla Java block state " + javaBlockState.identifier());
                 }
-
-                CustomBlockState customBlockState = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().get(javaBlockState);
 
                 String javaId = javaBlockState.identifier();
                 int stateRuntimeId = javaBlockState.javaId();
@@ -517,6 +495,8 @@ public final class BlockRegistryPopulator {
 
         BlockRegistries.INTERACTIVE.set(toBlockStateSet((ArrayNode) blockInteractionsJson.get("always_consumes")));
         BlockRegistries.INTERACTIVE_MAY_BUILD.set(toBlockStateSet((ArrayNode) blockInteractionsJson.get("requires_may_build")));
+
+        BlockRegistries.BLOCK_STATES.freeze();
     }
 
     private static BitSet toBlockStateSet(ArrayNode node) {

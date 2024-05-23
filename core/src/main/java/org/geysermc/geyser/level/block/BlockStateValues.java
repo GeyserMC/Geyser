@@ -25,115 +25,18 @@
 
 package org.geysermc.geyser.level.block;
 
-import it.unimi.dsi.fastutil.ints.*;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.PistonBlock;
-import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
-
-import java.util.Locale;
 
 /**
  * Used for block entities if the Java block state contains Bedrock block information.
  */
 public final class BlockStateValues {
-    private static final IntSet HORIZONTAL_FACING_JIGSAWS = new IntOpenHashSet();
-    private static final IntSet STICKY_PISTONS = new IntOpenHashSet();
-    private static final Object2IntMap<Direction> PISTON_HEADS = new Object2IntOpenHashMap<>();
-    private static final Int2ObjectMap<Direction> PISTON_ORIENTATION = new Int2ObjectOpenHashMap<>();
-    private static final IntSet ALL_PISTON_HEADS = new IntOpenHashSet();
-    private static final Int2IntMap WATER_LEVEL = new Int2IntOpenHashMap();
-    private static final Int2IntMap LAVA_LEVEL = new Int2IntOpenHashMap();
-
-    public static int JAVA_WATER_ID;
-
     public static final int NUM_FLUID_LEVELS = 9;
-
-    /**
-     * Determines if the block state contains Bedrock block information
-     *
-     * @param javaId         The Java Identifier of the block
-     * @param javaBlockState the Java Block State of the block
-     */
-    public static void storeBlockStateValues(String javaId, int javaBlockState) {
-        if (javaId.contains("piston[")) { // minecraft:moving_piston, minecraft:sticky_piston, minecraft:piston
-            if (javaId.contains("sticky")) {
-                STICKY_PISTONS.add(javaBlockState);
-            }
-            PISTON_ORIENTATION.put(javaBlockState, getBlockDirection(javaId));
-            return;
-        } else if (javaId.startsWith("minecraft:piston_head")) {
-            ALL_PISTON_HEADS.add(javaBlockState);
-            if (javaId.contains("short=false")) {
-                PISTON_HEADS.put(getBlockDirection(javaId), javaBlockState);
-            }
-            return;
-        }
-
-        if (javaId.startsWith("minecraft:water") && !javaId.contains("cauldron")) {
-            String strLevel = javaId.substring(javaId.lastIndexOf("level=") + 6, javaId.length() - 1);
-            int level = Integer.parseInt(strLevel);
-            WATER_LEVEL.put(javaBlockState, level);
-            return;
-        }
-
-        if (javaId.startsWith("minecraft:lava") && !javaId.contains("cauldron")) {
-            String strLevel = javaId.substring(javaId.lastIndexOf("level=") + 6, javaId.length() - 1);
-            int level = Integer.parseInt(strLevel);
-            LAVA_LEVEL.put(javaBlockState, level);
-            return;
-        }
-
-        if (javaId.startsWith("minecraft:jigsaw[orientation=")) {
-            String blockStateData = javaId.substring(javaId.indexOf("orientation=") + "orientation=".length(), javaId.lastIndexOf('_'));
-            Direction direction = Direction.valueOf(blockStateData.toUpperCase(Locale.ROOT));
-            if (direction.isHorizontal()) {
-                HORIZONTAL_FACING_JIGSAWS.add(javaBlockState);
-            }
-        }
-    }
-
-    /**
-     * @return a set of all forward-facing jigsaws, to use as a fallback if NBT is missing.
-     */
-    public static IntSet getHorizontalFacingJigsaws() {
-        return HORIZONTAL_FACING_JIGSAWS;
-    }
-
-    public static boolean isStickyPiston(int blockState) {
-        return STICKY_PISTONS.contains(blockState);
-    }
-
-    public static boolean isPistonHead(int state) {
-        return ALL_PISTON_HEADS.contains(state);
-    }
-
-    /**
-     * Get the Java Block State for a piston head for a specific direction
-     * This is used in PistonBlockEntity to get the BlockCollision for the piston head.
-     *
-     * @param direction Direction the piston head points in
-     * @return Block state for the piston head
-     */
-    public static int getPistonHead(Direction direction) {
-        return PISTON_HEADS.getOrDefault(direction, Block.JAVA_AIR_ID);
-    }
-
-    /**
-     * This is used in GeyserPistonEvents.java and accepts minecraft:piston,
-     * minecraft:sticky_piston, and minecraft:moving_piston.
-     *
-     * @param state The block state of the piston base
-     * @return The direction in which the piston faces
-     */
-    public static Direction getPistonOrientation(int state) {
-        return PISTON_ORIENTATION.get(state);
-    }
 
     /**
      * Checks if a block sticks to other blocks
@@ -203,11 +106,12 @@ public final class BlockStateValues {
      * @return The type of fluid
      */
     public static Fluid getFluid(int state) {
-        if (WATER_LEVEL.containsKey(state) || BlockRegistries.WATERLOGGED.get().get(state)) {
+        BlockState blockState = BlockState.of(state);
+        if (blockState.is(Blocks.WATER) || BlockRegistries.WATERLOGGED.get().get(state)) {
             return Fluid.WATER;
         }
 
-        if (LAVA_LEVEL.containsKey(state)) {
+        if (blockState.is(Blocks.LAVA)) {
             return Fluid.LAVA;
         }
 
@@ -221,7 +125,11 @@ public final class BlockStateValues {
      * @return The water level or -1 if the block isn't water
      */
     public static int getWaterLevel(int state) {
-        return WATER_LEVEL.getOrDefault(state, -1);
+        BlockState blockState = BlockState.of(state);
+        if (!blockState.is(Blocks.WATER)) {
+            return -1;
+        }
+        return blockState.getValue(Properties.LEVEL);
     }
 
     /**
@@ -255,7 +163,11 @@ public final class BlockStateValues {
      * @return The lava level or -1 if the block isn't lava
      */
     public static int getLavaLevel(int state) {
-        return LAVA_LEVEL.getOrDefault(state, -1);
+        BlockState blockState = BlockState.of(state);
+        if (!blockState.is(Blocks.LAVA)) {
+            return -1;
+        }
+        return blockState.getValue(Properties.LEVEL);
     }
 
     /**
@@ -296,23 +208,6 @@ public final class BlockStateValues {
             return 0.989f;
         }
         return 0.6f;
-    }
-
-    private static Direction getBlockDirection(String javaId) {
-        if (javaId.contains("down")) {
-            return Direction.DOWN;
-        } else if (javaId.contains("up")) {
-            return Direction.UP;
-        } else if (javaId.contains("south")) {
-            return Direction.SOUTH;
-        } else if (javaId.contains("west")) {
-            return Direction.WEST;
-        } else if (javaId.contains("north")) {
-            return Direction.NORTH;
-        } else if (javaId.contains("east")) {
-            return Direction.EAST;
-        }
-        throw new IllegalStateException();
     }
 
     private BlockStateValues() {

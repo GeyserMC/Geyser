@@ -25,17 +25,8 @@
 
 package org.geysermc.geyser.level.block.type;
 
-import java.util.List;
-
 public class WaterBlock extends Block {
-    private static BlockState LEVEL_0;
-
     public WaterBlock(String javaIdentifier, Builder builder) {
         super(javaIdentifier, builder);
-    }
-
-    @Override
-    protected void processStates(List<BlockState> states) {
-        super.processStates(states);
     }
 }
