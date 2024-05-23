@@ -75,6 +75,7 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
     public void onDismount() {
         vehicle.setFlag(EntityFlag.HAS_DASH_COOLDOWN, false);
         vehicle.updateBedrockMetadata();
+        super.onDismount();
     }
 
     @Override

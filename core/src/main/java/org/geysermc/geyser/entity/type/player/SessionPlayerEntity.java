@@ -28,7 +28,6 @@ package org.geysermc.geyser.entity.type.player;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import lombok.Setter;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
@@ -39,6 +38,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.DimensionUtils;
+import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.Attribute;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.GlobalPos;
@@ -70,13 +70,11 @@ public class SessionPlayerEntity extends PlayerEntity {
      * Used when emulating client-side vehicles
      */
     @Getter
-    @Setter
     private Vector2f vehicleInput = Vector2f.ZERO;
     /**
      * Used when emulating client-side vehicles
      */
     @Getter
-    @Setter
     private int vehicleJumpStrength;
 
     public SessionPlayerEntity(GeyserSession session) {
@@ -279,5 +277,16 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     public void resetAir() {
         this.setAirSupply(getMaxAir());
+    }
+
+    public void setVehicleInput(Vector2f vehicleInput) {
+        this.vehicleInput = Vector2f.from(
+                MathUtils.clamp(vehicleInput.getX(), -1.0f, 1.0f),
+                MathUtils.clamp(vehicleInput.getY(), -1.0f, 1.0f)
+        );
+    }
+
+    public void setVehicleJumpStrength(int vehicleJumpStrength) {
+        this.vehicleJumpStrength = MathUtils.constrain(vehicleJumpStrength, 0, 100);
     }
 }

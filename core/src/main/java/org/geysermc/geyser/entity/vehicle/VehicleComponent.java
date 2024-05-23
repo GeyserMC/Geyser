@@ -143,6 +143,11 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         this.stepHeight = MathUtils.clamp(stepHeight, 1.0f, 10.0f);
     }
 
+    public void onMount() {
+        vehicle.getSession().getPlayerEntity().setVehicleInput(Vector2f.ZERO);
+        vehicle.getSession().getPlayerEntity().setVehicleJumpStrength(0);
+    }
+
     public void onDismount() {
         //
     }
