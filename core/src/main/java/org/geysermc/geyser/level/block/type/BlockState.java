@@ -35,7 +35,7 @@ public final class BlockState {
     private final Block block;
     private final int javaId;
     /**
-     * The values of each property of this block state. These should be treated as keys to {@link Block#propertyKeys()}
+     * The values of each property of this block state. These should be treated as keys to {@link Block#propertyKeys()}.
      * Of note - the comparable part probably doesn't do anything because we occasionally use strings in place of enums.
      * Will be null if there's only one block state for a block.
      */
@@ -135,7 +135,7 @@ public final class BlockState {
             // The above for loop will always stop at the first break because the last property has already been found
             diff = 1;
         }
-        return BlockState.of(this.javaId + ((thatOffset - thisOffset) * diff));
+        return of(this.javaId + ((thatOffset - thisOffset) * diff));
     }
 
     public Block block() {

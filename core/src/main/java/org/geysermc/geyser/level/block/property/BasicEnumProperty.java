@@ -47,7 +47,7 @@ public final class BasicEnumProperty extends Property<String> {
     public int indexOf(String value) {
         int index = this.values.indexOf(value);
         if (index == -1) {
-            throw new IllegalStateException("Property " + this + " does not have value " + value);
+            throw new IllegalArgumentException("Property " + this + " does not have value " + value);
         }
         return index;
     }
