@@ -25,10 +25,20 @@
 
 package org.geysermc.geyser.level.block.type;
 
+import com.github.steveice10.mc.auth.data.GameProfile;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+
+import java.util.Collections;
+import java.util.UUID;
 
 public class SkullBlock extends Block {
     private final Type type;
@@ -53,6 +63,32 @@ public class SkullBlock extends Block {
     @Override
     protected void checkForEmptySkull(GeyserSession session, BlockState state, Vector3i position) {
         // It's not an empty skull.
+    }
+
+    public ItemStack pickItem(GeyserSession session, BlockState state, Vector3i position) {
+        SkullCache.Skull skull = session.getSkullCache().getSkulls().get(position);
+        if (skull == null) {
+            return new ItemStack(pickItem(state).getId());
+        }
+
+        GeyserItemStack itemStack = GeyserItemStack.of(pickItem(state).getId(), 1);
+        // This is a universal block entity behavior, but hardcode how it works for now.
+        NbtMapBuilder builder = NbtMap.builder()
+                .putString("id", "minecraft:skull")
+                .putInt("x", position.getX())
+                .putInt("y", position.getY())
+                .putInt("z", position.getZ());
+        DataComponents components = itemStack.getOrCreateComponents();
+        components.put(DataComponentType.BLOCK_ENTITY_DATA, builder.build());
+
+        UUID uuid = skull.getUuid();
+        String texturesProperty = skull.getTexturesProperty();
+        GameProfile profile = new GameProfile(uuid, null);
+        if (texturesProperty != null) {
+            profile.setProperties(Collections.singletonList(new GameProfile.Property("textures", texturesProperty)));
+        }
+        components.put(DataComponentType.PROFILE, profile);
+        return itemStack.getItemStack();
     }
 
     public Type skullType() {
