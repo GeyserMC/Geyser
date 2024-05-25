@@ -54,6 +54,7 @@ import org.geysermc.geyser.translator.collision.SolidCollision;
 import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
 
@@ -69,6 +70,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
 
     protected float stepHeight;
     protected float moveSpeed;
+    protected double gravity;
     protected int effectLevitation;
     protected boolean effectSlowFalling;
     protected boolean effectWeaving;
@@ -76,7 +78,8 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     public VehicleComponent(T vehicle, float stepHeight) {
         this.vehicle = vehicle;
         this.stepHeight = stepHeight;
-        this.moveSpeed = GeyserAttributeType.MOVEMENT_SPEED.getDefaultValue();
+        this.moveSpeed = (float) AttributeType.Builtin.GENERIC_MOVEMENT_SPEED.getDef();
+        this.gravity = AttributeType.Builtin.GENERIC_GRAVITY.getDef();
 
         double width = Double.parseDouble(Float.toString(vehicle.getBoundingBoxWidth()));
         double height = Double.parseDouble(Float.toString(vehicle.getBoundingBoxHeight()));
@@ -136,6 +139,10 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
 
     public void setStepHeight(float stepHeight) {
         this.stepHeight = MathUtils.clamp(stepHeight, 1.0f, 10.0f);
+    }
+
+    public void setGravity(double gravity) {
+        this.gravity = MathUtils.constrain(gravity, -1.0, 1.0);
     }
 
     public void onMount() {
@@ -331,7 +338,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     }
 
     protected void waterMovement(VehicleContext ctx) {
-        float gravity = getGravity();
+        double gravity = getGravity();
         float drag = vehicle.getFlag(EntityFlag.SPRINTING) ? 0.9f : 0.8f; // 0.8f: getBaseMovementSpeedMultiplier
         double originalY = ctx.centerPos().getY();
         boolean falling = vehicle.getMotion().getY() <= 0;
@@ -353,7 +360,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     }
 
     protected void lavaMovement(VehicleContext ctx, double lavaHeight) {
-        float gravity = getGravity();
+        double gravity = getGravity();
         double originalY = ctx.centerPos().getY();
         boolean falling = vehicle.getMotion().getY() <= 0;
 
@@ -366,7 +373,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
             vehicle.setMotion(vehicle.getMotion().mul(0.5f));
         }
 
-        vehicle.setMotion(vehicle.getMotion().down(gravity / 4.0f));
+        vehicle.setMotion(vehicle.getMotion().down((float) (gravity / 4.0)));
 
         if (horizontalCollision && shouldApplyFluidJumpBoost(ctx, originalY)) {
             vehicle.setMotion(Vector3f.from(vehicle.getMotion().getX(), 0.3f, vehicle.getMotion().getZ()));
@@ -374,7 +381,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     }
 
     protected void landMovement(VehicleContext ctx) {
-        float gravity = getGravity();
+        double gravity = getGravity();
         float slipperiness = BlockStateValues.getSlipperiness(ctx.velocityAffectingBlock());
         float drag = vehicle.isOnGround() ? 0.91f * slipperiness : 0.91f;
         float speed = vehicle.getVehicleSpeed() * (vehicle.isOnGround() ? BASE_SLIPPERINESS_CUBED / (slipperiness * slipperiness * slipperiness) : 0.1f);
@@ -389,7 +396,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         if (effectLevitation > 0) {
             vehicle.setMotion(vehicle.getMotion().up((0.05f * effectLevitation - vehicle.getMotion().getY()) * 0.2f));
         } else {
-            vehicle.setMotion(vehicle.getMotion().down(gravity));
+            vehicle.setMotion(vehicle.getMotion().down((float) gravity));
             // NOT IMPLEMENTED: slow fall when in unloaded chunk
         }
 
@@ -428,10 +435,10 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         );
     }
 
-    protected Vector3f getFluidGravity(float gravity, boolean falling) {
+    protected Vector3f getFluidGravity(double gravity, boolean falling) {
         Vector3f motion = vehicle.getMotion();
-        if (vehicle.getFlag(EntityFlag.HAS_GRAVITY) && !vehicle.getFlag(EntityFlag.SPRINTING)) {
-            float newY = motion.getY() - gravity / 16;
+        if (gravity != 0 && !vehicle.getFlag(EntityFlag.SPRINTING)) {
+            float newY = (float) (motion.getY() - gravity / 16);
             if (falling && Math.abs(motion.getY() - 0.005f) >= MIN_VELOCITY && Math.abs(newY) < MIN_VELOCITY) {
                 newY = -MIN_VELOCITY;
             }
@@ -695,16 +702,16 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         vehicle.getSession().setLastVehicleMoveTimestamp(System.currentTimeMillis());
     }
 
-    protected float getGravity() {
+    protected double getGravity() {
         if (!vehicle.getFlag(EntityFlag.HAS_GRAVITY)) {
             return 0;
         }
 
         if (vehicle.getMotion().getY() <= 0 && effectSlowFalling) {
-            return 0.01f;
+            return Math.min(0.01, this.gravity);
         }
 
-        return 0.08f;
+        return this.gravity;
     }
 
     protected @Nullable Vector3i getSupportingBlockPos(VehicleContext ctx) {

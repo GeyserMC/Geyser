@@ -413,6 +413,11 @@ public class LivingEntity extends Entity {
                         clientVehicle.getVehicleComponent().setStepHeight((float) AttributeUtils.calculateValue(javaAttribute));
                     }
                 }
+                case GENERIC_GRAVITY ->  {
+                    if (this instanceof ClientVehicle clientVehicle) {
+                        clientVehicle.getVehicleComponent().setGravity(AttributeUtils.calculateValue(javaAttribute));
+                    }
+                }
                 case GENERIC_ATTACK_DAMAGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.ATTACK_DAMAGE));
                 case GENERIC_FLYING_SPEED -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FLYING_SPEED));
                 case GENERIC_FOLLOW_RANGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FOLLOW_RANGE));
