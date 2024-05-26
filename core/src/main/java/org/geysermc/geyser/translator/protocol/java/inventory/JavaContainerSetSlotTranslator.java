@@ -71,10 +71,6 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
 
         InventoryTranslator translator = session.getInventoryTranslator();
         if (translator != null) {
-            if (session.getCraftingGridFuture() != null) {
-                session.getCraftingGridFuture().cancel(false);
-            }
-
             int slot = packet.getSlot();
             if (slot >= inventory.getSize()) {
                 GeyserLogger logger = session.getGeyser().getLogger();
@@ -113,6 +109,9 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
     private static void updateCraftingGrid(GeyserSession session, int slot, ItemStack item, Inventory inventory, InventoryTranslator translator) {
         if (slot != 0) {
             return;
+        }
+        if (session.getCraftingGridFuture() != null) {
+            session.getCraftingGridFuture().cancel(false);
         }
         int gridSize = translator.getGridSize();
         if (gridSize == -1) {
