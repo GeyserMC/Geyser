@@ -31,11 +31,16 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.erosion.util.LecternUtils;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.inventory.*;
+import org.geysermc.geyser.inventory.Container;
+import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.LecternContainer;
+import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.updater.ContainerInventoryUpdater;
 import org.geysermc.geyser.level.block.Blocks;
+import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
@@ -95,7 +100,14 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
 
         // Now: Restore the lectern, if it actually exists
         if (lecternContainer.isUsingRealBlock()) {
-            GeyserImpl.getInstance().getWorldManager().sendLecternData(session, position.getX(), position.getY(), position.getZ());
+            NbtMapBuilder builder = BlockEntityTranslator.getConstantBedrockTag("Lectern", position);
+            if (session.getGeyser().getWorldManager().blockAt(session, position).getValue(Properties.HAS_BOOK)) {
+                builder.putByte("hasBook", (byte) 1);
+                builder.putInt("totalPages", 1); // we'll override it anyway
+            } else {
+                builder.putByte("hasBook", (byte) 0);
+            }
+            BlockEntityUtils.updateBlockEntity(session, builder.build(), position);
         }
     }
 
@@ -148,7 +160,8 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
             session.setDroppingLecternBook(false);
             InventoryUtils.closeInventory(session, inventory.getJavaId(), false);
         } else if (lecternContainer.getBlockEntityTag() == null) {
-            Vector3i position = lecternContainer.isUsingRealBlock() ? session.getLastInteractionBlockPosition() : inventory.getHolderPosition();
+            Vector3i position = lecternContainer.isUsingRealBlock() ?
+                    session.getLastInteractionBlockPosition() : inventory.getHolderPosition();
 
             NbtMap blockEntityTag;
             if (book.getComponents() != null) {
