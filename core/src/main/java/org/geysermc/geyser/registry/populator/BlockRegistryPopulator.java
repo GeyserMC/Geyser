@@ -35,8 +35,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.*;
-import org.cloudburstmc.blockstateupdater.BlockStateUpdater;
-import org.cloudburstmc.blockstateupdater.util.tagupdater.CompoundTagUpdaterContext;
 import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.protocol.bedrock.codec.v671.Bedrock_v671;
 import org.cloudburstmc.protocol.bedrock.codec.v685.Bedrock_v685;
@@ -85,19 +83,6 @@ public final class BlockRegistryPopulator {
     interface Remapper {
 
         NbtMap remap(NbtMap tag);
-
-        static Remapper of(BlockStateUpdater... updaters) {
-            CompoundTagUpdaterContext context = new CompoundTagUpdaterContext();
-            for (BlockStateUpdater updater : updaters) {
-                updater.registerUpdaters(context);
-            }
-
-            return tag -> {
-                NbtMapBuilder updated = context.update(tag, 0).toBuilder();
-                updated.remove("version"); // we already removed this, but the context adds it. remove it again.
-                return updated.build();
-            };
-        }
     }
 
     public static void populate(Stage stage) {
