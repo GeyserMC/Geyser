@@ -12,7 +12,6 @@ gson = "2.3.1" # Provided by Spigot 1.8.8
 websocket = "1.5.1"
 protocol = "3.0.0.Beta2-20240520.153053-5"
 raknet = "1.0.0.CR3-20240416.144209-1"
-blockstateupdater="1.20.80-20240411.142413-1"
 mcauthlib = "e5b0bcc"
 mcprotocollib = "1.20.6-2-20240520.030045-8"
 adventure = "4.14.0"
@@ -121,8 +120,6 @@ protocol-codec = { group = "org.cloudburstmc.protocol", name = "bedrock-codec", 
 protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol" }
 
 math = { group = "org.cloudburstmc.math", name = "immutable", version = "2.0" }
-
-blockstateupdater = { group = "org.cloudburstmc", name = "block-state-updater", version.ref = "blockstateupdater"}
 
 # plugins
 indra = { group = "net.kyori", name  = "indra-common", version.ref = "indra" }
