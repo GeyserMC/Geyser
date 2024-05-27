@@ -58,14 +58,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 
 public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     private GeyserCommandManager geyserCommandManager;
     private GeyserBungeeConfiguration geyserConfig;
     private GeyserBungeeInjector geyserInjector;
-    private GeyserBungeeLogger geyserLogger = new GeyserBungeeLogger(getLogger());
+    private final GeyserBungeeLogger geyserLogger = new GeyserBungeeLogger(getLogger());
     private IGeyserPingPassthrough geyserBungeePingPassthrough;
 
     private GeyserImpl geyser;
@@ -293,7 +292,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
                     "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserBungeeConfiguration.class);
         } catch (IOException ex) {
-            getLogger().log(Level.SEVERE, GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
+            geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
             return false;
         }

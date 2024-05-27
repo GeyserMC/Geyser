@@ -34,7 +34,6 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.player.Player;
-import org.apache.logging.log4j.LogManager;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserBootstrap;
@@ -288,7 +287,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserModConfiguration.class);
             return true;
         } catch (IOException ex) {
-            LogManager.getLogger("geyser").error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
+            geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
             return false;
         }

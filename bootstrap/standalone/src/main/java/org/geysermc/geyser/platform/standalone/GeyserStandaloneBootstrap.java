@@ -71,7 +71,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
     private GeyserCommandManager geyserCommandManager;
     private GeyserStandaloneConfiguration geyserConfig;
-    private GeyserStandaloneLogger geyserLogger = new GeyserStandaloneLogger();
+    private final GeyserStandaloneLogger geyserLogger = new GeyserStandaloneLogger();
     private IGeyserPingPassthrough geyserPingPassthrough;
     private GeyserStandaloneGUI gui;
     @Getter

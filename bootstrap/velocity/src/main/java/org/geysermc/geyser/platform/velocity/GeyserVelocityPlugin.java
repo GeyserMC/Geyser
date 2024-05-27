@@ -249,7 +249,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
                     "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserVelocityConfiguration.class);
         } catch (IOException ex) {
-            logger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
+            geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
             return false;
         }
