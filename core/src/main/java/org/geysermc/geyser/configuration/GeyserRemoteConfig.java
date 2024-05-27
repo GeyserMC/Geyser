@@ -25,7 +25,8 @@
 
 package org.geysermc.geyser.configuration;
 
-import org.spongepowered.configurate.interfaces.meta.Exclude;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.network.AuthType;
 import org.spongepowered.configurate.interfaces.meta.defaults.DefaultNumeric;
 import org.spongepowered.configurate.interfaces.meta.defaults.DefaultString;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -36,6 +37,8 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
  */
 @ConfigSerializable
 public interface GeyserRemoteConfig extends GeyserConfig {
+//    @Override // For config placement
+//    BedrockConfig bedrock();
 
     @Override
     RemoteConfig java();
@@ -52,10 +55,9 @@ public interface GeyserRemoteConfig extends GeyserConfig {
         @DefaultNumeric(25565)
         int port();
 
-        @Override
-        @Exclude
-        default int protocolVersion() {
-            return JavaConfig.super.protocolVersion();
+        @Override // For config placement
+        default @NonNull AuthType authType() {
+            return JavaConfig.super.authType();
         }
 
         @Override

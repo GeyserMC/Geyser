@@ -58,10 +58,29 @@ public interface GeyserPluginConfig extends GeyserConfig {
         }
 
         @Override
+        default void address(String address) {
+            throw new IllegalStateException();
+        }
+
+        @Override
         @Exclude
         default int port() {
             return GeyserImpl.getInstance().getBootstrap().getServerPort();
         }
+
+        @Override
+        default void port(int port) {
+            throw new IllegalStateException();
+        }
+
+//        @Nonnull
+//        @Comment("""
+//                What type of authentication Bedrock players will be checked against when logging into the Java server.
+//                Floodgate allows Bedrock players to join without needing a Java account. It's not recommended to change this.""")
+//        @Override
+//        default AuthType authType() {
+//            return AuthType.FLOODGATE;
+//        }
 
         @Override
         @Exclude

@@ -260,6 +260,15 @@ public interface GeyserConfig {
 
         void port(int port);
 
+        @Override
+        @Comment("""
+                What type of authentication Bedrock players will be checked against when logging into the Java server.
+                Can be floodgate (see https://wiki.geysermc.org/floodgate/), online, or offline.""")
+        @NonNull
+        default AuthType authType() {
+            return AuthType.ONLINE;
+        }
+
         @Comment("""
                 Whether to enable PROXY protocol or not while connecting to the server.
                 This is useful only when:
@@ -322,6 +331,7 @@ public interface GeyserConfig {
     @DefaultNumeric(1400)
     int mtu();
 
+    @Comment("Do not change!")
     default int version() {
         return Constants.CONFIG_VERSION;
     }
