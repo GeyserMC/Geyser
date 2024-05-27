@@ -172,7 +172,7 @@ jobs:
         run: ./gradlew neoforge:modrinth
 
       - name: Notify Discord
-        if: ${{ github.repository == 'GeyserMC/Geyser' }}
+        if: ${{ (success() || failure()) && github.repository == 'GeyserMC/Geyser' }}
         uses: GeyserMC/actions/notify-discord@master
         with:
           discordWebhook: ${{ secrets.DISCORD_WEBHOOK }}
