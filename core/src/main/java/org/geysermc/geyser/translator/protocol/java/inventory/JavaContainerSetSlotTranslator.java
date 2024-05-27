@@ -107,15 +107,20 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
      * Checks for a changed output slot in the crafting grid, and ensures Bedrock sees the recipe.
      */
     private static void updateCraftingGrid(GeyserSession session, int slot, ItemStack item, Inventory inventory, InventoryTranslator translator) {
+        // Check if it's the crafting grid result slot.
         if (slot != 0) {
             return;
         }
-        if (session.getCraftingGridFuture() != null) {
-            session.getCraftingGridFuture().cancel(false);
-        }
+
+        // Check if there is any crafting grid.
         int gridSize = translator.getGridSize();
         if (gridSize == -1) {
             return;
+        }
+
+        // Only process the most recent crafting grid result, and cancel the previous one.
+        if (session.getCraftingGridFuture() != null) {
+            session.getCraftingGridFuture().cancel(false);
         }
 
         if (InventoryUtils.isEmpty(item)) {
