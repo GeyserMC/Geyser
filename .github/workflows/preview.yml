@@ -67,6 +67,7 @@ jobs:
           releaseProject: 'geyserpreview'
           releaseVersion: ${{ steps.setvars.outputs.VERSION }}
       - name: Publish to Downloads API
+        if: success()
         uses: GeyserMC/actions/upload-release@master
         with:
           username: ${{ vars.DOWNLOADS_USERNAME }}
