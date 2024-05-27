@@ -27,10 +27,11 @@ package org.geysermc.geyser.dump;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Getter;
@@ -249,9 +250,9 @@ public class DumpInfo {
                 Map<String, String> fields = new HashMap<>();
                 fields.put("content", FileUtils.readAllLines(GeyserImpl.getInstance().getBootstrap().getLogsPath()).collect(Collectors.joining("\n")));
 
-                JsonNode logData = GeyserImpl.JSON_MAPPER.readTree(WebUtils.postForm("https://api.mclo.gs/1/log", fields));
+                JsonObject logData = new JsonParser().parse(WebUtils.postForm("https://api.mclo.gs/1/log", fields)).getAsJsonObject();
 
-                this.link = logData.get("url").textValue();
+                this.link = logData.get("url").getAsString();
             } catch (IOException ignored) { }
         }
     }

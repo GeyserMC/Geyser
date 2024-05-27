@@ -9,7 +9,8 @@ fastutil = "8.5.2"
 netty = "4.1.107.Final"
 netty-io-uring = "0.0.25.Final-SNAPSHOT"
 guava = "29.0-jre"
-gson = "2.3.1" # Provided by Spigot 1.8.8
+gson = "2.3.1" # Provided by Spigot 1.8.8 TODO bump to 2.8.1 or similar (Spigot 1.16.5 version) after Merge
+gson-runtime = "2.10.1"
 websocket = "1.5.1"
 protocol = "3.0.0.Beta1-20240411.165033-129"
 protocol-connection = "3.0.0.Beta1-20240411.165033-128"
@@ -111,6 +112,7 @@ checker-qual = { group = "org.checkerframework", name = "checker-qual", version.
 commodore = { group = "me.lucko", name = "commodore", version.ref = "commodore" }
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+gson-runtime = { group = "com.google.code.gson", name = "gson", version.ref = "gson-runtime" }
 junit = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
 mcauthlib = { group = "com.github.GeyserMC", name = "MCAuthLib", version.ref = "mcauthlib" }
 mcprotocollib = { group = "com.github.geysermc", name = "mcprotocollib", version.ref = "mcprotocollib" }

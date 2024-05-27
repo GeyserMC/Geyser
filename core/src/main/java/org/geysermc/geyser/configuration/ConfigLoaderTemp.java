@@ -52,6 +52,9 @@ public class ConfigLoaderTemp {
             --------------------------------""";
 
     public static <T extends GeyserConfig> T load(Class<T> configClass) throws IOException {
+        if (true) {
+            return null; // For now
+        }
         var loader = YamlConfigurationLoader.builder()
                 .file(new File("newconfig.yml"))
                 .defaultOptions(InterfaceDefaultOptions.get()

@@ -25,7 +25,8 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.PlatformType;
@@ -179,7 +180,7 @@ public class ConnectionTestCommand extends GeyserCommand {
                 CONNECTION_TEST_MOTD = connectionTestMotd;
 
                 sender.sendMessage("Testing server connection to " + ip + " with port: " + port + " now. Please wait...");
-                JsonNode output;
+                JsonObject output;
                 try {
                     String hostname = URLEncoder.encode(ip, StandardCharsets.UTF_8);
                     output = WebUtils.getJson("https://checker.geysermc.org/ping?hostname=" + hostname + "&port=" + port);
@@ -187,18 +188,18 @@ public class ConnectionTestCommand extends GeyserCommand {
                     CONNECTION_TEST_MOTD = null;
                 }
 
-                if (output.get("success").asBoolean()) {
-                    JsonNode cache = output.get("cache");
+                if (output.get("success").getAsBoolean()) {
+                    JsonObject cache = output.getAsJsonObject("cache");
                     String when;
-                    if (cache.get("fromCache").asBoolean()) {
-                        when = cache.get("secondsSince").asInt() + " seconds ago";
+                    if (cache.get("fromCache").isJsonPrimitive()) {
+                        when = cache.get("secondsSince").getAsBoolean() + " seconds ago";
                     } else {
                         when = "now";
                     }
 
-                    JsonNode ping = output.get("ping");
-                    JsonNode pong = ping.get("pong");
-                    String remoteMotd = pong.get("motd").asText();
+                    JsonObject ping = output.getAsJsonObject("ping");
+                    JsonObject pong = ping.getAsJsonObject("pong");
+                    String remoteMotd = pong.get("motd").getAsString();
                     if (!connectionTestMotd.equals(remoteMotd)) {
                         sender.sendMessage("The MOTD did not match when we pinged the server (we got '" + remoteMotd + "'). " +
                                 "Did you supply the correct IP and port of your server?");
@@ -206,7 +207,7 @@ public class ConnectionTestCommand extends GeyserCommand {
                         return;
                     }
 
-                    if (ping.get("tcpFirst").asBoolean()) {
+                    if (ping.get("tcpFirst").getAsBoolean()) {
                         sender.sendMessage("Your server hardware likely has some sort of firewall preventing people from joining easily. See https://geysermc.link/ovh-firewall for more information.");
                         sendLinks(sender);
                         return;
@@ -218,9 +219,9 @@ public class ConnectionTestCommand extends GeyserCommand {
                 }
 
                 sender.sendMessage("Your server is likely unreachable from outside the network!");
-                JsonNode message = output.get("message");
-                if (message != null && !message.asText().isEmpty()) {
-                    sender.sendMessage("Got the error message: " + message.asText());
+                JsonElement message = output.get("message");
+                if (message != null && !message.getAsString().isEmpty()) {
+                    sender.sendMessage("Got the error message: " + message.getAsString());
                 }
                 sendLinks(sender);
             } catch (Exception e) {

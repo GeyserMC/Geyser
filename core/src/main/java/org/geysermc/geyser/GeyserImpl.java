@@ -26,9 +26,11 @@
 package org.geysermc.geyser;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import io.netty.channel.epoll.Epoll;
 import io.netty.util.NettyRuntime;
 import io.netty.util.concurrent.DefaultThreadFactory;
@@ -87,8 +89,10 @@ import org.geysermc.geyser.util.*;
 import org.geysermc.mcprotocollib.network.tcp.TcpSession;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -111,6 +115,8 @@ public class GeyserImpl implements GeyserApi {
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES)
             .enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
+
+    public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     public static final String NAME = "Geyser";
     public static final String GIT_VERSION = "${gitVersion}";
@@ -527,11 +533,11 @@ public class GeyserImpl implements GeyserApi {
 
             File tokensFile = bootstrap.getSavedUserLoginsFolder().resolve(Constants.SAVED_REFRESH_TOKEN_FILE).toFile();
             if (tokensFile.exists()) {
-                TypeReference<Map<String, String>> type = new TypeReference<>() { };
+                Type type = new TypeToken<Map<String, String>>() { }.getType();
 
                 Map<String, String> refreshTokenFile = null;
-                try {
-                    refreshTokenFile = JSON_MAPPER.readValue(tokensFile, type);
+                try (FileReader reader = new FileReader(tokensFile)) {
+                    refreshTokenFile = GSON.fromJson(reader, type);
                 } catch (IOException e) {
                     logger.error("Cannot load saved user tokens!", e);
                 }
@@ -824,11 +830,9 @@ public class GeyserImpl implements GeyserApi {
         scheduledThread.execute(() -> {
             // Ensure all writes are handled on the same thread
             File savedTokens = getBootstrap().getSavedUserLoginsFolder().resolve(Constants.SAVED_REFRESH_TOKEN_FILE).toFile();
-            TypeReference<Map<String, String>> type = new TypeReference<>() { };
+            Type type = new TypeToken<Map<String, String>>() { }.getType();
             try (FileWriter writer = new FileWriter(savedTokens)) {
-                JSON_MAPPER.writerFor(type)
-                        .withDefaultPrettyPrinter()
-                        .writeValue(writer, savedRefreshTokens);
+                GSON.toJson(savedRefreshTokens, type, writer);
             } catch (IOException e) {
                 getLogger().error("Unable to write saved refresh tokens!", e);
             }

@@ -14,6 +14,8 @@ dependencies {
     implementation(libs.bundles.jline)
 
     implementation(libs.bundles.log4j)
+
+    implementation(libs.gson.runtime)
 }
 
 application {

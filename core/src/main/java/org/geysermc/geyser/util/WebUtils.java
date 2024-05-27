@@ -26,6 +26,9 @@
 package org.geysermc.geyser.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 
@@ -71,12 +74,14 @@ public class WebUtils {
      * @param reqURL URL to fetch
      * @return the response as JSON
      */
-    public static JsonNode getJson(String reqURL) throws IOException {
+    public static JsonObject getJson(String reqURL) throws IOException {
         HttpURLConnection con = (HttpURLConnection) new URL(reqURL).openConnection();
         con.setRequestProperty("User-Agent", getUserAgent());
         con.setConnectTimeout(10000);
         con.setReadTimeout(10000);
-        return GeyserImpl.JSON_MAPPER.readTree(con.getInputStream());
+        try (JsonReader reader = GeyserImpl.GSON.newJsonReader(new InputStreamReader(con.getInputStream()))) {
+            return new JsonParser().parse(reader).getAsJsonObject();
+        }
     }
 
     /**

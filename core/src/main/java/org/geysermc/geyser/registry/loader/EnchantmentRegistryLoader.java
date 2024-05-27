@@ -25,7 +25,10 @@
 
 package org.geysermc.geyser.registry.loader;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.geysermc.geyser.GeyserImpl;
@@ -35,41 +38,39 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.EnchantmentData;
 
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.EnumMap;
 import java.util.EnumSet;
-import java.util.Iterator;
 import java.util.Map;
 
 public class EnchantmentRegistryLoader implements RegistryLoader<String, Map<JavaEnchantment, EnchantmentData>> {
     @Override
     public Map<JavaEnchantment, EnchantmentData> load(String input) {
-        JsonNode enchantmentsNode;
+        JsonObject enchantmentsJson;
         try (InputStream enchantmentsStream = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow(input)) {
-            enchantmentsNode = GeyserImpl.JSON_MAPPER.readTree(enchantmentsStream);
+            enchantmentsJson = new JsonParser().parse(new InputStreamReader(enchantmentsStream)).getAsJsonObject();
         } catch (Exception e) {
             throw new AssertionError("Unable to load enchantment data", e);
         }
 
         Map<JavaEnchantment, EnchantmentData> enchantments = new EnumMap<>(JavaEnchantment.class);
-        Iterator<Map.Entry<String, JsonNode>> it = enchantmentsNode.fields();
-        while (it.hasNext()) {
-            Map.Entry<String, JsonNode> entry = it.next();
+        for (Map.Entry<String, JsonElement> entry : enchantmentsJson.entrySet()) {
             JavaEnchantment key = JavaEnchantment.getByJavaIdentifier(entry.getKey());
-            JsonNode node = entry.getValue();
-            int rarityMultiplier = node.get("anvil_cost").asInt();
-            int maxLevel = node.get("max_level").asInt();
+            JsonObject node = entry.getValue().getAsJsonObject();
+            int rarityMultiplier = node.get("anvil_cost").getAsInt();
+            int maxLevel = node.get("max_level").getAsInt();
 
             EnumSet<JavaEnchantment> incompatibleEnchantments = EnumSet.noneOf(JavaEnchantment.class);
-            JsonNode incompatibleEnchantmentsNode = node.get("incompatible_enchantments");
-            if (incompatibleEnchantmentsNode != null) {
-                for (JsonNode incompatibleNode : incompatibleEnchantmentsNode) {
-                    incompatibleEnchantments.add(JavaEnchantment.getByJavaIdentifier(incompatibleNode.textValue()));
+            JsonArray incompatibleEnchantmentsJson = node.getAsJsonArray("incompatible_enchantments");
+            if (incompatibleEnchantmentsJson != null) {
+                for (JsonElement incompatibleNode : incompatibleEnchantmentsJson) {
+                    incompatibleEnchantments.add(JavaEnchantment.getByJavaIdentifier(incompatibleNode.getAsString()));
                 }
             }
 
             IntSet validItems = new IntOpenHashSet();
-            for (JsonNode itemNode : node.get("valid_items")) {
-                String javaIdentifier = itemNode.textValue();
+            for (JsonElement itemNode : node.getAsJsonArray("valid_items")) {
+                String javaIdentifier = itemNode.getAsString();
                 Item item = Registries.JAVA_ITEM_IDENTIFIERS.get(javaIdentifier);
                 if (item != null) {
                     validItems.add(item.javaId());
