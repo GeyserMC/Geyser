@@ -56,6 +56,15 @@ public final class BlockState {
         return (T) get(property);
     }
 
+    public <T extends Comparable<T>> T getValueNullable(Property<T> property) {
+        var value = get(property);
+        if (value == null) {
+            return null;
+        }
+        //noinspection unchecked
+        return (T) get(property);
+    }
+
     public boolean getValue(Property<Boolean> property, boolean def) {
         var value = get(property);
         if (value == null) {

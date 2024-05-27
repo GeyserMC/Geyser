@@ -100,9 +100,8 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
         if (lecternContainer.isUsingRealBlock()) {
             boolean hasBook = session.getGeyser().getWorldManager().blockAt(session, position).getValue(Properties.HAS_BOOK, false);
 
-            NbtMapBuilder builder = LecternBlock.getBaseLecternTag(position, hasBook);
-            GeyserImpl.getInstance().getLogger().error("sending tag to reset: " + builder.build());
-            BlockEntityUtils.updateBlockEntity(session, builder.build(), position);
+            NbtMap map = LecternBlock.getBaseLecternTag(position, hasBook);
+            BlockEntityUtils.updateBlockEntity(session, map, position);
         }
     }
 
@@ -183,7 +182,7 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
                 blockEntityTag = lecternTag.build();
             } else {
                 // There is *a* book here, but... no NBT.
-                blockEntityTag = LecternBlock.getBaseLecternTag(position, true).build();
+                blockEntityTag = LecternBlock.getBaseLecternTag(position, true);
             }
 
             // Even with serverside access to lecterns, we don't easily know which lectern this is, so we need to rebuild
