@@ -28,9 +28,9 @@ package org.geysermc.geyser.translator.inventory;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.erosion.util.LecternUtils;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
@@ -39,8 +39,8 @@ import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.updater.ContainerInventoryUpdater;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.LecternBlock;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
@@ -48,8 +48,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.WritableBookContent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.WrittenBookContent;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
-
-import java.util.Collections;
 
 public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator {
 
@@ -100,13 +98,10 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
 
         // Now: Restore the lectern, if it actually exists
         if (lecternContainer.isUsingRealBlock()) {
-            NbtMapBuilder builder = BlockEntityTranslator.getConstantBedrockTag("Lectern", position);
-            if (session.getGeyser().getWorldManager().blockAt(session, position).getValue(Properties.HAS_BOOK)) {
-                builder.putByte("hasBook", (byte) 1);
-                builder.putInt("totalPages", 1); // we'll override it anyway
-            } else {
-                builder.putByte("hasBook", (byte) 0);
-            }
+            boolean hasBook = session.getGeyser().getWorldManager().blockAt(session, position).getValue(Properties.HAS_BOOK, false);
+
+            NbtMapBuilder builder = LecternBlock.getBaseLecternTag(position, hasBook);
+            GeyserImpl.getInstance().getLogger().error("sending tag to reset: " + builder.build());
             BlockEntityUtils.updateBlockEntity(session, builder.build(), position);
         }
     }
@@ -177,7 +172,7 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
                 }
 
                 ItemData itemData = book.getItemData(session);
-                NbtMapBuilder lecternTag = LecternUtils.getBaseLecternTag(position.getX(), position.getY(), position.getZ(), pages);
+                NbtMapBuilder lecternTag = LecternBlock.getBaseLecternTag(position, pages);
                 lecternTag.putCompound("book", NbtMap.builder()
                         .putByte("Count", (byte) itemData.getCount())
                         .putShort("Damage", (short) 0)
@@ -188,19 +183,7 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
                 blockEntityTag = lecternTag.build();
             } else {
                 // There is *a* book here, but... no NBT.
-                NbtMapBuilder lecternTag = LecternUtils.getBaseLecternTag(position.getX(), position.getY(), position.getZ(), 1);
-                NbtMapBuilder bookTag = NbtMap.builder()
-                        .putByte("Count", (byte) 1)
-                        .putShort("Damage", (short) 0)
-                        .putString("Name", "minecraft:writable_book")
-                        .putCompound("tag", NbtMap.builder().putList("pages", NbtType.COMPOUND, Collections.singletonList(
-                                NbtMap.builder()
-                                        .putString("photoname", "")
-                                        .putString("text", "")
-                                        .build()
-                        )).build());
-
-                blockEntityTag = lecternTag.putCompound("book", bookTag.build()).build();
+                blockEntityTag = LecternBlock.getBaseLecternTag(position, true).build();
             }
 
             // Even with serverside access to lecterns, we don't easily know which lectern this is, so we need to rebuild

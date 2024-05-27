@@ -28,10 +28,14 @@ package org.geysermc.geyser.level.block.type;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.block.entity.BedrockChunkWantsBlockEntityTag;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
+
+import java.util.Collections;
 
 public class LecternBlock extends Block implements BedrockChunkWantsBlockEntityTag {
     public LecternBlock(String javaIdentifier, Builder builder) {
@@ -40,13 +44,41 @@ public class LecternBlock extends Block implements BedrockChunkWantsBlockEntityT
 
     @Override
     public NbtMap createTag(GeyserSession session, Vector3i position, BlockState blockState) {
+        NbtMapBuilder builder = getBaseLecternTag(position,
+                blockState.getValue(Properties.HAS_BOOK, false));
+
+        GeyserImpl.getInstance().getLogger().error("Sending tag: " + builder.build());
+        return builder.build();
+    }
+
+    public static NbtMapBuilder getBaseLecternTag(Vector3i position, boolean hasBook) {
+        if (hasBook) {
+            return getBaseLecternTag(position, 0);
+        } else {
+            return getBaseLecternTag(position, 1)
+                    .putCompound("book", NbtMap.builder()
+                        .putByte("Count", (byte) 1)
+                        .putShort("Damage", (short) 0)
+                        .putString("Name", "minecraft:writable_book")
+                        .putCompound("tag", NbtMap.builder().putList("pages", NbtType.COMPOUND, Collections.singletonList(
+                                NbtMap.builder()
+                                        .putString("photoname", "")
+                                        .putString("text", "")
+                                        .build()
+                        )).build())
+                    .build());
+        }
+    }
+
+    public static NbtMapBuilder getBaseLecternTag(Vector3i position, int pages) {
         NbtMapBuilder builder = BlockEntityTranslator.getConstantBedrockTag("Lectern", position);
-        if (blockState.getValue(Properties.HAS_BOOK)) {
+        builder.putBoolean("isMovable", true);
+
+        if (pages != 0) {
             builder.putByte("hasBook", (byte) 1);
             builder.putInt("totalPages", 1); // we'll override it anyway
-        } else {
-            builder.putByte("hasBook", (byte) 0);
         }
-        return builder.build();
+
+        return builder;
     }
 }
