@@ -10,8 +10,7 @@ netty-io-uring = "0.0.25.Final-SNAPSHOT"
 guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8
 websocket = "1.5.1"
-protocol = "3.0.0.Beta1-20240411.165033-129"
-protocol-connection = "3.0.0.Beta1-20240411.165033-128"
+protocol = "3.0.0.Beta2-20240520.153053-5"
 raknet = "1.0.0.CR3-20240416.144209-1"
 blockstateupdater="1.20.80-20240411.142413-1"
 mcauthlib = "e5b0bcc"
@@ -117,12 +116,9 @@ viaproxy = { group = "net.raphimc", name = "ViaProxy", version.ref = "viaproxy" 
 viaversion = { group = "com.viaversion", name = "viaversion", version.ref = "viaversion" }
 websocket = { group = "org.java-websocket", name = "Java-WebSocket", version.ref = "websocket" }
 
-#protocol-common = { group = "org.cloudburstmc.protocol", name = "common", version.ref = "protocol-connection" }
-#protocol-codec = { group = "org.cloudburstmc.protocol", name = "bedrock-codec", version.ref = "protocol" }
-#protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol-connection" }
-protocol-common = { group = "com.github.GeyserMC.Protocol", name = "common", version = "ade21be" }
-protocol-codec = { group = "com.github.GeyserMC.Protocol", name = "bedrock-codec", version = "ade21be" }
-protocol-connection = { group = "com.github.GeyserMC.Protocol", name = "bedrock-connection", version = "ade21be" }
+protocol-common = { group = "org.cloudburstmc.protocol", name = "common", version.ref = "protocol" }
+protocol-codec = { group = "org.cloudburstmc.protocol", name = "bedrock-codec", version.ref = "protocol" }
+protocol-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol" }
 
 math = { group = "org.cloudburstmc.math", name = "immutable", version = "2.0" }
 

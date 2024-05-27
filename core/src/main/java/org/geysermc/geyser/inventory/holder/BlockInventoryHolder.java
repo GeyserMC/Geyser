@@ -163,6 +163,7 @@ public class BlockInventoryHolder extends InventoryHolder {
                 ContainerClosePacket packet = new ContainerClosePacket();
                 packet.setId((byte) inventory.getBedrockId());
                 packet.setServerInitiated(true);
+                packet.setType(ContainerType.CONTAINER);
                 session.sendUpstreamPacket(packet);
                 return;
             }

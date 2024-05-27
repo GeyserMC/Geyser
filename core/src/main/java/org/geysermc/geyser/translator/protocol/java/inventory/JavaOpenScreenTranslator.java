@@ -30,9 +30,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.C
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
 import net.kyori.adventure.text.Component;
 import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.inventory.OldSmithingTableTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -57,10 +55,6 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
         // Hack: ViaVersion translates the old (pre 1.20) smithing table to a furnace (does not work for Bedrock). We can detect this and translate it back to a smithing table.
         if (session.isOldSmithingTable() && packet.getType() == ContainerType.FURNACE && packet.getTitle().equals(SMITHING_TABLE_COMPONENT)) {
             newTranslator = OldSmithingTableTranslator.INSTANCE;
-        } else if (packet.getType() == ContainerType.CRAFTER_3x3 && GameProtocol.isPre1_20_50(session)) {
-            // Hack 2: Crafters are only supported by 1.20.50 and above. If 1.20.40 tries to open one, they'll get locked out of all inventories.
-            newTranslator = null; // close immediately below
-            session.sendMessage(ChatColor.RED + "Update your Bedrock Edition client to 1.20.50 or above to gain access to the Crafter.");
         } else {
             newTranslator = InventoryTranslator.inventoryTranslator(packet.getType());
         }
