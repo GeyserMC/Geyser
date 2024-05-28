@@ -22,7 +22,6 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.registry;
 
 import org.geysermc.geyser.registry.loader.RegistryLoader;

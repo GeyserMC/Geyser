@@ -22,7 +22,6 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.registry.type;
 
 import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;

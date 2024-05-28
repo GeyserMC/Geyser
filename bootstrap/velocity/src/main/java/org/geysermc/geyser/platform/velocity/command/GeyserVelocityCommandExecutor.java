@@ -22,7 +22,6 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.platform.velocity.command;
 
 import com.velocitypowered.api.command.SimpleCommand;

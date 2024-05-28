@@ -22,7 +22,6 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.platform.bungeecord.command;
 
 import net.md_5.bungee.api.ChatColor;

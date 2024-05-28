@@ -22,7 +22,6 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.translator.inventory.horse;
 
 public class DonkeyInventoryTranslator extends ChestedHorseInventoryTranslator {

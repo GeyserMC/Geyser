@@ -22,7 +22,6 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.session.cache.registry;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;

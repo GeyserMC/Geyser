@@ -22,7 +22,6 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.item.type;
 
 import org.geysermc.geyser.item.components.ToolTier;

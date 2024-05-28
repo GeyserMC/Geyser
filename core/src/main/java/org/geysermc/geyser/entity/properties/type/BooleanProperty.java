@@ -22,7 +22,6 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.entity.properties.type;
 
 import org.cloudburstmc.nbt.NbtMap;

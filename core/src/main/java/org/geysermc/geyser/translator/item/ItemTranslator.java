@@ -22,7 +22,6 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.translator.item;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
