@@ -22,7 +22,6 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.event.type;
 
 import org.checkerframework.checker.index.qual.NonNegative;

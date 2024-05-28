@@ -45,6 +45,7 @@ architectury-loom = "1.6-SNAPSHOT"
 minotaur = "2.8.7"
 lombok = "8.4"
 blossom = "1.2.0"
+spotless = "6.25.0"
 
 [libraries]
 base-api = { group = "org.geysermc.api", name = "base-api", version.ref = "base-api" }
@@ -133,11 +134,13 @@ shadow = { group = "com.github.johnrengelman", name = "shadow", version.ref = "s
 architectury-plugin = { group = "architectury-plugin", name = "architectury-plugin.gradle.plugin", version.ref = "architectury-plugin" }
 architectury-loom = { group = "dev.architectury.loom", name = "dev.architectury.loom.gradle.plugin", version.ref = "architectury-loom" }
 minotaur = { group = "com.modrinth.minotaur", name = "Minotaur", version.ref = "minotaur" }
+spotless = { group = "com.diffplug.spotless", name = "spotless-plugin-gradle", version.ref = "spotless" }
 
 [plugins]
 lombok = { id = "io.freefair.lombok", version.ref = "lombok" }
 indra = { id = "net.kyori.indra", version.ref = "indra" }
 blossom = { id = "net.kyori.blossom", version.ref = "blossom" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 
 [bundles]
 jackson = [ "jackson-annotations", "jackson-core", "jackson-dataformat-yaml" ]

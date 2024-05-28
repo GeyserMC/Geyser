@@ -22,7 +22,6 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.level.physics;
 
 import org.cloudburstmc.math.vector.Vector3d;

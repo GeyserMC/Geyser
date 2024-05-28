@@ -17,4 +17,5 @@ dependencies {
     implementation(libs.architectury.plugin)
     implementation(libs.architectury.loom)
     implementation(libs.minotaur)
+    implementation(libs.spotless)
 }

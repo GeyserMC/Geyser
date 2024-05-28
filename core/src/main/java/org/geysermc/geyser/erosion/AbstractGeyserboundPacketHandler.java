@@ -22,7 +22,6 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.erosion;
 
 import org.checkerframework.checker.nullness.qual.Nullable;

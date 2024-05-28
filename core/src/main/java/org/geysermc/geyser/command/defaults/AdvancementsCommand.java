@@ -22,7 +22,6 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.command.defaults;
 
 import org.geysermc.geyser.command.GeyserCommand;

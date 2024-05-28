@@ -22,7 +22,6 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.translator.protocol.java.entity.player;
 
 import org.geysermc.geyser.session.GeyserSession;

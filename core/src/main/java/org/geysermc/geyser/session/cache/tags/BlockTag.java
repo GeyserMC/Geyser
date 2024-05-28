@@ -22,7 +22,6 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.session.cache.tags;
 
 import org.geysermc.geyser.session.cache.TagCache;

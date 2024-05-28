@@ -22,7 +22,6 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.event;
 
 import org.geysermc.geyser.api.event.EventRegistrar;

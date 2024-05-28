@@ -1,6 +1,7 @@
 plugins {
     `java-library`
     id("net.kyori.indra")
+    id("com.diffplug.spotless")
 }
 
 dependencies {
@@ -17,6 +18,13 @@ indra {
 
     javaVersions {
         target(17)
+    }
+}
+
+spotless {
+    java {
+        licenseHeaderFile(rootProject.file("licenseheader.txt"))
+        ratchetFrom("origin/master")
     }
 }
 

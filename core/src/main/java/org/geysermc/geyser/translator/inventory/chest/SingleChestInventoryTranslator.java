@@ -22,7 +22,6 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.translator.inventory.chest;
 
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;

@@ -22,7 +22,6 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.level.chunk.bitarray;
 
 import io.netty.buffer.ByteBuf;

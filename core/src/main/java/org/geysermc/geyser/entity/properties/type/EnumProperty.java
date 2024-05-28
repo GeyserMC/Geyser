@@ -22,7 +22,6 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.entity.properties.type;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;

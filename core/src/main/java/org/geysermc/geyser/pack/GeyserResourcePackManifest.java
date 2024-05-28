@@ -22,7 +22,6 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.pack;
 
 import com.fasterxml.jackson.annotation.JsonProperty;

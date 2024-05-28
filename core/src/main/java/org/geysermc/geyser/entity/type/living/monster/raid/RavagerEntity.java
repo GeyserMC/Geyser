@@ -22,7 +22,6 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.entity.type.living.monster.raid;
 
 import org.cloudburstmc.math.vector.Vector3f;

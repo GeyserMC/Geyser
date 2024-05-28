@@ -22,7 +22,6 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.inventory.updater;
 
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;

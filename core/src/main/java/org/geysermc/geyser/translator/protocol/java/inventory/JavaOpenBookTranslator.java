@@ -22,7 +22,6 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.translator.protocol.java.inventory;
 
 import org.geysermc.geyser.inventory.GeyserItemStack;

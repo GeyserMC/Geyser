@@ -22,7 +22,6 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.platform.spigot.command;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;

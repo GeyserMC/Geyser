@@ -22,7 +22,6 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
 package org.geysermc.geyser.registry.loader;
 
 import org.geysermc.geyser.translator.sound.SoundInteractionTranslator;
