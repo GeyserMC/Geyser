@@ -1,0 +1,33 @@
+name: Check Remote
+
+on:
+  workflow_call:
+    inputs:
+      repository:
+        required: true
+        description: 'The repo of the remote'
+        type: string
+      ref:
+        required: true
+        description: 'The ref of the remote'
+        type: string
+
+permissions: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Gradle
+        uses: GeyserMC/actions/setup-gradle-composite@master
+        with:
+          checkout_repository: ${{ inputs.repository }}
+          checkout_ref: ${{ inputs.ref }}
+          setup-java_java-version: 21
+          setup-gradle_cache-read-only: true
+
+      - name: Fetch origin master
+        run: git fetch origin master
+
+      - name: Spotless Check
+        run: ./gradlew spotlessCheck

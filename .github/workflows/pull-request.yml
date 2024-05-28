@@ -4,6 +4,14 @@ on:
   pull_request_target:
 
 jobs:
+  check:
+    # Forbid access to secrets nor GH Token perms while checking the PR
+    permissions: {}
+    secrets: {}
+    uses: rtm516/Geyser/.github/workflows/check-remote.yml@master
+    with:
+      repository: ${{ github.event.pull_request.head.repo.full_name }}
+      ref: ${{ github.event.pull_request.head.sha }}
   build:
     # Forbid access to secrets nor GH Token perms while building the PR
     permissions: {}
