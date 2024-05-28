@@ -43,13 +43,13 @@ jobs:
         if: success()
         with:
           artifacts: |
-            geyser/bootstrap/mod/fabric/build/libs/Geyser-Fabric.jar
-            geyser/bootstrap/mod/neoforge/build/libs/Geyser-NeoForge.jar
-            geyser/bootstrap/standalone/build/libs/Geyser-Standalone.jar
-            geyser/bootstrap/spigot/build/libs/Geyser-Spigot.jar
-            geyser/bootstrap/bungeecord/build/libs/Geyser-BungeeCord.jar
-            geyser/bootstrap/velocity/build/libs/Geyser-Velocity.jar
-            geyser/bootstrap/viaproxy/build/libs/Geyser-ViaProxy.jar
+            bootstrap/mod/fabric/build/libs/Geyser-Fabric.jar
+            bootstrap/mod/neoforge/build/libs/Geyser-NeoForge.jar
+            bootstrap/standalone/build/libs/Geyser-Standalone.jar
+            bootstrap/spigot/build/libs/Geyser-Spigot.jar
+            bootstrap/bungeecord/build/libs/Geyser-BungeeCord.jar
+            bootstrap/velocity/build/libs/Geyser-Velocity.jar
+            bootstrap/viaproxy/build/libs/Geyser-ViaProxy.jar
 
       - name: Publish to Maven Repository
         if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
