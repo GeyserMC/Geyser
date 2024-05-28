@@ -41,16 +41,18 @@ public class TippedArrowItem extends ArrowItem {
 
     @Override
     public ItemData.Builder translateToBedrock(int count, DataComponents components, ItemMapping mapping, ItemMappings mappings) {
-        PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
-        if (potionContents != null) {
-            TippedArrowPotion tippedArrowPotion = TippedArrowPotion.of(potionContents.getPotionId());
-            if (tippedArrowPotion != null) {
-                return ItemData.builder()
-                        .definition(mapping.getBedrockDefinition())
-                        .damage(tippedArrowPotion.getBedrockId())
-                        .count(count);
+        if (components != null) {
+            PotionContents potionContents = components.get(DataComponentType.POTION_CONTENTS);
+            if (potionContents != null) {
+                TippedArrowPotion tippedArrowPotion = TippedArrowPotion.of(potionContents.getPotionId());
+                if (tippedArrowPotion != null) {
+                    return ItemData.builder()
+                            .definition(mapping.getBedrockDefinition())
+                            .damage(tippedArrowPotion.getBedrockId())
+                            .count(count);
+                }
+                GeyserImpl.getInstance().getLogger().debug("Unknown Java potion (tipped arrow): " + potionContents.getPotionId());
             }
-            GeyserImpl.getInstance().getLogger().debug("Unknown Java potion (tipped arrow): " + potionContents.getPotionId());
         }
         return super.translateToBedrock(count, components, mapping, mappings);
     }
