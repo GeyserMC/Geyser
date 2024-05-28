@@ -61,8 +61,6 @@ public class PistonBlockEntity {
     private final Direction orientation;
     private final boolean sticky;
 
-    private final boolean extended = false;
-
     @Getter
     private PistonValueType action;
 
