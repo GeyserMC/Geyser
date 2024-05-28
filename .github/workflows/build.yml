@@ -28,84 +28,28 @@ jobs:
         with:
           data: ${{ vars.RELEASEACTION_PREVRELEASE }}
 
-      - name: Checkout repository and submodules
-        # See https://github.com/actions/checkout/commits
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
-        with:
-          submodules: recursive
-
-      - name: Validate Gradle Wrapper
-        # See https://github.com/gradle/actions/commits
-        uses: gradle/actions/wrapper-validation@db19848a5fa7950289d3668fb053140cf3028d43 # v3.3.2
-
-        # See https://github.com/actions/setup-java/commits
-      - name: Setup Java
-        uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 # v4.2.1
-        with:
-          java-version: 21
-          distribution: temurin
-          
       - name: Setup Gradle
-        # See https://github.com/gradle/actions/commits
-        uses: gradle/actions/setup-gradle@db19848a5fa7950289d3668fb053140cf3028d43 # v3.3.2
+        uses: GeyserMC/actions/setup-gradle-composite@master
         with:
-          gradle-home-cache-cleanup: true
+          setup-java_java-version: 21
 
       - name: Build Geyser
         run: ./gradlew build
         env:
           BUILD_NUMBER: ${{ steps.release-info.outputs.curentRelease }}
           
-      - name: Archive artifacts (Geyser Fabric)
-        # See https://github.com/actions/upload-artifact/commits
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+      - name: Archive Artifacts
+        uses: GeyserMC/actions/upload-multi-artifact@master
         if: success()
         with:
-          name: Geyser Fabric
-          path: bootstrap/mod/fabric/build/libs/Geyser-Fabric.jar
-          if-no-files-found: error
-      - name: Archive artifacts (Geyser NeoForge)
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808
-        if: success()
-        with:
-          name: Geyser NeoForge
-          path: bootstrap/mod/neoforge/build/libs/Geyser-NeoForge.jar
-          if-no-files-found: error
-      - name: Archive artifacts (Geyser Standalone)
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808
-        if: success()
-        with:
-          name: Geyser Standalone
-          path: bootstrap/standalone/build/libs/Geyser-Standalone.jar
-          if-no-files-found: error
-      - name: Archive artifacts (Geyser Spigot)
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808
-        if: success()
-        with:
-          name: Geyser Spigot
-          path: bootstrap/spigot/build/libs/Geyser-Spigot.jar
-          if-no-files-found: error
-      - name: Archive artifacts (Geyser BungeeCord)
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808
-        if: success()
-        with:
-          name: Geyser BungeeCord
-          path: bootstrap/bungeecord/build/libs/Geyser-BungeeCord.jar
-          if-no-files-found: error
-      - name: Archive artifacts (Geyser Velocity)
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808
-        if: success()
-        with:
-          name: Geyser Velocity
-          path: bootstrap/velocity/build/libs/Geyser-Velocity.jar
-          if-no-files-found: error
-      - name: Archive artifacts (Geyser ViaProxy)
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808
-        if: success()
-        with:
-          name: Geyser ViaProxy
-          path: bootstrap/viaproxy/build/libs/Geyser-ViaProxy.jar
-          if-no-files-found: error
+          artifacts: |
+            bootstrap/mod/fabric/build/libs/Geyser-Fabric.jar
+            bootstrap/mod/neoforge/build/libs/Geyser-NeoForge.jar
+            bootstrap/standalone/build/libs/Geyser-Standalone.jar
+            bootstrap/spigot/build/libs/Geyser-Spigot.jar
+            bootstrap/bungeecord/build/libs/Geyser-BungeeCord.jar
+            bootstrap/velocity/build/libs/Geyser-Velocity.jar
+            bootstrap/viaproxy/build/libs/Geyser-ViaProxy.jar
 
       - name: Publish to Maven Repository
         if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
@@ -116,14 +60,14 @@ jobs:
           ORG_GRADLE_PROJECT_geysermcPassword: ${{ secrets.DEPLOY_PASS }}
         
       - name: Get Version
-        if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
+        if: ${{ (success() || failure()) && github.repository == 'GeyserMC/Geyser' }}
         id: get-version
         run: |
           version=$(cat gradle.properties | grep -o "version=[0-9\\.]*" | cut -d"=" -f2)
           echo "VERSION=${version}" >> $GITHUB_OUTPUT
 
       - name: Get Release Metadata
-        if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
+        if: ${{ (success() || failure()) && github.repository == 'GeyserMC/Geyser' }}
         uses: GeyserMC/actions/release@master
         id: metadata
         with:
@@ -141,6 +85,7 @@ jobs:
           saveMetadata: true
           releaseProject: 'geyser'
           releaseVersion: ${{ steps.get-version.outputs.VERSION }}
+
       - name: Publish to Downloads API
         if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
         uses: GeyserMC/actions/upload-release@master
@@ -156,6 +101,7 @@ jobs:
             bootstrap/standalone/build/libs/Geyser-Standalone.jar
             bootstrap/velocity/build/libs/Geyser-Velocity.jar
             bootstrap/viaproxy/build/libs/Geyser-ViaProxy.jar
+          changelog: ${{ steps.metadata.outputs.body }}
 
       - name: Publish to Modrinth (Fabric)
         if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
