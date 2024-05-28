@@ -17,7 +17,7 @@ jobs:
   dispatch-preview:
     # Allow access to secrets if we are uploading a preview
     secrets: inherit
-    uses: GeyserMC/actions/.github/workflows/calls/upload-preview.yml@master
+    uses: GeyserMC/actions/.github/workflows/upload-preview.yml@master
     with:
       build: ${{ inputs.build }}
       version: ${{ inputs.version }}

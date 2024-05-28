@@ -18,7 +18,7 @@ jobs:
       contains(github.event.pull_request.labels.*.name, 'PR: Needs Testing')
     # Allow access to secrets if we are uploading a preview
     secrets: inherit
-    uses: GeyserMC/actions/.github/workflows/calls/upload-preview.yml@master
+    uses: GeyserMC/actions/.github/workflows/upload-preview.yml@master
     with:
       build: ${{ github.run_number }}
       version: pr.${{ github.event.pull_request.number }}
