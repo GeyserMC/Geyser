@@ -22,81 +22,26 @@ jobs:
         run: |
           echo "BUILD_NUMBER=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
 
-      - name: Set up JDK 21
-        # See https://github.com/actions/setup-java/commits
-        uses: actions/setup-java@387ac29b308b003ca37ba93a6cab5eb57c8f5f93 # v4.0.0
+      - name: Setup Gradle
+        uses: GeyserMC/actions/setup-gradle-composite@master
         with:
-          java-version: 21
-          distribution: temurin
-
-      - name: Checkout repository and submodules
-        # See https://github.com/actions/checkout/commits
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-        with:
-          repository: ${{ inputs.repository }}
-          ref: ${{ inputs.ref }}
-          submodules: recursive
-          path: geyser
-
-      - name: Validate Gradle Wrapper
-        # See https://github.com/gradle/wrapper-validation-action/commits
-        uses: gradle/wrapper-validation-action@699bb18358f12c5b78b37bb0111d3a0e2276e0e2 # v2.1.1
+          checkout_repository: ${{ inputs.repository }}
+          checkout_ref: ${{ inputs.ref }}
+          setup-java_java-version: 21
+          setup-gradle_cache-read-only: true
 
       - name: Build Geyser
-        # See https://github.com/gradle/actions/commits
-        uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
-        with:
-          arguments: build
-          build-root-directory: geyser
-          cache-read-only: true
+        run: ./gradlew build
 
-      - name: Archive artifacts (Geyser Fabric)
-        # See https://github.com/actions/upload-artifact/commits
-        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+      - name: Archive Artifacts
+        uses: GeyserMC/actions/upload-multi-artifact@master
         if: success()
         with:
-          name: Geyser Fabric
-          path: geyser/bootstrap/mod/fabric/build/libs/Geyser-Fabric.jar
-          if-no-files-found: error
-      - name: Archive artifacts (Geyser NeoForge)
-        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3
-        if: success()
-        with:
-          name: Geyser NeoForge
-          path: geyser/bootstrap/mod/neoforge/build/libs/Geyser-NeoForge.jar
-          if-no-files-found: error
-      - name: Archive artifacts (Geyser Standalone)
-        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3
-        if: success()
-        with:
-          name: Geyser Standalone
-          path: geyser/bootstrap/standalone/build/libs/Geyser-Standalone.jar
-          if-no-files-found: error
-      - name: Archive artifacts (Geyser Spigot)
-        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3
-        if: success()
-        with:
-          name: Geyser Spigot
-          path: geyser/bootstrap/spigot/build/libs/Geyser-Spigot.jar
-          if-no-files-found: error
-      - name: Archive artifacts (Geyser BungeeCord)
-        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3
-        if: success()
-        with:
-          name: Geyser BungeeCord
-          path: geyser/bootstrap/bungeecord/build/libs/Geyser-BungeeCord.jar
-          if-no-files-found: error
-      - name: Archive artifacts (Geyser Velocity)
-        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3
-        if: success()
-        with:
-          name: Geyser Velocity
-          path: geyser/bootstrap/velocity/build/libs/Geyser-Velocity.jar
-          if-no-files-found: error
-      - name: Archive artifacts (Geyser ViaProxy)
-        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3
-        if: success()
-        with:
-          name: Geyser ViaProxy
-          path: geyser/bootstrap/viaproxy/build/libs/Geyser-ViaProxy.jar
-          if-no-files-found: error
+          artifacts: |
+            bootstrap/mod/fabric/build/libs/Geyser-Fabric.jar
+            bootstrap/mod/neoforge/build/libs/Geyser-NeoForge.jar
+            bootstrap/standalone/build/libs/Geyser-Standalone.jar
+            bootstrap/spigot/build/libs/Geyser-Spigot.jar
+            bootstrap/bungeecord/build/libs/Geyser-BungeeCord.jar
+            bootstrap/velocity/build/libs/Geyser-Velocity.jar
+            bootstrap/viaproxy/build/libs/Geyser-ViaProxy.jar
