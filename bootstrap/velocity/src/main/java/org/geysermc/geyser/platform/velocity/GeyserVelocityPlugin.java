@@ -64,38 +64,38 @@ import java.util.UUID;
 
 @Plugin(id = "geyser", name = GeyserImpl.NAME + "-Velocity", version = GeyserImpl.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
 public class GeyserVelocityPlugin implements GeyserBootstrap {
-    @Inject
-    private Logger logger;
 
-    @Inject
-    private ProxyServer proxyServer;
-
-    @Inject
-    private CommandManager commandManager;
-
+    private final ProxyServer proxyServer;
+    private final CommandManager commandManager;
+    private final GeyserVelocityLogger geyserLogger;
     private GeyserCommandManager geyserCommandManager;
     private GeyserVelocityConfiguration geyserConfig;
     private GeyserVelocityInjector geyserInjector;
-    private final GeyserVelocityLogger geyserLogger = new GeyserVelocityLogger(logger);
     private IGeyserPingPassthrough geyserPingPassthrough;
-
     private GeyserImpl geyser;
 
     @Getter
     private final Path configFolder = Paths.get("plugins/" + GeyserImpl.NAME + "-Velocity/");
+
+    @Inject
+    public GeyserVelocityPlugin(ProxyServer server, Logger logger, CommandManager manager) {
+        this.geyserLogger = new GeyserVelocityLogger(logger);
+        this.proxyServer = server;
+        this.commandManager = manager;
+    }
 
     @Override
     public void onGeyserInitialize() {
         GeyserLocale.init(this);
 
         if (!ProtocolVersion.isSupported(GameProtocol.getJavaProtocolVersion())) {
-            logger.error("      / \\");
-            logger.error("     /   \\");
-            logger.error("    /  |  \\");
-            logger.error("   /   |   \\    " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_proxy", proxyServer.getVersion().getName()));
-            logger.error("  /         \\   " + GeyserLocale.getLocaleStringLog("geyser.may_not_work_as_intended_all_caps"));
-            logger.error(" /     o     \\");
-            logger.error("/_____________\\");
+            geyserLogger.error("      / \\");
+            geyserLogger.error("     /   \\");
+            geyserLogger.error("    /  |  \\");
+            geyserLogger.error("   /   |   \\    " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_proxy", proxyServer.getVersion().getName()));
+            geyserLogger.error("  /         \\   " + GeyserLocale.getLocaleStringLog("geyser.may_not_work_as_intended_all_caps"));
+            geyserLogger.error(" /     o     \\");
+            geyserLogger.error("/_____________\\");
         }
 
         if (!loadConfig()) {
