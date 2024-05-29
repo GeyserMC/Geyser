@@ -225,7 +225,7 @@ public final class EntityUtils {
             Vector3f offset = Vector3f.from(xOffset, yOffset, zOffset);
 
             passenger.setRiderSeatPosition( passenger instanceof TextDisplayEntity textDisplay ?
-                    textDisplay.baseTranslation.add(offset) : offset
+                    textDisplay.baseTranslation.add(offset).add(0f, 0.2f, 0f) : offset
             );
         }
     }
