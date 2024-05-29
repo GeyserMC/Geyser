@@ -479,7 +479,6 @@ public class InventoryUtils {
                             for (int col = firstCol; col < width + firstCol; col++) {
                                 GeyserItemStack geyserItemStack = inventoryGetter.apply(col + (row * gridDimensions) + 1);
                                 if (geyserItemStack.isEmpty()) {
-                                    //noinspection ConstantValue
                                     inventoryHasItem = itemStack == null || itemStack.getId() == 0;
                                     if (inventoryHasItem) {
                                         break crafting;

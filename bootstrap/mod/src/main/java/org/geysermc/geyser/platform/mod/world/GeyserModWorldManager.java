@@ -25,11 +25,6 @@
 
 package org.geysermc.geyser.platform.mod.world;
 
-import org.geysermc.mcprotocollib.protocol.data.game.Holder;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
-import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityInfo;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.minecraft.SharedConstants;
@@ -48,24 +43,19 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BannerBlockEntity;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
-import org.geysermc.erosion.util.LecternUtils;
 import org.geysermc.geyser.level.GeyserWorldManager;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.util.BlockEntityUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -119,94 +109,6 @@ public class GeyserModWorldManager extends GeyserWorldManager {
     @Override
     public boolean hasOwnChunkCache() {
         return SharedConstants.getCurrentVersion().getProtocolVersion() == GameProtocol.getJavaProtocolVersion();
-    }
-
-    @Override
-    public boolean shouldExpectLecternHandled(GeyserSession session) {
-        return true;
-    }
-
-    @Override
-    public void sendLecternData(GeyserSession session, int x, int z, List<BlockEntityInfo> blockEntityInfos) {
-        server.execute(() -> {
-            ServerPlayer player = getPlayer(session);
-            if (player == null) {
-                return;
-            }
-
-            //noinspection resource - level() is just a getter
-            LevelChunk chunk = player.level().getChunk(x, z);
-            final int chunkBlockX = x << 4;
-            final int chunkBlockZ = z << 4;
-            //noinspection ForLoopReplaceableByForEach - avoid constructing iterator
-            for (int i = 0; i < blockEntityInfos.size(); i++) {
-                BlockEntityInfo blockEntityInfo = blockEntityInfos.get(i);
-                BlockEntity blockEntity = chunk.getBlockEntity(new BlockPos(chunkBlockX + blockEntityInfo.getX(),
-                        blockEntityInfo.getY(), chunkBlockZ + blockEntityInfo.getZ()));
-                sendLecternData(session, blockEntity, true);
-            }
-        });
-    }
-
-    @Override
-    public void sendLecternData(GeyserSession session, int x, int y, int z) {
-        server.execute(() -> {
-            ServerPlayer player = getPlayer(session);
-            if (player == null) {
-                return;
-            }
-            //noinspection resource - level() is just a getter
-            BlockEntity blockEntity = player.level().getBlockEntity(new BlockPos(x, y, z));
-            sendLecternData(session, blockEntity, false);
-        });
-    }
-
-    private void sendLecternData(GeyserSession session, BlockEntity blockEntity, boolean isChunkLoad) {
-        if (!(blockEntity instanceof LecternBlockEntity lectern)) {
-            return;
-        }
-
-        int x = blockEntity.getBlockPos().getX();
-        int y = blockEntity.getBlockPos().getY();
-        int z = blockEntity.getBlockPos().getZ();
-
-        if (!lectern.hasBook()) {
-            if (!isChunkLoad) {
-                BlockEntityUtils.updateBlockEntity(session, LecternUtils.getBaseLecternTag(x, y, z, 0).build(), Vector3i.from(x, y, z));
-            }
-            return;
-        }
-
-        ItemStack book = lectern.getBook();
-        int pageCount = getPageCount(book);
-        boolean hasBookPages = pageCount > 0;
-        NbtMapBuilder lecternTag = LecternUtils.getBaseLecternTag(x, y, z, hasBookPages ? pageCount : 1);
-        lecternTag.putInt("page", lectern.getPage() / 2);
-        NbtMapBuilder bookTag = NbtMap.builder()
-                .putByte("Count", (byte) book.getCount())
-                .putShort("Damage", (short) 0)
-                .putString("Name", "minecraft:writable_book");
-        List<NbtMap> pages = new ArrayList<>(hasBookPages ? pageCount : 1);
-        if (hasBookPages) {
-            List<String> bookPages = getPages(book);
-            for (String page : bookPages) {
-                NbtMapBuilder pageBuilder = NbtMap.builder()
-                        .putString("photoname", "")
-                        .putString("text", page);
-                pages.add(pageBuilder.build());
-            }
-        } else {
-            // Empty page
-            NbtMapBuilder pageBuilder = NbtMap.builder()
-                    .putString("photoname", "")
-                    .putString("text", "");
-            pages.add(pageBuilder.build());
-        }
-
-        bookTag.putCompound("tag", NbtMap.builder().putList("pages", NbtType.COMPOUND, pages).build());
-        lecternTag.putCompound("book", bookTag.build());
-        NbtMap blockEntityTag = lecternTag.build();
-        BlockEntityUtils.updateBlockEntity(session, blockEntityTag, Vector3i.from(x, y, z));
     }
 
     @Override
