@@ -31,24 +31,24 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
-import static org.geysermc.geyser.translator.text.MessageTranslator.normalizeSpace;
-
 @Translator(packet = TextPacket.class)
 public class BedrockTextTranslator extends PacketTranslator<TextPacket> {
 
     @Override
     public void translate(GeyserSession session, TextPacket packet) {
         // Java trims all messages, and then checks for the leading slash
-        String message = MessageTranslator.convertToPlainText(normalizeSpace(packet.getMessage()));
+        String message = MessageTranslator.convertToPlainText(
+                MessageTranslator.normalizeSpace(packet.getMessage())
+        );
+
+        if (message.isBlank()) {
+            // Java Edition (as of 1.17.1) just doesn't pass on these messages, so... we won't either!
+            return;
+        }
 
         if (message.startsWith("/")) {
             // Yes, Java actually allows whitespaces before commands and will still see those as valid
             BedrockCommandRequestTranslator.handleCommand(session, message.substring(1));
-            return;
-        }
-
-        if (message.isBlank()) {
-            // Java Edition (as of 1.17.1) just doesn't pass on these messages, so... we won't either!
             return;
         }
 
