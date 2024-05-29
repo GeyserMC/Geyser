@@ -64,6 +64,9 @@ public class MessageTranslator {
     // Reset character
     private static final String RESET = BASE + "r";
 
+    private static final char CHAR_NON_BREAKING_SPACE = 160;
+    private static final char CHAR_SPACE = 32;
+
     static {
         TEAM_COLORS.put(TeamColor.RESET, RESET);
 
@@ -409,7 +412,7 @@ public class MessageTranslator {
                 whitespacesCount++;
             } else {
                 startWhitespaces = false;
-                newChars[count++] = (actualChar == 160 ? 32 : actualChar);
+                newChars[count++] = (actualChar == CHAR_NON_BREAKING_SPACE ? CHAR_SPACE : actualChar);
                 whitespacesCount = 0;
             }
         }
