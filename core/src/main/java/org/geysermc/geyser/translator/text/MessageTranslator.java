@@ -409,6 +409,7 @@ public class MessageTranslator {
                 whitespacesCount++;
             } else {
                 startWhitespaces = false;
+                // Replace non-breaking spaces with regular spaces for normalization
                 newChars[count++] = (actualChar == '\u00A0' ? ' ' : actualChar);
                 whitespacesCount = 0;
             }
