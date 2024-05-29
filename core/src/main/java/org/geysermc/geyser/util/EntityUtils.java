@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -154,12 +154,9 @@ public final class EntityUtils {
      * Adjust an entity's height if they have mounted/dismounted an entity.
      */
     public static void updateMountOffset(Entity passenger, Entity mount, boolean rider, boolean riding, boolean moreThanOneEntity) {
-        if(passenger instanceof TextDisplayEntity) {
-            TextDisplayEntity d = (TextDisplayEntity) passenger;
-            if(d.baseTranslation == null) return; // still no meta
-            d.setRiderSeatPosition(d.baseTranslation.add(getMountOffset(passenger, mount)));
-            return;
-        }
+        if(passenger instanceof TextDisplayEntity textDisplay
+                && textDisplay.baseTranslation == null ) return;
+
         passenger.setFlag(EntityFlag.RIDING, riding);
         if (riding) {
             // Without the Y offset, Bedrock players will find themselves in the floor when mounting
@@ -173,11 +170,7 @@ public final class EntityUtils {
                 case BOAT -> {
                     // Without the X offset, more than one entity on a boat is stacked on top of each other
                     if (moreThanOneEntity) {
-                        if (rider) {
-                            xOffset = 0.2f;
-                        } else {
-                            xOffset = -0.6f;
-                        }
+                        xOffset = rider ? 0.2f : -0.6f;
                         if (passenger instanceof AnimalEntity) {
                             xOffset += 0.2f;
                         }
@@ -230,60 +223,12 @@ public final class EntityUtils {
                 yOffset -= armorStand.getYOffset();
             }
             Vector3f offset = Vector3f.from(xOffset, yOffset, zOffset);
-            passenger.setRiderSeatPosition(offset);
+
+            passenger.setRiderSeatPosition( passenger instanceof TextDisplayEntity textDisplay ?
+                    textDisplay.baseTranslation.add(offset) : offset
+            );
         }
     }
-
-    public static Vector3f getMountOffset(Entity passenger, Entity mount) {
-            // Without the Y offset, Bedrock players will find themselves in the floor when mounting
-            float mountedHeightOffset = getMountedHeightOffset(mount);
-            float heightOffset = getHeightOffset(passenger);
-
-            float xOffset = 0;
-            float yOffset = mountedHeightOffset + heightOffset;
-            float zOffset = 0;
-            switch (mount.getDefinition().entityType()) {
-                case CAMEL -> {
-                    zOffset = 0.5f;
-                    if (mount.getFlag(EntityFlag.SITTING)) {
-                        if (mount.getFlag(EntityFlag.BABY)) {
-                            yOffset += CamelEntity.SITTING_HEIGHT_DIFFERENCE * 0.5f;
-                        } else {
-                            yOffset += CamelEntity.SITTING_HEIGHT_DIFFERENCE;
-                        }
-                    }
-                }
-                case CHEST_BOAT -> xOffset = 0.15F;
-                case CHICKEN -> zOffset = -0.1f;
-                case TRADER_LLAMA, LLAMA -> zOffset = -0.3f;
-            }
-            /*
-             * Bedrock Differences
-             * Zoglin & Hoglin seem to be taller in Bedrock edition
-             * Horses are tinier
-             * Players, Minecarts, and Boats have different origins
-             */
-            if (mount.getDefinition().entityType() == EntityType.PLAYER) {
-                yOffset -= EntityDefinitions.PLAYER.offset();
-            }
-            if (passenger.getDefinition().entityType() == EntityType.PLAYER) {
-                yOffset += EntityDefinitions.PLAYER.offset();
-            }
-            switch (mount.getDefinition().entityType()) {
-                case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
-                        COMMAND_BLOCK_MINECART, BOAT, CHEST_BOAT -> yOffset -= mount.getDefinition().height() * 0.5f;
-            }
-            switch (passenger.getDefinition().entityType()) {
-                case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
-                        COMMAND_BLOCK_MINECART, BOAT, CHEST_BOAT -> yOffset += passenger.getDefinition().height() * 0.5f;
-                case FALLING_BLOCK -> yOffset += 0.5f;
-            }
-            if (mount instanceof ArmorStandEntity armorStand) {
-                yOffset -= armorStand.getYOffset();
-            }
-        return Vector3f.from(xOffset, yOffset, zOffset);
-    }
-
 
     public static void updateRiderRotationLock(Entity passenger, Entity mount, boolean isRiding) {
         if (isRiding && mount instanceof BoatEntity) {

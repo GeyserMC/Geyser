@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.jetbrains.annotations.Async;
@@ -38,9 +39,6 @@ import org.jetbrains.annotations.Async;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.geysermc.geyser.util.EntityUtils.getMountOffset;
-
-// Note: 1.19.4 requires that the billboard is set to something in order to show, on Java Edition
 public class DisplayBaseEntity extends Entity {
 
     public Vector3f baseTranslation;
@@ -73,7 +71,7 @@ public class DisplayBaseEntity extends Entity {
             this.setRiderSeatPosition(this.baseTranslation);
             this.moveRelative(0, this.baseTranslation.getY(), 0, yaw, pitch, headYaw, false);
         } else {
-            this.setRiderSeatPosition(this.baseTranslation.add(getMountOffset(this, this.vehicle)));
+            EntityUtils.updateMountOffset(this, this.vehicle, true, true, false);
         }
 
     }
