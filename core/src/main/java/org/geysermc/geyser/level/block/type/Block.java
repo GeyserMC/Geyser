@@ -91,39 +91,35 @@ public class Block {
         BlockDefinition definition = session.getBlockMappings().getBedrockBlock(state);
         sendBlockUpdatePacket(session, state, definition, position);
 
-        {
-            // Extended collision boxes for custom blocks
-            if (!session.getBlockMappings().getExtendedCollisionBoxes().isEmpty()) {
-                int aboveBlock = session.getGeyser().getWorldManager().getBlockAt(session, position.getX(), position.getY() + 1, position.getZ());
-                BlockDefinition aboveBedrockExtendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes().get(state.javaId());
-                int belowBlock = session.getGeyser().getWorldManager().getBlockAt(session, position.getX(), position.getY() - 1, position.getZ());
-                BlockDefinition belowBedrockExtendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes().get(belowBlock);
-                if (belowBedrockExtendedCollisionDefinition != null && state.is(Blocks.AIR)) {
-                    UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-                    updateBlockPacket.setDataLayer(0);
-                    updateBlockPacket.setBlockPosition(position);
-                    updateBlockPacket.setDefinition(belowBedrockExtendedCollisionDefinition);
-                    updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-                    session.sendUpstreamPacket(updateBlockPacket);
-                } else if (aboveBedrockExtendedCollisionDefinition != null && aboveBlock == Block.JAVA_AIR_ID) {
-                    UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-                    updateBlockPacket.setDataLayer(0);
-                    updateBlockPacket.setBlockPosition(position.add(0, 1, 0));
-                    updateBlockPacket.setDefinition(aboveBedrockExtendedCollisionDefinition);
-                    updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-                    session.sendUpstreamPacket(updateBlockPacket);
-                } else if (aboveBlock == Block.JAVA_AIR_ID) {
-                    UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-                    updateBlockPacket.setDataLayer(0);
-                    updateBlockPacket.setBlockPosition(position.add(0, 1, 0));
-                    updateBlockPacket.setDefinition(session.getBlockMappings().getBedrockAir());
-                    updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-                    session.sendUpstreamPacket(updateBlockPacket);
-                }
+        // Extended collision boxes for custom blocks
+        if (!session.getBlockMappings().getExtendedCollisionBoxes().isEmpty()) {
+            int aboveBlock = session.getGeyser().getWorldManager().getBlockAt(session, position.getX(), position.getY() + 1, position.getZ());
+            BlockDefinition aboveBedrockExtendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes().get(state.javaId());
+            int belowBlock = session.getGeyser().getWorldManager().getBlockAt(session, position.getX(), position.getY() - 1, position.getZ());
+            BlockDefinition belowBedrockExtendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes().get(belowBlock);
+            if (belowBedrockExtendedCollisionDefinition != null && state.is(Blocks.AIR)) {
+                UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+                updateBlockPacket.setDataLayer(0);
+                updateBlockPacket.setBlockPosition(position);
+                updateBlockPacket.setDefinition(belowBedrockExtendedCollisionDefinition);
+                updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+                session.sendUpstreamPacket(updateBlockPacket);
+            } else if (aboveBedrockExtendedCollisionDefinition != null && aboveBlock == Block.JAVA_AIR_ID) {
+                UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+                updateBlockPacket.setDataLayer(0);
+                updateBlockPacket.setBlockPosition(position.add(0, 1, 0));
+                updateBlockPacket.setDefinition(aboveBedrockExtendedCollisionDefinition);
+                updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+                session.sendUpstreamPacket(updateBlockPacket);
+            } else if (aboveBlock == Block.JAVA_AIR_ID) {
+                UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+                updateBlockPacket.setDataLayer(0);
+                updateBlockPacket.setBlockPosition(position.add(0, 1, 0));
+                updateBlockPacket.setDefinition(session.getBlockMappings().getBedrockAir());
+                updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+                session.sendUpstreamPacket(updateBlockPacket);
             }
         }
-
-        handleLecternBlockUpdate(session, state, position);
     }
 
     protected void sendBlockUpdatePacket(GeyserSession session, BlockState state, BlockDefinition definition, Vector3i position) {
@@ -150,13 +146,6 @@ public class Block {
         if (!(state.block() instanceof SkullBlock)) {
             // Skull is gone
             session.getSkullCache().removeSkull(position);
-        }
-    }
-
-    protected void handleLecternBlockUpdate(GeyserSession session, BlockState state, Vector3i position) {
-        // Block state is out of bounds of this map - lectern has been destroyed, if it existed
-        if (!session.getGeyser().getWorldManager().shouldExpectLecternHandled(session)) {
-            session.getLecternCache().remove(position);
         }
     }
 

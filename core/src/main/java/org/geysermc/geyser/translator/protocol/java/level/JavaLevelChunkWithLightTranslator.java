@@ -34,14 +34,11 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NBTOutputStream;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
-import org.geysermc.erosion.util.LecternUtils;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.level.BedrockDimension;
-import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.chunk.BlockStorage;
@@ -98,7 +95,6 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
         final BlockEntityInfo[] blockEntities = packet.getBlockEntities();
         final List<NbtMap> bedrockBlockEntities = new ObjectArrayList<>(blockEntities.length);
-        final List<BlockEntityInfo> lecterns = new ObjectArrayList<>();
 
         BitSet waterloggedPaletteIds = new BitSet();
         BitSet bedrockOnlyBlockEntityIds = new BitSet();
@@ -318,7 +314,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                             session.getBlockMappings().getBedrockWater().getRuntimeId());
 
                     layers = new BlockStorage[]{ layer0, new BlockStorage(BitArrayVersion.V1.createArray(BlockStorage.SIZE, layer1Data), layer1Palette) };
-                } else if (waterloggedPaletteIds.isEmpty() && extendedCollision) {
+                } else if (waterloggedPaletteIds.isEmpty()) {
                     for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
                         int paletteId = javaData.get(yzx);
                         int xzy = indexYZXtoXZY(yzx);
@@ -403,20 +399,6 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                 // Get the Java block state ID from block entity position
                 DataPalette section = javaChunks[(y >> 4) - yOffset];
                 BlockState blockState = BlockRegistries.BLOCK_STATES.get(section.get(x, y & 0xF, z));
-
-                if (type == BlockEntityType.LECTERN && blockState.getValue(Properties.HAS_BOOK)) {
-                    // If getLecternBookStates is false, let's just treat it like a normal block entity
-                    // Fill in tag with a default value
-                    NbtMapBuilder lecternTag = LecternUtils.getBaseLecternTag(x + chunkBlockX, y, z + chunkBlockZ, 1);
-                    lecternTag.putCompound("book", NbtMap.builder()
-                                    .putByte("Count", (byte) 1)
-                                    .putShort("Damage", (short) 0)
-                                    .putString("Name", "minecraft:written_book").build());
-                    lecternTag.putInt("page", -1);
-                    bedrockBlockEntities.add(lecternTag.build());
-                    lecterns.add(blockEntity);
-                    continue;
-                }
 
                 // Note that, since 1.20.5, tags can be null, but Bedrock still needs a default tag to render the item
                 // Also, some properties - like banner base colors - are part of the tag and is processed here.
@@ -524,10 +506,6 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         levelChunkPacket.setData(Unpooled.wrappedBuffer(payload));
         levelChunkPacket.setDimension(DimensionUtils.javaToBedrock(session.getChunkCache().getBedrockDimension()));
         session.sendUpstreamPacket(levelChunkPacket);
-
-        if (!lecterns.isEmpty()) {
-            session.getGeyser().getWorldManager().sendLecternData(session, packet.getX(), packet.getZ(), lecterns);
-        }
 
         for (Map.Entry<Vector3i, ItemFrameEntity> entry : session.getItemFrameCache().entrySet()) {
             Vector3i position = entry.getKey();

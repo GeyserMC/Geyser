@@ -40,11 +40,9 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemCodecHelper;
-import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityInfo;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.Difficulty;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -117,40 +115,6 @@ public abstract class WorldManager {
      * @return whether or not this world manager has access to more block data than the chunk cache
      */
     public abstract boolean hasOwnChunkCache();
-
-    /**
-     * Sigh. <br>
-     *
-     * So, on Java Edition, the lectern is an inventory. Java opens it and gets the contents of the book there.
-     * On Bedrock, the lectern contents are part of the block entity tag. Therefore, Bedrock expects to have the contents
-     * of the lectern ready and present in the world. If the contents are not there, it takes at least two clicks for the
-     * lectern to update the tag and then present itself. <br>
-     *
-     * We solve this problem by querying all loaded lecterns, where possible, and sending their information in a block entity
-     * tag.
-     * <p>
-     * Note that the lectern data may be sent asynchronously.
-     *
-     * @param session the session of the player
-     * @param x the x coordinate of the lectern
-     * @param y the y coordinate of the lectern
-     * @param z the z coordinate of the lectern
-     */
-    public abstract void sendLecternData(GeyserSession session, int x, int y, int z);
-
-    /**
-     * {@link #sendLecternData(GeyserSession, int, int, int)} but batched for chunks.
-     *
-     * @param x chunk x
-     * @param z chunk z
-     * @param blockEntityInfos a list of coordinates (chunk local) to grab lecterns from.
-     */
-    public abstract void sendLecternData(GeyserSession session, int x, int z, List<BlockEntityInfo> blockEntityInfos);
-
-    /**
-     * @return whether we should expect lectern data to update, or if we have to fall back on a workaround.
-     */
-    public abstract boolean shouldExpectLecternHandled(GeyserSession session);
 
     /**
      * Updates a gamerule value on the Java server
