@@ -124,3 +124,4 @@ jobs:
           discordWebhook: ${{ secrets.DISCORD_WEBHOOK }}
           status: ${{ job.status }}
           body: ${{ steps.metadata.outputs.body }}
+          includeDownloads: ${{ github.ref_name == 'master' }}
