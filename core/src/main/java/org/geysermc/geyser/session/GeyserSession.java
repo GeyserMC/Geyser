@@ -28,6 +28,7 @@ package org.geysermc.geyser.session;
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.auth.service.MsaAuthenticationService;
+import org.geysermc.geyser.api.bedrock.camera.GuiElement;
 import org.geysermc.mcprotocollib.protocol.MinecraftConstants;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 import org.geysermc.mcprotocollib.protocol.data.ProtocolState;
@@ -288,7 +289,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     private volatile boolean closed;
 
-    @Setter
     private GameMode gameMode = GameMode.SURVIVAL;
 
     /**
@@ -580,6 +580,19 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final GeyserEntityData entityData;
 
     private MinecraftProtocol protocol;
+
+    /**
+     * A set of elements to hide when the player is in spectator mode.
+     * Helps with tidying up the GUI; Java-style.
+     */
+    private static final Set<GuiElement> SPECTATOR_HUD = Set.of(
+            GuiElement.AIR_BUBBLES_BAR,
+            GuiElement.ARMOR,
+            GuiElement.HEALTH,
+            GuiElement.FOOD_BAR,
+            GuiElement.PROGRESS_BAR,
+            GuiElement.TOOL_TIPS
+    );
 
     public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop eventLoop) {
         this.geyser = geyser;
@@ -1318,6 +1331,22 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             // update bounding box as it is not reduced when flying
             setSneakingPose(!flying);
             playerEntity.updateBedrockMetadata();
+        }
+    }
+
+    public void setGameMode(GameMode newGamemode) {
+        boolean currentlySpectator = gameMode == GameMode.SPECTATOR;
+        this.gameMode = newGamemode;
+
+        // Hide/Unhide GUI elements as needed
+        if (newGamemode == GameMode.SPECTATOR) {
+            if (!currentlySpectator) {
+                this.cameraData.hideElements(SPECTATOR_HUD);
+            }
+        } else {
+            if (currentlySpectator) {
+                this.cameraData.resetElements(SPECTATOR_HUD);
+            }
         }
     }
 

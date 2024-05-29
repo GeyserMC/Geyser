@@ -32,16 +32,29 @@ import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.CameraShakeAction;
 import org.cloudburstmc.protocol.bedrock.data.CameraShakeType;
+import org.cloudburstmc.protocol.bedrock.data.HudElement;
+import org.cloudburstmc.protocol.bedrock.data.HudVisibility;
 import org.cloudburstmc.protocol.bedrock.data.camera.CameraEase;
 import org.cloudburstmc.protocol.bedrock.data.camera.CameraFadeInstruction;
 import org.cloudburstmc.protocol.bedrock.data.camera.CameraSetInstruction;
 import org.cloudburstmc.protocol.bedrock.packet.CameraInstructionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CameraShakePacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerFogPacket;
-import org.geysermc.geyser.api.bedrock.camera.*;
+import org.cloudburstmc.protocol.bedrock.packet.SetHudPacket;
+import org.geysermc.geyser.api.bedrock.camera.CameraData;
+import org.geysermc.geyser.api.bedrock.camera.CameraEaseType;
+import org.geysermc.geyser.api.bedrock.camera.CameraFade;
+import org.geysermc.geyser.api.bedrock.camera.CameraPerspective;
+import org.geysermc.geyser.api.bedrock.camera.CameraPosition;
+import org.geysermc.geyser.api.bedrock.camera.CameraShake;
+import org.geysermc.geyser.api.bedrock.camera.GuiElement;
 import org.geysermc.geyser.session.GeyserSession;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
 public class GeyserCameraData implements CameraData {
 
@@ -56,6 +69,11 @@ public class GeyserCameraData implements CameraData {
     private final Set<String> appliedFog = new HashSet<>();
 
     private final Set<UUID> cameraLockOwners = new HashSet<>();
+
+    /**
+     * All currently hidden HUD elements
+     */
+    private final Set<GuiElement> hiddenHudElements = new HashSet<>();
 
     public GeyserCameraData(GeyserSession session) {
         this.session = session;
@@ -222,5 +240,67 @@ public class GeyserCameraData implements CameraData {
     @Override
     public boolean isCameraLocked() {
         return !this.cameraLockOwners.isEmpty();
+    }
+
+    @Override
+    public void hideElement(@NonNull GuiElement element) {
+        Objects.requireNonNull(element);
+        this.hiddenHudElements.add(element);
+
+        SetHudPacket packet = new SetHudPacket();
+        packet.setVisibility(HudVisibility.HIDE);
+        packet.getElements().add(HudElement.values()[element.ordinal()]);
+        session.sendUpstreamPacket(packet);
+    }
+
+    @Override
+    public void hideElements(@NonNull Set<GuiElement> elements) {
+        Objects.requireNonNull(elements);
+        this.hiddenHudElements.removeAll(elements);
+
+        SetHudPacket packet = new SetHudPacket();
+        packet.setVisibility(HudVisibility.HIDE);
+        Set<HudElement> elementSet = packet.getElements();
+        elements.forEach((element) -> elementSet.add(HudElement.values()[element.ordinal()]));
+        session.sendUpstreamPacket(packet);
+    }
+
+    @Override
+    public void resetElement(@NonNull GuiElement element) {
+        Objects.requireNonNull(element);
+        this.hiddenHudElements.remove(element);
+
+        SetHudPacket packet = new SetHudPacket();
+        packet.setVisibility(HudVisibility.RESET);
+        packet.getElements().add(HudElement.values()[element.ordinal()]);
+        session.sendUpstreamPacket(packet);
+    }
+
+    @Override
+    public void resetElements(@NonNull Set<GuiElement> elements) {
+        Objects.requireNonNull(elements);
+        this.hiddenHudElements.removeAll(elements);
+
+        // This is unfortunate, but resetting multiple elements doesn't work otherwise
+        if (!hiddenHudElements.isEmpty()) {
+            elements.forEach(this::resetElement);
+            return;
+        }
+
+        SetHudPacket packet = new SetHudPacket();
+        packet.setVisibility(HudVisibility.RESET);
+        packet.getElements().addAll(Set.of(HudElement.values()));
+        session.sendUpstreamPacket(packet);
+    }
+
+    @Override
+    public boolean isHudElementHidden(@NonNull GuiElement element) {
+        Objects.requireNonNull(element);
+        return this.hiddenHudElements.contains(element);
+    }
+
+    @Override
+    public @NonNull Set<GuiElement> hiddenElements() {
+        return Set.copyOf(hiddenHudElements);
     }
 }
