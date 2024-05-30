@@ -315,7 +315,7 @@ public final class Blocks {
     public static final Block PISTON = register(new PistonBlock("piston", builder().destroyTime(1.5f).pushReaction(PistonBehavior.BLOCK)
             .booleanState(EXTENDED)
             .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block PISTON_HEAD = register(new Block("piston_head", builder().destroyTime(1.5f).pushReaction(PistonBehavior.BLOCK)
+    public static final Block PISTON_HEAD = register(new PistonHeadBlock("piston_head", builder().destroyTime(1.5f).pushReaction(PistonBehavior.BLOCK)
             .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)
             .booleanState(SHORT)
             .enumState(PISTON_TYPE)));
