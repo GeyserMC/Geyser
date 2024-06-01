@@ -38,8 +38,6 @@ import org.geysermc.geyser.util.FileUtils;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.internal.CommandRegistrationHandler;
-import org.incendo.cloud.meta.CommandMeta;
-import org.incendo.cloud.meta.SimpleCommandMeta;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -84,7 +82,7 @@ public class StandaloneCloudCommandManager extends CommandManager<GeyserCommandS
      * Fire a {@link GeyserRegisterPermissionsEvent} to determine any additions or removals to the base list of
      * permissions. This should be called after any event listeners have been registered, such as that of {@link CommandRegistry}.
      */
-    public void gatherPermissions() {
+    public void fireRegisterPermissionsEvent() {
         geyser.getEventBus().fire((GeyserRegisterPermissionsEvent) (permission, def) -> {
             if (permission.isBlank()) {
                 return;
@@ -114,13 +112,7 @@ public class StandaloneCloudCommandManager extends CommandManager<GeyserCommandS
             // undefined - try the next checker to see if it has a defined value
         }
         // fallback to our list of default permissions
-        // note that a PermissionChecker may in fact override any values set here by return FALSE
+        // note that a PermissionChecker may in fact override any values set here by returning FALSE
         return basePermissions.contains(permission);
-    }
-
-    @NonNull
-    @Override
-    public CommandMeta createDefaultCommandMeta() {
-        return SimpleCommandMeta.empty();
     }
 }

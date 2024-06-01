@@ -30,6 +30,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCommandsEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 import org.geysermc.geyser.api.extension.Extension;
@@ -48,7 +49,6 @@ import org.geysermc.geyser.command.defaults.SettingsCommand;
 import org.geysermc.geyser.command.defaults.StatisticsCommand;
 import org.geysermc.geyser.command.defaults.StopCommand;
 import org.geysermc.geyser.command.defaults.VersionCommand;
-import org.geysermc.geyser.event.GeyserEventRegistrar;
 import org.geysermc.geyser.event.type.GeyserDefineCommandsEventImpl;
 import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -59,7 +59,16 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CommandRegistry {
+/**
+ * Registers all built-in and extension commands to the given Cloud CommandManager.
+ * <p>
+ * Fires {@link GeyserDefineCommandsEvent} upon construction.
+ * <p>
+ * Subscribes to {@link GeyserRegisterPermissionsEvent} upon construction.
+ * A new instance of this class (that registers the same permissions) shouldn't be created until the previous
+ * instance is unsubscribed from the event.
+ */
+public class CommandRegistry implements EventRegistrar {
 
     private final GeyserImpl geyser;
     private final CommandManager<GeyserCommandSource> cloud;
@@ -143,7 +152,7 @@ public class CommandRegistry {
         }
 
         // wait for the right moment (depends on the platform) to register permissions
-        geyser.eventBus().subscribe(new GeyserEventRegistrar(this), GeyserRegisterPermissionsEvent.class, this::onRegisterPermissions);
+        geyser.eventBus().subscribe(this, GeyserRegisterPermissionsEvent.class, this::onRegisterPermissions);
     }
 
     /**

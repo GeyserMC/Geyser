@@ -223,13 +223,14 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
         geyser = GeyserImpl.load(PlatformType.STANDALONE, this);
 
-        // fire GeyserDefineCommandsEvent after PreInitEvent, before PostInitEvent, for consistency with other bootstraps
-        StandaloneCloudCommandManager cloud = new StandaloneCloudCommandManager(geyser);
-        commandRegistry = new CommandRegistry(geyser, cloud);
+        if (!geyser.isReloading()) {
+            // fire GeyserDefineCommandsEvent after PreInitEvent, before PostInitEvent, for consistency with other bootstraps
+            StandaloneCloudCommandManager cloud = new StandaloneCloudCommandManager(geyser);
+            commandRegistry = new CommandRegistry(geyser, cloud);
+            cloud.fireRegisterPermissionsEvent(); // event must be fired after CommandRegistry has subscribed its listener
+        }
 
         GeyserImpl.start();
-
-        cloud.gatherPermissions(); // event must be fired after CommandRegistry has subscribed its listener
 
         if (gui != null) {
             gui.enableCommands(geyser.getScheduledThread(), commandRegistry);
