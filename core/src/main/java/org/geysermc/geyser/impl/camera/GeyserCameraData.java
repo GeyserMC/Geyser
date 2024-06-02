@@ -49,6 +49,7 @@ import org.geysermc.geyser.api.bedrock.camera.CameraPosition;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.bedrock.camera.GuiElement;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -74,6 +75,19 @@ public class GeyserCameraData implements CameraData {
      * All currently hidden HUD elements
      */
     private final Set<GuiElement> hiddenHudElements = new HashSet<>();
+
+    /**
+     * An array of elements to hide when the player is in spectator mode.
+     * Helps with tidying up the GUI; Java-style.
+     */
+    private static final GuiElement[] SPECTATOR_HIDDEN_ELEMENTS = {
+            GuiElement.AIR_BUBBLES_BAR,
+            GuiElement.ARMOR,
+            GuiElement.HEALTH,
+            GuiElement.FOOD_BAR,
+            GuiElement.PROGRESS_BAR,
+            GuiElement.TOOL_TIPS
+    };
 
     public GeyserCameraData(GeyserSession session) {
         this.session = session;
@@ -243,53 +257,35 @@ public class GeyserCameraData implements CameraData {
     }
 
     @Override
-    public void hideElement(@NonNull GuiElement element) {
-        Objects.requireNonNull(element);
-        this.hiddenHudElements.add(element);
-
-        SetHudPacket packet = new SetHudPacket();
-        packet.setVisibility(HudVisibility.HIDE);
-        packet.getElements().add(HudElement.values()[element.ordinal()]);
-        session.sendUpstreamPacket(packet);
-    }
-
-    @Override
-    public void hideElements(@NonNull Set<GuiElement> elements) {
-        Objects.requireNonNull(elements);
-        this.hiddenHudElements.removeAll(elements);
-
+    public void hideElement(GuiElement... elements) {
         SetHudPacket packet = new SetHudPacket();
         packet.setVisibility(HudVisibility.HIDE);
         Set<HudElement> elementSet = packet.getElements();
-        elements.forEach((element) -> elementSet.add(HudElement.values()[element.ordinal()]));
-        session.sendUpstreamPacket(packet);
-    }
 
-    @Override
-    public void resetElement(@NonNull GuiElement element) {
-        Objects.requireNonNull(element);
-        this.hiddenHudElements.remove(element);
-
-        SetHudPacket packet = new SetHudPacket();
-        packet.setVisibility(HudVisibility.RESET);
-        packet.getElements().add(HudElement.values()[element.ordinal()]);
-        session.sendUpstreamPacket(packet);
-    }
-
-    @Override
-    public void resetElements(@NonNull Set<GuiElement> elements) {
-        Objects.requireNonNull(elements);
-        this.hiddenHudElements.removeAll(elements);
-
-        // This is unfortunate, but resetting multiple elements doesn't work otherwise
-        if (!hiddenHudElements.isEmpty()) {
-            elements.forEach(this::resetElement);
-            return;
+        for (GuiElement element : elements) {
+            this.hiddenHudElements.add(element);
+            elementSet.add(HudElement.values()[element.ordinal()]);
         }
 
+        session.sendUpstreamPacket(packet);
+    }
+
+    @Override
+    public void resetElement(GuiElement... elements) {
         SetHudPacket packet = new SetHudPacket();
         packet.setVisibility(HudVisibility.RESET);
-        packet.getElements().addAll(Set.of(HudElement.values()));
+        Set<HudElement> elementSet = packet.getElements();
+
+        if (elements.length != 0) {
+            for (GuiElement element : elements) {
+                this.hiddenHudElements.remove(element);
+                elementSet.add(HudElement.values()[element.ordinal()]);
+            }
+        } else {
+            this.hiddenHudElements.clear();
+            elementSet.addAll(Set.of(HudElement.values()));
+        }
+
         session.sendUpstreamPacket(packet);
     }
 
@@ -301,6 +297,24 @@ public class GeyserCameraData implements CameraData {
 
     @Override
     public @NonNull Set<GuiElement> hiddenElements() {
-        return Set.copyOf(hiddenHudElements);
+        return Set.copyOf(this.hiddenHudElements);
+    }
+
+    /**
+     * Deals with hiding hud elements while in spectator.
+     *
+     * @param currentlySpectator whether the player is currently in spectator mode
+     * @param newGameMode the new GameMode to switch to
+     */
+    public void handleGameModeChange(boolean currentlySpectator, GameMode newGameMode) {
+        if (newGameMode == GameMode.SPECTATOR) {
+            if (!currentlySpectator) {
+                hideElement(SPECTATOR_HIDDEN_ELEMENTS);
+            }
+        } else {
+            if (currentlySpectator) {
+                resetElement(SPECTATOR_HIDDEN_ELEMENTS);
+            }
+        }
     }
 }

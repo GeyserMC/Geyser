@@ -25,6 +25,11 @@
 
 package org.geysermc.geyser.api.bedrock.camera;
 
+/**
+ * Represent GUI elements on the players HUD display.
+ * These can be hidden using {@link CameraData#hideElement(GuiElement...)},
+ * and one can reset their visibility using {@link CameraData#resetElement(GuiElement...)}.
+ */
 public enum GuiElement {
     PAPER_DOLL,
     ARMOR,

@@ -151,32 +151,18 @@ public interface CameraData {
      *
      * @param element the {@link GuiElement} to hide
      */
-    void hideElement(@NonNull GuiElement element);
-
-    /**
-     * Hides a set of {@link GuiElement}'s on the client's side.
-     *
-     * @param elements the {@link Set<GuiElement>} to hide
-     */
-    void hideElements(@NonNull Set<GuiElement> elements);
+    void hideElement(@NonNull GuiElement... element);
 
     /**
      * Resets a {@link GuiElement} on the client's side.
      * This makes the client decide on its own - e.g. based on client settings -
      * whether to show or hide the gui element.
+     * <p>
+     * If no elements are specified, this will reset all currently hidden elements
      *
      * @param element the {@link GuiElement} to reset
      */
-    void resetElement(@NonNull GuiElement element);
-
-    /**
-     * Resets a set of {@link GuiElement} on the client's side.
-     * This makes the client decide on its own - e.g. based on client settings -
-     * whether to show or hide the gui elements.
-     *
-     * @param elements the {@link Set<GuiElement>} to reset
-     */
-    void resetElements(@NonNull Set<GuiElement> elements);
+    void resetElement(@NonNull GuiElement... element);
 
     /**
      * Determines whether a {@link GuiElement} is currently hidden.
