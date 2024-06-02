@@ -64,7 +64,7 @@ final class ExceptionHandlers {
         new ExceptionHandlers(manager.exceptionController()).register();
     }
 
-    void register() {
+    private void register() {
         // Yeet the default exception handlers that cloud provides so that we can perform localization.
         controller.clearHandlers();
 

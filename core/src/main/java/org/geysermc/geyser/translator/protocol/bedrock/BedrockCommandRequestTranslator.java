@@ -66,6 +66,4 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
 
         session.sendCommand(command);
     }
-
-
 }
