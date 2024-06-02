@@ -59,10 +59,20 @@ import java.util.UUID;
 
 public class GeyserCameraData implements CameraData {
 
-    private final GeyserSession session;
+    /**
+     * An array of elements to hide when the player is in spectator mode.
+     * Helps with tidying up the GUI; Java-style.
+     */
+    private static final GuiElement[] SPECTATOR_HIDDEN_ELEMENTS = {
+            GuiElement.AIR_BUBBLES_BAR,
+            GuiElement.ARMOR,
+            GuiElement.HEALTH,
+            GuiElement.FOOD_BAR,
+            GuiElement.PROGRESS_BAR,
+            GuiElement.TOOL_TIPS
+    };
 
-    @Getter
-    private CameraPerspective cameraPerspective;
+    private final GeyserSession session;
 
     /**
      * All fog effects that are currently applied to the client.
@@ -76,18 +86,8 @@ public class GeyserCameraData implements CameraData {
      */
     private final Set<GuiElement> hiddenHudElements = new HashSet<>();
 
-    /**
-     * An array of elements to hide when the player is in spectator mode.
-     * Helps with tidying up the GUI; Java-style.
-     */
-    private static final GuiElement[] SPECTATOR_HIDDEN_ELEMENTS = {
-            GuiElement.AIR_BUBBLES_BAR,
-            GuiElement.ARMOR,
-            GuiElement.HEALTH,
-            GuiElement.FOOD_BAR,
-            GuiElement.PROGRESS_BAR,
-            GuiElement.TOOL_TIPS
-    };
+    @Getter
+    private CameraPerspective cameraPerspective;
 
     public GeyserCameraData(GeyserSession session) {
         this.session = session;
