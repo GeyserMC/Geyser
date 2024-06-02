@@ -28,6 +28,7 @@ package org.geysermc.geyser.platform.neoforge;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.EventPriority;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.common.NeoForge;
@@ -48,8 +49,8 @@ import org.incendo.cloud.neoforge.NeoForgeServerCommandManager;
 @Mod(ModConstants.MOD_ID)
 public class GeyserNeoForgeBootstrap extends GeyserModBootstrap {
 
-    public GeyserNeoForgeBootstrap() {
-        super(new GeyserNeoForgePlatform());
+    public GeyserNeoForgeBootstrap(ModContainer container) {
+        super(new GeyserNeoForgePlatform(container));
 
         if (isServer()) {
             // Set as an event so we can get the proper IP and port if needed

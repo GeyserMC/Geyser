@@ -41,6 +41,7 @@ import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.entity.EntityDefinitions;
@@ -164,6 +165,31 @@ public class PlayerEntity extends LivingEntity implements GeyserPlayerEntity {
 
         valid = true;
         session.sendUpstreamPacket(addPlayerPacket);
+    }
+
+    @Override
+    public void despawnEntity() {
+        super.despawnEntity();
+
+        // Since we re-use player entities: Clear flags, held item, etc
+        this.resetMetadata();
+        this.hand = ItemData.AIR;
+        this.offhand = ItemData.AIR;
+        this.boots = ItemData.AIR;
+        this.leggings = ItemData.AIR;
+        this.chestplate = ItemData.AIR;
+        this.helmet = ItemData.AIR;
+    }
+
+    public void resetMetadata() {
+        // Reset all metadata to their default values
+        // This is used when a player respawns
+        this.flags.clear();
+        this.initializeMetadata();
+
+        // Explicitly reset all metadata not handled by initializeMetadata
+        setParrot(null, true);
+        setParrot(null, false);
     }
 
     public void sendPlayer() {

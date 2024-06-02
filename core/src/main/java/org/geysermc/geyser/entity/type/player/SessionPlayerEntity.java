@@ -264,18 +264,12 @@ public class SessionPlayerEntity extends PlayerEntity {
         super.setAbsorptionHearts(entityMetadata);
     }
 
+    @Override
     public void resetMetadata() {
-        // Reset all metadata to their default values
-        // This is used when a player respawns
-        this.flags.clear();
-        this.initializeMetadata();
+        super.resetMetadata();
 
         // Reset air
         this.resetAir();
-
-        // Explicitly reset all metadata not handled by initializeMetadata
-        setParrot(null, true);
-        setParrot(null, false);
 
         // Absorption is metadata in java edition
         attributes.remove(GeyserAttributeType.ABSORPTION);

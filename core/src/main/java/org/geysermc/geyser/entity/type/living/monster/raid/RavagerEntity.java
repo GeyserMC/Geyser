@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,52 +23,32 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.type.living.monster;
+package org.geysermc.geyser.entity.type.living.monster.raid;
 
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
-public class ZoglinEntity extends MonsterEntity {
+public class RavagerEntity extends RaidParticipantEntity {
 
-    public ZoglinEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public RavagerEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
-        dirtyMetadata.put(EntityDataTypes.TARGET_EID, session.getPlayerEntity().getGeyserId());
-    }
-
-    public void setBaby(BooleanEntityMetadata entityMetadata) {
-        boolean isBaby = entityMetadata.getPrimitiveValue();
-        if (isBaby != getFlag(EntityFlag.BABY)) {
-            setScale(isBaby ? .55f : 1f);
-            setFlag(EntityFlag.BABY, isBaby);
-
-            updatePassengerOffsets();
-        }
-    }
-
-    @Override
-    public float getBoundingBoxHeight() {
-        float scale = getFlag(EntityFlag.BABY) ? 0.55f : 1f;
-        return scale * definition.height();
-    }
-
-    @Override
-    protected boolean canBeLeashed() {
-        return isNotLeashed();
-    }
-
-    @Override
-    protected boolean isEnemy() {
-        return true;
     }
 
     @Override
     public boolean useArmSwingAttack() {
+        setFlag(EntityFlag.DELAYED_ATTACK, false);
+        updateBedrockMetadata();
+
+        session.scheduleInEventLoop(() -> {
+            setFlag(EntityFlag.DELAYED_ATTACK, true);
+            updateBedrockMetadata();
+        }, 75, TimeUnit.MILLISECONDS);
+
         return true;
     }
 }

@@ -896,6 +896,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             this.downstream.getSession().setFlag(BuiltinFlags.ATTEMPT_SRV_RESOLVE, resolveSrv);
         }
 
+        // Disable automatic creation of a new TcpClientSession when transferring - we don't use that functionality.
+        this.downstream.getSession().setFlag(MinecraftConstants.FOLLOW_TRANSFERS, false);
+
         if (geyser.getConfig().getRemote().isUseProxyProtocol()) {
             downstream.setFlag(BuiltinFlags.ENABLE_CLIENT_PROXY_PROTOCOL, true);
             downstream.setFlag(BuiltinFlags.CLIENT_PROXIED_ADDRESS, upstream.getAddress());
@@ -1077,9 +1080,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         if (!closed) {
             loggedIn = false;
 
-            // Fire SessionDisconnectEvent
             SessionDisconnectEvent disconnectEvent = new SessionDisconnectEvent(this, reason);
-            geyser.getEventBus().fire(disconnectEvent);
+            if (authData != null && clientData != null) { // can occur if player disconnects before Bedrock auth finishes
+                // Fire SessionDisconnectEvent
+                geyser.getEventBus().fire(disconnectEvent);
+            }
 
             // Disconnect downstream if necessary
             if (downstream != null) {
@@ -1404,7 +1409,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public String name() {
-        return playerEntity.getUsername();
+        return playerEntity != null ? javaUsername() : bedrockUsername();
     }
 
     @Override
@@ -1947,12 +1952,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public @MonotonicNonNull String javaUsername() {
-        return playerEntity.getUsername();
+        return playerEntity != null ? playerEntity.getUsername() : null;
     }
 
     @Override
     public UUID javaUuid() {
-        return playerEntity.getUuid();
+        return playerEntity != null ? playerEntity.getUuid() : null ;
     }
 
     @Override

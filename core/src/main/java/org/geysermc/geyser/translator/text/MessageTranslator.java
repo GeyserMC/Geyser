@@ -387,6 +387,39 @@ public class MessageTranslator {
         return false;
     }
 
+    /**
+     * Normalizes whitespaces - a thing a vanilla client apparently does with commands and chat messages.
+     */
+    public static String normalizeSpace(String string) {
+        if (string == null || string.isEmpty()) {
+            return string;
+        }
+        final int size = string.length();
+        final char[] newChars = new char[size];
+        int count = 0;
+        int whitespacesCount = 0;
+        boolean startWhitespaces = true;
+        for (int i = 0; i < size; i++) {
+            final char actualChar = string.charAt(i);
+            final boolean isWhitespace = Character.isWhitespace(actualChar);
+            if (isWhitespace) {
+                if (whitespacesCount == 0 && !startWhitespaces) {
+                    newChars[count++] = ' ';
+                }
+                whitespacesCount++;
+            } else {
+                startWhitespaces = false;
+                // Replace non-breaking spaces with regular spaces for normalization
+                newChars[count++] = (actualChar == '\u00A0' ? ' ' : actualChar);
+                whitespacesCount = 0;
+            }
+        }
+        if (startWhitespaces) {
+            return "";
+        }
+        return new String(newChars, 0, count - (whitespacesCount > 0 ? 1 : 0)).trim();
+    }
+
     public static void init() {
         // no-op
     }

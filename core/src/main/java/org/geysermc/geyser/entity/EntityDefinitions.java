@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.entity;
 
+import org.geysermc.geyser.entity.type.living.monster.raid.RavagerEntity;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
@@ -132,7 +133,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<ThrownPotionEntity> POTION;
     public static final EntityDefinition<PufferFishEntity> PUFFERFISH;
     public static final EntityDefinition<RabbitEntity> RABBIT;
-    public static final EntityDefinition<RaidParticipantEntity> RAVAGER;
+    public static final EntityDefinition<RavagerEntity> RAVAGER;
     public static final EntityDefinition<AbstractFishEntity> SALMON;
     public static final EntityDefinition<SheepEntity> SHEEP;
     public static final EntityDefinition<ShulkerEntity> SHULKER;
@@ -234,7 +235,7 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataType.BOOLEAN,
                             (enderCrystalEntity, entityMetadata) -> enderCrystalEntity.setFlag(EntityFlag.SHOW_BOTTOM, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue())) // There is a base located on the ender crystal
                     .build();
-            EXPERIENCE_ORB = EntityDefinition.<ExpOrbEntity>inherited(null, entityBase)
+            EXPERIENCE_ORB = EntityDefinition.inherited(ExpOrbEntity::new, entityBase)
                     .type(EntityType.EXPERIENCE_ORB)
                     .identifier("minecraft:xp_orb")
                     .build();
@@ -296,6 +297,7 @@ public final class EntityDefinitions {
             TNT = EntityDefinition.inherited(TNTEntity::new, entityBase)
                     .type(EntityType.TNT)
                     .heightAndWidth(0.98f)
+                    .offset(0.49f)
                     .addTranslator(MetadataType.INT, TNTEntity::setFuseLength)
                     .build();
 
@@ -745,9 +747,9 @@ public final class EntityDefinitions {
                     .type(EntityType.PILLAGER)
                     .height(1.8f).width(0.6f)
                     .offset(1.62f)
-                    .addTranslator(null) // Charging; doesn't have an equivalent on Bedrock //TODO check
+                    .addTranslator(MetadataType.BOOLEAN, PillagerEntity::setChargingCrossbow)
                     .build();
-            RAVAGER = EntityDefinition.inherited(raidParticipantEntityBase.factory(), raidParticipantEntityBase)
+            RAVAGER = EntityDefinition.inherited(RavagerEntity::new, raidParticipantEntityBase)
                     .type(EntityType.RAVAGER)
                     .height(1.9f).width(1.2f)
                     .build();

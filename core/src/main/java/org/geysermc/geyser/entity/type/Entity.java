@@ -59,6 +59,9 @@ import java.util.*;
 @Getter
 @Setter
 public class Entity implements GeyserEntity {
+
+    private static final boolean PRINT_ENTITY_SPAWN_DEBUG = Boolean.parseBoolean(System.getProperty("Geyser.PrintEntitySpawnDebug", "false"));
+
     protected final GeyserSession session;
 
     protected int entityId;
@@ -181,7 +184,7 @@ public class Entity implements GeyserEntity {
 
         flagsDirty = false;
 
-        if (session.getGeyser().getConfig().isDebugMode()) {
+        if (session.getGeyser().getConfig().isDebugMode() && PRINT_ENTITY_SPAWN_DEBUG) {
             EntityType type = definition.entityType();
             String name = type != null ? type.name() : getClass().getSimpleName();
             session.getGeyser().getLogger().debug("Spawned entity " + name + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
