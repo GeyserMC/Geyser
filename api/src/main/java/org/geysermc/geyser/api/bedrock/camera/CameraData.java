@@ -172,9 +172,9 @@ public interface CameraData {
     boolean isHudElementHidden(@NonNull GuiElement element);
 
     /**
-     * Returns the currently hidden {@link GuiElement}.
+     * Returns the currently hidden {@link GuiElement}s.
      *
-     * @return an immutable set of all currently hidden {@link GuiElement}s
+     * @return an unmodifiable view of all currently hidden {@link GuiElement}s
      */
     @NonNull Set<GuiElement> hiddenElements();
 }

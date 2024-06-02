@@ -58,6 +58,8 @@ import java.util.Set;
 import java.util.UUID;
 
 public class GeyserCameraData implements CameraData {
+    private static final HudElement[] HUD_ELEMENT_VALUES = HudElement.values();
+    private static final Set<HudElement> ALL_HUD_ELEMENTS = Set.of(HUD_ELEMENT_VALUES);
 
     /**
      * An array of elements to hide when the player is in spectator mode.
@@ -264,7 +266,7 @@ public class GeyserCameraData implements CameraData {
 
         for (GuiElement element : elements) {
             this.hiddenHudElements.add(element);
-            elementSet.add(HudElement.values()[element.ordinal()]);
+            elementSet.add(HUD_ELEMENT_VALUES[element.ordinal()]);
         }
 
         session.sendUpstreamPacket(packet);
@@ -279,11 +281,11 @@ public class GeyserCameraData implements CameraData {
         if (elements.length != 0) {
             for (GuiElement element : elements) {
                 this.hiddenHudElements.remove(element);
-                elementSet.add(HudElement.values()[element.ordinal()]);
+                elementSet.add(HUD_ELEMENT_VALUES[element.ordinal()]);
             }
         } else {
             this.hiddenHudElements.clear();
-            elementSet.addAll(Set.of(HudElement.values()));
+            elementSet.addAll(ALL_HUD_ELEMENTS);
         }
 
         session.sendUpstreamPacket(packet);
@@ -297,7 +299,7 @@ public class GeyserCameraData implements CameraData {
 
     @Override
     public @NonNull Set<GuiElement> hiddenElements() {
-        return Set.copyOf(this.hiddenHudElements);
+        return Collections.unmodifiableSet(hiddenHudElements);
     }
 
     /**
