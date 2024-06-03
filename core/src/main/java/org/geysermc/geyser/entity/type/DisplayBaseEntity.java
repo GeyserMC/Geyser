@@ -25,16 +25,13 @@
 
 package org.geysermc.geyser.entity.type;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
-import org.jetbrains.annotations.Async;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -75,8 +72,4 @@ public class DisplayBaseEntity extends Entity {
         }
 
     }
-    public void setScale(EntityMetadata<Vector3f, ?> translationMeta){
-
-    }
-
 }
