@@ -137,7 +137,7 @@ public class Entity implements GeyserEntity {
 
         this.valid = false;
 
-        this.propertyManager = new GeyserEntityPropertyManager(definition.registeredProperties());
+        this.propertyManager = definition.registeredProperties() == null ? null : new GeyserEntityPropertyManager(definition.registeredProperties());
 
         setPosition(position);
         setAirSupply(getMaxAir());
@@ -364,7 +364,7 @@ public class Entity implements GeyserEntity {
             return;
         }
 
-        if (propertyManager.hasProperties()) {
+        if (propertyManager != null && propertyManager.hasProperties()) {
             SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
             entityDataPacket.setRuntimeEntityId(geyserId);
             propertyManager.applyIntProperties(entityDataPacket.getProperties().getIntProperties());

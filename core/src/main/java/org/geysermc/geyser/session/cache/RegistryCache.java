@@ -30,6 +30,8 @@ import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
 import org.geysermc.geyser.GeyserImpl;
@@ -42,6 +44,7 @@ import org.geysermc.geyser.session.cache.registry.JavaRegistry;
 import org.geysermc.geyser.session.cache.registry.SimpleJavaRegistry;
 import org.geysermc.geyser.text.TextDecoration;
 import org.geysermc.geyser.translator.level.BiomeTranslator;
+import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
 import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundRegistryDataPacket;
 
@@ -63,6 +66,7 @@ import java.util.function.ToIntFunction;
 @Accessors(fluent = true)
 @Getter
 public final class RegistryCache {
+    private static final Map<String, Map<String, NbtMap>> DEFAULTS;
     private static final Map<String, BiConsumer<RegistryCache, List<RegistryEntry>>> REGISTRIES = new HashMap<>();
 
     static {
@@ -73,6 +77,24 @@ public final class RegistryCache {
         register("worldgen/biome", (cache, array) -> cache.biomeTranslations = array, BiomeTranslator::loadServerBiome);
         register("banner_pattern", cache -> cache.bannerPatterns, ($, entry) -> BannerPattern.getByJavaIdentifier(entry.getId()));
         register("wolf_variant", cache -> cache.wolfVariants, ($, entry) -> WolfEntity.WolfVariant.getByJavaIdentifier(entry.getId()));
+
+        // Load from MCProtocolLib's classloader
+        NbtMap tag = MinecraftProtocol.loadNetworkCodec();
+        Map<String, Map<String, NbtMap>> defaults = new HashMap<>();
+        // Don't create a keySet - no need to create the cached object in HashMap if we don't use it again
+        REGISTRIES.forEach((key, $) -> {
+            List<NbtMap> rawValues = tag.getCompound(key)
+                    .getList("value", NbtType.COMPOUND);
+            Map<String, NbtMap> values = new HashMap<>();
+            for (NbtMap value : rawValues) {
+                String name = value.getString("name");
+                values.put(name, value.getCompound("element"));
+            }
+            // Can make these maps immutable and as efficient as possible after initialization
+            defaults.put(key, Map.copyOf(values));
+        });
+
+        DEFAULTS = Map.copyOf(defaults);
     }
 
     @Getter(AccessLevel.NONE)
@@ -116,13 +138,22 @@ public final class RegistryCache {
      * @param <T> the class that represents these entries.
      */
     private static <T> void register(String registry, Function<RegistryCache, JavaRegistry<T>> localCacheFunction, BiFunction<GeyserSession, RegistryEntry, T> reader) {
-        REGISTRIES.put("minecraft:" + registry, (registryCache, entries) -> {
+        String key = "minecraft:" + registry;
+        REGISTRIES.put(key, (registryCache, entries) -> {
+            Map<String, NbtMap> localRegistry = null;
             JavaRegistry<T> localCache = localCacheFunction.apply(registryCache);
             // Clear each local cache every time a new registry entry is given to us
             // (e.g. proxy server switches)
             List<T> builder = new ArrayList<>(entries.size());
             for (int i = 0; i < entries.size(); i++) {
                 RegistryEntry entry = entries.get(i);
+                // If the data is null, that's the server telling us we need to use our default values.
+                if (entry.getData() == null) {
+                    if (localRegistry == null) { // Lazy initialize
+                        localRegistry = DEFAULTS.get(key);
+                    }
+                    entry = new RegistryEntry(entry.getId(), localRegistry.get(entry.getId()));
+                }
                 // This is what Geyser wants to keep as a value for this registry.
                 T cacheEntry = reader.apply(registryCache.session, entry);
                 builder.add(i, cacheEntry);
@@ -155,5 +186,9 @@ public final class RegistryCache {
             }
             localCacheFunction.accept(registryCache, array);
         });
+    }
+
+    public static void init() {
+        // no-op
     }
 }

@@ -28,7 +28,8 @@ package org.geysermc.geyser.translator.level.block.entity;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.ShulkerInventoryTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
@@ -40,12 +41,7 @@ public class ShulkerBoxBlockEntityTranslator extends BlockEntityTranslator imple
      * where {@code tag} is passed as null.
      */
     @Override
-    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, @Nullable NbtMap javaNbt, int blockState) {
-        byte direction = BlockStateValues.getShulkerBoxDirection(blockState);
-        // Just in case...
-        if (direction == -1) {
-            direction = 1;
-        }
-        bedrockNbt.putByte("facing", direction);
+    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, @Nullable NbtMap javaNbt, BlockState blockState) {
+        bedrockNbt.putByte("facing", (byte) blockState.getValue(Properties.FACING).ordinal());
     }
 }

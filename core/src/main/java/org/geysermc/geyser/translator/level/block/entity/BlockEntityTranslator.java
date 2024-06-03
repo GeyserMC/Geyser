@@ -26,8 +26,10 @@
 package org.geysermc.geyser.translator.level.block.entity;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
@@ -39,9 +41,9 @@ public abstract class BlockEntityTranslator {
     protected BlockEntityTranslator() {
     }
 
-    public abstract void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, int blockState);
+    public abstract void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState);
 
-    public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, @Nullable NbtMap javaNbt, int blockState) {
+    public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, @Nullable NbtMap javaNbt, BlockState blockState) {
         NbtMapBuilder tagBuilder = getConstantBedrockTag(type, x, y, z);
         if (javaNbt != null || this instanceof RequiresBlockState) {
             // Always process tags if the block state is part of the tag.
@@ -53,6 +55,10 @@ public abstract class BlockEntityTranslator {
 
     public static NbtMapBuilder getConstantBedrockTag(BlockEntityType type, int x, int y, int z) {
         return getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(type), x, y, z);
+    }
+
+    public static NbtMapBuilder getConstantBedrockTag(String bedrockId, Vector3i position) {
+        return getConstantBedrockTag(bedrockId, position.getX(), position.getY(), position.getZ());
     }
 
     public static NbtMapBuilder getConstantBedrockTag(String bedrockId, int x, int y, int z) {

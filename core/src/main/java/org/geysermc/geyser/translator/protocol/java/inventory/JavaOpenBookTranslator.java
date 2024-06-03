@@ -29,7 +29,6 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.LecternContainer;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -58,11 +57,6 @@ public class JavaOpenBookTranslator extends PacketTranslator<ClientboundOpenBook
         // Don't spawn a fake lectern for books already opened "normally" by the client.
         if (stack.getItemData(session).equals(session.getCurrentBook())) {
             session.setCurrentBook(null);
-            return;
-        }
-
-        // Only post 1.20.60 is it possible to tell the client to open a lectern.
-        if (!GameProtocol.is1_20_60orHigher(session.getUpstream().getProtocolVersion())) {
             return;
         }
 

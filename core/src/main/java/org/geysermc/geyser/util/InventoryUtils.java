@@ -42,6 +42,7 @@ import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -300,6 +301,11 @@ public class InventoryUtils {
         }
     }
 
+    // Please remove!!!
+    public static void findOrCreateItem(GeyserSession session, String itemName) {
+        findOrCreateItem(session, Registries.JAVA_ITEM_IDENTIFIERS.getOrDefault(itemName, Items.AIR));
+    }
+
     /**
      * Attempt to find the specified item name in the session's inventory.
      * If it is found and in the hotbar, set the user's held item to that slot.
@@ -309,13 +315,13 @@ public class InventoryUtils {
      * <p>
      * This attempts to mimic Java Edition behavior as best as it can.
      * @param session the Bedrock client's session
-     * @param itemName the Java identifier of the item to search/select
+     * @param item the Java item to search/select for
      */
-    public static void findOrCreateItem(GeyserSession session, String itemName) {
+    public static void findOrCreateItem(GeyserSession session, Item item) {
         // Get the inventory to choose a slot to pick
         PlayerInventory inventory = session.getPlayerInventory();
 
-        if (itemName.equals("minecraft:air")) {
+        if (item == Items.AIR) {
             return;
         }
 
@@ -326,7 +332,7 @@ public class InventoryUtils {
                 continue;
             }
             // If this isn't the item we're looking for
-            if (!geyserItem.asItem().javaIdentifier().equals(itemName)) {
+            if (!geyserItem.asItem().equals(item)) {
                 continue;
             }
 
@@ -342,7 +348,7 @@ public class InventoryUtils {
                 continue;
             }
             // If this isn't the item we're looking for
-            if (!geyserItem.asItem().javaIdentifier().equals(itemName)) {
+            if (!geyserItem.asItem().equals(item)) {
                 continue;
             }
 
@@ -355,17 +361,13 @@ public class InventoryUtils {
         if (session.getGameMode() == GameMode.CREATIVE) {
             int slot = findEmptyHotbarSlot(inventory);
 
-            ItemMapping mapping = session.getItemMappings().getMapping(itemName); // TODO
-            if (mapping != null) {
-                ServerboundSetCreativeModeSlotPacket actionPacket = new ServerboundSetCreativeModeSlotPacket((short)slot,
-                        new ItemStack(mapping.getJavaItem().javaId()));
-                if ((slot - 36) != inventory.getHeldItemSlot()) {
-                    setHotbarItem(session, slot);
-                }
-                session.sendDownstreamGamePacket(actionPacket);
-            } else {
-                session.getGeyser().getLogger().debug("Cannot find item for block " + itemName);
+            ItemMapping mapping = session.getItemMappings().getMapping(item);
+            ServerboundSetCreativeModeSlotPacket actionPacket = new ServerboundSetCreativeModeSlotPacket((short)slot,
+                    new ItemStack(mapping.getJavaItem().javaId()));
+            if ((slot - 36) != inventory.getHeldItemSlot()) {
+                setHotbarItem(session, slot);
             }
+            session.sendDownstreamGamePacket(actionPacket);
         }
     }
 
@@ -477,7 +479,6 @@ public class InventoryUtils {
                             for (int col = firstCol; col < width + firstCol; col++) {
                                 GeyserItemStack geyserItemStack = inventoryGetter.apply(col + (row * gridDimensions) + 1);
                                 if (geyserItemStack.isEmpty()) {
-                                    //noinspection ConstantValue
                                     inventoryHasItem = itemStack == null || itemStack.getId() == 0;
                                     if (inventoryHasItem) {
                                         break crafting;

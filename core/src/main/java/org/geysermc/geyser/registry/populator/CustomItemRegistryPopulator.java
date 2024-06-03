@@ -44,7 +44,6 @@ import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.components.WearableSlot;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -260,18 +259,11 @@ public class CustomItemRegistryPopulator {
     }
 
     private static void setupBasicItemInfo(int maxDamage, int stackSize, boolean displayHandheld, CustomItemData customItemData, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder, int protocolVersion) {
-        NbtMap iconMap;
-        if (GameProtocol.is1_20_60orHigher(protocolVersion)) {
-            iconMap = NbtMap.builder()
-                    .putCompound("textures", NbtMap.builder()
-                            .putString("default", customItemData.icon())
-                            .build())
-                    .build();
-        } else {
-            iconMap = NbtMap.builder()
-                    .putString("texture", customItemData.icon())
-                    .build();
-        }
+        NbtMap iconMap = NbtMap.builder()
+            .putCompound("textures", NbtMap.builder()
+                    .putString("default", customItemData.icon())
+                    .build())
+            .build();
         itemProperties.putCompound("minecraft:icon", iconMap);
 
         if (customItemData.creativeCategory().isPresent()) {
@@ -427,64 +419,56 @@ public class CustomItemRegistryPopulator {
         // Make bows, tridents, and crossbows enchantable
         itemProperties.putInt("enchantable_value", 1);
 
-        if (GameProtocol.is1_20_60orHigher(protocolVersion)) {
-            componentBuilder.putCompound("minecraft:use_modifiers", NbtMap.builder()
-                    .putFloat("use_duration", 100F)
-                    .putFloat("movement_modifier", 0.35F)
-                    .build());
+        componentBuilder.putCompound("minecraft:use_modifiers", NbtMap.builder()
+                .putFloat("use_duration", 100F)
+                .putFloat("movement_modifier", 0.35F)
+                .build());
 
-            switch (mapping) {
-                case "minecraft:bow" -> {
-                    itemProperties.putString("enchantable_slot", "bow");
-                    itemProperties.putInt("frame_count", 3);
+        switch (mapping) {
+            case "minecraft:bow" -> {
+                itemProperties.putString("enchantable_slot", "bow");
+                itemProperties.putInt("frame_count", 3);
 
-                    componentBuilder.putCompound("minecraft:shooter", NbtMap.builder()
-                            .putList("ammunition", NbtType.COMPOUND, List.of(
-                                    NbtMap.builder()
-                                            .putCompound("item", NbtMap.builder()
-                                                    .putString("name", "minecraft:arrow")
-                                                    .build())
-                                            .putBoolean("use_offhand", true)
-                                            .putBoolean("search_inventory", true)
-                                            .build()
-                            ))
-                            .putFloat("max_draw_duration", 0f)
-                            .putBoolean("charge_on_draw", true)
-                            .putBoolean("scale_power_by_draw_duration", true)
-                            .build());
-                    componentBuilder.putInt("minecraft:use_duration", 999);
-                }
-                case "minecraft:trident" -> {
-                    itemProperties.putString("enchantable_slot", "trident");
-                    componentBuilder.putInt("minecraft:use_duration", 999);
-                }
-                case "minecraft:crossbow" -> {
-                    itemProperties.putString("enchantable_slot", "crossbow");
-                    itemProperties.putInt("frame_count", 10);
-
-                    componentBuilder.putCompound("minecraft:shooter", NbtMap.builder()
-                            .putList("ammunition", NbtType.COMPOUND, List.of(
-                                    NbtMap.builder()
-                                            .putCompound("item", NbtMap.builder()
-                                                    .putString("name", "minecraft:arrow")
-                                                    .build())
-                                            .putBoolean("use_offhand", true)
-                                            .putBoolean("search_inventory", true)
-                                            .build()
-                            ))
-                            .putFloat("max_draw_duration", 1f)
-                            .putBoolean("charge_on_draw", true)
-                            .putBoolean("scale_power_by_draw_duration", true)
-                            .build());
-                    componentBuilder.putInt("minecraft:use_duration", 999);
-                }
+                componentBuilder.putCompound("minecraft:shooter", NbtMap.builder()
+                        .putList("ammunition", NbtType.COMPOUND, List.of(
+                                NbtMap.builder()
+                                        .putCompound("item", NbtMap.builder()
+                                                .putString("name", "minecraft:arrow")
+                                                .build())
+                                        .putBoolean("use_offhand", true)
+                                        .putBoolean("search_inventory", true)
+                                        .build()
+                        ))
+                        .putFloat("max_draw_duration", 0f)
+                        .putBoolean("charge_on_draw", true)
+                        .putBoolean("scale_power_by_draw_duration", true)
+                        .build());
+                componentBuilder.putInt("minecraft:use_duration", 999);
             }
-        } else {
-            // ensure client moves at slow speed while charging (note: this was calculated by hand as the movement modifer value does not seem to scale linearly)
-            componentBuilder.putCompound("minecraft:chargeable", NbtMap.builder().putFloat("movement_modifier", 0.35F).build());
+            case "minecraft:trident" -> {
+                itemProperties.putString("enchantable_slot", "trident");
+                componentBuilder.putInt("minecraft:use_duration", 999);
+            }
+            case "minecraft:crossbow" -> {
+                itemProperties.putString("enchantable_slot", "crossbow");
+                itemProperties.putInt("frame_count", 10);
 
-            // keep item enchantable; also works on 1.20.50
-            itemProperties.putString("enchantable_slot", mapping.replace("minecraft:", ""));
+                componentBuilder.putCompound("minecraft:shooter", NbtMap.builder()
+                        .putList("ammunition", NbtType.COMPOUND, List.of(
+                                NbtMap.builder()
+                                        .putCompound("item", NbtMap.builder()
+                                                .putString("name", "minecraft:arrow")
+                                                .build())
+                                        .putBoolean("use_offhand", true)
+                                        .putBoolean("search_inventory", true)
+                                        .build()
+                        ))
+                        .putFloat("max_draw_duration", 1f)
+                        .putBoolean("charge_on_draw", true)
+                        .putBoolean("scale_power_by_draw_duration", true)
+                        .build());
+                componentBuilder.putInt("minecraft:use_duration", 999);
+            }
         }
     }
 

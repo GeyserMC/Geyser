@@ -30,7 +30,7 @@ import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.session.GeyserSession;
 
 @EqualsAndHashCode(callSuper = true)
-@CollisionRemapper(regex = "^snow$", passDefaultBoxes = true, usesParams = true)
+//@CollisionRemapper(regex = "^snow$", passDefaultBoxes = true, usesParams = true) TODO remove if no bugs are found. Seems fine with Bedrock 1.20.80 and 1.20.5
 public class SnowCollision extends BlockCollision {
     private final int layers;
 
