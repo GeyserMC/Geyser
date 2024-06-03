@@ -49,6 +49,8 @@ import java.util.function.BiConsumer;
  */
 final class ExceptionHandlers {
 
+    final static String PERMISSION_FAIL_LANG_KEY = "geyser.command.permission_fail";
+
     private final ExceptionController<GeyserCommandSource> controller;
 
     private ExceptionHandlers(ExceptionController<GeyserCommandSource> controller) {
@@ -117,7 +119,7 @@ final class ExceptionHandlers {
         }
 
         // Result.NO_PERMISSION or generic permission failure
-        source.sendLocaleString("geyser.command.permission_fail");
+        source.sendLocaleString(PERMISSION_FAIL_LANG_KEY);
     }
 
     private static void handleUnexpectedThrowable(GeyserCommandSource source, Throwable throwable) {

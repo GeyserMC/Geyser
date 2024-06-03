@@ -32,7 +32,6 @@ import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
 
 import java.util.Collection;
@@ -42,14 +41,12 @@ import java.util.Map;
 
 public class HelpCommand extends GeyserCommand {
     private final String rootCommand;
-    private final String rootCommandPermission;
     private final Collection<Command> commands;
 
     public HelpCommand(GeyserImpl geyser, String name, String description, String permission,
-                       String rootCommand, String rootCommandPermission, Map<String, Command> commands) {
+                       String rootCommand, Map<String, Command> commands) {
         super(name, description, permission, TriState.TRUE);
         this.rootCommand = rootCommand;
-        this.rootCommandPermission = rootCommandPermission;
         this.commands = commands.values();
         this.aliases = Collections.singletonList("?");
     }
@@ -60,21 +57,11 @@ public class HelpCommand extends GeyserCommand {
     }
 
     @Override
-    public void register(CommandManager<GeyserCommandSource> manager) {
-        super.register(manager);
-
-        // Also register just the root (ie `/geyser` or `/extensionId`)
-        // note: this doesn't do the other permission checks that GeyserCommand#baseBuilder does,
-        // but it's fine because the help command can be executed by non-bedrock players and by the console.
-        manager.command(manager.commandBuilder(rootCommand)
-            .apply(meta()) // shouldn't be necessary - just for consistency
-            .permission(rootCommandPermission)
-            .handler((this::execute)));
+    public void execute(CommandContext<GeyserCommandSource> context) {
+        execute(context.sender());
     }
 
-    @Override
-    public void execute(CommandContext<GeyserCommandSource> context) {
-        GeyserCommandSource source = context.sender();
+    public void execute(GeyserCommandSource source) {
         boolean bedrockPlayer = source.connection() != null;
 
         // todo: pagination
