@@ -51,6 +51,9 @@ public class GuiElement {
 
     private final int id;
 
+    /**
+     * Internal use only; don't depend on these values being consistent.
+     */
     public int id() {
         return this.id;
     }
