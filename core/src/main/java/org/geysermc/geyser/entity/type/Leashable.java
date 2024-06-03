@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,22 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.type.living;
+package org.geysermc.geyser.entity.type;
 
-import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.session.GeyserSession;
+/**
+ * I can haz lead
+ * (The item, not the mineral)
+ */
+public interface Leashable {
+    void setLeashHolderBedrockId(long bedrockId);
 
-import java.util.UUID;
+    long leashHolderBedrockId();
 
-public class WaterEntity extends CreatureEntity {
-
-    public WaterEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    default boolean canBeLeashed() {
+        return isNotLeashed();
     }
 
-    @Override
-    public boolean canBeLeashed() {
-        return false;
+    default boolean isNotLeashed() {
+        return leashHolderBedrockId() == -1L;
     }
 }

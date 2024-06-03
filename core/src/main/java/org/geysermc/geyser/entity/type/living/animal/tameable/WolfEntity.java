@@ -127,7 +127,7 @@ public class WolfEntity extends TameableEntity {
     }
 
     @Override
-    protected boolean canBeLeashed() {
+    public boolean canBeLeashed() {
         return !getFlag(EntityFlag.ANGRY) && super.canBeLeashed();
     }
 
