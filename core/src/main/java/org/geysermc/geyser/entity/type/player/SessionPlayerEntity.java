@@ -341,6 +341,13 @@ public class SessionPlayerEntity extends PlayerEntity {
         return bedrockDimension.minY() - 40;
     }
 
+    /**
+     * This method handles teleporting the player below or above the Bedrock void floor.
+     * The Java server should never see this desync as we adjust the position that we send to it
+     *
+     * @param up in which direction to teleport - true to resync our position, or false to be
+     *           teleported below the void floor.
+     */
     public void teleportVoidFloorFix(boolean up) {
         // Safety to avoid double teleports
         if ((voidPositionDesynched && !up) || (!voidPositionDesynched && up)) {
