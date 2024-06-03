@@ -155,7 +155,7 @@ public final class EntityUtils {
      */
     public static void updateMountOffset(Entity passenger, Entity mount, boolean rider, boolean riding, boolean moreThanOneEntity) {
         if(passenger instanceof TextDisplayEntity textDisplay
-                && textDisplay.baseTranslation == null ) return;
+                && textDisplay.baseTranslation == null) return;
 
         passenger.setFlag(EntityFlag.RIDING, riding);
         if (riding) {
