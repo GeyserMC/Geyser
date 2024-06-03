@@ -284,7 +284,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     private volatile boolean closed;
 
-    @Setter
     private GameMode gameMode = GameMode.SURVIVAL;
 
     /**
@@ -1300,6 +1299,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             setSneakingPose(!flying);
             playerEntity.updateBedrockMetadata();
         }
+    }
+
+    public void setGameMode(GameMode newGamemode) {
+        boolean currentlySpectator = this.gameMode == GameMode.SPECTATOR;
+        this.gameMode = newGamemode;
+        this.cameraData.handleGameModeChange(currentlySpectator, newGamemode);
     }
 
     /**
