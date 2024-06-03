@@ -304,7 +304,7 @@ public final class EntityDefinitions {
                     .addTranslator(null) // Transformation interpolation duration
                     .addTranslator(null) // Position/Rotation interpolation duration
                     .addTranslator(MetadataType.VECTOR3, DisplayBaseEntity::setTranslation) // Translation
-                    .addTranslator(MetadataType.VECTOR3, DisplayBaseEntity::setScale) // Scale
+                    .addTranslator(null) // Scale
                     .addTranslator(null) // Left rotation
                     .addTranslator(null) // Right rotation
                     .addTranslator(null) // Billboard render constraints
@@ -316,7 +316,6 @@ public final class EntityDefinitions {
                     .addTranslator(null) // Height
                     .addTranslator(null) // Glow color override
                     .build();
-
 
             TEXT_DISPLAY = EntityDefinition.inherited(TextDisplayEntity::new, displayBase)
                     .type(EntityType.TEXT_DISPLAY)
