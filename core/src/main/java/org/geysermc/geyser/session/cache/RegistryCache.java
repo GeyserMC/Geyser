@@ -38,7 +38,9 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
 import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.inventory.recipe.TrimRecipe;
+import org.geysermc.geyser.item.Enchantment;
 import org.geysermc.geyser.level.JavaDimension;
+import org.geysermc.geyser.level.PaintingType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistry;
 import org.geysermc.geyser.session.cache.registry.SimpleJavaRegistry;
@@ -46,6 +48,7 @@ import org.geysermc.geyser.text.TextDecoration;
 import org.geysermc.geyser.translator.level.BiomeTranslator;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
+import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundRegistryDataPacket;
 
 import java.util.ArrayList;
@@ -72,11 +75,13 @@ public final class RegistryCache {
     static {
         register("chat_type", cache -> cache.chatTypes, ($, entry) -> TextDecoration.readChatType(entry));
         register("dimension_type", cache -> cache.dimensions, ($, entry) -> JavaDimension.read(entry));
+        register("enchantment", cache -> cache.enchantments, ($, entry) -> Enchantment.read(entry));
+        register("painting_variant", cache -> cache.paintings, ($, entry) -> PaintingType.getByName(entry.getId()));
         register("trim_material", cache -> cache.trimMaterials, TrimRecipe::readTrimMaterial);
         register("trim_pattern", cache -> cache.trimPatterns, TrimRecipe::readTrimPattern);
         register("worldgen/biome", (cache, array) -> cache.biomeTranslations = array, BiomeTranslator::loadServerBiome);
         register("banner_pattern", cache -> cache.bannerPatterns, ($, entry) -> BannerPattern.getByJavaIdentifier(entry.getId()));
-        register("wolf_variant", cache -> cache.wolfVariants, ($, entry) -> WolfEntity.WolfVariant.getByJavaIdentifier(entry.getId()));
+        register("wolf_variant", cache -> cache.wolfVariants, ($, entry) -> WolfEntity.BuiltInWolfVariant.getByJavaIdentifier(entry.getId()));
 
         // Load from MCProtocolLib's classloader
         NbtMap tag = MinecraftProtocol.loadNetworkCodec();
@@ -104,16 +109,18 @@ public final class RegistryCache {
      * Java -> Bedrock biome network IDs.
      */
     private int[] biomeTranslations;
-    private final JavaRegistry<TextDecoration> chatTypes = new SimpleJavaRegistry<>();
+    private final JavaRegistry<ChatType> chatTypes = new SimpleJavaRegistry<>();
     /**
      * All dimensions that the client could possibly connect to.
      */
     private final JavaRegistry<JavaDimension> dimensions = new SimpleJavaRegistry<>();
+    private final JavaRegistry<Enchantment> enchantments = new SimpleJavaRegistry<>();
+    private final JavaRegistry<PaintingType> paintings = new SimpleJavaRegistry<>();
     private final JavaRegistry<TrimMaterial> trimMaterials = new SimpleJavaRegistry<>();
     private final JavaRegistry<TrimPattern> trimPatterns = new SimpleJavaRegistry<>();
 
     private final JavaRegistry<BannerPattern> bannerPatterns = new SimpleJavaRegistry<>();
-    private final JavaRegistry<WolfEntity.WolfVariant> wolfVariants = new SimpleJavaRegistry<>();
+    private final JavaRegistry<WolfEntity.BuiltInWolfVariant> wolfVariants = new SimpleJavaRegistry<>();
 
     public RegistryCache(GeyserSession session) {
         this.session = session;

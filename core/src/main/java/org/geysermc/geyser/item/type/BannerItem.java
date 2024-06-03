@@ -146,8 +146,8 @@ public class BannerItem extends BlockItem {
         } else {
             List<NbtMap> patternList = new ArrayList<>(patterns.size());
             for (BannerPatternLayer patternLayer : patterns) {
-                patternLayer.getPattern().ifId(holder -> {
-                    BannerPattern bannerPattern = session.getRegistryCache().bannerPatterns().byId(holder.id());
+                patternLayer.getPattern().ifId(id -> {
+                    BannerPattern bannerPattern = session.getRegistryCache().bannerPatterns().byId(id);
                     if (bannerPattern != null) {
                         NbtMap tag = NbtMap.builder()
                                 .putString("Pattern", bannerPattern.getBedrockIdentifier())

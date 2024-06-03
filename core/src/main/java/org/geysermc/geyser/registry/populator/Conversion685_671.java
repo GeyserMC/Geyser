@@ -44,7 +44,7 @@ public class Conversion685_671 {
     private static final List<String> MODIFIED_BLOCKS = Stream.of(NEW_BLOCKS, OMINOUS_BLOCKS).flatMap(List::stream).toList();
     private static final List<Item> NEW_MUSIC_DISCS = List.of(Items.MUSIC_DISC_CREATOR, Items.MUSIC_DISC_CREATOR_MUSIC_BOX, Items.MUSIC_DISC_PRECIPICE);
 
-    static GeyserMappingItem remapItem(@SuppressWarnings("unused") Item item, GeyserMappingItem mapping) {
+    static GeyserMappingItem remapItem(Item item, GeyserMappingItem mapping) {
         String identifer = mapping.getBedrockIdentifier();
 
         if (NEW_MUSIC_DISCS.contains(item)) {

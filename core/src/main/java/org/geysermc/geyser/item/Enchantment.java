@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,43 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.session.cache.registry;
+package org.geysermc.geyser.item;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.nbt.NbtMap;
+import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
 
-import java.util.List;
+/**
+ * @param anvilCost also as a rarity multiplier
+ */
+public record Enchantment(String supportedItemsTag, int maxLevel, int anvilCost, @Nullable String exclusiveSetTag) {
 
-public class SimpleJavaRegistry<T> implements JavaRegistry<T> {
-    protected final ObjectArrayList<T> values = new ObjectArrayList<>();
-
-    @Override
-    public T byId(@NonNegative int id) {
-        if (id < 0 || id >= this.values.size()) {
-            return null;
-        }
-        return this.values.get(id);
-    }
-
-    @Override
-    public int byValue(T value) {
-        return this.values.indexOf(value);
-    }
-
-    @Override
-    public void reset(List<T> values) {
-        this.values.clear();
-        this.values.addAll(values);
-        this.values.trim();
-    }
-
-    @Override
-    public List<T> values() {
-        return this.values;
-    }
-
-    @Override
-    public String toString() {
-        return this.values.toString();
+    // Implementation note: I have a feeling the tags can be a list of items, because in vanilla they're HolderSet classes.
+    // I'm not sure how that's wired over the network, so we'll put it off.
+    public static Enchantment read(RegistryEntry entry) {
+        NbtMap data = entry.getData();
+        String supportedItems = data.getString("supported_items");
+        int maxLevel = data.getInt("max_level");
+        int anvilCost = data.getInt("anvil_cost");
+        String exclusiveSet = data.getString("exclusive_set", null);
+        return new Enchantment(supportedItems, maxLevel, anvilCost, exclusiveSet);
     }
 }

@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.translator.text;
 
-import org.geysermc.mcprotocollib.protocol.data.DefaultComponentSerializer;
-import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ScoreComponent;
 import net.kyori.adventure.text.TranslatableComponent;
@@ -41,6 +39,11 @@ import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.*;
+import org.geysermc.mcprotocollib.protocol.data.DefaultComponentSerializer;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
+import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
+import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatTypeDecoration;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
 
 import java.util.*;
 
@@ -321,7 +324,7 @@ public class MessageTranslator {
         return PlainTextComponentSerializer.plainText().serialize(messageComponent);
     }
 
-    public static void handleChatPacket(GeyserSession session, Component message, int chatType, Component targetName, Component sender) {
+    public static void handleChatPacket(GeyserSession session, Component message, Holder<ChatType> chatTypeHolder, Component targetName, Component sender) {
         TextPacket textPacket = new TextPacket();
         textPacket.setPlatformChatId("");
         textPacket.setSourceName("");
@@ -330,14 +333,15 @@ public class MessageTranslator {
 
         textPacket.setNeedsTranslation(false);
 
-        TextDecoration decoration = session.getRegistryCache().chatTypes().byId(chatType);
-        if (decoration != null) {
+        ChatType chatType = chatTypeHolder.getOrCompute(session.getRegistryCache().chatTypes()::byId);
+        if (chatType != null && chatType.chat() != null) {
+            var chat = chatType.chat();
             // As of 1.19 - do this to apply all the styling for signed messages
             // Though, Bedrock cannot care about the signed stuff.
             TranslatableComponent.Builder withDecoration = Component.translatable()
-                    .key(decoration.translationKey())
-                    .style(decoration.style());
-            Set<TextDecoration.Parameter> parameters = decoration.parameters();
+                    .key(chat.translationKey())
+                    .style(TextDecoration.getStyle(chat));
+            List<ChatTypeDecoration.Parameter> parameters = chat.parameters();
             List<Component> args = new ArrayList<>(3);
             if (parameters.contains(TextDecoration.Parameter.TARGET)) {
                 args.add(targetName);
@@ -348,7 +352,7 @@ public class MessageTranslator {
             if (parameters.contains(TextDecoration.Parameter.CONTENT)) {
                 args.add(message);
             }
-            withDecoration.args(args);
+            withDecoration.arguments(args);
             textPacket.setMessage(MessageTranslator.convertMessage(withDecoration.build(), session.locale()));
         } else {
             session.getGeyser().getLogger().debug("Likely illegal chat type detection found.");
