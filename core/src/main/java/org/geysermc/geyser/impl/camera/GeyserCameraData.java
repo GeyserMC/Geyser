@@ -260,13 +260,14 @@ public class GeyserCameraData implements CameraData {
 
     @Override
     public void hideElement(GuiElement... elements) {
+        Objects.requireNonNull(elements);
         SetHudPacket packet = new SetHudPacket();
         packet.setVisibility(HudVisibility.HIDE);
         Set<HudElement> elementSet = packet.getElements();
 
         for (GuiElement element : elements) {
             this.hiddenHudElements.add(element);
-            elementSet.add(HUD_ELEMENT_VALUES[element.ordinal()]);
+            elementSet.add(HUD_ELEMENT_VALUES[element.id()]);
         }
 
         session.sendUpstreamPacket(packet);
@@ -278,10 +279,10 @@ public class GeyserCameraData implements CameraData {
         packet.setVisibility(HudVisibility.RESET);
         Set<HudElement> elementSet = packet.getElements();
 
-        if (elements.length != 0) {
+        if (elements != null && elements.length != 0) {
             for (GuiElement element : elements) {
                 this.hiddenHudElements.remove(element);
-                elementSet.add(HUD_ELEMENT_VALUES[element.ordinal()]);
+                elementSet.add(HUD_ELEMENT_VALUES[element.id()]);
             }
         } else {
             this.hiddenHudElements.clear();

@@ -162,7 +162,7 @@ public interface CameraData {
      *
      * @param element the {@link GuiElement} to reset
      */
-    void resetElement(@NonNull GuiElement... element);
+    void resetElement(@NonNull GuiElement @Nullable... element);
 
     /**
      * Determines whether a {@link GuiElement} is currently hidden.
