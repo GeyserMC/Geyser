@@ -31,9 +31,11 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.DimensionUtils;
@@ -64,6 +66,8 @@ public class SessionPlayerEntity extends PlayerEntity {
      */
     @Getter
     private boolean isRidingInFront;
+
+    private int lastAirSupply = getMaxAir();
 
     public SessionPlayerEntity(GeyserSession session) {
         super(session, -1, 1, null, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, null, null);
@@ -159,7 +163,13 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     @Override
     protected void setAirSupply(int amount) {
-        if (amount == getMaxAir()) {
+        // Seemingly required to be sent as of Bedrock 1.21. Otherwise, bubbles will appear as empty
+        // Also, this changes how the air bubble graphics/sounds are presented. Breathing on means sound effects and
+        // the bubbles visually pop
+        setFlag(EntityFlag.BREATHING, amount >= this.lastAirSupply);
+        this.lastAirSupply = amount;
+
+        if (amount == getMaxAir() && GameProtocol.isPre1_21_0(session)) {
             super.setAirSupply(0); // Hide the bubble counter from the UI for the player
         } else {
             super.setAirSupply(amount);
