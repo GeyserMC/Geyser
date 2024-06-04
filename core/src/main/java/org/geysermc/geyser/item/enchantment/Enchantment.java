@@ -66,16 +66,13 @@ public record Enchantment(String identifier,
     }
 
     private static Set<EnchantmentComponent> readEnchantmentComponents(NbtMap effects) {
-        if (effects.isEmpty()) {
-            return Collections.emptySet();
-        }
         Set<EnchantmentComponent> components = new HashSet<>();
         for (Map.Entry<String, Object> entry : effects.entrySet()) {
             switch (entry.getKey()) {
                 case "minecraft:prevent_armor_change" -> components.add(EnchantmentComponent.PREVENT_ARMOR_CHANGE);
             }
         }
-        return components;
+        return Set.copyOf(components); // Also ensures any empty sets are consolidated
     }
 
     private static String readDescription(NbtMap tag) {
