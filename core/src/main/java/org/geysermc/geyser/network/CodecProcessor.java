@@ -232,8 +232,8 @@ class CodecProcessor {
             .updateSerializer(CreatePhotoPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(NpcRequestPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(PhotoInfoRequestPacket.class, ILLEGAL_SERIALIZER)
-            // Illegal unused serverbound packets for featured servers
-            .updateSerializer(PurchaseReceiptPacket.class, ILLEGAL_SERIALIZER)
+            // Unused serverbound packets for featured servers, which is for some reason still occasionally sent
+            .updateSerializer(PurchaseReceiptPacket.class, IGNORED_SERIALIZER)
             // Illegal unused serverbound packets that are deprecated
             .updateSerializer(ClientCheatAbilityPacket.class, ILLEGAL_SERIALIZER)
             // Illegal unusued serverbound packets that relate to unused features
