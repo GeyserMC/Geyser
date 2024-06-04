@@ -23,25 +23,11 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item;
-
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.nbt.NbtMap;
-import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
+package org.geysermc.geyser.util;
 
 /**
- * @param anvilCost also as a rarity multiplier
+ * Represents anything that could be tracked like a enum, without also creating a name and enum-wide array.
  */
-public record Enchantment(String supportedItemsTag, int maxLevel, int anvilCost, @Nullable String exclusiveSetTag) {
-
-    // Implementation note: I have a feeling the tags can be a list of items, because in vanilla they're HolderSet classes.
-    // I'm not sure how that's wired over the network, so we'll put it off.
-    public static Enchantment read(RegistryEntry entry) {
-        NbtMap data = entry.getData();
-        String supportedItems = data.getString("supported_items");
-        int maxLevel = data.getInt("max_level");
-        int anvilCost = data.getInt("anvil_cost");
-        String exclusiveSet = data.getString("exclusive_set", null);
-        return new Enchantment(supportedItems, maxLevel, anvilCost, exclusiveSet);
-    }
+public interface Ordered {
+    int ordinal();
 }

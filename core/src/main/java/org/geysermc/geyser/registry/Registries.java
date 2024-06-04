@@ -25,12 +25,6 @@
 
 package org.geysermc.geyser.registry;
 
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
-import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
-import org.geysermc.mcprotocollib.protocol.data.game.level.event.LevelEvent;
-import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
-import org.geysermc.mcprotocollib.protocol.data.game.recipe.RecipeType;
-import org.geysermc.mcprotocollib.network.packet.Packet;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -43,7 +37,6 @@ import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.inventory.item.Enchantment.JavaEnchantment;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.loader.*;
@@ -51,7 +44,6 @@ import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.populator.PacketRegistryPopulator;
 import org.geysermc.geyser.registry.populator.RecipeRegistryPopulator;
 import org.geysermc.geyser.registry.provider.ProviderSupplier;
-import org.geysermc.geyser.registry.type.EnchantmentData;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.registry.type.ParticleMapping;
 import org.geysermc.geyser.registry.type.SoundMapping;
@@ -59,6 +51,12 @@ import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
 import org.geysermc.geyser.translator.sound.SoundInteractionTranslator;
 import org.geysermc.geyser.translator.sound.SoundTranslator;
+import org.geysermc.mcprotocollib.network.packet.Packet;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.level.event.LevelEvent;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.RecipeType;
 
 import java.util.*;
 
@@ -103,11 +101,6 @@ public final class Registries {
     public static final VersionedRegistry<Map<RecipeType, List<RecipeData>>> CRAFTING_DATA = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
     /**
-     * A registry holding data of all the known enchantments.
-     */
-    public static final SimpleMappedRegistry<JavaEnchantment, EnchantmentData> ENCHANTMENTS;
-
-    /**
      * A map containing all entity types and their respective Geyser definitions
      */
     public static final SimpleMappedRegistry<EntityType, EntityDefinition<?>> ENTITY_DEFINITIONS = SimpleMappedRegistry.create(RegistryLoaders.empty(() -> new EnumMap<>(EntityType.class)));
@@ -127,7 +120,10 @@ public final class Registries {
      */
     public static final PacketTranslatorRegistry<Packet> JAVA_PACKET_TRANSLATORS = PacketTranslatorRegistry.create();
 
-    public static final SimpleRegistry<List<Item>> JAVA_ITEMS = SimpleRegistry.create(RegistryLoaders.empty(ArrayList::new));
+    /**
+     * A registry containing all Java items ordered by their network ID.
+     */
+    public static final ListRegistry<Item> JAVA_ITEMS = ListRegistry.create(RegistryLoaders.empty(ArrayList::new));
 
     public static final SimpleMappedRegistry<String, Item> JAVA_ITEM_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
@@ -190,7 +186,6 @@ public final class Registries {
 
         // Create registries that require other registries to load first
         POTION_MIXES = VersionedRegistry.create(PotionMixRegistryLoader::new);
-        ENCHANTMENTS = SimpleMappedRegistry.create("mappings/enchantments.json", EnchantmentRegistryLoader::new);
 
         // Remove unneeded client generation data from NbtMapBuilder
         NbtMapBuilder biomesNbt = NbtMap.builder();

@@ -33,8 +33,8 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.inventory.item.Enchantment;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.enchantment.EnchantmentComponent;
 import org.geysermc.geyser.item.type.DyeItem;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
@@ -123,7 +123,7 @@ public class WolfEntity extends TameableEntity {
     @Override
     public void setChestplate(ItemStack stack) {
         super.setChestplate(stack);
-        isCurseOfBinding = ItemUtils.getEnchantmentLevel(stack.getDataComponents(), Enchantment.JavaEnchantment.BINDING_CURSE) > 0;
+        isCurseOfBinding = ItemUtils.hasEffect(session, stack.getDataComponents(), EnchantmentComponent.PREVENT_ARMOR_CHANGE); // TODO test
     }
 
     @Override

@@ -31,7 +31,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.inventory.item.Enchantment;
+import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
@@ -78,11 +78,11 @@ public class EnchantedBookItem extends Item {
             for (NbtMap bedrockEnchantment : enchantmentTag) {
                 short bedrockId = bedrockEnchantment.getShort("id");
 
-                Enchantment enchantment = Enchantment.getByBedrockId(bedrockId);
+                BedrockEnchantment enchantment = BedrockEnchantment.getByBedrockId(bedrockId);
                 if (enchantment != null) {
                     int level = bedrockEnchantment.getShort("lvl", (short) 1);
                     // TODO
-                    javaEnchantments.put(Enchantment.JavaEnchantment.valueOf(enchantment.name()).ordinal(), level);
+                    //javaEnchantments.put(BedrockEnchantment.JavaEnchantment.valueOf(enchantment.name()).ordinal(), level);
                 } else {
                     GeyserImpl.getInstance().getLogger().debug("Unknown bedrock enchantment: " + bedrockId);
                 }

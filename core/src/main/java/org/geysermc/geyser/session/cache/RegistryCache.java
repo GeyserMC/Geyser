@@ -38,7 +38,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
 import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.inventory.recipe.TrimRecipe;
-import org.geysermc.geyser.item.Enchantment;
+import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.PaintingType;
 import org.geysermc.geyser.session.GeyserSession;

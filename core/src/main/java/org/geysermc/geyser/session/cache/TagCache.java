@@ -25,47 +25,40 @@
 
 package org.geysermc.geyser.session.cache;
 
-import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntArrays;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.BlockTag;
+import org.geysermc.geyser.session.cache.tags.EnchantmentTag;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
+import org.geysermc.geyser.util.Ordered;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.EnumMap;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.Map;
+
+import static org.geysermc.geyser.session.cache.tags.BlockTag.ALL_BLOCK_TAGS;
+import static org.geysermc.geyser.session.cache.tags.EnchantmentTag.ALL_ENCHANTMENT_TAGS;
+import static org.geysermc.geyser.session.cache.tags.ItemTag.ALL_ITEM_TAGS;
 
 /**
  * Manages information sent from the {@link ClientboundUpdateTagsPacket}. If that packet is not sent, all lists here
  * will remain empty, matching Java Edition behavior.
- *
- * This system is designed for easy extensibility - just add an enum to {@link BlockTag} or {@link ItemTag}.
  */
 @ParametersAreNonnullByDefault
 public final class TagCache {
-    // Put these here so the enums can load without a static map
-    public static final Map<String, BlockTag> ALL_BLOCK_TAGS = new HashMap<>();
-    public static final Map<String, ItemTag> ALL_ITEM_TAGS = new HashMap<>();
-
-    private final Map<BlockTag, IntList> blocks = new EnumMap<>(BlockTag.class);
-    private final Map<ItemTag, IntList> items = new EnumMap<>(ItemTag.class);
+    private final int[][] blocks = new int[ALL_BLOCK_TAGS.size()][];
+    private final int[][] items = new int[ALL_ITEM_TAGS.size()][];
+    private final int[][] enchantments = new int[ALL_ENCHANTMENT_TAGS.size()][];
 
     public void loadPacket(GeyserSession session, ClientboundUpdateTagsPacket packet) {
         Map<String, int[]> blockTags = packet.getTags().get("minecraft:block");
-        this.blocks.clear();
-        ALL_BLOCK_TAGS.forEach((location, tag) -> {
-            int[] values = blockTags.get(location);
-            if (values != null) {
-                this.blocks.put(tag, IntList.of(values));
-            } else {
-                session.getGeyser().getLogger().debug("Block tag not found from server: " + location);
-            }
-        });
+        loadTags("Block", blockTags, ALL_BLOCK_TAGS, this.blocks);
 
         // Hack btw
         GeyserLogger logger = session.getGeyser().getLogger();
@@ -77,15 +70,7 @@ public final class TagCache {
         }
 
         Map<String, int[]> itemTags = packet.getTags().get("minecraft:item");
-        this.items.clear();
-        ALL_ITEM_TAGS.forEach((location, tag) -> {
-            int[] values = itemTags.get(location);
-            if (values != null) {
-                this.items.put(tag, IntList.of(values));
-            } else {
-                session.getGeyser().getLogger().debug("Item tag not found from server: " + location);
-            }
-        });
+        loadTags("Item", itemTags, ALL_ITEM_TAGS, this.items);
 
         // Hack btw
         boolean emulatePost1_13Logic = itemTags.get("minecraft:signs").length > 1;
@@ -93,17 +78,31 @@ public final class TagCache {
         if (logger.isDebug()) {
             logger.debug("Emulating post 1.13 villager logic for " + session.bedrockUsername() + "? " + emulatePost1_13Logic);
         }
+
+        Map<String, int[]> enchantmentTags = packet.getTags().get("minecraft:enchantment");
+        loadTags("Enchantment", enchantmentTags, ALL_ENCHANTMENT_TAGS, this.enchantments);
+    }
+
+    private <T extends Ordered> void loadTags(String type, Map<String, int[]> packetTags, Map<String, T> allTags, int[][] localValues) {
+        Arrays.fill(localValues, IntArrays.EMPTY_ARRAY);
+        allTags.forEach((location, tag) -> {
+            int[] values = packetTags.get(location);
+            if (values != null) {
+                if (values.length != 0) {
+                    localValues[tag.ordinal()] = values;
+                }
+            } else {
+                GeyserImpl.getInstance().getLogger().debug(type + " tag not found from server: " + location);
+            }
+        });
     }
 
     /**
      * @return true if the block tag is present and contains this block mapping's Java ID.
      */
     public boolean is(BlockTag tag, Block block) {
-        IntList values = this.blocks.get(tag);
-        if (values != null) {
-            return values.contains(block.javaId());
-        }
-        return false;
+        int[] values = this.blocks[tag.ordinal()];
+        return contains(values, block.javaId());
     }
 
     /**
@@ -117,9 +116,19 @@ public final class TagCache {
      * @return true if the item tag is present and contains this item's Java ID.
      */
     public boolean is(ItemTag tag, Item item) {
-        IntList values = this.items.get(tag);
-        if (values != null) {
-            return values.contains(item.javaId());
+        int[] values = this.items[tag.ordinal()];
+        return contains(values, item.javaId());
+    }
+
+    public int[] get(EnchantmentTag tag) {
+        return this.enchantments[tag.ordinal()];
+    }
+
+    private static boolean contains(int[] array, int i) {
+        for (int item : array) {
+            if (item == i) {
+                return true;
+            }
         }
         return false;
     }

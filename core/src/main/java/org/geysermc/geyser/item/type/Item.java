@@ -33,8 +33,9 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.inventory.item.Enchantment;
+import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
@@ -201,7 +202,7 @@ public class Item {
 //                ShortTag bedrockId = tagValue.get("id");
 //                if (bedrockId == null) continue;
 //
-//                Enchantment enchantment = Enchantment.getByBedrockId(bedrockId.getValue());
+//                BedrockEnchantment enchantment = BedrockEnchantment.getByBedrockId(bedrockId.getValue());
 //                if (enchantment != null) {
 //                    CompoundTag javaTag = new CompoundTag("");
 //                    Map<String, Tag> javaValue = javaTag.getValue();
@@ -226,33 +227,22 @@ public class Item {
 //        }
     }
 
-    /**
-     * This is a map from Java-only enchantments to their translation keys so that we can
-     * map these enchantments to Bedrock clients, since they don't actually exist there.
-     */
-    private static final Map<Enchantment.JavaEnchantment, String> ENCHANTMENT_TRANSLATION_KEYS = Map.of(
-            Enchantment.JavaEnchantment.SWEEPING_EDGE, "enchantment.minecraft.sweeping",
-            Enchantment.JavaEnchantment.DENSITY, "enchantment.minecraft.density",
-            Enchantment.JavaEnchantment.BREACH, "enchantment.minecraft.breach",
-            Enchantment.JavaEnchantment.WIND_BURST, "enchantment.minecraft.wind_burst");
-
     protected final @Nullable NbtMap remapEnchantment(GeyserSession session, int enchantId, int level, BedrockItemBuilder builder) {
-        // TODO verify
-        // TODO streamline Enchantment process
-        Enchantment.JavaEnchantment enchantment = Enchantment.JavaEnchantment.of(enchantId);
-        String translationKey = ENCHANTMENT_TRANSLATION_KEYS.get(enchantment);
-        if (translationKey != null) {
-            String enchantmentTranslation = MinecraftLocale.getLocaleString(translationKey, session.locale());
-            addJavaOnlyEnchantment(session, builder, enchantmentTranslation, level);
-            return null;
-        }
+        Enchantment enchantment = session.getRegistryCache().enchantments().byId(enchantId);
         if (enchantment == null) {
             GeyserImpl.getInstance().getLogger().debug("Unknown Java enchantment while NBT item translating: " + enchantId);
             return null;
         }
 
+        BedrockEnchantment bedrockEnchantment = enchantment.bedrockEnchantment();
+        if (bedrockEnchantment == null) {
+            String enchantmentTranslation = MinecraftLocale.getLocaleString(enchantment.description(), session.locale());
+            addJavaOnlyEnchantment(session, builder, enchantmentTranslation, level);
+            return null;
+        }
+
         return NbtMap.builder()
-                .putShort("id", (short) Enchantment.valueOf(enchantment.name()).ordinal())
+                .putShort("id", (short) bedrockEnchantment.ordinal())
                 .putShort("lvl", (short) level)
                 .build();
     }
@@ -260,7 +250,7 @@ public class Item {
     private void addJavaOnlyEnchantment(GeyserSession session, BedrockItemBuilder builder, String enchantmentName, int level) {
         String lvlTranslation = MinecraftLocale.getLocaleString("enchantment.level." + level, session.locale());
 
-        builder.getOrCreateLore().add(ChatColor.RESET + ChatColor.GRAY + enchantmentName + " " + lvlTranslation);
+        builder.getOrCreateLore().add(0, ChatColor.RESET + ChatColor.GRAY + enchantmentName + " " + lvlTranslation);
     }
 
     /* Translation methods end */

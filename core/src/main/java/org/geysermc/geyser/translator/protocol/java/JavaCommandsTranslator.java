@@ -26,11 +26,6 @@
 package org.geysermc.geyser.translator.protocol.java;
 
 import com.google.common.base.Suppliers;
-import org.geysermc.mcprotocollib.protocol.data.game.command.CommandNode;
-import org.geysermc.mcprotocollib.protocol.data.game.command.CommandParser;
-import org.geysermc.mcprotocollib.protocol.data.game.command.properties.ResourceProperties;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundCommandsPacket;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -46,13 +41,18 @@ import org.cloudburstmc.protocol.bedrock.packet.AvailableCommandsPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent;
 import org.geysermc.geyser.command.GeyserCommandManager;
-import org.geysermc.geyser.inventory.item.Enchantment;
+import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.EntityUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.command.CommandNode;
+import org.geysermc.mcprotocollib.protocol.data.game.command.CommandParser;
+import org.geysermc.mcprotocollib.protocol.data.game.command.properties.ResourceProperties;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundCommandsPacket;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -267,7 +267,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
     private static Object handleResource(CommandBuilderContext context, String resource, boolean tags) {
         return switch (resource) {
             case "minecraft:attribute" -> ATTRIBUTES;
-            case "minecraft:enchantment" -> Enchantment.JavaEnchantment.ALL_JAVA_IDENTIFIERS;
+            case "minecraft:enchantment" -> context.getEnchantments();
             case "minecraft:entity_type" -> context.getEntityTypes();
             case "minecraft:mob_effect" -> ALL_EFFECT_IDENTIFIERS;
             case "minecraft:worldgen/biome" -> tags ? context.getBiomesWithTags() : context.getBiomes();
@@ -292,6 +292,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         private final GeyserSession session;
         private Object biomesWithTags;
         private Object biomesNoTags;
+        private String[] enchantments;
         private String[] entityTypes;
         private String[] itemNames;
         private CommandEnumData teams;
@@ -316,6 +317,14 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
 
             String[] identifiers = session.getGeyser().getWorldManager().getBiomeIdentifiers(true);
             return (biomesWithTags = identifiers != null ? identifiers : CommandParam.STRING);
+        }
+
+        private String[] getEnchantments() {
+            if (enchantments != null) {
+                return enchantments;
+            }
+            return (enchantments = session.getRegistryCache().enchantments().values().stream()
+                    .map(Enchantment::identifier).toArray(String[]::new));
         }
 
         private String[] getEntityTypes() {
