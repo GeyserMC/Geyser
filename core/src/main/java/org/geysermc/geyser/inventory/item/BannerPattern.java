@@ -72,7 +72,9 @@ public enum BannerPattern {
     SKULL("sku"),
     FLOWER("flo"),
     MOJANG("moj"),
-    PIGLIN("pig");
+    PIGLIN("pig"),
+    FLOW("flw"),
+    GUSTER("gus");
 
     private static final BannerPattern[] VALUES = values();
 
