@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java.inventory;
 
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.RecipeUnlockingRequirement;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.Ingredient;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundContainerSetSlotPacket;
@@ -198,7 +199,8 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                     "crafting_table",
                     0,
                     newRecipeId,
-                    false
+                    false,
+                    RecipeUnlockingRequirement.INVALID
             ));
             craftPacket.setCleanRecipes(false);
             session.sendUpstreamPacket(craftPacket);

@@ -26,6 +26,7 @@
 package org.geysermc.geyser.registry.populator;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.RecipeUnlockingRequirement;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.Ingredient;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.RecipeType;
@@ -173,7 +174,8 @@ public class RecipeRegistryPopulator {
             /* Convert end */
 
             return ShapedRecipeData.shaped(uuid.toString(), shape.get(0).length(), shape.size(),
-                    inputs.stream().map(ItemDescriptorWithCount::fromItem).toList(), Collections.singletonList(output), uuid, "crafting_table", 0, netId, false);
+                    inputs.stream().map(ItemDescriptorWithCount::fromItem).toList(), Collections.singletonList(output), uuid, "crafting_table", 0, netId, false,
+                    RecipeUnlockingRequirement.INVALID);
         }
         List<ItemData> inputs = new ObjectArrayList<>();
         for (JsonNode entry : node.get("inputs")) {
@@ -196,7 +198,8 @@ public class RecipeRegistryPopulator {
                     inputs.stream().map(ItemDescriptorWithCount::fromItem).toList(), Collections.singletonList(output), uuid, "crafting_table", 0, netId);
         }
         return ShapelessRecipeData.shapeless(uuid.toString(),
-                inputs.stream().map(ItemDescriptorWithCount::fromItem).toList(), Collections.singletonList(output), uuid, "crafting_table", 0, netId);
+                inputs.stream().map(ItemDescriptorWithCount::fromItem).toList(), Collections.singletonList(output), uuid, "crafting_table", 0, netId,
+                RecipeUnlockingRequirement.INVALID);
     }
 
     private static ItemData getBedrockItemFromIdentifierJson(ItemMapping mapping, JsonNode itemNode) {
