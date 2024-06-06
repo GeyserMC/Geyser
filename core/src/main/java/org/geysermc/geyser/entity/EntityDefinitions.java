@@ -63,6 +63,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<BeeEntity> BEE;
     public static final EntityDefinition<BlazeEntity> BLAZE;
     public static final EntityDefinition<BoatEntity> BOAT;
+    public static final EntityDefinition<BoggedEntity> BOGGED;
     public static final EntityDefinition<CamelEntity> CAMEL;
     public static final EntityDefinition<CatEntity> CAT;
     public static final EntityDefinition<SpiderEntity> CAVE_SPIDER;
@@ -502,6 +503,11 @@ public final class EntityDefinitions {
                     .type(EntityType.BAT)
                     .height(0.9f).width(0.5f)
                     .addTranslator(MetadataType.BYTE, BatEntity::setBatFlags)
+                    .build();
+            BOGGED = EntityDefinition.inherited(BoggedEntity::new, mobEntityBase)
+                    .type(EntityType.BOGGED)
+                    .height(1.99f).width(0.6f)
+                    .addTranslator(MetadataType.BOOLEAN, BoggedEntity::setSheared)
                     .build();
             BLAZE = EntityDefinition.inherited(BlazeEntity::new, mobEntityBase)
                     .type(EntityType.BLAZE)
