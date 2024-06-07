@@ -150,12 +150,6 @@ public final class Registries {
     public static final VersionedRegistry<Int2ObjectMap<GeyserRecipe>> RECIPES = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
     /**
-     * A mapped registry holding the available records, with the ID of the record being the key, and the {@link org.cloudburstmc.protocol.bedrock.data.SoundEvent}
-     * as the value.
-     */
-    public static final IntMappedRegistry<org.cloudburstmc.protocol.bedrock.data.SoundEvent> RECORDS = IntMappedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
-
-    /**
      * A mapped registry holding {@link ResourcePack}'s with the pack uuid as keys.
      */
     public static final DeferredRegistry<Map<String, ResourcePack>> RESOURCE_PACKS = DeferredRegistry.create(GeyserImpl.getInstance().packDirectory(), SimpleMappedRegistry::create, RegistryLoaders.RESOURCE_PACKS);
