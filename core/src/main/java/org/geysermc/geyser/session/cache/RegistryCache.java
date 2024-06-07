@@ -40,6 +40,7 @@ import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.inventory.recipe.TrimRecipe;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.level.JavaDimension;
+import org.geysermc.geyser.level.JukeboxSong;
 import org.geysermc.geyser.level.PaintingType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistry;
@@ -76,6 +77,7 @@ public final class RegistryCache {
         register("chat_type", cache -> cache.chatTypes, ($, entry) -> TextDecoration.readChatType(entry));
         register("dimension_type", cache -> cache.dimensions, ($, entry) -> JavaDimension.read(entry));
         register("enchantment", cache -> cache.enchantments, ($, entry) -> Enchantment.read(entry));
+        register("jukebox_song", cache -> cache.jukeboxSongs, ($, entry) -> JukeboxSong.read(entry));
         register("painting_variant", cache -> cache.paintings, ($, entry) -> PaintingType.getByName(entry.getId()));
         register("trim_material", cache -> cache.trimMaterials, TrimRecipe::readTrimMaterial);
         register("trim_pattern", cache -> cache.trimPatterns, TrimRecipe::readTrimPattern);
@@ -115,6 +117,7 @@ public final class RegistryCache {
      */
     private final JavaRegistry<JavaDimension> dimensions = new SimpleJavaRegistry<>();
     private final JavaRegistry<Enchantment> enchantments = new SimpleJavaRegistry<>();
+    private final JavaRegistry<JukeboxSong> jukeboxSongs = new SimpleJavaRegistry<>();
     private final JavaRegistry<PaintingType> paintings = new SimpleJavaRegistry<>();
     private final JavaRegistry<TrimMaterial> trimMaterials = new SimpleJavaRegistry<>();
     private final JavaRegistry<TrimPattern> trimPatterns = new SimpleJavaRegistry<>();

@@ -35,6 +35,7 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.CharacterAndFormat;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
@@ -422,6 +423,20 @@ public class MessageTranslator {
             return "";
         }
         return new String(newChars, 0, count - (whitespacesCount > 0 ? 1 : 0)).trim();
+    }
+
+    /**
+     * Deserialize an NbtMap provided from a registry into a string.
+     */
+    // This may be a Component in the future.
+    public static String deserializeDescription(NbtMap tag) {
+        NbtMap description = tag.getCompound("description");
+        String translate = description.getString("translate", null);
+        if (translate == null) {
+            GeyserImpl.getInstance().getLogger().debug("Don't know how to read description! " + tag);
+            return "";
+        }
+        return translate;
     }
 
     public static void init() {

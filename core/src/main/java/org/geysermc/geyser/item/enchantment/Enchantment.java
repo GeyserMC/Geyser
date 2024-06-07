@@ -27,13 +27,15 @@ package org.geysermc.geyser.item.enchantment;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.session.cache.tags.EnchantmentTag;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @param description only populated if {@link #bedrockEnchantment()} is not null.
@@ -59,7 +61,7 @@ public record Enchantment(String identifier,
         String exclusiveSet = data.getString("exclusive_set", null);
         EnchantmentTag exclusiveSetTag = exclusiveSet == null ? null : EnchantmentTag.ALL_ENCHANTMENT_TAGS.get(exclusiveSet.substring(1));
         BedrockEnchantment bedrockEnchantment = BedrockEnchantment.getByJavaIdentifier(entry.getId());
-        String description = bedrockEnchantment == null ? readDescription(data) : null;
+        String description = bedrockEnchantment == null ? MessageTranslator.deserializeDescription(data) : null;
 
         return new Enchantment(entry.getId(), effects, ItemTag.ALL_ITEM_TAGS.get(supportedItems), maxLevel,
                 description, anvilCost, exclusiveSetTag, bedrockEnchantment);
@@ -73,15 +75,5 @@ public record Enchantment(String identifier,
             }
         }
         return Set.copyOf(components); // Also ensures any empty sets are consolidated
-    }
-
-    private static String readDescription(NbtMap tag) {
-        NbtMap description = tag.getCompound("description");
-        String translate = description.getString("translate", null);
-        if (translate == null) {
-            GeyserImpl.getInstance().getLogger().debug("Don't know how to read description! " + tag);
-            return "";
-        }
-        return translate;
     }
 }
