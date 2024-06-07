@@ -34,7 +34,15 @@ import java.io.File;
 import java.nio.file.Path;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@SuppressWarnings("FieldMayBeFinal") // Jackson requires that the fields are not final
 public class GeyserViaProxyConfiguration extends GeyserJacksonConfiguration {
+
+    private RemoteConfiguration remote = new RemoteConfiguration() {
+        @Override
+        public boolean isForwardHost() {
+            return super.isForwardHost() || !ViaProxy.getConfig().getWildcardDomainHandling().equals(ViaProxyConfig.WildcardDomainHandling.NONE);
+        }
+    };
 
     @Override
     public Path getFloodgateKeyPath() {
@@ -53,14 +61,7 @@ public class GeyserViaProxyConfiguration extends GeyserJacksonConfiguration {
 
     @Override
     public RemoteConfiguration getRemote() {
-        return new RemoteConfiguration() {
-
-            @Override
-            public boolean isForwardHost() {
-                return super.isForwardHost() || !ViaProxy.getConfig().getWildcardDomainHandling().equals(ViaProxyConfig.WildcardDomainHandling.NONE);
-            }
-
-        };
+        return this.remote;
     }
 
 }
