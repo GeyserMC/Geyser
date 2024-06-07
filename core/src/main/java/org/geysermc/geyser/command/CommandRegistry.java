@@ -52,6 +52,7 @@ import org.geysermc.geyser.command.defaults.VersionCommand;
 import org.geysermc.geyser.event.type.GeyserDefineCommandsEventImpl;
 import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.incendo.cloud.Command.Builder;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 
@@ -69,6 +70,8 @@ import java.util.Map;
  * instance is unsubscribed from the event.
  */
 public class CommandRegistry implements EventRegistrar {
+
+    private static final String GEYSER_ROOT_PERMISSION = "geyser.command";
 
     private final GeyserImpl geyser;
     private final CommandManager<GeyserCommandSource> cloud;
@@ -103,7 +106,7 @@ public class CommandRegistry implements EventRegistrar {
         // begin command registration
         HelpCommand help = new HelpCommand(geyser, "help", "geyser.commands.help.desc", "geyser.command.help", GeyserCommand.DEFAULT_ROOT_COMMAND, this.commands);
         registerBuiltInCommand(help);
-        buildRootCommand(help); // build root and delegate to help
+        buildRootCommand(GEYSER_ROOT_PERMISSION, help); // build root and delegate to help
 
         registerBuiltInCommand(new ListCommand(geyser, "list", "geyser.commands.list.desc", "geyser.command.list"));
         registerBuiltInCommand(new ReloadCommand(geyser, "reload", "geyser.commands.reload.desc", "geyser.command.reload"));
@@ -153,7 +156,7 @@ public class CommandRegistry implements EventRegistrar {
                 entry.getValue()); // commands it provides help for
 
             registerExtensionCommand(extension, extensionHelp);
-            buildRootCommand(extensionHelp);
+            buildRootCommand("geyser.extension." + id + ".command", extensionHelp);
         }
 
         // wait for the right moment (depends on the platform) to register permissions
@@ -197,19 +200,38 @@ public class CommandRegistry implements EventRegistrar {
     /**
      * Registers a root command to cloud that delegates to the given help command.
      * The name of this root command is the root of the given help command.
+     *
+     * @param permission the permission of the root command. currently, it may or may not be
+     *                   applied depending on the platform. see below.
+     * @param help the help command to delegate to
      */
-    private void buildRootCommand(HelpCommand help) {
-        // We do the permission check inside the executor because we don't want to actually
-        // add a permission to the root yet, nor should it be the same as the help command.
-        cloud.command(cloud.commandBuilder(help.rootCommand())
-            .handler(context -> {
-                GeyserCommandSource source = context.sender();
-                if (!source.hasPermission(help.permission())) {
-                    source.sendLocaleString(ExceptionHandlers.PERMISSION_FAIL_LANG_KEY);
-                    return;
-                }
-                help.execute(source);
-            }));
+    private void buildRootCommand(String permission, HelpCommand help) {
+        Builder<GeyserCommandSource> builder = cloud.commandBuilder(help.rootCommand());
+
+        if (applyRootPermission()) {
+            builder = builder.permission(permission);
+            permissionDefaults.put(permission, TriState.TRUE);
+        }
+
+        cloud.command(builder.handler(context -> {
+            GeyserCommandSource source = context.sender();
+            if (!source.hasPermission(help.permission())) {
+                // delegate if possible - otherwise we have nothing else to offer the user.
+                source.sendLocaleString(ExceptionHandlers.PERMISSION_FAIL_LANG_KEY);
+                return;
+            }
+            help.execute(source);
+        }));
+    }
+
+    /**
+     * Returns true if the registry should apply a permission to Geyser and Extension root commands.
+     * This currently exists because we want to retain the root command permission for Spigot, but don't want to add
+     * it yet to platforms like Velocity where we cannot natively specify a permission default. Doing so will
+     * break setups as players would suddenly not have the required permission to execute any Geyser commands.
+     */
+    protected boolean applyRootPermission() {
+        return false;
     }
 
     private void onRegisterPermissions(GeyserRegisterPermissionsEvent event) {
