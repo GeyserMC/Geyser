@@ -1047,6 +1047,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
             @Override
             public void packetReceived(Session session, Packet packet) {
+                System.out.println(packet);
                 Registries.JAVA_PACKET_TRANSLATORS.translate(packet.getClass(), packet, GeyserSession.this);
             }
 

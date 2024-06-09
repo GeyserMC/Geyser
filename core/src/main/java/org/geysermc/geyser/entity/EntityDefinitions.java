@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.entity;
 
+import org.geysermc.geyser.entity.type.AbstractWindChargeEntity;
+import org.geysermc.geyser.entity.factory.EntityFactory;
 import org.geysermc.geyser.entity.type.living.monster.raid.RavagerEntity;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
@@ -64,6 +66,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<BlazeEntity> BLAZE;
     public static final EntityDefinition<BoatEntity> BOAT;
     public static final EntityDefinition<BoggedEntity> BOGGED;
+    public static final EntityDefinition<AbstractWindChargeEntity> BREEZE_WIND_CHARGE;
     public static final EntityDefinition<CamelEntity> CAMEL;
     public static final EntityDefinition<CatEntity> CAT;
     public static final EntityDefinition<SpiderEntity> CAVE_SPIDER;
@@ -166,6 +169,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<VindicatorEntity> VINDICATOR;
     public static final EntityDefinition<AbstractMerchantEntity> WANDERING_TRADER;
     public static final EntityDefinition<WardenEntity> WARDEN;
+    public static final EntityDefinition<AbstractWindChargeEntity> WIND_CHARGE;
     public static final EntityDefinition<RaidParticipantEntity> WITCH;
     public static final EntityDefinition<WitherEntity> WITHER;
     public static final EntityDefinition<AbstractSkeletonEntity> WITHER_SKELETON;
@@ -374,6 +378,18 @@ public final class EntityDefinitions {
             SNOWBALL = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
                     .type(EntityType.SNOWBALL)
                     .heightAndWidth(0.25f)
+                    .build();
+
+            EntityFactory<AbstractWindChargeEntity> windChargeSupplier = AbstractWindChargeEntity::new;
+            BREEZE_WIND_CHARGE = EntityDefinition.inherited(windChargeSupplier, entityBase)
+                    .type(EntityType.BREEZE_WIND_CHARGE)
+                    .identifier("minecraft:breeze_wind_charge_projectile")
+                    .heightAndWidth(0.3125f)
+                    .build();
+            WIND_CHARGE = EntityDefinition.inherited(windChargeSupplier, entityBase)
+                    .type(EntityType.WIND_CHARGE)
+                    .identifier("minecraft:wind_charge_projectile")
+                    .heightAndWidth(0.3125f)
                     .build();
 
             EntityDefinition<AbstractArrowEntity> abstractArrowBase = EntityDefinition.inherited(AbstractArrowEntity::new, entityBase)
