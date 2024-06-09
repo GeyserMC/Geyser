@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
@@ -36,7 +35,7 @@ import java.util.Objects;
 
 public class OffhandCommand extends GeyserCommand {
 
-    public OffhandCommand(GeyserImpl geyser, String name, String description, String permission) {
+    public OffhandCommand(String name, String description, String permission) {
         super(name, description, permission, TriState.TRUE, true, true);
     }
 

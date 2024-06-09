@@ -59,6 +59,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.geysermc.geyser.command.GeyserCommand.DEFAULT_ROOT_COMMAND;
+
 /**
  * Registers all built-in and extension commands to the given Cloud CommandManager.
  * <p>
@@ -78,12 +80,12 @@ public class CommandRegistry implements EventRegistrar {
     /**
      * Map of Geyser subcommands to their Commands
      */
-    private final Map<String, Command> commands = new Object2ObjectOpenHashMap<>(13);
+    private final Map<String, GeyserCommand> commands = new Object2ObjectOpenHashMap<>(13);
 
     /**
      * Map of Extensions to maps of their subcommands
      */
-    private final Map<Extension, Map<String, Command>> extensionCommands = new Object2ObjectOpenHashMap<>(0);
+    private final Map<Extension, Map<String, GeyserCommand>> extensionCommands = new Object2ObjectOpenHashMap<>(0);
 
     /**
      * Map of root commands (that are for extensions) to Extensions
@@ -103,17 +105,17 @@ public class CommandRegistry implements EventRegistrar {
         ExceptionHandlers.register(cloud);
 
         // begin command registration
-        HelpCommand help = new HelpCommand(geyser, "help", "geyser.commands.help.desc", "geyser.command.help", GeyserCommand.DEFAULT_ROOT_COMMAND, this.commands);
+        HelpCommand help = new HelpCommand(DEFAULT_ROOT_COMMAND, "help", "geyser.commands.help.desc", "geyser.command.help", this.commands);
         registerBuiltInCommand(help);
         buildRootCommand(GEYSER_ROOT_PERMISSION, help); // build root and delegate to help
 
         registerBuiltInCommand(new ListCommand(geyser, "list", "geyser.commands.list.desc", "geyser.command.list"));
         registerBuiltInCommand(new ReloadCommand(geyser, "reload", "geyser.commands.reload.desc", "geyser.command.reload"));
-        registerBuiltInCommand(new OffhandCommand(geyser, "offhand", "geyser.commands.offhand.desc", "geyser.command.offhand"));
+        registerBuiltInCommand(new OffhandCommand("offhand", "geyser.commands.offhand.desc", "geyser.command.offhand"));
         registerBuiltInCommand(new DumpCommand(geyser, "dump", "geyser.commands.dump.desc", "geyser.command.dump"));
         registerBuiltInCommand(new VersionCommand(geyser, "version", "geyser.commands.version.desc", "geyser.command.version"));
-        registerBuiltInCommand(new SettingsCommand(geyser, "settings", "geyser.commands.settings.desc", "geyser.command.settings"));
-        registerBuiltInCommand(new StatisticsCommand(geyser, "statistics", "geyser.commands.statistics.desc", "geyser.command.statistics"));
+        registerBuiltInCommand(new SettingsCommand( "settings", "geyser.commands.settings.desc", "geyser.command.settings"));
+        registerBuiltInCommand(new StatisticsCommand("statistics", "geyser.commands.statistics.desc", "geyser.command.statistics"));
         registerBuiltInCommand(new AdvancementsCommand("advancements", "geyser.commands.advancements.desc", "geyser.command.advancements"));
         registerBuiltInCommand(new AdvancedTooltipsCommand("tooltips", "geyser.commands.advancedtooltips.desc", "geyser.command.tooltips"));
         registerBuiltInCommand(new ConnectionTestCommand(geyser, "connectiontest", "geyser.commands.connectiontest.desc", "geyser.command.connectiontest"));
@@ -138,7 +140,7 @@ public class CommandRegistry implements EventRegistrar {
         };
         this.geyser.eventBus().fire(defineCommandsEvent);
 
-        for (Map.Entry<Extension, Map<String, Command>> entry : this.extensionCommands.entrySet()) {
+        for (Map.Entry<Extension, Map<String, GeyserCommand>> entry : this.extensionCommands.entrySet()) {
             Extension extension = entry.getKey();
 
             // Register this extension's root command
@@ -147,11 +149,10 @@ public class CommandRegistry implements EventRegistrar {
             // Register help commands for all extensions with commands
             String id = extension.description().id();
             HelpCommand extensionHelp = new HelpCommand(
-                this.geyser,
+                extension.rootCommand(),
                 "help",
                 "geyser.commands.exthelp.desc",
                 "geyser.command.exthelp." + id,
-                extension.rootCommand(),
                 entry.getValue()); // commands it provides help for
 
             registerExtensionCommand(extension, extensionHelp);
@@ -181,7 +182,7 @@ public class CommandRegistry implements EventRegistrar {
         register(command, this.extensionCommands.computeIfAbsent(extension, e -> new HashMap<>()));
     }
 
-    private void register(GeyserCommand command, Map<String, Command> commands) {
+    private void register(GeyserCommand command, Map<String, GeyserCommand> commands) {
         command.register(cloud);
 
         commands.put(command.name(), command);
@@ -252,7 +253,7 @@ public class CommandRegistry implements EventRegistrar {
      */
     @NonNull
     public String description(@NonNull String command, @NonNull String locale) {
-        if (command.equals(GeyserCommand.DEFAULT_ROOT_COMMAND)) {
+        if (command.equals(DEFAULT_ROOT_COMMAND)) {
             return GeyserLocale.getPlayerLocaleString("geyser.command.root.geyser", locale);
         }
 

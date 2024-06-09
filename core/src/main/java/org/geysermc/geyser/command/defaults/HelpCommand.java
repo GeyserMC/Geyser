@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
@@ -41,10 +40,9 @@ import java.util.Map;
 
 public class HelpCommand extends GeyserCommand {
     private final String rootCommand;
-    private final Collection<Command> commands;
+    private final Collection<GeyserCommand> commands;
 
-    public HelpCommand(GeyserImpl geyser, String name, String description, String permission,
-                       String rootCommand, Map<String, Command> commands) {
+    public HelpCommand(String rootCommand, String name, String description, String permission, Map<String, GeyserCommand> commands) {
         super(name, description, permission, TriState.TRUE);
         this.rootCommand = rootCommand;
         this.commands = commands.values();
@@ -67,7 +65,7 @@ public class HelpCommand extends GeyserCommand {
         // todo: pagination
         int page = 1;
         int maxPage = 1;
-        String translationKey = this.rootCommand.equals(GeyserCommand.DEFAULT_ROOT_COMMAND) ? "geyser.commands.help.header" : "geyser.commands.extensions.header";
+        String translationKey = this.rootCommand.equals(DEFAULT_ROOT_COMMAND) ? "geyser.commands.help.header" : "geyser.commands.extensions.header";
         String header = GeyserLocale.getPlayerLocaleString(translationKey, source.locale(), page, maxPage);
         source.sendMessage(header);
 
@@ -76,7 +74,7 @@ public class HelpCommand extends GeyserCommand {
             .filter(cmd -> !cmd.isBedrockOnly() || bedrockPlayer) // remove bedrock only commands if not a bedrock player
             .filter(cmd -> source.hasPermission(cmd.permission()))
             .sorted(Comparator.comparing(Command::name))
-            .forEach(cmd -> {
+            .forEachOrdered(cmd -> {
                 String description = GeyserLocale.getPlayerLocaleString(cmd.description(), source.locale());
                 source.sendMessage(ChatColor.YELLOW + "/" + rootCommand + " " + cmd.name() + ChatColor.WHITE + ": " + description);
             });

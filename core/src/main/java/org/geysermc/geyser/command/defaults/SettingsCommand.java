@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
@@ -37,7 +36,7 @@ import java.util.Objects;
 
 public class SettingsCommand extends GeyserCommand {
 
-    public SettingsCommand(GeyserImpl geyser, String name, String description, String permission) {
+    public SettingsCommand(String name, String description, String permission) {
         super(name, description, permission, TriState.TRUE, true, true);
     }
 
