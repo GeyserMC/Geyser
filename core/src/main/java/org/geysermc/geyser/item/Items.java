@@ -30,8 +30,6 @@ import org.geysermc.geyser.item.type.*;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.registry.Registries;
 
-import java.util.Collections;
-
 import static org.geysermc.geyser.item.type.Item.builder;
 
 /**
@@ -1381,11 +1379,7 @@ public final class Items {
 
     public static <T extends Item> T register(T item, int id) {
         item.setJavaId(id);
-        // This makes sure that the array is large enough to put the java item at the correct location
-        if (Registries.JAVA_ITEMS.get().size() <= id) {
-            Registries.JAVA_ITEMS.get().addAll(Collections.nCopies(id - Registries.JAVA_ITEMS.get().size() + 1, AIR));
-        }
-        Registries.JAVA_ITEMS.get().set(id, item);
+        Registries.JAVA_ITEMS.registerWithAnyIndex(id, item, AIR);
         Registries.JAVA_ITEM_IDENTIFIERS.register(item.javaIdentifier(), item);
         return item;
     }
