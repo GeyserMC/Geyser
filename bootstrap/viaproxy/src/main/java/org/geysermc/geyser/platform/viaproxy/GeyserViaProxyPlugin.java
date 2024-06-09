@@ -77,7 +77,6 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
         this.onGeyserInitialize();
 
         ViaProxy.EVENT_MANAGER.register(this);
-        GeyserImpl.getInstance().eventBus().register(this, new GeyserServerTransferListener());
     }
 
     @Override
@@ -123,6 +122,7 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
         }
 
         this.geyser = GeyserImpl.load(PlatformType.VIAPROXY, this);
+        GeyserImpl.getInstance().eventBus().register(this, new GeyserServerTransferListener());
         LoopbackUtil.checkAndApplyLoopback(this.logger);
     }
 
