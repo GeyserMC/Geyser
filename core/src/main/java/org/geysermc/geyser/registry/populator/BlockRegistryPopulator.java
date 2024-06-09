@@ -213,7 +213,6 @@ public final class BlockRegistryPopulator {
             GeyserBedrockBlock[] javaToBedrockBlocks = new GeyserBedrockBlock[JAVA_BLOCKS_SIZE];
             GeyserBedrockBlock[] javaToVanillaBedrockBlocks = new GeyserBedrockBlock[JAVA_BLOCKS_SIZE];
 
-            //List<String> javaToBedrockIdentifiers = new ArrayList<>(BlockRegistries.JAVA_BLOCKS.get().size());
             var javaToBedrockIdentifiers = new Int2ObjectOpenHashMap<String>();
             Block lastBlockSeen = null;
 
@@ -456,7 +455,7 @@ public final class BlockRegistryPopulator {
                 };
                 block.setJavaId(javaBlockState.stateGroupId());
 
-                BlockRegistries.JAVA_BLOCKS.get().add(javaBlockState.stateGroupId(), block); //TODO don't allow duplicates, allow blanks
+                BlockRegistries.JAVA_BLOCKS.registerWithAnyIndex(javaBlockState.stateGroupId(), block, Blocks.AIR);
                 BlockRegistries.JAVA_IDENTIFIER_TO_ID.register(javaId, stateRuntimeId);
                 BlockRegistries.BLOCK_STATES.register(stateRuntimeId, new BlockState(block, stateRuntimeId));
             }

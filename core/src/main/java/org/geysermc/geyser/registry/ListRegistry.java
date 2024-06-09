@@ -29,6 +29,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.registry.loader.RegistryLoader;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -90,6 +91,25 @@ public class ListRegistry<M> extends Registry<List<M>> {
     public M register(int index, M value) {
         if (this.frozen) {
             throw new IllegalStateException("Registry should not be modified after frozen!");
+        }
+        return this.mappings.set(index, value);
+    }
+
+    /**
+     * Registers a new value into this registry with the given index, even if this value would normally be outside
+     * the range of a list.
+     *
+     * @param index the index
+     * @param value the value
+     * @param defaultValue the default value to fill empty spaces in the registry with.
+     * @return a new value into this registry with the given index.
+     */
+    public M registerWithAnyIndex(int index, M value, M defaultValue) {
+        if (this.frozen) {
+            throw new IllegalStateException("Registry should not be modified after frozen!");
+        }
+        if (this.mappings.size() <= index) {
+            this.mappings.addAll(Collections.nCopies(index - this.mappings.size() + 1, defaultValue));
         }
         return this.mappings.set(index, value);
     }
