@@ -27,7 +27,6 @@ package org.geysermc.geyser.command;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.event.EventRegistrar;
@@ -238,11 +237,6 @@ public class CommandRegistry implements EventRegistrar {
         for (Map.Entry<String, TriState> permission : permissionDefaults.entrySet()) {
             event.register(permission.getKey(), permission.getValue());
         }
-
-        // Register other various Geyser permissions
-        event.register(Constants.UPDATE_PERMISSION, TriState.NOT_SET);
-        event.register(Constants.SERVER_SETTINGS_PERMISSION, TriState.NOT_SET);
-        event.register(Constants.SETTINGS_GAMERULES_PERMISSION, TriState.NOT_SET);
     }
 
     public boolean hasPermission(GeyserCommandSource source, String permission) {

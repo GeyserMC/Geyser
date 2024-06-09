@@ -104,7 +104,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Getter
-public class GeyserImpl implements GeyserApi {
+public class GeyserImpl implements GeyserApi, EventRegistrar {
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper()
             .enable(JsonParser.Feature.IGNORE_UNDEFINED)
             .enable(JsonParser.Feature.ALLOW_COMMENTS)
@@ -232,6 +232,9 @@ public class GeyserImpl implements GeyserApi {
 
             CompletableFuture.runAsync(AssetUtils::downloadAndRunClientJarTasks);
         });
+
+        // Register our general permissions when possible
+        eventBus.subscribe(this, GeyserRegisterPermissionsEvent.class, Permissions::register);
 
         startInstance();
 

@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
 import org.cloudburstmc.protocol.bedrock.packet.SetPlayerGameTypePacket;
-import org.geysermc.geyser.Constants;
+import org.geysermc.geyser.Permissions;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -46,7 +46,7 @@ public class BedrockSetPlayerGameTypeTranslator extends PacketTranslator<SetPlay
     @Override
     public void translate(GeyserSession session, SetPlayerGameTypePacket packet) {
         // yes, if you are OP
-        if (session.getOpPermissionLevel() >= 2 && session.hasPermission(Constants.SERVER_SETTINGS_PERMISSION)) {
+        if (session.getOpPermissionLevel() >= 2 && session.hasPermission(Permissions.SERVER_SETTINGS)) {
             if (packet.getGamemode() != session.getGameMode().ordinal()) {
                 // Bedrock has more Gamemodes than Java, leading to cases 5 (for "default") and 6 (for "spectator") being sent
                 // https://github.com/CloudburstMC/Protocol/blob/3.0/bedrock-codec/src/main/java/org/cloudburstmc/protocol/bedrock/data/GameType.java

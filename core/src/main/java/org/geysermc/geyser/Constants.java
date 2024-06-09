@@ -35,11 +35,7 @@ public final class Constants {
     public static final String NEWS_PROJECT_NAME = "geyser";
 
     public static final String FLOODGATE_DOWNLOAD_LOCATION = "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/";
-
     public static final String GEYSER_DOWNLOAD_LOCATION = "https://geysermc.org/download";
-    public static final String UPDATE_PERMISSION = "geyser.update";
-    public static final String SERVER_SETTINGS_PERMISSION = "geyser.settings.server";
-    public static final String SETTINGS_GAMERULES_PERMISSION = "geyser.settings.gamerules";
 
     static final String SAVED_REFRESH_TOKEN_FILE = "saved-refresh-tokens.json";
 

@@ -26,14 +26,14 @@
 package org.geysermc.geyser.platform.mod;
 
 import net.minecraft.world.entity.player.Player;
-import org.geysermc.geyser.Constants;
+import org.geysermc.geyser.Permissions;
 import org.geysermc.geyser.platform.mod.command.ModCommandSource;
 import org.geysermc.geyser.util.VersionCheckUtils;
 
 public final class GeyserModUpdateListener {
     public static void onPlayReady(Player player) {
         ModCommandSource source = new ModCommandSource(player.createCommandSourceStack());
-        if (source.hasPermission(Constants.UPDATE_PERMISSION)) {
+        if (source.hasPermission(Permissions.CHECK_UPDATE)) {
             VersionCheckUtils.checkForGeyserUpdate(() -> source);
         }
     }

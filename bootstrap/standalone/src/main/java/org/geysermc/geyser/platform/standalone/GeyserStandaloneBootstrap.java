@@ -70,6 +70,7 @@ import java.util.stream.Collectors;
 
 public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
+    private StandaloneCloudCommandManager cloud;
     private CommandRegistry commandRegistry;
     private GeyserStandaloneConfiguration geyserConfig;
     private final GeyserStandaloneLogger geyserLogger = new GeyserStandaloneLogger();
@@ -223,14 +224,21 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
         geyser = GeyserImpl.load(PlatformType.STANDALONE, this);
 
-        if (!geyser.isReloading()) {
-            // fire GeyserDefineCommandsEvent after PreInitEvent, before PostInitEvent, for consistency with other bootstraps
-            StandaloneCloudCommandManager cloud = new StandaloneCloudCommandManager(geyser);
+        boolean reloading = geyser.isReloading();
+        if (!reloading) {
+            // Currently there would be no significant benefit of re-initializing commands. Also, we would have to unsubscribe CommandRegistry.
+            // Fire GeyserDefineCommandsEvent after PreInitEvent, before PostInitEvent, for consistency with other bootstraps.
+            cloud = new StandaloneCloudCommandManager(geyser);
             commandRegistry = new CommandRegistry(geyser, cloud);
-            cloud.fireRegisterPermissionsEvent(); // event must be fired after CommandRegistry has subscribed its listener
         }
 
         GeyserImpl.start();
+
+        if (!reloading) {
+            // Event must be fired after CommandRegistry has subscribed its listener.
+            // Also, the subscription for the Permissions class is created when Geyser is initialized.
+            cloud.fireRegisterPermissionsEvent();
+        }
 
         if (gui != null) {
             gui.enableCommands(geyser.getScheduledThread(), commandRegistry);
