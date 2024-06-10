@@ -68,7 +68,6 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
 
             // Prioritize level events because it makes parrots dance.
             SoundMapping mapping = Registries.SOUNDS.get(jukeboxSong.soundEvent().replace("minecraft:", ""));
-            System.out.println(jukeboxSong.soundEvent() + " " + mapping);
             SoundEvent soundEvent = null;
             if (mapping != null) {
                 String bedrock = mapping.getBedrock();

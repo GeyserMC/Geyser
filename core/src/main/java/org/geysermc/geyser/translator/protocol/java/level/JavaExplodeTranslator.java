@@ -74,7 +74,7 @@ public class JavaExplodeTranslator extends PacketTranslator<ClientboundExplodePa
             // Not sure if the packet does anything - sending it just in case, because BDS still sends it.
             // TODO move out of packet translator class
             Particle particle;
-            if (!(packet.getRadius() < 2f) && packet.getBlockInteraction() == ExplosionInteraction.KEEP) {
+            if (!(packet.getRadius() < 2f) && packet.getBlockInteraction() != ExplosionInteraction.KEEP) {
                 particle = packet.getLargeExplosionParticles();
             } else {
                 particle = packet.getSmallExplosionParticles();

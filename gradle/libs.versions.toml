@@ -13,7 +13,7 @@ websocket = "1.5.1"
 protocol = "3.0.0.Beta2-20240606.172607-7"
 raknet = "1.0.0.CR3-20240416.144209-1"
 mcauthlib = "e5b0bcc"
-mcprotocollib = "1.21-SNAPSHOT"
+mcprotocollib = "784e91c"
 adventure = "4.14.0"
 adventure-platform = "4.3.0"
 junit = "5.9.2"
@@ -107,7 +107,7 @@ guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 junit = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
 mcauthlib = { group = "com.github.GeyserMC", name = "MCAuthLib", version.ref = "mcauthlib" }
-mcprotocollib = { group = "org.geysermc.mcprotocollib", name = "protocol", version.ref = "mcprotocollib" }
+mcprotocollib = { group = "com.github.GeyserMC", name = "mcprotocollib", version.ref = "mcprotocollib" }
 raknet = { group = "org.cloudburstmc.netty", name = "netty-transport-raknet", version.ref = "raknet" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }
 velocity-api = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }
