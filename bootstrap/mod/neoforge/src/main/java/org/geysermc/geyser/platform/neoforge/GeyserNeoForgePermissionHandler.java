@@ -33,11 +33,16 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.platform.neoforge.mixin.PermissionNodeMixin;
 
+import java.util.Objects;
+
 public class GeyserNeoForgePermissionHandler {
 
     public void onPermissionGather(PermissionGatherEvent.Nodes event) {
         GeyserImpl.getInstance().eventBus().fire(
             (GeyserRegisterPermissionsEvent) (permission, defaultValue) -> {
+                Objects.requireNonNull(permission, "permission");
+                Objects.requireNonNull(defaultValue, "permission default for " + permission);
+
                 if (permission.isBlank()) {
                     return;
                 }

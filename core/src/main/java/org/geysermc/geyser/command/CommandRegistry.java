@@ -115,7 +115,7 @@ public class CommandRegistry implements EventRegistrar {
         registerBuiltInCommand(new OffhandCommand("offhand", "geyser.commands.offhand.desc", "geyser.command.offhand"));
         registerBuiltInCommand(new DumpCommand(geyser, "dump", "geyser.commands.dump.desc", "geyser.command.dump"));
         registerBuiltInCommand(new VersionCommand(geyser, "version", "geyser.commands.version.desc", "geyser.command.version"));
-        registerBuiltInCommand(new SettingsCommand( "settings", "geyser.commands.settings.desc", "geyser.command.settings"));
+        registerBuiltInCommand(new SettingsCommand("settings", "geyser.commands.settings.desc", "geyser.command.settings"));
         registerBuiltInCommand(new StatisticsCommand("statistics", "geyser.commands.statistics.desc", "geyser.command.statistics"));
         registerBuiltInCommand(new AdvancementsCommand("advancements", "geyser.commands.advancements.desc", "geyser.command.advancements"));
         registerBuiltInCommand(new AdvancedTooltipsCommand("tooltips", "geyser.commands.advancedtooltips.desc", "geyser.command.tooltips"));
@@ -141,6 +141,7 @@ public class CommandRegistry implements EventRegistrar {
         };
         this.geyser.eventBus().fire(defineCommandsEvent);
 
+        // Stuff that needs to be done on a per-extension basis
         for (Map.Entry<Extension, Map<String, GeyserCommand>> entry : this.extensionCommands.entrySet()) {
             Extension extension = entry.getKey();
 
@@ -161,7 +162,7 @@ public class CommandRegistry implements EventRegistrar {
         }
 
         // Wait for the right moment (depends on the platform) to register permissions.
-        // Listen late so that extensions can register permissions before this class does
+        // Listen late so that it's easier for extensions to register permissions before this class does
         geyser.eventBus().subscribe(this, GeyserRegisterPermissionsEvent.class, this::onRegisterPermissions, PostOrder.LATE);
     }
 
@@ -185,10 +186,15 @@ public class CommandRegistry implements EventRegistrar {
     }
 
     protected void register(GeyserCommand command, Map<String, GeyserCommand> commands) {
-        command.register(cloud);
+        String root = command.rootCommand();
+        String name = command.name();
+        if (commands.containsKey(name)) {
+            throw new IllegalArgumentException("Command with root=%s, name=%s already registered".formatted(root, name));
+        }
 
-        commands.put(command.name(), command);
-        geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.commands.registered", command.name()));
+        command.register(cloud);
+        commands.put(name, command);
+        geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.commands.registered", root + " " + name));
 
         for (String alias : command.aliases()) {
             commands.put(alias, command);

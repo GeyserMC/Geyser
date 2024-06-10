@@ -42,6 +42,7 @@ import org.incendo.cloud.internal.CommandRegistrationHandler;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class StandaloneCloudCommandManager extends CommandManager<GeyserCommandSource> {
@@ -84,6 +85,9 @@ public class StandaloneCloudCommandManager extends CommandManager<GeyserCommandS
      */
     public void fireRegisterPermissionsEvent() {
         geyser.getEventBus().fire((GeyserRegisterPermissionsEvent) (permission, def) -> {
+            Objects.requireNonNull(permission, "permission");
+            Objects.requireNonNull(def, "permission default for " + permission);
+
             if (permission.isBlank()) {
                 return;
             }
