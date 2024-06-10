@@ -27,6 +27,7 @@ package org.geysermc.geyser.command;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.event.PostOrder;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.event.EventRegistrar;
@@ -74,7 +75,7 @@ public class CommandRegistry implements EventRegistrar {
 
     private static final String GEYSER_ROOT_PERMISSION = "geyser.command";
 
-    private final GeyserImpl geyser;
+    protected final GeyserImpl geyser;
     private final CommandManager<GeyserCommandSource> cloud;
 
     /**
@@ -95,7 +96,7 @@ public class CommandRegistry implements EventRegistrar {
     /**
      * Map containing only permissions that have been registered with a default value
      */
-    private final Map<String, TriState> permissionDefaults = new Object2ObjectOpenHashMap<>(13);
+    protected final Map<String, TriState> permissionDefaults = new Object2ObjectOpenHashMap<>(13);
 
     public CommandRegistry(GeyserImpl geyser, CommandManager<GeyserCommandSource> cloud) {
         this.geyser = geyser;
@@ -159,8 +160,9 @@ public class CommandRegistry implements EventRegistrar {
             buildRootCommand("geyser.extension." + id + ".command", extensionHelp);
         }
 
-        // wait for the right moment (depends on the platform) to register permissions
-        geyser.eventBus().subscribe(this, GeyserRegisterPermissionsEvent.class, this::onRegisterPermissions);
+        // Wait for the right moment (depends on the platform) to register permissions.
+        // Listen late so that extensions can register permissions before this class does
+        geyser.eventBus().subscribe(this, GeyserRegisterPermissionsEvent.class, this::onRegisterPermissions, PostOrder.LATE);
     }
 
     /**
@@ -182,7 +184,7 @@ public class CommandRegistry implements EventRegistrar {
         register(command, this.extensionCommands.computeIfAbsent(extension, e -> new HashMap<>()));
     }
 
-    private void register(GeyserCommand command, Map<String, GeyserCommand> commands) {
+    protected void register(GeyserCommand command, Map<String, GeyserCommand> commands) {
         command.register(cloud);
 
         commands.put(command.name(), command);
@@ -192,8 +194,17 @@ public class CommandRegistry implements EventRegistrar {
             commands.put(alias, command);
         }
 
-        if (!command.permission().isBlank() && command.permissionDefault() != null) {
-            permissionDefaults.put(command.permission(), command.permissionDefault());
+        String permission = command.permission();
+        TriState defaultValue = command.permissionDefault();
+        if (!permission.isBlank() && defaultValue != null) {
+
+            TriState existingDefault = permissionDefaults.get(permission);
+            // Extensions might be using the same permission for two different commands
+            if (existingDefault != null && existingDefault != defaultValue) {
+                geyser.getLogger().debug("Overriding permission default %s:%s with %s".formatted(permission, existingDefault, defaultValue));
+            }
+
+            permissionDefaults.put(permission, defaultValue);
         }
     }
 
@@ -234,7 +245,7 @@ public class CommandRegistry implements EventRegistrar {
         return false;
     }
 
-    private void onRegisterPermissions(GeyserRegisterPermissionsEvent event) {
+    protected void onRegisterPermissions(GeyserRegisterPermissionsEvent event) {
         for (Map.Entry<String, TriState> permission : permissionDefaults.entrySet()) {
             event.register(permission.getKey(), permission.getValue());
         }

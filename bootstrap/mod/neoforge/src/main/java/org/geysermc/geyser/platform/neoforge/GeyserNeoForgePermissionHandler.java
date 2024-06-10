@@ -46,12 +46,11 @@ public class GeyserNeoForgePermissionHandler {
         );
     }
 
-    private void registerNode(String node, TriState permissionDefault, PermissionGatherEvent.Nodes event) {
-        PermissionNode<Boolean> permissionNode = createNode(node, permissionDefault);
-
+    private void registerNode(String permission, TriState permissionDefault, PermissionGatherEvent.Nodes event) {
         // NeoForge likes to crash if you try and register a duplicate node
-        if (event.getNodes().stream().noneMatch(eventNode -> eventNode.getNodeName().equals(node))) {
-            event.addNodes(permissionNode);
+        if (event.getNodes().stream().noneMatch(n -> n.getNodeName().equals(permission))) {
+            PermissionNode<Boolean> node = createNode(permission, permissionDefault);
+            event.addNodes(node);
         }
     }
 
