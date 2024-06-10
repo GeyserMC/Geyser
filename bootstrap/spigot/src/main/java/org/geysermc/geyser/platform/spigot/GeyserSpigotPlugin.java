@@ -68,7 +68,7 @@ import org.geysermc.geyser.util.FileUtils;
 import org.incendo.cloud.bukkit.BukkitCommandManager;
 import org.incendo.cloud.bukkit.CloudBukkitCapabilities;
 import org.incendo.cloud.execution.ExecutionCoordinator;
-import org.incendo.cloud.paper.PaperCommandManager;
+import org.incendo.cloud.paper.LegacyPaperCommandManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -170,11 +170,10 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                 Bukkit::getConsoleSender,
                 SpigotCommandSource::new
         );
-        PaperCommandManager<GeyserCommandSource> cloud;
+        LegacyPaperCommandManager<GeyserCommandSource> cloud;
         try {
-            // PaperCommandManager is a cloud impl for all Bukkit based platforms
-            // https://github.com/Incendo/cloud-minecraft/blob/master/cloud-paper/src/main/java/org/incendo/cloud/paper/PaperCommandManager.java#L47-L49
-            cloud = new PaperCommandManager<>(
+            // LegacyPaperCommandManager works for spigot too. todo: use PaperCommandManager instead for Paper 1.20.6+
+            cloud = new LegacyPaperCommandManager<>(
                     this,
                     ExecutionCoordinator.simpleCoordinator(),
                     sourceConverter

@@ -188,8 +188,6 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
 
                 @Override
                 public void register(CommandManager<GeyserCommandSource> manager) {
-                    // todo: if we don't find a way to expose cloud in the api, we should implement a way
-                    //  to not have the [args] if its not necessary for this command. and maybe tab completion.
                     manager.command(baseBuilder(manager)
                         .optional("args", greedyStringParser())
                         .handler(this::execute));
