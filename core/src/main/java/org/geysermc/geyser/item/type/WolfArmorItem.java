@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,8 +31,8 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
-public class DyeableArmorItem extends ArmorItem {
-    public DyeableArmorItem(String javaIdentifier, ArmorMaterial material, Builder builder) {
+public class WolfArmorItem extends ArmorItem {
+    public WolfArmorItem(String javaIdentifier, ArmorMaterial material, Builder builder) {
         super(javaIdentifier, material, builder);
     }
 
@@ -40,8 +40,7 @@ public class DyeableArmorItem extends ArmorItem {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, builder);
 
-        // Note that this is handled as of 1.20.5 in the ItemColors class.
-        // But horse leather armor and body leather armor are now both armor items. So it works!
+        // Note that this is handled as of 1.21 in the ItemColors class.
         translateDyedColor(components, builder);
     }
 }

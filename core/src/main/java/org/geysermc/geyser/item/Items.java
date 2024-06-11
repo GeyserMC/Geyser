@@ -834,7 +834,7 @@ public final class Items {
     public static final Item TURTLE_HELMET = register(new ArmorItem("turtle_helmet", ArmorMaterial.TURTLE, builder().stackSize(1).maxDamage(275)));
     public static final Item TURTLE_SCUTE = register(new Item("turtle_scute", builder()));
     public static final Item ARMADILLO_SCUTE = register(new Item("armadillo_scute", builder()));
-    public static final Item WOLF_ARMOR = register(new ArmorItem("wolf_armor", ArmorMaterial.ARMADILLO, builder().stackSize(1).maxDamage(64)));
+    public static final Item WOLF_ARMOR = register(new WolfArmorItem("wolf_armor", ArmorMaterial.ARMADILLO, builder().stackSize(1).maxDamage(64)));
     public static final Item FLINT_AND_STEEL = register(new Item("flint_and_steel", builder().stackSize(1).maxDamage(64)));
     public static final Item BOWL = register(new Item("bowl", builder()));
     public static final Item APPLE = register(new Item("apple", builder()));
@@ -1042,7 +1042,7 @@ public final class Items {
     public static final Item BLAZE_POWDER = register(new Item("blaze_powder", builder()));
     public static final Item MAGMA_CREAM = register(new Item("magma_cream", builder()));
     public static final Item BREWING_STAND = register(new BlockItem(builder(), Blocks.BREWING_STAND));
-    public static final Item CAULDRON = register(new BlockItem(builder(), Blocks.CAULDRON, Blocks.LAVA_CAULDRON, Blocks.WATER_CAULDRON, Blocks.POWDER_SNOW_CAULDRON));
+    public static final Item CAULDRON = register(new BlockItem(builder(), Blocks.CAULDRON, Blocks.WATER_CAULDRON, Blocks.LAVA_CAULDRON, Blocks.POWDER_SNOW_CAULDRON));
     public static final Item ENDER_EYE = register(new Item("ender_eye", builder()));
     public static final Item GLISTERING_MELON_SLICE = register(new Item("glistering_melon_slice", builder()));
     public static final Item ARMADILLO_SPAWN_EGG = register(new SpawnEggItem("armadillo_spawn_egg", builder()));

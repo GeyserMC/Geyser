@@ -34,6 +34,7 @@ import org.geysermc.geyser.item.enchantment.EnchantmentComponent;
 import org.geysermc.geyser.item.type.FishingRodItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
@@ -65,7 +66,11 @@ public final class ItemUtils {
         return 0;
     }
 
-    public static boolean hasEffect(GeyserSession session, @Nullable DataComponents components, EnchantmentComponent component) {
+    public static boolean hasEffect(GeyserSession session, @Nullable ItemStack itemStack, EnchantmentComponent component) {
+        if (itemStack == null) {
+            return false;
+        }
+        DataComponents components = itemStack.getDataComponents();
         if (components == null) {
             return false;
         }

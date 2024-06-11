@@ -123,7 +123,7 @@ public class WolfEntity extends TameableEntity {
     @Override
     public void setChestplate(ItemStack stack) {
         super.setChestplate(stack);
-        isCurseOfBinding = ItemUtils.hasEffect(session, stack.getDataComponents(), EnchantmentComponent.PREVENT_ARMOR_CHANGE); // TODO test
+        isCurseOfBinding = ItemUtils.hasEffect(session, stack, EnchantmentComponent.PREVENT_ARMOR_CHANGE); // TODO test
     }
 
     @Override
