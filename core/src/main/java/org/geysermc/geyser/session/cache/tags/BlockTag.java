@@ -42,6 +42,7 @@ public final class BlockTag implements Ordered {
     public static final BlockTag BUTTONS = new BlockTag("buttons");
     public static final BlockTag WOOL_CARPETS = new BlockTag("wool_carpets");
     public static final BlockTag WOODEN_DOORS = new BlockTag("wooden_doors");
+    public static final BlockTag MOB_INTERACTABLE_DOORS = new BlockTag("mob_interactable_doors");
     public static final BlockTag WOODEN_STAIRS = new BlockTag("wooden_stairs");
     public static final BlockTag WOODEN_SLABS = new BlockTag("wooden_slabs");
     public static final BlockTag WOODEN_FENCES = new BlockTag("wooden_fences");
