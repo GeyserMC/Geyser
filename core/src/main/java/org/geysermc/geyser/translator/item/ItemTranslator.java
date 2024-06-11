@@ -137,8 +137,10 @@ public final class ItemTranslator {
     private static ItemData.@NonNull Builder translateToBedrock(GeyserSession session, Item javaItem, ItemMapping bedrockItem, int count, @Nullable DataComponents components) {
         BedrockItemBuilder nbtBuilder = new BedrockItemBuilder();
 
+        boolean hideTooltips = false;
         if (components != null) {
             javaItem.translateComponentsToBedrock(session, components, nbtBuilder);
+            if (components.get(DataComponentType.HIDE_TOOLTIP) != null) hideTooltips = true;
         }
 
         String customName = getCustomName(session, components, bedrockItem);
@@ -148,13 +150,13 @@ public final class ItemTranslator {
 
         if (components != null) {
             ItemAttributeModifiers attributeModifiers = components.get(DataComponentType.ATTRIBUTE_MODIFIERS);
-            if (attributeModifiers != null && attributeModifiers.isShowInTooltip()) {
+            if (attributeModifiers != null && attributeModifiers.isShowInTooltip() && !hideTooltips) {
                 // only add if attribute modifiers do not indicate to hide them
                 addAttributeLore(attributeModifiers, nbtBuilder, session.locale());
             }
         }
 
-        if (session.isAdvancedTooltips()) {
+        if (session.isAdvancedTooltips() && !hideTooltips) {
             addAdvancedTooltips(components, nbtBuilder, javaItem, session.locale());
         }
 

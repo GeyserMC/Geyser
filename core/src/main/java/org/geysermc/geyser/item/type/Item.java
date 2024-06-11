@@ -123,7 +123,7 @@ public class Item {
      */
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
         List<Component> loreComponents = components.get(DataComponentType.LORE);
-        if (loreComponents != null) {
+        if (loreComponents != null && components.get(DataComponentType.HIDE_TOOLTIP) == null) {
             List<String> lore = builder.getOrCreateLore();
             for (Component loreComponent : loreComponents) {
                 lore.add(MessageTranslator.convertMessage(loreComponent, session.locale()));
