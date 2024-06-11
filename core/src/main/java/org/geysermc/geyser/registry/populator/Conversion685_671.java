@@ -51,16 +51,16 @@ public class Conversion685_671 {
 
         if (NEW_CORAL_BLOCKS.contains(identifer)) {
             switch (identifer) {
-                case "minecraft:tube_coral_block" -> { return mapping.withBedrockIdentifier("minecraft:red_flower").withBedrockData(0); }
-                case "minecraft:brain_coral_block" -> { return mapping.withBedrockIdentifier("minecraft:red_flower").withBedrockData(1); }
-                case "minecraft:bubble_coral_block" -> { return mapping.withBedrockIdentifier("minecraft:red_flower").withBedrockData(2); }
-                case "minecraft:fire_coral_block" -> { return mapping.withBedrockIdentifier("minecraft:red_flower").withBedrockData(3); }
-                case "minecraft:horn_coral_block" -> { return mapping.withBedrockIdentifier("minecraft:red_flower").withBedrockData(4); }
-                case "minecraft:dead_tube_coral_block" -> { return mapping.withBedrockIdentifier("minecraft:red_flower").withBedrockData(8); }
-                case "minecraft:dead_brain_coral_block" -> { return mapping.withBedrockIdentifier("minecraft:red_flower").withBedrockData(9); }
-                case "minecraft:dead_bubble_coral_block" -> { return mapping.withBedrockIdentifier("minecraft:red_flower").withBedrockData(10); }
-                case "minecraft:dead_fire_coral_block" -> { return mapping.withBedrockIdentifier("minecraft:red_flower").withBedrockData(11); }
-                case "minecraft:dead_horn_coral_block" -> { return mapping.withBedrockIdentifier("minecraft:red_flower").withBedrockData(12); }
+                case "minecraft:tube_coral_block" -> { return mapping.withBedrockIdentifier("minecraft:coral_block").withBedrockData(0); }
+                case "minecraft:brain_coral_block" -> { return mapping.withBedrockIdentifier("minecraft:coral_block").withBedrockData(1); }
+                case "minecraft:bubble_coral_block" -> { return mapping.withBedrockIdentifier("minecraft:coral_block").withBedrockData(2); }
+                case "minecraft:fire_coral_block" -> { return mapping.withBedrockIdentifier("minecraft:coral_block").withBedrockData(3); }
+                case "minecraft:horn_coral_block" -> { return mapping.withBedrockIdentifier("minecraft:coral_block").withBedrockData(4); }
+                case "minecraft:dead_tube_coral_block" -> { return mapping.withBedrockIdentifier("minecraft:coral_block").withBedrockData(8); }
+                case "minecraft:dead_brain_coral_block" -> { return mapping.withBedrockIdentifier("minecraft:coral_block").withBedrockData(9); }
+                case "minecraft:dead_bubble_coral_block" -> { return mapping.withBedrockIdentifier("minecraft:coral_block").withBedrockData(10); }
+                case "minecraft:dead_fire_coral_block" -> { return mapping.withBedrockIdentifier("minecraft:coral_block").withBedrockData(11); }
+                case "minecraft:dead_horn_coral_block" -> { return mapping.withBedrockIdentifier("minecraft:coral_block").withBedrockData(12); }
             }
         }
 
