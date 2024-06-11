@@ -26,6 +26,7 @@
 package org.geysermc.geyser.session.cache;
 
 import it.unimi.dsi.fastutil.ints.IntArrays;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -83,8 +84,12 @@ public final class TagCache {
         loadTags("Enchantment", enchantmentTags, ALL_ENCHANTMENT_TAGS, this.enchantments);
     }
 
-    private <T extends Ordered> void loadTags(String type, Map<String, int[]> packetTags, Map<String, T> allTags, int[][] localValues) {
+    private <T extends Ordered> void loadTags(String type, @Nullable Map<String, int[]> packetTags, Map<String, T> allTags, int[][] localValues) {
         Arrays.fill(localValues, IntArrays.EMPTY_ARRAY);
+        if (packetTags == null) {
+            GeyserImpl.getInstance().getLogger().debug("Not loading " + type + " tags; they do not exist here.");
+            return;
+        }
         allTags.forEach((location, tag) -> {
             int[] values = packetTags.get(location);
             if (values != null) {
