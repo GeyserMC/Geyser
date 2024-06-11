@@ -33,6 +33,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.type.BannerBlock;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.block.type.SkullBlock;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -65,7 +66,11 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
         }
 
         boolean addExtraData = packet.isAddUserData() && blockToPick.block().hasBlockEntity(); // Holding down CTRL
-        if (blockToPick.block() instanceof BannerBlock || addExtraData) {
+        if (session.isInstabuild() && addExtraData && blockToPick.block() instanceof SkullBlock skull) {
+            InventoryUtils.findOrCreateItem(session, skull.pickItem(session, blockToPick, vector));
+            return;
+        }
+        if (blockToPick.block() instanceof BannerBlock) {
             session.getGeyser().getWorldManager().getPickItemComponents(session, vector.getX(), vector.getY(), vector.getZ(), addExtraData)
                     .whenComplete((components, ex) -> session.ensureInEventLoop(() -> {
                         if (components == null) {

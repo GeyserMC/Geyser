@@ -148,9 +148,9 @@ public class GeyserLocale {
                 } catch (IOException ignored) {}
             }
         } else {
-            if (GeyserImpl.getInstance() != null && !validLocalLanguage) {
+            if (!validLocalLanguage) {
                 // Don't warn on missing locales if a local file has been found
-                GeyserImpl.getInstance().getLogger().warning("Missing locale: " + locale);
+                bootstrap.getGeyserLogger().warning("Missing locale: " + locale);
             }
         }
 
@@ -162,12 +162,7 @@ public class GeyserLocale {
                 localeProp.load(stream);
             } catch (IOException e) {
                 String message = "Unable to load custom language override!";
-                if (GeyserImpl.getInstance() != null) {
-                    GeyserImpl.getInstance().getLogger().error(message, e);
-                } else {
-                    System.err.println(message);
-                    e.printStackTrace();
-                }
+                bootstrap.getGeyserLogger().error(message, e);
             }
 
             LOCALE_MAPPINGS.putIfAbsent(locale, localeProp);

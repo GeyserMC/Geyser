@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,54 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.velocity;
+package org.geysermc.geyser.level.block.type;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import org.geysermc.geyser.GeyserLogger;
-import org.slf4j.Logger;
+import org.geysermc.geyser.level.block.Blocks;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
-@RequiredArgsConstructor
-public class GeyserVelocityLogger implements GeyserLogger {
-    private final Logger logger;
-    @Getter @Setter
-    private boolean debug;
-
-    @Override
-    public void severe(String message) {
-        logger.error(message);
+public class PistonHeadBlock extends Block {
+    public PistonHeadBlock(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
     }
 
     @Override
-    public void severe(String message, Throwable error) {
-        logger.error(message, error);
-    }
-
-    @Override
-    public void error(String message) {
-        logger.error(message);
-    }
-
-    @Override
-    public void error(String message, Throwable error) {
-        logger.error(message, error);
-    }
-
-    @Override
-    public void warning(String message) {
-        logger.warn(message);
-    }
-
-    @Override
-    public void info(String message) {
-        logger.info(message);
-    }
-
-    @Override
-    public void debug(String message) {
-        if (debug) {
-            info(message);
-        }
+    public ItemStack pickItem(BlockState state) {
+        Block block = state.getValue(Properties.PISTON_TYPE).equals("sticky") ? Blocks.STICKY_PISTON : Blocks.PISTON;
+        return new ItemStack(block.asItem().javaId());
     }
 }

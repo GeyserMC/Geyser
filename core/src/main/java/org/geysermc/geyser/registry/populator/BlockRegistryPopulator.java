@@ -35,14 +35,9 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.*;
-import org.cloudburstmc.blockstateupdater.BlockStateUpdater;
-import org.cloudburstmc.blockstateupdater.util.tagupdater.CompoundTagUpdaterContext;
 import org.cloudburstmc.nbt.*;
-import org.cloudburstmc.protocol.bedrock.codec.v622.Bedrock_v622;
-import org.cloudburstmc.protocol.bedrock.codec.v630.Bedrock_v630;
-import org.cloudburstmc.protocol.bedrock.codec.v649.Bedrock_v649;
-import org.cloudburstmc.protocol.bedrock.codec.v662.Bedrock_v662;
 import org.cloudburstmc.protocol.bedrock.codec.v671.Bedrock_v671;
+import org.cloudburstmc.protocol.bedrock.codec.v685.Bedrock_v685;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
@@ -88,19 +83,6 @@ public final class BlockRegistryPopulator {
     interface Remapper {
 
         NbtMap remap(NbtMap tag);
-
-        static Remapper of(BlockStateUpdater... updaters) {
-            CompoundTagUpdaterContext context = new CompoundTagUpdaterContext();
-            for (BlockStateUpdater updater : updaters) {
-                updater.registerUpdaters(context);
-            }
-
-            return tag -> {
-                NbtMapBuilder updated = context.update(tag, 0).toBuilder();
-                updated.remove("version"); // we already removed this, but the context adds it. remove it again.
-                return updated.build();
-            };
-        }
     }
 
     public static void populate(Stage stage) {
@@ -125,12 +107,8 @@ public final class BlockRegistryPopulator {
 
     private static void registerBedrockBlocks() {
         var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
-                .put(ObjectIntPair.of("1_20_40", Bedrock_v622.CODEC.getProtocolVersion()), Conversion630_622::remapBlock)
-                .put(ObjectIntPair.of("1_20_50", Bedrock_v630.CODEC.getProtocolVersion()), Conversion649_630::remapBlock)
-                // Only changes in 1.20.60 are hard_stained_glass (an EDU only block)
-                .put(ObjectIntPair.of("1_20_60", Bedrock_v649.CODEC.getProtocolVersion()), Conversion662_649::remapBlock)
-                .put(ObjectIntPair.of("1_20_70", Bedrock_v662.CODEC.getProtocolVersion()), Conversion671_662::remapBlock)
-                .put(ObjectIntPair.of("1_20_80", Bedrock_v671.CODEC.getProtocolVersion()), tag -> tag)
+                .put(ObjectIntPair.of("1_20_80", Bedrock_v671.CODEC.getProtocolVersion()), Conversion685_671::remapBlock)
+                .put(ObjectIntPair.of("1_21_0", Bedrock_v685.CODEC.getProtocolVersion()), tag -> tag)
                 .build();
 
         // We can keep this strong as nothing should be garbage collected
@@ -235,7 +213,6 @@ public final class BlockRegistryPopulator {
             GeyserBedrockBlock[] javaToBedrockBlocks = new GeyserBedrockBlock[JAVA_BLOCKS_SIZE];
             GeyserBedrockBlock[] javaToVanillaBedrockBlocks = new GeyserBedrockBlock[JAVA_BLOCKS_SIZE];
 
-            //List<String> javaToBedrockIdentifiers = new ArrayList<>(BlockRegistries.JAVA_BLOCKS.get().size());
             var javaToBedrockIdentifiers = new Int2ObjectOpenHashMap<String>();
             Block lastBlockSeen = null;
 
@@ -478,7 +455,7 @@ public final class BlockRegistryPopulator {
                 };
                 block.setJavaId(javaBlockState.stateGroupId());
 
-                BlockRegistries.JAVA_BLOCKS.get().add(javaBlockState.stateGroupId(), block); //TODO don't allow duplicates, allow blanks
+                BlockRegistries.JAVA_BLOCKS.registerWithAnyIndex(javaBlockState.stateGroupId(), block, Blocks.AIR);
                 BlockRegistries.JAVA_IDENTIFIER_TO_ID.register(javaId, stateRuntimeId);
                 BlockRegistries.BLOCK_STATES.register(stateRuntimeId, new BlockState(block, stateRuntimeId));
             }

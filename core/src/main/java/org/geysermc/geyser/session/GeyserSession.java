@@ -100,7 +100,6 @@ import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.level.JavaDimension;
-import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
@@ -259,13 +258,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final Map<Vector3i, ItemFrameEntity> itemFrameCache = new Object2ObjectOpenHashMap<>();
 
     /**
-     * Stores a list of all lectern locations and their block entity tags.
-     * See {@link WorldManager#sendLecternData(GeyserSession, int, int, int)}
-     * for more information.
-     */
-    private final @Nullable Set<Vector3i> lecternCache;
-
-    /**
      * A list of all players that have a player head on with a custom texture.
      * Our workaround for these players is to give them a custom skin and geometry to emulate wearing a custom skull.
      */
@@ -293,7 +285,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     private volatile boolean closed;
 
-    @Setter
     private GameMode gameMode = GameMode.SURVIVAL;
 
     /**
@@ -622,13 +613,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         this.spawned = false;
         this.loggedIn = false;
-
-        if (geyser.getWorldManager().shouldExpectLecternHandled(this)) {
-            // Unneeded on these platforms
-            this.lecternCache = null;
-        } else {
-            this.lecternCache = new ObjectOpenHashSet<>();
-        }
 
         if (geyser.getConfig().getEmoteOffhandWorkaround() != EmoteOffhandWorkaroundOption.NO_EMOTES) {
             this.emotes = new HashSet<>();
@@ -1338,6 +1322,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
     }
 
+    public void setGameMode(GameMode newGamemode) {
+        boolean currentlySpectator = this.gameMode == GameMode.SPECTATOR;
+        this.gameMode = newGamemode;
+        this.cameraData.handleGameModeChange(currentlySpectator, newGamemode);
+    }
+
     /**
      * Checks to see if a shield is in either hand to activate blocking. If so, it sets the Bedrock client to display
      * blocking and sends a packet to the Java server.
@@ -1566,6 +1556,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT);
         startGamePacket.setRewindHistorySize(0);
         startGamePacket.setServerAuthoritativeBlockBreaking(false);
+
+        startGamePacket.setServerId("");
+        startGamePacket.setWorldId("");
+        startGamePacket.setScenarioId("");
 
         upstream.sendPacket(startGamePacket);
     }

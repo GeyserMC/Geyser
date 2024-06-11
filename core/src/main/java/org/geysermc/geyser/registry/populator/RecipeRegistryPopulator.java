@@ -35,6 +35,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.RecipeUnlockingRequirement;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.MultiRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData;
@@ -173,7 +174,7 @@ public class RecipeRegistryPopulator {
             /* Convert end */
 
             return ShapedRecipeData.shaped(uuid.toString(), shape.get(0).length(), shape.size(),
-                    inputs.stream().map(ItemDescriptorWithCount::fromItem).toList(), Collections.singletonList(output), uuid, "crafting_table", 0, netId, false);
+                    inputs.stream().map(ItemDescriptorWithCount::fromItem).toList(), Collections.singletonList(output), uuid, "crafting_table", 0, netId, false, RecipeUnlockingRequirement.INVALID);
         }
         List<ItemData> inputs = new ObjectArrayList<>();
         for (JsonNode entry : node.get("inputs")) {
@@ -196,7 +197,7 @@ public class RecipeRegistryPopulator {
                     inputs.stream().map(ItemDescriptorWithCount::fromItem).toList(), Collections.singletonList(output), uuid, "crafting_table", 0, netId);
         }
         return ShapelessRecipeData.shapeless(uuid.toString(),
-                inputs.stream().map(ItemDescriptorWithCount::fromItem).toList(), Collections.singletonList(output), uuid, "crafting_table", 0, netId);
+                inputs.stream().map(ItemDescriptorWithCount::fromItem).toList(), Collections.singletonList(output), uuid, "crafting_table", 0, netId, RecipeUnlockingRequirement.INVALID);
     }
 
     private static ItemData getBedrockItemFromIdentifierJson(ItemMapping mapping, JsonNode itemNode) {

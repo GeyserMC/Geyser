@@ -47,7 +47,9 @@ public class InvalidPacketHandler extends ChannelInboundHandlerAdapter {
 
 
         if (!(rootCause instanceof IllegalArgumentException)) {
-            super.exceptionCaught(ctx, cause);
+            // Kick users that cause exceptions
+            session.getGeyser().getLogger().warning("Exception caught in session of" + session.bedrockUsername() + ": " + rootCause.getMessage());
+            session.disconnect("An internal error occurred!");
             return;
         }
 
