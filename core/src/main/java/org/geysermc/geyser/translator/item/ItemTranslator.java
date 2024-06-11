@@ -214,7 +214,13 @@ public final class ItemTranslator {
             }
 
             ItemAttributeModifiers.EquipmentSlotGroup slotGroup = entry.getSlot();
-            if (slotGroup == ItemAttributeModifiers.EquipmentSlotGroup.ANY) {
+            if (slotGroup == ItemAttributeModifiers.EquipmentSlotGroup.ARMOR) {
+                // modifier applies to all armor slots
+                slotsToModifiers.computeIfAbsent(ItemAttributeModifiers.EquipmentSlotGroup.HEAD, s -> new ArrayList<>()).add(loreEntry);
+                slotsToModifiers.computeIfAbsent(ItemAttributeModifiers.EquipmentSlotGroup.CHEST, s -> new ArrayList<>()).add(loreEntry);
+                slotsToModifiers.computeIfAbsent(ItemAttributeModifiers.EquipmentSlotGroup.LEGS, s -> new ArrayList<>()).add(loreEntry);
+                slotsToModifiers.computeIfAbsent(ItemAttributeModifiers.EquipmentSlotGroup.FEET, s -> new ArrayList<>()).add(loreEntry);
+            } else if (slotGroup == ItemAttributeModifiers.EquipmentSlotGroup.ANY) {
                 // modifier applies to all slots implicitly
                 for (var slot : SLOT_NAMES.keySet()) {
                     slotsToModifiers.computeIfAbsent(slot, s -> new ArrayList<>()).add(loreEntry);
