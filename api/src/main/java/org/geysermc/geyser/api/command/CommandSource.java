@@ -77,8 +77,7 @@ public interface CommandSource {
      * @return a GeyserConnection if this source represents a Bedrock player that is connected
      * to this Geyser instance, otherwise null
      */
-    @Nullable
-    GeyserConnection connection();
+    @Nullable GeyserConnection connection();
 
     /**
      * Returns the locale of the command source.

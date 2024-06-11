@@ -66,7 +66,6 @@ import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotWorldManage
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 import org.incendo.cloud.bukkit.BukkitCommandManager;
-import org.incendo.cloud.bukkit.CloudBukkitCapabilities;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
 
@@ -172,7 +171,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         );
         LegacyPaperCommandManager<GeyserCommandSource> cloud;
         try {
-            // LegacyPaperCommandManager works for spigot too. todo: use PaperCommandManager instead for Paper 1.20.6+
+            // LegacyPaperCommandManager works for spigot too, see https://cloud.incendo.org/minecraft/paper
             cloud = new LegacyPaperCommandManager<>(
                     this,
                     ExecutionCoordinator.simpleCoordinator(),
@@ -182,13 +181,12 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             throw new RuntimeException(e);
         }
 
-        if (cloud.hasCapability(CloudBukkitCapabilities.BRIGADIER)) {
-            try {
-                // Should always be available on 1.13 and up
-                cloud.registerBrigadier();
-            } catch (BukkitCommandManager.BrigadierInitializationException e) {
-                geyserLogger.debug("Failed to initialize Brigadier support: " + e.getMessage());
-            }
+        try {
+            // Commodore brigadier on Spigot/Paper 1.13 - 1.18.2
+            // Paper-only brigadier on 1.19+
+            cloud.registerBrigadier();
+        } catch (BukkitCommandManager.BrigadierInitializationException e) {
+            geyserLogger.debug("Failed to initialize Brigadier support: " + e.getMessage());
         }
 
         this.commandRegistry = new SpigotCommandRegistry(geyser, cloud);

@@ -35,7 +35,6 @@ import java.util.Map;
  * Permissions related to Geyser
  */
 public final class Permissions {
-
     private static final Map<String, TriState> PERMISSIONS = new HashMap<>();
 
     public static final String CHECK_UPDATE = register("geyser.update");

@@ -39,7 +39,6 @@ import java.util.Collections;
 import java.util.List;
 
 public abstract class GeyserCommand implements org.geysermc.geyser.api.command.Command {
-
     public static final String DEFAULT_ROOT_COMMAND = "geyser";
 
     /**
