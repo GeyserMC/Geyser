@@ -110,18 +110,23 @@ afterEvaluate {
 }
 
 dependencies {
-    minecraft("com.mojang:minecraft:1.20.5")
+    minecraft("com.mojang:minecraft:1.21-rc1")
     mappings(loom.officialMojangMappings())
 }
 
 repositories {
     // mavenLocal()
-    maven("https://repo.opencollab.dev/maven-releases/")
-    maven("https://repo.opencollab.dev/maven-snapshots/")
+    maven("https://repo.opencollab.dev/main")
     maven("https://jitpack.io")
     maven("https://oss.sonatype.org/content/repositories/snapshots/")
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     maven("https://maven.neoforged.net/releases")
+    maven("https://prmaven.neoforged.net/NeoForge/pr1076") {
+        name = "Maven for 1.21 PR"
+        content {
+            includeModule("net.neoforged", "neoforge")
+        }
+    }
 }
 
 modrinth {
