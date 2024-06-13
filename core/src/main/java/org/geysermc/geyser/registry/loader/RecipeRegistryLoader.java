@@ -136,7 +136,7 @@ public final class RecipeRegistryLoader implements RegistryLoader<String, Map<Re
      */
     private static ItemStack toItemStack(NbtMap nbt, MinecraftCodecHelper helper) {
         int id = nbt.getInt("id");
-        int count = nbt.getInt("count");
+        int count = nbt.getInt("count", 1);
         String componentsRaw = nbt.getString("components", null);
         if (componentsRaw != null) {
             byte[] bytes = Base64.getDecoder().decode(componentsRaw);
