@@ -26,6 +26,7 @@
 package org.geysermc.geyser.translator.protocol.java;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
+import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -72,7 +73,7 @@ public class JavaGameProfileTranslator extends PacketTranslator<ClientboundGameP
         session.getClientData().setOriginalString(null);
 
         // configuration phase stuff that the vanilla client replies with after receiving the GameProfilePacket
-        session.sendDownstreamPacket(new ServerboundCustomPayloadPacket("minecraft:brand", PluginMessageUtils.getGeyserBrandData()));
+        session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(Key.key("brand"), PluginMessageUtils.getGeyserBrandData()));
         session.sendJavaClientSettings();
     }
 }

@@ -220,7 +220,7 @@ public class SessionPlayerEntity extends PlayerEntity {
     public void setLastDeathPosition(@Nullable GlobalPos pos) {
         if (pos != null) {
             dirtyMetadata.put(EntityDataTypes.PLAYER_LAST_DEATH_POS, pos.getPosition());
-            dirtyMetadata.put(EntityDataTypes.PLAYER_LAST_DEATH_DIMENSION, DimensionUtils.javaToBedrock(pos.getDimension()));
+            dirtyMetadata.put(EntityDataTypes.PLAYER_LAST_DEATH_DIMENSION, DimensionUtils.javaToBedrock(pos.getDimension().asString()));
             dirtyMetadata.put(EntityDataTypes.PLAYER_HAS_DIED, true);
         } else {
             dirtyMetadata.put(EntityDataTypes.PLAYER_HAS_DIED, false);

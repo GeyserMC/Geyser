@@ -45,7 +45,7 @@ import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.mcprotocollib.protocol.data.game.Identifier;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DyedItemColor;
@@ -65,7 +65,7 @@ public class Item {
     private final int maxDamage;
 
     public Item(String javaIdentifier, Builder builder) {
-        this.javaIdentifier = Identifier.formalize(javaIdentifier).intern();
+        this.javaIdentifier = MinecraftKey.key(javaIdentifier).asString().intern();
         this.stackSize = builder.stackSize;
         this.maxDamage = builder.maxDamage;
         this.attackDamage = builder.attackDamage;

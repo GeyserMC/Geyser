@@ -34,6 +34,7 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
 import lombok.Getter;
 import lombok.ToString;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.cloudburstmc.protocol.bedrock.data.command.*;
@@ -66,7 +67,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
      */
     private static final Supplier<String[]> ALL_BLOCK_NAMES = Suppliers.memoize(() -> BlockRegistries.JAVA_BLOCKS.get().stream().map(block -> block.javaIdentifier().toString()).toArray(String[]::new));
     private static final String[] ALL_EFFECT_IDENTIFIERS = EntityUtils.getAllEffectIdentifiers();
-    private static final String[] ATTRIBUTES = AttributeType.Builtin.BUILTIN.values().stream().map(AttributeType::getIdentifier).toList().toArray(new String[0]);
+    private static final String[] ATTRIBUTES = AttributeType.Builtin.BUILTIN.values().stream().map(type -> type.getIdentifier().asString()).toList().toArray(new String[0]);
     private static final String[] ENUM_BOOLEAN = {"true", "false"};
     private static final String[] VALID_COLORS;
     private static final String[] VALID_SCOREBOARD_SLOTS;
@@ -264,8 +265,8 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         };
     }
 
-    private static Object handleResource(CommandBuilderContext context, String resource, boolean tags) {
-        return switch (resource) {
+    private static Object handleResource(CommandBuilderContext context, Key resource, boolean tags) {
+        return switch (resource.asString()) {
             case "minecraft:attribute" -> ATTRIBUTES;
             case "minecraft:enchantment" -> context.getEnchantments();
             case "minecraft:entity_type" -> context.getEntityTypes();
@@ -476,12 +477,8 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
          */
         private static String getEnumDataName(CommandNode node) {
             if (node.getProperties() instanceof ResourceProperties properties) {
-                String registryKey = properties.getRegistryKey();
-                int identifierSplit = registryKey.indexOf(':');
-                if (identifierSplit != -1) {
-                    return registryKey.substring(identifierSplit);
-                }
-                return registryKey;
+                Key registryKey = properties.getRegistryKey();
+                return registryKey.value();
             }
             return node.getParser().name();
         }

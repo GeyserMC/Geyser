@@ -31,6 +31,7 @@ import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.session.cache.tags.EnchantmentTag;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
 
 import java.util.HashSet;
@@ -59,11 +60,11 @@ public record Enchantment(String identifier,
         int maxLevel = data.getInt("max_level");
         int anvilCost = data.getInt("anvil_cost");
         String exclusiveSet = data.getString("exclusive_set", null);
-        EnchantmentTag exclusiveSetTag = exclusiveSet == null ? null : EnchantmentTag.ALL_ENCHANTMENT_TAGS.get(exclusiveSet.substring(1));
-        BedrockEnchantment bedrockEnchantment = BedrockEnchantment.getByJavaIdentifier(entry.getId());
+        EnchantmentTag exclusiveSetTag = exclusiveSet == null ? null : EnchantmentTag.ALL_ENCHANTMENT_TAGS.get(MinecraftKey.key(exclusiveSet.substring(1)));
+        BedrockEnchantment bedrockEnchantment = BedrockEnchantment.getByJavaIdentifier(entry.getId().asString());
         String description = bedrockEnchantment == null ? MessageTranslator.deserializeDescription(data) : null;
 
-        return new Enchantment(entry.getId(), effects, ItemTag.ALL_ITEM_TAGS.get(supportedItems), maxLevel,
+        return new Enchantment(entry.getId().asString(), effects, ItemTag.ALL_ITEM_TAGS.get(MinecraftKey.key(supportedItems)), maxLevel,
                 description, anvilCost, exclusiveSetTag, bedrockEnchantment);
     }
 

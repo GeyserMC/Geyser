@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.session.cache.tags;
 
+import net.kyori.adventure.key.Key;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.geyser.util.Ordered;
 
 import java.util.HashMap;
@@ -32,7 +34,7 @@ import java.util.Map;
 
 @SuppressWarnings("unused")
 public final class ItemTag implements Ordered {
-    public static final Map<String, ItemTag> ALL_ITEM_TAGS = new HashMap<>();
+    public static final Map<Key, ItemTag> ALL_ITEM_TAGS = new HashMap<>();
 
     public static final ItemTag WOOL = new ItemTag("wool");
     public static final ItemTag PLANKS = new ItemTag("planks");
@@ -195,6 +197,6 @@ public final class ItemTag implements Ordered {
     }
 
     private static void register(String name, ItemTag tag) {
-        ALL_ITEM_TAGS.put(("minecraft:" + name).intern(), tag);
+        ALL_ITEM_TAGS.put(MinecraftKey.key(name), tag);
     }
 }

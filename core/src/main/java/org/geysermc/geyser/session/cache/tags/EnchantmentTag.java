@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.session.cache.tags;
 
+import net.kyori.adventure.key.Key;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.geyser.util.Ordered;
 
 import java.util.HashMap;
@@ -32,7 +34,7 @@ import java.util.Map;
 
 @SuppressWarnings("unused")
 public final class EnchantmentTag implements Ordered {
-    public static final Map<String, EnchantmentTag> ALL_ENCHANTMENT_TAGS = new HashMap<>();
+    public static final Map<Key, EnchantmentTag> ALL_ENCHANTMENT_TAGS = new HashMap<>();
 
     public static final EnchantmentTag TOOLTIP_ORDER = new EnchantmentTag("tooltip_order");
     public static final EnchantmentTag EXCLUSIVE_SET_ARMOR = new EnchantmentTag("exclusive_set/armor");
@@ -84,6 +86,6 @@ public final class EnchantmentTag implements Ordered {
     }
 
     private static void register(String name, EnchantmentTag tag) {
-        ALL_ENCHANTMENT_TAGS.put(("minecraft:" + name).intern(), tag);
+        ALL_ENCHANTMENT_TAGS.put(MinecraftKey.key(name), tag);
     }
 }

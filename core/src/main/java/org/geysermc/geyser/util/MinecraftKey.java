@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,18 +23,17 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java.entity.player;
+package org.geysermc.geyser.util;
 
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundStoreCookiePacket;
+import net.kyori.adventure.key.Key;
+import org.intellij.lang.annotations.Subst;
 
-@Translator(packet = ClientboundStoreCookiePacket.class)
-public class JavaStoreCookieTranslator extends PacketTranslator<ClientboundStoreCookiePacket> {
+public final class MinecraftKey {
 
-    @Override
-    public void translate(GeyserSession session, ClientboundStoreCookiePacket packet) {
-        session.getCookies().put(packet.getKey().asString(), packet.getPayload());
+    /**
+     * To prevent constant warnings from invalid regex.
+     */
+    public static Key key(@Subst("empty") String s) {
+        return Key.key(s);
     }
 }

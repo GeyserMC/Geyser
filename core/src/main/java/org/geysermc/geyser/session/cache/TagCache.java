@@ -26,6 +26,7 @@
 package org.geysermc.geyser.session.cache;
 
 import it.unimi.dsi.fastutil.ints.IntArrays;
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
@@ -36,6 +37,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.BlockTag;
 import org.geysermc.geyser.session.cache.tags.EnchantmentTag;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.geyser.util.Ordered;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
 
@@ -58,33 +60,33 @@ public final class TagCache {
     private final int[][] enchantments = new int[ALL_ENCHANTMENT_TAGS.size()][];
 
     public void loadPacket(GeyserSession session, ClientboundUpdateTagsPacket packet) {
-        Map<String, int[]> blockTags = packet.getTags().get("minecraft:block");
+        Map<Key, int[]> blockTags = packet.getTags().get(MinecraftKey.key("block"));
         loadTags("Block", blockTags, ALL_BLOCK_TAGS, this.blocks);
 
         // Hack btw
         GeyserLogger logger = session.getGeyser().getLogger();
-        int[] convertableToMud = blockTags.get("minecraft:convertable_to_mud");
+        int[] convertableToMud = blockTags.get(MinecraftKey.key("convertable_to_mud"));
         boolean emulatePost1_18Logic = convertableToMud != null && convertableToMud.length != 0;
         session.setEmulatePost1_18Logic(emulatePost1_18Logic);
         if (logger.isDebug()) {
             logger.debug("Emulating post 1.18 block predication logic for " + session.bedrockUsername() + "? " + emulatePost1_18Logic);
         }
 
-        Map<String, int[]> itemTags = packet.getTags().get("minecraft:item");
+        Map<Key, int[]> itemTags = packet.getTags().get(MinecraftKey.key("item"));
         loadTags("Item", itemTags, ALL_ITEM_TAGS, this.items);
 
         // Hack btw
-        boolean emulatePost1_13Logic = itemTags.get("minecraft:signs").length > 1;
+        boolean emulatePost1_13Logic = itemTags.get(MinecraftKey.key("signs")).length > 1;
         session.setEmulatePost1_13Logic(emulatePost1_13Logic);
         if (logger.isDebug()) {
             logger.debug("Emulating post 1.13 villager logic for " + session.bedrockUsername() + "? " + emulatePost1_13Logic);
         }
 
-        Map<String, int[]> enchantmentTags = packet.getTags().get("minecraft:enchantment");
+        Map<Key, int[]> enchantmentTags = packet.getTags().get(MinecraftKey.key("enchantment"));
         loadTags("Enchantment", enchantmentTags, ALL_ENCHANTMENT_TAGS, this.enchantments);
     }
 
-    private <T extends Ordered> void loadTags(String type, @Nullable Map<String, int[]> packetTags, Map<String, T> allTags, int[][] localValues) {
+    private <T extends Ordered> void loadTags(String type, @Nullable Map<Key, int[]> packetTags, Map<Key, T> allTags, int[][] localValues) {
         if (packetTags == null) {
             Arrays.fill(localValues, IntArrays.EMPTY_ARRAY);
             GeyserImpl.getInstance().getLogger().debug("Not loading " + type + " tags; they do not exist here.");

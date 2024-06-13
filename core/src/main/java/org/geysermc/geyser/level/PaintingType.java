@@ -28,6 +28,7 @@ package org.geysermc.geyser.level;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import net.kyori.adventure.key.Key;
 
 import java.util.Locale;
 
@@ -90,9 +91,12 @@ public enum PaintingType {
     private final int width;
     private final int height;
 
-    public static PaintingType getByName(String javaName) {
+    public static PaintingType getByName(Key key) {
+        if (!key.namespace().equals("minecraft")) {
+            return null;
+        }
         for (PaintingType paintingName : VALUES) {
-            if (("minecraft:" + paintingName.name().toLowerCase(Locale.ROOT)).equals(javaName)) return paintingName;
+            if (paintingName.name().toLowerCase(Locale.ROOT).equals(key.value())) return paintingName;
         }
         return null;
     }

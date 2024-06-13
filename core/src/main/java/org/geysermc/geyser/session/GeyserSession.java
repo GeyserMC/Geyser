@@ -40,6 +40,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -290,7 +291,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Keeps track of the world name for respawning.
      */
     @Setter
-    private String worldName = null;
+    private Key worldName = null;
     /**
      * As of Java 1.19.3, the client only uses these for commands.
      */

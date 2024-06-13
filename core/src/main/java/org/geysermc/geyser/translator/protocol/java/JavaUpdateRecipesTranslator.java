@@ -119,14 +119,14 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     ShapelessRecipeData shapelessRecipeData = (ShapelessRecipeData) recipe.getData();
                     List<String> bedrockRecipeIDs = context.translateShapelessRecipe(new GeyserShapelessRecipe(shapelessRecipeData));
                     if (bedrockRecipeIDs != null) {
-                        context.addRecipeIdentifier(session, recipe.getIdentifier(), bedrockRecipeIDs);
+                        context.addRecipeIdentifier(session, recipe.getIdentifier().asString(), bedrockRecipeIDs);
                     }
                 }
                 case CRAFTING_SHAPED -> {
                     ShapedRecipeData shapedRecipeData = (ShapedRecipeData) recipe.getData();
                     List<String> bedrockRecipeIDs = context.translateShapedRecipe(new GeyserShapedRecipe(shapedRecipeData));
                     if (bedrockRecipeIDs != null) {
-                        context.addRecipeIdentifier(session, recipe.getIdentifier(), bedrockRecipeIDs);
+                        context.addRecipeIdentifier(session, recipe.getIdentifier().asString(), bedrockRecipeIDs);
                     }
                 }
                 case STONECUTTING -> {
@@ -160,7 +160,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                             for (ItemStack addition : data.getAddition().getOptions()) {
                                 ItemDescriptorWithCount bedrockAddition = ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, addition));
 
-                                String id = recipe.getIdentifier();
+                                String id = recipe.getIdentifier().asString();
                                 // Note: vanilla inputs use aux value of Short.MAX_VALUE
                                 craftingDataPacket.getCraftingData().add(org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData.of(id,
                                         bedrockTemplate, bedrockBase, bedrockAddition, output, "smithing_table", context.getAndIncrementNetId()));
@@ -501,7 +501,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 case CRAFTING_SPECIAL_TIPPEDARROW ->
                     // similar as above
                         "minecraft:arrow";
-                default -> recipe.getIdentifier();
+                default -> recipe.getIdentifier().asString();
             };
 
             addRecipeIdentifier(session, javaRecipeID, identifiers);

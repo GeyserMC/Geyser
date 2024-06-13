@@ -26,6 +26,7 @@
 package org.geysermc.geyser.item.type;
 
 import it.unimi.dsi.fastutil.Pair;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
@@ -40,8 +41,8 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistry;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
-import org.geysermc.mcprotocollib.protocol.data.game.Identifier;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
@@ -106,7 +107,7 @@ public class BannerItem extends BlockItem {
             if (color != pair.right()) {
                 return false;
             }
-            String id = Identifier.formalize(patternLayer.getString("pattern")); // Ouch
+            Key id = MinecraftKey.key(patternLayer.getString("pattern")); // Ouch
             BannerPattern bannerPattern = BannerPattern.getByJavaIdentifier(id);
             if (bannerPattern != pair.left()) {
                 return false;
@@ -166,7 +167,7 @@ public class BannerItem extends BlockItem {
      */
     private static NbtMap getBedrockBannerPattern(NbtMap pattern) {
         // ViaVersion 1.20.4 -> 1.20.5 can send without the namespace
-        BannerPattern bannerPattern = BannerPattern.getByJavaIdentifier(Identifier.formalize(pattern.getString("pattern")));
+        BannerPattern bannerPattern = BannerPattern.getByJavaIdentifier(MinecraftKey.key(pattern.getString("pattern")));
         DyeColor dyeColor = DyeColor.getByJavaIdentifier(pattern.getString("color"));
         if (bannerPattern == null || dyeColor == null) {
             return null;
