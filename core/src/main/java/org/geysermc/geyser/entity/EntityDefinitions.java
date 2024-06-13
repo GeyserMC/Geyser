@@ -66,6 +66,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<BlazeEntity> BLAZE;
     public static final EntityDefinition<BoatEntity> BOAT;
     public static final EntityDefinition<BoggedEntity> BOGGED;
+    public static final EntityDefinition<BreezeEntity> BREEZE;
     public static final EntityDefinition<AbstractWindChargeEntity> BREEZE_WIND_CHARGE;
     public static final EntityDefinition<CamelEntity> CAMEL;
     public static final EntityDefinition<CatEntity> CAT;
@@ -529,6 +530,10 @@ public final class EntityDefinitions {
                     .type(EntityType.BLAZE)
                     .height(1.8f).width(0.6f)
                     .addTranslator(MetadataType.BYTE, BlazeEntity::setBlazeFlags)
+                    .build();
+            BREEZE = EntityDefinition.inherited(BreezeEntity::new, mobEntityBase)
+                    .type(EntityType.BREEZE)
+                    .height(1.77f).width(0.6f)
                     .build();
             CREEPER = EntityDefinition.inherited(CreeperEntity::new, mobEntityBase)
                     .type(EntityType.CREEPER)
