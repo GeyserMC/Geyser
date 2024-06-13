@@ -39,7 +39,6 @@ public class JavaClientboundRecipesTranslator extends PacketTranslator<Clientbou
 
     @Override
     public void translate(GeyserSession session, ClientboundRecipePacket packet) {
-        System.out.println(packet);
         UnlockedRecipesPacket recipesPacket = new UnlockedRecipesPacket();
         switch (packet.getAction()) {
             case INIT -> {

@@ -72,7 +72,7 @@ import java.util.function.ToIntFunction;
 @Accessors(fluent = true)
 @Getter
 public final class RegistryCache {
-    private static final Map<Key, Map<String, NbtMap>> DEFAULTS;
+    private static final Map<Key, Map<Key, NbtMap>> DEFAULTS;
     private static final Map<Key, BiConsumer<RegistryCache, List<RegistryEntry>>> REGISTRIES = new HashMap<>();
 
     static {
@@ -89,14 +89,14 @@ public final class RegistryCache {
 
         // Load from MCProtocolLib's classloader
         NbtMap tag = MinecraftProtocol.loadNetworkCodec();
-        Map<Key, Map<String, NbtMap>> defaults = new HashMap<>();
+        Map<Key, Map<Key, NbtMap>> defaults = new HashMap<>();
         // Don't create a keySet - no need to create the cached object in HashMap if we don't use it again
         REGISTRIES.forEach((key, $) -> {
             List<NbtMap> rawValues = tag.getCompound(key.asString())
                     .getList("value", NbtType.COMPOUND);
-            Map<String, NbtMap> values = new HashMap<>();
+            Map<Key, NbtMap> values = new HashMap<>();
             for (NbtMap value : rawValues) {
-                String name = value.getString("name");
+                Key name = MinecraftKey.key(value.getString("name"));
                 values.put(name, value.getCompound("element"));
             }
             // Can make these maps immutable and as efficient as possible after initialization
@@ -152,7 +152,7 @@ public final class RegistryCache {
     private static <T> void register(String registry, Function<RegistryCache, JavaRegistry<T>> localCacheFunction, BiFunction<GeyserSession, RegistryEntry, T> reader) {
         Key key = MinecraftKey.key(registry);
         REGISTRIES.put(key, (registryCache, entries) -> {
-            Map<String, NbtMap> localRegistry = null;
+            Map<Key, NbtMap> localRegistry = null;
             JavaRegistry<T> localCache = localCacheFunction.apply(registryCache);
             // Clear each local cache every time a new registry entry is given to us
             // (e.g. proxy server switches)
