@@ -265,7 +265,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                     this.geyserWorldManager = new GeyserSpigotNativeWorldManager(this, isPaper);
                 }
                 geyserLogger.debug("Using world manager of type: " + this.geyserWorldManager.getClass().getSimpleName());
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 if (geyserConfig.isDebugMode()) {
                     geyserLogger.debug("Error while attempting to find NMS adapter. Most likely, this can be safely ignored. :)");
                     e.printStackTrace();
