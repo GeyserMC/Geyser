@@ -110,7 +110,7 @@ afterEvaluate {
 }
 
 dependencies {
-    minecraft("com.mojang:minecraft:1.21-rc1")
+    minecraft("com.mojang:minecraft:1.21")
     mappings(loom.officialMojangMappings())
 }
 
@@ -121,12 +121,6 @@ repositories {
     maven("https://oss.sonatype.org/content/repositories/snapshots/")
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     maven("https://maven.neoforged.net/releases")
-    maven("https://prmaven.neoforged.net/NeoForge/pr1076") {
-        name = "Maven for 1.21 PR"
-        content {
-            includeModule("net.neoforged", "neoforge")
-        }
-    }
 }
 
 modrinth {
@@ -139,6 +133,6 @@ modrinth {
     syncBodyFrom.set(rootProject.file("README.md").readText())
 
     uploadFile.set(tasks.getByPath("remapModrinthJar"))
-    gameVersions.addAll("1.20.5", "1.20.6")
+    gameVersions.addAll("1.21")
     failSilently.set(true)
 }
