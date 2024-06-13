@@ -1204,7 +1204,7 @@ public final class Items {
     public static final Item SHULKER_SHELL = register(new Item("shulker_shell", builder()));
     public static final Item IRON_NUGGET = register(new Item("iron_nugget", builder()));
     public static final Item KNOWLEDGE_BOOK = register(new Item("knowledge_book", builder().stackSize(1)));
-    public static final Item DEBUG_STICK = register(new Item("debug_stick", builder().stackSize(1)));
+    public static final Item DEBUG_STICK = register(new DebugStickItem("debug_stick", builder().stackSize(1)));
     public static final Item MUSIC_DISC_13 = register(new Item("music_disc_13", builder().stackSize(1)));
     public static final Item MUSIC_DISC_CAT = register(new Item("music_disc_cat", builder().stackSize(1)));
     public static final Item MUSIC_DISC_BLOCKS = register(new Item("music_disc_blocks", builder().stackSize(1)));

@@ -112,6 +112,10 @@ public class Item {
         return builder;
     }
 
+    public NbtMap build(GeyserSession session, BedrockItemBuilder builder) {
+        return builder.build();
+    }
+
     public @NonNull GeyserItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
         return GeyserItemStack.of(javaId, itemData.getCount());
     }
