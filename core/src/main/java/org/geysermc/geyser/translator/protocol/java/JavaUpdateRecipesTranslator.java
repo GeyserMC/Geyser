@@ -282,7 +282,6 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         session.sendUpstreamPacket(craftingDataPacket);
         session.setCraftingRecipes(recipeMap);
         session.setStonecutterRecipes(stonecutterRecipeMap);
-        System.out.println(craftingDataPacket);
     }
 
     //TODO: rewrite

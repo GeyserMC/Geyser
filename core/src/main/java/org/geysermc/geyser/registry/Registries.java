@@ -169,7 +169,6 @@ public final class Registries {
     static {
         PacketRegistryPopulator.populate();
         ItemRegistryPopulator.populate();
-        System.out.println(RECIPES.get());
 
         // Create registries that require other registries to load first
         POTION_MIXES = VersionedRegistry.create(PotionMixRegistryLoader::new);
