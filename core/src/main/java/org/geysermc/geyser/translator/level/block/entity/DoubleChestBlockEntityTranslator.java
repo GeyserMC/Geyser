@@ -42,9 +42,11 @@ public class DoubleChestBlockEntityTranslator extends BlockEntityTranslator impl
 
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
-        int x = (int) bedrockNbt.get("x");
-        int z = (int) bedrockNbt.get("z");
-        translateChestValue(bedrockNbt, blockState, x, z);
+        if (blockState.getValue(Properties.CHEST_TYPE) != ChestType.SINGLE) {
+            int x = (int) bedrockNbt.get("x");
+            int z = (int) bedrockNbt.get("z");
+            translateChestValue(bedrockNbt, blockState, x, z);
+        }
     }
 
     /**
