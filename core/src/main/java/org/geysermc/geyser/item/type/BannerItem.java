@@ -60,9 +60,6 @@ public class BannerItem extends BlockItem {
      */
     private static final List<Pair<BannerPattern, DyeColor>> OMINOUS_BANNER_PATTERN;
 
-    // TODO fix - we somehow need to be able to get the sessions banner pattern registry, which we don't have where we need this :/
-    private static final int[] ominousBannerPattern = new int[] { 21, 29, 30, 1, 34, 15, 3, 1 };
-
     static {
         // Construct what an ominous banner is supposed to look like
         OMINOUS_BANNER_PATTERN = List.of(
@@ -215,20 +212,22 @@ public class BannerItem extends BlockItem {
     }
 
     @Override
-    public void translateNbtToJava(@NonNull NbtMap bedrockTag, @NonNull DataComponents components, @NonNull ItemMapping mapping) {
-        super.translateNbtToJava(bedrockTag, components, mapping);
+    public void translateNbtToJava(@NonNull GeyserSession session, @NonNull NbtMap bedrockTag, @NonNull DataComponents components, @NonNull ItemMapping mapping) {
+        super.translateNbtToJava(session, bedrockTag, components, mapping);
 
         if (bedrockTag.getInt("Type") == 1) {
             // Ominous banner pattern
             List<BannerPatternLayer> patternLayers = new ArrayList<>();
-            for (int i = 0; i < ominousBannerPattern.length; i++) {
-                patternLayers.add(new BannerPatternLayer(Holder.ofId(ominousBannerPattern[i]), OMINOUS_BANNER_PATTERN.get(i).right().ordinal()));
+            for (int i = 0; i < OMINOUS_BANNER_PATTERN.size(); i++) {
+                var pair = OMINOUS_BANNER_PATTERN.get(i);
+                patternLayers.add(new BannerPatternLayer(Holder.ofId(session.getRegistryCache().bannerPatterns().byValue(pair.left())),
+                        pair.right().ordinal()));
             }
 
             components.put(DataComponentType.BANNER_PATTERNS, patternLayers);
             components.put(DataComponentType.HIDE_ADDITIONAL_TOOLTIP, Unit.INSTANCE);
             components.put(DataComponentType.ITEM_NAME, Component
-                    .translatable("block.minecraft.ominous_banner") // thank god this works
+                    .translatable("block.minecraft.ominous_banner")
                     .style(Style.style(TextColor.color(16755200)))
             );
         }

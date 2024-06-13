@@ -172,7 +172,7 @@ public class Item {
      * </ul>
      * Therefore, if translation cannot be achieved for a certain item, it is not necessarily bad.
      */
-    public void translateNbtToJava(@NonNull NbtMap bedrockTag, @NonNull DataComponents components, @NonNull ItemMapping mapping) {
+    public void translateNbtToJava(@NonNull GeyserSession session, @NonNull NbtMap bedrockTag, @NonNull DataComponents components, @NonNull ItemMapping mapping) {
         // TODO see if any items from the creative menu need this
 //        CompoundTag displayTag = tag.get("display");
 //        if (displayTag != null) {
@@ -189,41 +189,6 @@ public class Item {
 //                    lore.add(new StringTag("", MessageTranslator.convertToJavaMessage(((StringTag) subTag).getValue())));
 //                }
 //                displayTag.put(new ListTag("Lore", lore));
-//            }
-//        }
-
-        // TODO no creative item should have enchantments *except* enchanted books
-//        List<NbtMap> enchantmentTag = bedrockTag.getList("ench", NbtType.COMPOUND);
-//        if (enchantmentTag != null) {
-//            List<Tag> enchantments = new ArrayList<>();
-//            for (Tag value : enchantmentTag.getValue()) {
-//                if (!(value instanceof CompoundTag tagValue))
-//                    continue;
-//
-//                ShortTag bedrockId = tagValue.get("id");
-//                if (bedrockId == null) continue;
-//
-//                BedrockEnchantment enchantment = BedrockEnchantment.getByBedrockId(bedrockId.getValue());
-//                if (enchantment != null) {
-//                    CompoundTag javaTag = new CompoundTag("");
-//                    Map<String, Tag> javaValue = javaTag.getValue();
-//                    javaValue.put("id", new StringTag("id", enchantment.getJavaIdentifier()));
-//                    ShortTag levelTag = tagValue.get("lvl");
-//                    javaValue.put("lvl", new IntTag("lvl", levelTag != null ? levelTag.getValue() : 1));
-//                    javaTag.setValue(javaValue);
-//
-//                    enchantments.add(javaTag);
-//                } else {
-//                    GeyserImpl.getInstance().getLogger().debug("Unknown bedrock enchantment: " + bedrockId);
-//                }
-//            }
-//            if (!enchantments.isEmpty()) {
-//                if ((this instanceof EnchantedBookItem)) {
-//                    bedrockTag.put(new ListTag("StoredEnchantments", enchantments));
-//                    components.put(DataComponentType.STORED_ENCHANTMENTS, enchantments);
-//                } else {
-//                    components.put(DataComponentType.ENCHANTMENTS, enchantments);
-//                }
 //            }
 //        }
     }

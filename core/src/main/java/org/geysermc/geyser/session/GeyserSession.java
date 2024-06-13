@@ -356,8 +356,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Stores all Java recipes by recipe identifier, and matches them to all possible Bedrock recipe identifiers.
      * They are not 1:1, since Bedrock can have multiple recipes for the same Java recipe.
      */
-    @Setter
-    private Map<String, List<String>> javaToBedrockRecipeIds;
+    private final Map<String, List<String>> javaToBedrockRecipeIds;
 
     @Setter
     private Int2ObjectMap<GeyserRecipe> craftingRecipes;

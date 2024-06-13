@@ -423,7 +423,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     }
                     // Reference the creative items list we send to the client to know what it's asking of us
                     ItemData creativeItem = creativeItems[creativeId];
-                    javaCreativeItem = ItemTranslator.translateToJava(creativeItem, session.getItemMappings());
+                    javaCreativeItem = ItemTranslator.translateToJava(session, creativeItem);
                     break;
                 }
                 case CRAFT_RESULTS_DEPRECATED: {
