@@ -64,7 +64,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         if (session.getLastInteractionPlayerPosition().equals(session.getPlayerEntity().getPosition())) {
             BlockState state = session.getGeyser().getWorldManager().blockAt(session, session.getLastInteractionBlockPosition());
             if (!BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get().containsKey(state.javaId())) {
-                if (state.block() == Blocks.CHEST || state.block() == Blocks.TRAPPED_CHEST
+                if ((state.block() == Blocks.CHEST || state.block() == Blocks.TRAPPED_CHEST)
                         && state.getValue(Properties.CHEST_TYPE) != ChestType.SINGLE) {
                     inventory.setHolderPosition(session.getLastInteractionBlockPosition());
                     ((Container) inventory).setUsingRealBlock(true, state.block());

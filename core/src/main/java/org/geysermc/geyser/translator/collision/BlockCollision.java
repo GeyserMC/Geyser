@@ -61,7 +61,7 @@ public class BlockCollision {
     }
 
     /**
-     * Overridden in classes like SnowCollision and GrassPathCollision when correction code needs to be run before the
+     * Overridden in classes like GrassPathCollision when correction code needs to be run before the
      * main correction
      */
     public void beforeCorrectPosition(int x, int y, int z, BoundingBox playerCollision) {}
