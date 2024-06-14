@@ -66,6 +66,12 @@ public final class ItemTranslator {
      * The order of these slots is their display order on Java Edition clients
      */
     private static final EnumMap<ItemAttributeModifiers.EquipmentSlotGroup, String> SLOT_NAMES;
+    private static final ItemAttributeModifiers.EquipmentSlotGroup[] ARMOR_SLOT_NAMES = new ItemAttributeModifiers.EquipmentSlotGroup[] {
+        ItemAttributeModifiers.EquipmentSlotGroup.HEAD,
+        ItemAttributeModifiers.EquipmentSlotGroup.CHEST,
+        ItemAttributeModifiers.EquipmentSlotGroup.LEGS,
+        ItemAttributeModifiers.EquipmentSlotGroup.FEET
+    };
     private static final DecimalFormat ATTRIBUTE_FORMAT = new DecimalFormat("0.#####");
 
     static {
@@ -216,10 +222,9 @@ public final class ItemTranslator {
             ItemAttributeModifiers.EquipmentSlotGroup slotGroup = entry.getSlot();
             if (slotGroup == ItemAttributeModifiers.EquipmentSlotGroup.ARMOR) {
                 // modifier applies to all armor slots
-                slotsToModifiers.computeIfAbsent(ItemAttributeModifiers.EquipmentSlotGroup.HEAD, s -> new ArrayList<>()).add(loreEntry);
-                slotsToModifiers.computeIfAbsent(ItemAttributeModifiers.EquipmentSlotGroup.CHEST, s -> new ArrayList<>()).add(loreEntry);
-                slotsToModifiers.computeIfAbsent(ItemAttributeModifiers.EquipmentSlotGroup.LEGS, s -> new ArrayList<>()).add(loreEntry);
-                slotsToModifiers.computeIfAbsent(ItemAttributeModifiers.EquipmentSlotGroup.FEET, s -> new ArrayList<>()).add(loreEntry);
+                for (ItemAttributeModifiers.EquipmentSlotGroup slot : ARMOR_SLOT_NAMES) {
+                    slotsToModifiers.computeIfAbsent(slot, s -> new ArrayList<>()).add(loreEntry);
+                }
             } else if (slotGroup == ItemAttributeModifiers.EquipmentSlotGroup.ANY) {
                 // modifier applies to all slots implicitly
                 for (var slot : SLOT_NAMES.keySet()) {
