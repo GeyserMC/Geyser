@@ -247,7 +247,7 @@ public final class ItemTranslator {
             return null;
         }
 
-        String name = modifier.getName().replace("minecraft:", "");
+        String name = modifier.getId().asMinimalString();
         // the namespace does not need to be present, but if it is, the java client ignores it as of pre-1.20.5
 
         ModifierOperation operation = modifier.getOperation();
