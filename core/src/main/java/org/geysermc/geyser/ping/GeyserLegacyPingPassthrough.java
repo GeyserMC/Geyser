@@ -138,7 +138,7 @@ public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runn
             this.geyser.getLogger().error("Failed to parse json when pinging server!", ex);
         } catch (EOFException e) {
             this.pingInfo = null;
-            this.geyser.getLogger().warning("Failed to ping the remote Java server! Is it online and configured in Geysers config?");
+            this.geyser.getLogger().warning("Failed to ping the remote Java server! Is it online and configured in Geyser's config?");
         } catch (UnknownHostException ex) {
             // Don't reset pingInfo, as we want to keep the last known value
             this.geyser.getLogger().warning("Unable to resolve remote host! Is the remote server down or invalid?");
