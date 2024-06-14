@@ -50,13 +50,13 @@ public record TextDecoration(String translationKey, List<Parameter> parameters, 
         NbtMap tag = entry.getData();
         NbtMap chat = tag.getCompound("chat", null);
         if (chat != null) {
-            String translationKey = tag.getString("translation_key");
+            String translationKey = chat.getString("translation_key");
 
-            NbtMap styleTag = tag.getCompound("style");
+            NbtMap styleTag = chat.getCompound("style");
             Style style = deserializeStyle(styleTag);
 
             List<ChatTypeDecoration.Parameter> parameters = new ArrayList<>();
-            List<String> parametersNbt = tag.getList("parameters", NbtType.STRING);
+            List<String> parametersNbt = chat.getList("parameters", NbtType.STRING);
             for (String parameter : parametersNbt) {
                 parameters.add(ChatTypeDecoration.Parameter.valueOf(parameter.toUpperCase(Locale.ROOT)));
             }
