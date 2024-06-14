@@ -226,6 +226,14 @@ public class Item {
         }
     }
 
+    /**
+     * Override if the Bedrock equivalent of an item uses damage for extra data, and should not be tracked
+     * when translating an item.
+     */
+    public boolean ignoreDamage() {
+        return false;
+    }
+
     /* Translation methods end */
 
     public GeyserItemStack newItemStack(int count, DataComponents components) {

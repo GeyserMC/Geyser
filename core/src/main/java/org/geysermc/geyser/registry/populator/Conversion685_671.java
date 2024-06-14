@@ -50,6 +50,12 @@ public class Conversion685_671 {
         if (NEW_MUSIC_DISCS.contains(item)) {
             return mapping.withBedrockIdentifier("minecraft:music_disc_otherside");
         }
+        if (item == Items.OMINOUS_TRIAL_KEY) {
+            return mapping.withBedrockIdentifier("minecraft:trial_key");
+        }
+        if (item == Items.OMINOUS_BOTTLE) {
+            return mapping.withBedrockIdentifier("minecraft:glass_bottle");
+        }
 
         if (!NEW_BLOCKS.contains(identifer)) {
             return mapping;

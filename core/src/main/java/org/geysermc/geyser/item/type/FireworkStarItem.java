@@ -90,4 +90,9 @@ public class FireworkStarItem extends Item {
             components.put(DataComponentType.FIREWORK_EXPLOSION, newExplosion);
         }
     }
+
+    @Override
+    public boolean ignoreDamage() {
+        return true;
+    }
 }
