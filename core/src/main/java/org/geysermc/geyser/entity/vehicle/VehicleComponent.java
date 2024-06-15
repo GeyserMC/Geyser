@@ -35,7 +35,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.geysermc.erosion.util.BlockPositionIterator;
-import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.Blocks;
@@ -81,8 +80,8 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         this.moveSpeed = (float) AttributeType.Builtin.GENERIC_MOVEMENT_SPEED.getDef();
         this.gravity = AttributeType.Builtin.GENERIC_GRAVITY.getDef();
 
-        double width = Double.parseDouble(Float.toString(vehicle.getBoundingBoxWidth()));
-        double height = Double.parseDouble(Float.toString(vehicle.getBoundingBoxHeight()));
+        double width = vehicle.getBoundingBoxWidth();
+        double height = vehicle.getBoundingBoxHeight();
         this.boundingBox = new BoundingBox(
                 vehicle.getPosition().getX(),
                 vehicle.getPosition().getY() + height / 2,
@@ -92,15 +91,13 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     }
 
     public void setWidth(float width) {
-        double doubleWidth = Double.parseDouble(Float.toString(width));
-        boundingBox.setSizeX(doubleWidth);
-        boundingBox.setSizeZ(doubleWidth);
+        boundingBox.setSizeX(width);
+        boundingBox.setSizeZ(width);
     }
 
     public void setHeight(float height) {
-        double doubleHeight = Double.parseDouble(Float.toString(height));
-        boundingBox.translate(0, (doubleHeight - boundingBox.getSizeY()) / 2, 0);
-        boundingBox.setSizeY(doubleHeight);
+        boundingBox.translate(0, (height - boundingBox.getSizeY()) / 2, 0);
+        boundingBox.setSizeY(height);
     }
 
     public void moveAbsolute(double x, double y, double z) {
@@ -111,6 +108,14 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
 
     public void moveRelative(double x, double y, double z) {
         boundingBox.translate(x, y, z);
+    }
+
+    public void moveRelative(Vector3d vec) {
+        boundingBox.translate(vec);
+    }
+
+    public BoundingBox getBoundingBox() {
+        return this.boundingBox;
     }
 
     public void setEffect(Effect effect, int effectAmplifier) {
@@ -127,6 +132,12 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
             case SLOW_FALLING -> effectSlowFalling = false;
             case WEAVING -> effectWeaving = false;
         }
+    }
+
+    public Vector3d correctMovement(Vector3d movement) {
+        return vehicle.getSession().getCollisionManager().correctMovement(
+                movement, boundingBox, vehicle.isOnGround(), this.stepHeight, true, vehicle.canWalkOnLava()
+        );
     }
 
     public void setMoveSpeed(float moveSpeed) {
@@ -382,7 +393,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
 
     protected void landMovement(VehicleContext ctx) {
         double gravity = getGravity();
-        float slipperiness = BlockStateValues.getSlipperiness(ctx.velocityAffectingBlock());
+        float slipperiness = BlockStateValues.getSlipperiness(getVelocityBlock(ctx));
         float drag = vehicle.isOnGround() ? 0.91f * slipperiness : 0.91f;
         float speed = vehicle.getVehicleSpeed() * (vehicle.isOnGround() ? BASE_SLIPPERINESS_CUBED / (slipperiness * slipperiness * slipperiness) : 0.1f);
 
@@ -556,13 +567,12 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         // Non-zero values indicate a collision on that axis
         Vector3d moveDiff = motion.toDouble().sub(correctedMovement);
 
-        boolean onGround = moveDiff.getY() != 0 && motion.getY() < 0;
+        vehicle.setOnGround(moveDiff.getY() != 0 && motion.getY() < 0);
         boolean horizontalCollision = moveDiff.getX() != 0 || moveDiff.getZ() != 0;
 
         boolean bounced = false;
-        if (onGround) {
-            Vector3i landingPos = ctx.centerPos().sub(0, 0.2f, 0).toInt();
-            Block landingBlock = ctx.getBlock(landingPos).block();
+        if (vehicle.isOnGround()) {
+            Block landingBlock = getLandingBlock(ctx).block();
 
             if (landingBlock == Blocks.SLIME_BLOCK) {
                 motion = Vector3f.from(motion.getX(), -motion.getY(), motion.getZ());
@@ -592,7 +602,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         }
 
         // Send the new position to the bedrock client and java server
-        moveVehicle(ctx.centerPos(), onGround);
+        moveVehicle(ctx.centerPos());
         vehicle.setMotion(motion);
 
         applyBlockCollisionEffects(ctx);
@@ -651,17 +661,16 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return Vector2f.from(player.getYaw(), player.getPitch() * 0.5f);
     }
 
-    protected void moveVehicle(Vector3d javaPos, boolean isOnGround) {
+    protected void moveVehicle(Vector3d javaPos) {
         Vector3f bedrockPos = javaPos.toFloat();
         Vector2f rotation = getVehicleRotation();
 
         MoveEntityDeltaPacket moveEntityDeltaPacket = new MoveEntityDeltaPacket();
         moveEntityDeltaPacket.setRuntimeEntityId(vehicle.getGeyserId());
 
-        if (isOnGround) {
+        if (vehicle.isOnGround()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
         }
-        vehicle.setOnGround(isOnGround);
 
         if (vehicle.getPosition().getX() != bedrockPos.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
@@ -714,7 +723,16 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return this.gravity;
     }
 
-    protected @Nullable Vector3i getSupportingBlockPos(VehicleContext ctx) {
+    /**
+     * Finds the position of the main block supporting the vehicle.
+     * Used when determining slipperiness, speed, etc.
+     * <p>
+     * Should use {@link VehicleContext#supportingBlockPos()}, instead of calling this directly.
+     *
+     * @param ctx context
+     * @return position of the main block supporting this entity
+     */
+    private @Nullable Vector3i getSupportingBlockPos(VehicleContext ctx) {
         Vector3i result = null;
 
         if (vehicle.isOnGround()) {
@@ -752,13 +770,25 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return result;
     }
 
-    protected Vector3i getVelocityAffectingPos(VehicleContext ctx) {
-        Vector3i blockPos = getSupportingBlockPos(ctx);
-        if (blockPos != null) {
-            return Vector3i.from(blockPos.getX(), Math.floor(ctx.centerPos().getY() - 0.500001f), blockPos.getZ());
+    protected BlockState getBlockUnder(VehicleContext ctx, float dist) {
+        Vector3i supportingBlockPos = ctx.supportingBlockPos();
+
+        Vector3i blockPos;
+        if (supportingBlockPos != null) {
+            blockPos = Vector3i.from(supportingBlockPos.getX(), Math.floor(ctx.centerPos().getY() - dist), supportingBlockPos.getZ());
         } else {
-            return ctx.centerPos().sub(0, 0.500001f, 0).toInt();
+            blockPos = ctx.centerPos().sub(0, dist, 0).toInt();
         }
+
+        return ctx.getBlock(blockPos);
+    }
+
+    protected BlockState getLandingBlock(VehicleContext ctx) {
+        return getBlockUnder(ctx, 0.2f);
+    }
+
+    protected BlockState getVelocityBlock(VehicleContext ctx) {
+        return getBlockUnder(ctx, 0.500001f);
     }
 
     protected float getVelocityMultiplier(VehicleContext ctx) {
@@ -771,7 +801,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
             return 0.4f;
         }
 
-        block = ctx.velocityAffectingBlock().block();
+        block = getVelocityBlock(ctx).block();
         if (block == Blocks.SOUL_SAND || block == Blocks.HONEY_BLOCK) {
             return 0.4f;
         }
@@ -785,7 +815,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
             return 0.5f;
         }
 
-        block = ctx.velocityAffectingBlock().block();
+        block = getVelocityBlock(ctx).block();
         if (block == Blocks.HONEY_BLOCK) {
             return 0.5f;
         }
@@ -796,7 +826,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     protected class VehicleContext {
         private Vector3d centerPos;
         private BlockState centerBlock;
-        private BlockState velocityAffectingBlock;
+        private Vector3i supportingBlockPos;
         private BlockPositionIterator blockIter;
         private int[] blocks;
 
@@ -811,7 +841,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
 
             this.centerPos = boundingBox.getBottomCenter();
             this.centerBlock = getBlock(this.centerPos.toInt());
-            this.velocityAffectingBlock = null;
+            this.supportingBlockPos = null;
         }
 
         protected Vector3d centerPos() {
@@ -822,12 +852,12 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
             return this.centerBlock;
         }
 
-        protected BlockState velocityAffectingBlock() {
-            if (this.velocityAffectingBlock == null) {
-                this.velocityAffectingBlock = getBlock(getVelocityAffectingPos(this));
+        protected Vector3i supportingBlockPos() {
+            if (this.supportingBlockPos == null) {
+                this.supportingBlockPos = getSupportingBlockPos(this);
             }
 
-            return this.velocityAffectingBlock;
+            return this.supportingBlockPos;
         }
 
         protected int getBlockId(int x, int y, int z) {

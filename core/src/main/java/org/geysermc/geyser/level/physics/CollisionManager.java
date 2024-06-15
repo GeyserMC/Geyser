@@ -177,7 +177,8 @@ public class CollisionManager {
         // Send corrected position to Bedrock if they differ by too much to prevent de-syncs
         if (onGround != newOnGround || movement.distanceSquared(adjustedMovement) > INCORRECT_MOVEMENT_THRESHOLD) {
             PlayerEntity playerEntity = session.getPlayerEntity();
-            if (pistonCache.getPlayerMotion().equals(Vector3f.ZERO) && !pistonCache.isPlayerSlimeCollision()) {
+            // Client will dismount if on a vehicle
+            if (playerEntity.getVehicle() == null && pistonCache.getPlayerMotion().equals(Vector3f.ZERO) && !pistonCache.isPlayerSlimeCollision()) {
                 playerEntity.moveAbsolute(position.toFloat(), playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), newOnGround, true);
             }
         }
