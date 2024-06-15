@@ -29,8 +29,11 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.type.Tickable;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.entity.vehicle.BoostableVehicleComponent;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.entity.vehicle.VehicleComponent;
@@ -46,7 +49,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
 import java.util.UUID;
 
-public class PigEntity extends AnimalEntity implements ClientVehicle {
+public class PigEntity extends AnimalEntity implements Tickable, ClientVehicle {
     private final BoostableVehicleComponent<PigEntity> vehicleComponent = new BoostableVehicleComponent<>(this, 1.0f);
 
     public PigEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
@@ -97,6 +100,21 @@ public class PigEntity extends AnimalEntity implements ClientVehicle {
     }
 
     @Override
+    public void tick() {
+        PlayerEntity player = getPlayerPassenger();
+        if (player == session.getPlayerEntity()) {
+            if (session.getPlayerInventory().isHolding(Items.CARROT_ON_A_STICK)) {
+                vehicleComponent.tickBoost();
+            }
+        } else if (player != null) { // getHand() for session player seems to always return air
+            ItemDefinition itemDefinition = session.getItemMappings().getStoredItems().carrotOnAStick().getBedrockDefinition();
+            if (player.getHand().getDefinition() == itemDefinition || player.getOffhand().getDefinition() == itemDefinition) {
+                vehicleComponent.tickBoost();
+            }
+        }
+    }
+
+    @Override
     public VehicleComponent<?> getVehicleComponent() {
         return vehicleComponent;
     }
@@ -111,11 +129,16 @@ public class PigEntity extends AnimalEntity implements ClientVehicle {
         return vehicleComponent.getMoveSpeed() * 0.225f * vehicleComponent.getBoostMultiplier();
     }
 
+    private @Nullable PlayerEntity getPlayerPassenger() {
+        if (getFlag(EntityFlag.SADDLED) && !passengers.isEmpty() && passengers.get(0) instanceof PlayerEntity playerEntity) {
+            return playerEntity;
+        }
+
+        return null;
+    }
+
     @Override
     public boolean isClientControlled() {
-        return getFlag(EntityFlag.SADDLED)
-                && !passengers.isEmpty()
-                && passengers.get(0) == session.getPlayerEntity()
-                && session.getPlayerInventory().isHolding(Items.CARROT_ON_A_STICK);
+        return getPlayerPassenger() == session.getPlayerEntity() && session.getPlayerInventory().isHolding(Items.CARROT_ON_A_STICK);
     }
 }

@@ -165,9 +165,9 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         //
     }
 
-    public boolean tickVehicle() {
+    public void tickVehicle() {
         if (!vehicle.isClientControlled()) {
-            return false;
+            return;
         }
 
         VehicleContext ctx = new VehicleContext();
@@ -185,8 +185,6 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
             }
             case EMPTY -> landMovement(ctx);
         }
-
-        return true;
     }
 
     protected ObjectDoublePair<Fluid> updateFluidMovement(VehicleContext ctx) {
