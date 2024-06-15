@@ -52,13 +52,9 @@ public class ConfigLoaderTemp {
             --------------------------------""";
 
     public static <T extends GeyserConfig> T load(Class<T> configClass) throws IOException {
-        if (true) {
-            return null; // For now
-        }
         var loader = YamlConfigurationLoader.builder()
                 .file(new File("newconfig.yml"))
-                .defaultOptions(InterfaceDefaultOptions.get()
-                        .header(HEADER))
+                .defaultOptions(options -> InterfaceDefaultOptions.addTo(options.header(HEADER)))
                 .build();
         ConfigurationNode node = loader.load();
         // temp fix for node.virtual() being broken
