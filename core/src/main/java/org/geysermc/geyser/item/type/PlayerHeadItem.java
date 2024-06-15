@@ -27,6 +27,7 @@ package org.geysermc.geyser.item.type;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
@@ -34,9 +35,9 @@ import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
-public class PlayerHeadItem extends Item {
-    public PlayerHeadItem(String javaIdentifier, Builder builder) {
-        super(javaIdentifier, builder);
+public class PlayerHeadItem extends BlockItem {
+    public PlayerHeadItem(Builder builder, Block block, Block... otherBlocks) {
+        super(builder, block, otherBlocks);
     }
 
     @Override

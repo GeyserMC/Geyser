@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.util.FormImage;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
@@ -93,10 +94,10 @@ public class StatisticsUtils {
 
                                     for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof BreakBlockStatistic statistic) {
-                                            String identifier = BlockRegistries.CLEAN_JAVA_IDENTIFIERS.get(statistic.getId());
-                                            if (identifier != null) {
-                                                String block = identifier.replace("minecraft:", "block.minecraft.");
-                                                content.add(block + ": " + entry.getIntValue());
+                                            Block block = BlockRegistries.JAVA_BLOCKS.get(statistic.getId());
+                                            if (block != null) {
+                                                String identifier = "block.minecraft." + block.javaIdentifier().value();
+                                                content.add(identifier + ": " + entry.getIntValue());
                                             }
                                         }
                                     }

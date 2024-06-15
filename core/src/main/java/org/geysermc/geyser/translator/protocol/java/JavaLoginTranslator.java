@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
+import org.geysermc.erosion.Constants;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerSpawnInfo;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundLoginPacket;
@@ -44,6 +45,8 @@ import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.EntityUtils;
+
+import java.nio.charset.StandardCharsets;
 
 @Translator(packet = ClientboundLoginPacket.class)
 public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket> {
@@ -134,6 +137,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         if (session.remoteServer().authType() == AuthType.FLOODGATE) {
             session.sendDownstreamPacket(new ServerboundCustomPayloadPacket("minecraft:register", PluginMessageChannels.getFloodgateRegisterData()));
         }
+        session.sendDownstreamPacket(new ServerboundCustomPayloadPacket("minecraft:register", Constants.PLUGIN_MESSAGE.getBytes(StandardCharsets.UTF_8)));
 
         if (newDimension != session.getDimension()) {
             DimensionUtils.switchDimension(session, newDimension);

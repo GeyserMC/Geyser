@@ -47,6 +47,7 @@ import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.geysermc.api.Geyser;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
+import org.geysermc.erosion.packet.Packets;
 import org.geysermc.floodgate.crypto.AesCipher;
 import org.geysermc.floodgate.crypto.AesKeyProducer;
 import org.geysermc.floodgate.crypto.Base64Topping;
@@ -79,6 +80,7 @@ import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
 import org.geysermc.geyser.session.SessionManager;
+import org.geysermc.geyser.session.cache.RegistryCache;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
 import org.geysermc.geyser.skin.ProvidedSkins;
 import org.geysermc.geyser.skin.SkinProvider;
@@ -216,6 +218,8 @@ public class GeyserImpl implements GeyserApi {
         /* Initialize registries */
         Registries.init();
         BlockRegistries.init();
+
+        RegistryCache.init();
 
         /* Initialize translators */
         EntityDefinitions.init();
@@ -389,7 +393,7 @@ public class GeyserImpl implements GeyserApi {
 
         this.newsHandler = new NewsHandler(BRANCH, this.buildNumber());
 
-        //Packets.initGeyser();
+        Packets.initGeyser();
 
         if (Epoll.isAvailable()) {
             this.erosionUnixListener = new UnixSocketClientListener();
@@ -772,6 +776,7 @@ public class GeyserImpl implements GeyserApi {
             return 0;
         }
 
+        //noinspection DataFlowIssue
         return Integer.parseInt(BUILD_NUMBER);
     }
 

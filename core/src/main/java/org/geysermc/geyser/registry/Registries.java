@@ -127,7 +127,10 @@ public final class Registries {
      */
     public static final PacketTranslatorRegistry<Packet> JAVA_PACKET_TRANSLATORS = PacketTranslatorRegistry.create();
 
-    public static final SimpleRegistry<List<Item>> JAVA_ITEMS = SimpleRegistry.create(RegistryLoaders.empty(ArrayList::new));
+    /**
+     * A registry containing all Java items ordered by their network ID.
+     */
+    public static final ListRegistry<Item> JAVA_ITEMS = ListRegistry.create(RegistryLoaders.empty(ArrayList::new));
 
     public static final SimpleMappedRegistry<String, Item> JAVA_ITEM_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 

@@ -38,6 +38,7 @@ import org.cloudburstmc.protocol.bedrock.packet.PlayerEnchantOptionsPacket;
 import org.geysermc.geyser.inventory.*;
 import org.geysermc.geyser.inventory.item.Enchantment;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
@@ -47,7 +48,7 @@ import java.util.Locale;
 
 public class EnchantingInventoryTranslator extends AbstractBlockInventoryTranslator {
     public EnchantingInventoryTranslator() {
-        super(2, "minecraft:enchanting_table", org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.ENCHANTMENT, UIInventoryUpdater.INSTANCE);
+        super(2, Blocks.ENCHANTING_TABLE, org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.ENCHANTMENT, UIInventoryUpdater.INSTANCE);
     }
 
     @Override

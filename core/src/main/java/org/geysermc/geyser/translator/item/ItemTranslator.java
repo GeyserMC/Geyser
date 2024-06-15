@@ -42,6 +42,7 @@ import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.CustomSkull;
@@ -52,20 +53,12 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
-import org.geysermc.mcprotocollib.protocol.data.game.Identifier;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.ModifierOperation;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.AdventureModePredicate;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemAttributeModifiers;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.*;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public final class ItemTranslator {
 
@@ -185,11 +178,11 @@ public final class ItemTranslator {
         translateCustomItem(components, builder, bedrockItem);
 
         if (components != null) {
-            // Translate the canDestroy and canPlaceOn Java NBT
+            // Translate the canDestroy and canPlaceOn Java components
             AdventureModePredicate canDestroy = components.get(DataComponentType.CAN_BREAK);
             AdventureModePredicate canPlaceOn = components.get(DataComponentType.CAN_PLACE_ON);
-            String[] canBreak = getCanModify(canDestroy);
-            String[] canPlace = getCanModify(canPlaceOn);
+            String[] canBreak = getCanModify(session, canDestroy);
+            String[] canPlace = getCanModify(session, canPlaceOn);
             if (canBreak != null) {
                 builder.canBreak(canBreak);
             }
@@ -325,27 +318,42 @@ public final class ItemTranslator {
      * @param canModifyJava the list of items in Java
      * @return the new list of items in Bedrock
      */
-    // TODO this is now more complicated in 1.20.5. Yippee!
-    private static String @Nullable [] getCanModify(@Nullable AdventureModePredicate canModifyJava) {
+    // TODO blocks by tag, maybe NBT, maybe properties
+    // Blocks by tag will be easy enough, most likely, we just need to... save all block tags.
+    // Probably do that with Guava interning around sessions
+    private static String @Nullable [] getCanModify(GeyserSession session, @Nullable AdventureModePredicate canModifyJava) {
         if (canModifyJava == null) {
             return null;
         }
         List<AdventureModePredicate.BlockPredicate> predicates = canModifyJava.getPredicates();
-        if (predicates.size() > 0) {
-            String[] canModifyBedrock = new String[predicates.size()];
-            for (int i = 0; i < canModifyBedrock.length; i++) {
-                // Get the Java identifier of the block that can be placed
-                String location = predicates.get(i).getLocation();
-                if (location == null) {
-                    canModifyBedrock[i] = ""; // So it'll serialize
-                    continue; // ???
+        if (!predicates.isEmpty()) {
+            List<String> canModifyBedrock = new ArrayList<>(); // This used to be an array, but we need to be flexible with what blocks can be supported
+            for (int i = 0; i < predicates.size(); i++) {
+                HolderSet holderSet = predicates.get(i).getBlocks();
+                if (holderSet == null) {
+                    continue;
                 }
-                String block = Identifier.formalize(location);
-                // Get the Bedrock identifier of the item and replace it.
-                // This will unfortunately be limited - for example, beds and banners will be translated weirdly
-                canModifyBedrock[i] = BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.getOrDefault(block, block).replace("minecraft:", "");
+                int[] holders = holderSet.getHolders();
+                if (holders == null) {
+                    continue;
+                }
+                // Holders is an int state of Java block IDs (not block states)
+                for (int blockId : holders) {
+                    // Get the Bedrock identifier of the item
+                    // This will unfortunately be limited - for example, beds and banners will be translated weirdly
+                    Block block = BlockRegistries.JAVA_BLOCKS.get(blockId);
+                    if (block == null) {
+                        continue;
+                    }
+                    String identifier = session.getBlockMappings().getJavaToBedrockIdentifiers().get(block.javaId());
+                    if (identifier == null) {
+                        canModifyBedrock.add(block.javaIdentifier().value());
+                    } else {
+                        canModifyBedrock.add(identifier);
+                    }
+                }
             }
-            return canModifyBedrock;
+            return canModifyBedrock.toArray(new String[0]);
         }
         return null;
     }

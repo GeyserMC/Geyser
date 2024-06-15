@@ -39,6 +39,9 @@ import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.Blocks;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.PistonCache;
 import org.geysermc.geyser.translator.collision.BlockCollision;
@@ -405,7 +408,8 @@ public class CollisionManager {
      * @return if the player is currently in a water block
      */
     public boolean isPlayerInWater() {
-        return session.getGeyser().getWorldManager().getBlockAt(session, session.getPlayerEntity().getPosition().toInt()) == BlockStateValues.JAVA_WATER_ID;
+        BlockState state = session.getGeyser().getWorldManager().blockAt(session, session.getPlayerEntity().getPosition().toInt());
+        return state.is(Blocks.WATER) && state.getValue(Properties.LEVEL) == 0;
     }
 
     public boolean isWaterInEyes() {

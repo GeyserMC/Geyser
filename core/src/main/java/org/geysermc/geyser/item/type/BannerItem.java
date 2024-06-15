@@ -35,6 +35,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.inventory.item.DyeColor;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistry;
@@ -199,8 +200,8 @@ public class BannerItem extends BlockItem {
         return null;
     }
 
-    public BannerItem(String javaIdentifier, Builder builder) {
-        super(javaIdentifier, builder);
+    public BannerItem(Builder builder, Block block, Block... otherBlocks) {
+        super(builder, block, otherBlocks);
     }
 
     @Override
