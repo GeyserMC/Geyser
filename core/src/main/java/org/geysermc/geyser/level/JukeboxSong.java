@@ -33,7 +33,13 @@ public record JukeboxSong(String soundEvent, String description) {
 
     public static JukeboxSong read(RegistryEntry entry) {
         NbtMap data = entry.getData();
-        String soundEvent = data.getString("sound_event");
+        Object soundEventObject = data.get("sound_event");
+        String soundEvent = "";
+        if (soundEventObject instanceof NbtMap map) {
+            soundEvent = map.getString("sound_id");
+        } else if (soundEventObject instanceof String string){
+            soundEvent = string;
+        }
         String description = MessageTranslator.deserializeDescription(data);
         return new JukeboxSong(soundEvent, description);
     }
