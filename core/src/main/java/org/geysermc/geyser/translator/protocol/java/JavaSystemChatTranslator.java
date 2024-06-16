@@ -45,7 +45,7 @@ public class JavaSystemChatTranslator extends PacketTranslator<ClientboundSystem
             // As there SHOULD be no false flags for this, print every time it shows up in chat.
             if (Boolean.parseBoolean(System.getProperty("Geyser.PrintSecureChatInformation", "true"))) {
                 session.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.chat.secure_info_1", session.locale()));
-                session.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.chat.secure_info_2", session.locale(), "https://geysermc.link/secure-chat"));
+                session.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.chat.secure_info_2", session.locale(), "https://wiki.geysermc.org/geyser/secure-chat/"));
             }
         }
 
