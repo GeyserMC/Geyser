@@ -65,6 +65,12 @@ public final class ItemTranslator {
      * The order of these slots is their display order on Java Edition clients
      */
     private static final EnumMap<ItemAttributeModifiers.EquipmentSlotGroup, String> SLOT_NAMES;
+    private static final ItemAttributeModifiers.EquipmentSlotGroup[] ARMOR_SLOT_NAMES = new ItemAttributeModifiers.EquipmentSlotGroup[] {
+        ItemAttributeModifiers.EquipmentSlotGroup.HEAD,
+        ItemAttributeModifiers.EquipmentSlotGroup.CHEST,
+        ItemAttributeModifiers.EquipmentSlotGroup.LEGS,
+        ItemAttributeModifiers.EquipmentSlotGroup.FEET
+    };
     private static final DecimalFormat ATTRIBUTE_FORMAT = new DecimalFormat("0.#####");
 
     static {
@@ -132,8 +138,10 @@ public final class ItemTranslator {
     private static ItemData.@NonNull Builder translateToBedrock(GeyserSession session, Item javaItem, ItemMapping bedrockItem, int count, @Nullable DataComponents components) {
         BedrockItemBuilder nbtBuilder = new BedrockItemBuilder();
 
+        boolean hideTooltips = false;
         if (components != null) {
             javaItem.translateComponentsToBedrock(session, components, nbtBuilder);
+            if (components.get(DataComponentType.HIDE_TOOLTIP) != null) hideTooltips = true;
         }
 
         String customName = getCustomName(session, components, bedrockItem);
@@ -143,13 +151,13 @@ public final class ItemTranslator {
 
         if (components != null) {
             ItemAttributeModifiers attributeModifiers = components.get(DataComponentType.ATTRIBUTE_MODIFIERS);
-            if (attributeModifiers != null && attributeModifiers.isShowInTooltip()) {
+            if (attributeModifiers != null && attributeModifiers.isShowInTooltip() && !hideTooltips) {
                 // only add if attribute modifiers do not indicate to hide them
                 addAttributeLore(attributeModifiers, nbtBuilder, session.locale());
             }
         }
 
-        if (session.isAdvancedTooltips()) {
+        if (session.isAdvancedTooltips() && !hideTooltips) {
             addAdvancedTooltips(components, nbtBuilder, javaItem, session.locale());
         }
 
@@ -207,7 +215,12 @@ public final class ItemTranslator {
             }
 
             ItemAttributeModifiers.EquipmentSlotGroup slotGroup = entry.getSlot();
-            if (slotGroup == ItemAttributeModifiers.EquipmentSlotGroup.ANY) {
+            if (slotGroup == ItemAttributeModifiers.EquipmentSlotGroup.ARMOR) {
+                // modifier applies to all armor slots
+                for (ItemAttributeModifiers.EquipmentSlotGroup slot : ARMOR_SLOT_NAMES) {
+                    slotsToModifiers.computeIfAbsent(slot, s -> new ArrayList<>()).add(loreEntry);
+                }
+            } else if (slotGroup == ItemAttributeModifiers.EquipmentSlotGroup.ANY) {
                 // modifier applies to all slots implicitly
                 for (var slot : SLOT_NAMES.keySet()) {
                     slotsToModifiers.computeIfAbsent(slot, s -> new ArrayList<>()).add(loreEntry);
