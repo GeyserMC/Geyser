@@ -34,6 +34,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.BedBlock;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
@@ -125,22 +126,24 @@ public class VillagerEntity extends AbstractMerchantEntity {
         int bedRotation = 0;
         float xOffset = 0;
         float zOffset = 0;
-        switch (state.getValue(Properties.HORIZONTAL_FACING)) {
-            case SOUTH -> {
-                bedRotation = 180;
-                zOffset = -.5f;
-            }
-            case EAST -> {
-                bedRotation = 90;
-                xOffset = -.5f;
-            }
-            case WEST -> {
-                bedRotation = 270;
-                xOffset = .5f;
-            }
-            case NORTH -> {
-                // rotation does not change because north is 0
-                zOffset = .5f;
+        if (state.block() instanceof BedBlock) {
+            switch (state.getValue(Properties.HORIZONTAL_FACING)) {
+                case SOUTH -> {
+                    bedRotation = 180;
+                    zOffset = -.5f;
+                }
+                case EAST -> {
+                    bedRotation = 90;
+                    xOffset = -.5f;
+                }
+                case WEST -> {
+                    bedRotation = 270;
+                    xOffset = .5f;
+                }
+                case NORTH -> {
+                    // rotation does not change because north is 0
+                    zOffset = .5f;
+                }
             }
         }
 

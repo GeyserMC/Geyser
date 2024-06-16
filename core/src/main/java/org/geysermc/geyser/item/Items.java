@@ -834,8 +834,9 @@ public final class Items {
     public static final Item TURTLE_HELMET = register(new ArmorItem("turtle_helmet", ArmorMaterial.TURTLE, builder().stackSize(1).maxDamage(275)));
     public static final Item TURTLE_SCUTE = register(new Item("turtle_scute", builder()));
     public static final Item ARMADILLO_SCUTE = register(new Item("armadillo_scute", builder()));
-    public static final Item WOLF_ARMOR = register(new ArmorItem("wolf_armor", ArmorMaterial.ARMADILLO, builder().stackSize(1).maxDamage(64)));
+    public static final Item WOLF_ARMOR = register(new WolfArmorItem("wolf_armor", ArmorMaterial.ARMADILLO, builder().stackSize(1).maxDamage(64)));
     public static final Item FLINT_AND_STEEL = register(new Item("flint_and_steel", builder().stackSize(1).maxDamage(64)));
+    public static final Item BOWL = register(new Item("bowl", builder()));
     public static final Item APPLE = register(new Item("apple", builder()));
     public static final Item BOW = register(new Item("bow", builder().stackSize(1).maxDamage(384)));
     public static final Item ARROW = register(new ArrowItem("arrow", builder()));
@@ -885,7 +886,6 @@ public final class Items {
     public static final Item NETHERITE_AXE = register(new TieredItem("netherite_axe", ToolTier.NETHERITE, builder().stackSize(1).maxDamage(2031).attackDamage(10.0)));
     public static final Item NETHERITE_HOE = register(new TieredItem("netherite_hoe", ToolTier.NETHERITE, builder().stackSize(1).maxDamage(2031).attackDamage(1.0)));
     public static final Item STICK = register(new Item("stick", builder()));
-    public static final Item BOWL = register(new Item("bowl", builder()));
     public static final Item MUSHROOM_STEW = register(new Item("mushroom_stew", builder().stackSize(1)));
     public static final Item STRING = register(new BlockItem("string", builder(), Blocks.TRIPWIRE));
     public static final Item FEATHER = register(new Item("feather", builder()));
@@ -1042,7 +1042,7 @@ public final class Items {
     public static final Item BLAZE_POWDER = register(new Item("blaze_powder", builder()));
     public static final Item MAGMA_CREAM = register(new Item("magma_cream", builder()));
     public static final Item BREWING_STAND = register(new BlockItem(builder(), Blocks.BREWING_STAND));
-    public static final Item CAULDRON = register(new BlockItem(builder(), Blocks.CAULDRON, Blocks.LAVA_CAULDRON, Blocks.POWDER_SNOW_CAULDRON, Blocks.WATER_CAULDRON));
+    public static final Item CAULDRON = register(new BlockItem(builder(), Blocks.CAULDRON, Blocks.WATER_CAULDRON, Blocks.LAVA_CAULDRON, Blocks.POWDER_SNOW_CAULDRON));
     public static final Item ENDER_EYE = register(new Item("ender_eye", builder()));
     public static final Item GLISTERING_MELON_SLICE = register(new Item("glistering_melon_slice", builder()));
     public static final Item ARMADILLO_SPAWN_EGG = register(new SpawnEggItem("armadillo_spawn_egg", builder()));
@@ -1130,7 +1130,7 @@ public final class Items {
     public static final Item WIND_CHARGE = register(new Item("wind_charge", builder()));
     public static final Item WRITABLE_BOOK = register(new WritableBookItem("writable_book", builder().stackSize(1)));
     public static final Item WRITTEN_BOOK = register(new WrittenBookItem("written_book", builder().stackSize(16)));
-    public static final Item MACE = register(new MaceItem("mace", builder().stackSize(1).maxDamage(250)));
+    public static final Item MACE = register(new MaceItem("mace", builder().stackSize(1).maxDamage(500)));
     public static final Item ITEM_FRAME = register(new Item("item_frame", builder()));
     public static final Item GLOW_ITEM_FRAME = register(new Item("glow_item_frame", builder()));
     public static final Item FLOWER_POT = register(new BlockItem(builder(), Blocks.FLOWER_POT));
@@ -1209,6 +1209,8 @@ public final class Items {
     public static final Item MUSIC_DISC_CAT = register(new Item("music_disc_cat", builder().stackSize(1)));
     public static final Item MUSIC_DISC_BLOCKS = register(new Item("music_disc_blocks", builder().stackSize(1)));
     public static final Item MUSIC_DISC_CHIRP = register(new Item("music_disc_chirp", builder().stackSize(1)));
+    public static final Item MUSIC_DISC_CREATOR = register(new Item("music_disc_creator", builder().stackSize(1)));
+    public static final Item MUSIC_DISC_CREATOR_MUSIC_BOX = register(new Item("music_disc_creator_music_box", builder().stackSize(1)));
     public static final Item MUSIC_DISC_FAR = register(new Item("music_disc_far", builder().stackSize(1)));
     public static final Item MUSIC_DISC_MALL = register(new Item("music_disc_mall", builder().stackSize(1)));
     public static final Item MUSIC_DISC_MELLOHI = register(new Item("music_disc_mellohi", builder().stackSize(1)));
@@ -1221,6 +1223,7 @@ public final class Items {
     public static final Item MUSIC_DISC_RELIC = register(new Item("music_disc_relic", builder().stackSize(1)));
     public static final Item MUSIC_DISC_5 = register(new Item("music_disc_5", builder().stackSize(1)));
     public static final Item MUSIC_DISC_PIGSTEP = register(new Item("music_disc_pigstep", builder().stackSize(1)));
+    public static final Item MUSIC_DISC_PRECIPICE = register(new Item("music_disc_precipice", builder().stackSize(1)));
     public static final Item DISC_FRAGMENT_5 = register(new Item("disc_fragment_5", builder()));
     public static final Item TRIDENT = register(new Item("trident", builder().stackSize(1).maxDamage(250).attackDamage(9.0)));
     public static final Item PHANTOM_MEMBRANE = register(new Item("phantom_membrane", builder()));
@@ -1365,7 +1368,7 @@ public final class Items {
     public static final Item TRIAL_KEY = register(new Item("trial_key", builder()));
     public static final Item OMINOUS_TRIAL_KEY = register(new Item("ominous_trial_key", builder()));
     public static final Item VAULT = register(new BlockItem(builder(), Blocks.VAULT));
-    public static final Item OMINOUS_BOTTLE = register(new Item("ominous_bottle", builder()));
+    public static final Item OMINOUS_BOTTLE = register(new OminousBottleItem("ominous_bottle", builder()));
     public static final Item BREEZE_ROD = register(new Item("breeze_rod", builder()));
 
     public static final int AIR_ID = AIR.javaId();

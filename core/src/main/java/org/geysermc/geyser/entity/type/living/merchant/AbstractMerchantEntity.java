@@ -47,7 +47,7 @@ public class AbstractMerchantEntity extends AgeableEntity {
     }
 
     @Override
-    protected boolean canBeLeashed() {
+    public boolean canBeLeashed() {
         return false;
     }
 

@@ -251,6 +251,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                     SpigotAdapters.registerWorldAdapter(nmsVersion);
                     geyserLogger.debug("Using spigot NMS adapter for nms version: " + nmsVersion);
                 } catch (Exception e) { // Likely running on Paper 1.20.5+
+                    geyserLogger.debug("Unable to find spigot world manager: " + e.getMessage());
                     //noinspection deprecation
                     int protocolVersion = Bukkit.getUnsafe().getProtocolVersion();
                     PaperAdapters.registerClosestWorldAdapter(protocolVersion);
@@ -265,7 +266,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                     this.geyserWorldManager = new GeyserSpigotNativeWorldManager(this, isPaper);
                 }
                 geyserLogger.debug("Using world manager of type: " + this.geyserWorldManager.getClass().getSimpleName());
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 if (geyserConfig.isDebugMode()) {
                     geyserLogger.debug("Error while attempting to find NMS adapter. Most likely, this can be safely ignored. :)");
                     e.printStackTrace();

@@ -53,7 +53,7 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
             entity.resetMetadata();
         }
 
-        if (!packet.isKeepAttributes()) {
+        if (!packet.isKeepAttributeModifiers()) {
             entity.resetAttributes();
         }
 

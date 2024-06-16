@@ -77,6 +77,12 @@ public final class EntityUtils {
             case BAD_OMEN -> 28;
             case HERO_OF_THE_VILLAGE -> 29;
             case DARKNESS -> 30;
+            case TRIAL_OMEN -> 31;
+            case WIND_CHARGED -> 32;
+            case WEAVING -> 33;
+            case OOZING -> 34;
+            case INFESTED -> 35;
+            case RAID_OMEN -> 36;
             default -> effect.ordinal() + 1;
         };
     }

@@ -72,7 +72,7 @@ public class AxolotlEntity extends AnimalEntity {
     }
 
     @Override
-    protected boolean canBeLeashed() {
+    public boolean canBeLeashed() {
         return true;
     }
 

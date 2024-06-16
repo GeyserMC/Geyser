@@ -290,7 +290,8 @@ public final class BlockRegistryPopulator {
                 }
 
                 boolean waterlogged = blockState.getValue(Properties.WATERLOGGED, false)
-                        || block == Blocks.BUBBLE_COLUMN || block == Blocks.KELP || block == Blocks.SEAGRASS;
+                        || block == Blocks.BUBBLE_COLUMN || block == Blocks.KELP || block == Blocks.KELP_PLANT
+                        || block == Blocks.SEAGRASS || block == Blocks.TALL_SEAGRASS;
 
                 if (waterlogged) {
                     BlockRegistries.WATERLOGGED.get().set(javaRuntimeId);

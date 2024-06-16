@@ -25,13 +25,11 @@
 
 package org.geysermc.geyser.inventory.item;
 
-import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Locale;
 
-@Getter
-public enum Enchantment {
+public enum BedrockEnchantment {
     PROTECTION,
     FIRE_PROTECTION,
     FEATHER_FALLING,
@@ -69,18 +67,21 @@ public enum Enchantment {
     PIERCING,
     QUICK_CHARGE,
     SOUL_SPEED,
-    SWIFT_SNEAK;
+    SWIFT_SNEAK,
+    WIND_BURST,
+    DENSITY,
+    BREACH;
 
-    private static final Enchantment[] VALUES = values();
+    private static final BedrockEnchantment[] VALUES = values();
 
     private final String javaIdentifier;
 
-    Enchantment() {
+    BedrockEnchantment() {
         this.javaIdentifier = "minecraft:" + this.name().toLowerCase(Locale.ENGLISH);
     }
 
-    public static @Nullable Enchantment getByJavaIdentifier(String javaIdentifier) {
-        for (Enchantment enchantment : VALUES) {
+    public static @Nullable BedrockEnchantment getByJavaIdentifier(String javaIdentifier) {
+        for (BedrockEnchantment enchantment : VALUES) {
             if (enchantment.javaIdentifier.equals(javaIdentifier) || enchantment.name().toLowerCase(Locale.ENGLISH).equalsIgnoreCase(javaIdentifier)) {
                 return enchantment;
             }
@@ -88,88 +89,10 @@ public enum Enchantment {
         return null;
     }
 
-    public static @Nullable Enchantment getByBedrockId(int bedrockId) {
+    public static @Nullable BedrockEnchantment getByBedrockId(int bedrockId) {
         if (bedrockId >= 0 && bedrockId < VALUES.length) {
             return VALUES[bedrockId];
         }
         return null;
-    }
-
-    /**
-     * Enchantments classified by their Java index
-     */
-    public enum JavaEnchantment {
-        PROTECTION,
-        FIRE_PROTECTION,
-        FEATHER_FALLING,
-        BLAST_PROTECTION,
-        PROJECTILE_PROTECTION,
-        RESPIRATION,
-        AQUA_AFFINITY,
-        THORNS,
-        DEPTH_STRIDER,
-        FROST_WALKER,
-        BINDING_CURSE,
-        SOUL_SPEED,
-        SWIFT_SNEAK,
-        SHARPNESS,
-        SMITE,
-        BANE_OF_ARTHROPODS,
-        KNOCKBACK,
-        FIRE_ASPECT,
-        LOOTING,
-        SWEEPING_EDGE,
-        EFFICIENCY,
-        SILK_TOUCH,
-        UNBREAKING,
-        FORTUNE,
-        POWER,
-        PUNCH,
-        FLAME,
-        INFINITY,
-        LUCK_OF_THE_SEA,
-        LURE,
-        LOYALTY,
-        IMPALING,
-        RIPTIDE,
-        CHANNELING,
-        MULTISHOT,
-        QUICK_CHARGE,
-        PIERCING,
-        DENSITY,
-        BREACH,
-        WIND_BURST,
-        MENDING,
-        VANISHING_CURSE;
-
-        private static final JavaEnchantment[] VALUES = JavaEnchantment.values();
-
-        public static JavaEnchantment of(int index) {
-            return VALUES[index];
-        }
-
-        /**
-         * A list of all enchantment Java identifiers for use with command suggestions.
-         */
-        public static final String[] ALL_JAVA_IDENTIFIERS;
-
-        public static @Nullable JavaEnchantment getByJavaIdentifier(String javaIdentifier) {
-            if (!javaIdentifier.startsWith("minecraft:")) {
-                javaIdentifier = "minecraft:" + javaIdentifier;
-            }
-            for (int i = 0; i < ALL_JAVA_IDENTIFIERS.length; i++) {
-                if (ALL_JAVA_IDENTIFIERS[i].equalsIgnoreCase(javaIdentifier)) {
-                    return VALUES[i];
-                }
-            }
-            return null;
-        }
-
-        static {
-            ALL_JAVA_IDENTIFIERS = new String[VALUES.length];
-            for (int i = 0; i < ALL_JAVA_IDENTIFIERS.length; i++) {
-                ALL_JAVA_IDENTIFIERS[i] = "minecraft:" + VALUES[i].name().toLowerCase(Locale.ENGLISH);
-            }
-        }
     }
 }

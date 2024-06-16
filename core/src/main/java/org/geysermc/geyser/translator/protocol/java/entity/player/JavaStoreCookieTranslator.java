@@ -35,6 +35,6 @@ public class JavaStoreCookieTranslator extends PacketTranslator<ClientboundStore
 
     @Override
     public void translate(GeyserSession session, ClientboundStoreCookiePacket packet) {
-        session.getCookies().put(packet.getKey(), packet.getPayload());
+        session.getCookies().put(packet.getKey().asString(), packet.getPayload());
     }
 }
