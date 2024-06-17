@@ -154,8 +154,8 @@ public final class EntityUtils {
      * Adjust an entity's height if they have mounted/dismounted an entity.
      */
     public static void updateMountOffset(Entity passenger, Entity mount, boolean rider, boolean riding, boolean moreThanOneEntity) {
-        if(passenger instanceof TextDisplayEntity textDisplay
-                && textDisplay.baseTranslation == null) return;
+        if (passenger instanceof TextDisplayEntity textDisplay
+                && !textDisplay.hasTranslation()) return;
 
         passenger.setFlag(EntityFlag.RIDING, riding);
         if (riding) {
@@ -197,6 +197,15 @@ public final class EntityUtils {
                 case CHEST_BOAT -> xOffset = 0.15F;
                 case CHICKEN -> zOffset = -0.1f;
                 case TRADER_LLAMA, LLAMA -> zOffset = -0.3f;
+                case TEXT_DISPLAY -> {
+                    TextDisplayEntity textDisplay;
+                    if (passenger instanceof TextDisplayEntity) {
+                        textDisplay = (TextDisplayEntity) passenger;
+                        xOffset = textDisplay.getTranslation().getX();
+                        yOffset = textDisplay.getTranslation().getY() + 0.2f;
+                        zOffset = textDisplay.getTranslation().getZ();
+                    }
+                }
             }
             /*
              * Bedrock Differences
@@ -222,11 +231,7 @@ public final class EntityUtils {
             if (mount instanceof ArmorStandEntity armorStand) {
                 yOffset -= armorStand.getYOffset();
             }
-            Vector3f offset = Vector3f.from(xOffset, yOffset, zOffset);
-
-            passenger.setRiderSeatPosition( passenger instanceof TextDisplayEntity textDisplay ?
-                    textDisplay.baseTranslation.add(offset).add(0f, 0.2f, 0f) : offset
-            );
+            passenger.setRiderSeatPosition(Vector3f.from(xOffset, yOffset, zOffset));
         }
     }
 

@@ -38,8 +38,8 @@ import java.util.UUID;
 
 public class DisplayBaseEntity extends Entity {
 
-    public Vector3f baseTranslation;
-
+    private Vector3f baseTranslation;
+    private boolean noBaseTranslation;
 
     public DisplayBaseEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
@@ -64,12 +64,24 @@ public class DisplayBaseEntity extends Entity {
 
     public void setTranslation(EntityMetadata<Vector3f, ?> translationMeta){
         this.baseTranslation = translationMeta.getValue();
-        if(this.vehicle == null){
+        if (this.baseTranslation == null){
+            this.noBaseTranslation = true;
+            return;
+        }
+        if (this.vehicle == null){
             this.setRiderSeatPosition(this.baseTranslation);
             this.moveRelative(0, this.baseTranslation.getY(), 0, yaw, pitch, headYaw, false);
         } else {
             EntityUtils.updateMountOffset(this, this.vehicle, true, true, false);
         }
-
     }
+
+    public Vector3f getTranslation() {
+        return baseTranslation;
+    }
+
+    public boolean hasTranslation(){
+        return !this.noBaseTranslation;
+    }
+
 }

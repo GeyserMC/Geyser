@@ -316,7 +316,6 @@ public final class EntityDefinitions {
                     .addTranslator(null) // Height
                     .addTranslator(null) // Glow color override
                     .build();
-
             TEXT_DISPLAY = EntityDefinition.inherited(TextDisplayEntity::new, displayBase)
                     .type(EntityType.TEXT_DISPLAY)
                     .identifier("minecraft:armor_stand")
