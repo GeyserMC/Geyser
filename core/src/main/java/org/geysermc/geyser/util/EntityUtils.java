@@ -154,9 +154,6 @@ public final class EntityUtils {
      * Adjust an entity's height if they have mounted/dismounted an entity.
      */
     public static void updateMountOffset(Entity passenger, Entity mount, boolean rider, boolean riding, boolean moreThanOneEntity) {
-        if (passenger instanceof TextDisplayEntity textDisplay
-                && !textDisplay.hasTranslation()) return;
-
         passenger.setFlag(EntityFlag.RIDING, riding);
         if (riding) {
             // Without the Y offset, Bedrock players will find themselves in the floor when mounting
@@ -201,6 +198,8 @@ public final class EntityUtils {
                     TextDisplayEntity textDisplay;
                     if (passenger instanceof TextDisplayEntity) {
                         textDisplay = (TextDisplayEntity) passenger;
+                        if (!textDisplay.hasTranslation()) return;
+
                         xOffset = textDisplay.getTranslation().getX();
                         yOffset = textDisplay.getTranslation().getY() + 0.2f;
                         zOffset = textDisplay.getTranslation().getZ();
