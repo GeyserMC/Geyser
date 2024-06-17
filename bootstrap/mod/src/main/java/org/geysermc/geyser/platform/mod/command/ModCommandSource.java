@@ -45,6 +45,7 @@ public class ModCommandSource implements GeyserCommandSource {
 
     public ModCommandSource(CommandSourceStack source) {
         this.source = source;
+        // todo find locale?
     }
 
     @Override

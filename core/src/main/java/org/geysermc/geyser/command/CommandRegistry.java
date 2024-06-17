@@ -77,6 +77,7 @@ public class CommandRegistry implements EventRegistrar {
 
     protected final GeyserImpl geyser;
     private final CommandManager<GeyserCommandSource> cloud;
+    private final boolean applyRootPermission;
 
     /**
      * Map of Geyser subcommands to their Commands
@@ -98,9 +99,28 @@ public class CommandRegistry implements EventRegistrar {
      */
     protected final Map<String, TriState> permissionDefaults = new Object2ObjectOpenHashMap<>(13);
 
+    /**
+     * Creates a new CommandRegistry. Does apply a root permission. If undesired, use the other constructor.
+     */
     public CommandRegistry(GeyserImpl geyser, CommandManager<GeyserCommandSource> cloud) {
+        this(geyser, cloud, true);
+    }
+
+    /**
+     * Creates a new CommandRegistry
+     *
+     * @param geyser the Geyser instance
+     * @param cloud the cloud command manager to register commands to
+     * @param applyRootPermission true if this registry should apply a permission to Geyser and Extension root commands.
+     *                            This currently exists because we want to retain the root command permission for Spigot,
+     *                            but don't want to add it yet to platforms like Velocity where we cannot natively
+     *                            specify a permission default. Doing so will break setups as players would suddenly not
+     *                            have the required permission to execute any Geyser commands.
+     */
+    public CommandRegistry(GeyserImpl geyser, CommandManager<GeyserCommandSource> cloud, boolean applyRootPermission) {
         this.geyser = geyser;
         this.cloud = cloud;
+        this.applyRootPermission = applyRootPermission;
 
         // register our custom exception handlers
         ExceptionHandlers.register(cloud);
@@ -225,7 +245,7 @@ public class CommandRegistry implements EventRegistrar {
     private void buildRootCommand(String permission, HelpCommand help) {
         Builder<GeyserCommandSource> builder = cloud.commandBuilder(help.rootCommand());
 
-        if (applyRootPermission()) {
+        if (applyRootPermission) {
             builder = builder.permission(permission);
             permissionDefaults.put(permission, TriState.TRUE);
         }
@@ -239,16 +259,6 @@ public class CommandRegistry implements EventRegistrar {
             }
             help.execute(source);
         }));
-    }
-
-    /**
-     * Returns true if the registry should apply a permission to Geyser and Extension root commands.
-     * This currently exists because we want to retain the root command permission for Spigot, but don't want to add
-     * it yet to platforms like Velocity where we cannot natively specify a permission default. Doing so will
-     * break setups as players would suddenly not have the required permission to execute any Geyser commands.
-     */
-    protected boolean applyRootPermission() {
-        return false;
     }
 
     protected void onRegisterPermissions(GeyserRegisterPermissionsEvent event) {

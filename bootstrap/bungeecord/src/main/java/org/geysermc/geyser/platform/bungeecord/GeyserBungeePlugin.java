@@ -166,8 +166,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
                     ExecutionCoordinator.simpleCoordinator(),
                     sourceConverter
             );
-            this.commandRegistry = new CommandRegistry(geyser, cloud);
-
+            this.commandRegistry = new CommandRegistry(geyser, cloud, false); // applying root permission would be a breaking change because we can't register permission defaults
         }
 
         // Force-disable query if enabled, or else Geyser won't enable

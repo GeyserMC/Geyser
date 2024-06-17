@@ -61,11 +61,6 @@ public class SpigotCommandRegistry extends CommandRegistry {
         this.commandMap = commandMap;
     }
 
-    @Override
-    protected boolean applyRootPermission() {
-        return true; // because we have native permission defaults
-    }
-
     @NonNull
     @Override
     public String description(@NonNull String command, @NonNull String locale) {

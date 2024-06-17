@@ -87,7 +87,7 @@ public record CommandSourceConverter<S>(Class<S> senderType,
     public @NonNull S reverse(GeyserCommandSource source) throws IllegalArgumentException {
         Object handle = source.handle();
         if (senderType.isInstance(handle)) {
-            return senderType.cast(source); // one of the server platform implementations
+            return senderType.cast(handle); // one of the server platform implementations
         }
 
         if (source.isConsole()) {
