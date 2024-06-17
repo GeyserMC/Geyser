@@ -39,13 +39,26 @@ import org.geysermc.geyser.session.GeyserSession;
 public class LoggingPacketHandler implements BedrockPacketHandler {
     protected final GeyserImpl geyser;
     protected final GeyserSession session;
+    protected final PacketCooldownManager cooldownHandler;
 
     LoggingPacketHandler(GeyserImpl geyser, GeyserSession session) {
         this.geyser = geyser;
         this.session = session;
+        this.cooldownHandler = new PacketCooldownManager(session, 1000);
+    }
+
+    public boolean handleLimit(BedrockPacket packet) {
+        boolean safePacket = this.cooldownHandler.handle(packet);
+        if (!safePacket) {
+            session.disconnect("many Packets " + packet.getClass().getSimpleName());
+        }
+        return !safePacket;
     }
 
     PacketSignal defaultHandler(BedrockPacket packet) {
+        if (handleLimit(packet)) {
+            return PacketSignal.UNHANDLED;
+        }
         geyser.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
         return PacketSignal.HANDLED;
     }

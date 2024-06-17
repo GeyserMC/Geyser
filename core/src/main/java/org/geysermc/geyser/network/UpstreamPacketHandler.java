@@ -101,6 +101,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     PacketSignal defaultHandler(BedrockPacket packet) {
+        if (handleLimit(packet)) {
+            return PacketSignal.UNHANDLED;
+        }
         return translateAndDefault(packet);
     }
 
@@ -169,6 +172,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public PacketSignal handle(LoginPacket loginPacket) {
+        if(this.handleLimit(loginPacket)){
+            return PacketSignal.UNHANDLED;
+        }
         if (geyser.isShuttingDown() || geyser.isReloading()) {
             // Don't allow new players in if we're no longer operating
             session.disconnect(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.message"));
@@ -268,6 +274,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public PacketSignal handle(ModalFormResponsePacket packet) {
+        if(this.handleLimit(packet)){
+            return PacketSignal.UNHANDLED;
+        }
         session.executeInEventLoop(() -> session.getFormCache().handleResponse(packet));
         return PacketSignal.HANDLED;
     }

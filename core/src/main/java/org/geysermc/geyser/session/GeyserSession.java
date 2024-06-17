@@ -80,7 +80,6 @@ import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.GeyserEntityData;
@@ -275,7 +274,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     // Exposed for GeyserConnect usage
     protected boolean sentSpawnPacket;
 
+    @Getter
     private boolean loggedIn;
+    @Getter
     private boolean loggingIn;
 
     @Setter
