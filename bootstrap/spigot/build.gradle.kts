@@ -76,3 +76,8 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
         exclude(dependency("com.mojang:.*"))
     }
 }
+
+modrinth {
+    uploadFile.set(tasks.getByPath("shadowJar"))
+    loaders.addAll("spigot", "paper")
+}

@@ -73,6 +73,15 @@ public final class BlockState {
         return (Boolean) value;
     }
 
+    public <T extends Comparable<T>> T getValue(Property<T> property, T def) {
+        var value = get(property);
+        if (value == null) {
+            return def;
+        }
+        //noinspection unchecked
+        return (T) value;
+    }
+
     @Nullable
     private Comparable<?> get(Property<?> property) {
         Property<?>[] keys = this.block.propertyKeys();
