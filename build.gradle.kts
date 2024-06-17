@@ -47,9 +47,9 @@ subprojects {
         else -> plugins.apply("geyser.base-conventions")
     }
 
-    // Not combined with platform-conventions as that
-    // also contains viaproxy and standalone; both of which we cant publish to modrinth
+    // Not combined with platform-conventions as that also contains
+    // platforms which we cant publish to modrinth
     if (modrinthPlatforms.contains(this)) {
-        plugins.apply("geyser.modrinth-uploading")
+        plugins.apply("geyser.modrinth-uploading-conventions")
     }
 }

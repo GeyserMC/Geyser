@@ -13,6 +13,7 @@ modrinth {
     changelog.set("A changelog can be found at https://github.com/GeyserMC/Geyser/commits")
     gameVersions.add(libs.minecraft.get().version as String)
     failSilently.set(true)
+    debugMode.set(true)
 
     syncBodyFrom.set(rootProject.file("README.md").readText())
 }
