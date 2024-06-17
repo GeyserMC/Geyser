@@ -27,6 +27,7 @@ package org.geysermc.geyser.registry.populator;
 
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 
@@ -41,9 +42,20 @@ public class Conversion685_671 {
     private static final List<String> OMINOUS_BLOCKS = List.of("minecraft:trial_spawner", "minecraft:vault");
     private static final List<String> NEW_BLOCKS = Stream.of(NEW_CORAL_BLOCKS, NEW_DOUBLE_PLANTS, NEW_STONE_BLOCK_SLABS, NEW_TALLGRASSES).flatMap(List::stream).toList();
     private static final List<String> MODIFIED_BLOCKS = Stream.of(NEW_BLOCKS, OMINOUS_BLOCKS).flatMap(List::stream).toList();
+    private static final List<Item> NEW_MUSIC_DISCS = List.of(Items.MUSIC_DISC_CREATOR, Items.MUSIC_DISC_CREATOR_MUSIC_BOX, Items.MUSIC_DISC_PRECIPICE);
 
-    static GeyserMappingItem remapItem(@SuppressWarnings("unused") Item item, GeyserMappingItem mapping) {
+    static GeyserMappingItem remapItem(Item item, GeyserMappingItem mapping) {
         String identifer = mapping.getBedrockIdentifier();
+
+        if (NEW_MUSIC_DISCS.contains(item)) {
+            return mapping.withBedrockIdentifier("minecraft:music_disc_otherside");
+        }
+        if (item == Items.OMINOUS_TRIAL_KEY) {
+            return mapping.withBedrockIdentifier("minecraft:trial_key");
+        }
+        if (item == Items.OMINOUS_BOTTLE) {
+            return mapping.withBedrockIdentifier("minecraft:glass_bottle");
+        }
 
         if (!NEW_BLOCKS.contains(identifer)) {
             return mapping;

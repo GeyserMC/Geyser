@@ -67,6 +67,7 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
 
         vehicle.setFlag(EntityFlag.CAN_DASH, vehicle.getFlag(EntityFlag.SADDLED) && !isStationary());
         vehicle.updateBedrockMetadata();
+        super.tickVehicle();
     }
 
     @Override

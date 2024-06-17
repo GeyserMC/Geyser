@@ -29,7 +29,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.inventory.item.Enchantment;
+import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -43,11 +43,11 @@ public final class BlockUtils {
 
     private static boolean correctTool(GeyserSession session, Block block, String itemToolType) {
         return switch (itemToolType) {
-            case "axe" -> session.getTagCache().is(BlockTag.AXE_EFFECTIVE, block);
-            case "hoe" -> session.getTagCache().is(BlockTag.HOE_EFFECTIVE, block);
-            case "pickaxe" -> session.getTagCache().is(BlockTag.PICKAXE_EFFECTIVE, block);
+            case "axe" -> session.getTagCache().is(BlockTag.MINEABLE_AXE, block);
+            case "hoe" -> session.getTagCache().is(BlockTag.MINEABLE_HOE, block);
+            case "pickaxe" -> session.getTagCache().is(BlockTag.MINEABLE_PICKAXE, block);
             case "shears" -> session.getTagCache().is(BlockTag.LEAVES, block) || session.getTagCache().is(BlockTag.WOOL, block);
-            case "shovel" -> session.getTagCache().is(BlockTag.SHOVEL_EFFECTIVE, block);
+            case "shovel" -> session.getTagCache().is(BlockTag.MINEABLE_SHOVEL, block);
             case "sword" -> block == Blocks.COBWEB;
             default -> {
                 session.getGeyser().getLogger().warning("Unknown tool type: " + itemToolType);
@@ -145,7 +145,7 @@ public final class BlockUtils {
             toolCanBreak = canToolTierBreakBlock(session, block, toolTier);
         }
 
-        int toolEfficiencyLevel = ItemUtils.getEnchantmentLevel(components, Enchantment.JavaEnchantment.EFFICIENCY);
+        int toolEfficiencyLevel = ItemUtils.getEnchantmentLevel(session, components, BedrockEnchantment.EFFICIENCY);
         int hasteLevel = 0;
         int miningFatigueLevel = 0;
 
@@ -160,7 +160,7 @@ public final class BlockUtils {
 
         boolean waterInEyes = session.getCollisionManager().isWaterInEyes();
         boolean insideOfWaterWithoutAquaAffinity = waterInEyes &&
-                ItemUtils.getEnchantmentLevel(session.getPlayerInventory().getItem(5).getComponents(), Enchantment.JavaEnchantment.AQUA_AFFINITY) < 1;
+                ItemUtils.getEnchantmentLevel(session, session.getPlayerInventory().getItem(5).getComponents(), BedrockEnchantment.AQUA_AFFINITY) < 1;
 
         return calculateBreakTime(block.destroyTime(), toolTier, canHarvestWithHand, correctTool, toolCanBreak, toolType, isShearsEffective,
                 toolEfficiencyLevel, hasteLevel, miningFatigueLevel, insideOfWaterWithoutAquaAffinity, session.getPlayerEntity().isOnGround());

@@ -57,4 +57,9 @@ public class SimpleJavaRegistry<T> implements JavaRegistry<T> {
     public List<T> values() {
         return this.values;
     }
+
+    @Override
+    public String toString() {
+        return this.values.toString();
+    }
 }

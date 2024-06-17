@@ -33,7 +33,6 @@ import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -52,7 +51,7 @@ public final class SoundUtils {
      * @param sound the sound name
      * @return a sound event from the given sound
      */
-    private static @Nullable SoundEvent toSoundEvent(String sound) {
+    public static @Nullable SoundEvent toSoundEvent(String sound) {
         try {
             return SoundEvent.valueOf(sound.toUpperCase(Locale.ROOT).replace(".", "_"));
         } catch (Exception ex) {

@@ -106,7 +106,7 @@ public final class GameProtocol {
      * @return the supported Minecraft: Java Edition version names
      */
     public static List<String> getJavaVersions() {
-        return List.of("1.20.5", DEFAULT_JAVA_CODEC.getMinecraftVersion());
+        return List.of(DEFAULT_JAVA_CODEC.getMinecraftVersion());
     }
 
     /**

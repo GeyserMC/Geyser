@@ -47,6 +47,7 @@ import org.geysermc.geyser.level.GeyserWorldManager;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
@@ -173,7 +174,7 @@ public class GeyserModWorldManager extends GeyserWorldManager {
         return patternLayers.layers().stream()
                 .map(layer -> {
                     BannerPatternLayer.BannerPattern pattern = new BannerPatternLayer.BannerPattern(
-                            layer.pattern().value().assetId().toString(), layer.pattern().value().translationKey()
+                            MinecraftKey.key(layer.pattern().value().assetId().toString()), layer.pattern().value().translationKey()
                     );
                     return new BannerPatternLayer(Holder.ofCustom(pattern), layer.color().getId());
                 })

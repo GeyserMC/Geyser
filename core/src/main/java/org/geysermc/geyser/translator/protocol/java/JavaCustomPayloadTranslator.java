@@ -54,7 +54,7 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
 
     @Override
     public void translate(GeyserSession session, ClientboundCustomPayloadPacket packet) {
-        String channel = packet.getChannel();
+        String channel = packet.getChannel().asString();
 
         if (channel.equals(Constants.PLUGIN_MESSAGE)) {
             ByteBuf buf = Unpooled.wrappedBuffer(packet.getData());
@@ -92,7 +92,7 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
                         System.arraycopy(raw, 0, finalData, 2, raw.length);
                     }
 
-                    session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(channel, finalData));
+                    session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(packet.getChannel(), finalData));
                 });
                 session.sendForm(form);
             });
