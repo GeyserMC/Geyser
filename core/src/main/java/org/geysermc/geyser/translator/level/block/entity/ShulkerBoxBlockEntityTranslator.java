@@ -30,6 +30,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.ShulkerInventoryTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
@@ -42,6 +43,6 @@ public class ShulkerBoxBlockEntityTranslator extends BlockEntityTranslator imple
      */
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, @Nullable NbtMap javaNbt, BlockState blockState) {
-        bedrockNbt.putByte("facing", (byte) blockState.getValue(Properties.FACING).ordinal());
+        bedrockNbt.putByte("facing", (byte) blockState.getValue(Properties.FACING, Direction.UP).ordinal());
     }
 }
