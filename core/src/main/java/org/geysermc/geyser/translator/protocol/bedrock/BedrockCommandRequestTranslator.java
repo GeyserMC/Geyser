@@ -29,6 +29,7 @@ import org.cloudburstmc.protocol.bedrock.packet.CommandRequestPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -38,7 +39,14 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
 
     @Override
     public void translate(GeyserSession session, CommandRequestPacket packet) {
-        String command = MessageTranslator.convertToPlainText(packet.getCommand());
+        String command = packet.getCommand();
+        if (command.length() > 512) {
+            // A legitimate player cannot send more than 512 characters
+            // This is necessary so that the conversion to plain text is not clogged
+            session.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.chat.too_long", session.locale(), command.length()));
+            return;
+        }
+        command = MessageTranslator.convertToPlainText(packet.getCommand());
         handleCommand(session, MessageTranslator.normalizeSpace(command).substring(1));
     }
 
