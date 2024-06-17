@@ -6,7 +6,6 @@ import org.gradle.kotlin.dsl.maven
 
 plugins {
     id("geyser.publish-conventions")
-    id("geyser.modrinth-uploading")
     id("architectury-plugin")
     id("dev.architectury.loom")
 }
@@ -107,10 +106,6 @@ afterEvaluate {
             //println("Not including ${dep.id} for ${project.name}!")
         }
     }
-}
-
-modrinth {
-    uploadFile.set(tasks.getByPath("remapModrinthJar"))
 }
 
 dependencies {

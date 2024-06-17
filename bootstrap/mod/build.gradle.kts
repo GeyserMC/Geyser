@@ -11,9 +11,6 @@ afterEvaluate {
     tasks.named("remapModrinthJar").configure {
         enabled = false
     }
-    tasks.named("modrinth").configure {
-        enabled = false
-    }
 }
 
 dependencies {
