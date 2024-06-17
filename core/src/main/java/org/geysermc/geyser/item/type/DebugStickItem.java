@@ -49,9 +49,11 @@ public class DebugStickItem extends Item {
             nbt.putList("ench", NbtType.COMPOUND, new ArrayList<>());
         }
 
-        // Custom name
-        if (builder.getCustomName() == null) {
-            builder.setCustomName(ChatColor.DARK_PURPLE + MinecraftLocale.getLocaleString("item.minecraft.debug_stick", session.locale()));
+        // Only make the name pink - WHICH IS DONE CLIENT SIDE o.o - if no custom name exists
+        String translation = MinecraftLocale.getLocaleString("item.minecraft.debug_stick", session.locale());
+
+        if ((ChatColor.RESET + ChatColor.WHITE + translation).equals(builder.getCustomName())) {
+            builder.setCustomName(ChatColor.RESET + ChatColor.LIGHT_PURPLE + translation);
         }
 
         return builder.build();
