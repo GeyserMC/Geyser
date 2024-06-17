@@ -29,56 +29,14 @@ import io.netty.buffer.ByteBuf;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodecHelper;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockPacketSerializer;
-import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MobArmorEquipmentSerializer_v291;
-import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MobEquipmentSerializer_v291;
-import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.PlayerHotbarSerializer_v291;
-import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.SetEntityLinkSerializer_v291;
-import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.SetEntityMotionSerializer_v291;
+import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.*;
 import org.cloudburstmc.protocol.bedrock.codec.v390.serializer.PlayerSkinSerializer_v390;
 import org.cloudburstmc.protocol.bedrock.codec.v407.serializer.InventoryContentSerializer_v407;
 import org.cloudburstmc.protocol.bedrock.codec.v407.serializer.InventorySlotSerializer_v407;
 import org.cloudburstmc.protocol.bedrock.codec.v486.serializer.BossEventSerializer_v486;
 import org.cloudburstmc.protocol.bedrock.codec.v557.serializer.SetEntityDataSerializer_v557;
 import org.cloudburstmc.protocol.bedrock.codec.v662.serializer.SetEntityMotionSerializer_v662;
-import org.cloudburstmc.protocol.bedrock.packet.AnvilDamagePacket;
-import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
-import org.cloudburstmc.protocol.bedrock.packet.BossEventPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ClientCacheBlobStatusPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ClientCacheStatusPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ClientCheatAbilityPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ClientToServerHandshakePacket;
-import org.cloudburstmc.protocol.bedrock.packet.CodeBuilderSourcePacket;
-import org.cloudburstmc.protocol.bedrock.packet.CraftingEventPacket;
-import org.cloudburstmc.protocol.bedrock.packet.CreatePhotoPacket;
-import org.cloudburstmc.protocol.bedrock.packet.DebugInfoPacket;
-import org.cloudburstmc.protocol.bedrock.packet.EditorNetworkPacket;
-import org.cloudburstmc.protocol.bedrock.packet.EntityFallPacket;
-import org.cloudburstmc.protocol.bedrock.packet.GameTestRequestPacket;
-import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket;
-import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
-import org.cloudburstmc.protocol.bedrock.packet.LabTablePacket;
-import org.cloudburstmc.protocol.bedrock.packet.MapCreateLockedCopyPacket;
-import org.cloudburstmc.protocol.bedrock.packet.MapInfoRequestPacket;
-import org.cloudburstmc.protocol.bedrock.packet.MobArmorEquipmentPacket;
-import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
-import org.cloudburstmc.protocol.bedrock.packet.MultiplayerSettingsPacket;
-import org.cloudburstmc.protocol.bedrock.packet.NpcRequestPacket;
-import org.cloudburstmc.protocol.bedrock.packet.PhotoInfoRequestPacket;
-import org.cloudburstmc.protocol.bedrock.packet.PhotoTransferPacket;
-import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
-import org.cloudburstmc.protocol.bedrock.packet.PlayerHotbarPacket;
-import org.cloudburstmc.protocol.bedrock.packet.PlayerSkinPacket;
-import org.cloudburstmc.protocol.bedrock.packet.PurchaseReceiptPacket;
-import org.cloudburstmc.protocol.bedrock.packet.RefreshEntitlementsPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ScriptMessagePacket;
-import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
-import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
-import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
-import org.cloudburstmc.protocol.bedrock.packet.SettingsCommandPacket;
-import org.cloudburstmc.protocol.bedrock.packet.SimpleEventPacket;
-import org.cloudburstmc.protocol.bedrock.packet.SubChunkRequestPacket;
-import org.cloudburstmc.protocol.bedrock.packet.SubClientLoginPacket;
-import org.cloudburstmc.protocol.bedrock.packet.TickSyncPacket;
+import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.protocol.common.util.VarInts;
 
 /**
@@ -182,15 +140,6 @@ class CodecProcessor {
     };
 
     /**
-     * Serializer that does nothing when trying to deserialize SetEntityMotionPacket since it is not used from the client for codec v291.
-     */
-    private static final BedrockPacketSerializer<SetEntityMotionPacket> SET_ENTITY_MOTION_SERIALIZER_V291 = new SetEntityMotionSerializer_v291() {
-        @Override
-        public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, SetEntityMotionPacket packet) {
-        }
-    };
-
-    /**
      * Serializer that does nothing when trying to deserialize SetEntityMotionPacket since it is not used from the client for codec v662.
      */
     private static final BedrockPacketSerializer<SetEntityMotionPacket> SET_ENTITY_MOTION_SERIALIZER_V662 = new SetEntityMotionSerializer_v662() {
@@ -251,6 +200,7 @@ class CodecProcessor {
             .updateSerializer(SettingsCommandPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(AnvilDamagePacket.class, IGNORED_SERIALIZER)
             .updateSerializer(RefreshEntitlementsPacket.class, IGNORED_SERIALIZER)
+            .updateSerializer(EmoteListPacket.class, IGNORED_SERIALIZER)
             // Illegal when serverbound due to Geyser specific setup
             .updateSerializer(InventoryContentPacket.class, INVENTORY_CONTENT_SERIALIZER)
             .updateSerializer(InventorySlotPacket.class, INVENTORY_SLOT_SERIALIZER)
@@ -277,7 +227,6 @@ class CodecProcessor {
                 // Ignored bidirectional packets
                 codecBuilder.updateSerializer(TickSyncPacket.class, IGNORED_SERIALIZER);
             }
-
             return codecBuilder.build();
     }
 
