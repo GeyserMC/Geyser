@@ -195,9 +195,7 @@ public final class EntityUtils {
                 case CHICKEN -> zOffset = -0.1f;
                 case TRADER_LLAMA, LLAMA -> zOffset = -0.3f;
                 case TEXT_DISPLAY -> {
-                    TextDisplayEntity textDisplay;
-                    if (passenger instanceof TextDisplayEntity) {
-                        textDisplay = (TextDisplayEntity) passenger;
+                    if (passenger instanceof TextDisplayEntity textDisplay) {
                         if (!textDisplay.hasTranslation()) return;
 
                         xOffset = textDisplay.getTranslation().getX();
