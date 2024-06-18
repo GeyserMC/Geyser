@@ -58,6 +58,7 @@ tasks {
 
 modrinth {
     loaders.add("fabric")
+    uploadFile.set(tasks.getByPath("remapModrinthJar"))
     dependencies {
         required.project("fabric-api")
     }

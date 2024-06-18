@@ -35,10 +35,7 @@ import org.cloudburstmc.nbt.util.VarInts;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.network.GameProtocol;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.*;
 import java.util.concurrent.TimeUnit;
 
@@ -139,6 +136,9 @@ public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runn
             this.geyser.getLogger().debug("Connection timeout for ping passthrough.");
         } catch (JsonParseException | JsonMappingException ex) {
             this.geyser.getLogger().error("Failed to parse json when pinging server!", ex);
+        } catch (EOFException e) {
+            this.pingInfo = null;
+            this.geyser.getLogger().warning("Failed to ping the remote Java server! Is it online and configured in Geyser's config?");
         } catch (UnknownHostException ex) {
             // Don't reset pingInfo, as we want to keep the last known value
             this.geyser.getLogger().warning("Unable to resolve remote host! Is the remote server down or invalid?");

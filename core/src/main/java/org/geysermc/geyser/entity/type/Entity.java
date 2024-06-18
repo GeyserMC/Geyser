@@ -40,6 +40,7 @@ import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
 import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.EntityUtils;
@@ -137,7 +138,7 @@ public class Entity implements GeyserEntity {
 
         this.valid = false;
 
-        this.propertyManager = new GeyserEntityPropertyManager(definition.registeredProperties());
+        this.propertyManager = definition.registeredProperties() == null ? null : new GeyserEntityPropertyManager(definition.registeredProperties());
 
         setPosition(position);
         setAirSupply(getMaxAir());
@@ -364,7 +365,7 @@ public class Entity implements GeyserEntity {
             return;
         }
 
-        if (propertyManager.hasProperties()) {
+        if (propertyManager != null && propertyManager.hasProperties()) {
             SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
             entityDataPacket.setRuntimeEntityId(geyserId);
             propertyManager.applyIntProperties(entityDataPacket.getProperties().getIntProperties());
@@ -557,6 +558,17 @@ public class Entity implements GeyserEntity {
      * Should usually mirror {@link #interact(Hand)} without any side effects.
      */
     protected InteractiveTag testInteraction(Hand hand) {
+        if (isAlive() && this instanceof Leashable leashable) {
+            if (leashable.leashHolderBedrockId() == session.getPlayerEntity().getGeyserId()) {
+                // Note this might be client side. Has yet to be an issue though, as of Java 1.21.
+                return InteractiveTag.REMOVE_LEASH;
+            }
+            if (session.getPlayerInventory().getItemInHand(hand).asItem() == Items.LEAD && leashable.canBeLeashed()) {
+                // We shall leash
+                return InteractiveTag.LEASH;
+            }
+        }
+
         return InteractiveTag.NONE;
     }
 
@@ -565,6 +577,18 @@ public class Entity implements GeyserEntity {
      * to ensure packet parity as well as functionality parity (such as sound effect responses).
      */
     public InteractionResult interact(Hand hand) {
+        if (isAlive() && this instanceof Leashable leashable) {
+            if (leashable.leashHolderBedrockId() == session.getPlayerEntity().getGeyserId()) {
+                // Note this might also update client side (a theoretical Geyser/client desync and Java parity issue).
+                // Has yet to be an issue though, as of Java 1.21.
+                return InteractionResult.SUCCESS;
+            }
+            if (session.getPlayerInventory().getItemInHand(hand).asItem() == Items.LEAD && leashable.canBeLeashed()) {
+                // We shall leash
+                return InteractionResult.SUCCESS;
+            }
+        }
+
         return InteractionResult.PASS;
     }
 

@@ -58,7 +58,7 @@ public class BedrockPositionTrackingDBClientRequestTranslator extends PacketTran
 
         // Build the NBT data for the update
         NbtMapBuilder builder = NbtMap.builder();
-        builder.putInt("dim", DimensionUtils.javaToBedrock(pos.dimension()));
+        builder.putInt("dim", DimensionUtils.javaToBedrock(pos.dimension().asString()));
         builder.putString("id", "0x" + String.format("%08X", packet.getTrackingId()));
 
         builder.putByte("version", (byte) 1); // Not sure what this is for

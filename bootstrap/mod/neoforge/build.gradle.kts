@@ -54,4 +54,5 @@ tasks {
 
 modrinth {
     loaders.add("neoforge")
+    uploadFile.set(tasks.getByPath("remapModrinthJar"))
 }

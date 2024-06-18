@@ -27,13 +27,22 @@ package org.geysermc.geyser.platform.viaproxy;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import net.raphimc.vialegacy.api.LegacyProtocolVersion;
 import net.raphimc.viaproxy.ViaProxy;
+import net.raphimc.viaproxy.protocoltranslator.viaproxy.ViaProxyConfig;
 import org.geysermc.geyser.configuration.GeyserJacksonConfiguration;
 
 import java.io.File;
 import java.nio.file.Path;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@SuppressWarnings("FieldMayBeFinal") // Jackson requires that the fields are not final
 public class GeyserViaProxyConfiguration extends GeyserJacksonConfiguration {
+
+    private RemoteConfiguration remote = new RemoteConfiguration() {
+        @Override
+        public boolean isForwardHost() {
+            return super.isForwardHost() || !ViaProxy.getConfig().getWildcardDomainHandling().equals(ViaProxyConfig.WildcardDomainHandling.NONE);
+        }
+    };
 
     @Override
     public Path getFloodgateKeyPath() {
@@ -48,6 +57,11 @@ public class GeyserViaProxyConfiguration extends GeyserJacksonConfiguration {
             interval = 15;
         }
         return interval;
+    }
+
+    @Override
+    public RemoteConfiguration getRemote() {
+        return this.remote;
     }
 
 }

@@ -103,19 +103,12 @@ jobs:
             bootstrap/viaproxy/build/libs/Geyser-ViaProxy.jar
           changelog: ${{ steps.metadata.outputs.body }}
 
-      - name: Publish to Modrinth (Fabric)
+      - name: Publish to Modrinth
         if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
         env:
           BUILD_NUMBER: ${{ steps.release-info.outputs.curentRelease }}
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
-        run: ./gradlew fabric:modrinth
-
-      - name: Publish to Modrinth (NeoForge)
-        if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
-        env:
-          BUILD_NUMBER: ${{ steps.release-info.outputs.curentRelease }}
-          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
-        run: ./gradlew neoforge:modrinth
+        run: ./gradlew modrinth
 
       - name: Notify Discord
         if: ${{ (success() || failure()) && github.repository == 'GeyserMC/Geyser' }}
@@ -124,3 +117,4 @@ jobs:
           discordWebhook: ${{ secrets.DISCORD_WEBHOOK }}
           status: ${{ job.status }}
           body: ${{ steps.metadata.outputs.body }}
+          includeDownloads: ${{ github.ref_name == 'master' }}

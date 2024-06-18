@@ -30,6 +30,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.recipe.Ingredient;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundContainerSetSlotPacket;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.RecipeUnlockingRequirement;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
@@ -198,7 +199,8 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                     "crafting_table",
                     0,
                     newRecipeId,
-                    false
+                    false,
+                    RecipeUnlockingRequirement.INVALID
             ));
             craftPacket.setCleanRecipes(false);
             session.sendUpstreamPacket(craftPacket);

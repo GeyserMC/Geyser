@@ -26,7 +26,6 @@
 package org.geysermc.geyser.inventory.updater;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.nbt.NbtMap;
@@ -38,10 +37,9 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.AnvilContainer;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.inventory.item.Enchantment.JavaEnchantment;
+import org.geysermc.geyser.inventory.item.BedrockEnchantment;
+import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.type.EnchantmentData;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -307,22 +305,22 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
      */
     private int calcMergeEnchantmentCost(GeyserSession session, GeyserItemStack input, GeyserItemStack material, boolean bedrock) {
         boolean hasCompatible = false;
-        Object2IntMap<JavaEnchantment> combinedEnchantments = getEnchantments(input);
+        Object2IntMap<Enchantment> combinedEnchantments = getEnchantments(session, input);
         int cost = 0;
-        for (Object2IntMap.Entry<JavaEnchantment> entry : getEnchantments(material).object2IntEntrySet()) {
-            JavaEnchantment enchantment = entry.getKey();
-            EnchantmentData data = Registries.ENCHANTMENTS.get(enchantment);
-            if (data == null) {
-                GeyserImpl.getInstance().getLogger().debug("Java enchantment not in registry: " + enchantment);
-                continue;
-            }
+        for (Object2IntMap.Entry<Enchantment> entry : getEnchantments(session, material).object2IntEntrySet()) {
+            Enchantment enchantment = entry.getKey();
 
-            boolean canApply = isEnchantedBook(input) || data.validItems().contains(input.getJavaId());
-            for (JavaEnchantment incompatible : data.incompatibleEnchantments()) {
-                if (combinedEnchantments.containsKey(incompatible)) {
-                    canApply = false;
-                    if (!bedrock) {
-                        cost++;
+            boolean canApply = isEnchantedBook(input) || session.getTagCache().is(enchantment.supportedItems(), input);
+            var exclusiveSet = enchantment.exclusiveSet();
+            if (exclusiveSet != null) {
+                int[] incompatibleEnchantments = session.getTagCache().get(exclusiveSet);
+                for (int i : incompatibleEnchantments) {
+                    Enchantment incompatible = session.getRegistryCache().enchantments().byId(i);
+                    if (combinedEnchantments.containsKey(incompatible)) {
+                        canApply = false;
+                        if (!bedrock) {
+                            cost++;
+                        }
                     }
                 }
             }
@@ -334,12 +332,12 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
                     newLevel++;
                 }
                 newLevel = Math.max(currentLevel, newLevel);
-                if (newLevel > data.maxLevel()) {
-                    newLevel = data.maxLevel();
+                if (newLevel > enchantment.maxLevel()) {
+                    newLevel = enchantment.maxLevel();
                 }
                 combinedEnchantments.put(enchantment, newLevel);
 
-                int rarityMultiplier = data.rarityMultiplier();
+                int rarityMultiplier = enchantment.anvilCost();
                 if (isEnchantedBook(material) && rarityMultiplier > 1) {
                     rarityMultiplier /= 2;
                 }
@@ -347,11 +345,11 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
                     if (newLevel > currentLevel) {
                         hasCompatible = true;
                     }
-                    if (enchantment == JavaEnchantment.IMPALING) {
+                    if (enchantment.bedrockEnchantment() == BedrockEnchantment.IMPALING) {
                         // Multiplier is halved on Bedrock for some reason
                         rarityMultiplier /= 2;
-                    } else if (enchantment == JavaEnchantment.SWEEPING_EDGE) {
-                        // Doesn't exist on Bedrock
+                    } else if (enchantment.bedrockEnchantment() == null) {
+                        // Whatever this is, doesn't exist on Bedrock
                         rarityMultiplier = 0;
                     }
                     cost += rarityMultiplier * (newLevel - currentLevel);
@@ -368,7 +366,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         return cost;
     }
 
-    private Object2IntMap<JavaEnchantment> getEnchantments(GeyserItemStack itemStack) {
+    private Object2IntMap<Enchantment> getEnchantments(GeyserSession session, GeyserItemStack itemStack) {
         ItemEnchantments enchantmentComponent;
         if (isEnchantedBook(itemStack)) {
             enchantmentComponent = itemStack.getComponent(DataComponentType.STORED_ENCHANTMENTS);
@@ -376,9 +374,9 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
             enchantmentComponent = itemStack.getComponent(DataComponentType.ENCHANTMENTS);
         }
         if (enchantmentComponent != null) {
-            Object2IntMap<JavaEnchantment> enchantments = new Object2IntOpenHashMap<>();
+            Object2IntMap<Enchantment> enchantments = new Object2IntOpenHashMap<>();
             for (Map.Entry<Integer, Integer> entry : enchantmentComponent.getEnchantments().entrySet()) {
-                JavaEnchantment enchantment = JavaEnchantment.of(entry.getKey());
+                Enchantment enchantment = session.getRegistryCache().enchantments().byId(entry.getKey());
                 if (enchantment == null) {
                     GeyserImpl.getInstance().getLogger().debug("Unknown Java enchantment in anvil: " + entry.getKey());
                     continue;

@@ -29,13 +29,14 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.updater.ContainerInventoryUpdater;
+import org.geysermc.geyser.level.block.Blocks;
 
 /**
  * Implemented on top of any block that does not have special properties implemented
  */
 public class HopperInventoryTranslator extends AbstractBlockInventoryTranslator {
     public HopperInventoryTranslator() {
-        super(5, "minecraft:hopper[enabled=false,facing=down]", ContainerType.HOPPER, ContainerInventoryUpdater.INSTANCE);
+        super(5, Blocks.HOPPER, ContainerType.HOPPER, ContainerInventoryUpdater.INSTANCE);
     }
 
     @Override
