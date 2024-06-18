@@ -41,6 +41,7 @@ import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 import org.intellij.lang.annotations.Subst;
 
 import java.util.*;
@@ -55,7 +56,7 @@ public class Block {
      * Can you harvest this with your hand.
      */
     private final boolean requiresCorrectToolForDrops;
-    private final boolean hasBlockEntity;
+    private final BlockEntityType blockEntityType;
     private final float destroyTime;
     private final @NonNull PistonBehavior pushReaction;
     /**
@@ -75,7 +76,7 @@ public class Block {
     public Block(@Subst("empty") String javaIdentifier, Builder builder) {
         this.javaIdentifier = Key.key(javaIdentifier);
         this.requiresCorrectToolForDrops = builder.requiresCorrectToolForDrops;
-        this.hasBlockEntity = builder.hasBlockEntity;
+        this.blockEntityType = builder.blockEntityType;
         this.destroyTime = builder.destroyTime;
         this.pushReaction = builder.pushReaction;
         this.pickItem = builder.pickItem;
@@ -181,7 +182,11 @@ public class Block {
     }
 
     public boolean hasBlockEntity() {
-        return hasBlockEntity;
+        return blockEntityType != null;
+    }
+
+    public BlockEntityType blockEntityType() {
+        return blockEntityType;
     }
 
     public float destroyTime() {
@@ -227,7 +232,7 @@ public class Block {
     public static final class Builder {
         private final Map<Property<?>, List<Comparable<?>>> states = new LinkedHashMap<>();
         private boolean requiresCorrectToolForDrops = false;
-        private boolean hasBlockEntity = false;
+        private BlockEntityType blockEntityType = null;
         private PistonBehavior pushReaction = PistonBehavior.NORMAL;
         private float destroyTime;
         private Supplier<Item> pickItem;
@@ -271,8 +276,8 @@ public class Block {
             return this;
         }
 
-        public Builder setBlockEntity() {
-            this.hasBlockEntity = true;
+        public Builder setBlockEntity(BlockEntityType blockEntityType) {
+            this.blockEntityType = blockEntityType;
             return this;
         }
 

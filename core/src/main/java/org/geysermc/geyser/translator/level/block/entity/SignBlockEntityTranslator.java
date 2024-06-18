@@ -29,7 +29,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.level.block.type.BlockState;
-import org.geysermc.geyser.level.block.type.SignBlock;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -40,10 +39,6 @@ import java.util.List;
 
 @BlockEntity(type = BlockEntityType.SIGN)
 public class SignBlockEntityTranslator extends BlockEntityTranslator {
-    @Override
-    public boolean shouldTranslate(GeyserSession session, BlockState blockState) {
-        return blockState.block() instanceof SignBlock;
-    }
 
     /**
      * Maps a color stored in a sign's Color tag to its ARGB value.

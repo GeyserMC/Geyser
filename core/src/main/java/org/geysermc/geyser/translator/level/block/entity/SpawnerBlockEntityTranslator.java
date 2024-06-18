@@ -33,18 +33,12 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.level.block.type.BlockState;
-import org.geysermc.geyser.level.block.type.SpawnerBlock;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
 @BlockEntity(type = BlockEntityType.MOB_SPAWNER)
 public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
-    @Override
-    public boolean shouldTranslate(GeyserSession session, BlockState blockState) {
-        return blockState.block() instanceof SpawnerBlock;
-    }
-
     @Override
     public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, @Nullable NbtMap javaNbt, BlockState blockState) {
         if (javaNbt == null) {

@@ -39,12 +39,6 @@ import java.util.List;
 
 @BlockEntity(type = BlockEntityType.BANNER)
 public class BannerBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
-
-    @Override
-    public boolean shouldTranslate(GeyserSession session, BlockState blockState) {
-        return blockState.block() instanceof BannerBlock;
-    }
-
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, @Nullable NbtMap javaNbt, BlockState blockState) {
         if (blockState.block() instanceof BannerBlock banner) {

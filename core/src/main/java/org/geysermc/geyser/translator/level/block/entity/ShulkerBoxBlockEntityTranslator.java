@@ -30,18 +30,12 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
-import org.geysermc.geyser.level.block.type.ShulkerBoxBlock;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.ShulkerInventoryTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
 @BlockEntity(type = BlockEntityType.SHULKER_BOX)
 public class ShulkerBoxBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
-    @Override
-    public boolean shouldTranslate(GeyserSession session, BlockState blockState) {
-        return blockState.block() instanceof ShulkerBoxBlock;
-    }
-
     /**
      * Also used in {@link ShulkerInventoryTranslator}
      * where {@code tag} is passed as null.
