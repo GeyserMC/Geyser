@@ -59,6 +59,8 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     private static GeyserModBootstrap instance;
 
     private final GeyserModPlatform platform;
+
+    @Getter
     private GeyserImpl geyser;
     private Path dataFolder;
 

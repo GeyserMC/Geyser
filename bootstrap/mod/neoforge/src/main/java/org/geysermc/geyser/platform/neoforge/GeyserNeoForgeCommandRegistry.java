@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.platform.neoforge;
 
+import net.neoforged.neoforge.server.permission.events.PermissionGatherEvent;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 import org.geysermc.geyser.api.util.TriState;
@@ -42,6 +43,8 @@ public class GeyserNeoForgeCommandRegistry extends CommandRegistry {
 
     /**
      * Permissions with an undefined permission default. Use Set to not register the same fallback more than once.
+     * NeoForge requires that all permissions are registered, and cloud-neoforge follows that.
+     * This is unlike most platforms, on which we wouldn't register a permission if no default was provided.
      */
     private final Set<String> undefinedPermissions = new HashSet<>();
 
@@ -53,11 +56,9 @@ public class GeyserNeoForgeCommandRegistry extends CommandRegistry {
     protected void register(GeyserCommand command, Map<String, GeyserCommand> commands) {
         super.register(command, commands);
 
+        // FIRST STAGE: Collect all permissions that may have undefined defaults.
         if (!command.permission().isBlank() && command.permissionDefault() == null) {
             // Permission requirement exists but no default value specified.
-
-            // Generally, we don't register a permission if no default is specified.
-            // However, NeoForge requires that all permissions are registered, and cloud-neoforge follows that.
             undefinedPermissions.add(command.permission());
         }
     }
@@ -66,17 +67,23 @@ public class GeyserNeoForgeCommandRegistry extends CommandRegistry {
     protected void onRegisterPermissions(GeyserRegisterPermissionsEvent event) {
         super.onRegisterPermissions(event);
 
-        // Now that we are aware of all commands, we can determine which ones are actually undefined
-        // (two commands may have the same permission, but only of them defines a permission default).
-        // Note: This shouldn't be that necessary, as GeyserNeoForgePermissionHandler will ignore
-        // anything already registered. Trying to rely on that as little as possible though.
+        // SECOND STAGE
+        // Now that we are aware of all commands, we can eliminate some incorrect assumptions.
+        // Example: two commands may have the same permission, but only of them defines a permission default.
         undefinedPermissions.removeAll(permissionDefaults.keySet());
+    }
 
-        // Register with NOT_SET as a fallback.
-        // If extensions wish, they may register permissions in an earlier listener, which won't be overridden.
+    /**
+     * Registers permissions with possibly undefined defaults.
+     * Should be subscribed late to allow extensions and mods to register a desired permission default first.
+     */
+    void onPermissionGatherForUndefined(PermissionGatherEvent.Nodes event) {
+        // THIRD STAGE
         for (String permission : undefinedPermissions) {
-            geyser.getLogger().debug("Registering permission " + permission + " with fallback default value of NOT_SET");
-            event.register(permission, TriState.NOT_SET);
+            if (PermissionUtils.register(permission, TriState.NOT_SET, event)) {
+                // The permission was not already registered
+                geyser.getLogger().debug("Registered permission " + permission + " with fallback default value of NOT_SET");
+            }
         }
     }
 

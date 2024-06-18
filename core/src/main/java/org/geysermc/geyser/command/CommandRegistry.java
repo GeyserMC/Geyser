@@ -27,7 +27,6 @@ package org.geysermc.geyser.command;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.event.PostOrder;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.event.EventRegistrar;
@@ -182,8 +181,7 @@ public class CommandRegistry implements EventRegistrar {
         }
 
         // Wait for the right moment (depends on the platform) to register permissions.
-        // Listen late so that it's easier for extensions to register permissions before this class does
-        geyser.eventBus().subscribe(this, GeyserRegisterPermissionsEvent.class, this::onRegisterPermissions, PostOrder.LATE);
+        geyser.eventBus().subscribe(this, GeyserRegisterPermissionsEvent.class, this::onRegisterPermissions);
     }
 
     /**

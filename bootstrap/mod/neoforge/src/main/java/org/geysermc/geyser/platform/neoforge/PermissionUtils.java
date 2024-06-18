@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,51 +28,52 @@ package org.geysermc.geyser.platform.neoforge;
 import net.neoforged.neoforge.server.permission.events.PermissionGatherEvent;
 import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
 import net.neoforged.neoforge.server.permission.nodes.PermissionTypes;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.platform.neoforge.mixin.PermissionNodeMixin;
 
-import java.util.Objects;
+/**
+ * Common logic for handling the more complicated way we have to register permission on NeoForge
+ */
+public class PermissionUtils {
 
-public class GeyserNeoForgePermissionHandler {
-
-    public void onPermissionGather(PermissionGatherEvent.Nodes event) {
-        GeyserImpl.getInstance().eventBus().fire(
-            (GeyserRegisterPermissionsEvent) (permission, defaultValue) -> {
-                Objects.requireNonNull(permission, "permission");
-                Objects.requireNonNull(defaultValue, "permission default for " + permission);
-
-                if (permission.isBlank()) {
-                    return;
-                }
-                registerNode(permission, defaultValue, event);
-            }
-        );
+    private PermissionUtils() {
+        //no
     }
 
-    private void registerNode(String permission, TriState permissionDefault, PermissionGatherEvent.Nodes event) {
+    /**
+     * Registers the given permission and its default value to the event. If the permission has the same name as one
+     * that has already been registered to the event, it will not be registered. In other words, it will not override.
+     *
+     * @param permission the permission to register
+     * @param permissionDefault the permission's default value. See {@link GeyserRegisterPermissionsEvent#register(String, TriState)} for TriState meanings.
+     * @param event the registration event
+     * @return true if the permission was registered
+     */
+    public static boolean register(String permission, TriState permissionDefault, PermissionGatherEvent.Nodes event) {
         // NeoForge likes to crash if you try and register a duplicate node
         if (event.getNodes().stream().noneMatch(n -> n.getNodeName().equals(permission))) {
             PermissionNode<Boolean> node = createNode(permission, permissionDefault);
             event.addNodes(node);
+            return true;
         }
+        return false;
     }
 
     private static PermissionNode<Boolean> createNode(String node, TriState permissionDefault) {
         return PermissionNodeMixin.geyser$construct(
-                node,
-                PermissionTypes.BOOLEAN,
-                (player, playerUUID, context) -> switch (permissionDefault) {
-                    case TRUE -> true;
-                    case FALSE -> false;
-                    case NOT_SET -> {
-                        if (player != null) {
-                            yield player.createCommandSourceStack().hasPermission(player.server.getOperatorUserPermissionLevel());
-                        }
-                        yield false;
+            node,
+            PermissionTypes.BOOLEAN,
+            (player, playerUUID, context) -> switch (permissionDefault) {
+                case TRUE -> true;
+                case FALSE -> false;
+                case NOT_SET -> {
+                    if (player != null) {
+                        yield player.createCommandSourceStack().hasPermission(player.server.getOperatorUserPermissionLevel());
                     }
+                    yield false; // NeoForge javadocs say player is null in the case of an offline player.
                 }
+            }
         );
     }
 }
