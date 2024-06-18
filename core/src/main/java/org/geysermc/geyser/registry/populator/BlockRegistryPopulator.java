@@ -436,7 +436,7 @@ public final class BlockRegistryPopulator {
                     builder.requiresCorrectToolForDrops();
                 }
                 if (javaBlockState.hasBlockEntity()) {
-                    builder.setBlockEntity(javaBlockState.blockEntityType());
+                    builder.setBlockEntity(javaBlockState.block().blockEntityType());
                 }
                 String cleanJavaIdentifier = BlockUtils.getCleanIdentifier(javaBlockState.identifier());
                 String pickItem = javaBlockState.pickItem();
