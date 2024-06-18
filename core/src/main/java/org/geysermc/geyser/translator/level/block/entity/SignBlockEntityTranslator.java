@@ -39,7 +39,6 @@ import java.util.List;
 
 @BlockEntity(type = BlockEntityType.SIGN)
 public class SignBlockEntityTranslator extends BlockEntityTranslator {
-
     /**
      * Maps a color stored in a sign's Color tag to its ARGB value.
      *
