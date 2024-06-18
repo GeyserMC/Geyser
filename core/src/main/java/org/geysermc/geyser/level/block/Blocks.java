@@ -408,34 +408,34 @@ public final class Blocks {
     public static final Block FURNACE = register(new FurnaceBlock("furnace", builder().setBlockEntity().requiresCorrectToolForDrops().destroyTime(3.5f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(LIT)));
-    public static final Block OAK_SIGN = register(new Block("oak_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block OAK_SIGN = register(new SignBlock("oak_sign", builder().setBlockEntity().destroyTime(1.0f)
             .intState(ROTATION_16)
             .booleanState(WATERLOGGED)));
-    public static final Block SPRUCE_SIGN = register(new Block("spruce_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block SPRUCE_SIGN = register(new SignBlock("spruce_sign", builder().setBlockEntity().destroyTime(1.0f)
             .intState(ROTATION_16)
             .booleanState(WATERLOGGED)));
-    public static final Block BIRCH_SIGN = register(new Block("birch_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block BIRCH_SIGN = register(new SignBlock("birch_sign", builder().setBlockEntity().destroyTime(1.0f)
             .intState(ROTATION_16)
             .booleanState(WATERLOGGED)));
-    public static final Block ACACIA_SIGN = register(new Block("acacia_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block ACACIA_SIGN = register(new SignBlock("acacia_sign", builder().setBlockEntity().destroyTime(1.0f)
             .intState(ROTATION_16)
             .booleanState(WATERLOGGED)));
-    public static final Block CHERRY_SIGN = register(new Block("cherry_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block CHERRY_SIGN = register(new SignBlock("cherry_sign", builder().setBlockEntity().destroyTime(1.0f)
             .intState(ROTATION_16)
             .booleanState(WATERLOGGED)));
-    public static final Block JUNGLE_SIGN = register(new Block("jungle_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block JUNGLE_SIGN = register(new SignBlock("jungle_sign", builder().setBlockEntity().destroyTime(1.0f)
             .intState(ROTATION_16)
             .booleanState(WATERLOGGED)));
-    public static final Block DARK_OAK_SIGN = register(new Block("dark_oak_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block DARK_OAK_SIGN = register(new SignBlock("dark_oak_sign", builder().setBlockEntity().destroyTime(1.0f)
             .intState(ROTATION_16)
             .booleanState(WATERLOGGED)));
-    public static final Block MANGROVE_SIGN = register(new Block("mangrove_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block MANGROVE_SIGN = register(new SignBlock("mangrove_sign", builder().setBlockEntity().destroyTime(1.0f)
             .intState(ROTATION_16)
             .booleanState(WATERLOGGED)));
-    public static final Block BAMBOO_SIGN = register(new Block("bamboo_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block BAMBOO_SIGN = register(new SignBlock("bamboo_sign", builder().setBlockEntity().destroyTime(1.0f)
             .intState(ROTATION_16)
             .booleanState(WATERLOGGED)));
-    public static final Block OAK_DOOR = register(new DoorBlock("oak_door", builder().destroyTime(3.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block OAK_DOOR = register(new SignBlock("oak_door", builder().destroyTime(3.0f).pushReaction(PistonBehavior.DESTROY)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .enumState(DOUBLE_BLOCK_HALF)
             .enumState(DOOR_HINGE)
@@ -452,108 +452,108 @@ public final class Blocks {
             .enumState(HALF)
             .enumState(STAIRS_SHAPE)
             .booleanState(WATERLOGGED)));
-    public static final Block OAK_WALL_SIGN = register(new Block("oak_wall_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block OAK_WALL_SIGN = register(new SignBlock("oak_wall_sign", builder().setBlockEntity().destroyTime(1.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(WATERLOGGED)));
-    public static final Block SPRUCE_WALL_SIGN = register(new Block("spruce_wall_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block SPRUCE_WALL_SIGN = register(new SignBlock("spruce_wall_sign", builder().setBlockEntity().destroyTime(1.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(WATERLOGGED)));
-    public static final Block BIRCH_WALL_SIGN = register(new Block("birch_wall_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block BIRCH_WALL_SIGN = register(new SignBlock("birch_wall_sign", builder().setBlockEntity().destroyTime(1.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(WATERLOGGED)));
-    public static final Block ACACIA_WALL_SIGN = register(new Block("acacia_wall_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block ACACIA_WALL_SIGN = register(new SignBlock("acacia_wall_sign", builder().setBlockEntity().destroyTime(1.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(WATERLOGGED)));
-    public static final Block CHERRY_WALL_SIGN = register(new Block("cherry_wall_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block CHERRY_WALL_SIGN = register(new SignBlock("cherry_wall_sign", builder().setBlockEntity().destroyTime(1.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(WATERLOGGED)));
-    public static final Block JUNGLE_WALL_SIGN = register(new Block("jungle_wall_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block JUNGLE_WALL_SIGN = register(new SignBlock("jungle_wall_sign", builder().setBlockEntity().destroyTime(1.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(WATERLOGGED)));
-    public static final Block DARK_OAK_WALL_SIGN = register(new Block("dark_oak_wall_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block DARK_OAK_WALL_SIGN = register(new SignBlock("dark_oak_wall_sign", builder().setBlockEntity().destroyTime(1.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(WATERLOGGED)));
-    public static final Block MANGROVE_WALL_SIGN = register(new Block("mangrove_wall_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block MANGROVE_WALL_SIGN = register(new SignBlock("mangrove_wall_sign", builder().setBlockEntity().destroyTime(1.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(WATERLOGGED)));
-    public static final Block BAMBOO_WALL_SIGN = register(new Block("bamboo_wall_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block BAMBOO_WALL_SIGN = register(new SignBlock("bamboo_wall_sign", builder().setBlockEntity().destroyTime(1.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(WATERLOGGED)));
-    public static final Block OAK_HANGING_SIGN = register(new Block("oak_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block OAK_HANGING_SIGN = register(new SignBlock("oak_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
             .booleanState(ATTACHED)
             .intState(ROTATION_16)
             .booleanState(WATERLOGGED)));
-    public static final Block SPRUCE_HANGING_SIGN = register(new Block("spruce_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block SPRUCE_HANGING_SIGN = register(new SignBlock("spruce_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
             .booleanState(ATTACHED)
             .intState(ROTATION_16)
             .booleanState(WATERLOGGED)));
-    public static final Block BIRCH_HANGING_SIGN = register(new Block("birch_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block BIRCH_HANGING_SIGN = register(new SignBlock("birch_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
             .booleanState(ATTACHED)
             .intState(ROTATION_16)
             .booleanState(WATERLOGGED)));
-    public static final Block ACACIA_HANGING_SIGN = register(new Block("acacia_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block ACACIA_HANGING_SIGN = register(new SignBlock("acacia_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
             .booleanState(ATTACHED)
             .intState(ROTATION_16)
             .booleanState(WATERLOGGED)));
-    public static final Block CHERRY_HANGING_SIGN = register(new Block("cherry_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block CHERRY_HANGING_SIGN = register(new SignBlock("cherry_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
             .booleanState(ATTACHED)
             .intState(ROTATION_16)
             .booleanState(WATERLOGGED)));
-    public static final Block JUNGLE_HANGING_SIGN = register(new Block("jungle_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block JUNGLE_HANGING_SIGN = register(new SignBlock("jungle_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
             .booleanState(ATTACHED)
             .intState(ROTATION_16)
             .booleanState(WATERLOGGED)));
-    public static final Block DARK_OAK_HANGING_SIGN = register(new Block("dark_oak_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block DARK_OAK_HANGING_SIGN = register(new SignBlock("dark_oak_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
             .booleanState(ATTACHED)
             .intState(ROTATION_16)
             .booleanState(WATERLOGGED)));
-    public static final Block CRIMSON_HANGING_SIGN = register(new Block("crimson_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block CRIMSON_HANGING_SIGN = register(new SignBlock("crimson_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
             .booleanState(ATTACHED)
             .intState(ROTATION_16)
             .booleanState(WATERLOGGED)));
-    public static final Block WARPED_HANGING_SIGN = register(new Block("warped_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block WARPED_HANGING_SIGN = register(new SignBlock("warped_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
             .booleanState(ATTACHED)
             .intState(ROTATION_16)
             .booleanState(WATERLOGGED)));
-    public static final Block MANGROVE_HANGING_SIGN = register(new Block("mangrove_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block MANGROVE_HANGING_SIGN = register(new SignBlock("mangrove_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
             .booleanState(ATTACHED)
             .intState(ROTATION_16)
             .booleanState(WATERLOGGED)));
-    public static final Block BAMBOO_HANGING_SIGN = register(new Block("bamboo_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block BAMBOO_HANGING_SIGN = register(new SignBlock("bamboo_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
             .booleanState(ATTACHED)
             .intState(ROTATION_16)
             .booleanState(WATERLOGGED)));
-    public static final Block OAK_WALL_HANGING_SIGN = register(new Block("oak_wall_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block OAK_WALL_HANGING_SIGN = register(new SignBlock("oak_wall_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(WATERLOGGED)));
-    public static final Block SPRUCE_WALL_HANGING_SIGN = register(new Block("spruce_wall_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block SPRUCE_WALL_HANGING_SIGN = register(new SignBlock("spruce_wall_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(WATERLOGGED)));
-    public static final Block BIRCH_WALL_HANGING_SIGN = register(new Block("birch_wall_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block BIRCH_WALL_HANGING_SIGN = register(new SignBlock("birch_wall_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(WATERLOGGED)));
-    public static final Block ACACIA_WALL_HANGING_SIGN = register(new Block("acacia_wall_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block ACACIA_WALL_HANGING_SIGN = register(new SignBlock("acacia_wall_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(WATERLOGGED)));
-    public static final Block CHERRY_WALL_HANGING_SIGN = register(new Block("cherry_wall_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block CHERRY_WALL_HANGING_SIGN = register(new SignBlock("cherry_wall_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(WATERLOGGED)));
-    public static final Block JUNGLE_WALL_HANGING_SIGN = register(new Block("jungle_wall_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block JUNGLE_WALL_HANGING_SIGN = register(new SignBlock("jungle_wall_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(WATERLOGGED)));
-    public static final Block DARK_OAK_WALL_HANGING_SIGN = register(new Block("dark_oak_wall_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block DARK_OAK_WALL_HANGING_SIGN = register(new SignBlock("dark_oak_wall_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(WATERLOGGED)));
-    public static final Block MANGROVE_WALL_HANGING_SIGN = register(new Block("mangrove_wall_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block MANGROVE_WALL_HANGING_SIGN = register(new SignBlock("mangrove_wall_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(WATERLOGGED)));
-    public static final Block CRIMSON_WALL_HANGING_SIGN = register(new Block("crimson_wall_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block CRIMSON_WALL_HANGING_SIGN = register(new SignBlock("crimson_wall_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(WATERLOGGED)));
-    public static final Block WARPED_WALL_HANGING_SIGN = register(new Block("warped_wall_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block WARPED_WALL_HANGING_SIGN = register(new SignBlock("warped_wall_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(WATERLOGGED)));
-    public static final Block BAMBOO_WALL_HANGING_SIGN = register(new Block("bamboo_wall_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block BAMBOO_WALL_HANGING_SIGN = register(new SignBlock("bamboo_wall_hanging_sign", builder().setBlockEntity().destroyTime(1.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(WATERLOGGED)));
     public static final Block LEVER = register(new Block("lever", builder().destroyTime(0.5f).pushReaction(PistonBehavior.DESTROY)
@@ -1596,39 +1596,39 @@ public final class Blocks {
     public static final Block OBSERVER = register(new Block("observer", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
             .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)
             .booleanState(POWERED)));
-    public static final Block SHULKER_BOX = register(new Block("shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block SHULKER_BOX = register(new ShulkerBoxBlock("shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
             .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block WHITE_SHULKER_BOX = register(new Block("white_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block WHITE_SHULKER_BOX = register(new ShulkerBoxBlock("white_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
             .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block ORANGE_SHULKER_BOX = register(new Block("orange_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block ORANGE_SHULKER_BOX = register(new ShulkerBoxBlock("orange_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
             .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block MAGENTA_SHULKER_BOX = register(new Block("magenta_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block MAGENTA_SHULKER_BOX = register(new ShulkerBoxBlock("magenta_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
             .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block LIGHT_BLUE_SHULKER_BOX = register(new Block("light_blue_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block LIGHT_BLUE_SHULKER_BOX = register(new ShulkerBoxBlock("light_blue_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
             .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block YELLOW_SHULKER_BOX = register(new Block("yellow_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block YELLOW_SHULKER_BOX = register(new ShulkerBoxBlock("yellow_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
             .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block LIME_SHULKER_BOX = register(new Block("lime_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block LIME_SHULKER_BOX = register(new ShulkerBoxBlock("lime_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
             .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block PINK_SHULKER_BOX = register(new Block("pink_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block PINK_SHULKER_BOX = register(new ShulkerBoxBlock("pink_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
             .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block GRAY_SHULKER_BOX = register(new Block("gray_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block GRAY_SHULKER_BOX = register(new ShulkerBoxBlock("gray_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
             .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block LIGHT_GRAY_SHULKER_BOX = register(new Block("light_gray_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block LIGHT_GRAY_SHULKER_BOX = register(new ShulkerBoxBlock("light_gray_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
             .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block CYAN_SHULKER_BOX = register(new Block("cyan_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block CYAN_SHULKER_BOX = register(new ShulkerBoxBlock("cyan_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
             .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block PURPLE_SHULKER_BOX = register(new Block("purple_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block PURPLE_SHULKER_BOX = register(new ShulkerBoxBlock("purple_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
             .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block BLUE_SHULKER_BOX = register(new Block("blue_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block BLUE_SHULKER_BOX = register(new ShulkerBoxBlock("blue_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
             .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block BROWN_SHULKER_BOX = register(new Block("brown_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block BROWN_SHULKER_BOX = register(new ShulkerBoxBlock("brown_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
             .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block GREEN_SHULKER_BOX = register(new Block("green_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block GREEN_SHULKER_BOX = register(new ShulkerBoxBlock("green_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
             .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block RED_SHULKER_BOX = register(new Block("red_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block RED_SHULKER_BOX = register(new ShulkerBoxBlock("red_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
             .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block BLACK_SHULKER_BOX = register(new Block("black_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block BLACK_SHULKER_BOX = register(new ShulkerBoxBlock("black_shulker_box", builder().setBlockEntity().destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
             .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
     public static final Block WHITE_GLAZED_TERRACOTTA = register(new Block("white_glazed_terracotta", builder().requiresCorrectToolForDrops().destroyTime(1.4f).pushReaction(PistonBehavior.PUSH_ONLY)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)));
@@ -2155,16 +2155,16 @@ public final class Blocks {
             .enumState(DOOR_HINGE)
             .booleanState(OPEN)
             .booleanState(POWERED)));
-    public static final Block CRIMSON_SIGN = register(new Block("crimson_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block CRIMSON_SIGN = register(new SignBlock("crimson_sign", builder().setBlockEntity().destroyTime(1.0f)
             .intState(ROTATION_16)
             .booleanState(WATERLOGGED)));
-    public static final Block WARPED_SIGN = register(new Block("warped_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block WARPED_SIGN = register(new SignBlock("warped_sign", builder().setBlockEntity().destroyTime(1.0f)
             .intState(ROTATION_16)
             .booleanState(WATERLOGGED)));
-    public static final Block CRIMSON_WALL_SIGN = register(new Block("crimson_wall_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block CRIMSON_WALL_SIGN = register(new SignBlock("crimson_wall_sign", builder().setBlockEntity().destroyTime(1.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(WATERLOGGED)));
-    public static final Block WARPED_WALL_SIGN = register(new Block("warped_wall_sign", builder().setBlockEntity().destroyTime(1.0f)
+    public static final Block WARPED_WALL_SIGN = register(new SignBlock("warped_wall_sign", builder().setBlockEntity().destroyTime(1.0f)
             .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
             .booleanState(WATERLOGGED)));
     public static final Block STRUCTURE_BLOCK = register(new Block("structure_block", builder().setBlockEntity().requiresCorrectToolForDrops().destroyTime(-1.0f)

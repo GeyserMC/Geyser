@@ -32,6 +32,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -43,6 +44,11 @@ import java.util.UUID;
 
 @BlockEntity(type = BlockEntityType.VAULT)
 public class VaultBlockEntityTranslator extends BlockEntityTranslator {
+    @Override
+    public boolean shouldTranslate(GeyserSession session, BlockState blockState) {
+        return blockState.is(Blocks.VAULT);
+    }
+
     // Bedrock 1.21 does not send the position nor ID in the tag.
     @Override
     public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, @Nullable NbtMap javaNbt, BlockState blockState) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,30 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.level.block.entity;
+package org.geysermc.geyser.level.block.type;
 
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
-import org.geysermc.geyser.level.block.Blocks;
-import org.geysermc.geyser.level.block.type.BlockState;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
-
-@BlockEntity(type = BlockEntityType.DECORATED_POT)
-public class DecoratedPotBlockEntityTranslator extends BlockEntityTranslator {
-    @Override
-    public boolean shouldTranslate(GeyserSession session, BlockState blockState) {
-        return blockState.is(Blocks.DECORATED_POT);
-    }
-
-    @Override
-    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
-        if (javaNbt == null) {
-            return;
-        }
-
-        // exact same format
-        bedrockNbt.putList("sherds", NbtType.STRING, javaNbt.getList("sherds", NbtType.STRING));
+public class SignBlock extends Block {
+    public SignBlock(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
     }
 }

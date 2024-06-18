@@ -35,6 +35,11 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType
 @BlockEntity(type = BlockEntityType.BED)
 public class BedBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
     @Override
+    public boolean shouldTranslate(GeyserSession session, BlockState blockState) {
+        return blockState.block() instanceof BedBlock;
+    }
+
+    @Override
     public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
         bedrockNbt.putByte("color", (byte) (blockState.block() instanceof BedBlock bed ? bed.dyeColor() : 0));
     }

@@ -27,10 +27,10 @@ package org.geysermc.geyser.translator.level.block.entity;
 
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.property.ChestType;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.block.type.ChestBlock;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
@@ -40,12 +40,13 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType
  */
 @BlockEntity(type = { BlockEntityType.CHEST, BlockEntityType.TRAPPED_CHEST })
 public class DoubleChestBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
+    @Override
+    public boolean shouldTranslate(GeyserSession session, BlockState blockState) {
+        return blockState.block() instanceof ChestBlock;
+    }
 
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
-        if (!(blockState.is(Blocks.CHEST) || blockState.is(Blocks.TRAPPED_CHEST))) {
-            return;
-        }
         if (blockState.getValue(Properties.CHEST_TYPE) != ChestType.SINGLE) {
             int x = (int) bedrockNbt.get("x");
             int z = (int) bedrockNbt.get("z");

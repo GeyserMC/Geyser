@@ -65,14 +65,6 @@ public final class BlockState {
         return (T) get(property);
     }
 
-    public boolean getValue(Property<Boolean> property, boolean def) {
-        var value = get(property);
-        if (value == null) {
-            return def;
-        }
-        return (Boolean) value;
-    }
-
     public <T extends Comparable<T>> T getValue(Property<T> property, T def) {
         var value = get(property);
         if (value == null) {

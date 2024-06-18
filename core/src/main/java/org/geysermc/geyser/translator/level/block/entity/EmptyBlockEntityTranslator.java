@@ -34,4 +34,9 @@ public class EmptyBlockEntityTranslator extends BlockEntityTranslator {
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
     }
+
+    @Override
+    public boolean shouldTranslate(GeyserSession session, BlockState blockState) {
+        return true;
+    }
 }

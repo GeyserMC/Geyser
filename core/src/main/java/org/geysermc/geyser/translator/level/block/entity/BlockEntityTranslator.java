@@ -43,6 +43,8 @@ public abstract class BlockEntityTranslator {
 
     public abstract void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState);
 
+    public abstract boolean shouldTranslate(GeyserSession session, BlockState blockState);
+
     public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, @Nullable NbtMap javaNbt, BlockState blockState) {
         NbtMapBuilder tagBuilder = getConstantBedrockTag(type, x, y, z);
         if (javaNbt != null || this instanceof RequiresBlockState) {
