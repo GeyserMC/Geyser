@@ -26,13 +26,14 @@
 package org.geysermc.geyser.translator.collision;
 
 import lombok.EqualsAndHashCode;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionManager;
 
 @EqualsAndHashCode(callSuper = true)
 @CollisionRemapper(regex = "^dirt_path$", passDefaultBoxes = true)
 public class DirtPathCollision extends BlockCollision {
-    public DirtPathCollision(String params, BoundingBox[] defaultBoxes) {
+    public DirtPathCollision(BlockState state, BoundingBox[] defaultBoxes) {
         super(defaultBoxes);
     }
 

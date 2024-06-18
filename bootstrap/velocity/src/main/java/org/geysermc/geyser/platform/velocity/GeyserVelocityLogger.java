@@ -25,13 +25,13 @@
 
 package org.geysermc.geyser.platform.velocity;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.geysermc.geyser.GeyserLogger;
 import org.slf4j.Logger;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class GeyserVelocityLogger implements GeyserLogger {
     private final Logger logger;
     @Getter @Setter

@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.level.block.entity;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -73,7 +74,7 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
     }
 
     @Override
-    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, int blockState) {
+    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
         bedrockNbt.putCompound("FrontText", translateSide(javaNbt.getCompound("front_text")));
         bedrockNbt.putCompound("BackText", translateSide(javaNbt.getCompound("back_text")));
         bedrockNbt.putBoolean("IsWaxed", javaNbt.getBoolean("is_waxed"));

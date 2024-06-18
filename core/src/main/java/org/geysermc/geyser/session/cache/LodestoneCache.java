@@ -27,8 +27,8 @@ package org.geysermc.geyser.session.cache;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.GlobalPos;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.LodestoneTracker;
@@ -53,17 +53,19 @@ public final class LodestoneCache {
     private int id = 1;
 
     public void cacheInventoryItem(GeyserItemStack itemStack, LodestoneTracker tracker) {
-        GlobalPos position = tracker.getPos();
+        if (!tracker.isTracked()) {
+            return;
+        }
 
+        GlobalPos position = tracker.getPos();
         if (position == null) {
-            GeyserImpl.getInstance().getLogger().error("Position is null. Find out why.");
-            Thread.dumpStack();
+            // As of 1.20.6, position can still be null even if tracking is enabled.
             return;
         }
         int x = position.getX();
         int y = position.getY();
         int z = position.getZ();
-        String dim = position.getDimension();
+        Key dim = position.getDimension();
 
         for (LodestonePos pos : this.activeLodestones.values()) {
             if (pos.equals(x, y, z, dim)) {
@@ -84,17 +86,20 @@ public final class LodestoneCache {
     }
 
     public int store(LodestoneTracker tracker) {
-        GlobalPos position = tracker.getPos();
-
-        if (position == null) {
-            GeyserImpl.getInstance().getLogger().error("Position is null. Find out why.");
-            Thread.dumpStack();
-            return -1;
+        if (!tracker.isTracked()) {
+            // No coordinates; nothing to convert
+            return 0;
         }
+
+        GlobalPos position = tracker.getPos();
+        if (position == null) {
+            return 0;
+        }
+
         int x = position.getX();
         int y = position.getY();
         int z = position.getZ();
-        String dim = position.getDimension();
+        Key dim = position.getDimension();
 
         for (LodestonePos pos : this.activeLodestones.values()) {
             if (pos.equals(x, y, z, dim)) {
@@ -134,8 +139,8 @@ public final class LodestoneCache {
         this.lodestones.clear();
     }
 
-    public record LodestonePos(int id, int x, int y, int z, String dimension) {
-        boolean equals(int x, int y, int z, String dimension) {
+    public record LodestonePos(int id, int x, int y, int z, Key dimension) {
+        boolean equals(int x, int y, int z, Key dimension) {
             return this.x == x && this.y == y && this.z == z && this.dimension.equals(dimension);
         }
     }

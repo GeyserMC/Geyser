@@ -79,14 +79,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.logging.Level;
 
 public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     private GeyserSpigotCommandManager geyserCommandManager;
     private GeyserSpigotConfiguration geyserConfig;
     private GeyserSpigotInjector geyserInjector;
-    private GeyserSpigotLogger geyserLogger;
+    private final GeyserSpigotLogger geyserLogger = GeyserPaperLogger.supported() ?
+            new GeyserPaperLogger(this, getLogger()) : new GeyserSpigotLogger(getLogger());
     private IGeyserPingPassthrough geyserSpigotPingPassthrough;
     private GeyserSpigotWorldManager geyserWorldManager;
 
@@ -114,12 +114,12 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             // We depend on this as a fallback in certain scenarios
             BlockData.class.getMethod("getAsString");
         } catch (ClassNotFoundException | NoSuchMethodException e) {
-            getLogger().severe("*********************************************");
-            getLogger().severe("");
-            getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_server.header"));
-            getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_server.message", "1.13.2"));
-            getLogger().severe("");
-            getLogger().severe("*********************************************");
+            geyserLogger.error("*********************************************");
+            geyserLogger.error("");
+            geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_server.header"));
+            geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_server.message", "1.13.2"));
+            geyserLogger.error("");
+            geyserLogger.error("*********************************************");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
@@ -128,12 +128,12 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             Class.forName("net.md_5.bungee.chat.ComponentSerializer");
         } catch (ClassNotFoundException e) {
             if (!PaperAdventure.canSendMessageUsingComponent()) { // Prepare for Paper eventually removing Bungee chat
-                getLogger().severe("*********************************************");
-                getLogger().severe("");
-                getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_server_type.header", getServer().getName()));
-                getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_server_type.message", "Paper"));
-                getLogger().severe("");
-                getLogger().severe("*********************************************");
+                geyserLogger.error("*********************************************");
+                geyserLogger.error("");
+                geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_server_type.header", getServer().getName()));
+                geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_server_type.message", "Paper"));
+                geyserLogger.error("");
+                geyserLogger.error("*********************************************");
                 Bukkit.getPluginManager().disablePlugin(this);
                 return;
             }
@@ -142,11 +142,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         try {
             Class.forName("io.netty.util.internal.ObjectPool$ObjectCreator");
         } catch (ClassNotFoundException e) {
-            getLogger().severe("*********************************************");
-            getLogger().severe("");
-            getLogger().severe("This version of Spigot is using an outdated version of netty. Please use Paper instead!");
-            getLogger().severe("");
-            getLogger().severe("*********************************************");
+            geyserLogger.error("*********************************************");
+            geyserLogger.error("");
+            geyserLogger.error("This version of Spigot is using an outdated version of netty. Please use Paper instead!");
+            geyserLogger.error("");
+            geyserLogger.error("*********************************************");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
@@ -154,8 +154,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         if (!loadConfig()) {
             return;
         }
-        this.geyserLogger = GeyserPaperLogger.supported() ? new GeyserPaperLogger(this, getLogger(), geyserConfig.isDebugMode())
-                : new GeyserSpigotLogger(getLogger(), geyserConfig.isDebugMode());
+        this.geyserLogger.setDebug(geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
         // Turn "(MC: 1.16.4)" into 1.16.4.
@@ -252,6 +251,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                     SpigotAdapters.registerWorldAdapter(nmsVersion);
                     geyserLogger.debug("Using spigot NMS adapter for nms version: " + nmsVersion);
                 } catch (Exception e) { // Likely running on Paper 1.20.5+
+                    geyserLogger.debug("Unable to find spigot world manager: " + e.getMessage());
                     //noinspection deprecation
                     int protocolVersion = Bukkit.getUnsafe().getProtocolVersion();
                     PaperAdapters.registerClosestWorldAdapter(protocolVersion);
@@ -266,7 +266,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                     this.geyserWorldManager = new GeyserSpigotNativeWorldManager(this, isPaper);
                 }
                 geyserLogger.debug("Using world manager of type: " + this.geyserWorldManager.getClass().getSimpleName());
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 if (geyserConfig.isDebugMode()) {
                     geyserLogger.debug("Error while attempting to find NMS adapter. Most likely, this can be safely ignored. :)");
                     e.printStackTrace();
@@ -486,7 +486,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                     (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserSpigotConfiguration.class);
         } catch (IOException ex) {
-            getLogger().log(Level.SEVERE, GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
+            geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
             Bukkit.getPluginManager().disablePlugin(this);
             return false;

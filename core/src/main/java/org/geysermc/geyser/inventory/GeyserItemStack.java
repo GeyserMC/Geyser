@@ -69,7 +69,7 @@ public class GeyserItemStack {
         return of(javaId, amount, null);
     }
 
-    public static @NonNull GeyserItemStack of(int javaId, int amount, DataComponents components) {
+    public static @NonNull GeyserItemStack of(int javaId, int amount, @Nullable DataComponents components) {
         return new GeyserItemStack(javaId, amount, components);
     }
 

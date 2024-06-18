@@ -34,3 +34,8 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
         exclude(dependency("io.netty:netty-resolver-dns:.*"))
     }
 }
+
+modrinth {
+    uploadFile.set(tasks.getByPath("shadowJar"))
+    loaders.add("bungeecord")
+}

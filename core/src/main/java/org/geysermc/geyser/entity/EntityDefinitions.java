@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.entity;
 
+import org.geysermc.geyser.entity.type.AbstractWindChargeEntity;
+import org.geysermc.geyser.entity.factory.EntityFactory;
 import org.geysermc.geyser.entity.type.living.monster.raid.RavagerEntity;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
@@ -63,6 +65,9 @@ public final class EntityDefinitions {
     public static final EntityDefinition<BeeEntity> BEE;
     public static final EntityDefinition<BlazeEntity> BLAZE;
     public static final EntityDefinition<BoatEntity> BOAT;
+    public static final EntityDefinition<BoggedEntity> BOGGED;
+    public static final EntityDefinition<BreezeEntity> BREEZE;
+    public static final EntityDefinition<AbstractWindChargeEntity> BREEZE_WIND_CHARGE;
     public static final EntityDefinition<CamelEntity> CAMEL;
     public static final EntityDefinition<CatEntity> CAT;
     public static final EntityDefinition<SpiderEntity> CAVE_SPIDER;
@@ -165,6 +170,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<VindicatorEntity> VINDICATOR;
     public static final EntityDefinition<AbstractMerchantEntity> WANDERING_TRADER;
     public static final EntityDefinition<WardenEntity> WARDEN;
+    public static final EntityDefinition<AbstractWindChargeEntity> WIND_CHARGE;
     public static final EntityDefinition<RaidParticipantEntity> WITCH;
     public static final EntityDefinition<WitherEntity> WITHER;
     public static final EntityDefinition<AbstractSkeletonEntity> WITHER_SKELETON;
@@ -235,7 +241,7 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataType.BOOLEAN,
                             (enderCrystalEntity, entityMetadata) -> enderCrystalEntity.setFlag(EntityFlag.SHOW_BOTTOM, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue())) // There is a base located on the ender crystal
                     .build();
-            EXPERIENCE_ORB = EntityDefinition.<ExpOrbEntity>inherited(null, entityBase)
+            EXPERIENCE_ORB = EntityDefinition.inherited(ExpOrbEntity::new, entityBase)
                     .type(EntityType.EXPERIENCE_ORB)
                     .identifier("minecraft:xp_orb")
                     .build();
@@ -297,6 +303,7 @@ public final class EntityDefinitions {
             TNT = EntityDefinition.inherited(TNTEntity::new, entityBase)
                     .type(EntityType.TNT)
                     .heightAndWidth(0.98f)
+                    .offset(0.49f)
                     .addTranslator(MetadataType.INT, TNTEntity::setFuseLength)
                     .build();
 
@@ -372,6 +379,18 @@ public final class EntityDefinitions {
             SNOWBALL = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
                     .type(EntityType.SNOWBALL)
                     .heightAndWidth(0.25f)
+                    .build();
+
+            EntityFactory<AbstractWindChargeEntity> windChargeSupplier = AbstractWindChargeEntity::new;
+            BREEZE_WIND_CHARGE = EntityDefinition.inherited(windChargeSupplier, entityBase)
+                    .type(EntityType.BREEZE_WIND_CHARGE)
+                    .identifier("minecraft:breeze_wind_charge_projectile")
+                    .heightAndWidth(0.3125f)
+                    .build();
+            WIND_CHARGE = EntityDefinition.inherited(windChargeSupplier, entityBase)
+                    .type(EntityType.WIND_CHARGE)
+                    .identifier("minecraft:wind_charge_projectile")
+                    .heightAndWidth(0.3125f)
                     .build();
 
             EntityDefinition<AbstractArrowEntity> abstractArrowBase = EntityDefinition.inherited(AbstractArrowEntity::new, entityBase)
@@ -502,10 +521,19 @@ public final class EntityDefinitions {
                     .height(0.9f).width(0.5f)
                     .addTranslator(MetadataType.BYTE, BatEntity::setBatFlags)
                     .build();
+            BOGGED = EntityDefinition.inherited(BoggedEntity::new, mobEntityBase)
+                    .type(EntityType.BOGGED)
+                    .height(1.99f).width(0.6f)
+                    .addTranslator(MetadataType.BOOLEAN, BoggedEntity::setSheared)
+                    .build();
             BLAZE = EntityDefinition.inherited(BlazeEntity::new, mobEntityBase)
                     .type(EntityType.BLAZE)
                     .height(1.8f).width(0.6f)
                     .addTranslator(MetadataType.BYTE, BlazeEntity::setBlazeFlags)
+                    .build();
+            BREEZE = EntityDefinition.inherited(BreezeEntity::new, mobEntityBase)
+                    .type(EntityType.BREEZE)
+                    .height(1.77f).width(0.6f)
                     .build();
             CREEPER = EntityDefinition.inherited(CreeperEntity::new, mobEntityBase)
                     .type(EntityType.CREEPER)
