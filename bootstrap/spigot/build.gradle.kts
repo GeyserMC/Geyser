@@ -4,7 +4,16 @@ dependencies {
         isTransitive = false
     }
 
+    implementation(libs.erosion.bukkit.nms) {
+        attributes {
+            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 21)
+        }
+    }
+
     implementation(variantOf(libs.adapters.spigot) {
+        classifier("all") // otherwise the unshaded jar is used without the shaded NMS implementations
+    })
+    implementation(variantOf(libs.adapters.paper) {
         classifier("all") // otherwise the unshaded jar is used without the shaded NMS implementations
     })
 
@@ -34,6 +43,12 @@ application {
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
+
+    // Prevents Paper 1.20.5+ from remapping Geyser
+    manifest {
+        attributes["paperweight-mappings-namespace"] = "mojang"
+    }
+
     archiveBaseName.set("Geyser-Spigot")
 
     dependencies {
@@ -60,4 +75,9 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
         // Commodore includes Brigadier
         exclude(dependency("com.mojang:.*"))
     }
+}
+
+modrinth {
+    uploadFile.set(tasks.getByPath("shadowJar"))
+    loaders.addAll("spigot", "paper")
 }

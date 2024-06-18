@@ -49,9 +49,7 @@ application {
 
 relocate("org.cloudburstmc.netty")
 relocate("org.cloudburstmc.protocol")
-relocate("com.github.steveice10.mc.protocol")
 relocate("com.github.steveice10.mc.auth")
-relocate("com.github.steveice10.packetlib")
 
 tasks {
     remapJar {
@@ -65,6 +63,7 @@ tasks {
 
 modrinth {
     loaders.add("fabric")
+    uploadFile.set(tasks.getByPath("remapModrinthJar"))
     dependencies {
         required.project("fabric-api")
     }

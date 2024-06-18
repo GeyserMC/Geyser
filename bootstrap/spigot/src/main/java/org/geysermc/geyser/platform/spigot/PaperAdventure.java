@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.platform.spigot;
 
-import com.github.steveice10.mc.protocol.data.DefaultComponentSerializer;
+import org.geysermc.mcprotocollib.protocol.data.DefaultComponentSerializer;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 import org.checkerframework.checker.nullness.qual.Nullable;

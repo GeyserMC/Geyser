@@ -31,7 +31,9 @@ dependencies {
 
     // Let's shade in our own api
     shadow(projects.api) { isTransitive = false }
-    shadow(projects.common) { isTransitive = false }
+
+    // cannot be shaded, since neoforge will complain if floodgate-neoforge tries to provide this
+    include(projects.common)
 
     // Include all transitive deps of core via JiJ
     includeTransitive(projects.core)
@@ -53,4 +55,5 @@ tasks {
 
 modrinth {
     loaders.add("neoforge")
+    uploadFile.set(tasks.getByPath("remapModrinthJar"))
 }

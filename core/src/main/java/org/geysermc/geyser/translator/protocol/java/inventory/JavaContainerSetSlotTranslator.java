@@ -25,11 +25,12 @@
 
 package org.geysermc.geyser.translator.protocol.java.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.ClientboundContainerSetSlotPacket;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.Ingredient;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundContainerSetSlotPacket;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.RecipeUnlockingRequirement;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
@@ -41,7 +42,7 @@ import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.inventory.PlayerInventoryTranslator;
-import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
+import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
@@ -71,10 +72,6 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
 
         InventoryTranslator translator = session.getInventoryTranslator();
         if (translator != null) {
-            if (session.getCraftingGridFuture() != null) {
-                session.getCraftingGridFuture().cancel(false);
-            }
-
             int slot = packet.getSlot();
             if (slot >= inventory.getSize()) {
                 GeyserLogger logger = session.getGeyser().getLogger();
@@ -111,12 +108,20 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
      * Checks for a changed output slot in the crafting grid, and ensures Bedrock sees the recipe.
      */
     private static void updateCraftingGrid(GeyserSession session, int slot, ItemStack item, Inventory inventory, InventoryTranslator translator) {
+        // Check if it's the crafting grid result slot.
         if (slot != 0) {
             return;
         }
+
+        // Check if there is any crafting grid.
         int gridSize = translator.getGridSize();
         if (gridSize == -1) {
             return;
+        }
+
+        // Only process the most recent crafting grid result, and cancel the previous one.
+        if (session.getCraftingGridFuture() != null) {
+            session.getCraftingGridFuture().cancel(false);
         }
 
         if (InventoryUtils.isEmpty(item)) {
@@ -193,7 +198,9 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                     uuid,
                     "crafting_table",
                     0,
-                    newRecipeId
+                    newRecipeId,
+                    false,
+                    RecipeUnlockingRequirement.INVALID
             ));
             craftPacket.setCleanRecipes(false);
             session.sendUpstreamPacket(craftPacket);

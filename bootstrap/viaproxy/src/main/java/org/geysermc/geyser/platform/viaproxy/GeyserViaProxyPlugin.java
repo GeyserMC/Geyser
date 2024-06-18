@@ -27,7 +27,6 @@ package org.geysermc.geyser.platform.viaproxy;
 import net.lenni0451.lambdaevents.EventHandler;
 import net.raphimc.vialegacy.api.LegacyProtocolVersion;
 import net.raphimc.viaproxy.ViaProxy;
-import net.raphimc.viaproxy.cli.options.Options;
 import net.raphimc.viaproxy.plugins.PluginManager;
 import net.raphimc.viaproxy.plugins.ViaProxyPlugin;
 import net.raphimc.viaproxy.plugins.events.ConsoleCommandEvent;
@@ -38,6 +37,7 @@ import org.apache.logging.log4j.LogManager;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.GeyserCommandManager;
@@ -45,6 +45,7 @@ import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
+import org.geysermc.geyser.platform.viaproxy.listener.GeyserServerTransferListener;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
@@ -58,7 +59,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
 
-public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootstrap {
+public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootstrap, EventRegistrar {
 
     public static final File ROOT_FOLDER = new File(PluginManager.PLUGINS_DIR, "Geyser");
 
@@ -121,6 +122,7 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
         }
 
         this.geyser = GeyserImpl.load(PlatformType.VIAPROXY, this);
+        this.geyser.eventBus().register(this, new GeyserServerTransferListener());
         LoopbackUtil.checkAndApplyLoopback(this.logger);
     }
 
@@ -137,7 +139,7 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
 
         GeyserImpl.start();
 
-        if (Options.PROTOCOL_VERSION != null && Options.PROTOCOL_VERSION.newerThanOrEqualTo(LegacyProtocolVersion.b1_8tob1_8_1)) {
+        if (ViaProxy.getConfig().getTargetVersion() != null && ViaProxy.getConfig().getTargetVersion().newerThanOrEqualTo(LegacyProtocolVersion.b1_8tob1_8_1)) {
             // Only initialize the ping passthrough if the protocol version is above beta 1.7.3, as that's when the status protocol was added
             this.pingPassthrough = GeyserLegacyPingPassthrough.init(this.geyser);
         }
@@ -186,19 +188,19 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
     @NotNull
     @Override
     public String getServerBindAddress() {
-        if (Options.BIND_ADDRESS instanceof InetSocketAddress socketAddress) {
+        if (ViaProxy.getConfig().getBindAddress() instanceof InetSocketAddress socketAddress) {
             return socketAddress.getHostString();
         } else {
-            throw new IllegalStateException("Unsupported bind address type: " + Options.BIND_ADDRESS.getClass().getName());
+            throw new IllegalStateException("Unsupported bind address type: " + ViaProxy.getConfig().getBindAddress().getClass().getName());
         }
     }
 
     @Override
     public int getServerPort() {
-        if (Options.BIND_ADDRESS instanceof InetSocketAddress socketAddress) {
+        if (ViaProxy.getConfig().getBindAddress() instanceof InetSocketAddress socketAddress) {
             return socketAddress.getPort();
         } else {
-            throw new IllegalStateException("Unsupported bind address type: " + Options.BIND_ADDRESS.getClass().getName());
+            throw new IllegalStateException("Unsupported bind address type: " + ViaProxy.getConfig().getBindAddress().getClass().getName());
         }
     }
 

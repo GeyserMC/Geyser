@@ -71,7 +71,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
     private GeyserCommandManager geyserCommandManager;
     private GeyserStandaloneConfiguration geyserConfig;
-    private GeyserStandaloneLogger geyserLogger;
+    private final GeyserStandaloneLogger geyserLogger = new GeyserStandaloneLogger();
     private IGeyserPingPassthrough geyserPingPassthrough;
     private GeyserStandaloneGUI gui;
     @Getter
@@ -180,8 +180,6 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
                 log4jLogger.removeAppender(appender);
             }
         }
-
-        this.geyserLogger = new GeyserStandaloneLogger();
 
         if (useGui && gui == null) {
             gui = new GeyserStandaloneGUI(geyserLogger);

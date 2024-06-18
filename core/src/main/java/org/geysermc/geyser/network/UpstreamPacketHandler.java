@@ -54,6 +54,7 @@ import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.protocol.common.util.Zlib;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.event.bedrock.SessionInitializeEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.pack.PackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
@@ -131,6 +132,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         }
 
         session.getUpstream().getSession().setCodec(packetCodec);
+        // FIXME temporary until 1.20.80 is dropped
+        session.getPlayerEntity().resetAir();
         return true;
     }
 
@@ -187,6 +190,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             // Can happen if Xbox validation fails
             return PacketSignal.HANDLED;
         }
+
+        // Fire SessionInitializeEvent here as we now know the client data
+        geyser.eventBus().fire(new SessionInitializeEvent(session));
 
         PlayStatusPacket playStatus = new PlayStatusPacket();
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);

@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.java.scoreboard;
 
-import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.scoreboard.ClientboundResetScorePacket;
 import org.geysermc.geyser.scoreboard.Objective;
 import org.geysermc.geyser.scoreboard.Scoreboard;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
@@ -34,6 +32,8 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreboardPosition;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundResetScorePacket;
 
 @Translator(packet = ClientboundResetScorePacket.class)
 public class JavaResetScorePacket extends PacketTranslator<ClientboundResetScorePacket> {

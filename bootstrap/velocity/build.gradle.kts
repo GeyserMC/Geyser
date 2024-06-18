@@ -70,3 +70,8 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
         exclude(dependency("net.kyori:adventure-nbt:.*"))
     }
 }
+
+modrinth {
+    uploadFile.set(tasks.getByPath("shadowJar"))
+    loaders.addAll("velocity")
+}

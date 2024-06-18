@@ -25,19 +25,16 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundBlockEntityDataPacket;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureMirror;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureRotation;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
-import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.geyser.translator.level.block.entity.RequiresBlockState;
@@ -46,6 +43,9 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.geyser.util.StructureBlockUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundBlockEntityDataPacket;
 
 @Translator(packet = ClientboundBlockEntityDataPacket.class)
 public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundBlockEntityDataPacket> {
@@ -59,11 +59,11 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
         BlockEntityTranslator translator = BlockEntityUtils.getBlockEntityTranslator(type);
         // The Java block state is used in BlockEntityTranslator.translateTag() to make up for some inconsistencies
         // between Java block states and Bedrock block entity data
-        int blockState;
+        BlockState blockState;
         if (translator instanceof RequiresBlockState) {
-            blockState = session.getGeyser().getWorldManager().getBlockAt(session, packet.getPosition());
+            blockState = BlockRegistries.BLOCK_STATES.get(session.getGeyser().getWorldManager().getBlockAt(session, packet.getPosition()));
         } else {
-            blockState = BlockStateValues.JAVA_AIR_ID;
+            blockState = BlockRegistries.BLOCK_STATES.get(0); //TODO
         }
 
         Vector3i position = packet.getPosition();
@@ -71,7 +71,7 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
                 packet.getNbt(), blockState), packet.getPosition());
         // Check for custom skulls.
         boolean hasCustomHeadBlock = false;
-        if (session.getPreferencesCache().showCustomSkulls() && packet.getNbt() != null && packet.getNbt().contains("SkullOwner")) {
+        if (session.getPreferencesCache().showCustomSkulls() && packet.getNbt() != null && packet.getNbt().containsKey("profile")) {
             BlockDefinition blockDefinition = SkullBlockEntityTranslator.translateSkull(session, packet.getNbt(), position, blockState);
             if (blockDefinition != null) {
                 hasCustomHeadBlock = true;
@@ -107,21 +107,21 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
                 && packet.getPosition().equals(session.getStructureBlockCache().getCurrentStructureBlock())
                 && packet.getNbt() != null && packet.getNbt().size() > 5
         ) {
-            CompoundTag map = packet.getNbt();
+            NbtMap map = packet.getNbt();
 
-            String mode = getOrDefault(map.get("mode"), "");
+            String mode = map.getString("mode");
             if (!mode.equalsIgnoreCase("LOAD")) {
                 return;
             }
 
-            String mirror = getOrDefault(map.get("mirror"), "");
+            String mirror = map.getString("mirror");
             StructureMirror bedrockMirror = switch (mirror) {
                 case "FRONT_BACK" -> StructureMirror.X;
                 case "LEFT_RIGHT" -> StructureMirror.Z;
                 default -> StructureMirror.NONE;
             };
 
-            String rotation = getOrDefault(map.get("rotation"), "");
+            String rotation = map.getString("rotation");
             StructureRotation bedrockRotation = switch (rotation) {
                 case "CLOCKWISE_90" -> StructureRotation.ROTATE_90;
                 case "CLOCKWISE_180" -> StructureRotation.ROTATE_180;
@@ -129,10 +129,10 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
                 default -> StructureRotation.NONE;
             };
 
-            String name = getOrDefault(map.get("name"), "");
-            int sizeX = getOrDefault(map.get("sizeX"), 0);
-            int sizeY = getOrDefault(map.get("sizeY"), 0);
-            int sizeZ = getOrDefault(map.get("sizeZ"), 0);
+            String name = map.getString("name");
+            int sizeX = map.getInt("sizeX");
+            int sizeY = map.getInt("sizeY");
+            int sizeZ = map.getInt("sizeZ");
 
             session.getStructureBlockCache().setCurrentStructureBlock(null);
 
@@ -148,11 +148,5 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
             session.getStructureBlockCache().setCurrentStructureName(name);
             StructureBlockUtils.sendStructureData(session, size, name);
         }
-    }
-
-
-    protected <T> T getOrDefault(Tag tag, T defaultValue) {
-        //noinspection unchecked
-        return (tag != null && tag.getValue() != null) ? (T) tag.getValue() : defaultValue;
     }
 }

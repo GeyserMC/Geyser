@@ -25,10 +25,8 @@
 
 package org.geysermc.geyser.entity.type.living.animal.tameable;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
@@ -36,27 +34,30 @@ import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.enchantment.EnchantmentComponent;
 import org.geysermc.geyser.item.type.DyeItem;
-import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
+import org.geysermc.geyser.util.ItemUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.WolfVariant;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 import java.util.Collections;
-import java.util.Set;
+import java.util.Locale;
 import java.util.UUID;
 
 public class WolfEntity extends TameableEntity {
-    /**
-     * A list of all foods a wolf can eat on Java Edition.
-     * Used to display interactive tag or particles if needed.
-     * TODO generate
-     */
-    private static final Set<Item> WOLF_FOODS = Set.of(Items.PUFFERFISH, Items.TROPICAL_FISH, Items.CHICKEN, Items.COOKED_CHICKEN,
-            Items.PORKCHOP, Items.BEEF, Items.RABBIT, Items.COOKED_PORKCHOP, Items.COOKED_BEEF, Items.ROTTEN_FLESH, Items.MUTTON, Items.COOKED_MUTTON,
-            Items.COOKED_RABBIT);
-
     private byte collarColor = 14; // Red - default
+
+    private boolean isCurseOfBinding = false;
 
     public WolfEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
@@ -102,14 +103,31 @@ public class WolfEntity extends TameableEntity {
         dirtyMetadata.put(EntityDataTypes.COLOR, time != 0 ? (byte) 0 : collarColor);
     }
 
-    @Override
-    public boolean canEat(Item item) {
-        // Cannot be a baby to eat these foods
-        return WOLF_FOODS.contains(item) && !isBaby();
+    // 1.20.5+
+    public void setWolfVariant(ObjectEntityMetadata<Holder<WolfVariant>> entityMetadata) {
+        entityMetadata.getValue().ifId(id -> {
+            BuiltInWolfVariant wolfVariant = session.getRegistryCache().wolfVariants().byId(id);
+            if (wolfVariant == null) {
+                wolfVariant = BuiltInWolfVariant.PALE;
+            }
+            dirtyMetadata.put(EntityDataTypes.VARIANT, wolfVariant.ordinal());
+        });
     }
 
     @Override
-    protected boolean canBeLeashed() {
+    @Nullable
+    protected ItemTag getFoodTag() {
+        return ItemTag.WOLF_FOOD;
+    }
+
+    @Override
+    public void setChestplate(ItemStack stack) {
+        super.setChestplate(stack);
+        isCurseOfBinding = ItemUtils.hasEffect(session, stack, EnchantmentComponent.PREVENT_ARMOR_CHANGE); // TODO test
+    }
+
+    @Override
+    public boolean canBeLeashed() {
         return !getFlag(EntityFlag.ANGRY) && super.canBeLeashed();
     }
 
@@ -122,16 +140,30 @@ public class WolfEntity extends TameableEntity {
         if (itemInHand.asItem() == Items.BONE && !getFlag(EntityFlag.TAMED)) {
             // Bone and untamed - can tame
             return InteractiveTag.TAME;
-        } else {
-            if (itemInHand.asItem() instanceof DyeItem item) {
+        }
+        if (getFlag(EntityFlag.TAMED) && ownerBedrockId == session.getPlayerEntity().getGeyserId()) {
+            if (itemInHand.asItem() instanceof DyeItem dyeItem) {
                 // If this fails, as of Java Edition 1.18.1, you cannot toggle sit/stand
-                if (item.dyeColor() != this.collarColor) {
+                if (dyeItem.dyeColor() != this.collarColor) {
                     return InteractiveTag.DYE;
+                } else {
+                    return super.testMobInteraction(hand, itemInHand);
                 }
-            } else if (getFlag(EntityFlag.TAMED) && ownerBedrockId == session.getPlayerEntity().getGeyserId()) {
-                // Tamed and owned by player - can sit/stand
-                return getFlag(EntityFlag.SITTING) ? InteractiveTag.STAND : InteractiveTag.SIT;
             }
+            if (itemInHand.asItem() == Items.WOLF_ARMOR && !this.chestplate.isValid() && !getFlag(EntityFlag.BABY)) {
+                return InteractiveTag.EQUIP_WOLF_ARMOR;
+            }
+            if (itemInHand.asItem() == Items.SHEARS && this.chestplate.isValid()
+                    && (!isCurseOfBinding || session.getGameMode().equals(GameMode.CREATIVE))) {
+                return InteractiveTag.REMOVE_WOLF_ARMOR;
+            }
+            if (Items.WOLF_ARMOR.isValidRepairItem(itemInHand.asItem()) && getFlag(EntityFlag.SITTING) &&
+                    this.chestplate.isValid() && this.chestplate.getTag() != null &&
+                    this.chestplate.getTag().getInt("Damage") > 0) {
+                return InteractiveTag.REPAIR_WOLF_ARMOR;
+            }
+            // Tamed and owned by player - can sit/stand
+            return getFlag(EntityFlag.SITTING) ? InteractiveTag.STAND : InteractiveTag.SIT;
         }
         return super.testMobInteraction(hand, itemInHand);
     }
@@ -145,6 +177,36 @@ public class WolfEntity extends TameableEntity {
             return InteractionResult.CONSUME;
         } else {
             return InteractionResult.PASS;
+        }
+    }
+
+    // Ordered by bedrock id
+    public enum BuiltInWolfVariant {
+        PALE,
+        ASHEN,
+        BLACK,
+        CHESTNUT,
+        RUSTY,
+        SNOWY,
+        SPOTTED,
+        STRIPED,
+        WOODS;
+
+        private static final BuiltInWolfVariant[] VALUES = values();
+
+        private final String javaIdentifier;
+
+        BuiltInWolfVariant() {
+            this.javaIdentifier = "minecraft:" + this.name().toLowerCase(Locale.ROOT);
+        }
+
+        public static @Nullable BuiltInWolfVariant getByJavaIdentifier(String javaIdentifier) {
+            for (BuiltInWolfVariant wolfVariant : VALUES) {
+                if (wolfVariant.javaIdentifier.equals(javaIdentifier)) {
+                    return wolfVariant;
+                }
+            }
+            return null;
         }
     }
 }

@@ -29,7 +29,6 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.steveice10.packetlib.tcp.TcpSession;
 import io.netty.channel.epoll.Epoll;
 import io.netty.util.NettyRuntime;
 import io.netty.util.concurrent.DefaultThreadFactory;
@@ -79,6 +78,7 @@ import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
 import org.geysermc.geyser.session.SessionManager;
+import org.geysermc.geyser.session.cache.RegistryCache;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
 import org.geysermc.geyser.skin.ProvidedSkins;
 import org.geysermc.geyser.skin.SkinProvider;
@@ -86,6 +86,7 @@ import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.*;
+import org.geysermc.mcprotocollib.network.tcp.TcpSession;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -211,6 +212,8 @@ public class GeyserImpl implements GeyserApi {
         /* Initialize registries */
         Registries.init();
         BlockRegistries.init();
+
+        RegistryCache.init();
 
         /* Initialize translators */
         EntityDefinitions.init();
@@ -767,6 +770,7 @@ public class GeyserImpl implements GeyserApi {
             return 0;
         }
 
+        //noinspection DataFlowIssue
         return Integer.parseInt(BUILD_NUMBER);
     }
 

@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.github.steveice10.mc.protocol.data.game.inventory.UpdateStructureBlockAction;
-import com.github.steveice10.mc.protocol.data.game.inventory.UpdateStructureBlockMode;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureBlockType;
 import org.cloudburstmc.protocol.bedrock.data.structure.StructureEditorData;
 import org.cloudburstmc.protocol.bedrock.packet.StructureBlockUpdatePacket;
@@ -34,6 +32,8 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.StructureBlockUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.UpdateStructureBlockAction;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.UpdateStructureBlockMode;
 
 @Translator(packet = StructureBlockUpdatePacket.class)
 public class BedrockStructureBlockUpdateTranslator extends PacketTranslator<StructureBlockUpdatePacket> {

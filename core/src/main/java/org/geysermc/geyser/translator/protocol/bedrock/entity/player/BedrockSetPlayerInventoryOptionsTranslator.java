@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.data.game.inventory.CraftingBookStateType;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundRecipeBookChangeSettingsPacket;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.CraftingBookStateType;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundRecipeBookChangeSettingsPacket;
 import org.cloudburstmc.protocol.bedrock.data.inventory.InventoryTabLeft;
 import org.cloudburstmc.protocol.bedrock.data.inventory.InventoryTabRight;
 import org.cloudburstmc.protocol.bedrock.packet.SetPlayerInventoryOptionsPacket;

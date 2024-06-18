@@ -25,23 +25,25 @@
 
 package org.geysermc.geyser.network.netty;
 
-import com.github.steveice10.mc.protocol.codec.MinecraftCodecHelper;
-import com.github.steveice10.packetlib.BuiltinFlags;
-import com.github.steveice10.packetlib.codec.PacketCodecHelper;
-import com.github.steveice10.packetlib.packet.PacketProtocol;
-import com.github.steveice10.packetlib.tcp.TcpPacketCodec;
-import com.github.steveice10.packetlib.tcp.TcpPacketSizer;
-import com.github.steveice10.packetlib.tcp.TcpSession;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.*;
 import io.netty.channel.unix.PreferredDirectByteBufAllocator;
 import io.netty.handler.codec.haproxy.*;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.mcprotocollib.network.BuiltinFlags;
+import org.geysermc.mcprotocollib.network.codec.PacketCodecHelper;
+import org.geysermc.mcprotocollib.network.packet.PacketProtocol;
+import org.geysermc.mcprotocollib.network.tcp.TcpPacketCodec;
+import org.geysermc.mcprotocollib.network.tcp.TcpPacketSizer;
+import org.geysermc.mcprotocollib.network.tcp.TcpSession;
+import org.geysermc.mcprotocollib.protocol.codec.MinecraftCodecHelper;
 
 import java.net.Inet4Address;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Manages a Minecraft Java session over our LocalChannel implementations.
@@ -62,13 +64,15 @@ public final class LocalSession extends TcpSession {
     }
 
     @Override
-    public void connect(boolean wait) {
+    public void connect(boolean wait, boolean transferring) {
         if (this.disconnected) {
             throw new IllegalStateException("Connection has already been disconnected.");
         }
 
         if (DEFAULT_EVENT_LOOP_GROUP == null) {
-            DEFAULT_EVENT_LOOP_GROUP = new DefaultEventLoopGroup();
+            DEFAULT_EVENT_LOOP_GROUP = new DefaultEventLoopGroup(new DefaultThreadFactory(this.getClass(), true));
+            Runtime.getRuntime().addShutdownHook(new Thread(
+                    () -> DEFAULT_EVENT_LOOP_GROUP.shutdownGracefully(100, 500, TimeUnit.MILLISECONDS)));
         }
 
         try {
@@ -79,7 +83,7 @@ public final class LocalSession extends TcpSession {
                 public void initChannel(@NonNull LocalChannelWithRemoteAddress channel) {
                     channel.spoofedRemoteAddress(new InetSocketAddress(clientIp, 0));
                     PacketProtocol protocol = getPacketProtocol();
-                    protocol.newClientSession(LocalSession.this);
+                    protocol.newClientSession(LocalSession.this, transferring);
 
                     refreshReadTimeoutHandler(channel);
                     refreshWriteTimeoutHandler(channel);

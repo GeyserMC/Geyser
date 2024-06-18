@@ -58,14 +58,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 
 public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     private GeyserCommandManager geyserCommandManager;
     private GeyserBungeeConfiguration geyserConfig;
     private GeyserBungeeInjector geyserInjector;
-    private GeyserBungeeLogger geyserLogger;
+    private final GeyserBungeeLogger geyserLogger = new GeyserBungeeLogger(getLogger());
     private IGeyserPingPassthrough geyserBungeePingPassthrough;
 
     private GeyserImpl geyser;
@@ -82,21 +81,21 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         // Copied from ViaVersion.
         // https://github.com/ViaVersion/ViaVersion/blob/b8072aad86695cc8ec6f5e4103e43baf3abf6cc5/bungee/src/main/java/us/myles/ViaVersion/BungeePlugin.java#L43
         try {
-            ProtocolConstants.class.getField("MINECRAFT_1_20_3");
+            ProtocolConstants.class.getField("MINECRAFT_1_21");
         } catch (NoSuchFieldException e) {
-            getLogger().warning("      / \\");
-            getLogger().warning("     /   \\");
-            getLogger().warning("    /  |  \\");
-            getLogger().warning("   /   |   \\    " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_proxy", getProxy().getName()));
-            getLogger().warning("  /         \\   " + GeyserLocale.getLocaleStringLog("geyser.may_not_work_as_intended_all_caps"));
-            getLogger().warning(" /     o     \\");
-            getLogger().warning("/_____________\\");
+            geyserLogger.error("      / \\");
+            geyserLogger.error("     /   \\");
+            geyserLogger.error("    /  |  \\");
+            geyserLogger.error("   /   |   \\    " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_proxy", getProxy().getName()));
+            geyserLogger.error("  /         \\   " + GeyserLocale.getLocaleStringLog("geyser.may_not_work_as_intended_all_caps"));
+            geyserLogger.error(" /     o     \\");
+            geyserLogger.error("/_____________\\");
         }
 
         if (!this.loadConfig()) {
             return;
         }
-        this.geyserLogger = new GeyserBungeeLogger(getLogger(), geyserConfig.isDebugMode());
+        this.geyserLogger.setDebug(geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
         this.geyser = GeyserImpl.load(PlatformType.BUNGEECORD, this);
         this.geyserInjector = new GeyserBungeeInjector(this);
@@ -293,7 +292,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
                     "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserBungeeConfiguration.class);
         } catch (IOException ex) {
-            getLogger().log(Level.SEVERE, GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
+            geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
             return false;
         }

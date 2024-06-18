@@ -34,7 +34,6 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.player.Player;
-import org.apache.logging.log4j.LogManager;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserBootstrap;
@@ -58,6 +57,7 @@ import org.geysermc.geyser.util.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.UUID;
@@ -79,7 +79,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     private GeyserCommandManager geyserCommandManager;
     private GeyserModConfiguration geyserConfig;
     private GeyserModInjector geyserInjector;
-    private GeyserModLogger geyserLogger;
+    private final GeyserModLogger geyserLogger = new GeyserModLogger();
     private IGeyserPingPassthrough geyserPingPassthrough;
     private WorldManager geyserWorldManager;
 
@@ -91,7 +91,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         if (!loadConfig()) {
             return;
         }
-        this.geyserLogger = new GeyserModLogger(geyserConfig.isDebugMode());
+        this.geyserLogger.setDebug(geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
         this.geyser = GeyserImpl.load(this.platform.platformType(), this);
 
@@ -127,7 +127,9 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         // We want to do this late in the server startup process to allow other mods
         // To do their job injecting, then connect into *that*
         this.geyserInjector = new GeyserModInjector(server, this.platform);
-        this.geyserInjector.initializeLocalChannel(this);
+        if (isServer()) {
+            this.geyserInjector.initializeLocalChannel(this);
+        }
 
         // Start command building
         // Set just "geyser" as the help command
@@ -241,9 +243,21 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     }
 
     @Override
-    public int getServerPort() {
-        return ((GeyserServerPortGetter) server).geyser$getServerPort();
+    public SocketAddress getSocketAddress() {
+        return this.geyserInjector.getServerSocketAddress();
     }
+
+    @Override
+    public int getServerPort() {
+        if (isServer()) {
+            return ((GeyserServerPortGetter) server).geyser$getServerPort();
+        } else {
+            // Set in the IntegratedServerMixin
+            return geyserConfig.getRemote().port();
+        }
+    }
+
+    public abstract boolean isServer();
 
     @Override
     public boolean testFloodgatePluginPresent() {
@@ -273,7 +287,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserModConfiguration.class);
             return true;
         } catch (IOException ex) {
-            LogManager.getLogger("geyser").error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
+            geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
             return false;
         }
