@@ -33,6 +33,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.erosion.util.BlockPositionIterator;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
@@ -64,7 +65,11 @@ public abstract class WorldManager {
 
     @NonNull
     public BlockState blockAt(GeyserSession session, int x, int y, int z) {
-        return BlockState.of(this.getBlockAt(session, x, y, z));
+        BlockState block = BlockState.of(this.getBlockAt(session, x, y, z));
+        if (block == null) {
+            return BlockState.of(Block.JAVA_AIR_ID);
+        }
+        return block;
     }
 
     /**
