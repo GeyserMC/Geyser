@@ -167,14 +167,16 @@ public interface Command {
         /**
          * Sets the permission node and its default value. The usage of the default value is platform dependant
          * and may or may not be used. For example, it may be registered to an underlying server.
-         <p>
-         * Extensions may instead listen for {@link GeyserRegisterPermissionsEvent} to register permissions, which
-         * should be used if the same permission is required by multiple commands.
+         * <p>
+         * Extensions may instead listen for {@link GeyserRegisterPermissionsEvent} to register permissions,
+         * especially if the same permission is required by multiple commands. Also see this event for TriState meanings.
          *
          * @param permission the permission node
          * @param defaultValue the node's default value
          * @return this builder
+         * @deprecated this method is experimental and may be removed in the future
          */
+        @Deprecated
         Builder<T> permission(@NonNull String permission, @NonNull TriState defaultValue);
 
         /**

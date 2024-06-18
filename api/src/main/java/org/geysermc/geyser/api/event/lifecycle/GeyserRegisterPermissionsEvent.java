@@ -39,7 +39,10 @@ import org.geysermc.geyser.api.util.TriState;
 public interface GeyserRegisterPermissionsEvent extends Event {
 
     /**
-     * Registers a permission node and its default value with the firer.
+     * Registers a permission node and its default value with the firer.<p>
+     * {@link TriState#TRUE} corresponds to all players having the permission by default.<br>
+     * {@link TriState#NOT_SET} corresponds to only server operators having the permission by default (if such a concept exists on the platform).<br>
+     * {@link TriState#FALSE} corresponds to no players having the permission by default.<br>
      *
      * @param permission the permission node to register
      * @param defaultValue the default value of the node

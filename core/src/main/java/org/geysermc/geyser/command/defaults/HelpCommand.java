@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.command.defaults;
 
+import com.google.common.base.Predicates;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
@@ -71,7 +72,7 @@ public class HelpCommand extends GeyserCommand {
 
         this.commands.stream()
             .distinct() // remove aliases
-            .filter(cmd -> !cmd.isBedrockOnly() || bedrockPlayer) // remove bedrock only commands if not a bedrock player
+            .filter(bedrockPlayer ? Predicates.alwaysTrue() : cmd -> !cmd.isBedrockOnly()) // remove bedrock only commands if not a bedrock player
             .filter(cmd -> source.hasPermission(cmd.permission()))
             .sorted(Comparator.comparing(Command::name))
             .forEachOrdered(cmd -> {

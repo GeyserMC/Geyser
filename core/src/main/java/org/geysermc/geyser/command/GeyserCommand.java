@@ -27,6 +27,7 @@ package org.geysermc.geyser.command;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.incendo.cloud.Command;
@@ -62,6 +63,7 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
     /**
      * The default value of the permission node.
      * A null value indicates that the permission node should not be registered whatsoever.
+     * See {@link GeyserRegisterPermissionsEvent#register(String, TriState)} for TriState meanings.
      */
     @Nullable
     private final TriState permissionDefault;
