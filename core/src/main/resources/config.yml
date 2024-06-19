@@ -172,8 +172,8 @@ force-resource-packs: true
 # If you enter a link here, Geyser will download the resource pack once to check if it's in a valid format.
 # See https://wiki.geysermc.org/geyser/packs for more info.
 resource-pack-urls:
-  # Example: GeyserOptionalPack
-  - "https://ci.opencollab.dev/job/GeyserMC/job/GeyserOptionalPack/job/master/lastSuccessfulBuild/artifact/GeyserOptionalPack.mcpack"
+  # GeyserOptionalPack
+  - "https://download.geysermc.org/v2/projects/geyseroptionalpack/versions/latest/builds/latest/downloads/geyseroptionalpack"
 
 # Allows Xbox achievements to be unlocked.
 # THIS DISABLES ALL COMMANDS FROM SUCCESSFULLY RUNNING FOR BEDROCK IN-GAME, as otherwise Bedrock thinks you are cheating.

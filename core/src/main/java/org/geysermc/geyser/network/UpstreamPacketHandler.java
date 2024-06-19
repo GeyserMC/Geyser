@@ -36,20 +36,7 @@ import org.cloudburstmc.protocol.bedrock.data.ResourcePackType;
 import org.cloudburstmc.protocol.bedrock.netty.codec.compression.CompressionStrategy;
 import org.cloudburstmc.protocol.bedrock.netty.codec.compression.SimpleCompressionStrategy;
 import org.cloudburstmc.protocol.bedrock.netty.codec.compression.ZlibCompression;
-import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
-import org.cloudburstmc.protocol.bedrock.packet.LoginPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ModalFormResponsePacket;
-import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
-import org.cloudburstmc.protocol.bedrock.packet.NetworkSettingsPacket;
-import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
-import org.cloudburstmc.protocol.bedrock.packet.RequestNetworkSettingsPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ResourcePackChunkDataPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ResourcePackChunkRequestPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ResourcePackClientResponsePacket;
-import org.cloudburstmc.protocol.bedrock.packet.ResourcePackDataInfoPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ResourcePackStackPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ResourcePacksInfoPacket;
-import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
+import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.protocol.common.util.Zlib;
 import org.geysermc.geyser.Constants;
@@ -78,15 +65,12 @@ import java.nio.channels.SeekableByteChannel;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.OptionalInt;
-import java.util.UUID;
 
 public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     private boolean networkSettingsRequested = false;
     private final Deque<String> packsToSent = new ArrayDeque<>();
-    private final Map<UUID, String> brokenResourcePacks = new HashMap<>();
     private final CompressionStrategy compressionStrategy;
 
     private SessionLoadResourcePacksEventImpl resourcePackLoadEvent;
@@ -317,7 +301,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         ResourcePack pack = this.resourcePackLoadEvent.getPacks().get(packet.getPackId().toString());
         PackCodec codec = pack.codec();
 
-        // If a remote pack ends up here, that usually implies that a platform was not able to download the pack
+        // If a remote pack ends up here, that usually implies that a client was not able to download the pack
         if (codec instanceof UrlPackCodec urlPackCodec) {
             ResourcePackLoader.testUrlPack(urlPackCodec);
         }

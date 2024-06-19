@@ -171,11 +171,8 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<String, Reso
      */
     public static GeyserResourcePack readPack(GeyserUrlPackCodec codec) throws IllegalArgumentException {
         Path path = codec.getFallback().path();
-
         ResourcePackManifest manifest = readManifest(path, codec.url());
-        String contentKey = codec.contentKey();
-
-        return new GeyserResourcePack(codec, manifest, contentKey);
+        return new GeyserResourcePack(codec, manifest, codec.contentKey());
     }
 
     private static ResourcePackManifest readManifest(Path path, String packLocation) throws IllegalArgumentException {
