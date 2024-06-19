@@ -111,7 +111,7 @@ public interface JavaBlockState {
          * @deprecated Does not have an effect. If you were using this to
          *      * set piston behavior, use {@link #pistonBehavior(String)} instead.
          */
-        @Deprecated
+        @Deprecated(forRemoval = true)
         Builder hasBlockEntity(boolean hasBlockEntity);
 
         JavaBlockState build();

@@ -39,6 +39,7 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.level.BedrockDimension;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.chunk.BlockStorage;
@@ -398,7 +399,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
                 // Get the Java block state ID from block entity position
                 DataPalette section = javaChunks[(y >> 4) - yOffset];
-                BlockState blockState = BlockRegistries.BLOCK_STATES.get(section.get(x, y & 0xF, z));
+                BlockState blockState = BlockRegistries.BLOCK_STATES.getOrDefault(section.get(x, y & 0xF, z), Blocks.AIR.defaultBlockState());
 
                 // Note that, since 1.20.5, tags can be null, but Bedrock still needs a default tag to render the item
                 // Also, some properties - like banner base colors - are part of the tag and is processed here.
@@ -406,7 +407,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
                 // The Java server can send block entity data for blocks that aren't actually those blocks.
                 // A Java client ignores these
-                if (blockState != null && blockState.block().hasBlockEntity() && type.equals(blockState.block().blockEntityType())) {
+                if (blockState.block().hasBlockEntity() && type == blockState.block().blockEntityType()) {
                     bedrockBlockEntities.add(blockEntityTranslator.getBlockEntityTag(session, type, x + chunkBlockX, y, z + chunkBlockZ, tag, blockState));
 
                     // Check for custom skulls
