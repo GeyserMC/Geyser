@@ -25,15 +25,13 @@
 
 package org.geysermc.geyser.item.type;
 
+import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
-
-import java.util.ArrayList;
 
 public class DebugStickItem extends Item {
     public DebugStickItem(String javaIdentifier, Builder builder) {
@@ -46,7 +44,7 @@ public class DebugStickItem extends Item {
 
         // No enchantments -> no glint! Let's add it.
         if (!nbt.containsKey("ench")) {
-            nbt.putList("ench", NbtType.COMPOUND, new ArrayList<>());
+            nbt.put("ench", NbtList.EMPTY);
         }
 
         // Only make the name pink - WHICH IS DONE CLIENT SIDE o.o - if no custom name exists
