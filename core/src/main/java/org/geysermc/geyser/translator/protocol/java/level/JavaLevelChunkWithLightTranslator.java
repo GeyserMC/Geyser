@@ -406,7 +406,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
                 // The Java server can send block entity data for blocks that aren't actually those blocks.
                 // A Java client ignores these
-                if (blockState != null && blockState.block().hasBlockEntity() && type.equals(blockState.block().blockEntityType())) {
+                if (blockState != null && type.equals(blockState.block().blockEntityType())) {
                     bedrockBlockEntities.add(blockEntityTranslator.getBlockEntityTag(session, type, x + chunkBlockX, y, z + chunkBlockZ, tag, blockState));
 
                     // Check for custom skulls
